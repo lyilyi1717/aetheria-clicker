@@ -847,12 +847,12 @@ class AetheriaApp {
         if (fillEl) fillEl.style.width = '0%';
       } else {
         const def = SEED_TYPES[p.seed];
-        const isMature = p.stage === 'mature';
+        const isMature = p.stage === 'mature' || p.progress >= p.maxTime;
         const progressPct = Math.min(100, (p.progress / p.maxTime) * 100);
 
         plotEl.className = `garden-plot planted ${isMature ? 'mature' : ''}`;
         if (icoEl) icoEl.textContent = def.icon;
-        if (statEl) statEl.textContent = isMature ? '✨ READY TO HARVEST!' : `${def.name} (${Math.ceil(p.maxTime - p.progress)}s)`;
+        if (statEl) statEl.textContent = isMature ? '✨ READY TO HARVEST!' : `${def.name} (${Math.max(0, Math.ceil(p.maxTime - p.progress))}s)`;
         if (fillEl) fillEl.style.width = `${progressPct}%`;
       }
     }

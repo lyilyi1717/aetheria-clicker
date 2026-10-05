@@ -1,9 +1,17 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.1.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.1.1',
+    date: '2026-10-05',
+    title: 'Garden Timer Fix',
+    changes: [
+      'Garden: plot timers can no longer count into negative seconds; any fully grown plot is always harvestable (also repairs plots stuck in older saves).'
+    ]
+  },
   {
     version: '1.1.0',
     date: '2026-10-05',

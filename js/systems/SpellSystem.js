@@ -213,7 +213,7 @@ export class SpellSystem {
       if (this.gameState.garden && this.gameState.garden.plots) {
         for (const plot of this.gameState.garden.plots) {
           if (plot.seed && plot.progress < plot.maxTime) {
-            plot.progress += overflow;
+            plot.progress = Math.min(plot.maxTime, plot.progress + overflow);
           }
         }
       }

@@ -97,7 +97,7 @@ export class GardenSystem {
 
   harvestPlot(plotIndex, clientX, clientY) {
     const plot = this.gameState.garden.plots[plotIndex];
-    if (!plot || plot.stage !== 'mature') return false;
+    if (!plot || !plot.seed || (plot.stage !== 'mature' && plot.progress < plot.maxTime)) return false;
 
     sound.playGem();
     this.gameState.stats.totalPlantsHarvested++;
