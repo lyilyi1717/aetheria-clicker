@@ -1,9 +1,19 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '2.6.0';
+export const VERSION = '2.7.0';
 
 export const CHANGELOG = [
+  {
+    version: '2.7.0',
+    date: '2026-10-06',
+    title: 'Fast Forward Returns',
+    changes: [
+      'Fast Forward is back. Each use costs 3x the last (30, 90, 270, 810 Chrono Sand…), and the price resets after 30 minutes without one.',
+      'The Fast Forward button shows its current price, uses this cycle and a reset countdown, and spamming it no longer lags the game.',
+      'Fixed lost clicks on the Golden Enchanter button and a shared 1x/10x/MAX setting between the Buildings and the Bazaar.'
+    ]
+  },
   {
     version: '2.6.0',
     date: '2026-10-06',

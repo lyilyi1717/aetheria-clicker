@@ -1,5 +1,146 @@
 # Excavation "stuck / unplayable" and what Ascension should reset
 
+## Re-check against v2.6.0 (2026-10-06)
+
+Range checked: `f7e53bb` (v2.1.1) → `e082b46` (v2.6.0), 21 commits. Line numbers in this
+section refer to v2.6.0. Method: read `git diff f7e53bb..HEAD -- js/ index.html`, ran
+`npm test` (passes) and `node --check` on every JS file (clean). A headless node sim in the
+session scratchpad covered Enchanter bulk-buy and `PrestigeSystem.ascend`. No browser was used.
+
+### What the 21 commits changed in game logic
+
+`PrestigeSystem`, `GameState`, `ClickerSystem`, `SpellSystem`, `TalentTreeSystem`,
+`BountySystem`, `GameLoop`, `SaveManager`, `BigNum` and all three test files are
+**byte-identical** to v2.1.1. The rest:
+
+| File | Change | Gameplay effect |
+|---|---|---|
+| `BuildingSystem.js` | names, descriptions, icons (Saudi theme) | none: costs and CPS are identical |
+| `CombatSystem.js` | zone/monster names, `fmt()` display helper (:38), rarity colours | none: no stat or formula change |
+| `GardenSystem.js`, `AlchemySystem.js` | seed/essence/recipe display names | none: ids and save keys unchanged |
+| `MiningSystem.js` :313-314 | gem float-text uses Saudi names | none: the map covers all 5 gem contents |
+| `MarketSystem.js` :65-110 | Golden Synergy `getEnchanterTotalCost(n)`, `buyEnchanter(1/10/100/'max')` | Convenience only. A x10 buy costs exactly the sum of ten x1 buys (sim: same level, 6.357e9 gold from L0). |
+| `main.js` :245-250 | Fast Forward handler replaced by `alert("kl zaq cheater")` | Fast Forward is gone. See "Anti-cheat" below. |
+| `main.js` | rhythm-scale setting, monster avatars, gear rarity classes, Enchanter button, tooltips | UI only. Two of these reintroduce per-frame DOM rebuilds (below). |
+
+### Part 1 re-check: the v2.1.1 Excavation fixes still hold
+
+| Fix | v2.6.0 | Status |
+|---|---|---|
+| A. Descent on sim time (no `setTimeout`) | `DESCEND_DELAY` :35, `revealReward` :291-295, countdown in `update()` | holds |
+| A. Self-heal on load and tick | `ensurePlayableGrid` :135, called at :85 and :411 | holds |
+| C. Explosives scale with the pickaxe | `EXPLOSIVE_HITS = 40` :38 | holds |
+| B. Schema 3 rebase of stranded saves | `MINING_SCHEMA = 3` :30 | holds |
+| Regression block in `test_mining.js` | unchanged; passes on v2.6.0 | holds |
+
+The 3-line MiningSystem diff is cosmetic.
+
+**Bug-class sweep over the 21 commits:**
+
+| Class | Finding |
+|---|---|
+| 60 fps `innerHTML` on a container with a button | **Regression R1: `main.js:1555`.** `updateMarketUI` runs every render frame while the Bazaar tab is open (`main.js:1797`). It now does `btnEnchanter.innerHTML = ...<span id="enchanter-cost">...`, so the cost `<span>` is destroyed and recreated about 60 times a second. The listener is a `click` on the button (`main.js:472-478`). A press on the label text still works, but a press that starts on the cost span can lose its `click`, depending on the browser. This is the same pattern that `main.js:1498` and `:1665` warn about. **Fix:** build the label once and update the span's `textContent` only when it changes. |
+| Per-frame DOM rebuild (no click loss) | **R2: `main.js:719-730`.** `updateCombatUI` sets `.monster-avatar` `innerHTML` every frame, recreating an `<img>` 60 times a second for the three named bosses. Taps are safe because the monster card listens on `pointerdown` (`main.js:339`). The cost is wasted work and possible flicker. **Fix:** cache the last avatar key. |
+| Shared state | **R3: `main.js:233-241`.** `querySelectorAll('.buy-amt-btn')` now also picks up the new Bazaar 1x/10x/100x/MAX buttons, so the Bazaar and Buildings share one `buildingSystem.buyAmount`. Choosing 25x on Buildings makes the Enchanter read "Weave Spell x25" with no Bazaar button lit. Choosing MAX in the Bazaar makes the next building click a MAX buy. The `.active` highlight clears in the other group. Low severity. |
+| `Math.pow` overflow | None added. Enchanter cost is BigNum `2.5^L` (`MarketSystem.js:65`). Sim: 1e300 gold with MAX buys 739 levels, no Infinity. The MAX loop caps at about 2,000 levels per click (`:86`). `CombatSystem.fmt` wraps a Number that the existing floor-exponent cap keeps finite. |
+| Save migrations | Nothing is needed. Serialize/deserialize are unchanged. The only new field is `settings.rhythmScale`. Deserialize merges it through the settings spread (`GameState.js:407`), and it defaults to `hijaz` at setup (`main.js:172`). All renamed content is display-only: building ids, seed ids, essence keys and inventory keys such as `rubies` are unchanged. Gear already in a save keeps its old name. |
+| Still open from the economy study | B11 (`GameLoop.js`, unchanged): a hidden-tab catch-up is still clamped to 5 s per wake-up. |
+
+### Part 2 re-check: Ascension
+
+`PrestigeSystem.js` is unchanged, so `ascend` (:85) and `transcend` (:148) reset exactly
+what Part 2 below lists. Sim on v2.6.0: Golden Synergy 40 → 40, gold 5e9 → 5e9,
+Chrono Sand 900 → 900, an `aether_mult` buff survives, talent points +3, Aether → 0.
+
+**Pacing assumptions:**
+- **First ascension at about 1 minute still holds.** The 62 s figure (economy study §3.1)
+  depends on building cost/CPS, clicking, spells and the dust formula. All of these are
+  unchanged.
+- **Fast Forward's removal does not move it.** That measurement never used Fast Forward.
+- **The §5.0 anchors stand.** They were also simulated without Fast Forward.
+- **What removing Fast Forward does change:** it removes the only gold → sim-time
+  converter. At the base bank, that was at most about 24 min of warp per day offline
+  (≈1.7%). Gold-rich players could refill the bank with gold, so it was worth more to them.
+- **Net effect:** pacing is the same or slightly slower. No reset/persist row depends on
+  Fast Forward.
+
+**Golden Synergy bulk-buy and the building/combat/market edits do not change what should
+persist.**
+- Bulk-buy costs exactly what repeated x1 buys cost.
+- MAX only does in one click what spam-clicking already did. A 1e46 hoard → about 100
+  levels, matching the economy study's §5.5 estimate.
+- The building and combat edits are cosmetic.
+
+**What does change:** Chrono Sand still exists, but nothing in the game spends it. Sand
+still accrues offline and from bounties, and Alchemy still sells it for gold
+(`AlchemySystem.js:194`). Two purchases are now dead, because they only raise sand cap or
+sand gain:
+- the **Chrono Reservoir** perk (25 dust × 1.5^rank, 10 ranks)
+- the **Temporal Siphon** talent (5 ranks)
+
+The gold → sand transmute is now a pure gold trap. The header button still says "Fast
+Forward (30s)" (`index.html:68-69`), and the Alchemy guide still says sand "powers Fast
+Forward" (`index.html:320`).
+
+**Recommendation as of v2.6.0** (changes from the original table in bold):
+
+| Subgame / state | On Ascension | v2.6.0 verdict |
+|---|---|---|
+| Aether, run Aether, buildings, click/combo/frenzy | Reset (as today) | holds |
+| Timed Aether/click buffs | Reset; keep `gold_mult`, combat and `time_speed` | holds. Chrono Warp 5x is a spell, still works, and stays excluded. |
+| Tower: floor, gear, level, Forge | Persist | holds; the combat edits are display-only |
+| Excavation: everything | Persist | holds. First ascension is still about 1 min, so a partial re-dig loop is still not viable. |
+| Garden, Alchemy, Spells, Bounties | Persist | holds |
+| Celestial Nectar | Consume | holds |
+| Talents | Persist, **gate the +3** | holds, and is **stronger**. Points can now also be sunk into a dead talent (Temporal Siphon), so pair any gating with a free refund of those ranks. |
+| Bazaar: gold, **Golden Synergy**, holdings, caravan | Persist | holds. Bulk-buy is price-neutral (verified). |
+| **Chrono Sand** | Persist | **Changed:** the reset answer is unchanged, but the currency now has no sink. Either restore Fast Forward, or retire sand. If you retire it, hide the button and transmute, and refund Chrono Reservoir dust and Temporal Siphon points on load. Do not reset sand on Ascension either way. |
+| Transcend | reset ascension layer + re-fit caps | holds. The sand clamp is now moot unless Fast Forward returns. |
+
+### Anti-cheat audit
+
+- **Trigger:** only a click on `#btn-time-warp` (`main.js:245-250`). Nothing detects clock
+  jumps, catch-up, offline gains or speed.
+- **Effect:** a blocking `alert("kl zaq cheater")`, a vulgar Saudi-dialect insult.
+  - No sand is spent and nothing is flagged in the save or on the leaderboard.
+  - While the alert is open, rAF and the sim stall, and that time is lost (rAF clamps
+    `simDt` to 1 s). It cannot be exploited.
+- **False positives:** background-tab catch-up, offline progress, Chrono Warp 5x, Golem
+  offline harvests and Auto-Drill bursts **cannot** trigger it, because none of them
+  touches that button. The real false-positive rate is **100% of the button's users**.
+  - The button is still visible, still labelled "Fast Forward (30s)", and tooltipped as a
+    feature.
+  - It spends sand the player earned legitimately: offline, from bounties, or bought with
+    gold in Alchemy.
+  - Every player who tries an advertised feature is called a cheater.
+- **What it does not stop:**
+  - `SaveManager.processOfflineTime` (`SaveManager.js:70-84`) credits Aether for the full
+    wall-clock gap with **no cap**. Moving the system clock forward gives unbounded
+    Aether, and that also feeds `totalAetherEarned`, the Best Run Aether leaderboard stat
+    (`leaderboard.js:96-100`). The Garden's own offline cap is 12 h.
+  - The Codex save import accepts an edited save.
+
+### Open questions (updated)
+
+1. `EXPLOSIVE_HITS = 40`: **still open, unchanged.** The code is untouched and there is
+   no new playtest data.
+2. Rebase thresholds (12 h trigger, 1 h target): **shipped with these defaults.** Revisit
+   only if a playtester reports a bad landing.
+3. Clear timed Aether/click buffs on Ascend, and gate the +3 talent points: **still open.**
+   Gating is more justified now (see the Talents row).
+4. Aether Forge paid in Aether but persisting: **still open, unchanged.**
+5. **New: the fate of Chrono Sand.** Restore Fast Forward (optionally with the 5 min / 1 h
+   buttons from the economy study §5.5), or retire the currency with refunds? Today it is
+   a dead resource with two dead purchases.
+6. **New: the intent of the anti-cheat.** If the goal is to stop time-skipping, cap
+   offline Aether (e.g. 12–24 h, like the Garden) and consider a sanity check on
+   `savedAt` in the future or past. That is better than disabling an earned feature. Also
+   replace the alert text, which insults legitimate players.
+
+---
+
+*Original v2.1.0/v2.1.1 investigation follows, unchanged.*
+
 Investigation of two v2.0.0/v2.1.0 playtest reports. Line numbers marked **(v2.1.0)** refer
 to commit `c595d62`. The others refer to this branch.
 

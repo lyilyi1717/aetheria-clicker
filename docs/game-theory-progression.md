@@ -31,6 +31,58 @@ Principles carried over from the Snake doc (not re-researched):
 
 ---
 
+## Status as of v2.6.0 (2026-10-06)
+
+This study's line numbers and measurements are from v1.1.1 and are not updated below. See
+`docs/excavation-stuck-and-ascension-resets.md` ("Re-check against v2.6.0") for the
+code-level verification.
+
+**Shipped (v2.0.0–v2.1.1):**
+- §8 #1–#7b: bug fixes B2–B5, the §5.1 Excavation curves, Garden ×15 and Water,
+  linearized links, the additive Aether-buff category with a 10 min cap, Geode Attunement
+  and Nectar Offering, the mastery readout, the Market Index for gold, and the Chrono
+  Sand re-price and cap
+- #8: the buff bar
+- #9: Garden Golems, with offline garden at 50% for up to 12 h
+- #13: 7 strata, every 25 depth
+- #14: Fertilize
+- the §9 v1 → v2 save migration, plus v2.1.1's schema-3 rebase of stranded deep saves
+
+**v2.2.0–v2.6.0:**
+- The Saudi theme and the Enchanter bulk-buy (1x/10x/100x/MAX, which costs the same as
+  repeated x1 buys) change no curve or constant in this study.
+- Fast Forward was disabled. Its button now shows an "anti-cheat" alert.
+
+**Stale:**
+- **Fast Forward anchors.**
+  - §5.5 point 3 and §8 #8a (30 s / 5 min / 1 h warps) assume Fast Forward exists.
+  - So does the §5.5 framing that sand is "a ~30% time bonus" bought with combat gold.
+  - Chrono Sand now has no sink. Offline sand, bounty sand, the gold → sand transmute,
+    Chrono Reservoir and Temporal Siphon are all dead ends.
+  - The Alchemy guide (`index.html:320`) still advertises Fast Forward.
+- **§3 measurements** (v1.1.1 pacing, B-list) describe pre-v2.0 code. They are kept as
+  the baseline the redesign was argued from.
+
+**Still valid:**
+- The §5.0 calibration anchors and the §5.1/§5.2 projections. They were simulated
+  without Fast Forward, and the curves are unchanged.
+- First-ascension eligibility at about 62 s (§3.1). The core loop is untouched.
+
+**Still open:**
+- §8 #8b: Aether Forge for gold
+- #10: offline Excavation
+- #11: % elixirs
+- #12: Gem Polishing
+- #15: bounty reroll
+- B11: hidden-tab catch-up still clamped to 5 s per wake-up
+- §10 Q1 (arc length) and Q3 (core study: first ascension at about 1 min vs a 30–60 min
+  target). Q3 remains the gating item for any partial Excavation reset on Ascension.
+- **New:** decide the fate of Chrono Sand (restore Fast Forward or retire it with
+  refunds), and whether "anti-cheat" should instead cap the currently uncapped offline
+  Aether.
+
+---
+
 ## TL;DR
 
 1. **Excavation and Garden are too fast because their costs stop scaling while their
