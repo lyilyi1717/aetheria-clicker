@@ -74,3 +74,24 @@
 .dynamic-float {
   animation: floatSmooth 3s ease-in-out infinite;
 }
+
+@keyframes desertDust {
+  from { background-position: 0 0, 0 0, 0 0, 0 0; }
+  to { background-position: 200px -200px, 400px -400px, -200px -200px, 200px -200px; }
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -400px;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, rgba(251, 191, 36, 0.4), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(251, 191, 36, 0.2), transparent),
+    radial-gradient(2px 2px at 90px 40px, rgba(251, 191, 36, 0.3), transparent),
+    radial-gradient(3px 3px at 160px 120px, rgba(251, 191, 36, 0.15), transparent);
+  background-size: 200px 200px;
+  animation: desertDust 50s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+

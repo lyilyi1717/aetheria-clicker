@@ -35,6 +35,10 @@ export class CombatSystem {
     this.initMonster();
   }
 
+  fmt(val) {
+    return val < 1000 ? String(Math.floor(val)) : new BigNum(val).format('standard', 0);
+  }
+
   initHero() {
     if (!this.gameState.hero) {
       this.gameState.hero = {
@@ -200,13 +204,13 @@ export class CombatSystem {
       this.dealDamageToMonster(dmg, window.innerWidth / 2, window.innerHeight / 2, true);
     } else if (skillKey === 'shield') {
       h.shield += Math.floor(this.getTotalMaxHp() * 0.35);
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+SHIELD ${h.shield}`, '#38bdf8', true);
+      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+SHIELD ${this.fmt(h.shield)}`, '#38bdf8', true);
     } else if (skillKey === 'leech') {
       const dmg = Math.floor(this.getTotalAttack() * 1.5);
       this.dealDamageToMonster(dmg, window.innerWidth / 2, window.innerHeight / 2, false);
       const heal = Math.floor(this.getTotalMaxHp() * skill.healPercent);
       h.hp = Math.min(this.getTotalMaxHp(), h.hp + heal);
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+${heal} HP`, '#4ade80', true);
+      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+${this.fmt(heal)} HP`, '#4ade80', true);
     } else if (skillKey === 'supernova') {
       const dmg = Math.floor(this.getTotalAttack() * skill.dmgMult);
       this.dealDamageToMonster(dmg, window.innerWidth / 2, window.innerHeight / 2, true);
@@ -216,7 +220,7 @@ export class CombatSystem {
   dealDamageToMonster(amount, x, y, isCrit = false) {
     this.monster.hp -= amount;
     if (x && y) {
-      particles.spawnFloatingText(x, y, `-${amount}`, isCrit ? '#ef4444' : '#f97316', isCrit);
+      particles.spawnFloatingText(x, y, `-${this.fmt(amount)}`, isCrit ? '#ef4444' : '#f97316', isCrit);
       particles.spawnClickSparks(x, y, 8, isCrit ? '#ef4444' : '#f97316');
     }
 
@@ -401,7 +405,7 @@ export class CombatSystem {
       if (dmg > 0) {
         h.hp -= dmg;
         sound.playHit();
-        particles.spawnFloatingText(window.innerWidth / 2 - 100, window.innerHeight / 2, `-${dmg}`, '#ef4444', false);
+        particles.spawnFloatingText(window.innerWidth / 2 - 100, window.innerHeight / 2, `-${this.fmt(dmg)}`, '#ef4444', false);
 
         if (h.hp <= 0) {
           // Hero died -> retreat 1 floor and restore HP

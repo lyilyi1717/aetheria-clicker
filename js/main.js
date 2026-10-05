@@ -673,7 +673,7 @@ class AetheriaApp {
     const heroHpEl = document.getElementById('hero-hp-text');
     const heroHpBar = document.getElementById('hero-hp-fill');
     const maxHp = this.combatSystem.getTotalMaxHp();
-    if (heroHpEl) heroHpEl.textContent = `${Math.floor(h.hp)} / ${maxHp} HP ${h.shield > 0 ? `(+${h.shield} Shield)` : ''}`;
+    if (heroHpEl) heroHpEl.textContent = `${this.combatSystem.fmt(Math.floor(h.hp))} / ${this.combatSystem.fmt(maxHp)} HP ${h.shield > 0 ? `(+${this.combatSystem.fmt(h.shield)} Shield)` : ''}`;
     if (heroHpBar) heroHpBar.style.width = `${Math.min(100, (h.hp / maxHp) * 100)}%`;
 
     const heroAtkEl = document.getElementById('hero-atk-text');
@@ -704,7 +704,7 @@ class AetheriaApp {
       }
     }
 
-    if (monsterHpEl) monsterHpEl.textContent = `${Math.max(0, m.hp)} / ${m.maxHp} HP`;
+    if (monsterHpEl) monsterHpEl.textContent = `${this.combatSystem.fmt(Math.max(0, m.hp))} / ${this.combatSystem.fmt(m.maxHp)} HP`;
     if (monsterHpBar) monsterHpBar.style.width = `${Math.max(0, (m.hp / m.maxHp) * 100)}%`;
 
     if (bossTimerEl) {
@@ -1869,4 +1869,57 @@ class AetheriaApp {
 window.addEventListener('DOMContentLoaded', () => {
   window.gameApp = new AetheriaApp();
   window.gameApp.init();
+});
+
+// Global Custom Tooltip System
+function setupTooltips() {
+  const tooltip = document.createElement('div');
+  tooltip.id = 'global-tooltip';
+  document.body.appendChild(tooltip);
+
+  document.addEventListener('mouseover', e => {
+    const target = e.target.closest('[title], [data-original-title]');
+    if (!target) return;
+    
+    if (target.hasAttribute('title')) {
+      target.setAttribute('data-original-title', target.getAttribute('title'));
+      target.removeAttribute('title');
+    }
+    
+    const tipText = target.getAttribute('data-original-title');
+    if (!tipText) return;
+    
+    // Parse possible asterisks or emphasis for styling if needed
+    tooltip.innerHTML = tipText;
+    tooltip.classList.add('visible');
+    
+    const updatePosition = (x, y) => {
+      let left = x + 15;
+      let top = y + 15;
+      if (left + tooltip.offsetWidth > window.innerWidth) left = window.innerWidth - tooltip.offsetWidth - 10;
+      if (top + tooltip.offsetHeight > window.innerHeight) top = y - tooltip.offsetHeight - 15;
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = top + 'px';
+    };
+    updatePosition(e.clientX, e.clientY);
+    
+    target._tooltipMove = (me) => updatePosition(me.clientX, me.clientY);
+    target.addEventListener('mousemove', target._tooltipMove);
+  });
+
+  document.addEventListener('mouseout', e => {
+    const target = e.target.closest('[data-original-title]');
+    if (!target) return;
+    if (target._tooltipMove) {
+      target.removeEventListener('mousemove', target._tooltipMove);
+      delete target._tooltipMove;
+    }
+    tooltip.classList.remove('visible');
+  });
+}
+
+// Intercept window.gameApp.init call if it exists, or just run it.
+// To avoid conflicts, we just add it to DOMContentLoaded.
+window.addEventListener('DOMContentLoaded', () => {
+  setupTooltips();
 });
