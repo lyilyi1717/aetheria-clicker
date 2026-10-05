@@ -1,9 +1,20 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '2.3.0';
+export const VERSION = '2.4.0';
 
 export const CHANGELOG = [
+  {
+    version: '2.4.0',
+    date: '2026-10-06',
+    title: 'Visual Polish & Number Formatting',
+    changes: [
+      'UI: Massive numbers in combat (Boss HP, Hero HP, Attack, Damage, XP) now respect your chosen Number Notation from the Settings tab.',
+      'Equipment: Overhauled the Hero Gear panel with dynamic CSS rarity backgrounds, glows, and animations (Cosmic tier is now glowing Gold, Legendary is pulsing Red).',
+      'Polish: Applied a global custom tooltip system with glassmorphism styling and golden accents.',
+      'Visuals: Added a subtle cosmic desert dust animation to the game background.'
+    ]
+  },
   {
     version: '2.3.0',
     date: '2026-10-06',
