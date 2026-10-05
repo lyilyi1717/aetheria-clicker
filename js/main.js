@@ -446,7 +446,7 @@ class AetheriaApp {
     const btnEnchanter = document.getElementById('btn-buy-enchanter');
     if (btnEnchanter) {
       btnEnchanter.addEventListener('click', () => {
-        if (this.marketSystem.buyEnchanter()) {
+        if (this.marketSystem.buyEnchanter(this.buildingSystem.buyAmount || 1)) {
           this.updateMarketUI();
         }
       });
@@ -1513,10 +1513,15 @@ class AetheriaApp {
     const btnEnchanter = document.getElementById('btn-buy-enchanter');
     if (enchanterLevel && this.gameState.market) {
       const level = this.gameState.market.goldenSynergy || 0;
-      const cost = this.marketSystem.getEnchanterCost();
+      const amt = this.buildingSystem.buyAmount || 1;
+      const cost = this.marketSystem.getEnchanterTotalCost(amt);
+      
       enchanterLevel.textContent = level;
       enchanterBonus.textContent = `+${level * 5}% Global Aether`;
-      enchanterCost.textContent = cost.format('standard', 1);
+      
+      const btnText = amt === 'max' ? 'Weave Max' : `Weave Spell x${amt}`;
+      btnEnchanter.innerHTML = `${btnText} (<span id="enchanter-cost">${cost.format('standard', 1)}</span> Gold)`;
+
       if (this.gameState.gold.gte(cost)) {
         btnEnchanter.disabled = false;
         btnEnchanter.style.opacity = 1.0;

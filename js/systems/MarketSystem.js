@@ -62,19 +62,48 @@ export class MarketSystem {
       : { invest: M.mul(new BigNum(200)), minutes: 10, profit: 1.25 };
   }
 
-  getEnchanterCost() {
-    const level = this.gameState.market.goldenSynergy;
-    // BigNum pow: Math.pow overflowed to Infinity past level ~775 and made levels free
+  getEnchanterCost(level = this.gameState.market.goldenSynergy) {
     return new BigNum(1000000).mul(new BigNum(2.5).pow(level));
   }
 
-  buyEnchanter() {
-    const cost = this.getEnchanterCost();
-    if (this.gameState.gold.gte(cost)) {
-      this.gameState.gold = this.gameState.gold.sub(cost);
-      this.gameState.market.goldenSynergy++;
+  getEnchanterTotalCost(amount = 1) {
+    if (amount === 'max') return this.getEnchanterCost(); // UI shows next cost if max
+    let total = new BigNum(0, 0);
+    for (let i = 0; i < amount; i++) {
+      total = total.add(this.getEnchanterCost(this.gameState.market.goldenSynergy + i));
+    }
+    return total;
+  }
+
+  buyEnchanter(amount = 1) {
+    let levelsToBuy = 0;
+    if (amount === 'max') {
+      while (true) {
+        const cost = this.getEnchanterCost(this.gameState.market.goldenSynergy + levelsToBuy);
+        if (this.gameState.gold.gte(cost)) {
+          this.gameState.gold = this.gameState.gold.sub(cost);
+          levelsToBuy++;
+          if (levelsToBuy > 2000) break; // safety cap
+        } else {
+          break;
+        }
+      }
+    } else {
+      for (let i = 0; i < amount; i++) {
+        const cost = this.getEnchanterCost(this.gameState.market.goldenSynergy + levelsToBuy);
+        if (this.gameState.gold.gte(cost)) {
+          this.gameState.gold = this.gameState.gold.sub(cost);
+          levelsToBuy++;
+        } else {
+          break;
+        }
+      }
+    }
+
+    if (levelsToBuy > 0) {
+      this.gameState.market.goldenSynergy += levelsToBuy;
       sound.playAscension();
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `GOLDEN SYNERGY LEVEL UP!`, '#fbbf24', true);
+      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+${levelsToBuy} GOLDEN SYNERGY!`, '#fbbf24', true);
       return true;
     }
     return false;
