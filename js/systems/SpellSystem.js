@@ -41,7 +41,7 @@ export const SPELLS = [
     icon: '☄️',
     manaCost: 35,
     cooldown: 40,
-    desc: 'Deals 40% of dungeon monster HP & shatters 4 mining blocks.'
+    desc: 'Deals 40% of dungeon monster HP & blasts 4 mining blocks (40 pickaxe hits each).'
   },
   {
     id: 'astral_refresh',
@@ -142,15 +142,15 @@ export class SpellSystem {
           this.gameState.combatSystem.dealDamageToMonster(dmg, x, y, true);
         }
       }
-      if (this.gameState.miningSystem) {
+      // 4 random tiles take EXPLOSIVE_HITS pickaxe hits each (blastBlocks stops at the stairs)
+      const ms = this.gameState.miningSystem;
+      if (ms && !ms.descending) {
         const unrev = this.gameState.miningGrid.blocks.filter(b => !b.revealed);
+        const picks = [];
         for (let i = 0; i < 4 && unrev.length > 0; i++) {
-          const pick = unrev.splice(Math.floor(Math.random() * unrev.length), 1)[0];
-          pick.revealed = true;
-          pick.hp = 0;
-          this.gameState.miningSystem.revealReward(pick, x, y);
-          if (pick.content === 'stairs') break; // a new grid is coming; stop rewarding the old one
+          picks.push(unrev.splice(Math.floor(Math.random() * unrev.length), 1)[0]);
         }
+        ms.blastBlocks(picks, x, y);
       }
       particles.spawnFloatingText(x, y, '☄️ VOID CATACLYSM!', '#a855f7', true);
     } else if (spellId === 'astral_refresh') {

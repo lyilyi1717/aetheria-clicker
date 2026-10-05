@@ -781,7 +781,8 @@ class AetheriaApp {
     const depthEl = document.getElementById('mining-depth-title');
     const strata = this.miningSystem.getCurrentStrata();
     if (depthEl) {
-      const title = `<span style="color: ${strata.color}">${strata.icon} Depth ${grid.depth} - ${strata.name} Strata</span>`;
+      const record = grid.maxDepth > grid.depth ? ` · Record ${grid.maxDepth}` : '';
+      const title = `<span style="color: ${strata.color}">${strata.icon} Depth ${grid.depth} - ${strata.name} Strata${record}</span>`;
       if (this.lastMiningTitle !== title) {
         this.lastMiningTitle = title;
         depthEl.innerHTML = title;
@@ -853,7 +854,7 @@ class AetheriaApp {
         ` : `
           <div class="mine-tile unrevealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${strata.color}">
             <div class="tile-hp-bar" id="tile-bar-${b.id}" style="width: ${(b.hp / b.maxHp) * 100}%"></div>
-            <span class="tile-hp-text" id="tile-text-${b.id}">${fmt(b.hp, 1)}/${fmt(b.maxHp, 1)}</span>
+            <span class="tile-hp-text" id="tile-text-${b.id}">${fmt(b.hp, 1)}</span>
           </div>
         `).join('');
       } else {
@@ -870,7 +871,7 @@ class AetheriaApp {
             const txt = document.getElementById(`tile-text-${b.id}`);
             if (bar) bar.style.width = `${(b.hp / b.maxHp) * 100}%`;
             if (txt) {
-              const hpText = `${fmt(b.hp, 1)}/${fmt(b.maxHp, 1)}`;
+              const hpText = fmt(b.hp, 1); // max HP is in the stats line; "a/b" overflowed small tiles
               if (txt.textContent !== hpText) txt.textContent = hpText;
             }
           }

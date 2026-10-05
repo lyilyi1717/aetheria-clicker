@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from './js/systems/BuildingSystem.js';
@@ -59,5 +60,20 @@ const serialized = gs.serialize();
 const newGs = new GameState();
 newGs.deserialize(serialized);
 console.assert(newGs.buildings['tapper'].count === 1, 'Deserialized building count mismatch');
+
+console.log('--- Testing Transcend re-fits perk-raised caps ---');
+globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
+gs.ascensionPerks.chrono_vault.rank = 2; // bank cap 2,880 s
+gs.ascensionPerks.titan_legacy.rank = 10; // +1,000 HP
+gs.chronoSand = 2880;
+gs.hero.hp = cs.getTotalMaxHp();
+gs.frenzyActive = true;
+gs.frenzyTimer = 9;
+gs.totalCosmicDust = new BigNum(60000);
+assert.equal(pres.transcend(), true);
+assert.equal(gs.chronoSand, 1440, 'Chrono Sand must fit the base bank after Transcend');
+assert.ok(gs.hero.hp <= cs.getTotalMaxHp(), 'hero HP must fit max HP without Titan\'s Legacy');
+assert.equal(gs.frenzyActive, false);
+assert.equal(gs.frenzyTimer, 0);
 
 console.log('✅ ALL ENGINE TESTS PASSED SUCCESSFULLY!');

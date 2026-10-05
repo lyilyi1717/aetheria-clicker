@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
-import { MiningSystem, compressDepth, getPickaxeName, MINING_SCHEMA } from './js/systems/MiningSystem.js';
+import { MiningSystem, compressDepth, getPickaxeName, MINING_SCHEMA, EXPLOSIVE_HITS } from './js/systems/MiningSystem.js';
 
 console.log('--- Testing Excavation curves (§5.1) ---');
 const gs = new GameState();
@@ -85,20 +85,118 @@ loaded.deserialize(saved);
 const ms2 = new MiningSystem(loaded);
 const g = loaded.miningGrid;
 assert.equal(g.schema, MINING_SCHEMA);
-assert.equal(g.depth, 120);
+// compressed to 120 (HP 6.7e7: ~4 days per tile for L5 + 12 drills), then rebased (schema 3)
+// to the deepest depth that kit digs in <= 1 h per tile. The record stays.
+assert.equal(g.depth, 87);
+assert.ok(ms2.getTileSeconds(87) <= 3600 && ms2.getTileSeconds(88) > 3600);
 assert.equal(g.maxDepth, 156);
 assert.equal(g.pickaxeTier, 5);
 assert.equal(g.autoDrills, 12);
 assert.equal(g.blocks.length, 36);
-assert.equal(g.blocks[0].maxHp, ms2.getTileHp(120));
+assert.equal(g.blocks[0].maxHp, ms2.getTileHp(87));
 // idempotent
 ms2.initMiningGrid();
-assert.equal(g.depth, 120);
+assert.equal(g.depth, 87);
 // runtime import path: update() migrates a replaced grid
 loaded.miningGrid = { depth: 500, maxDepth: 500, pickaxeTier: 2, autoDrills: 3, blocks: [] };
 ms2.update(0.05);
-assert.equal(loaded.miningGrid.depth, 91);
-assert.equal(loaded.miningGrid.schema, MINING_SCHEMA);
+const imp = loaded.miningGrid;
+assert.equal(imp.schema, MINING_SCHEMA);
+assert.equal(imp.maxDepth, 91);
+assert.ok(imp.depth < 91 && ms2.getTileSeconds(imp.depth) <= 3600 && ms2.getTileSeconds(imp.depth + 1) > 3600);
+assert.equal(imp.blocks.length, 36);
+
+console.log('--- Regression: stuck Excavation (v2.1.0 playtest) ---');
+{
+  // The descend pause must run on sim time, never a wall-clock timer.
+  const realSetTimeout = globalThis.setTimeout;
+  globalThis.setTimeout = () => { throw new Error('MiningSystem must not use setTimeout'); };
+  try {
+    const s = new GameState();
+    const m = new MiningSystem(s);
+    s.mana = 0;
+    const stairs = s.miningGrid.blocks.find(b => b.content === 'stairs');
+    stairs.hp = 1;
+    m.mineBlock(stairs.id);
+    assert.equal(s.miningGrid.depth, 2);
+    assert.equal(m.descending, true);
+    const oldBlocks = s.miningGrid.blocks;
+    const other = oldBlocks.find(b => !b.revealed);
+    m.mineBlock(other.id); // the spent grid ignores clicks while descending
+    assert.equal(other.hp, other.maxHp);
+
+    // A: page saved inside the descend window, then reloaded. Before the fix the grid kept
+    // its revealed stairs and never regenerated: drills dug out the rest and then nothing
+    // (clicks, drills, dynamite) could progress, forever.
+    const reloaded = new GameState();
+    reloaded.deserialize(JSON.parse(JSON.stringify(s.serialize())));
+    const m2 = new MiningSystem(reloaded);
+    const rg = reloaded.miningGrid;
+    assert.equal(rg.depth, 2);
+    assert.ok(!rg.blocks.some(b => b.revealed), 'reloaded grid must be a fresh one');
+    assert.equal(rg.blocks[0].maxHp, m2.getTileHp(2));
+    // and the runtime guard heals a dug-out grid (e.g. an imported save) on the next tick
+    for (const b of rg.blocks) { b.revealed = true; b.hp = 0; }
+    m2.update(0.05);
+    assert.equal(rg.blocks.filter(b => !b.revealed).length, 36);
+
+    // the pause itself: 0.4 sim seconds, then exactly one new grid at the new depth
+    m.update(0.2);
+    assert.equal(s.miningGrid.blocks, oldBlocks);
+    m.update(0.25);
+    assert.notEqual(s.miningGrid.blocks, oldBlocks);
+    assert.equal(m.descending, false);
+    assert.equal(s.miningGrid.depth, 2);
+    assert.equal(s.miningGrid.blocks[0].maxHp, m.getTileHp(2));
+    const fresh = s.miningGrid.blocks;
+    m.update(1);
+    assert.equal(s.miningGrid.blocks, fresh, 'grid must not regenerate twice');
+
+    // B: explosives deal EXPLOSIVE_HITS pickaxe hits instead of revealing outright. Before
+    // the fix Dynamite found the stairs every ~60-100 s at any HP: 6 h of it reached
+    // depth ~245 (HP 2.6e15 vs power 1.3e5) and drills/clicks could never break a tile.
+    s.miningGrid.depth = 60;
+    m.generateNewGrid();
+    const power = m.getPickaxePower();
+    assert.ok(m.getTileHp() > power * EXPLOSIVE_HITS);
+    assert.equal(m.useDynamite(), true);
+    assert.equal(s.miningGrid.depth, 60, 'dynamite must not descend past the pickaxe');
+    const hit = s.miningGrid.blocks.filter(b => b.hp < b.maxHp);
+    assert.ok(hit.length >= 4 && hit.length <= 9);
+    for (const b of hit) assert.equal(b.maxHp - b.hp, power * EXPLOSIVE_HITS);
+    assert.equal(m.useDynamite(), false); // cooldown
+    // shallow tiles still shatter
+    s.miningGrid.depth = 1;
+    m.generateNewGrid();
+    m.dynamiteCooldown = 0;
+    m.useDynamite();
+    assert.ok(s.miningGrid.blocks.filter(b => b.revealed).length >= 1);
+
+    // C: schema 2 -> 3 rebase. A stranded save moves up; a healthy one is untouched.
+    const stranded = new GameState();
+    stranded.miningGrid = { schema: 2, depth: 245, maxDepth: 245, pickaxeTier: 17, autoDrills: 35,
+      blocks: [{ id: 0, content: 'stone', revealed: false, hp: 1, maxHp: 1 }] };
+    const m3 = new MiningSystem(stranded);
+    assert.equal(stranded.miningGrid.schema, MINING_SCHEMA);
+    assert.equal(stranded.miningGrid.maxDepth, 245);
+    assert.ok(stranded.miningGrid.depth < 245 && m3.getTileSeconds() <= 3600);
+    assert.equal(stranded.miningGrid.blocks.length, 36);
+    const healthy = new GameState();
+    const hm = new MiningSystem(healthy);
+    healthy.miningGrid.schema = 2;
+    healthy.miningGrid.depth = 61;
+    healthy.miningGrid.maxDepth = 61;
+    healthy.miningGrid.pickaxeTier = 4;
+    healthy.miningGrid.autoDrills = 9;
+    const keep = healthy.miningGrid.blocks;
+    hm.update(0.05);
+    assert.equal(healthy.miningGrid.schema, MINING_SCHEMA);
+    assert.equal(healthy.miningGrid.depth, 61);
+    assert.equal(healthy.miningGrid.blocks, keep, 'a playable schema-2 grid keeps its progress');
+  } finally {
+    globalThis.setTimeout = realSetTimeout;
+  }
+}
 
 console.log('✅ MINING TESTS PASSED');
 setTimeout(() => process.exit(0), 0);

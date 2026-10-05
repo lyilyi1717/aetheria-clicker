@@ -1160,8 +1160,9 @@ body {
 }
 
 .tile-hp-text {
-  font-size: 0.8rem;
+  font-size: clamp(0.6rem, 2.2vw, 0.8rem);
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .mining-stats-line {

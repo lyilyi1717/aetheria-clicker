@@ -100,7 +100,9 @@ export class PrestigeSystem {
     this.gameState.totalAetherEarned = BigNum.zero(); // Fix: Reset Run Aether so you can't ascend infinitely!
     this.gameState.clickPower = new BigNum(1);
     this.gameState.comboCount = 0;
+    this.gameState.comboTimer = 0;
     this.gameState.frenzyActive = false;
+    this.gameState.frenzyTimer = 0;
 
     // Reset buildings to 0
     for (const bId in this.gameState.buildings) {
@@ -156,6 +158,14 @@ export class PrestigeSystem {
     this.gameState.totalCosmicDust = BigNum.zero();
     for (const p in this.gameState.ascensionPerks) {
       this.gameState.ascensionPerks[p].rank = 0;
+    }
+    // Perk-raised caps just dropped. Re-fit now rather than on the next page load:
+    // Chrono Sand to the base bank (Chrono Reservoir), buffs to the base duration cap
+    // (Astral Crucible), hero HP to the max without Titan's Legacy.
+    this.gameState.clampLoadedTimers();
+    const hero = this.gameState.hero;
+    if (hero && this.gameState.combatSystem) {
+      hero.hp = Math.min(hero.hp, this.gameState.combatSystem.getTotalMaxHp());
     }
 
     sound.playAscension();

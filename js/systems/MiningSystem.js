@@ -26,9 +26,20 @@ export const PICKAXE_NAMES = [
   'Celestial Void Pick'
 ];
 
-export const MINING_SCHEMA = 2;
+// 2: v2 curves + depth compression. 3: rebase saves stranded at an undiggable depth.
+export const MINING_SCHEMA = 3;
 export const DRILL_HITS_PER_SEC = 0.5;
 const MAX_DRILL_HITS_PER_TICK = 200;
+// Pause between finding the stairs and the next grid, in sim seconds. It runs in update(),
+// so it works under Time Warp and in background tabs, and it is never saved.
+export const DESCEND_DELAY = 0.4;
+// Dynamite and Void Cataclysm hit each tile for this many pickaxe hits. Instant reveals let
+// explosives find the stairs at a fixed rate whatever the tile HP, far past the pickaxe.
+export const EXPLOSIVE_HITS = 40;
+// Schema 3 rebase: a save whose kit needs more than STUCK seconds per tile moves up to the
+// deepest depth it digs in TARGET seconds per tile. maxDepth is kept.
+const REBASE_STUCK_SECONDS = 12 * 3600;
+const REBASE_TARGET_SECONDS = 3600;
 // Number-valued curves (tile HP, stone yield) stay finite up to here (B3 guard).
 const MAX_CURVE_DEPTH = 2000;
 const MAX_MIGRATED_DRILLS = 12;
@@ -53,6 +64,7 @@ export class MiningSystem {
     this.autoDrillTimer = 0;
     this.drillTargetId = -1;
     this.descending = false; // stairs found, new grid pending
+    this.descendTimer = 0;
     this.initMiningGrid();
   }
 
@@ -70,23 +82,64 @@ export class MiningSystem {
       return;
     }
     this.migrateMiningGrid();
+    this.ensurePlayableGrid();
   }
 
-  // One-shot migration of pre-v2 mining saves (§9). Gated by miningGrid.schema, so it
-  // is safe to call repeatedly (also runs from update() after a save import).
+  // Save migrations (§9), gated by miningGrid.schema, so safe to call repeatedly (also
+  // runs from update() after a save import).
+  //   < 2: pre-v2 save: compress depth, clamp drills, regenerate the grid.
+  //   < 3: rebase a depth the pickaxe and drills can no longer dig (rebaseStrandedDepth).
   migrateMiningGrid() {
     const grid = this.gameState.miningGrid;
     if (!grid || grid.schema === MINING_SCHEMA) return false;
 
-    grid.depth = compressDepth(grid.depth);
-    grid.maxDepth = Math.max(grid.depth, compressDepth(grid.maxDepth));
-    grid.pickaxeTier = Math.max(0, Math.floor(Number(grid.pickaxeTier) || 0));
-    grid.autoDrills = Math.min(Math.max(0, Math.floor(Number(grid.autoDrills) || 0)), MAX_MIGRATED_DRILLS);
+    let regenerate = false;
+    if (!(grid.schema >= 2)) {
+      grid.depth = compressDepth(grid.depth);
+      grid.maxDepth = Math.max(grid.depth, compressDepth(grid.maxDepth));
+      grid.pickaxeTier = Math.max(0, Math.floor(Number(grid.pickaxeTier) || 0));
+      grid.autoDrills = Math.min(Math.max(0, Math.floor(Number(grid.autoDrills) || 0)), MAX_MIGRATED_DRILLS);
+      regenerate = true; // old blocks carry old HP
+    }
+    if (this.rebaseStrandedDepth()) regenerate = true;
     grid.schema = MINING_SCHEMA;
     this.autoDrillTimer = 0;
-    this.drillTargetId = -1;
-    this.descending = false;
-    this.generateNewGrid(); // old blocks carry old HP
+    if (regenerate) this.generateNewGrid();
+    return true;
+  }
+
+  // Seconds one tile at this depth takes with the current pickaxe and drills
+  // (at least 1 hit/s, i.e. a player clicking when there are few drills).
+  getTileSeconds(depth = this.gameState.miningGrid.depth) {
+    const hitsPerSec = Math.max(1, this.getAutoDrillRate());
+    return this.getTileHp(depth) / (Math.max(1, this.getPickaxePower()) * hitsPerSec);
+  }
+
+  // Depth compression put v1 saves at depth 91-156 with a level-5 pickaxe and 12 drills,
+  // where one tile takes days to years. Move such a save up to the deepest depth its kit
+  // digs in about an hour per tile. maxDepth (rank, Geode Attunement, leaderboard) is kept.
+  rebaseStrandedDepth() {
+    const grid = this.gameState.miningGrid;
+    if (this.getTileSeconds(grid.depth) <= REBASE_STUCK_SECONDS) return false;
+    let depth = grid.depth;
+    while (depth > 1 && this.getTileSeconds(depth) > REBASE_TARGET_SECONDS) depth--;
+    grid.maxDepth = Math.max(grid.maxDepth || 1, grid.depth);
+    grid.depth = depth;
+    return true;
+  }
+
+  // Regenerates a grid nothing can progress: blocks missing, or the stairs already found
+  // with no new grid pending. That happened when the page saved inside the old 400 ms
+  // setTimeout descend window and then reloaded: the drills dug out the remaining tiles
+  // and the grid never regenerated.
+  ensurePlayableGrid() {
+    if (this.descending) return false;
+    const blocks = this.gameState.miningGrid.blocks;
+    const total = this.gridSize * this.gridSize;
+    const stuck = !Array.isArray(blocks) || blocks.length !== total ||
+      blocks.some(b => b.content === 'stairs' && b.revealed) || !blocks.some(b => !b.revealed);
+    if (!stuck) return false;
+    this.generateNewGrid();
     return true;
   }
 
@@ -159,6 +212,7 @@ export class MiningSystem {
     grid.blocks = blocks;
     this.drillTargetId = -1;
     this.descending = false;
+    this.descendTimer = 0;
   }
 
   getDungeonPickBonus() {
@@ -178,22 +232,37 @@ export class MiningSystem {
   }
 
   mineBlock(index, clientX, clientY, silent = false) {
-    const grid = this.gameState.miningGrid;
-    const block = grid.blocks[index];
-    if (!block || block.revealed) return;
+    const block = this.gameState.miningGrid.blocks[index];
+    // While descending the old grid is spent; its tiles would pay at the new depth.
+    if (!block || block.revealed || this.descending) return;
 
     const power = this.getPickaxePower();
-    block.hp = Math.max(0, block.hp - power);
     if (!silent) sound.playDig();
 
     if (clientX && clientY) {
       particles.spawnClickSparks(clientX, clientY, 6, '#e2e8f0');
       particles.spawnFloatingText(clientX, clientY, `-${new BigNum(power).format('standard', 0)}`, '#cbd5e1');
     }
+    this.damageBlock(block, power, clientX, clientY);
+  }
 
-    if (block.hp <= 0) {
-      block.revealed = true;
-      this.revealReward(block, clientX, clientY);
+  // Applies damage and reveals the tile (paying out) when it breaks. Returns true if it broke.
+  damageBlock(block, amount, x, y) {
+    if (!block || block.revealed) return false;
+    block.hp = Math.max(0, block.hp - amount);
+    if (block.hp > 0) return false;
+    block.revealed = true;
+    this.revealReward(block, x, y);
+    return true;
+  }
+
+  // Dynamite / Void Cataclysm: EXPLOSIVE_HITS pickaxe hits on each target tile. Stops once
+  // the stairs break, since the rest of the old grid is spent.
+  blastBlocks(targets, x, y) {
+    const dmg = this.getPickaxePower() * EXPLOSIVE_HITS;
+    for (const b of targets) {
+      if (this.descending) break;
+      this.damageBlock(b, dmg, x, y);
     }
   }
 
@@ -219,8 +288,10 @@ export class MiningSystem {
         particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 3,
           `${STRATA[stratum].icon} ENTERED ${STRATA[stratum].name.toUpperCase()} STRATA!`, STRATA[stratum].color, true);
       }
+      // The next grid arrives after DESCEND_DELAY sim seconds (update()). This used to be a
+      // setTimeout, which a save + reload inside the window lost for good (stuck grid).
       this.descending = true;
-      setTimeout(() => this.generateNewGrid(), 400);
+      this.descendTimer = DESCEND_DELAY;
       return;
     }
 
@@ -289,28 +360,28 @@ export class MiningSystem {
   }
 
   useDynamite() {
-    if (this.dynamiteCooldown > 0) return false;
+    if (this.dynamiteCooldown > 0 || this.descending) return false;
+    const blocks = this.gameState.miningGrid.blocks;
+    const unrevealed = blocks.filter(b => !b.revealed);
+    if (unrevealed.length === 0) return false;
     this.dynamiteCooldown = 25; // 25s cooldown
     sound.playHit();
 
-    // Detonate a 3x3 area centred on a random unrevealed block
-    const blocks = this.gameState.miningGrid.blocks;
-    const unrevealed = blocks.filter(b => !b.revealed);
-    if (unrevealed.length === 0) return true;
+    // Blast a 3x3 area centred on a random unrevealed block
     const center = unrevealed[Math.floor(Math.random() * unrevealed.length)];
     const cx = center.id % this.gridSize;
     const cy = Math.floor(center.id / this.gridSize);
+    const targets = [];
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
         const x = cx + dx, y = cy + dy;
         if (x < 0 || y < 0 || x >= this.gridSize || y >= this.gridSize) continue;
         const b = blocks[y * this.gridSize + x];
-        if (!b || b.revealed) continue;
-        b.revealed = true;
-        b.hp = 0;
-        this.revealReward(b, window.innerWidth / 2, window.innerHeight / 2);
+        if (b && !b.revealed) targets.push(b);
       }
     }
+    const w = typeof window !== 'undefined' ? window : null;
+    this.blastBlocks(targets, w ? w.innerWidth / 2 : 0, w ? w.innerHeight / 2 : 0);
     return true;
   }
 
@@ -330,6 +401,13 @@ export class MiningSystem {
     // A save import replaces miningGrid at runtime; migrate it on the next tick.
     if (this.gameState.miningGrid && this.gameState.miningGrid.schema !== MINING_SCHEMA) {
       this.migrateMiningGrid();
+    }
+
+    if (this.descending) {
+      this.descendTimer -= dt;
+      if (this.descendTimer <= 0) this.generateNewGrid();
+    } else {
+      this.ensurePlayableGrid();
     }
 
     if (this.dynamiteCooldown > 0) {
