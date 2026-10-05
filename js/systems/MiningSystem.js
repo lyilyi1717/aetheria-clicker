@@ -143,7 +143,7 @@ export class MiningSystem {
 
     if (block.content === 'gold_cache') {
       sound.playBuy();
-      const gold = new BigNum(100 * Math.pow(1.2, this.gameState.miningGrid.depth));
+      const gold = new BigNum(100 * Math.pow(1.2, this.gameState.miningGrid.depth) * this.gameState.getGoldMultiplier());
       this.gameState.gold = this.gameState.gold.add(gold);
       if (x && y) particles.spawnFloatingText(x, y, `+${gold.format('standard', 0)} GOLD`, '#eab308', true);
       return;

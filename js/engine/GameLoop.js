@@ -36,9 +36,9 @@ export class GameLoop {
       // Check fixed simulation steps
       const simDt = (time - this.lastSimTime) / 1000;
       if (simDt >= this.simIntervalMs / 1000) {
-        const scaledDt = Math.min(1.0, simDt) * this.timeScale;
+        const realDt = Math.min(1.0, simDt);
         if (this.onUpdate) {
-          this.onUpdate(scaledDt);
+          this.onUpdate(realDt * this.timeScale, realDt);
         }
         this.lastSimTime = time;
       }
@@ -61,9 +61,9 @@ export class GameLoop {
       const now = performance.now();
       const elapsed = (now - this.lastSimTime) / 1000;
       if (elapsed >= 0.2) { // Tab was in background or frame skipped
-        const safeElapsed = Math.min(5.0, elapsed) * this.timeScale;
+        const safeElapsed = Math.min(5.0, elapsed);
         if (this.onUpdate) {
-          this.onUpdate(safeElapsed);
+          this.onUpdate(safeElapsed * this.timeScale, safeElapsed);
         }
         this.lastSimTime = now;
       }

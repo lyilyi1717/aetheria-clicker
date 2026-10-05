@@ -9,7 +9,7 @@ import { ClickerSystem } from './systems/ClickerSystem.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from './systems/BuildingSystem.js';
 import { CombatSystem } from './systems/CombatSystem.js';
 import { MiningSystem, PICKAXES } from './systems/MiningSystem.js';
-import { GardenSystem, SEED_TYPES } from './systems/GardenSystem.js';
+import { GardenSystem, SEED_TYPES, ESSENCE_NAMES } from './systems/GardenSystem.js';
 import { AlchemySystem, RECIPES } from './systems/AlchemySystem.js';
 import { SpellSystem, SPELLS } from './systems/SpellSystem.js';
 import { TalentTreeSystem, TALENT_DEFINITIONS } from './systems/TalentTreeSystem.js';
@@ -17,6 +17,13 @@ import { BountySystem } from './systems/BountySystem.js';
 import { MarketSystem, COMMODITIES } from './systems/MarketSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
+import { VERSION, CHANGELOG } from './version.js';
+
+const INGREDIENT_NAMES = {
+  ...ESSENCE_NAMES,
+  rubies: 'Ruby', sapphires: 'Sapphire', emeralds: 'Emerald', diamonds: 'Diamond',
+  voidAmethyst: 'Void Amethyst', monsterBones: 'Monster Bone', voidCores: 'Void Core', bossTokens: 'Boss Token'
+};
 
 // Application Orchestrator
 class AetheriaApp {
@@ -54,7 +61,7 @@ class AetheriaApp {
 
     // Game loop
     this.gameLoop = new GameLoop(
-      (dt) => this.onSimTick(dt),
+      (dt, realDt) => this.onSimTick(dt, realDt),
       (dt) => this.onRenderTick(dt),
       () => this.saveManager.save()
     );
@@ -90,7 +97,27 @@ class AetheriaApp {
     this.gameLoop.start();
   }
 
+  buildAboutStructure() {
+    const verBtn = document.getElementById('game-version');
+    if (verBtn) {
+      verBtn.textContent = `v${VERSION}`;
+      verBtn.addEventListener('click', () => this.switchTab('about'));
+    }
+    const verEl = document.getElementById('about-version');
+    if (verEl) verEl.textContent = `v${VERSION}`;
+    const logEl = document.getElementById('about-changelog');
+    if (logEl) {
+      logEl.innerHTML = CHANGELOG.map(entry => `
+        <div class="changelog-entry">
+          <div class="changelog-head"><strong>v${entry.version}</strong> &mdash; ${entry.title} <span class="changelog-date">${entry.date}</span></div>
+          <ul>${entry.changes.map(c => `<li>${c}</li>`).join('')}</ul>
+        </div>
+      `).join('');
+    }
+  }
+
   setupTabs() {
+    this.buildAboutStructure();
     const tabButtons = document.querySelectorAll('.nav-tab');
     tabButtons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -149,7 +176,7 @@ class AetheriaApp {
       warpBtn.addEventListener('click', () => {
         if (this.gameState.chronoSand >= 30) {
           this.gameState.chronoSand -= 30;
-          this.onSimTick(30);
+          for (let i = 0; i < 300; i++) this.onSimTick(0.1);
           sound.playSpell();
           particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, '⚡ 30s TIME WARP!', '#38bdf8', true);
         }
@@ -464,8 +491,13 @@ class AetheriaApp {
 
       if (buyAmt === 'max') {
         const maxInfo = this.buildingSystem.getMaxBuyable(def.id);
-        cost = maxInfo.cost;
-        buyCount = maxInfo.count || 1;
+        if (maxInfo.count > 0) {
+          cost = maxInfo.cost;
+          buyCount = maxInfo.count;
+        } else {
+          cost = this.buildingSystem.getBuildingCost(def.id, 1);
+          buyCount = 1;
+        }
       } else {
         buyCount = buyAmt;
         cost = this.buildingSystem.getBuildingCost(def.id, buyCount);
@@ -570,8 +602,9 @@ class AetheriaApp {
 
     // Gear
     const gearCont = document.getElementById('hero-gear-container');
-    if (gearCont && (!this.lastGearLevel || this.lastGearLevel !== h.level)) {
-      this.lastGearLevel = h.level;
+    const gearSig = JSON.stringify(h.gear);
+    if (gearCont && this.lastGearSig !== gearSig) {
+      this.lastGearSig = gearSig;
       gearCont.innerHTML = `
         <div class="gear-slot" style="border-color: ${h.gear.weapon?.color || '#64748b'}">
           <div class="slot-title">Weapon</div>
@@ -784,6 +817,14 @@ class AetheriaApp {
   }
 
   updateGardenUI() {
+    const waterBtn = document.getElementById('btn-water-garden');
+    if (waterBtn) {
+      const cd = this.gardenSystem.waterCooldown;
+      const label = cd > 0 ? `💧 Water All (${Math.ceil(cd)}s)` : '💧 Water All (+25s)';
+      if (waterBtn.textContent !== label) waterBtn.textContent = label;
+      waterBtn.classList.toggle('disabled', cd > 0);
+    }
+
     const garden = this.gameState.garden;
     if (!garden) return;
 
@@ -819,14 +860,16 @@ class AetheriaApp {
     const essEl = document.getElementById('garden-essences-list');
     if (essEl) {
       const ess = garden.essences;
-      essEl.innerHTML = `
-        <span class="res-badge">Spore Powder: ${ess.sporePowder || 0}</span>
-        <span class="res-badge">Mana Sap: ${ess.manaSap || 0}</span>
-        <span class="res-badge">Solar Dew: ${ess.solarDew || 0}</span>
-        <span class="res-badge">Cryo Essence: ${ess.cryoEssence || 0}</span>
-        <span class="res-badge">Void Pollen: ${ess.voidPollen || 0}</span>
-        <span class="res-badge">Star Nectar: ${ess.starNectar || 0}</span>
-      `;
+      if (!essEl.dataset.built) {
+        essEl.dataset.built = '1';
+        essEl.innerHTML = Object.entries(ESSENCE_NAMES).map(([k, name]) =>
+          `<span class="res-badge">${name}: <span id="ess-count-${k}">0</span></span>`).join(' ');
+      }
+      for (const k of Object.keys(ESSENCE_NAMES)) {
+        const el = document.getElementById(`ess-count-${k}`);
+        const v = String(ess[k] || 0);
+        if (el && el.textContent !== v) el.textContent = v;
+      }
     }
   }
 
@@ -835,7 +878,8 @@ class AetheriaApp {
     const listCont = document.getElementById('alchemy-recipes-list');
     if (listCont) {
       listCont.innerHTML = RECIPES.map(r => {
-        const costStr = Object.entries(r.cost).map(([k, v]) => `${v}x ${k}`).join(', ');
+        const costStr = Object.entries(r.cost).map(([k, v]) =>
+          `${v}x ${INGREDIENT_NAMES[k] || k} (<span id="alc-own-${r.id}-${k}">0</span>)`).join(', ');
         return `
           <div class="alchemy-card" id="alc-card-${r.id}">
             <div class="alc-info">
@@ -867,6 +911,19 @@ class AetheriaApp {
   }
 
   updateAlchemyUI() {
+    const inv = this.gameState.inventory;
+    const ess = this.gameState.garden?.essences || {};
+    for (const r of RECIPES) {
+      for (const k of Object.keys(r.cost)) {
+        const el = document.getElementById(`alc-own-${r.id}-${k}`);
+        const v = `have ${inv[k] ?? ess[k] ?? 0}`;
+        if (el && el.textContent !== v) el.textContent = v;
+      }
+    }
+    const tStone = document.getElementById('btn-transmute-stone');
+    if (tStone) tStone.classList.toggle('disabled', (inv.stone || 0) < 50);
+    const tChrono = document.getElementById('btn-transmute-chrono');
+    if (tChrono) tChrono.classList.toggle('disabled', !this.gameState.gold.gte(new BigNum(1000)));
     for (const r of RECIPES) {
       const can = this.alchemySystem.canBrew(r.id);
       const card = document.getElementById(`alc-card-${r.id}`);
@@ -931,7 +988,12 @@ class AetheriaApp {
         <button id="btn-respec-talents" class="btn-action" style="margin-left: 1rem">🔄 Respec All</button>
       `;
       const respecBtn = document.getElementById('btn-respec-talents');
-      if (respecBtn) respecBtn.onclick = () => { this.talentSystem.respecTalents(); this.updateTalentsUI(); };
+      if (respecBtn) respecBtn.onclick = () => {
+        if (this.gameState.spentTalentPoints <= 0) return;
+        if (!confirm('Refund all spent talent points?')) return;
+        this.talentSystem.respecTalents();
+        this.updateTalentsUI();
+      };
     }
 
     const grid = document.getElementById('talents-tree-grid');
@@ -953,6 +1015,8 @@ class AetheriaApp {
   updateTalentsUI() {
     const tpCount = document.getElementById('tp-avail-count');
     if (tpCount) tpCount.textContent = this.gameState.talentPoints;
+    const respecBtn = document.getElementById('btn-respec-talents');
+    if (respecBtn) respecBtn.classList.toggle('disabled', this.gameState.spentTalentPoints <= 0);
 
     for (const t of TALENT_DEFINITIONS) {
       const state = this.gameState.talents[t.id] || { rank: 0 };
@@ -983,14 +1047,15 @@ class AetheriaApp {
             <div class="b-info">
               <div class="b-title">${b.title}</div>
               <div class="b-desc">${b.desc}</div>
-              <div class="b-progress-bar"><div class="fill" style="width: ${pct}%"></div></div>
-              <div class="b-count">${b.current} / ${b.required}</div>
+              <div class="b-progress-bar"><div class="fill" id="bounty-fill-${b.id}" style="width: ${pct}%"></div></div>
+              <div class="b-count" id="bounty-count-${b.id}">${b.current} / ${b.required}</div>
             </div>
             <div class="b-reward-box">
               <div>+${b.rewards.gold.format('standard', 0)} Gold</div>
               <div>+${b.rewards.chrono} Chrono Sand</div>
+              <div>+${b.rewards.seals} Guild Seals</div>
               ${b.rewards.talentPoint ? '<div style="color:#ec4899;font-weight:bold">+1 Talent Point</div>' : ''}
-              <button class="btn-claim-bounty ${b.completed ? 'ready' : 'disabled'}" data-id="${b.id}">
+              <button class="btn-claim-bounty ${b.completed ? 'ready' : 'disabled'}" id="bounty-btn-${b.id}" data-id="${b.id}">
                 ${b.completed ? '🎁 Claim' : 'In Progress'}
               </button>
             </div>
@@ -999,6 +1064,25 @@ class AetheriaApp {
       }).join('');
     }
 
+    this.updateQuartermasterUI();
+  }
+
+  updateBountiesUI() {
+    for (const b of this.gameState.bounties) {
+      const fill = document.getElementById(`bounty-fill-${b.id}`);
+      if (!fill) continue;
+      fill.style.width = `${Math.min(100, (b.current / b.required) * 100)}%`;
+      const count = document.getElementById(`bounty-count-${b.id}`);
+      const countText = `${b.current} / ${b.required}`;
+      if (count && count.textContent !== countText) count.textContent = countText;
+      const btn = document.getElementById(`bounty-btn-${b.id}`);
+      if (btn && b.completed && !btn.classList.contains('ready')) {
+        btn.classList.add('ready');
+        btn.classList.remove('disabled');
+        btn.textContent = '🎁 Claim';
+        document.getElementById(`bounty-card-${b.id}`)?.classList.add('completed');
+      }
+    }
     this.updateQuartermasterUI();
   }
 
@@ -1095,28 +1179,43 @@ class AetheriaApp {
 
     const carCont = document.getElementById('market-caravan-panel');
     if (carCont) {
-      const car = this.gameState.market?.caravan;
-      if (car?.active) {
+      // Built once and updated in place: rebuilding every frame swallowed button clicks
+      if (!carCont.dataset.built) {
+        carCont.dataset.built = '1';
+        const ret = (mins) => (1.3 + mins * 0.15).toFixed(2).replace(/0$/, '');
         carCont.innerHTML = `
-          <div class="caravan-active-card">
+          <div class="caravan-active-card" id="caravan-active">
             <h3>🐪 Caravan In Transit</h3>
-            <p>Time remaining: ${Math.ceil(car.duration)}s</p>
-            <p>Investment: ${car.investment.format('standard', 0)} Gold | Return: ${(car.expectedProfit * 100).toFixed(0)}%</p>
+            <p>Time remaining: <span id="caravan-time"></span>s</p>
+            <p>Investment: <span id="caravan-invest"></span> Gold | Return: <span id="caravan-return"></span>%</p>
           </div>
-        `;
-      } else {
-        carCont.innerHTML = `
-          <div class="caravan-dispatch-box">
+          <div class="caravan-dispatch-box" id="caravan-dispatch">
             <h3>🐪 Dispatch Trade Caravan</h3>
             <p>Send gold into distant trade routes for guaranteed profit!</p>
-            <button id="btn-send-caravan-1" class="btn-action">Send 500 Gold (2 Min - 1.6x Return)</button>
-            <button id="btn-send-caravan-2" class="btn-action">Send 5,000 Gold (5 Min - 2.0x Return)</button>
+            <button id="btn-send-caravan-1" class="btn-action">Send 500 Gold (2 Min - ${ret(2)}x Return)</button>
+            <button id="btn-send-caravan-2" class="btn-action">Send 5,000 Gold (5 Min - ${ret(5)}x Return)</button>
           </div>
         `;
-        const c1 = document.getElementById('btn-send-caravan-1');
-        if (c1) c1.onclick = () => { this.marketSystem.dispatchCaravan(500, 2); this.updateMarketUI(); };
-        const c2 = document.getElementById('btn-send-caravan-2');
-        if (c2) c2.onclick = () => { this.marketSystem.dispatchCaravan(5000, 5); this.updateMarketUI(); };
+        carCont.addEventListener('click', (e) => {
+          const btn = e.target.closest('button');
+          if (!btn) return;
+          if (btn.id === 'btn-send-caravan-1') this.marketSystem.dispatchCaravan(500, 2);
+          else if (btn.id === 'btn-send-caravan-2') this.marketSystem.dispatchCaravan(5000, 5);
+          else return;
+          this.updateMarketUI();
+        });
+      }
+      const car = this.gameState.market?.caravan;
+      const active = !!car?.active;
+      document.getElementById('caravan-active').style.display = active ? '' : 'none';
+      document.getElementById('caravan-dispatch').style.display = active ? 'none' : '';
+      if (active) {
+        document.getElementById('caravan-time').textContent = Math.ceil(car.duration);
+        document.getElementById('caravan-invest').textContent = car.investment.format('standard', 0);
+        document.getElementById('caravan-return').textContent = (car.expectedProfit * 100).toFixed(0);
+      } else {
+        document.getElementById('btn-send-caravan-1').classList.toggle('disabled', !this.gameState.gold.gte(new BigNum(500)));
+        document.getElementById('btn-send-caravan-2').classList.toggle('disabled', !this.gameState.gold.gte(new BigNum(5000)));
       }
     }
 
@@ -1196,26 +1295,34 @@ class AetheriaApp {
 
     const transCont = document.getElementById('transcendence-section');
     if (transCont) {
-      const canT = this.prestigeSystem.canTranscend();
-      transCont.innerHTML = `
-        <div class="transcend-box">
-          <h3>🌌 Multiverse Transcendence (Prestige Tier 2)</h3>
-          <p>Fracture Shards: <strong>${this.gameState.fractureShards.format('standard', 0)}</strong> (Requires 50,000+ Total Cosmic Dust)</p>
-          <button id="btn-do-transcend" class="btn-action ${canT ? 'active' : 'disabled'}">
-            ${canT ? '✨ Transcend Reality!' : 'Locked (Needs 50K Cosmic Dust)'}
-          </button>
-        </div>
-      `;
-      const tBtn = document.getElementById('btn-do-transcend');
-      if (tBtn && canT) {
-        tBtn.onclick = () => {
-          if (confirm('Transcend Reality? This resets Ascension perks for Fracture Shards and Reality Upgrades!')) {
+      // Built once and updated in place: rebuilding every frame swallowed button clicks
+      if (!transCont.dataset.built) {
+        transCont.dataset.built = '1';
+        transCont.innerHTML = `
+          <div class="transcend-box">
+            <h3>🌌 Multiverse Transcendence (Prestige Tier 2)</h3>
+            <p>Fracture Shards: <strong id="fracture-shards-count"></strong> (+10% All Aether Production each). Requires 50,000+ Total Cosmic Dust.</p>
+            <button id="btn-do-transcend" class="btn-action"></button>
+          </div>
+        `;
+        document.getElementById('btn-do-transcend').addEventListener('click', () => {
+          if (!this.prestigeSystem.canTranscend()) return;
+          if (confirm('Transcend Reality? This resets your Ascension (Cosmic Dust and perks) in exchange for Fracture Shards, each granting +10% All Aether Production permanently.')) {
             this.prestigeSystem.transcend();
             this.updateBuildingsUI();
             this.updatePrestigeUI();
           }
-        };
+        });
       }
+      const canT = this.prestigeSystem.canTranscend();
+      const shardsEl = document.getElementById('fracture-shards-count');
+      const shardsText = this.gameState.fractureShards.format('standard', 0);
+      if (shardsEl.textContent !== shardsText) shardsEl.textContent = shardsText;
+      const tBtn = document.getElementById('btn-do-transcend');
+      const label = canT ? '✨ Transcend Reality!' : 'Locked (Needs 50K Cosmic Dust)';
+      if (tBtn.textContent !== label) tBtn.textContent = label;
+      tBtn.classList.toggle('active', canT);
+      tBtn.classList.toggle('disabled', !canT);
     }
   }
 
@@ -1266,13 +1373,13 @@ class AetheriaApp {
   }
 
   // Simulation tick (fixed rate)
-  onSimTick(dt) {
+  onSimTick(dt, realDt = dt) {
     this.clickerSystem.update(dt);
     this.combatSystem.update(dt);
     this.miningSystem.update(dt);
     this.gardenSystem.update(dt);
-    this.alchemySystem.update(dt);
-    this.spellSystem.update(dt);
+    this.alchemySystem.update(dt, realDt);
+    this.spellSystem.update(dt, realDt);
     this.marketSystem.update(dt);
 
     // Passive aether income
@@ -1312,14 +1419,18 @@ class AetheriaApp {
       if (this.tabNeedsFullRender['bounties']) {
         this.tabNeedsFullRender['bounties'] = false;
         this.buildBountiesStructure();
+      } else {
+        this.updateBountiesUI();
       }
     } else if (this.currentTab === 'market') {
       this.updateMarketUI();
     } else if (this.currentTab === 'prestige') {
       this.updatePrestigeUI();
     } else if (this.currentTab === 'codex') {
-      if (this.tabNeedsFullRender['codex']) {
+      this.codexRefreshTimer = (this.codexRefreshTimer || 0) + dt;
+      if (this.tabNeedsFullRender['codex'] || this.codexRefreshTimer >= 1) {
         this.tabNeedsFullRender['codex'] = false;
+        this.codexRefreshTimer = 0;
         this.updateCodexUI();
       }
     }
@@ -1374,7 +1485,7 @@ class AetheriaApp {
     if (comboBar && comboText) {
       const combo = this.gameState.comboCount;
       comboBar.style.width = `${Math.min(100, combo)}%`;
-      comboText.textContent = combo > 0 ? `${combo}x Combo! (${(1 + combo * 0.08).toFixed(1)}x boost)` : 'Combo Ready';
+      comboText.textContent = combo > 0 ? `${combo}x Combo! (${(1 + Math.min(50, combo) * 0.08).toFixed(1)}x boost)` : 'Combo Ready';
     }
 
     const frenzyBadge = document.getElementById('frenzy-badge');

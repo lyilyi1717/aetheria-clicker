@@ -104,7 +104,7 @@ export class BountySystem {
     // Grant rewards
     this.gameState.gold = this.gameState.gold.add(b.rewards.gold);
     this.gameState.guildSeals = (this.gameState.guildSeals || 0) + b.rewards.seals;
-    this.gameState.chronoSand = (this.gameState.chronoSand || 0) + b.rewards.chrono;
+    this.gameState.addChronoSand(b.rewards.chrono);
 
     if (b.rewards.talentPoint) {
       this.gameState.talentPoints++;

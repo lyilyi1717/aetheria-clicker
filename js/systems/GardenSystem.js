@@ -10,6 +10,15 @@ export const SEED_TYPES = {
   star_lotus: { id: 'star_lotus', name: 'Star Lotus', icon: '🌟', growTime: 480, desc: 'Yields Celestial Nectar' }
 };
 
+export const ESSENCE_NAMES = {
+  sporePowder: 'Spore Powder',
+  manaSap: 'Mana Sap',
+  solarDew: 'Solar Dew',
+  cryoEssence: 'Cryo Essence',
+  voidPollen: 'Void Pollen',
+  starNectar: 'Celestial Nectar'
+};
+
 export class GardenSystem {
   constructor(gameState) {
     this.gameState = gameState;
@@ -79,7 +88,7 @@ export class GardenSystem {
 
     for (const plot of this.gameState.garden.plots) {
       if (plot.seed && plot.stage !== 'mature') {
-        plot.progress += 25; // boost 25s
+        plot.progress = Math.min(plot.maxTime, plot.progress + 25); // boost 25s
       }
     }
     particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, '💧 GARDEN WATERED (+25s Growth)', '#38bdf8', true);
@@ -112,8 +121,15 @@ export class GardenSystem {
       const amount = (1 + Math.floor(Math.random() * 2)) * mult;
       this.gameState.garden.essences[essKey] = (this.gameState.garden.essences[essKey] || 0) + amount;
       if (clientX && clientY) {
-        particles.spawnFloatingText(clientX, clientY, `+${amount} ${SEED_TYPES[seedId].name}`, '#4ade80', true);
+        particles.spawnFloatingText(clientX, clientY, `+${amount} ${ESSENCE_NAMES[essKey] || essKey}`, '#4ade80', true);
       }
+    }
+
+    // Mana Lily restores mana on harvest
+    if (seedId === 'mana_lily') {
+      const restore = 15 * mult;
+      this.gameState.mana = Math.min(this.gameState.maxMana, (this.gameState.mana || 0) + restore);
+      if (clientX && clientY) particles.spawnFloatingText(clientX, clientY - 15, `+${restore} MANA`, '#818cf8', true);
     }
 
     // Seed drop back + chance of higher seed mutation!
@@ -191,17 +207,20 @@ export class GardenSystem {
       if (!plot.seed) continue;
 
       if (plot.progress < plot.maxTime) {
-        plot.progress += dt;
-        const ratio = plot.progress / plot.maxTime;
-        if (ratio >= 1.0) {
-          plot.stage = 'mature';
-        } else if (ratio >= 0.6) {
-          plot.stage = 'blooming';
-        } else if (ratio >= 0.25) {
-          plot.stage = 'sprout';
-        } else {
-          plot.stage = 'seed';
-        }
+        const haste = 1 + (this.gameState.talents?.botanical_haste?.rank || 0) * 0.2;
+        plot.progress = Math.min(plot.maxTime, plot.progress + dt * haste);
+      }
+      // Recompute stage every tick: Water All and Leyline Overflow push progress from
+      // outside this loop, and skipping the 'mature' step left plots unharvestable.
+      const ratio = plot.progress / plot.maxTime;
+      if (ratio >= 1.0) {
+        plot.stage = 'mature';
+      } else if (ratio >= 0.6) {
+        plot.stage = 'blooming';
+      } else if (ratio >= 0.25) {
+        plot.stage = 'sprout';
+      } else {
+        plot.stage = 'seed';
       }
     }
   }

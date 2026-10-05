@@ -139,6 +139,11 @@ export class GameState {
       mult *= Math.max(1, dustMult);
     }
 
+    // Fracture Shards (Transcendence): +10% production each
+    if (this.fractureShards.gt(0)) {
+      mult *= 1 + this.fractureShards.toNumber() * 0.1;
+    }
+
     // Multiply by Active Buffs
     for (const buff of this.activeBuffs) {
       if (buff.type === 'aether_mult') {
@@ -168,6 +173,11 @@ export class GameState {
       base = base.add(cps.mul(clickPercentOfCps));
     }
 
+    // Aetherial Strike talent: +25% click yield per rank
+    if (this.talents?.click_power?.rank > 0) {
+      base = base.mul(1 + this.talents.click_power.rank * 0.25);
+    }
+
     // Combo multiplier (up to 5x base)
     const comboMult = 1 + Math.min(50, this.comboCount) * 0.08;
     base = base.mul(comboMult);
@@ -192,6 +202,23 @@ export class GameState {
     }
 
     return base;
+  }
+
+  // Midas Elixir (gold_mult buffs) multiplies all earned gold
+  getGoldMultiplier() {
+    let mult = 1;
+    for (const buff of this.activeBuffs) {
+      if (buff.type === 'gold_mult') mult *= buff.value;
+    }
+    return mult;
+  }
+
+  // Temporal Siphon talent: +50% Chrono Sand per rank
+  addChronoSand(amount) {
+    const mult = 1 + (this.talents?.chrono_mastery?.rank || 0) * 0.5;
+    const gained = Math.floor(amount * mult);
+    this.chronoSand = (this.chronoSand || 0) + gained;
+    return gained;
   }
 
   serialize() {
@@ -229,7 +256,9 @@ export class GameState {
       quartermaster: this.quartermaster,
       market: this.market,
       ascensionPerks: this.ascensionPerks,
-      achievements: this.achievements
+      achievements: this.achievements,
+      // Chrono Warp is excluded: the loop's timeScale isn't saved, so it would come back inert
+      activeBuffs: this.activeBuffs.filter(b => b.type !== 'time_speed')
     };
   }
 
@@ -275,6 +304,7 @@ export class GameState {
       }
       this.ascensionPerks = data.ascensionPerks || {};
       this.achievements = data.achievements || {};
+      this.activeBuffs = Array.isArray(data.activeBuffs) ? data.activeBuffs : [];
     } catch (e) {
       console.error('Error during deserialize:', e);
     }

@@ -167,7 +167,7 @@ export class BuildingSystem {
     // Geometric series sum: S = a * (r^n - 1) / (r - 1)
     // where a = baseCost * 1.15^current
     const r = def.costMult;
-    const a = def.baseCost.mul(new BigNum(r).pow(current));
+    const a = def.baseCost.mul(new BigNum(r).pow(current)).mul(this.getCostMultiplier());
 
     if (countToAdd === 1) return a;
 
@@ -181,7 +181,7 @@ export class BuildingSystem {
 
     const current = this.gameState.buildings[id].count;
     const r = def.costMult;
-    const a = def.baseCost.mul(new BigNum(r).pow(current));
+    const a = def.baseCost.mul(new BigNum(r).pow(current)).mul(this.getCostMultiplier());
     const budget = this.gameState.aether;
 
     if (budget.lt(a)) return { count: 0, cost: BigNum.zero() };
@@ -237,7 +237,14 @@ export class BuildingSystem {
         mult *= boosts[i];
       }
     }
+    // Harmonic Array talent: +15% milestone multipliers per rank
+    if (mult > 1) mult *= 1 + (this.gameState.talents?.synergy_resonance?.rank || 0) * 0.15;
     return mult;
+  }
+
+  // Architect Blueprint talent: -4% building costs per rank
+  getCostMultiplier() {
+    return 1 - (this.gameState.talents?.cost_reduction?.rank || 0) * 0.04;
   }
 
   getBuildingProduction(id) {

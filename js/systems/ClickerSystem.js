@@ -12,7 +12,7 @@ export class ClickerSystem {
     this.anomalyType = 'jackpot';
   }
 
-  handleClick(clientX, clientY) {
+  handleClick(clientX, clientY, isAutoClick = false) {
     // Determine if critical strike
     const isCrit = Math.random() < this.gameState.critChance;
     let yieldAmount = this.gameState.getClickYield();
@@ -26,12 +26,21 @@ export class ClickerSystem {
 
     // Award aether
     this.gameState.aether = this.gameState.aether.add(yieldAmount);
+
+    // Midas' Blessing spell: each click also mints gold scaled to the current dungeon floor
+    if (this.gameState.activeBuffs.some(b => b.type === 'click_gold')) {
+      const floor = this.gameState.hero?.floor || 1;
+      const clickGold = Math.max(1, Math.floor(5 * Math.pow(1.15, floor - 1) * this.gameState.getGoldMultiplier()));
+      this.gameState.gold = this.gameState.gold.add(new BigNum(clickGold));
+    }
     this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(yieldAmount);
     this.gameState.totalClicks++;
 
-    // Increment combo
-    this.gameState.comboCount = Math.min(100, this.gameState.comboCount + 1);
-    this.gameState.comboTimer = 2.0; // 2 seconds to keep combo active
+    // Increment combo (frenzy auto-clicks don't count)
+    if (!isAutoClick) {
+      this.gameState.comboCount = Math.min(100, this.gameState.comboCount + 1);
+      this.gameState.comboTimer = 2.0; // 2 seconds to keep combo active
+    }
 
     // Trigger frenzy if combo hits 100
     if (this.gameState.comboCount >= 100 && !this.gameState.frenzyActive) {
@@ -77,10 +86,12 @@ export class ClickerSystem {
       if (Math.random() < dt * 6) {
         const fakeX = window.innerWidth / 2 + (Math.random() - 0.5) * 120;
         const fakeY = window.innerHeight / 2 + (Math.random() - 0.5) * 120;
-        this.handleClick(fakeX, fakeY);
+        this.handleClick(fakeX, fakeY, true);
       }
       if (this.gameState.frenzyTimer <= 0) {
         this.gameState.frenzyActive = false;
+        this.gameState.comboCount = 0;
+        this.gameState.comboTimer = 0;
       }
     }
 
@@ -132,7 +143,7 @@ export class ClickerSystem {
       rewardText = 'TIME FLUX! 25s Frenzy Active!';
     } else if (this.anomalyType === 'mana_cache') {
       this.gameState.mana = this.gameState.maxMana;
-      this.gameState.chronoSand = (this.gameState.chronoSand || 0) + 120;
+      this.gameState.addChronoSand(120);
       rewardText = 'COSMIC CACHE! Full Mana + 120 Chrono Sand';
     } else {
       const gems = ['rubies', 'sapphires', 'emeralds', 'diamonds'];

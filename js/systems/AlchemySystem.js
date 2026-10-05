@@ -106,16 +106,20 @@ export class AlchemySystem {
     if (r.type === 'buff') {
       // Add or extend active buff
       const existing = this.gameState.activeBuffs.find(b => b.id === r.id);
+      // Astral Crucible perk doubles durations; Brewmaster Secret adds +25% per rank
+      let dur = r.duration * (this.gameState.ascensionPerks?.astral_alchemist?.rank > 0 ? 2 : 1);
+      dur *= 1 + (this.gameState.talents?.catalyst_potency?.rank || 0) * 0.25;
       if (existing) {
-        existing.duration += r.duration;
+        existing.duration += dur;
+        existing.maxDuration = (existing.maxDuration || 0) + dur;
       } else {
         this.gameState.activeBuffs.push({
           id: r.id,
           name: r.name,
           type: r.buffType,
           value: r.buffValue,
-          duration: r.duration,
-          maxDuration: r.duration
+          duration: dur,
+          maxDuration: dur
         });
       }
       particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `BREWED: ${r.name}!`, '#a855f7', true);
@@ -152,17 +156,17 @@ export class AlchemySystem {
     const cost = new BigNum(1000);
     if (this.gameState.gold.lt(cost)) return false;
     this.gameState.gold = this.gameState.gold.sub(cost);
-    this.gameState.chronoSand = (this.gameState.chronoSand || 0) + 30;
+    this.gameState.addChronoSand(30);
     sound.playSpell();
     particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, '+30 Chrono Sand', '#38bdf8', true);
     return true;
   }
 
-  update(dt) {
-    // Process active buffs duration
+  update(dt, realDt = dt) {
+    // Buff durations run on real time so Chrono Warp doesn't burn them (or itself) 5x faster
     for (let i = this.gameState.activeBuffs.length - 1; i >= 0; i--) {
       const buff = this.gameState.activeBuffs[i];
-      buff.duration -= dt;
+      buff.duration -= realDt;
       if (buff.duration <= 0) {
         this.gameState.activeBuffs.splice(i, 1);
       }

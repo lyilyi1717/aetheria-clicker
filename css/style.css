@@ -162,11 +162,58 @@ body {
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
 }
 
-.btn-action.disabled {
+.btn-action.disabled,
+.btn-buy-perk.disabled,
+.btn-buy-qm-upgrade.disabled {
   opacity: 0.5;
   cursor: not-allowed;
   border-color: #475569;
   color: #94a3b8;
+}
+
+/* Version label + About tab */
+.game-version {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 2px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+
+.game-version:hover {
+  opacity: 1;
+  color: var(--accent-cyan);
+}
+
+.about-intro {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.changelog-entry {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.05);
+  border-radius: 6px;
+}
+
+.changelog-date {
+  float: right;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.changelog-entry ul {
+  margin: 0.5rem 0 0 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
 }
 
 /* Main Workspace */

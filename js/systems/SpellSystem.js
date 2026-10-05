@@ -101,6 +101,7 @@ export class SpellSystem {
       this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(payout);
       particles.spawnFloatingText(x, y, `BURST! +${payout.format('standard', 2)} AETHER`, '#38bdf8', true);
     } else if (spellId === 'chrono_warp') {
+      this.removeBuff('chrono_warp');
       this.gameState.activeBuffs.push({
         id: 'chrono_warp',
         name: 'Chrono Warp (5x Speed)',
@@ -111,6 +112,7 @@ export class SpellSystem {
       if (this.gameLoop) this.gameLoop.timeScale = 5.0;
       particles.spawnFloatingText(x, y, '⏳ TIME ACCELERATED 5X!', '#f59e0b', true);
     } else if (spellId === 'midas_touch') {
+      this.removeBuff('midas_touch');
       this.gameState.activeBuffs.push({
         id: 'midas_touch',
         name: "Midas' Blessing",
@@ -120,6 +122,7 @@ export class SpellSystem {
       });
       particles.spawnFloatingText(x, y, '🪙 MIDAS BLESSING ACTIVE!', '#eab308', true);
     } else if (spellId === 'celestial_alignment') {
+      this.removeBuff('celestial_alignment');
       this.gameState.activeBuffs.push({
         id: 'celestial_alignment',
         name: 'Celestial Alignment',
@@ -131,14 +134,19 @@ export class SpellSystem {
     } else if (spellId === 'void_strike') {
       if (this.gameState.combatSystem && this.gameState.combatSystem.monster) {
         const m = this.gameState.combatSystem.monster;
-        const dmg = Math.max(10, Math.floor(m.hp * 0.4));
-        this.gameState.combatSystem.dealDamageToMonster(dmg, x, y, true);
+        if (m.hp > 0) {
+          const dmg = Math.max(10, Math.floor(m.maxHp * 0.4));
+          this.gameState.combatSystem.dealDamageToMonster(dmg, x, y, true);
+        }
       }
       if (this.gameState.miningSystem) {
         const unrev = this.gameState.miningGrid.blocks.filter(b => !b.revealed);
-        for (let i = 0; i < Math.min(4, unrev.length); i++) {
-          unrev[i].revealed = true;
-          this.gameState.miningSystem.revealReward(unrev[i], x, y);
+        for (let i = 0; i < 4 && unrev.length > 0; i++) {
+          const pick = unrev.splice(Math.floor(Math.random() * unrev.length), 1)[0];
+          pick.revealed = true;
+          pick.hp = 0;
+          this.gameState.miningSystem.revealReward(pick, x, y);
+          if (pick.content === 'stairs') break; // a new grid is coming; stop rewarding the old one
         }
       }
       particles.spawnFloatingText(x, y, '☄️ VOID CATACLYSM!', '#a855f7', true);
@@ -162,8 +170,12 @@ export class SpellSystem {
     return true;
   }
 
+  removeBuff(id) {
+    this.gameState.activeBuffs = this.gameState.activeBuffs.filter(b => b.id !== id);
+  }
+
   getMaxMana() {
-    let max = 100;
+    let max = 100 + (this.gameState.talents?.mana_flow?.rank || 0) * 20;
     // Universal Mastery: Excavation Mastery (+2.0% Max Mana per 5 max depth reached)
     if (this.gameState.miningGrid && this.gameState.miningGrid.maxDepth > 1) {
       const depthMasteryRank = Math.floor(this.gameState.miningGrid.maxDepth / 5);
@@ -173,7 +185,7 @@ export class SpellSystem {
   }
 
   getManaRegen() {
-    let regen = 2.0;
+    let regen = 2.0 + (this.gameState.talents?.mana_flow?.rank || 0) * 1.0;
     // Universal Mastery: Excavation Mastery (+2.0% Mana Regen per 5 max depth reached)
     if (this.gameState.miningGrid && this.gameState.miningGrid.maxDepth > 1) {
       const depthMasteryRank = Math.floor(this.gameState.miningGrid.maxDepth / 5);
@@ -182,7 +194,13 @@ export class SpellSystem {
     return regen;
   }
 
-  update(dt) {
+  update(dt, realDt = dt) {
+    // Automated Leylines perk: when mana is full, auto-cast the next ready spell
+    if (this.gameState.ascensionPerks?.auto_leylines?.rank > 0 && this.gameState.mana >= this.gameState.maxMana) {
+      const next = SPELLS.find(d => d.id !== 'astral_refresh' && this.canCast(d.id));
+      if (next) this.castSpell(next.id);
+    }
+
     // Regenerate Mana
     this.gameState.maxMana = this.getMaxMana();
     if (this.gameState.mana < this.gameState.maxMana) {
@@ -211,7 +229,7 @@ export class SpellSystem {
     for (const key in this.gameState.spells) {
       const s = this.gameState.spells[key];
       if (s.cd > 0) {
-        s.cd = Math.max(0, s.cd - dt);
+        s.cd = Math.max(0, s.cd - realDt);
       }
     }
 

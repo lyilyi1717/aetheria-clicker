@@ -23,6 +23,7 @@
     <header id="top-dashboard">
       <div class="title-group">
         <h1 class="game-title">AETHERIA</h1>
+        <button id="game-version" class="game-version" title="About & changelog">v</button>
       </div>
 
       <div class="resource-bar">
@@ -83,7 +84,7 @@
           <span class="nav-icon">⛏️</span>
           <span>Excavation</span>
         </button>
-        <button class="nav-tab" data-tab="garden" title="Garden: 16 plots of magical flora, real-time growth, cross-breeding, and essences.">
+        <button class="nav-tab" data-tab="garden" title="Garden: 16 plots of magical flora, real-time growth, mutant seeds, and essences.">
           <span class="nav-icon">🌱</span>
           <span>Garden</span>
         </button>
@@ -115,6 +116,10 @@
           <span class="nav-icon">🏆</span>
           <span>Codex</span>
         </button>
+        <button class="nav-tab" data-tab="about" title="About: version and changelog.">
+          <span class="nav-icon">ℹ️</span>
+          <span>About</span>
+        </button>
       </nav>
 
       <!-- Content Area -->
@@ -124,7 +129,7 @@
           <div class="tab-guide-banner">
             <span class="guide-icon">💡</span>
             <div class="guide-text">
-              <strong>How It Works:</strong> Click the central <em>Primordial Monolith</em> to generate raw Aether. Rhythmic clicking builds your <strong>Combo Multiplier</strong> (up to 50x); maxing the bar triggers <strong>Frenzy Mode</strong> (5x yield & rapid auto-clicks). Spend Aether on <strong>Generators</strong> to automate massive passive income. Watch for floating <strong>Golden Anomalies</strong> for instant jackpot rewards!
+              <strong>How It Works:</strong> Click the central <em>Primordial Monolith</em> to generate raw Aether. Rhythmic clicking builds your <strong>Combo Multiplier</strong> (up to 5x); maxing the bar triggers <strong>Frenzy Mode</strong> (5x yield & rapid auto-clicks). Spend Aether on <strong>Generators</strong> to automate massive passive income. Watch for floating <strong>Golden Anomalies</strong> for instant jackpot rewards!
             </div>
           </div>
 
@@ -259,7 +264,7 @@
           <div class="tab-guide-banner">
             <span class="guide-icon">💡</span>
             <div class="guide-text">
-              <strong>How It Works:</strong> Select a seed type and plant it in any of the 16 plots. Flora advances in real-time through <em>Seed ➔ Sprout ➔ Blooming ➔ Mature</em> stages. Use <strong>Water All</strong> for an instant 25s growth surge. When adjacent plants grow, they have a chance to <strong>cross-breed mutant seeds</strong>! Harvest mature plants for botanical essences used in Alchemy.
+              <strong>How It Works:</strong> Select a seed type and plant it in any of the 16 plots. Flora advances in real-time through <em>Seed ➔ Sprout ➔ Blooming ➔ Mature</em> stages. Use <strong>Water All</strong> for an instant 25s growth surge. Every harvest returns its seed and has a 25% chance to yield a <strong>mutant seed</strong> of the next tier! Harvest mature plants for botanical essences used in Alchemy.
             </div>
           </div>
 
@@ -320,7 +325,7 @@
           <div class="tab-guide-banner">
             <span class="guide-icon">💡</span>
             <div class="guide-text">
-              <strong>How It Works:</strong> Earn <strong>Talent Points</strong> by leveling up your Hero, completing Guild Bounties, and Ascending. Allocate points into 5 branches: <em>Clicker</em> (crits & frenzy), <em>Architect</em> (generator output & discounts), <em>Warlord</em> (combat damage & loot), <em>Artisan</em> (mining & plants), and <em>Chronomancer</em> (mana & offline speed). Respec at any time for free!
+              <strong>How It Works:</strong> Earn <strong>Talent Points</strong> by completing Guild Bounties and Ascending. Allocate points into 5 branches: <em>Clicker</em> (crits & frenzy), <em>Architect</em> (generator output & discounts), <em>Warlord</em> (combat damage & loot), <em>Artisan</em> (mining & plants), and <em>Chronomancer</em> (mana & offline speed). Respec at any time for free!
             </div>
           </div>
 
@@ -444,6 +449,20 @@
               <button id="btn-import-save" class="btn-action">📥 Import Save</button>
               <button id="btn-hard-reset" class="btn-action" style="border-color: #ef4444; color: #ef4444;">⚠️ Wipe Progress</button>
             </div>
+          </div>
+        </section>
+
+        <!-- TAB: About -->
+        <section id="tab-about" class="tab-view">
+          <div class="glass-card">
+            <h2>About Aetheria</h2>
+            <p class="about-intro">
+              A deep incremental game: click the Monolith, climb the Void Tower, dig, garden, brew, cast, and ascend.
+              Progress saves automatically in this browser.
+            </p>
+            <p class="about-intro">Current version: <strong id="about-version"></strong></p>
+            <h3 style="margin-top: 1.5rem;">Changelog</h3>
+            <div id="about-changelog"></div>
           </div>
         </section>
       </main>

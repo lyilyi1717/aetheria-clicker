@@ -93,12 +93,18 @@ export class CombatSystem {
   getTotalAttack() {
     const h = this.gameState.hero;
     let atk = h.baseAttack + (h.gear.weapon ? h.gear.weapon.attack : 0);
+    // Titan's Legacy perk: +25 Attack per rank
+    atk += (this.gameState.ascensionPerks?.titan_legacy?.rank || 0) * 25;
     // Add level bonus
     atk += (h.level - 1) * 4;
 
     // Active buffs
     for (const buff of this.gameState.activeBuffs) {
       if (buff.type === 'hero_atk') atk *= buff.value;
+    }
+    // Gladiator Vigour talent: +20% damage per rank
+    if (this.gameState.talents?.warlord_might?.rank > 0) {
+      atk *= 1 + this.gameState.talents.warlord_might.rank * 0.2;
     }
 
     // Quartermaster
@@ -124,6 +130,8 @@ export class CombatSystem {
   getTotalMaxHp() {
     const h = this.gameState.hero;
     let hp = h.maxHp + (h.gear.armor ? h.gear.armor.hp : 0) + (h.level - 1) * 20;
+    // Titan's Legacy perk: +100 HP per rank
+    hp += (this.gameState.ascensionPerks?.titan_legacy?.rank || 0) * 100;
     
     // Universal Mastery: Excavation Mastery (+2.0% Max HP per 5 max depth reached)
     if (this.gameState.miningGrid && this.gameState.miningGrid.maxDepth > 1) {
@@ -159,10 +167,15 @@ export class CombatSystem {
   }
 
   // Active click on monster (player can attack actively as fast as they click!)
+  rollGearCrit() {
+    return Math.random() < (this.gameState.hero.gear.amulet?.crit || 0);
+  }
+
   activeClickAttack(clientX, clientY) {
     if (!this.monster || this.monster.hp <= 0) return;
-    const dmg = Math.max(1, Math.floor(this.getTotalAttack() * 0.75));
-    this.dealDamageToMonster(dmg, clientX, clientY, false);
+    const crit = this.rollGearCrit();
+    const dmg = Math.max(1, Math.floor(this.getTotalAttack() * 0.75 * (crit ? 2 : 1)));
+    this.dealDamageToMonster(dmg, clientX, clientY, crit);
     sound.playHit();
   }
 
@@ -231,6 +244,8 @@ export class CombatSystem {
       const bldgMasteryRank = Math.floor(totalBldgs / 100);
       baseGold = Math.floor(baseGold * (1 + bldgMasteryRank * 0.01));
     }
+    // Plunderer Greed talent (+25%/rank) and Midas Elixir
+    baseGold = Math.floor(baseGold * (1 + (this.gameState.talents?.dungeon_wealth?.rank || 0) * 0.25) * this.gameState.getGoldMultiplier());
     const goldEarned = new BigNum(baseGold);
     this.gameState.gold = this.gameState.gold.add(goldEarned);
 
@@ -265,7 +280,9 @@ export class CombatSystem {
   }
 
   rollLoot(floor, isBoss) {
-    const chance = isBoss ? 0.95 : 0.25;
+    // Fortune Favor talent: +15% drop chance per rank
+    const fortune = 1 + (this.gameState.talents?.loot_fortune?.rank || 0) * 0.15;
+    const chance = Math.min(1, (isBoss ? 0.95 : 0.25) * fortune);
     if (Math.random() > chance) return;
 
     const slots = ['weapon', 'armor', 'amulet', 'relic'];
@@ -306,10 +323,10 @@ export class CombatSystem {
       }
     } else if (slot === 'amulet') {
       newItem.crit = Math.min(0.5, 0.02 + floor * 0.001 * chosenRarity.mult);
-      this.gameState.hero.gear.amulet = newItem;
+      if (newItem.crit > (this.gameState.hero.gear.amulet?.crit || 0)) this.gameState.hero.gear.amulet = newItem;
     } else if (slot === 'relic') {
       newItem.lifesteal = Math.min(0.3, 0.02 + floor * 0.001 * chosenRarity.mult);
-      this.gameState.hero.gear.relic = newItem;
+      if (newItem.lifesteal > (this.gameState.hero.gear.relic?.lifesteal || 0)) this.gameState.hero.gear.relic = newItem;
     }
 
     // Material drops
@@ -343,8 +360,9 @@ export class CombatSystem {
     h.attackCooldown -= dt;
     if (h.attackCooldown <= 0) {
       h.attackCooldown = h.attackSpeed;
-      const dmg = this.getTotalAttack();
-      this.dealDamageToMonster(dmg, window.innerWidth / 2 + 100, window.innerHeight / 2, false);
+      const crit = this.rollGearCrit();
+      const dmg = this.getTotalAttack() * (crit ? 2 : 1);
+      this.dealDamageToMonster(dmg, window.innerWidth / 2 + 100, window.innerHeight / 2, crit);
     }
 
     // Boss Timer
