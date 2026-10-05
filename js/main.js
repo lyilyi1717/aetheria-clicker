@@ -718,11 +718,11 @@ class AetheriaApp {
     
     if (monsterAvatarEl) {
       if (m.name.includes('Drifting Camry')) {
-        monsterAvatarEl.innerHTML = '<img src="drifting_camry.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
+        monsterAvatarEl.innerHTML = '<img src="drifting_camry.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: #050a07;">';
       } else if (m.name.includes('Giant Kabsa Monster')) {
-        monsterAvatarEl.innerHTML = '<img src="giant_kabsa.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
+        monsterAvatarEl.innerHTML = '<img src="giant_kabsa.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: #050a07;">';
       } else if (m.name.includes('Angry Shayeb')) {
-        monsterAvatarEl.innerHTML = '<img src="angry_shayeb.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
+        monsterAvatarEl.innerHTML = '<img src="angry_shayeb.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: #050a07;">';
       } else if (m.isBoss) {
         monsterAvatarEl.innerHTML = '👹';
       } else {
@@ -1950,6 +1950,8 @@ function setupTooltips() {
 window.addEventListener('DOMContentLoaded', () => {
   setupTooltips();
 });
+
+
 
 
 

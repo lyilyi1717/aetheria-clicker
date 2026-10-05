@@ -1,11 +1,11 @@
 /* Core Styles and Modern Glassmorphism Theme for Aetheria */
 :root {
-  --bg-primary: #0b1a13;
-  --bg-secondary: #123321;
-  --bg-card: rgba(26, 68, 44, 0.75);
-  --bg-card-hover: rgba(38, 97, 61, 0.85);
-  --border-color: rgba(16, 185, 129, 0.4);
-  --border-glow: rgba(16, 185, 129, 0.7);
+  --bg-primary: #050a07;
+  --bg-secondary: #0a140f;
+  --bg-card: rgba(10, 20, 15, 0.85);
+  --bg-card-hover: rgba(15, 30, 22, 0.95);
+  --border-color: rgba(52, 211, 153, 0.6);
+  --border-glow: rgba(52, 211, 153, 0.9);
 
   --accent-cyan: #38bdf8;
   --accent-gold: #fbbf24;
@@ -14,8 +14,8 @@
   --accent-rose: #f472b6;
   --accent-red: #f87171;
 
-  --text-main: #f8fafc;
-  --text-muted: #cbd5e1;
+  --text-main: #ffffff;
+  --text-muted: #e2e8f0;
   --text-dim: #94a3b8;
 
   --font-display: 'Cinzel', 'Trajan Pro', 'Georgia', serif;
@@ -1710,5 +1710,6 @@ body {
   0% { background-position: 0% 50%; }
   100% { background-position: 100% 50%; }
 }
+
 
 
