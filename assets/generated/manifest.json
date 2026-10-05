@@ -1,0 +1,446 @@
+{
+ "version": 1,
+ "style": "bold cartoon fantasy game art, thick black outlines, cel shading",
+ "assets": [
+  {
+   "id": "gear/amulet_common",
+   "category": "gear",
+   "slot": "amulet",
+   "rarity": "Common",
+   "tier": 1,
+   "seed": 7111,
+   "prompt": "A simple grey pebble pendant on a frayed string, plain dull materials, no glow, worn and humble. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/amulet_common.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 1690,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/amulet_cosmic",
+   "category": "gear",
+   "slot": "amulet",
+   "rarity": "Cosmic",
+   "tier": 5,
+   "seed": 7115,
+   "prompt": "A golden locket amulet whose open center holds a swirling miniature galaxy, radiant celestial gold, made of starlight with a tiny swirling galaxy inside, blazing golden aura, glittering stars and light rays. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/amulet_cosmic.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 3428,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/amulet_epic",
+   "category": "gear",
+   "slot": "amulet",
+   "rarity": "Epic",
+   "tier": 3,
+   "seed": 7113,
+   "prompt": "A gold amulet shaped like an eight-pointed star with a glowing amethyst center, ornate gold filigree and amethyst gems, strong purple magical aura and swirling violet sparks. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/amulet_epic.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4252,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/amulet_legendary",
+   "category": "gear",
+   "slot": "amulet",
+   "rarity": "Legendary",
+   "tier": 4,
+   "seed": 7114,
+   "prompt": "A gold falcon-shaped amulet with ruby eyes and spread wings, lavish gold and rubies, wreathed in crimson-orange flames and embers, intense red glow. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/amulet_legendary.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4388,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/amulet_rare",
+   "category": "gear",
+   "slot": "amulet",
+   "rarity": "Rare",
+   "tier": 2,
+   "seed": 7112,
+   "prompt": "A silver crescent-moon pendant holding a blue sapphire on a silver chain, polished materials with a soft sapphire-blue magical glow and a few small blue sparkles. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/amulet_rare.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 2720,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/armor_common",
+   "category": "gear",
+   "slot": "armor",
+   "rarity": "Common",
+   "tier": 1,
+   "seed": 7106,
+   "prompt": "A tattered patched beige cloth tunic with frayed edges, plain dull materials, no glow, worn and humble. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/armor_common.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 3580,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/armor_cosmic",
+   "category": "gear",
+   "slot": "armor",
+   "rarity": "Cosmic",
+   "tier": 5,
+   "seed": 7110,
+   "prompt": "A celestial golden plate armor with a cloak made of a starry galaxy, radiant celestial gold, made of starlight with a tiny swirling galaxy inside, blazing golden aura, glittering stars and light rays. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/armor_cosmic.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4796,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/armor_epic",
+   "category": "gear",
+   "slot": "armor",
+   "rarity": "Epic",
+   "tier": 3,
+   "seed": 7108,
+   "prompt": "An ornate breastplate under a flowing violet bisht cloak with gold embroidered edges, ornate gold filigree and amethyst gems, strong purple magical aura and swirling violet sparks. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/armor_epic.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4448,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/armor_legendary",
+   "category": "gear",
+   "slot": "armor",
+   "rarity": "Legendary",
+   "tier": 4,
+   "seed": 7109,
+   "prompt": "A royal crimson and gold plate armor with a gold-trimmed black bisht cloak, lavish gold and rubies, wreathed in crimson-orange flames and embers, intense red glow. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/armor_legendary.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4628,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/armor_rare",
+   "category": "gear",
+   "slot": "armor",
+   "rarity": "Rare",
+   "tier": 2,
+   "seed": 7107,
+   "prompt": "A steel chainmail vest with a white cloth sash and blue trim, polished materials with a soft sapphire-blue magical glow and a few small blue sparkles. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/armor_rare.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4212,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/relic_common",
+   "category": "gear",
+   "slot": "relic",
+   "rarity": "Common",
+   "tier": 1,
+   "seed": 7116,
+   "prompt": "A dented old tin arabic coffee pot (dallah) with a chipped spout, plain dull materials, no glow, worn and humble. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/relic_common.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 2800,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/relic_cosmic",
+   "category": "gear",
+   "slot": "relic",
+   "rarity": "Cosmic",
+   "tier": 5,
+   "seed": 7120,
+   "prompt": "A radiant celestial arabic coffee pot (dallah) pouring a stream of liquid starlight, radiant celestial gold, made of starlight with a tiny swirling galaxy inside, blazing golden aura, glittering stars and light rays. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/relic_cosmic.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 3940,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/relic_epic",
+   "category": "gear",
+   "slot": "relic",
+   "rarity": "Epic",
+   "tier": 3,
+   "seed": 7118,
+   "prompt": "An ornate silver arabic coffee pot (dallah) with purple gems and swirling violet magic steam, ornate gold filigree and amethyst gems, strong purple magical aura and swirling violet sparks. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/relic_epic.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 3486,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/relic_legendary",
+   "category": "gear",
+   "slot": "relic",
+   "rarity": "Legendary",
+   "tier": 4,
+   "seed": 7119,
+   "prompt": "A solid gold arabic coffee pot (dallah) studded with rubies, crimson flames pouring from the spout, lavish gold and rubies, wreathed in crimson-orange flames and embers, intense red glow. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/relic_legendary.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 3768,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/relic_rare",
+   "category": "gear",
+   "slot": "relic",
+   "rarity": "Rare",
+   "tier": 2,
+   "seed": 7117,
+   "prompt": "A polished brass arabic coffee pot (dallah) with blue magic steam rising from the spout, polished materials with a soft sapphire-blue magical glow and a few small blue sparkles. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/relic_rare.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 3270,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/weapon_common",
+   "category": "gear",
+   "slot": "weapon",
+   "rarity": "Common",
+   "tier": 1,
+   "seed": 7101,
+   "prompt": "A rusty bent iron shortsword with a cloth-wrapped wooden hilt, plain dull materials, no glow, worn and humble. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/weapon_common.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 1096,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/weapon_cosmic",
+   "category": "gear",
+   "slot": "weapon",
+   "rarity": "Cosmic",
+   "tier": 5,
+   "seed": 7105,
+   "prompt": "A divine curved arabian scimitar whose blade is a sliver of the night sky full of stars, radiant celestial gold, made of starlight with a tiny swirling galaxy inside, blazing golden aura, glittering stars and light rays. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/weapon_cosmic.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 2852,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/weapon_epic",
+   "category": "gear",
+   "slot": "weapon",
+   "rarity": "Epic",
+   "tier": 3,
+   "seed": 7103,
+   "prompt": "An ornate curved arabian scimitar with an engraved blade and a large amethyst in the guard, ornate gold filigree and amethyst gems, strong purple magical aura and swirling violet sparks. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/weapon_epic.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 2680,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/weapon_legendary",
+   "category": "gear",
+   "slot": "weapon",
+   "rarity": "Legendary",
+   "tier": 4,
+   "seed": 7104,
+   "prompt": "A magnificent golden arabian scimitar encrusted with rubies, its blade on fire, lavish gold and rubies, wreathed in crimson-orange flames and embers, intense red glow. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/weapon_legendary.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 2106,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  },
+  {
+   "id": "gear/weapon_rare",
+   "category": "gear",
+   "slot": "weapon",
+   "rarity": "Rare",
+   "tier": 2,
+   "seed": 7102,
+   "prompt": "A polished steel arabian scimitar with a leather grip and a blue sapphire in the pommel, polished materials with a soft sapphire-blue magical glow and a few small blue sparkles. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG.",
+   "file": "assets/generated/gear/weapon_rare.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 1586,
+   "model": "FLUX.1-dev fp8 (flux1-dev-fp8.safetensors) + t5xxl_fp8 + clip_l, euler/simple, cfg 1.0",
+   "render": {
+    "width": 768,
+    "height": 768,
+    "steps": 22,
+    "guidance": 3.5
+   }
+  }
+ ]
+}

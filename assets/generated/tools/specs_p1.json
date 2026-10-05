@@ -1,0 +1,546 @@
+[
+ {
+  "id": "bosses/zone1_boss4",
+  "request_id": "boss_z1_4",
+  "category": "boss",
+  "priority": 1,
+  "seed": 10001,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Drifting Camry: a possessed white sedan mid-drift with a snarling grille face, tyre smoke and sparks. Background: towering red-orange sand dunes at dusk, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone1_boss5",
+  "request_id": "boss_z1_5",
+  "category": "boss",
+  "priority": 1,
+  "seed": 10002,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Abu Sarwal Wa Fanila: a giant pot-bellied uncle in white sirwal trousers and singlet, a shib-shib slipper in each fist like weapons. Background: towering red-orange sand dunes at dusk, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone2_boss2",
+  "request_id": "boss_z2_2",
+  "category": "boss",
+  "priority": 1,
+  "seed": 10003,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Rukbah Soda: a furious giant living soda-can monster, fizz bursting from its top, muscular arms, spraying soda. Night-city version: neon pink rim light, chrome and racing flair. Background: neon-lit Riyadh boulevard at night, pink shop signs, blurred car lights, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone2_boss3",
+  "request_id": "boss_z2_3",
+  "category": "boss",
+  "priority": 1,
+  "seed": 10004,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Mutawa: a towering stern cartoon elder in a white thobe and red-checkered shemagh with a long grey beard, wagging a giant scolding finger, comically frowning (benign, no religious symbols). Night-city version: neon pink rim light, chrome and racing flair. Background: neon-lit Riyadh boulevard at night, pink shop signs, blurred car lights, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone2_boss4",
+  "request_id": "boss_z2_4",
+  "category": "boss",
+  "priority": 1,
+  "seed": 10005,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Giant Kabsa Monster: a roaring mountain of golden kabsa rice on a silver platter with chicken-leg arms, almonds and chillies, steam. Night-city version: neon pink rim light, chrome and racing flair. Background: neon-lit Riyadh boulevard at night, pink shop signs, blurred car lights, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone2_boss5",
+  "request_id": "boss_z2_5",
+  "category": "boss",
+  "priority": 1,
+  "seed": 10006,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Drifting Camry: a possessed white sedan mid-drift with a snarling grille face, tyre smoke and sparks. Night-city version: neon pink rim light, chrome and racing flair. Background: neon-lit Riyadh boulevard at night, pink shop signs, blurred car lights, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone2_boss6",
+  "request_id": "boss_z2_6",
+  "category": "boss",
+  "priority": 1,
+  "seed": 10007,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Abu Sarwal Wa Fanila: a giant pot-bellied uncle in white sirwal trousers and singlet, a shib-shib slipper in each fist like weapons. Night-city version: neon pink rim light, chrome and racing flair. Background: neon-lit Riyadh boulevard at night, pink shop signs, blurred car lights, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "monsters/desert_dhabb",
+  "request_id": "mob_desert_dhabb",
+  "category": "monster",
+  "priority": 1,
+  "seed": 10008,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   256,
+   256
+  ],
+  "transparent_requested": false,
+  "prompt": "Chunky angry spiny-tailed desert lizard (dhabb), puffed cheeks, raised club tail, sand puffs. Centered composition, subject facing the viewer, dark near-black background with soft glow. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "monsters/abu_sarwal",
+  "request_id": "mob_abu_sarwal",
+  "category": "monster",
+  "priority": 1,
+  "seed": 10009,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   256,
+   256
+  ],
+  "transparent_requested": false,
+  "prompt": "Pot-bellied uncle in white sirwal trousers and singlet (fanila), shib-shib slipper raised to throw, outraged face. Centered composition, subject facing the viewer, dark near-black background with soft glow. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "monsters/karak_addict",
+  "request_id": "mob_karak_addict",
+  "category": "monster",
+  "priority": 1,
+  "seed": 10010,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   256,
+   256
+  ],
+  "transparent_requested": false,
+  "prompt": "Twitchy wide-eyed young man clutching three paper cups of karak tea, caffeine shake lines, cardamom steam. Centered composition, subject facing the viewer, dark near-black background with soft glow. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "monsters/iftar_samosa",
+  "request_id": "mob_iftar_samosa",
+  "category": "monster",
+  "priority": 1,
+  "seed": 10011,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   256,
+   256
+  ],
+  "transparent_requested": false,
+  "prompt": "Giant crispy triangular samosa monster with little fists and fangs, oil drip, crescent moon behind. Centered composition, subject facing the viewer, dark near-black background with soft glow. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "monsters/snapchat_celebrity",
+  "request_id": "mob_snapchat_celebrity",
+  "category": "monster",
+  "priority": 1,
+  "seed": 10012,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   256,
+   256
+  ],
+  "transparent_requested": false,
+  "prompt": "Glamorous influencer monster holding a phone with ring-light, filter dog-ears, sparkles, smug face. Centered composition, subject facing the viewer, dark near-black background with soft glow. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "monsters/rukbah_soda",
+  "request_id": "mob_rukbah_soda",
+  "category": "monster",
+  "priority": 1,
+  "seed": 10013,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   256,
+   256
+  ],
+  "transparent_requested": false,
+  "prompt": "Walking soda can creature with an angry face, fizz exploding from the top, bottle-cap teeth. Centered composition, subject facing the viewer, dark near-black background with soft glow. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "monsters/dallah_of_doom",
+  "request_id": "mob_dallah_of_doom",
+  "category": "monster",
+  "priority": 1,
+  "seed": 10014,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   256,
+   256
+  ],
+  "transparent_requested": false,
+  "prompt": "Golden Arabic coffee pot (dallah) with evil eyes, its spout blasting hot gahwa like a flamethrower. Centered composition, subject facing the viewer, dark near-black background with soft glow. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "monsters/al_modir",
+  "request_id": "mob_al_modir",
+  "category": "monster",
+  "priority": 1,
+  "seed": 10015,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   256,
+   256
+  ],
+  "transparent_requested": false,
+  "prompt": "Smug office manager in thobe and shemagh behind a tiny desk, rubber stamp raised, 'come back tomorrow' energy. Centered composition, subject facing the viewer, dark near-black background with soft glow. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/shawarma_stall",
+  "request_id": "bld_shawarma_stall",
+  "category": "building",
+  "priority": 1,
+  "seed": 10016,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Tiny street shawarma stall with a spinning meat cone and a wrapped sandwich. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/bakhour_burner",
+  "request_id": "bld_bakhour_burner",
+  "category": "building",
+  "priority": 1,
+  "seed": 10017,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Ornate mabkhara incense burner with thick fragrant smoke curls. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/foul_tamees",
+  "request_id": "bld_foul_tamees",
+  "category": "building",
+  "priority": 1,
+  "seed": 10018,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Pot of foul beans with a stack of round tamees flatbread, steam. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/mandi_restaurant",
+  "request_id": "bld_mandi_restaurant",
+  "category": "building",
+  "priority": 1,
+  "seed": 10019,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Big tray of mandi rice with roast lamb on a floor-seating mat. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/kaboos_workshop",
+  "request_id": "bld_kaboos_workshop",
+  "category": "building",
+  "priority": 1,
+  "seed": 10020,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Garage with a lifted car on a jack, wrench and sparks. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/giant_dallah",
+  "request_id": "bld_giant_dallah",
+  "category": "building",
+  "priority": 1,
+  "seed": 10021,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Huge golden dallah coffee pot as a monument, finjan cups around it. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/boulevard_kiosk",
+  "request_id": "bld_boulevard_kiosk",
+  "category": "building",
+  "priority": 1,
+  "seed": 10022,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Neon carnival kiosk with a small ferris wheel behind. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/riyadh_season_ticket",
+  "request_id": "bld_riyadh_season_ticket",
+  "category": "building",
+  "priority": 1,
+  "seed": 10023,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Glowing golden event ticket with fireworks bursting out. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/ruby",
+  "request_id": "mine_ruby",
+  "category": "excavation",
+  "priority": 1,
+  "seed": 10024,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Fawanees: red-glass Ramadan lantern, glowing (inventory name 'Fawanees'). Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/sapphire",
+  "request_id": "mine_sapphire",
+  "category": "excavation",
+  "priority": 1,
+  "seed": 10025,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Small blue-enamel dallah coffee pot (inventory name 'Dallahs'). Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/emerald",
+  "request_id": "mine_emerald",
+  "category": "excavation",
+  "priority": 1,
+  "seed": 10026,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Chunk of oud agarwood with a green-tinted smoke wisp (inventory name 'Oud Wood'). Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/diamond",
+  "request_id": "mine_diamond",
+  "category": "excavation",
+  "priority": 1,
+  "seed": 10027,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Misbaha prayer-bead string with crystal-white beads, sparkle (inventory name 'Misbaha'). Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/voidAmethyst",
+  "request_id": "mine_voidAmethyst",
+  "category": "excavation",
+  "priority": 1,
+  "seed": 10028,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Purple glowing mabkhara incense burner with void smoke (inventory name 'Mabkhara'). Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/gold_cache",
+  "request_id": "mine_gold_cache",
+  "category": "excavation",
+  "priority": 1,
+  "seed": 10029,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Spilled pile of gold coins and a small open chest. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/stairs",
+  "request_id": "mine_stairs",
+  "category": "excavation",
+  "priority": 1,
+  "seed": 10030,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Hole in the ground with stone stairs descending into glowing light. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "splash/boss_kill",
+  "request_id": "splash_boss_kill",
+  "category": "splash",
+  "priority": 1,
+  "seed": 10031,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   768,
+   768
+  ],
+  "transparent_requested": true,
+  "prompt": "Boss defeated victory splash: hero standing on a defeated cartoon monster, confetti and gold coins, shemagh flying. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "splash/gear_cosmic",
+  "request_id": "splash_gear_cosmic",
+  "category": "splash",
+  "priority": 1,
+  "seed": 10032,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   768,
+   768
+  ],
+  "transparent_requested": true,
+  "prompt": "Cosmic drop: golden cosmic chest exploding with gold light and stars. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ }
+]

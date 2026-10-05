@@ -1,0 +1,1141 @@
+[
+ {
+  "id": "buildings/king_fahd_causeway",
+  "request_id": "bld_king_fahd_causeway",
+  "category": "building",
+  "priority": 2,
+  "seed": 20001,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Long sea bridge with the central tower island, sunset water. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/ghawar_oil_rig",
+  "request_id": "bld_ghawar_oil_rig",
+  "category": "building",
+  "priority": 2,
+  "seed": 20002,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Desert oil derrick pumping a black-gold gusher. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/sabic_factory",
+  "request_id": "bld_sabic_factory",
+  "category": "building",
+  "priority": 2,
+  "seed": 20003,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Petrochemical plant with towers and glowing pipes (no logo). Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/aramco_hq",
+  "request_id": "bld_aramco_hq",
+  "category": "building",
+  "priority": 2,
+  "seed": 20004,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Gleaming corporate glass tower with a big oil-drop shape on top (no logo, no text). Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/neom_the_line",
+  "request_id": "bld_neom_the_line",
+  "category": "building",
+  "priority": 2,
+  "seed": 20005,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Infinite mirrored linear mega-city wall cutting through desert mountains. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "buildings/vision_2030",
+  "request_id": "bld_vision_2030",
+  "category": "building",
+  "priority": 2,
+  "seed": 20006,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Futuristic glowing green palm monument over a gleaming skyline (no text, no flag). Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/stone",
+  "request_id": "mine_stone",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20007,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Small pile of broken rubble with chip marks. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/strata_limestone",
+  "request_id": "strata_limestone",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20008,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": false,
+  "prompt": "Seamless square rock tile texture: pale beige limestone, chunky cartoon cracks. Seamless tileable texture, flat top-down, even mid-dark tone, no focal object. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/strata_granite",
+  "request_id": "strata_granite",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20009,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": false,
+  "prompt": "Seamless square rock tile texture: grey speckled granite, chunky cartoon cracks. Seamless tileable texture, flat top-down, even mid-dark tone, no focal object. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/strata_obsidian",
+  "request_id": "strata_obsidian",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20010,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": false,
+  "prompt": "Seamless square rock tile texture: glossy black volcanic glass, chunky cartoon cracks. Seamless tileable texture, flat top-down, even mid-dark tone, no focal object. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/strata_voidstone",
+  "request_id": "strata_voidstone",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20011,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": false,
+  "prompt": "Seamless square rock tile texture: deep purple rock with violet veins, chunky cartoon cracks. Seamless tileable texture, flat top-down, even mid-dark tone, no focal object. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/strata_aetherite",
+  "request_id": "strata_aetherite",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20012,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": false,
+  "prompt": "Seamless square rock tile texture: teal crystal-veined rock, chunky cartoon cracks. Seamless tileable texture, flat top-down, even mid-dark tone, no focal object. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/strata_starcore",
+  "request_id": "strata_starcore",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20013,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": false,
+  "prompt": "Seamless square rock tile texture: amber rock with embedded glowing star specks, chunky cartoon cracks. Seamless tileable texture, flat top-down, even mid-dark tone, no focal object. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/strata_abyssal_heart",
+  "request_id": "strata_abyssal_heart",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20014,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": false,
+  "prompt": "Seamless square rock tile texture: dark crimson pulsing rock with red veins, chunky cartoon cracks. Seamless tileable texture, flat top-down, even mid-dark tone, no focal object. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/pick_0_rusty",
+  "request_id": "pick_rusty",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20015,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "rusty chipped iron pickaxe. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/pick_1_bronze",
+  "request_id": "pick_bronze",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20016,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "bronze pickaxe. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/pick_2_steel",
+  "request_id": "pick_steel",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20017,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "polished steel pickaxe. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/pick_3_mithril",
+  "request_id": "pick_mithril",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20018,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "silvery-blue mithril pickaxe with a faint glow. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/pick_4_adamantite",
+  "request_id": "pick_adamantite",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20019,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "dark green adamantite pickaxe with glowing runes. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "mining/pick_5_celestial_void",
+  "request_id": "pick_celestial_void",
+  "category": "excavation",
+  "priority": 2,
+  "seed": 20020,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "celestial void pick: cosmic purple-gold blade full of stars. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/stage_seed",
+  "request_id": "plant_seed",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20021,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Tiny seed mound in dark soil with a glint. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/stage_sprout",
+  "request_id": "plant_sprout",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20022,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Small two-leaf sprout in soil. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/spore_blooming",
+  "request_id": "plant_spore_blooming",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20023,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Half-grown bushy mint sprigs in a soil mound. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/spore_mature",
+  "request_id": "plant_spore_mature",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20024,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Fully grown, glowing, harvest-ready bushy mint sprigs, sparkles. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/mana_lily_blooming",
+  "request_id": "plant_mana_lily_blooming",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20025,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Half-grown small lemon tree with bright Hasawi lemons in a soil mound. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/mana_lily_mature",
+  "request_id": "plant_mana_lily_mature",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20026,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Fully grown, glowing, harvest-ready small lemon tree with bright Hasawi lemons, sparkles. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/solar_fern_blooming",
+  "request_id": "plant_solar_fern_blooming",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20027,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Half-grown desert truffles (fagga) pushing up through cracked sand in a soil mound. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/solar_fern_mature",
+  "request_id": "plant_solar_fern_mature",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20028,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Fully grown, glowing, harvest-ready desert truffles (fagga) pushing up through cracked sand, sparkles. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/frost_petal_blooming",
+  "request_id": "plant_frost_petal_blooming",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20029,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Half-grown pink Taif roses in a soil mound. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/frost_petal_mature",
+  "request_id": "plant_frost_petal_mature",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20030,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Fully grown, glowing, harvest-ready pink Taif roses, sparkles. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/void_orchid_blooming",
+  "request_id": "plant_void_orchid_blooming",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20031,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Half-grown date palm laden with golden date clusters in a soil mound. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/void_orchid_mature",
+  "request_id": "plant_void_orchid_mature",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20032,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Fully grown, glowing, harvest-ready date palm laden with golden date clusters, sparkles. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/star_lotus_blooming",
+  "request_id": "plant_star_lotus_blooming",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20033,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Half-grown sidr tree with honeycomb and bees in a soil mound. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/star_lotus_mature",
+  "request_id": "plant_star_lotus_mature",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20034,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   96,
+   96
+  ],
+  "transparent_requested": true,
+  "prompt": "Fully grown, glowing, harvest-ready sidr tree with honeycomb and bees, sparkles. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "garden/golem",
+  "request_id": "golem",
+  "category": "garden",
+  "priority": 2,
+  "seed": 20035,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "Friendly mud-brick golem in Najdi architecture style (adobe, triangular windows) holding a watering can. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "alchemy/karak_tea",
+  "request_id": "alc_karak_tea",
+  "category": "alchemy",
+  "priority": 2,
+  "seed": 20036,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "glass of karak tea with swirling steam. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "alchemy/almarai_laban",
+  "request_id": "alc_almarai_laban",
+  "category": "alchemy",
+  "priority": 2,
+  "seed": 20037,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "carton of laban (no brand text) with a muscle-arm flex aura. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "alchemy/cold_vimto",
+  "request_id": "alc_cold_vimto",
+  "category": "alchemy",
+  "priority": 2,
+  "seed": 20038,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "icy purple fruit drink bottle covered in frost (no logo). Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "alchemy/golden_dallah_brew",
+  "request_id": "alc_golden_dallah_brew",
+  "category": "alchemy",
+  "priority": 2,
+  "seed": 20039,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "golden dallah pouring liquid gold. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "alchemy/mandi_feast_nectar",
+  "request_id": "alc_mandi_feast_nectar",
+  "category": "alchemy",
+  "priority": 2,
+  "seed": 20040,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "potion flask filled with mandi rice and a lamb bone, red aura. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "alchemy/shawarma_of_life",
+  "request_id": "alc_shawarma_of_life",
+  "category": "alchemy",
+  "priority": 2,
+  "seed": 20041,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "glowing shawarma wrap with a green healing aura and heart sparkles. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "alchemy/royal_wasta_seal",
+  "request_id": "alc_royal_wasta_seal",
+  "category": "alchemy",
+  "priority": 2,
+  "seed": 20042,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "golden wax seal stamp with a royal glow and a tiny phone beside it. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "spells/aether_burst",
+  "request_id": "spell_aether_burst",
+  "category": "spell",
+  "priority": 2,
+  "seed": 20043,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "explosion of cyan aether energy bursting from a falafel. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "spells/chrono_warp",
+  "request_id": "spell_chrono_warp",
+  "category": "spell",
+  "priority": 2,
+  "seed": 20044,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "hourglass of desert sand twisting into a vortex. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "spells/midas_blessing",
+  "request_id": "spell_midas_blessing",
+  "category": "spell",
+  "priority": 2,
+  "seed": 20045,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "golden hand turning dates into gold coins. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "spells/celestial_alignment",
+  "request_id": "spell_celestial_alignment",
+  "category": "spell",
+  "priority": 2,
+  "seed": 20046,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "crescent moon and planets aligned over dunes. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "spells/void_cataclysm",
+  "request_id": "spell_void_cataclysm",
+  "category": "spell",
+  "priority": 2,
+  "seed": 20047,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "purple meteor crashing into the desert. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "spells/astral_renewal",
+  "request_id": "spell_astral_renewal",
+  "category": "spell",
+  "priority": 2,
+  "seed": 20048,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   128,
+   128
+  ],
+  "transparent_requested": true,
+  "prompt": "swirling teal galaxy spiral with green renewal sparks. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "hero/hero",
+  "request_id": "hero_portrait",
+  "category": "hero",
+  "priority": 2,
+  "seed": 20049,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   256,
+   256
+  ],
+  "transparent_requested": false,
+  "prompt": "Young Saudi hero in a thobe with a flowing shemagh, glowing sword, confident grin. Single object centered and filling most of the frame, game inventory icon, three-quarter view, isolated on a plain flat dark charcoal background with nothing else in the scene. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "monsters/mutawa",
+  "request_id": "mob_mutawa",
+  "category": "monster",
+  "priority": 2,
+  "seed": 20050,
+  "width": 768,
+  "height": 768,
+  "steps": 22,
+  "guidance": 3.5,
+  "out_size": [
+   256,
+   256
+  ],
+  "transparent_requested": false,
+  "prompt": "Stern cartoon elder in white thobe and red shemagh, long grey beard, wagging a scolding finger, comically frowning (smaller, less epic than the boss version). Centered composition, subject facing the viewer, dark near-black background with soft glow. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone3_boss2",
+  "request_id": "boss_z3_2",
+  "category": "boss",
+  "priority": 2,
+  "seed": 20051,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Abu Sarwal Wa Fanila: a giant pot-bellied uncle in white sirwal trousers and singlet, a shib-shib slipper in each fist like weapons. Souq version: draped in carpets, lanterns and spice sacks. Background: crowded old souq at night, hanging lanterns, spice sacks, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone3_boss3",
+  "request_id": "boss_z3_3",
+  "category": "boss",
+  "priority": 2,
+  "seed": 20052,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Al-Modir: a smug giant office manager in thobe and shemagh on a massive executive chair, sunglasses, rubber stamp as a weapon, flying paperwork. Souq version: draped in carpets, lanterns and spice sacks. Background: crowded old souq at night, hanging lanterns, spice sacks, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone3_boss4",
+  "request_id": "boss_z3_4",
+  "category": "boss",
+  "priority": 2,
+  "seed": 20053,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Rukbah Soda: a furious giant living soda-can monster, fizz bursting from its top, muscular arms, spraying soda. Souq version: draped in carpets, lanterns and spice sacks. Background: crowded old souq at night, hanging lanterns, spice sacks, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone3_boss5",
+  "request_id": "boss_z3_5",
+  "category": "boss",
+  "priority": 2,
+  "seed": 20054,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Mutawa: a towering stern cartoon elder in a white thobe and red-checkered shemagh with a long grey beard, wagging a giant scolding finger, comically frowning (benign, no religious symbols). Souq version: draped in carpets, lanterns and spice sacks. Background: crowded old souq at night, hanging lanterns, spice sacks, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone3_boss6",
+  "request_id": "boss_z3_6",
+  "category": "boss",
+  "priority": 2,
+  "seed": 20055,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Giant Kabsa Monster: a roaring mountain of golden kabsa rice on a silver platter with chicken-leg arms, almonds and chillies, steam. Souq version: draped in carpets, lanterns and spice sacks. Background: crowded old souq at night, hanging lanterns, spice sacks, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone4_boss1",
+  "request_id": "boss_z4_1",
+  "category": "boss",
+  "priority": 2,
+  "seed": 20056,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Rukbah Soda: a furious giant living soda-can monster, fizz bursting from its top, muscular arms, spraying soda. Empty Quarter version: body partly made of burning red sand, cracked lava glow, heat haze. Background: endless blood-red dunes under a blazing white sun, heat haze, fire, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone4_boss2",
+  "request_id": "boss_z4_2",
+  "category": "boss",
+  "priority": 2,
+  "seed": 20057,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Mutawa: a towering stern cartoon elder in a white thobe and red-checkered shemagh with a long grey beard, wagging a giant scolding finger, comically frowning (benign, no religious symbols). Empty Quarter version: body partly made of burning red sand, cracked lava glow, heat haze. Background: endless blood-red dunes under a blazing white sun, heat haze, fire, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone4_boss3",
+  "request_id": "boss_z4_3",
+  "category": "boss",
+  "priority": 2,
+  "seed": 20058,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Giant Kabsa Monster: a roaring mountain of golden kabsa rice on a silver platter with chicken-leg arms, almonds and chillies, steam. Empty Quarter version: body partly made of burning red sand, cracked lava glow, heat haze. Background: endless blood-red dunes under a blazing white sun, heat haze, fire, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone4_boss4",
+  "request_id": "boss_z4_4",
+  "category": "boss",
+  "priority": 2,
+  "seed": 20059,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Drifting Camry: a possessed white sedan mid-drift with a snarling grille face, tyre smoke and sparks. Empty Quarter version: body partly made of burning red sand, cracked lava glow, heat haze. Background: endless blood-red dunes under a blazing white sun, heat haze, fire, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone4_boss5",
+  "request_id": "boss_z4_5",
+  "category": "boss",
+  "priority": 2,
+  "seed": 20060,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Abu Sarwal Wa Fanila: a giant pot-bellied uncle in white sirwal trousers and singlet, a shib-shib slipper in each fist like weapons. Empty Quarter version: body partly made of burning red sand, cracked lava glow, heat haze. Background: endless blood-red dunes under a blazing white sun, heat haze, fire, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "bosses/zone4_boss6",
+  "request_id": "boss_z4_6",
+  "category": "boss",
+  "priority": 2,
+  "seed": 20061,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   512,
+   512
+  ],
+  "transparent_requested": false,
+  "prompt": "Epic boss portrait of Al-Modir: a smug giant office manager in thobe and shemagh on a massive executive chair, sunglasses, rubber stamp as a weapon, flying paperwork. Empty Quarter version: body partly made of burning red sand, cracked lava glow, heat haze. Background: endless blood-red dunes under a blazing white sun, heat haze, fire, slightly blurred. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "backgrounds/zone1",
+  "request_id": "bg_zone1",
+  "category": "background",
+  "priority": 2,
+  "seed": 20062,
+  "width": 1360,
+  "height": 768,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   1024,
+   576
+  ],
+  "transparent_requested": false,
+  "prompt": "Thumama dunes at sunset with dune-bashing tyre tracks. Wide cinematic scene, dark and low contrast so UI text stays readable. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "backgrounds/zone2",
+  "request_id": "bg_zone2",
+  "category": "background",
+  "priority": 2,
+  "seed": 20063,
+  "width": 1360,
+  "height": 768,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   1024,
+   576
+  ],
+  "transparent_requested": false,
+  "prompt": "Tahlia Street at night, neon pink shopfronts, sports cars. Wide cinematic scene, dark and low contrast so UI text stays readable. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "backgrounds/zone3",
+  "request_id": "bg_zone3",
+  "category": "background",
+  "priority": 2,
+  "seed": 20064,
+  "width": 1360,
+  "height": 768,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   1024,
+   576
+  ],
+  "transparent_requested": false,
+  "prompt": "Al-Batha old market alleys, hanging lamps, fabric stalls. Wide cinematic scene, dark and low contrast so UI text stays readable. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "splash/gear_legendary",
+  "request_id": "splash_gear_legendary",
+  "category": "splash",
+  "priority": 2,
+  "seed": 20065,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   768,
+   768
+  ],
+  "transparent_requested": true,
+  "prompt": "Legendary drop: red-glowing treasure chest bursting open with red light beams. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "splash/new_zone",
+  "request_id": "splash_new_zone",
+  "category": "splash",
+  "priority": 2,
+  "seed": 20066,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   768,
+   768
+  ],
+  "transparent_requested": true,
+  "prompt": "Entering a new zone: dramatic gate in the desert opening onto a new land. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ },
+ {
+  "id": "splash/ascension",
+  "request_id": "splash_ascension",
+  "category": "splash",
+  "priority": 2,
+  "seed": 20067,
+  "width": 1024,
+  "height": 1024,
+  "steps": 24,
+  "guidance": 3.5,
+  "out_size": [
+   768,
+   768
+  ],
+  "transparent_requested": true,
+  "prompt": "Ascension: hero rising into a starry sky over a golden temple, pillar of light. Centered composition, subject facing the viewer, dramatic rim lighting. Bold cartoon fantasy game art, thick clean black outlines, vibrant cel shading, glossy highlights, playful exaggerated proportions, same style as a polished mobile RPG. No text, no letters, no logos."
+ }
+]
