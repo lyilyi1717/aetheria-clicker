@@ -1,9 +1,18 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '2.2.0';
+export const VERSION = '2.2.1';
 
 export const CHANGELOG = [
+  {
+    version: '2.2.1',
+    date: '2026-10-05',
+    title: 'Anti-Cheat System',
+    changes: [
+      'Disabled the Fast Forward button.',
+      'Added a special surprise pop-up message for anyone trying to cheat time.'
+    ]
+  },
   {
     version: '2.2.0',
     date: '2026-10-05',
