@@ -128,6 +128,10 @@
           <span class="nav-icon">🏆</span>
           <span>Codex</span>
         </button>
+        <button class="nav-tab" data-tab="leaderboard" title="Leaderboard: compare your progress with other players.">
+          <span class="nav-icon">🏅</span>
+          <span>Leaderboard</span>
+        </button>
         <button class="nav-tab" data-tab="settings" title="Settings: number notation and display options.">
           <span class="nav-icon">⚙️</span>
           <span>Settings</span>
@@ -481,6 +485,15 @@
               <button id="btn-import-save" class="btn-action">📥 Import Save</button>
               <button id="btn-hard-reset" class="btn-action" style="border-color: #ef4444; color: #ef4444;">⚠️ Wipe Progress</button>
             </div>
+          </div>
+        </section>
+
+        <!-- TAB: Leaderboard -->
+        <section id="tab-leaderboard" class="tab-view">
+          <div class="glass-card">
+            <h2>Leaderboard</h2>
+            <p class="about-intro">Top 50 players on each board. A green dot means they played in the last 2 minutes.</p>
+            <div id="leaderboard-root"></div>
           </div>
         </section>
 

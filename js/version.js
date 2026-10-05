@@ -1,9 +1,19 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '2.0.0';
+export const VERSION = '2.1.0';
 
 export const CHANGELOG = [
+  {
+    version: '2.1.0',
+    date: '2026-10-05',
+    title: 'Online Leaderboard',
+    changes: [
+      'New Leaderboard tab: pick a display name and compare Max Floor, Best Run Aether, Ascensions and Max Depth with other players (top 50 each).',
+      'See how many players are online right now; a green dot marks anyone who played in the last 2 minutes.',
+      'Best Run Aether is tracked from this version on.'
+    ]
+  },
   {
     version: '2.0.0',
     date: '2026-10-05',

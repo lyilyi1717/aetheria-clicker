@@ -20,6 +20,7 @@ import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js'
 import { VERSION, CHANGELOG } from './version.js';
 import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
+import { Leaderboard } from './leaderboard.js';
 
 const INGREDIENT_NAMES = {
   ...ESSENCE_NAMES,
@@ -75,6 +76,8 @@ class AetheriaApp {
 
     this.currentTab = 'monolith';
     this.tabNeedsFullRender = {};
+    this.version = VERSION;
+    this.leaderboard = new Leaderboard(this);
   }
 
   init() {
@@ -488,7 +491,7 @@ class AetheriaApp {
   buildTabBonusStrips() {
     for (const section of document.querySelectorAll('section.tab-view')) {
       const tab = section.id.replace('tab-', '');
-      if (['settings', 'about', 'talents'].includes(tab)) continue;
+      if (['settings', 'about', 'talents', 'leaderboard'].includes(tab)) continue;
       const strip = document.createElement('div');
       strip.className = 'tab-bonus-strip';
       strip.id = `tab-bonus-${tab}`;
@@ -554,6 +557,7 @@ class AetheriaApp {
   }
 
   buildStaticUI() {
+    this.leaderboard.build();
     this.buildTabBonusStrips();
     this.buffBar = new BuffBar(this);
     this.buffBar.build();
@@ -1715,6 +1719,7 @@ class AetheriaApp {
     this.updateTabNotifications();
     this.updateTabBonusStrip(dt);
     this.updateQuickCastBar();
+    this.leaderboard.tick(this.currentTab === 'leaderboard', VERSION);
     this.buffBar.update();
 
     // Fast, lightweight state updates without replacing DOM nodes
