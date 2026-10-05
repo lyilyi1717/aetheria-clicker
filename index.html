@@ -73,6 +73,13 @@
       </div>
     </header>
 
+    <!-- Global timed-buff & cooldown bar (chips built/updated by js/buffBar.js) -->
+    <div id="buff-bar" class="buff-bar" hidden>
+      <div id="buff-bar-buffs" class="bb-buffs"></div>
+      <div id="buff-bar-spells" class="bb-spells" hidden></div>
+      <div id="buff-bar-tip" class="bb-tip" hidden></div>
+    </div>
+
     <!-- Main Workspace -->
     <div id="main-workspace">
       <!-- Side Navigation -->
@@ -162,8 +169,6 @@
                 </div>
                 <div id="frenzy-badge" class="frenzy-badge" style="display: none;">🔥 FRENZY ACTIVE!</div>
               </div>
-
-              <div id="active-buffs-list" class="active-buffs-list"></div>
             </div>
 
             <!-- Right: Generators List -->

@@ -19,6 +19,7 @@ import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
 import { getTabBonuses, SPELL_TABS } from './tabBonuses.js';
+import { BuffBar } from './buffBar.js';
 
 const INGREDIENT_NAMES = {
   ...ESSENCE_NAMES,
@@ -552,6 +553,8 @@ class AetheriaApp {
 
   buildStaticUI() {
     this.buildTabBonusStrips();
+    this.buffBar = new BuffBar(this);
+    this.buffBar.build();
     this.buildBuildingsStructure();
     this.buildCombatStructure();
     this.buildMiningStructure();
@@ -1548,6 +1551,7 @@ class AetheriaApp {
     this.updateTabNotifications();
     this.updateTabBonusStrip(dt);
     this.updateQuickCastBar();
+    this.buffBar.update();
 
     // Fast, lightweight state updates without replacing DOM nodes
     if (this.currentTab === 'monolith') {
