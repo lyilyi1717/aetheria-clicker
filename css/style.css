@@ -932,6 +932,95 @@ body {
   box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
 }
 
+.garden-plot.golem-tended::before {
+  content: '🗿';
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.garden-plot.fertilized {
+  border-style: dashed;
+  border-color: #a3e635;
+}
+
+/* Garden Golems panel */
+.golem-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.golem-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.golem-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  max-width: 520px;
+}
+
+.golem-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.golem-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.06);
+  font-size: 0.8rem;
+}
+
+.golem-row.locked {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: transparent;
+  opacity: 0.6;
+}
+
+.golem-row.noseeds {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.golem-row-label {
+  font-weight: 600;
+}
+
+.golem-row-seed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.golem-row-seed select {
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  padding: 0.2rem;
+  font-size: 0.78rem;
+  max-width: 100%;
+}
+
 .plot-progress-bar {
   width: 80%;
   height: 4px;
