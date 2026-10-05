@@ -107,7 +107,8 @@ export class SpellSystem {
         name: 'Chrono Warp (5x Speed)',
         type: 'time_speed',
         value: 5,
-        duration: 15
+        duration: 15,
+        maxDuration: 15
       });
       if (this.gameLoop) this.gameLoop.timeScale = 5.0;
       particles.spawnFloatingText(x, y, '⏳ TIME ACCELERATED 5X!', '#f59e0b', true);
@@ -118,7 +119,8 @@ export class SpellSystem {
         name: "Midas' Blessing",
         type: 'click_gold',
         value: 1,
-        duration: 25
+        duration: 25,
+        maxDuration: 25
       });
       particles.spawnFloatingText(x, y, '🪙 MIDAS BLESSING ACTIVE!', '#eab308', true);
     } else if (spellId === 'celestial_alignment') {
@@ -128,7 +130,8 @@ export class SpellSystem {
         name: 'Celestial Alignment',
         type: 'aether_mult',
         value: 4.0,
-        duration: 30
+        duration: 30,
+        maxDuration: 30
       });
       particles.spawnFloatingText(x, y, '🌟 +300% AETHER FOR 30s!', '#ec4899', true);
     } else if (spellId === 'void_strike') {
@@ -176,21 +179,15 @@ export class SpellSystem {
 
   getMaxMana() {
     let max = 100 + (this.gameState.talents?.mana_flow?.rank || 0) * 20;
-    // Universal Mastery: Excavation Mastery (+2.0% Max Mana per 5 max depth reached)
-    if (this.gameState.miningGrid && this.gameState.miningGrid.maxDepth > 1) {
-      const depthMasteryRank = Math.floor(this.gameState.miningGrid.maxDepth / 5);
-      max *= (1 + depthMasteryRank * 0.02);
-    }
+    // Excavation -> Max Mana: +1% per max depth, capped at +100%
+    max *= this.gameState.getDepthVitalityMult();
     return Math.floor(max);
   }
 
   getManaRegen() {
     let regen = 2.0 + (this.gameState.talents?.mana_flow?.rank || 0) * 1.0;
-    // Universal Mastery: Excavation Mastery (+2.0% Mana Regen per 5 max depth reached)
-    if (this.gameState.miningGrid && this.gameState.miningGrid.maxDepth > 1) {
-      const depthMasteryRank = Math.floor(this.gameState.miningGrid.maxDepth / 5);
-      regen *= (1 + depthMasteryRank * 0.02);
-    }
+    // Excavation -> Mana Regen: +1% per max depth, capped at +100%
+    regen *= this.gameState.getDepthVitalityMult();
     return regen;
   }
 
@@ -205,25 +202,9 @@ export class SpellSystem {
     this.gameState.maxMana = this.getMaxMana();
     if (this.gameState.mana < this.gameState.maxMana) {
       this.gameState.mana = Math.min(this.gameState.maxMana, this.gameState.mana + this.getManaRegen() * dt);
-    } else {
-      // Leyline Overflow: 50% of regen goes into Mining and Garden
-      const overflow = (this.getManaRegen() * dt) * 0.50;
-      
-      // Overflow to Garden
-      if (this.gameState.garden && this.gameState.garden.plots) {
-        for (const plot of this.gameState.garden.plots) {
-          if (plot.seed && plot.progress < plot.maxTime) {
-            plot.progress = Math.min(plot.maxTime, plot.progress + overflow);
-          }
-        }
-      }
-      
-      // Overflow to Mining (Auto Drills)
-      if (this.gameState.miningGrid) {
-        // We inject a property `leylineOverflow` that the MiningSystem will consume
-        this.gameState.miningGrid.leylineOverflow = (this.gameState.miningGrid.leylineOverflow || 0) + overflow;
-      }
     }
+    // Leyline Overflow: while mana is full, Garden grows x1.5 and Auto-Drills run x1.25.
+    // Garden/Mining read gameState.getLeylineGardenMult() / getLeylineDrillMult(); nothing is pushed here.
 
     // Decrement spell cooldowns
     for (const key in this.gameState.spells) {

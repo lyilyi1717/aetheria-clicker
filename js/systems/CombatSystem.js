@@ -18,6 +18,16 @@ export const MONSTER_NAMES = [
   'Astral Drake', 'Cosmic Horror', 'Abyssal Reaver', 'Chrono Titan'
 ];
 
+// Floor exponent cap for 1.12^(floor-1) on monster stats and gear. 1.12^6000 ~ 1e295, so
+// 250 x that (boss HP) and 180 x that (Cosmic gear) stay finite; Math.pow hit Infinity at ~6,220.
+export const COMBAT_SCALE_MAX_EXP = 6000;
+
+export const COMBAT_STAT_MAX = 1e300;
+
+export function combatFloorScale(floor) {
+  return Math.pow(1.12, Math.min(COMBAT_SCALE_MAX_EXP, Math.max(0, floor - 1)));
+}
+
 export class CombatSystem {
   constructor(gameState) {
     this.gameState = gameState;
@@ -67,7 +77,7 @@ export class CombatSystem {
     const name = prefix + MONSTER_NAMES[nameIdx];
 
     // Scaling HP & Attack based on floor
-    const scale = Math.pow(1.12, floor - 1);
+    const scale = combatFloorScale(floor);
     const hp = Math.floor((isBoss ? 250 : 60) * scale);
     const attack = Math.floor((isBoss ? 15 : 6) * scale);
 
@@ -124,7 +134,8 @@ export class CombatSystem {
       atk *= (1 + this.gameState.hero.aetherForgeLevel * 0.25);
     }
     
-    return Math.floor(atk);
+    // Keep hero stats finite (crit x2 included); capped monster stats stay far below this
+    return Math.floor(Math.min(atk, COMBAT_STAT_MAX));
   }
 
   getTotalMaxHp() {
@@ -133,18 +144,15 @@ export class CombatSystem {
     // Titan's Legacy perk: +100 HP per rank
     hp += (this.gameState.ascensionPerks?.titan_legacy?.rank || 0) * 100;
     
-    // Universal Mastery: Excavation Mastery (+2.0% Max HP per 5 max depth reached)
-    if (this.gameState.miningGrid && this.gameState.miningGrid.maxDepth > 1) {
-      const depthMasteryRank = Math.floor(this.gameState.miningGrid.maxDepth / 5);
-      hp *= (1 + depthMasteryRank * 0.02);
-    }
+    // Excavation -> hero Max HP: +1% per max depth, capped at +100%
+    hp *= this.gameState.getDepthVitalityMult();
     
     // Aether Forge
     if (h.aetherForgeLevel) {
       hp *= (1 + h.aetherForgeLevel * 0.25);
     }
     
-    return Math.floor(hp);
+    return Math.floor(Math.min(hp, COMBAT_STAT_MAX));
   }
 
   getAetherForgeCost() {
@@ -307,7 +315,7 @@ export class CombatSystem {
       rand -= r.weight;
     }
 
-    const scale = Math.pow(1.12, floor - 1) * chosenRarity.mult;
+    const scale = combatFloorScale(floor) * chosenRarity.mult;
     let newItem = { name: `${chosenRarity.name} ${slot.toUpperCase()}`, rarity: chosenRarity.name, color: chosenRarity.color };
 
     if (slot === 'weapon') {

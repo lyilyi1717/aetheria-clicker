@@ -89,15 +89,20 @@ export class SaveManager {
 
     // Give Chrono Sand / Time Warps (1 Chrono Sand per minute offline, capped at 1440 mins = 24 hrs)
     const minutes = Math.floor(elapsedSeconds / 60);
-    // Chrono Reservoir perk: +720 minutes of cap per rank
-    const sandCap = 1440 + (this.gameState.ascensionPerks?.chrono_vault?.rank || 0) * 720;
-    const chronoEarned = Math.min(minutes, sandCap);
-    this.gameState.chronoSand = (this.gameState.chronoSand || 0) + chronoEarned;
+    // Chrono Reservoir perk: +50% cap per rank. The same cap bounds the whole sand bank.
+    const sandCap = this.gameState.getChronoSandCap();
+    const current = this.gameState.chronoSand || 0;
+    const chronoEarned = Math.max(0, Math.min(minutes, sandCap - current));
+    this.gameState.chronoSand = current + chronoEarned;
+
+    // Garden grows offline (GardenSystem applies its own speed factor and cap)
+    const garden = this.gameState.gardenSystem?.applyOfflineTime(elapsedSeconds) || { harvests: 0 };
 
     return {
       elapsedSeconds,
       gainedAether,
-      chronoEarned
+      chronoEarned,
+      gardenHarvests: garden.harvests
     };
   }
 }

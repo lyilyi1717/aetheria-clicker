@@ -60,6 +60,7 @@ class AetheriaApp {
     this.gameState.gardenSystem = this.gardenSystem;
     this.gameState.bountySystem = this.bountySystem;
     this.gameState.achievementSystem = this.achievementSystem;
+    this.gameState.marketSystem = this.marketSystem;
 
     // Game loop
     this.gameLoop = new GameLoop(
@@ -988,13 +989,14 @@ class AetheriaApp {
     const listCont = document.getElementById('alchemy-recipes-list');
     if (listCont) {
       listCont.innerHTML = RECIPES.map(r => {
-        const costStr = Object.entries(r.cost).map(([k, v]) =>
-          `${v}x ${INGREDIENT_NAMES[k] || k} (<span id="alc-own-${r.id}-${k}">0</span>)`).join(', ');
+        const costStr = Object.entries(this.alchemySystem.getRecipeCost(r)).map(([k, v]) =>
+          `<span id="alc-cost-${r.id}-${k}">${v}</span>x ${INGREDIENT_NAMES[k] || k} (<span id="alc-own-${r.id}-${k}">0</span>)`).join(', ');
         return `
           <div class="alchemy-card" id="alc-card-${r.id}">
             <div class="alc-info">
               <div class="alc-name">${r.name}</div>
               <div class="alc-desc">${r.desc}</div>
+              ${r.id === 'philosophers_catalyst' ? '<div class="alc-desc" id="alc-catalyst-status"></div>' : ''}
               <div class="alc-cost">Cost: ${costStr}</div>
             </div>
             <button class="btn-brew" id="btn-brew-${r.id}" data-recipe="${r.id}">
@@ -1010,7 +1012,7 @@ class AetheriaApp {
       transCont.innerHTML = `
         <button id="btn-transmute-stone" class="btn-action">🪙 Transmute 50 Stone ➔ Gold</button>
         <div class="chrono-transmute-group" id="chrono-transmute-group">
-          <span class="chrono-transmute-lbl">⏳ Gold ➔ Chrono Sand (1,000 Gold = 30s):</span>
+          <span class="chrono-transmute-lbl" id="chrono-transmute-lbl">⏳ Gold ➔ Chrono Sand:</span>
           <button class="btn-action" data-batches="1">x1</button>
           <button class="btn-action" data-batches="10">x10</button>
           <button class="btn-action" data-batches="100">x100</button>
@@ -1037,11 +1039,26 @@ class AetheriaApp {
     const inv = this.gameState.inventory;
     const ess = this.gameState.garden?.essences || {};
     for (const r of RECIPES) {
-      for (const k of Object.keys(r.cost)) {
+      for (const [k, amount] of Object.entries(this.alchemySystem.getRecipeCost(r))) {
         const el = document.getElementById(`alc-own-${r.id}-${k}`);
         const v = `have ${inv[k] ?? ess[k] ?? 0}`;
         if (el && el.textContent !== v) el.textContent = v;
+        const costEl = document.getElementById(`alc-cost-${r.id}-${k}`);
+        const c = String(amount);
+        if (costEl && costEl.textContent !== c) costEl.textContent = c;
       }
+    }
+    const catEl = document.getElementById('alc-catalyst-status');
+    if (catEl) {
+      const n = this.alchemySystem.getCatalystCount();
+      const t = `Brewed: ${n} (Aether x${this.gameState.getCatalystMult().toFixed(2)})`;
+      if (catEl.textContent !== t) catEl.textContent = t;
+    }
+    const chronoLbl = document.getElementById('chrono-transmute-lbl');
+    if (chronoLbl) {
+      const cap = this.gameState.getChronoSandCap();
+      const t = `⏳ Gold ➔ Chrono Sand (${this.alchemySystem.getChronoBatchCost().format('standard', 2)} Gold = 30s, bank ${Math.floor(this.gameState.chronoSand || 0)}/${cap}s):`;
+      if (chronoLbl.textContent !== t) chronoLbl.textContent = t;
     }
     const tStone = document.getElementById('btn-transmute-stone');
     if (tStone) tStone.classList.toggle('disabled', (inv.stone || 0) < 50);
@@ -1052,7 +1069,9 @@ class AetheriaApp {
     });
     const maxBtn = document.getElementById('btn-transmute-chrono-max');
     if (maxBtn) {
-      const label = maxBatches >= 1 ? `Max (+${new BigNum(maxBatches * 30).format('standard', 2)}s)` : 'Max';
+      const room = Math.max(0, this.gameState.getChronoSandCap() - (this.gameState.chronoSand || 0));
+      const fill = Math.min(room, Math.floor(maxBatches * 30 * this.gameState.getChronoSandGainMult()));
+      const label = maxBatches >= 1 ? `Max (+${new BigNum(fill).format('standard', 2)}s)` : (room <= 0 ? 'Max (bank full)' : 'Max');
       if (maxBtn.textContent !== label) maxBtn.textContent = label;
     }
     for (const r of RECIPES) {

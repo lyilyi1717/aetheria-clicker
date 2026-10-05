@@ -1,5 +1,12 @@
 import { BigNum } from '../engine/BigNum.js';
 
+// Timed buffs can be extended to at most 10 minutes (x perk/talent duration multipliers)
+export const BUFF_DURATION_CAP = 600;
+// Chrono Sand bank cap (seconds) before Chrono Reservoir ranks; same constant as the offline cap
+export const CHRONO_SAND_BASE_CAP = 1440;
+// Old saves with more compounding Catalyst brews than this are trimmed on migration
+export const CATALYST_MIGRATION_CAP = 50;
+
 export class GameState {
   constructor() {
     this.resetToDefaults();
@@ -78,7 +85,7 @@ export class GameState {
     this.hero = null;
     this.miningGrid = null;
     this.garden = null;
-    this.alchemy = null;
+    this.alchemy = { catalysts: 0 };
     this.spells = {};
     this.talents = {};
     this.bounties = [];
@@ -95,8 +102,11 @@ export class GameState {
       base = this.buildingSystem.getTotalProduction();
     }
 
-    // Multiply by global multiplier
-    let mult = this.stats.globalMultiplier;
+    // Legacy compounding Catalyst multiplier; migrated to alchemy.catalysts and kept at 1
+    let mult = this.stats.globalMultiplier || 1;
+
+    // Philosopher's Catalyst: +2% Aether per brew, additive within its own category
+    mult *= this.getCatalystMult();
 
     // Multiply by achievements bonus (each achievement gives +1%)
     if (this.achievementSystem) {
@@ -123,11 +133,8 @@ export class GameState {
       mult *= (1 + dungeonMasteryRank * 0.01);
     }
     
-    // Universal Mastery: Excavation Mastery (+1.0% Global Aether per 5 max depth reached)
-    if (this.miningGrid && this.miningGrid.maxDepth > 1) {
-      const depthMasteryRank = Math.floor(this.miningGrid.maxDepth / 5);
-      mult *= (1 + depthMasteryRank * 0.01);
-    }
+    // Depth Resonance: +2% Aether per max depth reached
+    mult *= this.getDepthResonanceMult();
     
     // High Enchanter (Golden Synergy)
     if (this.market && this.market.goldenSynergy) {
@@ -145,12 +152,8 @@ export class GameState {
       mult *= 1 + this.fractureShards.toNumber() * 0.1;
     }
 
-    // Multiply by Active Buffs
-    for (const buff of this.activeBuffs) {
-      if (buff.type === 'aether_mult') {
-        mult *= buff.value;
-      }
-    }
+    // Active Aether buffs add together within one category (Celestial +300% & Philter +200% = x6)
+    mult *= this.getAetherBuffMult();
 
     // Multiply by Quartermaster Aetheric Treaty
     if (this.quartermaster && this.quartermaster['aether_treaty']) {
@@ -205,6 +208,72 @@ export class GameState {
     return base;
   }
 
+  getMaxDepth() {
+    return this.miningGrid?.maxDepth || 0;
+  }
+
+  // Depth Resonance (Excavation -> Aether): x(1 + 0.02 * maxDepth)
+  getDepthResonanceMult() {
+    return 1 + 0.02 * this.getMaxDepth();
+  }
+
+  // Excavation -> Max Mana, Mana Regen and hero Max HP: x(1 + min(1, 0.01 * maxDepth)), capped at x2
+  getDepthVitalityMult() {
+    return 1 + Math.min(1.0, 0.01 * this.getMaxDepth());
+  }
+
+  // Philosopher's Catalyst: x(1 + 0.02 * n), n = catalysts brewed
+  getCatalystMult() {
+    return 1 + 0.02 * (this.alchemy?.catalysts || 0);
+  }
+
+  // Sum of all aether_mult buffs inside one additive category: 1 + sum(value - 1)
+  getAetherBuffMult() {
+    let bonus = 0;
+    for (const buff of this.activeBuffs) {
+      if (buff.type === 'aether_mult') bonus += buff.value - 1;
+    }
+    return 1 + bonus;
+  }
+
+  // Astral Crucible perk (x2) and Brewmaster Secret talent (+25%/rank) stretch buff durations
+  getBuffDurationMult() {
+    let mult = this.ascensionPerks?.astral_alchemist?.rank > 0 ? 2 : 1;
+    mult *= 1 + (this.talents?.catalyst_potency?.rank || 0) * 0.25;
+    return mult;
+  }
+
+  // Longest a timed buff can run, in seconds
+  getBuffDurationCap() {
+    return BUFF_DURATION_CAP * this.getBuffDurationMult();
+  }
+
+  // Leyline Overflow: while mana is full, Garden grows x1.5 and Auto-Drills run x1.25.
+  // Garden/Mining multiply their dt by these; they return 1 when mana isn't full.
+  isManaFull() {
+    return this.maxMana > 0 && this.mana >= this.maxMana;
+  }
+
+  getLeylineGardenMult() {
+    return this.isManaFull() ? 1.5 : 1;
+  }
+
+  getLeylineDrillMult() {
+    return this.isManaFull() ? 1.25 : 1;
+  }
+
+  // Market Index M = 1.12^(maxFloor - 1); delegates to MarketSystem when linked
+  getMarketIndex() {
+    if (this.marketSystem) return this.marketSystem.getMarketIndex();
+    const maxFloor = this.hero?.maxFloor || 1;
+    return new BigNum(1.12).pow(Math.max(0, maxFloor - 1));
+  }
+
+  // Chrono Sand bank cap = offline cap: 1,440 s x (1 + 0.5 x Chrono Reservoir rank)
+  getChronoSandCap() {
+    return CHRONO_SAND_BASE_CAP * (1 + 0.5 * (this.ascensionPerks?.chrono_vault?.rank || 0));
+  }
+
   // Midas Elixir (gold_mult buffs) multiplies all earned gold
   getGoldMultiplier() {
     let mult = 1;
@@ -215,16 +284,22 @@ export class GameState {
   }
 
   // Temporal Siphon talent: +50% Chrono Sand per rank
+  getChronoSandGainMult() {
+    return 1 + (this.talents?.chrono_mastery?.rank || 0) * 0.5;
+  }
+
+  // Adds sand up to the bank cap; returns what was actually banked
   addChronoSand(amount) {
-    const mult = 1 + (this.talents?.chrono_mastery?.rank || 0) * 0.5;
-    const gained = Math.floor(amount * mult);
-    this.chronoSand = (this.chronoSand || 0) + gained;
+    const current = this.chronoSand || 0;
+    const room = Math.max(0, this.getChronoSandCap() - current);
+    const gained = Math.min(room, Math.floor(amount * this.getChronoSandGainMult()));
+    this.chronoSand = current + gained;
     return gained;
   }
 
   serialize() {
     return {
-      version: 1,
+      version: 2,
       savedAt: Date.now(),
       aether: this.aether.toJSON(),
       totalAetherEarned: this.totalAetherEarned.toJSON(),
@@ -264,8 +339,24 @@ export class GameState {
     };
   }
 
+  // v1 -> v2 (balance update): Catalyst compounding -> additive count. Mining migrates its own fields.
+  // Mutates the raw save object before it is read. Other slices add their own v2 fields here.
+  migrateV1toV2(data) {
+    // Philosopher's Catalyst: globalMultiplier = 1.02^n becomes alchemy.catalysts = n (max 50)
+    const gm = data.stats?.globalMultiplier;
+    data.alchemy = { ...(data.alchemy || {}) };
+    if (typeof gm === 'number' && gm > 1) {
+      const n = Math.round(Math.log(gm) / Math.log(1.02));
+      data.alchemy.catalysts = Math.min(Number.isFinite(n) ? n : CATALYST_MIGRATION_CAP, CATALYST_MIGRATION_CAP);
+    }
+    if (data.stats) data.stats.globalMultiplier = 1;
+    data.version = 2;
+    return data;
+  }
+
   deserialize(data) {
     if (!data) return;
+    if ((data.version || 1) < 2) this.migrateV1toV2(data);
     try {
       this.aether = BigNum.fromJSON(data.aether);
       this.totalAetherEarned = BigNum.fromJSON(data.totalAetherEarned);
@@ -296,7 +387,7 @@ export class GameState {
       this.hero = data.hero || null;
       this.miningGrid = data.mining || null;
       this.garden = data.garden || null;
-      this.alchemy = data.alchemy || null;
+      this.alchemy = { catalysts: 0, ...(data.alchemy || {}) };
       this.spells = data.spells || {};
       this.talents = data.talents || {};
       this.bounties = data.bounties || [];
@@ -314,8 +405,21 @@ export class GameState {
       this.achievements = data.achievements || {};
       this.activeBuffs = Array.isArray(data.activeBuffs) ? data.activeBuffs : [];
       this.settings = { ...this.settings, ...(data.settings || {}) };
+      this.clampLoadedTimers();
     } catch (e) {
       console.error('Error during deserialize:', e);
     }
+  }
+
+  // Every load: buffs fit the duration cap and carry maxDuration; Chrono Sand fits the bank cap
+  clampLoadedTimers() {
+    const cap = this.getBuffDurationCap();
+    for (const b of this.activeBuffs) {
+      b.duration = Math.min(cap, Number(b.duration) || 0);
+      b.maxDuration = Math.min(cap, Math.max(b.duration, Number(b.maxDuration) || 0));
+    }
+    this.activeBuffs = this.activeBuffs.filter(b => b.duration > 0);
+    const sand = Number(this.chronoSand);
+    this.chronoSand = Math.max(0, Math.min(this.getChronoSandCap(), Number.isNaN(sand) ? 0 : sand));
   }
 }
