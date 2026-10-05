@@ -1,9 +1,17 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '1.3.0';
+export const VERSION = '1.3.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.3.1',
+    date: '2026-10-05',
+    title: 'Resource Flow Guides',
+    changes: [
+      'Every How It Works banner now lists what the tab produces and where those resources are used elsewhere in the game.'
+    ]
+  },
   {
     version: '1.3.0',
     date: '2026-10-05',
