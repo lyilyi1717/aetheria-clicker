@@ -1,9 +1,20 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '2.1.1';
+export const VERSION = '2.2.0';
 
 export const CHANGELOG = [
+  {
+    version: '2.2.0',
+    date: '2026-10-05',
+    title: 'Saudi Edition Update',
+    changes: [
+      'Updated theme colors to a vibrant Saudi aesthetic (Emerald and Desert Gold).',
+      'Replaced Void Tower combat zones with iconic local spots (Thumama Dunes, Boulevard World, etc.).',
+      'Introduced 12 new Saudi meme bosses including Drifting Camry, Giant Kabsa, and Angry Shayeb.',
+      'Added custom generated meme image sprites for the bosses.'
+    ]
+  },
   {
     version: '2.1.1',
     date: '2026-10-05',
