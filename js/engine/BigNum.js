@@ -240,6 +240,19 @@ export class BigNum {
   // choice"; 'suffix' forces the K/M/B suffix style regardless.
   static notation = 'scientific';
 
+  // Number.toLocaleString(undefined, options) builds a new Intl.NumberFormat on every call
+  // (format() runs hundreds of times per frame), so reuse one formatter per precision.
+  static LOCALE_FORMATTERS = [];
+  static localeFormatter(precision) {
+    let f = BigNum.LOCALE_FORMATTERS[precision];
+    if (!f) {
+      f = new Intl.NumberFormat(undefined, { maximumFractionDigits: precision });
+      BigNum.LOCALE_FORMATTERS[precision] = f;
+    }
+    return f;
+  }
+  static INT_FORMATTER = new Intl.NumberFormat();
+
   // Mantissa + exponent with trailing zeros trimmed: 1e9, 1.5e10, 2.35e12
   static expString(mantissa, exp, precision, step = 1) {
     let fixed = mantissa.toFixed(precision);
@@ -257,12 +270,12 @@ export class BigNum {
     if (this.m === 0) return '0';
     if (this.e < 3) {
       const val = this.toNumber();
-      return Math.abs(val) < 0.001 ? '0' : val.toLocaleString(undefined, { maximumFractionDigits: precision });
+      return Math.abs(val) < 0.001 ? '0' : BigNum.localeFormatter(precision).format(val);
     }
 
     // Scientific/engineering keep plain digits below a million (e.g. 45,210)
     if ((mode === 'scientific' || mode === 'engineering') && this.e < 6) {
-      return Math.round(this.toNumber()).toLocaleString();
+      return BigNum.INT_FORMATTER.format(Math.round(this.toNumber()));
     }
 
     if (mode === 'scientific' || (mode === 'suffix' && this.e >= BigNum.SUFFIXES.length * 3)) {
