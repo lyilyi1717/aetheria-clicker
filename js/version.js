@@ -1,9 +1,17 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '2.5.0';
+export const VERSION = '2.6.0';
 
 export const CHANGELOG = [
+  {
+    version: '2.6.0',
+    date: '2026-10-06',
+    title: 'The Cosmic Falafel Update',
+    changes: [
+      'Theme: Transformed the central clicker Monolith into a glorious Cosmic Falafel ring topped with sesame seeds (procedural SVG art).'
+    ]
+  },
   {
     version: '2.5.0',
     date: '2026-10-06',
