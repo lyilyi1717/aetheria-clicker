@@ -9,7 +9,7 @@ import { ClickerSystem } from './systems/ClickerSystem.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from './systems/BuildingSystem.js';
 import { CombatSystem } from './systems/CombatSystem.js';
 import { MiningSystem, getPickaxeName } from './systems/MiningSystem.js';
-import { GardenSystem, SEED_TYPES, ESSENCE_NAMES } from './systems/GardenSystem.js';
+import { GardenSystem, SEED_TYPES, ESSENCE_NAMES, WATER_BOOST, MAX_GOLEMS } from './systems/GardenSystem.js';
 import { AlchemySystem, RECIPES } from './systems/AlchemySystem.js';
 import { SpellSystem, SPELLS } from './systems/SpellSystem.js';
 import { TalentTreeSystem, TALENT_DEFINITIONS } from './systems/TalentTreeSystem.js';
@@ -906,12 +906,15 @@ class AetheriaApp {
     const actionEl = document.getElementById('garden-actions');
     if (actionEl) {
       actionEl.innerHTML = `
-        <button id="btn-water-garden" class="btn-action">💧 Water All (+25s)</button>
+        <button id="btn-water-garden" class="btn-action">💧 Water All (+${WATER_BOOST}s)</button>
+        <button id="btn-fertilize-garden" class="btn-action" title="Costs 1 Spore Powder per growing plot. That plot's next harvest yields ×2 essence.">🧪 Fertilize All (1 Spore Powder each)</button>
         <button id="btn-harvest-all-garden" class="btn-action">🌾 Harvest All Mature</button>
         <button id="btn-plant-all-garden" class="btn-action">🌱 Plant All Empty</button>
       `;
       const waterBtn = document.getElementById('btn-water-garden');
       if (waterBtn) waterBtn.onclick = () => { this.gardenSystem.waterAll(); this.updateGardenUI(); };
+      const fertBtn = document.getElementById('btn-fertilize-garden');
+      if (fertBtn) fertBtn.onclick = () => { this.gardenSystem.fertilizeAll(); this.updateGardenUI(); };
       const harvestBtn = document.getElementById('btn-harvest-all-garden');
       if (harvestBtn) harvestBtn.onclick = () => { this.gardenSystem.harvestAll(); this.updateGardenUI(); };
       const plantBtn = document.getElementById('btn-plant-all-garden');
@@ -929,20 +932,109 @@ class AetheriaApp {
       `).join('');
     }
 
+    // Garden Golems panel: built once; text/classes updated in place, clicks/changes delegated.
+    const golemCont = document.getElementById('garden-golems');
+    if (golemCont) {
+      const seedOptions = `<option value="">Auto (highest owned)</option>` +
+        Object.entries(SEED_TYPES).map(([id, def]) => `<option value="${id}">${def.icon} ${def.name}</option>`).join('');
+      golemCont.innerHTML = `
+        <div class="golem-header">
+          <div>
+            <strong>🗿 Garden Golems</strong> <span id="golem-count" class="res-badge">0 / ${MAX_GOLEMS}</span>
+            <div class="golem-sub">Each Golem automates one row: harvests the moment a plot matures, then replants the same seed (or the row's fallback seed). Works offline at 50% speed for up to 12 h. Golems never water or fertilize.</div>
+          </div>
+          <button id="btn-buy-golem" class="btn-action" data-action="buy-golem">Buy Golem</button>
+        </div>
+        <div class="golem-rows">
+          ${Array.from({ length: MAX_GOLEMS }, (_, r) => `
+            <div class="golem-row locked" id="golem-row-${r}">
+              <span class="golem-row-label">Row ${r + 1}</span>
+              <span class="golem-row-status" id="golem-row-status-${r}">🔒 Manual</span>
+              <label class="golem-row-seed">Fallback seed
+                <select id="golem-row-seed-${r}" data-row="${r}">${seedOptions}</select>
+              </label>
+            </div>`).join('')}
+        </div>
+      `;
+      golemCont.onclick = (e) => {
+        const btn = e.target.closest('[data-action="buy-golem"]');
+        if (!btn) return;
+        if (this.gardenSystem.buyGolem()) {
+          particles.spawnFloatingText(e.clientX, e.clientY, `🗿 ROW ${this.gameState.garden.golems} AUTOMATED`, '#4ade80', true);
+        }
+        this.updateGardenUI();
+      };
+      golemCont.onchange = (e) => {
+        const sel = e.target.closest('select[data-row]');
+        if (!sel) return;
+        this.gardenSystem.setRowSeed(parseInt(sel.dataset.row, 10), sel.value || null);
+        this.updateGardenUI();
+      };
+    }
+
     this.updateGardenUI();
+  }
+
+  formatGrowTime(secs) {
+    const s = Math.max(0, Math.ceil(secs));
+    if (s < 60) return `${s}s`;
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const r = s % 60;
+    if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`;
+    return `${m}:${String(r).padStart(2, '0')}`;
   }
 
   updateGardenUI() {
     const waterBtn = document.getElementById('btn-water-garden');
     if (waterBtn) {
       const cd = this.gardenSystem.waterCooldown;
-      const label = cd > 0 ? `💧 Water All (${Math.ceil(cd)}s)` : '💧 Water All (+25s)';
+      const label = cd > 0 ? `💧 Water All (${Math.ceil(cd)}s)` : `💧 Water All (+${WATER_BOOST}s)`;
       if (waterBtn.textContent !== label) waterBtn.textContent = label;
       waterBtn.classList.toggle('disabled', cd > 0);
     }
 
     const garden = this.gameState.garden;
     if (!garden) return;
+
+    const fertBtn = document.getElementById('btn-fertilize-garden');
+    if (fertBtn) {
+      const canFert = (garden.essences.sporePowder || 0) >= 1 &&
+        garden.plots.some(p => p.seed && !p.fertilized && p.progress < p.maxTime);
+      fertBtn.classList.toggle('disabled', !canFert);
+    }
+
+    // Golem panel
+    const golems = garden.golems || 0;
+    const countEl = document.getElementById('golem-count');
+    if (countEl) {
+      const t = `${golems} / ${MAX_GOLEMS}`;
+      if (countEl.textContent !== t) countEl.textContent = t;
+    }
+    const buyGolemBtn = document.getElementById('btn-buy-golem');
+    if (buyGolemBtn) {
+      const cost = this.gardenSystem.getNextGolemCost();
+      const t = cost
+        ? `🗿 Buy Golem (Row ${golems + 1}): ${new BigNum(cost.stone).format('standard', 0)} Stone + ${new BigNum(cost.manaSap).format('standard', 0)} Mana Sap`
+        : '🗿 All rows automated';
+      if (buyGolemBtn.textContent !== t) buyGolemBtn.textContent = t;
+      buyGolemBtn.classList.toggle('disabled', !this.gardenSystem.canBuyGolem());
+    }
+    for (let r = 0; r < MAX_GOLEMS; r++) {
+      const rowEl = document.getElementById(`golem-row-${r}`);
+      if (!rowEl) continue;
+      const status = this.gardenSystem.getRowStatus(r);
+      const cls = `golem-row ${status}`;
+      if (rowEl.className !== cls) rowEl.className = cls;
+      const stEl = document.getElementById(`golem-row-status-${r}`);
+      const st = status === 'locked' ? '🔒 Manual' : status === 'noseeds' ? '⚠️ No seeds' : '🗿 Automated';
+      if (stEl && stEl.textContent !== st) stEl.textContent = st;
+      const sel = document.getElementById(`golem-row-seed-${r}`);
+      if (sel && document.activeElement !== sel) {
+        const v = garden.rowSeed[r] || '';
+        if (sel.value !== v) sel.value = v;
+      }
+    }
 
     for (const [id, def] of Object.entries(SEED_TYPES)) {
       const nmEl = document.getElementById(`seed-nm-${id}`);
@@ -955,20 +1047,24 @@ class AetheriaApp {
       const statEl = document.getElementById(`plot-stat-${p.id}`);
       const fillEl = document.getElementById(`plot-fill-${p.id}`);
       if (!plotEl) continue;
+      const golemCls = this.gardenSystem.isRowAutomated(this.gardenSystem.getRowOfPlot(p.id)) ? ' golem-tended' : '';
 
       if (!p.seed) {
-        plotEl.className = 'garden-plot empty';
-        if (icoEl) icoEl.textContent = '';
-        if (statEl) statEl.textContent = 'Empty';
+        const cls = `garden-plot empty${golemCls}`;
+        if (plotEl.className !== cls) plotEl.className = cls;
+        if (icoEl && icoEl.textContent !== '') icoEl.textContent = '';
+        if (statEl && statEl.textContent !== 'Empty') statEl.textContent = 'Empty';
         if (fillEl) fillEl.style.width = '0%';
       } else {
         const def = SEED_TYPES[p.seed];
         const isMature = p.stage === 'mature' || p.progress >= p.maxTime;
         const progressPct = Math.min(100, (p.progress / p.maxTime) * 100);
 
-        plotEl.className = `garden-plot planted ${isMature ? 'mature' : ''}`;
-        if (icoEl) icoEl.textContent = def.icon;
-        if (statEl) statEl.textContent = isMature ? '✨ READY TO HARVEST!' : `${def.name} (${Math.max(0, Math.ceil(p.maxTime - p.progress))}s)`;
+        const cls = `garden-plot planted${isMature ? ' mature' : ''}${p.fertilized ? ' fertilized' : ''}${golemCls}`;
+        if (plotEl.className !== cls) plotEl.className = cls;
+        if (icoEl && icoEl.textContent !== def.icon) icoEl.textContent = def.icon;
+        const st = isMature ? '✨ READY TO HARVEST!' : `${def.name} (${this.formatGrowTime(p.maxTime - p.progress)})${p.fertilized ? ' 🧪' : ''}`;
+        if (statEl && statEl.textContent !== st) statEl.textContent = st;
         if (fillEl) fillEl.style.width = `${progressPct}%`;
       }
     }

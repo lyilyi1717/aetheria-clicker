@@ -1,13 +1,37 @@
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 
+// Grow times are ×15 the v1.x values (§5.2): 5 min / 11 min / 19 min / 30 min / 1 h / 2 h.
 export const SEED_TYPES = {
-  spore: { id: 'spore', name: 'Spore Blossom', icon: '🍄', growTime: 20, desc: 'Yields Spore Powder' },
-  mana_lily: { id: 'mana_lily', name: 'Mana Lily', icon: '🪷', growTime: 45, desc: 'Restores Mana & yields Mana Sap' },
-  solar_fern: { id: 'solar_fern', name: 'Solar Fern', icon: '🌿', growTime: 75, desc: 'Yields Solar Dew' },
-  frost_petal: { id: 'frost_petal', name: 'Frost Petal', icon: '❄️', growTime: 120, desc: 'Yields Cryo Essence' },
-  void_orchid: { id: 'void_orchid', name: 'Void Orchid', icon: '🌺', growTime: 240, desc: 'Yields Void Pollen' },
-  star_lotus: { id: 'star_lotus', name: 'Star Lotus', icon: '🌟', growTime: 480, desc: 'Yields Celestial Nectar' }
+  spore: { id: 'spore', name: 'Spore Blossom', icon: '🍄', growTime: 300, desc: 'Yields Spore Powder' },
+  mana_lily: { id: 'mana_lily', name: 'Mana Lily', icon: '🪷', growTime: 675, desc: 'Restores Mana & yields Mana Sap' },
+  solar_fern: { id: 'solar_fern', name: 'Solar Fern', icon: '🌿', growTime: 1125, desc: 'Yields Solar Dew' },
+  frost_petal: { id: 'frost_petal', name: 'Frost Petal', icon: '❄️', growTime: 1800, desc: 'Yields Cryo Essence' },
+  void_orchid: { id: 'void_orchid', name: 'Void Orchid', icon: '🌺', growTime: 3600, desc: 'Yields Void Pollen' },
+  star_lotus: { id: 'star_lotus', name: 'Star Lotus', icon: '🌟', growTime: 7200, desc: 'Yields Celestial Nectar' }
+};
+
+// Water All (§5.2): +30 s growth on a 60 s cooldown
+export const WATER_BOOST = 30;
+export const WATER_COOLDOWN = 60;
+
+// Garden Golems (§5.6): golem k automates row k (plots 4k..4k+3)
+export const MAX_GOLEMS = 4;
+export const PLOTS_PER_ROW = 4;
+export const GOLEM_OFFLINE_EFFICIENCY = 0.5;
+export const GOLEM_OFFLINE_CAP = 12 * 3600; // seconds
+
+export function getGolemCost(k) {
+  return { stone: 150 * Math.pow(8, k), manaSap: 10 * Math.pow(3, k) };
+}
+
+const ESSENCE_BY_SEED = {
+  spore: 'sporePowder',
+  mana_lily: 'manaSap',
+  solar_fern: 'solarDew',
+  frost_petal: 'cryoEssence',
+  void_orchid: 'voidPollen',
+  star_lotus: 'starNectar'
 };
 
 export const ESSENCE_NAMES = {
@@ -29,13 +53,14 @@ export class GardenSystem {
 
   initGarden() {
     if (!this.gameState.garden) {
+      const spore = SEED_TYPES.spore.growTime;
       const plots = [];
       for (let i = 0; i < 16; i++) {
         plots.push({
           id: i,
           seed: i < 4 ? 'spore' : null,
-          progress: i < 4 ? 15 : 0,
-          maxTime: i < 4 ? 20 : 0,
+          progress: i < 4 ? spore - 5 : 0, // starter plots are 5 s from ready (first-minute feel)
+          maxTime: i < 4 ? spore : 0,
           stage: i < 4 ? 'blooming' : 'empty', // empty, seed, sprout, blooming, mature
           fertilized: false
         });
@@ -57,12 +82,152 @@ export class GardenSystem {
           cryoEssence: 0,
           voidPollen: 0,
           starNectar: 0
-        }
+        },
+        golems: 0,
+        rowSeed: [null, null, null, null]
       };
     }
+
+    // Save migration (§9): plants already in the ground keep their stored maxTime and
+    // finish on old timers; only new plantings use the ×15 times. Golem fields are new.
+    const garden = this.gameState.garden;
+    const golems = Math.floor(Number(garden.golems));
+    garden.golems = Number.isFinite(golems) ? Math.max(0, Math.min(MAX_GOLEMS, golems)) : 0;
+    if (!Array.isArray(garden.rowSeed)) garden.rowSeed = [];
+    for (let r = 0; r < MAX_GOLEMS; r++) {
+      if (!SEED_TYPES[garden.rowSeed[r]]) garden.rowSeed[r] = null;
+    }
+    garden.rowSeed.length = MAX_GOLEMS;
   }
 
-  plantSeed(plotIndex, seedType = this.selectedSeed) {
+  // --- Garden Golems (§5.6) ---
+  getRowOfPlot(plotIndex) {
+    return Math.floor(plotIndex / PLOTS_PER_ROW);
+  }
+
+  isRowAutomated(row) {
+    return row < (this.gameState.garden.golems || 0);
+  }
+
+  getNextGolemCost() {
+    const k = this.gameState.garden.golems || 0;
+    return k >= MAX_GOLEMS ? null : getGolemCost(k);
+  }
+
+  canBuyGolem() {
+    const cost = this.getNextGolemCost();
+    if (!cost) return false;
+    return numOf(this.gameState.inventory?.stone) >= cost.stone &&
+      (this.gameState.garden.essences.manaSap || 0) >= cost.manaSap;
+  }
+
+  buyGolem() {
+    if (!this.canBuyGolem()) return false;
+    const cost = this.getNextGolemCost();
+    const inv = this.gameState.inventory;
+    inv.stone = subNum(inv.stone, cost.stone);
+    this.gameState.garden.essences.manaSap -= cost.manaSap;
+    this.gameState.garden.golems++;
+    sound.playBuy();
+    return true;
+  }
+
+  setRowSeed(row, seedType) {
+    if (row < 0 || row >= MAX_GOLEMS) return false;
+    this.gameState.garden.rowSeed[row] = SEED_TYPES[seedType] ? seedType : null;
+    return true;
+  }
+
+  // Seed a golem plants into an empty plot of this row: the seed just harvested if any is
+  // left, else the row's fallback seed, else (no fallback set) the highest tier owned.
+  // Returns null when the row has nothing to plant.
+  getRowPlantSeed(row, preferSeed = null) {
+    const inv = this.gameState.garden.inventory;
+    if (preferSeed && (inv[preferSeed] || 0) > 0) return preferSeed;
+    const fallback = this.gameState.garden.rowSeed[row];
+    if (fallback) return (inv[fallback] || 0) > 0 ? fallback : null;
+    const ids = Object.keys(SEED_TYPES);
+    for (let i = ids.length - 1; i >= 0; i--) {
+      if ((inv[ids[i]] || 0) > 0) return ids[i];
+    }
+    return null;
+  }
+
+  // Row badge state for the UI: 'locked' | 'active' | 'noseeds'
+  getRowStatus(row) {
+    if (!this.isRowAutomated(row)) return 'locked';
+    const plots = this.gameState.garden.plots;
+    for (let i = row * PLOTS_PER_ROW; i < (row + 1) * PLOTS_PER_ROW; i++) {
+      if (plots[i] && !plots[i].seed && !this.getRowPlantSeed(row)) return 'noseeds';
+    }
+    return 'active';
+  }
+
+  // Harvest-then-replant for one golem-owned plot. Golems never water or fertilize.
+  // Returns true if it harvested.
+  golemTend(plotIndex) {
+    const plot = this.gameState.garden.plots[plotIndex];
+    if (!plot) return false;
+    let harvested = false;
+    let lastSeed = null;
+    if (plot.seed && plot.progress >= plot.maxTime) {
+      lastSeed = plot.seed;
+      harvested = this.harvestPlot(plotIndex, undefined, undefined, true);
+    }
+    if (!plot.seed) {
+      const seed = this.getRowPlantSeed(this.getRowOfPlot(plotIndex), lastSeed);
+      if (seed) this.plantSeed(plotIndex, seed, true);
+    }
+    return harvested;
+  }
+
+  // Offline garden (§5.6). Call once at load with the real seconds away.
+  // Golem rows keep harvesting and replanting at `efficiency` speed (default 50%) for up
+  // to 12 h; other plots just keep growing (at most one harvest waiting).
+  // Returns { harvests, seconds } for the offline modal.
+  applyOfflineTime(seconds, efficiency = GOLEM_OFFLINE_EFFICIENCY) {
+    const garden = this.gameState.garden;
+    if (!garden || !(seconds > 0)) return { harvests: 0, seconds: 0 };
+    const capped = Math.min(seconds, GOLEM_OFFLINE_CAP);
+    const budgetTotal = capped * efficiency * this.getGrowthMultiplier();
+    let harvests = 0;
+
+    for (const plot of garden.plots) {
+      if (!this.isRowAutomated(this.getRowOfPlot(plot.id))) {
+        if (plot.seed && plot.progress < plot.maxTime) {
+          plot.progress = Math.min(plot.maxTime, plot.progress + budgetTotal);
+        }
+        this.updateStage(plot);
+        continue;
+      }
+
+      // Golem plot: harvest each time it matures, replant, repeat. Every harvest returns
+      // its seed, so the same seed can always be replanted once a cycle starts. Bounded by
+      // budget / growTime (≤ 72 cycles per plot at 5 min, 50%, 12 h).
+      let budget = budgetTotal;
+      let guard = 1000;
+      while (guard-- > 0) {
+        if (!plot.seed) {
+          this.golemTend(plot.id);
+          if (!plot.seed) break; // no seeds for this row
+        }
+        const need = plot.maxTime - plot.progress;
+        if (need > budget) {
+          plot.progress += budget;
+          break;
+        }
+        budget -= Math.max(0, need);
+        plot.progress = plot.maxTime;
+        if (this.golemTend(plot.id)) harvests++;
+        else break;
+      }
+      this.updateStage(plot);
+    }
+    return { harvests, seconds: capped };
+  }
+
+  // --- Planting / harvesting ---
+  plantSeed(plotIndex, seedType = this.selectedSeed, silent = false) {
     const garden = this.gameState.garden;
     const plot = garden.plots[plotIndex];
     if (!plot || plot.seed !== null) return false;
@@ -77,29 +242,48 @@ export class GardenSystem {
     plot.stage = 'seed';
     plot.fertilized = false;
 
-    sound.playBuy();
+    if (!silent) sound.playBuy();
     return true;
   }
 
   waterAll() {
     if (this.waterCooldown > 0) return false;
-    this.waterCooldown = 15; // 15s cooldown
+    this.waterCooldown = WATER_COOLDOWN;
     sound.playSpell();
 
     for (const plot of this.gameState.garden.plots) {
       if (plot.seed && plot.stage !== 'mature') {
-        plot.progress = Math.min(plot.maxTime, plot.progress + 25); // boost 25s
+        plot.progress = Math.min(plot.maxTime, plot.progress + WATER_BOOST);
       }
     }
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, '💧 GARDEN WATERED (+25s Growth)', '#38bdf8', true);
+    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `💧 GARDEN WATERED (+${WATER_BOOST}s Growth)`, '#38bdf8', true);
     return true;
   }
 
-  harvestPlot(plotIndex, clientX, clientY) {
+  // Fertilize (§5.2): 1 Spore Powder per growing plot; that plot's next harvest yields ×2 essence.
+  fertilizeAll() {
+    const garden = this.gameState.garden;
+    let count = 0;
+    for (const plot of garden.plots) {
+      if ((garden.essences.sporePowder || 0) < 1) break;
+      if (plot.seed && !plot.fertilized && plot.progress < plot.maxTime) {
+        garden.essences.sporePowder--;
+        plot.fertilized = true;
+        count++;
+      }
+    }
+    if (count > 0) {
+      sound.playSpell();
+      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `🧪 ${count} PLOTS FERTILIZED (×2 next harvest)`, '#a3e635', true);
+    }
+    return count;
+  }
+
+  harvestPlot(plotIndex, clientX, clientY, silent = false) {
     const plot = this.gameState.garden.plots[plotIndex];
     if (!plot || !plot.seed || (plot.stage !== 'mature' && plot.progress < plot.maxTime)) return false;
 
-    sound.playGem();
+    if (!silent) sound.playGem();
     this.gameState.stats.totalPlantsHarvested++;
 
     const seedId = plot.seed;
@@ -107,16 +291,7 @@ export class GardenSystem {
     const mult = isFertilized ? 2 : 1;
 
     // Yield Essences
-    const essMap = {
-      spore: 'sporePowder',
-      mana_lily: 'manaSap',
-      solar_fern: 'solarDew',
-      frost_petal: 'cryoEssence',
-      void_orchid: 'voidPollen',
-      star_lotus: 'starNectar'
-    };
-
-    const essKey = essMap[seedId];
+    const essKey = ESSENCE_BY_SEED[seedId];
     if (essKey) {
       const amount = (1 + Math.floor(Math.random() * 2)) * mult;
       this.gameState.garden.essences[essKey] = (this.gameState.garden.essences[essKey] || 0) + amount;
@@ -143,7 +318,7 @@ export class GardenSystem {
         particles.spawnFloatingText(clientX, clientY - 30, `MUTANT SEED: ${SEED_TYPES[mutatedSeed].name}!`, '#fbbf24', true);
       }
     }
-    
+
     // Botanical Bazaar (Garden -> Economy)
     if (this.gameState.market) {
       let commodity = null;
@@ -151,8 +326,8 @@ export class GardenSystem {
       if (seedId === 'mana_lily') { commodity = 'silk'; cName = 'MANA SILK'; }
       else if (seedId === 'solar_fern') { commodity = 'amber'; cName = 'SOLAR AMBER'; }
       else if (seedId === 'void_orchid') { commodity = 'shard'; cName = 'VOID CRYSTAL'; }
-      
-      if (commodity && Math.random() < 0.5) { // 50% chance to drop commodity
+
+      if (commodity && Math.random() < 0.5 && this.gameState.market.items?.[commodity]) { // 50% chance to drop commodity
         this.gameState.market.items[commodity].owned += 1;
         if (clientX && clientY) {
           setTimeout(() => {
@@ -198,30 +373,62 @@ export class GardenSystem {
     return planted;
   }
 
+  // Growth speed from talents (Leyline Overflow is applied by SpellSystem)
+  getGrowthMultiplier() {
+    return 1 + (this.gameState.talents?.botanical_haste?.rank || 0) * 0.2;
+  }
+
+  updateStage(plot) {
+    if (!plot.seed) {
+      plot.stage = 'empty';
+      return;
+    }
+    const ratio = plot.maxTime > 0 ? plot.progress / plot.maxTime : 1;
+    if (ratio >= 1.0) {
+      plot.stage = 'mature';
+    } else if (ratio >= 0.6) {
+      plot.stage = 'blooming';
+    } else if (ratio >= 0.25) {
+      plot.stage = 'sprout';
+    } else {
+      plot.stage = 'seed';
+    }
+  }
+
   update(dt) {
     if (this.waterCooldown > 0) {
       this.waterCooldown = Math.max(0, this.waterCooldown - dt);
     }
 
-    for (const plot of this.gameState.garden.plots) {
-      if (!plot.seed) continue;
-
-      if (plot.progress < plot.maxTime) {
-        const haste = 1 + (this.gameState.talents?.botanical_haste?.rank || 0) * 0.2;
+    const haste = this.getGrowthMultiplier();
+    const plots = this.gameState.garden.plots;
+    for (const plot of plots) {
+      if (plot.seed && plot.progress < plot.maxTime) {
         plot.progress = Math.min(plot.maxTime, plot.progress + dt * haste);
       }
       // Recompute stage every tick: Water All and Leyline Overflow push progress from
       // outside this loop, and skipping the 'mature' step left plots unharvestable.
-      const ratio = plot.progress / plot.maxTime;
-      if (ratio >= 1.0) {
-        plot.stage = 'mature';
-      } else if (ratio >= 0.6) {
-        plot.stage = 'blooming';
-      } else if (ratio >= 0.25) {
-        plot.stage = 'sprout';
-      } else {
-        plot.stage = 'seed';
-      }
+      this.updateStage(plot);
+    }
+
+    // Golems: harvest the instant a plot in their row matures, then replant.
+    const golemPlots = Math.min(plots.length, (this.gameState.garden.golems || 0) * PLOTS_PER_ROW);
+    for (let i = 0; i < golemPlots; i++) {
+      const plot = plots[i];
+      if (!plot.seed || plot.progress >= plot.maxTime) this.golemTend(i);
     }
   }
+}
+
+// Stone may be a plain number or a BigNum depending on the Excavation slice.
+function numOf(v) {
+  if (v == null) return 0;
+  if (typeof v === 'number') return v;
+  if (typeof v.toNumber === 'function') return v.toNumber();
+  return Number(v) || 0;
+}
+
+function subNum(v, amount) {
+  if (v && typeof v === 'object' && typeof v.sub === 'function') return v.sub(amount);
+  return numOf(v) - amount;
 }

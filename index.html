@@ -276,8 +276,8 @@
           <div class="tab-guide-banner">
             <span class="guide-icon">💡</span>
             <div class="guide-text">
-              <strong>How It Works:</strong> Select a seed type and plant it in any of the 16 plots. Flora advances in real-time through <em>Seed ➔ Sprout ➔ Blooming ➔ Mature</em> stages. Use <strong>Water All</strong> for an instant 25s growth surge. Every harvest returns its seed and has a 25% chance to yield a <strong>mutant seed</strong> of the next tier! Harvest mature plants for botanical essences used in Alchemy.
-              <div class="guide-flow"><span><strong>Produces:</strong> Essences (Spore Powder, Mana Sap, Solar Dew, Cryo Essence, Void Pollen, Celestial Nectar), mutant seeds, Bazaar goods</span><span><strong>Used in:</strong> Essences are Alchemy ingredients. Mana Lily also restores Mana. Mana Lily, Solar Fern and Void Orchid can drop Silk, Amber and Void Crystal to sell in the Bazaar.</span></div>
+              <strong>How It Works:</strong> Select a seed type and plant it in any of the 16 plots. Flora grows in real time through <em>Seed ➔ Sprout ➔ Blooming ➔ Mature</em>, from 5 minutes (Spore Blossom) up to 2 hours (Star Lotus). <strong>Water All</strong> adds 30s of growth (60s cooldown). <strong>Fertilize</strong> spends 1 Spore Powder per growing plot to double that plot's next essence yield. Every harvest returns its seed and has a 25% chance to yield a <strong>mutant seed</strong> of the next tier. <strong>Garden Golems</strong> (up to 4, bought with Stone + Mana Sap) each automate one row of 4 plots: they harvest the moment a plant matures and replant the same seed, or the row's fallback seed. Golem rows keep working offline at 50% speed for up to 12 hours.
+              <div class="guide-flow"><span><strong>Produces:</strong> Essences (Spore Powder, Mana Sap, Solar Dew, Cryo Essence, Void Pollen, Celestial Nectar), mutant seeds, Bazaar goods</span><span><strong>Used in:</strong> Essences are Alchemy ingredients. Spore Powder also buys Fertilizer, and Mana Sap (with Stone from Excavation) buys Garden Golems. Mana Lily also restores Mana. Mana Lily, Solar Fern and Void Orchid can drop Silk, Amber and Void Crystal to sell in the Bazaar.</span></div>
             </div>
           </div>
 
@@ -290,6 +290,7 @@
             <div id="garden-seed-selector" class="seed-select-bar"></div>
             <div id="garden-actions" style="margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
             <div id="garden-essences-list" style="margin-bottom: 1rem;"></div>
+            <div id="garden-golems" class="golem-panel"></div>
 
             <div id="garden-plot-grid" class="garden-plot-grid"></div>
           </div>
