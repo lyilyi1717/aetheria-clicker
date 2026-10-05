@@ -219,12 +219,7 @@ class AetheriaApp {
     const warpBtn = document.getElementById('btn-time-warp');
     if (warpBtn) {
       warpBtn.addEventListener('click', () => {
-        if (this.gameState.chronoSand >= 30) {
-          this.gameState.chronoSand -= 30;
-          for (let i = 0; i < 300; i++) this.onSimTick(0.1);
-          sound.playSpell();
-          particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, '⚡ 30s TIME WARP!', '#38bdf8', true);
-        }
+        alert("kl zaq cheater");
       });
     }
 
