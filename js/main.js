@@ -37,6 +37,7 @@ class AetheriaApp {
       this.gameState.deserialize(savedData);
       this.saveManager.lastSaveTime = savedData.savedAt || Date.now();
     }
+    BigNum.notation = this.gameState.settings.notation;
 
     // Attach systems
     this.clickerSystem = new ClickerSystem(this.gameState);
@@ -116,8 +117,34 @@ class AetheriaApp {
     }
   }
 
+  buildSettingsStructure() {
+    const cont = document.getElementById('settings-notation');
+    if (!cont) return;
+    const sample = new BigNum(1.5, 10);
+    const options = [
+      { id: 'scientific', label: 'Scientific' },
+      { id: 'suffix', label: 'Standard (K, M, B…)' },
+      { id: 'engineering', label: 'Engineering' }
+    ];
+    cont.innerHTML = options.map(o => `
+      <label class="settings-option">
+        <input type="radio" name="notation" value="${o.id}" ${this.gameState.settings.notation === o.id ? 'checked' : ''}>
+        <span>${o.label}</span>
+        <span class="settings-sample">${sample.format(o.id, 2)}</span>
+      </label>
+    `).join('');
+    cont.addEventListener('change', (e) => {
+      if (e.target.name !== 'notation') return;
+      this.gameState.settings.notation = e.target.value;
+      BigNum.notation = e.target.value;
+      for (const t in this.tabNeedsFullRender) this.tabNeedsFullRender[t] = true;
+      this.saveManager.save();
+    });
+  }
+
   setupTabs() {
     this.buildAboutStructure();
+    this.buildSettingsStructure();
     const tabButtons = document.querySelectorAll('.nav-tab');
     tabButtons.forEach(btn => {
       btn.addEventListener('click', () => {

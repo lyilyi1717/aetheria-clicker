@@ -1,9 +1,20 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '1.1.1';
+export const VERSION = '1.2.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.2.0',
+    date: '2026-10-05',
+    title: 'Scientific Notation & Settings',
+    changes: [
+      'Large numbers now display in scientific notation by default (1e9, 1.5e10).',
+      'New Settings tab: switch number notation between Scientific, Standard (K, M, B…) and Engineering. Your choice is saved with your game.',
+      'Excavation: rubies were stored under the wrong name and never reached Alchemy; existing ones are recovered automatically.',
+      'The game now autosaves while its tab is in the background.'
+    ]
+  },
   {
     version: '1.1.1',
     date: '2026-10-05',

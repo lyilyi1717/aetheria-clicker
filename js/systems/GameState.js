@@ -85,6 +85,7 @@ export class GameState {
     this.market = null;
     this.ascensionPerks = {};
     this.achievements = {};
+    this.settings = { notation: 'scientific' };
   }
 
   // Calculate global aether production per second from all buildings + buffs
@@ -258,7 +259,8 @@ export class GameState {
       ascensionPerks: this.ascensionPerks,
       achievements: this.achievements,
       // Chrono Warp is excluded: the loop's timeScale isn't saved, so it would come back inert
-      activeBuffs: this.activeBuffs.filter(b => b.type !== 'time_speed')
+      activeBuffs: this.activeBuffs.filter(b => b.type !== 'time_speed'),
+      settings: this.settings
     };
   }
 
@@ -281,6 +283,11 @@ export class GameState {
       this.critMultiplier = data.critMultiplier ?? 3.0;
       this.totalClicks = data.totalClicks ?? 0;
       this.inventory = { ...this.inventory, ...(data.inventory || {}) };
+      // Mining used to store rubies under 'rubys'; fold them into the real key
+      if (this.inventory.rubys) {
+        this.inventory.rubies = (this.inventory.rubies || 0) + this.inventory.rubys;
+        delete this.inventory.rubys;
+      }
       this.stats = { ...this.stats, ...(data.stats || {}) };
       this.guildSeals = data.guildSeals ?? 0;
       this.talentPoints = data.talentPoints ?? 0;
@@ -305,6 +312,7 @@ export class GameState {
       this.ascensionPerks = data.ascensionPerks || {};
       this.achievements = data.achievements || {};
       this.activeBuffs = Array.isArray(data.activeBuffs) ? data.activeBuffs : [];
+      this.settings = { ...this.settings, ...(data.settings || {}) };
     } catch (e) {
       console.error('Error during deserialize:', e);
     }

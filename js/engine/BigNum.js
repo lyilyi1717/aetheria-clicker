@@ -234,21 +234,43 @@ export class BigNum {
     'Cent', 'Infinity'
   ];
 
+  // Player-selected notation (Settings tab). Callers pass 'standard' to mean "the player's
+  // choice"; 'suffix' forces the K/M/B suffix style regardless.
+  static notation = 'scientific';
+
+  // Mantissa + exponent with trailing zeros trimmed: 1e9, 1.5e10, 2.35e12
+  static expString(mantissa, exp, precision, step = 1) {
+    let fixed = mantissa.toFixed(precision);
+    if (parseFloat(fixed) >= Math.pow(10, step)) {
+      mantissa /= Math.pow(10, step);
+      exp += step;
+      fixed = mantissa.toFixed(precision);
+    }
+    if (fixed.includes('.')) fixed = fixed.replace(/0+$/, '').replace(/\.$/, '');
+    return `${fixed}e${exp}`;
+  }
+
   format(mode = 'standard', precision = 2) {
+    if (mode === 'standard') mode = BigNum.notation;
     if (this.m === 0) return '0';
     if (this.e < 3) {
       const val = this.toNumber();
       return Math.abs(val) < 0.001 ? '0' : val.toLocaleString(undefined, { maximumFractionDigits: precision });
     }
 
-    if (mode === 'scientific' || (mode === 'standard' && this.e >= BigNum.SUFFIXES.length * 3)) {
-      return `${this.m.toFixed(precision)}e${this.e}`;
+    // Scientific/engineering keep plain digits below a million (e.g. 45,210)
+    if ((mode === 'scientific' || mode === 'engineering') && this.e < 6) {
+      return Math.round(this.toNumber()).toLocaleString();
+    }
+
+    if (mode === 'scientific' || (mode === 'suffix' && this.e >= BigNum.SUFFIXES.length * 3)) {
+      return BigNum.expString(this.m, this.e, precision);
     }
 
     if (mode === 'engineering') {
       const engExp = Math.floor(this.e / 3) * 3;
       const engMantissa = this.m * Math.pow(10, this.e - engExp);
-      return `${engMantissa.toFixed(precision)}e${engExp}`;
+      return BigNum.expString(engMantissa, engExp, precision, 3);
     }
 
     // Standard notation with suffix

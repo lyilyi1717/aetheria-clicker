@@ -116,6 +116,10 @@
           <span class="nav-icon">🏆</span>
           <span>Codex</span>
         </button>
+        <button class="nav-tab" data-tab="settings" title="Settings: number notation and display options.">
+          <span class="nav-icon">⚙️</span>
+          <span>Settings</span>
+        </button>
         <button class="nav-tab" data-tab="about" title="About: version and changelog.">
           <span class="nav-icon">ℹ️</span>
           <span>About</span>
@@ -449,6 +453,16 @@
               <button id="btn-import-save" class="btn-action">📥 Import Save</button>
               <button id="btn-hard-reset" class="btn-action" style="border-color: #ef4444; color: #ef4444;">⚠️ Wipe Progress</button>
             </div>
+          </div>
+        </section>
+
+        <!-- TAB: Settings -->
+        <section id="tab-settings" class="tab-view">
+          <div class="glass-card">
+            <h2>Settings</h2>
+            <h3 style="margin-top: 1rem;">Number Notation</h3>
+            <p class="about-intro">How large numbers are displayed. Numbers below one million always show in full.</p>
+            <div id="settings-notation" class="settings-group"></div>
           </div>
         </section>
 

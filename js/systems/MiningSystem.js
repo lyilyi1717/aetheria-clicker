@@ -151,7 +151,8 @@ export class MiningSystem {
 
     if (['ruby', 'sapphire', 'emerald', 'diamond', 'voidAmethyst'].includes(block.content)) {
       sound.playGem();
-      const gemKey = block.content === 'voidAmethyst' ? 'voidAmethyst' : block.content + 's';
+      const GEM_KEYS = { ruby: 'rubies', sapphire: 'sapphires', emerald: 'emeralds', diamond: 'diamonds', voidAmethyst: 'voidAmethyst' };
+      const gemKey = GEM_KEYS[block.content];
       this.gameState.inventory[gemKey] = (this.gameState.inventory[gemKey] || 0) + 1;
       const colors = { ruby: '#ef4444', sapphire: '#3b82f6', emerald: '#10b981', diamond: '#38bdf8', voidAmethyst: '#a855f7' };
       if (x && y) {

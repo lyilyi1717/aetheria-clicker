@@ -67,6 +67,11 @@ export class GameLoop {
         }
         this.lastSimTime = now;
       }
+      // Autosave here too: requestAnimationFrame is paused in hidden tabs
+      if (now - this.lastSaveCheck >= this.autoSaveIntervalMs) {
+        if (this.onAutoSave) this.onAutoSave();
+        this.lastSaveCheck = now;
+      }
     }, 200);
   }
 
