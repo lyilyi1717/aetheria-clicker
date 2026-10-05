@@ -1,9 +1,21 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '2.2.1';
+export const VERSION = '2.3.0';
 
 export const CHANGELOG = [
+  {
+    version: '2.3.0',
+    date: '2026-10-06',
+    title: 'Saudi Meme Edition',
+    changes: [
+      'Visuals: Swapped colors to Desert Gold & Emerald Green.',
+      'Theme: Transformed to Saudi memes (Kabsa, Drifting Camry, Angry Shayeb, Wasta bosses).',
+      'UI: Complete overhaul of icons and images to fit the desert and cosmic meme style.',
+      'Mechanics: Added MAX buy for Golden Synergy.',
+      'Anti-Cheat: Fast forward disabled with a message.'
+    ]
+  },
   {
     version: '2.2.1',
     date: '2026-10-05',

@@ -6,7 +6,7 @@ export const RECIPES = [
   // Timed Elixirs
   {
     id: 'swiftness',
-    name: 'Elixir of Swiftness',
+    name: 'Karak Tea',
     type: 'buff',
     buffType: 'click_mult',
     buffValue: 2.0,
@@ -16,7 +16,7 @@ export const RECIPES = [
   },
   {
     id: 'titans_draught',
-    name: "Titan's Draught",
+    name: "Almarai Laban",
     type: 'buff',
     buffType: 'hero_atk',
     buffValue: 2.5,
@@ -26,7 +26,7 @@ export const RECIPES = [
   },
   {
     id: 'aether_surge',
-    name: 'Aetherial Philter',
+    name: 'Cold Vimto',
     type: 'buff',
     buffType: 'aether_mult',
     buffValue: 3.0,
@@ -36,7 +36,7 @@ export const RECIPES = [
   },
   {
     id: 'midas_elixir',
-    name: 'Midas Elixir',
+    name: 'Golden Dallah Brew',
     type: 'buff',
     buffType: 'gold_mult',
     buffValue: 4.0,
@@ -47,21 +47,21 @@ export const RECIPES = [
   // Permanent Enhancements
   {
     id: 'perm_might',
-    name: 'Nectar of Eternal Might',
+    name: 'Mandi Feast Nectar',
     type: 'permanent',
     desc: '+15 Permanent Hero Attack',
     cost: { voidCores: 2, cryoEssence: 2 }
   },
   {
     id: 'perm_vitality',
-    name: 'Elixir of Immortal Life',
+    name: 'Shawarma of Life',
     type: 'permanent',
     desc: '+60 Permanent Hero Max HP',
     cost: { bossTokens: 1, voidPollen: 2 }
   },
   {
     id: 'philosophers_catalyst',
-    name: "Philosopher's Catalyst",
+    name: "Royal Wasta Seal",
     type: 'permanent',
     desc: '+2% Aether per Catalyst brewed (additive). Cost rises 8% per brew.',
     cost: { voidAmethyst: 1, starNectar: 1 }

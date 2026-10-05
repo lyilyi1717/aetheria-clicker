@@ -310,7 +310,8 @@ export class MiningSystem {
       this.gameState.inventory[gemKey] = (this.gameState.inventory[gemKey] || 0) + 1;
       const colors = { ruby: '#ef4444', sapphire: '#3b82f6', emerald: '#10b981', diamond: '#38bdf8', voidAmethyst: '#a855f7' };
       if (x && y) {
-        particles.spawnFloatingText(x, y, `+1 ${block.content.toUpperCase()}!`, colors[block.content] || '#f59e0b', true);
+        const displayNames = { ruby: 'FANOOS', sapphire: 'DALLAH', emerald: 'OUD WOOD', diamond: 'MISBAHA', voidAmethyst: 'MABKHARA' };
+        particles.spawnFloatingText(x, y, `+1 ${displayNames[block.content]}!`, colors[block.content] || '#f59e0b', true);
       }
       return;
     }

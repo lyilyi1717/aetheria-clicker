@@ -3,12 +3,12 @@ import { particles } from '../engine/ParticleEngine.js';
 
 // Grow times are ×15 the v1.x values (§5.2): 5 min / 11 min / 19 min / 30 min / 1 h / 2 h.
 export const SEED_TYPES = {
-  spore: { id: 'spore', name: 'Spore Blossom', icon: '🍄', growTime: 300, desc: 'Yields Spore Powder' },
-  mana_lily: { id: 'mana_lily', name: 'Mana Lily', icon: '🪷', growTime: 675, desc: 'Restores Mana & yields Mana Sap' },
-  solar_fern: { id: 'solar_fern', name: 'Solar Fern', icon: '🌿', growTime: 1125, desc: 'Yields Solar Dew' },
-  frost_petal: { id: 'frost_petal', name: 'Frost Petal', icon: '❄️', growTime: 1800, desc: 'Yields Cryo Essence' },
-  void_orchid: { id: 'void_orchid', name: 'Void Orchid', icon: '🌺', growTime: 3600, desc: 'Yields Void Pollen' },
-  star_lotus: { id: 'star_lotus', name: 'Star Lotus', icon: '🌟', growTime: 7200, desc: 'Yields Celestial Nectar' }
+  spore: { id: 'spore', name: 'Mint Leaf', icon: '🌿', growTime: 300, desc: 'Yields Fresh Mint' },
+  mana_lily: { id: 'mana_lily', name: 'Hasawi Lemon', icon: '🍋', growTime: 675, desc: 'Restores Mana & yields Lemon Drops' },
+  solar_fern: { id: 'solar_fern', name: 'Desert Truffle (Fagga)', icon: '🥔', growTime: 1125, desc: 'Yields Truffle Oil' },
+  frost_petal: { id: 'frost_petal', name: 'Rose of Taif', icon: '🌹', growTime: 1800, desc: 'Yields Taif Rosewater' },
+  void_orchid: { id: 'void_orchid', name: 'Date Palm', icon: '🌴', growTime: 3600, desc: 'Yields Golden Dates' },
+  star_lotus: { id: 'star_lotus', name: 'Sidr Tree', icon: '🌳', growTime: 7200, desc: 'Yields Sidr Honey' }
 };
 
 // Water All (§5.2): +30 s growth on a 60 s cooldown
@@ -35,12 +35,12 @@ const ESSENCE_BY_SEED = {
 };
 
 export const ESSENCE_NAMES = {
-  sporePowder: 'Spore Powder',
-  manaSap: 'Mana Sap',
-  solarDew: 'Solar Dew',
-  cryoEssence: 'Cryo Essence',
-  voidPollen: 'Void Pollen',
-  starNectar: 'Celestial Nectar'
+  sporePowder: 'Fresh Mint',
+  manaSap: 'Lemon Drops',
+  solarDew: 'Truffle Oil',
+  cryoEssence: 'Taif Rosewater',
+  voidPollen: 'Golden Dates',
+  starNectar: 'Sidr Honey'
 };
 
 export class GardenSystem {

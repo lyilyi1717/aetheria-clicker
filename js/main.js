@@ -900,11 +900,11 @@ class AetheriaApp {
       const inv = this.gameState.inventory;
       invEl.innerHTML = `
         <span class="res-badge">Stone: ${fmt(inv.stone || 0, 2)}</span>
-        <span class="res-badge" style="color:#ef4444">Rubies: ${inv.rubies || 0}</span>
-        <span class="res-badge" style="color:#3b82f6">Sapphires: ${inv.sapphires || 0}</span>
-        <span class="res-badge" style="color:#10b981">Emeralds: ${inv.emeralds || 0}</span>
-        <span class="res-badge" style="color:#38bdf8">Diamonds: ${inv.diamonds || 0}</span>
-        <span class="res-badge" style="color:#a855f7">Void Amethyst: ${inv.voidAmethyst || 0}</span>
+        <span class="res-badge" style="color:#ef4444">Fawanees: ${inv.rubies || 0}</span>
+        <span class="res-badge" style="color:#3b82f6">Dallahs: ${inv.sapphires || 0}</span>
+        <span class="res-badge" style="color:#10b981">Oud Wood: ${inv.emeralds || 0}</span>
+        <span class="res-badge" style="color:#38bdf8">Misbaha: ${inv.diamonds || 0}</span>
+        <span class="res-badge" style="color:#a855f7">Mabkhara: ${inv.voidAmethyst || 0}</span>
       `;
     }
   }
