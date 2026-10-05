@@ -179,9 +179,13 @@ export class MiningSystem {
     return false;
   }
 
+  getAutoDrillCost() {
+    return new BigNum(1000 * Math.pow(1.5, this.gameState.miningGrid.autoDrills));
+  }
+
   buyAutoDrill() {
     const grid = this.gameState.miningGrid;
-    const cost = new BigNum(1000 * Math.pow(1.5, grid.autoDrills));
+    const cost = this.getAutoDrillCost();
     if (this.gameState.gold.gte(cost)) {
       this.gameState.gold = this.gameState.gold.sub(cost);
       grid.autoDrills++;
@@ -196,12 +200,23 @@ export class MiningSystem {
     this.dynamiteCooldown = 25; // 25s cooldown
     sound.playHit();
 
-    // Detonate 9 random unrevealed blocks
-    const unrevealed = this.gameState.miningGrid.blocks.filter(b => !b.revealed);
-    for (let i = 0; i < Math.min(9, unrevealed.length); i++) {
-      const b = unrevealed[i];
-      b.revealed = true;
-      this.revealReward(b, window.innerWidth / 2, window.innerHeight / 2);
+    // Detonate a 3x3 area centred on a random unrevealed block
+    const blocks = this.gameState.miningGrid.blocks;
+    const unrevealed = blocks.filter(b => !b.revealed);
+    if (unrevealed.length === 0) return true;
+    const center = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+    const cx = center.id % this.gridSize;
+    const cy = Math.floor(center.id / this.gridSize);
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const x = cx + dx, y = cy + dy;
+        if (x < 0 || y < 0 || x >= this.gridSize || y >= this.gridSize) continue;
+        const b = blocks[y * this.gridSize + x];
+        if (!b || b.revealed) continue;
+        b.revealed = true;
+        b.hp = 0;
+        this.revealReward(b, window.innerWidth / 2, window.innerHeight / 2);
+      }
     }
     return true;
   }

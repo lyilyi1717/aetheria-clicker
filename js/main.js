@@ -275,6 +275,21 @@ class AetheriaApp {
       });
     }
 
+    // Event Delegation: Mining Shop (buttons are updated in place every frame)
+    const mineShop = document.getElementById('mining-pickaxe-info');
+    if (mineShop) {
+      mineShop.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        sound.ensureContext();
+        if (btn.id === 'btn-upgrade-pick') this.miningSystem.upgradePickaxe();
+        else if (btn.id === 'btn-buy-drill') this.miningSystem.buyAutoDrill();
+        else if (btn.id === 'btn-mining-dynamite') this.miningSystem.useDynamite();
+        else return;
+        this.updateMiningUI();
+      });
+    }
+
     // Event Delegation: Garden Plots
     const gardenBoard = document.getElementById('garden-plot-grid');
     if (gardenBoard) {
@@ -613,36 +628,75 @@ class AetheriaApp {
 
     const pickaxeEl = document.getElementById('mining-pickaxe-info');
     if (pickaxeEl) {
+      // Build the shop once and update it in place: this runs every render frame, and
+      // replacing the buttons' DOM between mousedown and mouseup swallows clicks.
+      // Clicks are handled by delegation in setupEventListeners.
+      if (!document.getElementById('btn-buy-drill')) {
+        pickaxeEl.innerHTML = `
+          <div>Pickaxe: <strong id="mining-pick-name"></strong> (Power: <span id="mining-pick-power"></span>)</div>
+          <div>Auto-Drills: <strong id="mining-drill-count"></strong> (<span id="mining-drill-rate"></span> blocks/sec)</div>
+          <div class="mining-btn-group">
+            <button id="btn-upgrade-pick" class="btn-action"></button>
+            <span id="mining-max-pick" class="max-badge">MAX PICKAXE</span>
+            <button id="btn-buy-drill" class="btn-action"></button>
+            <button id="btn-mining-dynamite" class="btn-action"></button>
+          </div>
+        `;
+      }
+
       const pick = PICKAXES[grid.pickaxeTier];
       const nextPick = PICKAXES[grid.pickaxeTier + 1];
-      pickaxeEl.innerHTML = `
-        <div>Pickaxe: <strong>${pick.name}</strong> (Power: ${this.miningSystem.getPickaxePower()})</div>
-        <div>Auto-Drills: <strong>${grid.autoDrills}</strong> (${(grid.autoDrills * 0.5).toFixed(1)} blocks/sec)</div>
-        <div class="mining-btn-group">
-          ${nextPick ? `<button id="btn-upgrade-pick" class="btn-action">Upgrade Pickaxe (${new BigNum(nextPick.cost).format('standard', 0)} Gold)</button>` : '<span class="max-badge">MAX PICKAXE</span>'}
-          <button id="btn-buy-drill" class="btn-action">Buy Auto-Drill (${new BigNum(1000 * Math.pow(1.5, grid.autoDrills)).format('standard', 0)} Gold)</button>
-          <button id="btn-mining-dynamite" class="btn-action ${this.miningSystem.dynamiteCooldown > 0 ? 'disabled' : ''}">
-            🧨 Blast 3x3 (${this.miningSystem.dynamiteCooldown > 0 ? `${Math.ceil(this.miningSystem.dynamiteCooldown)}s` : 'Ready'})
-          </button>
-        </div>
-      `;
+      const gold = this.gameState.gold;
+      const setText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el && el.textContent !== text) el.textContent = text;
+      };
+
+      setText('mining-pick-name', pick.name);
+      setText('mining-pick-power', String(this.miningSystem.getPickaxePower()));
+      setText('mining-drill-count', String(grid.autoDrills));
+      setText('mining-drill-rate', (grid.autoDrills * 0.5).toFixed(1));
 
       const upPickBtn = document.getElementById('btn-upgrade-pick');
-      if (upPickBtn) upPickBtn.onclick = () => { this.miningSystem.upgradePickaxe(); this.updateMiningUI(true); };
+      document.getElementById('mining-max-pick').style.display = nextPick ? 'none' : '';
+      upPickBtn.style.display = nextPick ? '' : 'none';
+      if (nextPick) {
+        const cost = new BigNum(nextPick.cost);
+        setText('btn-upgrade-pick', `Upgrade to ${nextPick.name} (${cost.format('standard', 0)} Gold)`);
+        upPickBtn.classList.toggle('disabled', !gold.gte(cost));
+      }
 
-      const upDrillBtn = document.getElementById('btn-buy-drill');
-      if (upDrillBtn) upDrillBtn.onclick = () => { this.miningSystem.buyAutoDrill(); this.updateMiningUI(true); };
+      const drillCost = this.miningSystem.getAutoDrillCost();
+      setText('btn-buy-drill', `Buy Auto-Drill (${drillCost.format('standard', 0)} Gold)`);
+      document.getElementById('btn-buy-drill').classList.toggle('disabled', !gold.gte(drillCost));
 
-      const dynBtn = document.getElementById('btn-mining-dynamite');
-      if (dynBtn) dynBtn.onclick = () => { this.miningSystem.useDynamite(); this.updateMiningUI(true); };
+      const cd = this.miningSystem.dynamiteCooldown;
+      setText('btn-mining-dynamite', `🧨 Blast 3x3 (${cd > 0 ? `${Math.ceil(cd)}s` : 'Ready'})`);
+      document.getElementById('btn-mining-dynamite').classList.toggle('disabled', cd > 0);
     }
+
+    const tileContent = (b) => {
+      let icon = '⛏️'; let label = 'Stone';
+      if (b.content === 'stairs') { icon = '🪜'; label = 'STAIRS'; }
+      else if (b.content === 'gold_cache') { icon = '💰'; label = 'Gold'; }
+      else if (b.content === 'ruby') { icon = '🔴'; label = 'Ruby'; }
+      else if (b.content === 'sapphire') { icon = '🔵'; label = 'Sapphire'; }
+      else if (b.content === 'emerald') { icon = '🟢'; label = 'Emerald'; }
+      else if (b.content === 'diamond') { icon = '💎'; label = 'Diamond'; }
+      else if (b.content === 'voidAmethyst') { icon = '🟣'; label = 'Void Amethyst'; }
+      return `<span class="m-icon">${icon}</span><span class="m-lbl">${label}</span>`;
+    };
 
     const container = document.getElementById('mining-grid-board');
     if (container) {
-      if (forceRebuildGrid || container.children.length === 0 || this.lastMiningDepth !== grid.depth) {
-        this.lastMiningDepth = grid.depth;
-        container.innerHTML = grid.blocks.map(b => `
-          <div class="mine-tile ${b.revealed ? 'revealed' : 'unrevealed'}" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${strata.color}">
+      // Key the rebuild on the blocks array itself: a new grid is generated 400ms after
+      // the depth changes, so keying on depth left stale revealed tiles over the new grid.
+      if (forceRebuildGrid || container.children.length === 0 || this.lastMiningBlocks !== grid.blocks) {
+        this.lastMiningBlocks = grid.blocks;
+        container.innerHTML = grid.blocks.map(b => b.revealed ? `
+          <div class="mine-tile revealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${strata.color}">${tileContent(b)}</div>
+        ` : `
+          <div class="mine-tile unrevealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${strata.color}">
             <div class="tile-hp-bar" id="tile-bar-${b.id}" style="width: ${(b.hp / b.maxHp) * 100}%"></div>
             <span class="tile-hp-text" id="tile-text-${b.id}">${b.hp}/${b.maxHp}</span>
           </div>
@@ -655,15 +709,7 @@ class AetheriaApp {
           if (b.revealed && !tile.classList.contains('revealed')) {
             tile.classList.remove('unrevealed');
             tile.classList.add('revealed');
-            let icon = '⛏️'; let label = 'Stone';
-            if (b.content === 'stairs') { icon = '🪜'; label = 'STAIRS'; }
-            else if (b.content === 'gold_cache') { icon = '💰'; label = 'Gold'; }
-            else if (b.content === 'ruby') { icon = '🔴'; label = 'Ruby'; }
-            else if (b.content === 'sapphire') { icon = '🔵'; label = 'Sapphire'; }
-            else if (b.content === 'emerald') { icon = '🟢'; label = 'Emerald'; }
-            else if (b.content === 'diamond') { icon = '💎'; label = 'Diamond'; }
-            else if (b.content === 'voidAmethyst') { icon = '🟣'; label = 'Void Amethyst'; }
-            tile.innerHTML = `<span class="m-icon">${icon}</span><span class="m-lbl">${label}</span>`;
+            tile.innerHTML = tileContent(b);
           } else if (!b.revealed) {
             const bar = document.getElementById(`tile-bar-${b.id}`);
             const txt = document.getElementById(`tile-text-${b.id}`);
