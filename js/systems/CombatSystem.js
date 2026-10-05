@@ -376,7 +376,8 @@ export class CombatSystem {
       h.attackCooldown = h.attackSpeed;
       const crit = this.rollGearCrit();
       const dmg = this.getTotalAttack() * (crit ? 2 : 1);
-      this.dealDamageToMonster(dmg, window.innerWidth / 2 + 100, window.innerHeight / 2, crit);
+      const isVisible = window.gameApp && window.gameApp.currentTab === 'combat';
+      this.dealDamageToMonster(dmg, isVisible ? (window.innerWidth / 2 + 100) : null, isVisible ? (window.innerHeight / 2) : null, crit);
     }
 
     // Boss Timer
@@ -405,8 +406,11 @@ export class CombatSystem {
 
       if (dmg > 0) {
         h.hp -= dmg;
-        sound.playHit();
-        particles.spawnFloatingText(window.innerWidth / 2 - 100, window.innerHeight / 2, `-${this.fmt(dmg)}`, '#ef4444', false);
+        const isVisible = window.gameApp && window.gameApp.currentTab === 'combat';
+        if (isVisible) {
+          sound.playHit();
+          particles.spawnFloatingText(window.innerWidth / 2 - 100, window.innerHeight / 2, `-${this.fmt(dmg)}`, '#ef4444', false);
+        }
 
         if (h.hp <= 0) {
           // Hero died -> retreat 1 floor and restore HP
