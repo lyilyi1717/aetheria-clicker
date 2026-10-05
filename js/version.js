@@ -1,9 +1,19 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '2.7.0';
+export const VERSION = '2.7.1';
 
 export const CHANGELOG = [
+  {
+    version: '2.7.1',
+    date: '2026-10-06',
+    title: 'Boss Portrait & Number Fixes',
+    changes: [
+      'Void Tower: the boss portrait now sits in a fixed square frame, so the card no longer jumps, overflows or moves the click target, and it works on phones.',
+      'Gear, hero and monster stats, XP and combat damage now follow your number notation (e.g. 1.5e12) and update as soon as you change it in Settings.',
+      'Counts across Excavation, Garden, Alchemy, Bounties, Bazaar, Codex and the offline popup no longer show long raw numbers.'
+    ]
+  },
   {
     version: '2.7.0',
     date: '2026-10-06',
