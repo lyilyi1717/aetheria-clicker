@@ -813,9 +813,10 @@ body {
   width: 220px;
   height: 220px;
   border-radius: 50%;
-  border: 1px dashed var(--accent-cyan);
-  opacity: 0.4;
-  animation: spin 30s linear infinite;
+  border: 2px solid rgba(251, 191, 36, 0.6); /* Golden holy ring */
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.4), inset 0 0 15px rgba(251, 191, 36, 0.4);
+  opacity: 0.6;
+  animation: spin 20s linear infinite;
   pointer-events: none;
 }
 
@@ -823,16 +824,16 @@ body {
   width: 170px;
   height: 170px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #7dd3fc, #0284c7 40%, #0369a1 70%, #0c4a6e);
-  box-shadow: 0 0 40px rgba(56, 189, 248, 0.45), inset 0 0 20px rgba(255, 255, 255, 0.4);
+  background: transparent; /* No more blue background! */
+  box-shadow: 0 0 45px rgba(251, 191, 36, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.2); /* Holy golden glow */
   cursor: pointer;
-  transition: transform 0.08s ease-out;
+  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
   position: relative;
 }
 
 .monolith-orb:active, .monolith-orb.pulse {
   transform: scale(0.94);
-  box-shadow: 0 0 60px rgba(56, 189, 248, 0.8), inset 0 0 25px rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 70px rgba(251, 191, 36, 0.9), inset 0 0 30px rgba(255, 255, 255, 0.8);
 }
 
 .combo-container {

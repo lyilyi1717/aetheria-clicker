@@ -38,8 +38,8 @@ def generate_falafel_svg():
     svg.append('    </filter>')
     svg.append('  </defs>')
     
-    # Outer glow
-    svg.append('  <ellipse cx="100" cy="110" rx="105" ry="75" fill="rgba(52, 211, 153, 0.25)" filter="url(#magic-glow)" />')
+    # Holy Golden Outer glow
+    svg.append('  <ellipse cx="100" cy="110" rx="105" ry="75" fill="rgba(251, 191, 36, 0.35)" filter="url(#magic-glow)" />')
 
     # 1. Outer Side (Thickness)
     svg.append('  <path d="M 10 90 A 90 55 0 0 0 190 90 L 190 120 A 90 55 0 0 1 10 120 Z" fill="url(#side-grad)" />')
