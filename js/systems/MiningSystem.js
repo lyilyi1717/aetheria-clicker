@@ -36,6 +36,7 @@ export const DESCEND_DELAY = 0.4;
 // Dynamite and Void Cataclysm hit each tile for this many pickaxe hits. Instant reveals let
 // explosives find the stairs at a fixed rate whatever the tile HP, far past the pickaxe.
 export const EXPLOSIVE_HITS = 40;
+export const DYNAMITE_COOLDOWN = 25; // seconds, saved in miningGrid.dynamiteCooldown
 // Schema 3 rebase: a save whose kit needs more than STUCK seconds per tile moves up to the
 // deepest depth it digs in TARGET seconds per tile. maxDepth is kept.
 const REBASE_STUCK_SECONDS = 12 * 3600;
@@ -60,12 +61,21 @@ export class MiningSystem {
   constructor(gameState) {
     this.gameState = gameState;
     this.gridSize = 6;
-    this.dynamiteCooldown = 0;
     this.autoDrillTimer = 0;
     this.drillTargetId = -1;
     this.descending = false; // stairs found, new grid pending
     this.descendTimer = 0;
     this.initMiningGrid();
+  }
+
+  // Dynamite cooldown lives in the saved mining slice: as a plain field on the system it
+  // reset on every reload, so a reload spam blasted a 3x3 area each time.
+  get dynamiteCooldown() {
+    return this.gameState.miningGrid?.dynamiteCooldown || 0;
+  }
+
+  set dynamiteCooldown(v) {
+    if (this.gameState.miningGrid) this.gameState.miningGrid.dynamiteCooldown = v;
   }
 
   initMiningGrid() {
@@ -76,11 +86,15 @@ export class MiningSystem {
         maxDepth: 1,
         pickaxeTier: 0,
         autoDrills: 0,
+        dynamiteCooldown: 0,
         blocks: []
       };
       this.generateNewGrid();
       return;
     }
+    const grid = this.gameState.miningGrid;
+    const cd = Number(grid.dynamiteCooldown);
+    grid.dynamiteCooldown = Number.isFinite(cd) ? Math.max(0, Math.min(DYNAMITE_COOLDOWN, cd)) : 0;
     this.migrateMiningGrid();
     this.ensurePlayableGrid();
   }
@@ -365,7 +379,7 @@ export class MiningSystem {
     const blocks = this.gameState.miningGrid.blocks;
     const unrevealed = blocks.filter(b => !b.revealed);
     if (unrevealed.length === 0) return false;
-    this.dynamiteCooldown = 25; // 25s cooldown
+    this.dynamiteCooldown = DYNAMITE_COOLDOWN;
     sound.playHit();
 
     // Blast a 3x3 area centred on a random unrevealed block

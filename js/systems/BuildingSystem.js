@@ -193,7 +193,17 @@ export class BuildingSystem {
     let n = Math.floor(Math.log(1 + Math.max(0, ratio)) / Math.log(r));
     n = Math.max(0, Math.min(10000, n));
 
-    const totalCost = this.getBuildingCost(id, n);
+    // The log estimate is off by one either way from float noise: with exactly the Aether
+    // for n buildings it often returned n - 1. Settle it against the real cost sum.
+    let totalCost = this.getBuildingCost(id, n);
+    while (n < 10000 && budget.gte(this.getBuildingCost(id, n + 1))) {
+      n++;
+      totalCost = this.getBuildingCost(id, n);
+    }
+    while (n > 0 && budget.lt(totalCost)) {
+      n--;
+      totalCost = this.getBuildingCost(id, n);
+    }
     return { count: n, cost: totalCost };
   }
 

@@ -47,8 +47,17 @@ export class GardenSystem {
   constructor(gameState) {
     this.gameState = gameState;
     this.selectedSeed = 'spore';
-    this.waterCooldown = 0;
     this.initGarden();
+  }
+
+  // Water All cooldown lives in the saved garden slice: as a plain field on the system it
+  // reset on every reload, so a reload spam gave +30 s growth to every plot each time.
+  get waterCooldown() {
+    return this.gameState.garden?.waterCooldown || 0;
+  }
+
+  set waterCooldown(v) {
+    if (this.gameState.garden) this.gameState.garden.waterCooldown = v;
   }
 
   initGarden() {
@@ -98,6 +107,8 @@ export class GardenSystem {
       if (!SEED_TYPES[garden.rowSeed[r]]) garden.rowSeed[r] = null;
     }
     garden.rowSeed.length = MAX_GOLEMS;
+    const cd = Number(garden.waterCooldown);
+    garden.waterCooldown = Number.isFinite(cd) ? Math.max(0, Math.min(WATER_COOLDOWN, cd)) : 0;
   }
 
   // --- Garden Golems (§5.6) ---
