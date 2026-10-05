@@ -17,7 +17,9 @@ export class BigNum {
     }
 
     if (typeof mantissa === 'number') {
-      if (mantissa === 0 || !isFinite(mantissa)) {
+      // A non-finite part (overflowed Math.pow, JSON "1e999" -> Infinity, an edited save)
+      // collapses to zero rather than poisoning every later add/compare with Infinity/NaN.
+      if (mantissa === 0 || !isFinite(mantissa) || typeof exponent !== 'number' || !isFinite(exponent)) {
         this.m = 0;
         this.e = 0;
         return;
@@ -60,7 +62,7 @@ export class BigNum {
       const parts = clean.split('e');
       const m = parseFloat(parts[0]);
       const e = parseInt(parts[1], 10);
-      return new BigNum(m, e);
+      return new BigNum(m, Number.isFinite(e) ? e : 0);
     }
     const val = parseFloat(clean);
     return new BigNum(val);
@@ -301,8 +303,13 @@ export class BigNum {
     return { m: this.m, e: this.e };
   }
 
+  // Saves are untrusted input: a missing, string, NaN or Infinity part (JSON.parse turns
+  // "1e999" into Infinity) must never produce a non-finite or non-numeric BigNum.
   static fromJSON(obj) {
-    if (!obj) return BigNum.zero();
-    return new BigNum(obj.m || 0, obj.e || 0);
+    if (!obj || typeof obj !== 'object') return BigNum.zero();
+    const m = Number(obj.m);
+    const e = Number(obj.e);
+    if (!Number.isFinite(m) || !Number.isFinite(e)) return BigNum.zero();
+    return new BigNum(m, e);
   }
 }

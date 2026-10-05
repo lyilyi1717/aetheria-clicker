@@ -32,18 +32,22 @@ export class BountySystem {
   initQuartermaster() {
     if (!this.gameState.quartermaster) {
       this.gameState.quartermaster = {};
-      for (const upg of QUARTERMASTER_UPGRADES) {
+    }
+    // Fill charters a loaded save lacks: buyQuartermasterUpgrade does `[id].rank++` on them
+    for (const upg of QUARTERMASTER_UPGRADES) {
+      if (!this.gameState.quartermaster[upg.id]) {
         this.gameState.quartermaster[upg.id] = { rank: 0 };
       }
     }
   }
 
   initBounties() {
-    if (!this.gameState.bounties || this.gameState.bounties.length === 0) {
+    if (!Array.isArray(this.gameState.bounties)) {
       this.gameState.bounties = [];
-      for (let i = 0; i < this.maxBounties; i++) {
-        this.gameState.bounties.push(this.generateBounty());
-      }
+    }
+    // Top up to the full board (a load may have dropped corrupted entries)
+    while (this.gameState.bounties.length < this.maxBounties) {
+      this.gameState.bounties.push(this.generateBounty());
     }
   }
 
