@@ -473,7 +473,8 @@ class AetheriaApp {
     const hours = (res.elapsedSeconds / 3600).toFixed(1);
     document.getElementById('offline-time-text').textContent = `${hours} hours`;
     document.getElementById('offline-aether-text').textContent = res.gainedAether.format('standard', 2);
-    document.getElementById('offline-chrono-text').textContent = `+${res.chronoEarned} Chrono Sand`;
+    document.getElementById('offline-chrono-text').textContent = `+${res.chronoEarned} Chrono Sand`
+      + (res.gardenHarvests ? ` · Garden Golems: +${res.gardenHarvests} harvests` : '');
     modal.classList.add('visible');
 
     const closeBtn = document.getElementById('offline-modal-close');

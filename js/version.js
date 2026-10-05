@@ -1,9 +1,28 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '1.5.0';
+export const VERSION = '2.0.0';
 
 export const CHANGELOG = [
+  {
+    version: '2.0.0',
+    date: '2026-10-05',
+    title: 'The Great Rebalance',
+    changes: [
+      'Excavation slows down for real: every depth is tougher and gives more Stone. Pickaxe levels and Auto-Drills now cost Stone, the pickaxe has no level cap, and there are 7 strata with richer Void Amethyst deeper down.',
+      'Garden plants now take 5 minutes to 2 hours. Water All gives +30s on a 60s cooldown. Fertilize is live (1 Spore Powder doubles a plot’s next yield).',
+      'New Garden Golems (up to 4, bought with Stone + Mana Sap): each harvests and replants its row automatically, and keeps working offline at 50% speed for up to 12 hours.',
+      'Excavation and Garden now raise Cosmic Dust: +10% per 10 max depth (Geode Attunement), and Ascending offers up your Celestial Nectar for up to x2 dust (Nectar Offering).',
+      'Depth now gives +2% Aether per depth and up to +100% mana, mana regen and hero HP. Full mana speeds the Garden x1.5 and Auto-Drills x1.25 (Leyline Overflow).',
+      'New buff bar under the header shows every active elixir, spell buff and Frenzy with a countdown; tap one to jump to the tab it powers. On phones it sits at the bottom.',
+      'New Masteries panel on the Ascension tab, mastery bonuses in each tab’s Active Bonuses strip, and an Aether/s tooltip showing what multiplies it.',
+      'Nerf: Aether buffs now add together (+300% and +200% = x6, was x12) and can be extended to at most 10 minutes.',
+      'Nerf: Philosopher’s Catalyst gives +2% Aether per brew (additive) and costs 8% more each time; saves above 50 brews keep 50.',
+      'Nerf: Chrono Sand costs 1,000 x Market Index gold per 30s and the bank holds 1,440s; sand above the cap was removed.',
+      'Very deep Excavation saves were compressed (e.g. depth 3,752 becomes 120) and capped at 12 Auto-Drills. Plants already growing finish on their old timers.',
+      'Fixed: gold caches and stone transmutes paying 0 at extreme depth, Auto-Drills losing hits, and the Void Tower becoming unbeatable around floor 6,200.'
+    ]
+  },
   {
     version: '1.5.0',
     date: '2026-10-05',

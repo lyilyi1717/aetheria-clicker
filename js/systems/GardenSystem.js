@@ -400,7 +400,8 @@ export class GardenSystem {
       this.waterCooldown = Math.max(0, this.waterCooldown - dt);
     }
 
-    const haste = this.getGrowthMultiplier();
+    // Leyline Overflow: x1.5 growth while mana is full
+    const haste = this.getGrowthMultiplier() * (this.gameState.getLeylineGardenMult?.() || 1);
     const plots = this.gameState.garden.plots;
     for (const plot of plots) {
       if (plot.seed && plot.progress < plot.maxTime) {

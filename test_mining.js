@@ -54,12 +54,14 @@ gs.miningGrid.pickaxeTier = 0;
 ms.generateNewGrid();
 const hpBefore = gs.miningGrid.blocks.reduce((s, b) => s + b.hp, 0);
 ms.autoDrillTimer = 0;
+gs.mana = 0; // keep Leyline Overflow (x1.25 at full mana) out of this check
 ms.update(1.0); // one big tick: 5 hits, not 1
 const hpAfter = gs.miningGrid.blocks.reduce((s, b) => s + b.hp, 0);
 const spent = hpBefore - hpAfter;
 // 5 hits of power 1; a tile breaking mid-tick can only reduce the remaining HP pool
 assert.ok(spent >= 4 && spent <= 5, `expected ~5 hits in one tick, got ${spent}`);
 ms.autoDrillTimer = 0;
+gs.mana = 0; // keep Leyline Overflow (x1.25 at full mana) out of this check
 ms.descending = false;
 ms.generateNewGrid();
 ms.update(0.1); // 0.5 hits -> carried

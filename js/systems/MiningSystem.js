@@ -336,11 +336,8 @@ export class MiningSystem {
       this.dynamiteCooldown = Math.max(0, this.dynamiteCooldown - dt);
     }
 
-    let timeProgress = dt;
-    if (this.gameState.miningGrid.leylineOverflow) {
-      timeProgress += this.gameState.miningGrid.leylineOverflow;
-      this.gameState.miningGrid.leylineOverflow = 0;
-    }
+    // Leyline Overflow: drills run x1.25 while mana is full
+    const timeProgress = dt * (this.gameState.getLeylineDrillMult?.() || 1);
 
     // Auto-drill mining (B2): accumulate fractional hits and carry the remainder.
     const drills = this.gameState.miningGrid.autoDrills;
