@@ -1,4 +1,5 @@
 import { BigNum } from '../engine/BigNum.js';
+import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
 
 // Timed buffs can be extended to at most 10 minutes (x perk/talent duration multipliers)
 export const BUFF_DURATION_CAP = 600;
@@ -21,6 +22,8 @@ export class GameState {
     this.maxMana = 100;
     this.manaRegen = 2.0; // per second
     this.chronoSand = 60; // Start with 1 minute of fast-forward
+    // Fast Forward price escalation (uses this cycle, timestamps, unfinished warp); see FastForwardSystem
+    this.fastForward = defaultFastForwardState();
 
     // Prestige Resources
     this.cosmicDust = new BigNum(0);
@@ -307,6 +310,7 @@ export class GameState {
       mana: this.mana,
       maxMana: this.maxMana,
       chronoSand: this.chronoSand,
+      fastForward: { ...this.fastForward },
       cosmicDust: this.cosmicDust.toJSON(),
       totalCosmicDust: this.totalCosmicDust.toJSON(),
       ascensionCount: this.ascensionCount,
@@ -364,6 +368,7 @@ export class GameState {
       this.mana = data.mana ?? 100;
       this.maxMana = data.maxMana ?? 100;
       this.chronoSand = data.chronoSand ?? 60;
+      this.fastForward = sanitizeFastForwardState(data.fastForward, data.savedAt);
       this.cosmicDust = BigNum.fromJSON(data.cosmicDust);
       this.totalCosmicDust = BigNum.fromJSON(data.totalCosmicDust);
       this.ascensionCount = data.ascensionCount ?? 0;

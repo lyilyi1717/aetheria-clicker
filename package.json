@@ -5,7 +5,7 @@
   "description": "A long-lasting deep clicker and incremental game with nonstop active and idle activities.",
   "scripts": {
     "start": "python server.py",
-    "test": "node test_engine.js && node test_mining.js && node test_garden.js"
+    "test": "node test_engine.js && node test_mining.js && node test_garden.js && node test_fastforward.js"
   },
   "keywords": ["clicker", "incremental", "idle-game", "rpg", "prestige"],
   "author": "Antigravity",

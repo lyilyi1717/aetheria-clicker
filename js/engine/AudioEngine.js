@@ -14,6 +14,7 @@ export class AudioEngine {
   constructor() {
     this.ctx = null;
     this.muted = false;
+    this.quiet = false; // Fast Forward: hush per-hit sounds while a warp is simulated
     this.volume = 0.25;
     this.initialized = false;
     this.rhythmScale = 'hijaz';
@@ -76,7 +77,7 @@ export class AudioEngine {
 
   // Sound: Normal Click (Melodic)
   playClick(pitchMod = 1) {
-    if (this.muted) return;
+    if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
 
@@ -102,7 +103,7 @@ export class AudioEngine {
 
   // Sound: Critical Click / Golden Clover
   playCrit() {
-    if (this.muted) return;
+    if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
 
@@ -129,7 +130,7 @@ export class AudioEngine {
 
   // Sound: Building Purchase / Upgrade
   playBuy() {
-    if (this.muted) return;
+    if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
 
@@ -154,7 +155,7 @@ export class AudioEngine {
 
   // Sound: Combat Attack / Hit (Bassline Rhythm)
   playHit() {
-    if (this.muted) return;
+    if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
 
@@ -180,7 +181,7 @@ export class AudioEngine {
 
   // Sound: Monster Defeated / Victory
   playDefeat() {
-    if (this.muted) return;
+    if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
 
@@ -205,7 +206,7 @@ export class AudioEngine {
 
   // Sound: Mining Dig (Deep Rhythm)
   playDig() {
-    if (this.muted) return;
+    if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
 
@@ -230,7 +231,7 @@ export class AudioEngine {
 
   // Sound: Gem / Relic Uncovered (Arpeggio)
   playGem() {
-    if (this.muted) return;
+    if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
 
@@ -259,7 +260,7 @@ export class AudioEngine {
 
   // Sound: Spell Cast
   playSpell() {
-    if (this.muted) return;
+    if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
 
@@ -284,7 +285,7 @@ export class AudioEngine {
 
   // Sound: Achievement Fanfare
   playAchievement() {
-    if (this.muted) return;
+    if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
 
@@ -317,7 +318,7 @@ export class AudioEngine {
 
   // Sound: Ascension / Cosmic Shift
   playAscension() {
-    if (this.muted) return;
+    if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
 

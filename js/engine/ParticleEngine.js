@@ -5,6 +5,7 @@ export class ParticleEngine {
     this.ctx = null;
     this.particles = [];
     this.texts = [];
+    this.suppressed = false; // Fast Forward: skip effects for simulated (warped) events
     this.lastTime = performance.now();
   }
 
@@ -24,6 +25,7 @@ export class ParticleEngine {
   }
 
   spawnClickSparks(x, y, count = 12, color = '#38bdf8') {
+    if (this.suppressed) return;
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 2 + Math.random() * 6;
@@ -41,6 +43,7 @@ export class ParticleEngine {
   }
 
   spawnFloatingText(x, y, text, color = '#67e8f9', isCrit = false) {
+    if (this.suppressed) return;
     this.texts.push({
       x: x + (Math.random() - 0.5) * 30,
       y: y + (Math.random() - 0.5) * 20,

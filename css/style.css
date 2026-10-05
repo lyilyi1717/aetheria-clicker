@@ -162,6 +162,20 @@ body {
   transform: translateY(1px);
 }
 
+/* Fast Forward: title line + price / cycle line */
+.btn-time-warp {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+}
+.btn-time-warp .ff-sub {
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
 .btn-action.disabled,
 .btn-buy-perk.disabled,
 .btn-buy-qm-upgrade.disabled {

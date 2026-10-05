@@ -17,6 +17,7 @@ import { BountySystem } from './systems/BountySystem.js';
 import { MarketSystem, COMMODITIES } from './systems/MarketSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
+import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } from './systems/FastForwardSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
 import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
@@ -55,6 +56,10 @@ class AetheriaApp {
     this.marketSystem = new MarketSystem(this.gameState);
     this.prestigeSystem = new PrestigeSystem(this.gameState);
     this.achievementSystem = new AchievementSystem(this.gameState);
+    this.fastForwardSystem = new FastForwardSystem(this.gameState);
+
+    // Separate 1x/10x/MAX settings: Buildings use buildingSystem.buyAmount, the Enchanter this
+    this.enchanterBuyAmount = 1;
 
     // Cross-link systems onto gameState
     this.gameState.buildingSystem = this.buildingSystem;
@@ -67,7 +72,10 @@ class AetheriaApp {
 
     // Game loop
     this.gameLoop = new GameLoop(
-      (dt, realDt) => this.onSimTick(dt, realDt),
+      (dt, realDt) => {
+        this.onSimTick(dt, realDt);
+        this.processFastForward(realDt);
+      },
       (dt) => this.onRenderTick(dt),
       () => this.saveManager.save()
     );
@@ -229,23 +237,36 @@ class AetheriaApp {
       });
     }
 
-    // Buy amount toggles (1, 10, 25, 100, max)
-    const buyBtns = document.querySelectorAll('.buy-amt-btn');
-    buyBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        buyBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+    // Buy amount toggles (1, 10, 25, 100, max). Each group keeps its own setting:
+    // Buildings -> buildingSystem.buyAmount, Bazaar Enchanter -> this.enchanterBuyAmount.
+    const bindBuyAmountGroup = (groupId, apply) => {
+      const group = document.getElementById(groupId);
+      if (!group) return;
+      group.addEventListener('click', (e) => {
+        const btn = e.target.closest('.buy-amt-btn');
+        if (!btn || !group.contains(btn)) return;
+        group.querySelectorAll('.buy-amt-btn').forEach(b => b.classList.toggle('active', b === btn));
         const amt = btn.dataset.amount;
-        this.buildingSystem.buyAmount = amt === 'max' ? 'max' : parseInt(amt, 10);
-        this.updateBuildingsUI();
+        apply(amt === 'max' ? 'max' : parseInt(amt, 10));
       });
+    };
+    bindBuyAmountGroup('building-buy-amount', (amt) => {
+      this.buildingSystem.buyAmount = amt;
+      this.updateBuildingsUI();
+    });
+    bindBuyAmountGroup('enchanter-buy-amount', (amt) => {
+      this.enchanterBuyAmount = amt;
+      this.updateMarketUI();
     });
 
-    // Time Warp button
+    // Fast Forward: books a warp that the game loop pays out over a few frames
     const warpBtn = document.getElementById('btn-time-warp');
     if (warpBtn) {
       warpBtn.addEventListener('click', () => {
-        alert("kl zaq cheater");
+        if (!this.fastForwardSystem.use()) return;
+        sound.playSpell();
+        particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `⚡ ${FF_WARP_SECONDS}s TIME WARP!`, '#38bdf8', true);
+        this.updateFastForwardButton();
       });
     }
 
@@ -472,7 +493,7 @@ class AetheriaApp {
     const btnEnchanter = document.getElementById('btn-buy-enchanter');
     if (btnEnchanter) {
       btnEnchanter.addEventListener('click', () => {
-        if (this.marketSystem.buyEnchanter(this.buildingSystem.buyAmount || 1)) {
+        if (this.marketSystem.buyEnchanter(this.enchanterBuyAmount || 1)) {
           this.updateMarketUI();
         }
       });
@@ -717,16 +738,16 @@ class AetheriaApp {
     if (monsterNameEl) monsterNameEl.textContent = m.name;
     
     if (monsterAvatarEl) {
-      if (m.name.includes('Drifting Camry')) {
-        monsterAvatarEl.innerHTML = '<img src="drifting_camry.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: #050a07;">';
-      } else if (m.name.includes('Giant Kabsa Monster')) {
-        monsterAvatarEl.innerHTML = '<img src="giant_kabsa.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: #050a07;">';
-      } else if (m.name.includes('Angry Shayeb')) {
-        monsterAvatarEl.innerHTML = '<img src="angry_shayeb.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: #050a07;">';
-      } else if (m.isBoss) {
-        monsterAvatarEl.innerHTML = '👹';
-      } else {
-        monsterAvatarEl.innerHTML = '👾';
+      // Only touch the DOM when the avatar changes (not 60 times a second)
+      let avatarKey = m.isBoss ? 'boss' : 'mob';
+      if (m.name.includes('Drifting Camry')) avatarKey = 'drifting_camry';
+      else if (m.name.includes('Giant Kabsa Monster')) avatarKey = 'giant_kabsa';
+      else if (m.name.includes('Angry Shayeb')) avatarKey = 'angry_shayeb';
+      if (monsterAvatarEl.dataset.avatar !== avatarKey) {
+        monsterAvatarEl.dataset.avatar = avatarKey;
+        if (avatarKey === 'boss') monsterAvatarEl.textContent = '👹';
+        else if (avatarKey === 'mob') monsterAvatarEl.textContent = '👾';
+        else monsterAvatarEl.innerHTML = `<img src="${avatarKey}.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: #050a07;">`;
       }
     }
 
@@ -1542,24 +1563,27 @@ class AetheriaApp {
     const enchanterLevel = document.getElementById('enchanter-level');
     const enchanterBonus = document.getElementById('enchanter-bonus');
     const enchanterCost = document.getElementById('enchanter-cost');
+    const enchanterLabel = document.getElementById('enchanter-label');
     const btnEnchanter = document.getElementById('btn-buy-enchanter');
-    if (enchanterLevel && this.gameState.market) {
+    if (enchanterLevel && enchanterCost && enchanterLabel && btnEnchanter && this.gameState.market) {
       const level = this.gameState.market.goldenSynergy || 0;
-      const amt = this.buildingSystem.buyAmount || 1;
+      const amt = this.enchanterBuyAmount || 1;
       const cost = this.marketSystem.getEnchanterTotalCost(amt);
-      
-      enchanterLevel.textContent = level;
-      enchanterBonus.textContent = `+${level * 5}% Global Aether`;
-      
-      const btnText = amt === 'max' ? 'Weave Max' : `Weave Spell x${amt}`;
-      btnEnchanter.innerHTML = `${btnText} (<span id="enchanter-cost">${cost.format('standard', 1)}</span> Gold)`;
 
-      if (this.gameState.gold.gte(cost)) {
-        btnEnchanter.disabled = false;
-        btnEnchanter.style.opacity = 1.0;
-      } else {
-        btnEnchanter.disabled = true;
-        btnEnchanter.style.opacity = 0.5;
+      // The button's spans are static markup; only their text changes (no per-frame innerHTML)
+      const levelText = String(level);
+      if (enchanterLevel.textContent !== levelText) enchanterLevel.textContent = levelText;
+      const bonusText = `+${level * 5}% Global Aether`;
+      if (enchanterBonus.textContent !== bonusText) enchanterBonus.textContent = bonusText;
+      const btnText = amt === 'max' ? 'Weave Max' : `Weave Spell x${amt}`;
+      if (enchanterLabel.textContent !== btnText) enchanterLabel.textContent = btnText;
+      const costText = cost.format('standard', 1);
+      if (enchanterCost.textContent !== costText) enchanterCost.textContent = costText;
+
+      const affordable = this.gameState.gold.gte(cost);
+      if (btnEnchanter.disabled === affordable) {
+        btnEnchanter.disabled = !affordable;
+        btnEnchanter.style.opacity = affordable ? 1.0 : 0.5;
       }
     }
   }
@@ -1761,9 +1785,59 @@ class AetheriaApp {
     this.achievementSystem.checkAchievements();
   }
 
+  // Pays out a booked Fast Forward over a few loop ticks (FF_WARP_RATE), in small sim steps.
+  // Effects and sounds of the warped events are skipped: they are what made spam-clicking lag.
+  processFastForward(realDt) {
+    if (!this.fastForwardSystem.isWarping()) return;
+    particles.suppressed = true;
+    sound.quiet = true;
+    try {
+      this.fastForwardSystem.consume(realDt, (step) => this.onSimTick(step));
+    } finally {
+      particles.suppressed = false;
+      sound.quiet = false;
+    }
+  }
+
+  // Header Fast Forward button: price, uses this cycle, time to price reset. Text-only updates.
+  updateFastForwardButton() {
+    const btn = document.getElementById('btn-time-warp');
+    if (!btn) return;
+    const ff = this.fastForwardSystem;
+    const cost = ff.getCost();
+    const uses = ff.getUses();
+    const resetIn = ff.getResetIn();
+    const warping = ff.isWarping();
+    const sand = Math.floor(this.gameState.chronoSand || 0);
+    const affordable = sand >= cost;
+
+    const costText = `${new BigNum(cost).format('standard', 0)} sand`;
+    let infoText;
+    if (warping) infoText = 'warping…';
+    else if (uses === 0) infoText = 'base price';
+    else {
+      const s = Math.ceil(resetIn);
+      infoText = `${uses} used · resets ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+    const costEl = document.getElementById('ff-cost');
+    const infoEl = document.getElementById('ff-info');
+    if (costEl && costEl.textContent !== costText) costEl.textContent = costText;
+    if (infoEl && infoEl.textContent !== infoText) infoEl.textContent = infoText;
+
+    const disabled = warping || !affordable;
+    if (btn.disabled !== disabled) {
+      btn.disabled = disabled;
+      btn.classList.toggle('disabled', disabled);
+    }
+    const title = `Warp ${FF_WARP_SECONDS}s ahead for ${costText}${affordable ? '' : ` (you have ${sand})`}. ` +
+      `Each use this cycle costs x${FF_COST_GROWTH} more; the price resets after ${FF_RESET_MINUTES} min without a use.`;
+    if (btn.title !== title) btn.title = title;
+  }
+
   // Fast animation render tick (60 fps)
   onRenderTick(dt) {
     this.updateHeaderStats();
+    this.updateFastForwardButton();
     this.updateAnomalyUI();
     this.updateTabNotifications();
     this.updateTabBonusStrip(dt);
