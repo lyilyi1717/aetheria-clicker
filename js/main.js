@@ -18,6 +18,7 @@ import { MarketSystem, COMMODITIES } from './systems/MarketSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
+import { getTabBonuses } from './tabBonuses.js';
 
 const INGREDIENT_NAMES = {
   ...ESSENCE_NAMES,
@@ -480,7 +481,35 @@ class AetheriaApp {
   }
 
   // Build the initial DOM cards once (never destroyed every frame!)
+  // One "Active Bonuses" strip per subgame tab, placed after its guide banner
+  buildTabBonusStrips() {
+    for (const section of document.querySelectorAll('section.tab-view')) {
+      const tab = section.id.replace('tab-', '');
+      if (['settings', 'about', 'talents'].includes(tab)) continue;
+      const strip = document.createElement('div');
+      strip.className = 'tab-bonus-strip';
+      strip.id = `tab-bonus-${tab}`;
+      const banner = section.querySelector('.tab-guide-banner');
+      if (banner) banner.after(strip); else section.prepend(strip);
+    }
+  }
+
+  updateTabBonusStrip(dt) {
+    this.bonusStripTimer = (this.bonusStripTimer || 0) + dt;
+    if (this.bonusStripTimer < 0.25 && !this.tabNeedsFullRender[this.currentTab]) return;
+    this.bonusStripTimer = 0;
+    const strip = document.getElementById(`tab-bonus-${this.currentTab}`);
+    if (!strip) return;
+    const items = getTabBonuses(this.gameState, this.currentTab, TALENT_DEFINITIONS, ASCENSION_PERKS);
+    const html = items.length === 0 ? '' :
+      `<span class="tab-bonus-title">Active Bonuses</span>` +
+      items.map(i => `<span class="tab-bonus-chip ${i.kind}">${i.icon} <strong>${i.name}</strong> ${i.detail}</span>`).join('');
+    if (strip.innerHTML !== html) strip.innerHTML = html;
+    strip.style.display = items.length ? '' : 'none';
+  }
+
   buildStaticUI() {
+    this.buildTabBonusStrips();
     this.buildBuildingsStructure();
     this.buildCombatStructure();
     this.buildMiningStructure();
@@ -1459,6 +1488,7 @@ class AetheriaApp {
     this.updateHeaderStats();
     this.updateAnomalyUI();
     this.updateTabNotifications();
+    this.updateTabBonusStrip(dt);
 
     // Fast, lightweight state updates without replacing DOM nodes
     if (this.currentTab === 'monolith') {

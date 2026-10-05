@@ -1,9 +1,17 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '1.2.2';
+export const VERSION = '1.3.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.3.0',
+    date: '2026-10-05',
+    title: 'Active Bonuses on Every Tab',
+    changes: [
+      'Each subgame tab now shows an Active Bonuses strip: the Constellation talents, Ascension perks and running elixir/spell buffs that affect that tab, with their current total effect.'
+    ]
+  },
   {
     version: '1.2.2',
     date: '2026-10-05',
