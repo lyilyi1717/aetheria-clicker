@@ -884,6 +884,11 @@ body {
   font-weight: 700;
 }
 
+.mining-stats-line {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
 .mining-btn-group {
   display: flex;
   gap: 0.5rem;

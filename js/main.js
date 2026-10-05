@@ -8,7 +8,7 @@ import { GameState } from './systems/GameState.js';
 import { ClickerSystem } from './systems/ClickerSystem.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from './systems/BuildingSystem.js';
 import { CombatSystem } from './systems/CombatSystem.js';
-import { MiningSystem, PICKAXES } from './systems/MiningSystem.js';
+import { MiningSystem, getPickaxeName } from './systems/MiningSystem.js';
 import { GardenSystem, SEED_TYPES, ESSENCE_NAMES } from './systems/GardenSystem.js';
 import { AlchemySystem, RECIPES } from './systems/AlchemySystem.js';
 import { SpellSystem, SPELLS } from './systems/SpellSystem.js';
@@ -763,10 +763,20 @@ class AetheriaApp {
     const grid = this.gameState.miningGrid;
     if (!grid) return;
 
+    const fmt = (n, precision = 0) => (n < 1000 ? String(n) : new BigNum(n).format('standard', precision));
+    const setText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el && el.textContent !== text) el.textContent = text;
+    };
+
     const depthEl = document.getElementById('mining-depth-title');
     const strata = this.miningSystem.getCurrentStrata();
     if (depthEl) {
-      depthEl.innerHTML = `<span style="color: ${strata.color}">${strata.icon} Depth ${grid.depth} - ${strata.name} Strata</span>`;
+      const title = `<span style="color: ${strata.color}">${strata.icon} Depth ${grid.depth} - ${strata.name} Strata</span>`;
+      if (this.lastMiningTitle !== title) {
+        this.lastMiningTitle = title;
+        depthEl.innerHTML = title;
+      }
     }
 
     const pickaxeEl = document.getElementById('mining-pickaxe-info');
@@ -776,42 +786,35 @@ class AetheriaApp {
       // Clicks are handled by delegation in setupEventListeners.
       if (!document.getElementById('btn-buy-drill')) {
         pickaxeEl.innerHTML = `
-          <div>Pickaxe: <strong id="mining-pick-name"></strong> (Power: <span id="mining-pick-power"></span>)</div>
-          <div>Auto-Drills: <strong id="mining-drill-count"></strong> (<span id="mining-drill-rate"></span> blocks/sec)</div>
+          <div>Pickaxe: <strong id="mining-pick-name"></strong> (Lv <span id="mining-pick-level"></span>, Power: <span id="mining-pick-power"></span>)</div>
+          <div>Auto-Drills: <strong id="mining-drill-count"></strong> (<span id="mining-drill-rate"></span> hits/sec)</div>
+          <div class="mining-stats-line">Tile HP: <span id="mining-tile-hp"></span> · Stone per tile: <span id="mining-stone-yield"></span></div>
           <div class="mining-btn-group">
             <button id="btn-upgrade-pick" class="btn-action"></button>
-            <span id="mining-max-pick" class="max-badge">MAX PICKAXE</span>
             <button id="btn-buy-drill" class="btn-action"></button>
             <button id="btn-mining-dynamite" class="btn-action"></button>
           </div>
         `;
       }
 
-      const pick = PICKAXES[grid.pickaxeTier];
-      const nextPick = PICKAXES[grid.pickaxeTier + 1];
-      const gold = this.gameState.gold;
-      const setText = (id, text) => {
-        const el = document.getElementById(id);
-        if (el && el.textContent !== text) el.textContent = text;
-      };
+      const stone = this.gameState.inventory.stone || 0;
+      const level = grid.pickaxeTier || 0;
 
-      setText('mining-pick-name', pick.name);
-      setText('mining-pick-power', String(this.miningSystem.getPickaxePower()));
+      setText('mining-pick-name', getPickaxeName(level));
+      setText('mining-pick-level', String(level));
+      setText('mining-pick-power', fmt(this.miningSystem.getPickaxePower(), 1));
       setText('mining-drill-count', String(grid.autoDrills));
-      setText('mining-drill-rate', (grid.autoDrills * 0.5).toFixed(1));
+      setText('mining-drill-rate', this.miningSystem.getAutoDrillRate().toFixed(1));
+      setText('mining-tile-hp', fmt(strata.maxHp, 1));
+      setText('mining-stone-yield', fmt(this.miningSystem.getStoneYield(), 1));
 
-      const upPickBtn = document.getElementById('btn-upgrade-pick');
-      document.getElementById('mining-max-pick').style.display = nextPick ? 'none' : '';
-      upPickBtn.style.display = nextPick ? '' : 'none';
-      if (nextPick) {
-        const cost = new BigNum(nextPick.cost);
-        setText('btn-upgrade-pick', `Upgrade to ${nextPick.name} (${cost.format('standard', 0)} Gold)`);
-        upPickBtn.classList.toggle('disabled', !gold.gte(cost));
-      }
+      const pickCost = this.miningSystem.getPickaxeCost();
+      setText('btn-upgrade-pick', `Upgrade to ${getPickaxeName(level + 1)} (${fmt(pickCost, 2)} Stone)`);
+      document.getElementById('btn-upgrade-pick').classList.toggle('disabled', stone < pickCost);
 
       const drillCost = this.miningSystem.getAutoDrillCost();
-      setText('btn-buy-drill', `Buy Auto-Drill (${drillCost.format('standard', 0)} Gold)`);
-      document.getElementById('btn-buy-drill').classList.toggle('disabled', !gold.gte(drillCost));
+      setText('btn-buy-drill', `Buy Auto-Drill (${fmt(drillCost, 2)} Stone)`);
+      document.getElementById('btn-buy-drill').classList.toggle('disabled', stone < drillCost);
 
       const cd = this.miningSystem.dynamiteCooldown;
       setText('btn-mining-dynamite', `🧨 Blast 3x3 (${cd > 0 ? `${Math.ceil(cd)}s` : 'Ready'})`);
@@ -841,7 +844,7 @@ class AetheriaApp {
         ` : `
           <div class="mine-tile unrevealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${strata.color}">
             <div class="tile-hp-bar" id="tile-bar-${b.id}" style="width: ${(b.hp / b.maxHp) * 100}%"></div>
-            <span class="tile-hp-text" id="tile-text-${b.id}">${b.hp}/${b.maxHp}</span>
+            <span class="tile-hp-text" id="tile-text-${b.id}">${fmt(b.hp, 1)}/${fmt(b.maxHp, 1)}</span>
           </div>
         `).join('');
       } else {
@@ -857,7 +860,10 @@ class AetheriaApp {
             const bar = document.getElementById(`tile-bar-${b.id}`);
             const txt = document.getElementById(`tile-text-${b.id}`);
             if (bar) bar.style.width = `${(b.hp / b.maxHp) * 100}%`;
-            if (txt) txt.textContent = `${b.hp}/${b.maxHp}`;
+            if (txt) {
+              const hpText = `${fmt(b.hp, 1)}/${fmt(b.maxHp, 1)}`;
+              if (txt.textContent !== hpText) txt.textContent = hpText;
+            }
           }
         }
       }
@@ -867,7 +873,7 @@ class AetheriaApp {
     if (invEl) {
       const inv = this.gameState.inventory;
       invEl.innerHTML = `
-        <span class="res-badge">Stone: ${inv.stone || 0}</span>
+        <span class="res-badge">Stone: ${fmt(inv.stone || 0, 2)}</span>
         <span class="res-badge" style="color:#ef4444">Rubies: ${inv.rubies || 0}</span>
         <span class="res-badge" style="color:#3b82f6">Sapphires: ${inv.sapphires || 0}</span>
         <span class="res-badge" style="color:#10b981">Emeralds: ${inv.emeralds || 0}</span>
