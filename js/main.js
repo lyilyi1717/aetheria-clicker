@@ -98,6 +98,18 @@ class AetheriaApp {
     this.gameLoop.start();
   }
 
+  // Red dot on nav tabs that have something ready to claim
+  updateTabNotifications() {
+    const bountyReady = this.gameState.bounties.some(b => b.completed && !b.claimed);
+    const bountyTab = document.querySelector('.nav-tab[data-tab="bounties"]');
+    if (bountyTab && bountyTab.classList.contains('has-notif') !== bountyReady) {
+      bountyTab.classList.toggle('has-notif', bountyReady);
+      bountyTab.title = bountyReady
+        ? 'Bounties: a contract is complete and ready to claim!'
+        : 'Bounties: Endless procedural guild contracts with instant rewards.';
+    }
+  }
+
   buildAboutStructure() {
     const verBtn = document.getElementById('game-version');
     if (verBtn) {
@@ -1425,6 +1437,7 @@ class AetheriaApp {
   onRenderTick(dt) {
     this.updateHeaderStats();
     this.updateAnomalyUI();
+    this.updateTabNotifications();
 
     // Fast, lightweight state updates without replacing DOM nodes
     if (this.currentTab === 'monolith') {

@@ -296,6 +296,29 @@ body {
   font-size: 1.15rem;
 }
 
+/* Red notification dot on a tab's icon when something there is ready to claim */
+.nav-tab {
+  position: relative;
+}
+
+.nav-tab.has-notif .nav-icon::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 26px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 0 2px var(--bg-secondary), 0 0 8px rgba(239, 68, 68, 0.8);
+  animation: notif-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes notif-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
 /* Tab Guide / Tooltip Banners */
 .tab-guide-banner {
   display: flex;

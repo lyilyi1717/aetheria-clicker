@@ -1,9 +1,17 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '1.2.0';
+export const VERSION = '1.2.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.2.1',
+    date: '2026-10-05',
+    title: 'Bounty Alerts',
+    changes: [
+      'A red dot now appears on the Bounties tab whenever a contract is ready to claim.'
+    ]
+  },
   {
     version: '1.2.0',
     date: '2026-10-05',
