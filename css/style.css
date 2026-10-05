@@ -1,22 +1,22 @@
 /* Core Styles and Modern Glassmorphism Theme for Aetheria */
 :root {
-  --bg-primary: #07090e;
-  --bg-secondary: #0d121f;
-  --bg-card: rgba(18, 24, 38, 0.75);
-  --bg-card-hover: rgba(28, 38, 60, 0.85);
-  --border-color: rgba(56, 189, 248, 0.2);
-  --border-glow: rgba(56, 189, 248, 0.4);
+  --bg-primary: #0b1a13;
+  --bg-secondary: #123321;
+  --bg-card: rgba(26, 68, 44, 0.75);
+  --bg-card-hover: rgba(38, 97, 61, 0.85);
+  --border-color: rgba(16, 185, 129, 0.4);
+  --border-glow: rgba(16, 185, 129, 0.7);
 
   --accent-cyan: #38bdf8;
-  --accent-gold: #f59e0b;
-  --accent-purple: #a855f7;
-  --accent-green: #10b981;
-  --accent-rose: #ec4899;
-  --accent-red: #ef4444;
+  --accent-gold: #fbbf24;
+  --accent-purple: #c084fc;
+  --accent-green: #34d399;
+  --accent-rose: #f472b6;
+  --accent-red: #f87171;
 
   --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  --text-muted: #cbd5e1;
+  --text-dim: #94a3b8;
 
   --font-display: 'Cinzel', 'Trajan Pro', 'Georgia', serif;
   --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;

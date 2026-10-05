@@ -691,8 +691,24 @@ class AetheriaApp {
     const monsterHpEl = document.getElementById('monster-hp-text');
     const monsterHpBar = document.getElementById('monster-hp-fill');
     const bossTimerEl = document.getElementById('boss-timer');
+    const monsterAvatarEl = document.querySelector('.monster-avatar');
 
     if (monsterNameEl) monsterNameEl.textContent = m.name;
+    
+    if (monsterAvatarEl) {
+      if (m.name.includes('Drifting Camry')) {
+        monsterAvatarEl.innerHTML = '<img src="drifting_camry.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
+      } else if (m.name.includes('Giant Kabsa Monster')) {
+        monsterAvatarEl.innerHTML = '<img src="giant_kabsa.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
+      } else if (m.name.includes('Angry Shayeb')) {
+        monsterAvatarEl.innerHTML = '<img src="angry_shayeb.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
+      } else if (m.isBoss) {
+        monsterAvatarEl.innerHTML = '👹';
+      } else {
+        monsterAvatarEl.innerHTML = '👾';
+      }
+    }
+
     if (monsterHpEl) monsterHpEl.textContent = `${Math.max(0, m.hp)} / ${m.maxHp} HP`;
     if (monsterHpBar) monsterHpBar.style.width = `${Math.max(0, (m.hp / m.maxHp) * 100)}%`;
 

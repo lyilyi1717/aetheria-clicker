@@ -3,19 +3,19 @@ import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 
 export const ZONES = [
-  { name: 'Whispering Caverns', minFloor: 1, maxFloor: 50, color: '#38bdf8', icon: '🦇' },
-  { name: 'Golem Catacombs', minFloor: 51, maxFloor: 150, color: '#fb923c', icon: '🗿' },
-  { name: 'Sunken Arcana', minFloor: 151, maxFloor: 300, color: '#818cf8', icon: '🔮' },
-  { name: 'Infernal Caldera', minFloor: 301, maxFloor: 500, color: '#ef4444', icon: '🔥' },
-  { name: 'Void Citadel', minFloor: 501, maxFloor: 750, color: '#a855f7', icon: '👁️' },
-  { name: 'Astral Nexus', minFloor: 751, maxFloor: 1000, color: '#ec4899', icon: '✨' },
-  { name: 'Primordial Eternity', minFloor: 1001, maxFloor: 999999, color: '#06b6d4', icon: '🌌' }
+  { name: 'Thumama Dunes', minFloor: 1, maxFloor: 50, color: '#f59e0b', icon: '🏜️' },
+  { name: 'Tahlia Street', minFloor: 51, maxFloor: 150, color: '#ec4899', icon: '🏎️' },
+  { name: 'Al-Batha Market', minFloor: 151, maxFloor: 300, color: '#10b981', icon: '🏪' },
+  { name: 'Empty Quarter (Rub al Khali)', minFloor: 301, maxFloor: 500, color: '#ef4444', icon: '🔥' },
+  { name: 'Kingdom Centre', minFloor: 501, maxFloor: 750, color: '#38bdf8', icon: '🏢' },
+  { name: 'Boulevard World', minFloor: 751, maxFloor: 1000, color: '#a855f7', icon: '🎡' },
+  { name: 'The Wasta Dimension', minFloor: 1001, maxFloor: 999999, color: '#06b6d4', icon: '🌌' }
 ];
 
 export const MONSTER_NAMES = [
-  'Aether Shade', 'Crystalline Spider', 'Gargoyle Sentinel', 'Void Fiend',
-  'Mana Devourer', 'Obsidian Behemoth', 'Spectral Phantom', 'Dread Lich',
-  'Astral Drake', 'Cosmic Horror', 'Abyssal Reaver', 'Chrono Titan'
+  'Desert Dhabb', 'Abu Sarwal Wa Fanila', 'Karak Addict', 'Drifting Camry',
+  'Iftar Samosa', 'Giant Kabsa Monster', 'Snapchat Celebrity', 'Mutawa',
+  'Angry Shayeb', 'Rukbah Soda', 'Dallah of Doom', 'Al-Modir'
 ];
 
 // Floor exponent cap for 1.12^(floor-1) on monster stats and gear. 1.12^6000 ~ 1e295, so
