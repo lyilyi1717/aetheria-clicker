@@ -57,7 +57,8 @@ export class GameLoop {
     requestAnimationFrame(frame);
 
     // Background interval fallback: Browsers throttle requestAnimationFrame to 0.5-1fps in background
-    setInterval(() => {
+    if (this.backgroundTimer) clearInterval(this.backgroundTimer);
+    this.backgroundTimer = setInterval(() => {
       const now = performance.now();
       const elapsed = (now - this.lastSimTime) / 1000;
       if (elapsed >= 0.2) { // Tab was in background or frame skipped
@@ -77,5 +78,9 @@ export class GameLoop {
 
   stop() {
     this.isRunning = false;
+    if (this.backgroundTimer) {
+      clearInterval(this.backgroundTimer);
+      this.backgroundTimer = null;
+    }
   }
 }
