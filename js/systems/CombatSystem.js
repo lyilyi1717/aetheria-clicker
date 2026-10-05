@@ -302,11 +302,11 @@ export class CombatSystem {
     const slot = slots[Math.floor(Math.random() * slots.length)];
 
     const rarities = [
-      { name: 'Common', color: '#94a3b8', mult: 1, weight: 60 },
-      { name: 'Rare', color: '#38bdf8', mult: 2, weight: 25 },
-      { name: 'Epic', color: '#a855f7', mult: 4, weight: 10 },
-      { name: 'Legendary', color: '#f59e0b', mult: 8, weight: 4 },
-      { name: 'Cosmic', color: '#06b6d4', mult: 18, weight: 1 }
+      { name: 'Common', color: '#94a3b8', mult: 1, weight: 60 },      // Gray
+      { name: 'Rare', color: '#38bdf8', mult: 2, weight: 25 },        // Blue
+      { name: 'Epic', color: '#a855f7', mult: 4, weight: 10 },        // Purple
+      { name: 'Legendary', color: '#ef4444', mult: 8, weight: 4 },    // Red
+      { name: 'Cosmic', color: '#fbbf24', mult: 18, weight: 1 }       // Gold (Highest)
     ];
 
     let rand = Math.random() * 100;

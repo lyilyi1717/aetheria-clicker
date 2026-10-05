@@ -1655,3 +1655,60 @@ body {
   color: var(--accent-gold);
 }
 
+
+.gear-slot {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 0.6rem !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.gear-slot::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  opacity: 0.15;
+  z-index: -1;
+}
+
+/* Common (Gray) */
+.gear-common { border: 2px solid #94a3b8 !important; box-shadow: inset 0 0 10px rgba(148, 163, 184, 0.2); }
+.gear-common::before { background: linear-gradient(135deg, #475569, #1e293b); }
+
+/* Rare (Blue) */
+.gear-rare { border: 2px solid #38bdf8 !important; box-shadow: 0 0 8px rgba(56, 189, 248, 0.3), inset 0 0 15px rgba(56, 189, 248, 0.3); }
+.gear-rare::before { background: radial-gradient(circle at top left, #0ea5e9, #0f172a); opacity: 0.3; }
+
+/* Epic (Purple) */
+.gear-epic { border: 2px solid #a855f7 !important; box-shadow: 0 0 12px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.4); }
+.gear-epic::before { background: radial-gradient(circle at center, #9333ea, #3b0764); opacity: 0.4; }
+
+/* Legendary (Red) */
+.gear-legendary { border: 2px solid #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5), inset 0 0 25px rgba(239, 68, 68, 0.5); animation: pulse-legendary 2s infinite alternate; }
+.gear-legendary::before { background: linear-gradient(45deg, #b91c1c, #450a0a, #b91c1c); background-size: 200% 200%; animation: shine 3s linear infinite; opacity: 0.5; }
+
+/* Cosmic (Gold - The Ultimate Tier) */
+.gear-cosmic { border: 2px solid #fbbf24 !important; box-shadow: 0 0 25px rgba(251, 191, 36, 0.8), inset 0 0 35px rgba(251, 191, 36, 0.6); animation: pulse-cosmic 1.5s infinite alternate; }
+.gear-cosmic::before { background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 25%, #d97706 50%, #fbbf24 75%, #fef3c7 100%); background-size: 200% 200%; animation: shine 2s linear infinite; opacity: 0.6; }
+.gear-cosmic .slot-title, .gear-cosmic .slot-item { color: #fef3c7 !important; text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24, 0 2px 2px #000; }
+
+@keyframes pulse-legendary {
+  0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4), inset 0 0 15px rgba(239, 68, 68, 0.4); }
+  100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.7), inset 0 0 30px rgba(239, 68, 68, 0.6); }
+}
+
+@keyframes pulse-cosmic {
+  0% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.5), inset 0 0 20px rgba(251, 191, 36, 0.5); }
+  100% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.9), inset 0 0 40px rgba(251, 191, 36, 0.8); }
+}
+
+@keyframes shine {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+

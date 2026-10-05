@@ -735,20 +735,21 @@ class AetheriaApp {
     const gearSig = JSON.stringify(h.gear);
     if (gearCont && this.lastGearSig !== gearSig) {
       this.lastGearSig = gearSig;
+      const getCls = (item) => item && item.rarity ? `gear-${item.rarity.toLowerCase()}` : '';
       gearCont.innerHTML = `
-        <div class="gear-slot" style="border-color: ${h.gear.weapon?.color || '#64748b'}">
+        <div class="gear-slot ${getCls(h.gear.weapon)}">
           <div class="slot-title">Weapon</div>
           <div class="slot-item">${h.gear.weapon?.name || 'Empty'} (+${h.gear.weapon?.attack || 0} Atk)</div>
         </div>
-        <div class="gear-slot" style="border-color: ${h.gear.armor?.color || '#64748b'}">
+        <div class="gear-slot ${getCls(h.gear.armor)}">
           <div class="slot-title">Armor</div>
           <div class="slot-item">${h.gear.armor?.name || 'Empty'} (+${h.gear.armor?.hp || 0} HP)</div>
         </div>
-        <div class="gear-slot" style="border-color: ${h.gear.amulet?.color || '#64748b'}">
+        <div class="gear-slot ${getCls(h.gear.amulet)}">
           <div class="slot-title">Amulet</div>
           <div class="slot-item">${h.gear.amulet?.name || 'Empty'} (+${((h.gear.amulet?.crit || 0) * 100).toFixed(0)}% Crit)</div>
         </div>
-        <div class="gear-slot" style="border-color: ${h.gear.relic?.color || '#64748b'}">
+        <div class="gear-slot ${getCls(h.gear.relic)}">
           <div class="slot-title">Relic</div>
           <div class="slot-item">${h.gear.relic?.name || 'Empty'} (+${((h.gear.relic?.lifesteal || 0) * 100).toFixed(0)}% Drain)</div>
         </div>
@@ -1923,3 +1924,4 @@ function setupTooltips() {
 window.addEventListener('DOMContentLoaded', () => {
   setupTooltips();
 });
+
