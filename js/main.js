@@ -1304,8 +1304,20 @@ class AetheriaApp {
         tEl.textContent = trendIcons[item.trend] || '⚖️ STABLE';
         tEl.style.color = trendColors[item.trend] || '#94a3b8';
       }
-      if (pEl) pEl.textContent = item.price;
+      if (pEl) {
+        const price = this.marketSystem.getCommodityPrice(c.id);
+        const priceText = price.format('standard', 2);
+        if (pEl.textContent !== priceText) pEl.textContent = priceText;
+        const row = pEl.closest('.commodity-row');
+        row?.querySelector('.btn-market-buy')?.classList.toggle('disabled', !this.gameState.gold.gte(price));
+        row?.querySelector('.btn-market-buy10')?.classList.toggle('disabled', !this.gameState.gold.gte(price.mul(new BigNum(10))));
+      }
       if (oEl) oEl.textContent = item.owned;
+    }
+    const idxEl = document.getElementById('market-index-display');
+    if (idxEl) {
+      const idxText = `x${this.marketSystem.getMarketIndex().format('standard', 2)}`;
+      if (idxEl.textContent !== idxText) idxEl.textContent = idxText;
     }
 
     const carCont = document.getElementById('market-caravan-panel');
@@ -1313,25 +1325,24 @@ class AetheriaApp {
       // Built once and updated in place: rebuilding every frame swallowed button clicks
       if (!carCont.dataset.built) {
         carCont.dataset.built = '1';
-        const ret = (mins) => (1.3 + mins * 0.15).toFixed(2).replace(/0$/, '');
         carCont.innerHTML = `
           <div class="caravan-active-card" id="caravan-active">
             <h3>🐪 Caravan In Transit</h3>
             <p>Time remaining: <span id="caravan-time"></span>s</p>
-            <p>Investment: <span id="caravan-invest"></span> Gold | Return: <span id="caravan-return"></span>%</p>
+            <p>Investment: <span id="caravan-invest"></span> Gold | Returns: <span id="caravan-return"></span> Gold</p>
           </div>
           <div class="caravan-dispatch-box" id="caravan-dispatch">
             <h3>🐪 Dispatch Trade Caravan</h3>
-            <p>Send gold into distant trade routes for guaranteed profit!</p>
-            <button id="btn-send-caravan-1" class="btn-action">Send 500 Gold (2 Min - ${ret(2)}x Return)</button>
-            <button id="btn-send-caravan-2" class="btn-action">Send 5,000 Gold (5 Min - ${ret(5)}x Return)</button>
+            <p>Send gold into distant trade routes for guaranteed profit! Caravan sizes scale with your deepest Void Tower floor.</p>
+            <button id="btn-send-caravan-1" class="btn-action"></button>
+            <button id="btn-send-caravan-2" class="btn-action"></button>
           </div>
         `;
         carCont.addEventListener('click', (e) => {
           const btn = e.target.closest('button');
           if (!btn) return;
-          if (btn.id === 'btn-send-caravan-1') this.marketSystem.dispatchCaravan(500, 2);
-          else if (btn.id === 'btn-send-caravan-2') this.marketSystem.dispatchCaravan(5000, 5);
+          if (btn.id === 'btn-send-caravan-1') this.marketSystem.dispatchCaravan('small');
+          else if (btn.id === 'btn-send-caravan-2') this.marketSystem.dispatchCaravan('large');
           else return;
           this.updateMarketUI();
         });
@@ -1343,10 +1354,15 @@ class AetheriaApp {
       if (active) {
         document.getElementById('caravan-time').textContent = Math.ceil(car.duration);
         document.getElementById('caravan-invest').textContent = car.investment.format('standard', 0);
-        document.getElementById('caravan-return').textContent = (car.expectedProfit * 100).toFixed(0);
+        document.getElementById('caravan-return').textContent = (car.payout ? new BigNum(car.payout) : car.investment.mul(car.expectedProfit)).format('standard', 2);
       } else {
-        document.getElementById('btn-send-caravan-1').classList.toggle('disabled', !this.gameState.gold.gte(new BigNum(500)));
-        document.getElementById('btn-send-caravan-2').classList.toggle('disabled', !this.gameState.gold.gte(new BigNum(5000)));
+        for (const [btnId, tier] of [['btn-send-caravan-1', 'small'], ['btn-send-caravan-2', 'large']]) {
+          const t = this.marketSystem.getCaravanTier(tier);
+          const btn = document.getElementById(btnId);
+          const label = `Send ${t.invest.format('standard', 2)} Gold (${t.minutes} Min - ${t.profit}x Return)`;
+          if (btn.textContent !== label) btn.textContent = label;
+          btn.classList.toggle('disabled', !this.gameState.gold.gte(t.invest));
+        }
       }
     }
 

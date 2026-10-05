@@ -308,6 +308,7 @@ export class GameState {
       this.market = data.market || null;
       if (this.market?.caravan) {
         this.market.caravan.investment = BigNum.fromJSON(this.market.caravan.investment);
+        if (this.market.caravan.payout) this.market.caravan.payout = BigNum.fromJSON(this.market.caravan.payout);
       }
       this.ascensionPerks = data.ascensionPerks || {};
       this.achievements = data.achievements || {};

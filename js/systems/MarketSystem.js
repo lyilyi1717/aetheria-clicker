@@ -43,9 +43,29 @@ export class MarketSystem {
     }
   }
 
+  // Market Index: every Bazaar price is "N kills' worth" at the player's best Tower floor.
+  // maxFloor never decreases, so retreating can't lower prices.
+  getMarketIndex() {
+    const maxFloor = this.gameState.hero?.maxFloor || 1;
+    return new BigNum(1.12).pow(Math.max(0, maxFloor - 1));
+  }
+
+  getCommodityPrice(id) {
+    const item = this.gameState.market.items[id];
+    return this.getMarketIndex().mul(new BigNum(item.price));
+  }
+
+  getCaravanTier(tier) {
+    const M = this.getMarketIndex();
+    return tier === 'large'
+      ? { invest: M.mul(new BigNum(2000)), minutes: 60, profit: 1.5 }
+      : { invest: M.mul(new BigNum(200)), minutes: 10, profit: 1.25 };
+  }
+
   getEnchanterCost() {
     const level = this.gameState.market.goldenSynergy;
-    return new BigNum(1000000).mul(Math.pow(2.5, level));
+    // BigNum pow: Math.pow overflowed to Infinity past level ~775 and made levels free
+    return new BigNum(1000000).mul(new BigNum(2.5).pow(level));
   }
 
   buyEnchanter() {
@@ -64,7 +84,7 @@ export class MarketSystem {
     const item = this.gameState.market.items[id];
     if (!item) return false;
 
-    const totalCost = new BigNum(item.price * amount);
+    const totalCost = this.getCommodityPrice(id).mul(new BigNum(amount));
     if (this.gameState.gold.gte(totalCost)) {
       this.gameState.gold = this.gameState.gold.sub(totalCost);
       item.owned += amount;
@@ -79,7 +99,7 @@ export class MarketSystem {
     const item = this.gameState.market.items[id];
     if (!item || item.owned < amount) return false;
 
-    const payout = new BigNum(item.price * amount);
+    const payout = this.getCommodityPrice(id).mul(new BigNum(amount));
     item.owned -= amount;
     this.gameState.gold = this.gameState.gold.add(payout);
     sound.playGem();
@@ -93,11 +113,13 @@ export class MarketSystem {
     return this.sellCommodity(id, item.owned);
   }
 
-  dispatchCaravan(goldAmount, minutes = 2) {
+  // tier: 'small' (200*M gold, 10 min, 1.25x) or 'large' (2,000*M gold, 60 min, 1.5x).
+  // The payout is locked in at dispatch.
+  dispatchCaravan(tier = 'small') {
     const caravan = this.gameState.market.caravan;
     if (caravan.active) return false;
 
-    const cost = new BigNum(goldAmount);
+    const { invest: cost, minutes, profit } = this.getCaravanTier(tier);
     if (this.gameState.gold.lt(cost) || cost.lte(0)) return false;
 
     this.gameState.gold = this.gameState.gold.sub(cost);
@@ -105,7 +127,8 @@ export class MarketSystem {
     caravan.duration = minutes * 60;
     caravan.maxDuration = minutes * 60;
     caravan.investment = cost;
-    caravan.expectedProfit = 1.3 + (minutes * 0.15); // e.g. 1.6x return
+    caravan.expectedProfit = profit;
+    caravan.payout = cost.mul(new BigNum(profit));
 
     sound.playSpell();
     particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'CARAVAN EXPEDITION DISPATCHED!', '#fbbf24', true);
@@ -126,7 +149,7 @@ export class MarketSystem {
       caravan.duration -= dt;
       if (caravan.duration <= 0) {
         caravan.active = false;
-        const returnPayout = caravan.investment.mul(caravan.expectedProfit);
+        const returnPayout = caravan.payout ? new BigNum(caravan.payout) : caravan.investment.mul(caravan.expectedProfit);
         this.gameState.gold = this.gameState.gold.add(returnPayout);
         sound.playAchievement();
         particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `CARAVAN RETURNED! +${returnPayout.format('standard', 0)} GOLD`, '#4ade80', true);

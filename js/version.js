@@ -1,9 +1,20 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '1.4.0';
+export const VERSION = '1.5.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.5.0',
+    date: '2026-10-05',
+    title: 'Gold Economy Rebalance',
+    changes: [
+      'Void Tower: gold per kill now grows at the same rate as monster difficulty (1.12x per floor, was 1.15x), so gold no longer outpaces the rest of the game. Gold you already have is kept.',
+      'Bazaar: commodity prices and caravans now scale with your deepest Void Tower floor (Market Index), so trading stays worthwhile at every stage. The index is shown on the Bazaar tab.',
+      'Bazaar: caravans are now Small (10 min, 1.25x) and Large (60 min, 1.5x); the payout is locked in when you send them.',
+      'Bazaar: the Golden Enchanter no longer becomes free at extremely high levels.'
+    ]
+  },
   {
     version: '1.4.0',
     date: '2026-10-05',

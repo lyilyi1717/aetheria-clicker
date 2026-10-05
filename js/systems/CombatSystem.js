@@ -233,20 +233,21 @@ export class CombatSystem {
     this.gameState.stats.totalMonstersSlain++;
     if (isBoss) this.gameState.stats.totalBossesSlain++;
 
-    // Gold reward scales with floor
-    let baseGold = Math.floor((isBoss ? 50 : 10) * Math.pow(1.15, floor - 1));
+    // Gold reward scales with floor at 1.12^floor, the same curve as monster HP and gear,
+    // so gold stays proportional to difficulty (was 1.15^floor, which outgrew everything)
+    let goldMult = 1;
     if (this.gameState.quartermaster && this.gameState.quartermaster['golden_req']) {
-      baseGold = Math.floor(baseGold * (1 + this.gameState.quartermaster['golden_req'].rank * 0.25));
+      goldMult *= 1 + this.gameState.quartermaster['golden_req'].rank * 0.25;
     }
     // Universal Mastery: Building Mastery (+1.0% Global Gold per 100 total buildings)
     if (this.gameState.buildingSystem) {
       const totalBldgs = this.gameState.buildingSystem.getTotalBuildingsCount();
       const bldgMasteryRank = Math.floor(totalBldgs / 100);
-      baseGold = Math.floor(baseGold * (1 + bldgMasteryRank * 0.01));
+      goldMult *= 1 + bldgMasteryRank * 0.01;
     }
     // Plunderer Greed talent (+25%/rank) and Midas Elixir
-    baseGold = Math.floor(baseGold * (1 + (this.gameState.talents?.dungeon_wealth?.rank || 0) * 0.25) * this.gameState.getGoldMultiplier());
-    const goldEarned = new BigNum(baseGold);
+    goldMult *= (1 + (this.gameState.talents?.dungeon_wealth?.rank || 0) * 0.25) * this.gameState.getGoldMultiplier();
+    const goldEarned = new BigNum(1.12).pow(floor - 1).mul(new BigNum((isBoss ? 50 : 10) * goldMult)).floor();
     this.gameState.gold = this.gameState.gold.add(goldEarned);
 
     // XP Reward
