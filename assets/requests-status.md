@@ -69,7 +69,7 @@ General rules:
 
 ### 2. Regular monsters: `assets/generated/monsters/<slug>.webp` (256)
 - Same block, `js/main.js:741-745`. Replace the three hard-coded `includes()` checks with a map from name to file:
-  `{'Desert Dhabb':'desert_dhabb','Abu Sarwal Wa Fanila':'abu_sarwal','Karak Addict':'karak_addict','Drifting Camry':'../../drifting_camry.jpg'(existing),'Iftar Samosa':'iftar_samosa','Giant Kabsa Monster':'(existing giant_kabsa.jpg)','Snapchat Celebrity':'snapchat_celebrity','Mutawa':'mutawa','Angry Shayeb':'(existing angry_shayeb.jpg)','Rukbah Soda':'rukbah_soda','Dallah of Doom':'dallah_of_doom','Al-Modir':'al_modir'}`.
+  `{'Desert Dhabb':'desert_dhabb','Abu Sarwal Wa Fanila':'abu_sarwal','Karak Addict':'karak_addict','Drifting Camry':'../../drifting_camry.webp'(existing),'Iftar Samosa':'iftar_samosa','Giant Kabsa Monster':'(existing giant_kabsa.jpg)','Snapchat Celebrity':'snapchat_celebrity','Mutawa':'mutawa','Angry Shayeb':'(existing angry_shayeb.jpg)','Rukbah Soda':'rukbah_soda','Dallah of Doom':'dallah_of_doom','Al-Modir':'al_modir'}`.
 - Strip the `⚡ BOSS: ` prefix before the lookup.
 
 ### 3. Gear: `assets/generated/gear/<slot>_<rarity>.webp` (128)
@@ -89,7 +89,7 @@ General rules:
   - Reward moment: when a tile flips to revealed at `js/main.js:927-930`, add class `pop` to the tile (CSS keyframe scale 0.6→1.15→1).
 - Strata textures, `mining/strata_<slug>.webp`: set `background-image` on `.mine-tile.unrevealed`. Strata slugs come from `MiningSystem.js:9-15` names, lower-case with spaces turned into `_` (limestone … abyssal_heart).
   - Easiest wiring: set the CSS var `--strata-tex: url(...)` on `#mining-grid-board` when the strata changes (next to the title update at `js/main.js:843-848`), plus `.mine-tile.unrevealed{background:var(--strata-tex) center/cover}`.
-- Pickaxe tiers, `mining/pick_<L>_<slug>.webp`: `js/main.js:859` hard-codes `cosmic_shovel.jpg`. Give the img an id and set `src` in the `setText` block (`js/main.js:877-880`) from `Math.min(level, 5)`. Slugs: 0 rusty, 1 bronze, 2 steel, 3 mithril, 4 adamantite, 5 celestial_void.
+- Pickaxe tiers, `mining/pick_<L>_<slug>.webp`: `js/main.js:859` hard-codes `cosmic_shovel.webp`. Give the img an id and set `src` in the `setText` block (`js/main.js:877-880`) from `Math.min(level, 5)`. Slugs: 0 rusty, 1 bronze, 2 steel, 3 mithril, 4 adamantite, 5 celestial_void.
 
 ### 6. Garden: `assets/generated/garden/*.webp` (96)
 - Plot icon: `js/main.js:1139` sets `icoEl.textContent = def.icon`. Replace it with a stage-aware img:
