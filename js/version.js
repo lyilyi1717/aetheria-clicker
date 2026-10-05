@@ -1,9 +1,18 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '1.3.1';
+export const VERSION = '1.4.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.4.0',
+    date: '2026-10-05',
+    title: 'Quick Cast & Guild Seals',
+    changes: [
+      'Quick Cast bar on the Monolith, Void Tower, Excavation and Garden tabs: cast the Grimoire spells that matter there without switching tabs. Each button shows its mana cost, cooldown, or the time left on its buff.',
+      'Guild Seals now appear in the top resource bar.'
+    ]
+  },
   {
     version: '1.3.1',
     date: '2026-10-05',

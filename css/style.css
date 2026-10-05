@@ -206,6 +206,56 @@ body {
   font-size: 0.82rem;
 }
 
+/* Per-tab Quick Cast bar for Grimoire spells */
+.quick-cast-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.9rem;
+  font-size: 0.8rem;
+}
+
+.quick-cast-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  background: rgba(168, 85, 247, 0.1);
+  color: var(--text-main);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-cast-btn .qc-state {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.quick-cast-btn.ready:hover {
+  background: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+}
+
+.quick-cast-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quick-cast-btn.buff-active {
+  border-color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.12);
+  opacity: 1;
+}
+
+.quick-cast-btn.buff-active .qc-state {
+  color: var(--accent-cyan);
+}
+
 /* Per-tab Active Bonuses strip (talents, perks, timed buffs affecting this tab) */
 .tab-bonus-strip {
   display: flex;

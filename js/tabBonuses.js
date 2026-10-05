@@ -41,6 +41,14 @@ export const BUFF_TYPE_TABS = {
   time_speed: ['monolith', 'combat', 'mining', 'garden', 'spells']
 };
 
+// Spells offered as Quick Cast buttons on each tab
+export const SPELL_TABS = {
+  monolith: ['aether_burst', 'midas_touch', 'celestial_alignment', 'chrono_warp'],
+  combat: ['void_strike', 'chrono_warp', 'astral_refresh'],
+  mining: ['void_strike', 'chrono_warp'],
+  garden: ['chrono_warp']
+};
+
 export function getTabBonuses(gameState, tab, talentDefs, perkDefs) {
   const items = [];
   for (const def of talentDefs) {

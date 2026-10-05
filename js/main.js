@@ -18,7 +18,7 @@ import { MarketSystem, COMMODITIES } from './systems/MarketSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
-import { getTabBonuses } from './tabBonuses.js';
+import { getTabBonuses, SPELL_TABS } from './tabBonuses.js';
 
 const INGREDIENT_NAMES = {
   ...ESSENCE_NAMES,
@@ -491,6 +491,48 @@ class AetheriaApp {
       strip.id = `tab-bonus-${tab}`;
       const banner = section.querySelector('.tab-guide-banner');
       if (banner) banner.after(strip); else section.prepend(strip);
+
+      // Quick Cast bar: built once, updated in place, clicks delegated below
+      const spellIds = SPELL_TABS[tab];
+      if (spellIds) {
+        const bar = document.createElement('div');
+        bar.className = 'quick-cast-bar';
+        bar.id = `quick-cast-${tab}`;
+        bar.innerHTML = `<span class="tab-bonus-title">Quick Cast</span>` + spellIds.map(id => {
+          const s = SPELLS.find(sp => sp.id === id);
+          return `<button class="quick-cast-btn" data-spell="${id}" title="${s.desc}">
+            <span class="qc-name">${s.icon} ${s.name}</span><span class="qc-state" data-qc-state="${id}"></span>
+          </button>`;
+        }).join('');
+        strip.after(bar);
+      }
+    }
+    document.getElementById('content-area')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.quick-cast-btn');
+      if (!btn) return;
+      sound.ensureContext();
+      this.spellSystem.castSpell(btn.dataset.spell);
+    });
+  }
+
+  updateQuickCastBar() {
+    const bar = document.getElementById(`quick-cast-${this.currentTab}`);
+    if (!bar) return;
+    for (const btn of bar.querySelectorAll('.quick-cast-btn')) {
+      const id = btn.dataset.spell;
+      const s = SPELLS.find(sp => sp.id === id);
+      const cd = this.gameState.spells[id]?.cd || 0;
+      const buff = this.gameState.activeBuffs.find(b => b.id === id);
+      let state;
+      if (buff) state = `active ${Math.ceil(buff.duration)}s`;
+      else if (cd > 0) state = `${Math.ceil(cd)}s`;
+      else state = `${s.manaCost} mana`;
+      const stateEl = btn.querySelector('.qc-state');
+      if (stateEl.textContent !== state) stateEl.textContent = state;
+      const castable = this.spellSystem.canCast(id);
+      btn.classList.toggle('ready', castable);
+      btn.classList.toggle('disabled', !castable);
+      btn.classList.toggle('buff-active', !!buff);
     }
   }
 
@@ -1489,6 +1531,7 @@ class AetheriaApp {
     this.updateAnomalyUI();
     this.updateTabNotifications();
     this.updateTabBonusStrip(dt);
+    this.updateQuickCastBar();
 
     // Fast, lightweight state updates without replacing DOM nodes
     if (this.currentTab === 'monolith') {
@@ -1547,6 +1590,12 @@ class AetheriaApp {
 
     const chronoEl = document.getElementById('stat-chrono');
     if (chronoEl) chronoEl.textContent = `${new BigNum(Math.floor(this.gameState.chronoSand)).format('standard', 2)}s`;
+
+    const sealsEl = document.getElementById('stat-guild-seals');
+    if (sealsEl) {
+      const seals = String(this.gameState.guildSeals || 0);
+      if (sealsEl.textContent !== seals) sealsEl.textContent = seals;
+    }
 
     const dustEl = document.getElementById('stat-cosmic-dust');
     if (dustEl) dustEl.textContent = this.gameState.cosmicDust.format('standard', 0);

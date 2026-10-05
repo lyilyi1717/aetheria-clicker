@@ -82,7 +82,19 @@ Principles carried over from the Snake doc (not re-researched):
    - Garden Golems (§5.6): stone + Mana Sap priced, one per row of 4 plots, auto-harvest and
      replant same seed, offline-capable.
    - Matching Auto-Drill rebalance.
-   - Fixed global buff/cooldown bar (§6).
+   - A thin global bar for timed buffs and spell cooldowns (§6), *alongside* the v1.3.0
+     per-tab strip. The strip keeps the persistent bonuses and gains the Mastery entries.
+6. **Gold (§5.5).** Tower gold outgrows difficulty by 1.0268^floor, and every Bazaar
+   route is absolute. Decision (d):
+   - Tower gold exponent 1.15 → **1.12**.
+   - Every Bazaar price and caravan tier is anchored to a **Market Index
+     M = 1.12^(maxFloor−1)**.
+   - %-of-gold caravans are rejected: at today's 2.05× per 5 min that compounds to
+     ×5.5e3/hour.
+   - Chrono Sand is re-priced to 1,000·M gold per 30 s, with a bank cap equal to the
+     offline cap (closes B12: 1e46 gold → ~3e44 s of sand).
+   - The Golden Enchanter stays the large geometric sink. Existing 1e46-gold saves keep
+     their gold; the Enchanter absorbs it as a one-time ~100 levels.
 
 ---
 
@@ -312,7 +324,9 @@ watering (+25 s per 15 s while active, +167%) multiply all of the above.
 | drills | 3.0e6 | 1.7e11 | 1.4e25 | 1.3e62 |
 | Enchanter | 0 | 9.9e10 | 3.4e24 | 8.6e61 |
 
-- **Mining provides >99.9% of gold from minute 5 on.**
+- **Mining provides >99.9% of gold from minute 5 on.** Once §5.1 tames mining, the
+  runaway moves to Tower gold (`1.15^f` vs difficulty `1.12^f`). Playtesters report
+  ~1e46 gold. §5.5 handles both.
 - Pickaxes: a fixed 5.56M-gold sink, exhausted by minute 5.
 - Caravans and commodities: fixed-size, irrelevant after minute 5.
 - Gold → Chrono Sand (1,000 gold → 30 s): fixed price, effectively free.
@@ -486,15 +500,111 @@ formula (nectar), so none can compound with itself.
 - **Caravans:** scale the investment to `max(5,000, 5% of gold)`. Out of scope beyond this
   note.
 
-### 5.5 Gold (note, partially out of scope)
+### 5.5 Gold economy: Tower exponent, Market Index, scaling sinks, Chrono Sand
 
-- After §5.1, Excavation gold is ≤ combat gold.
-- Combat gold `10·1.15^f` still outgrows monster HP `1.12^f`, so the gold runaway moves to
-  combat. Recommend `10·1.10^(f-1)` (below the HP growth) in the combat study.
-- The **Enchanter** remains the gold → Aether bridge. Its 2.5^n cost is the right shape.
-  Switch to `BigNum.pow` (B4).
-- Golems and drills deliberately **don't** cost gold, so the Excavation/Garden pace is
-  insulated from whatever combat gold does.
+**Problem.** Gold income is exponential in progress, but almost every sink is absolute.
+
+| Source / sink | Formula | Scales with progress? |
+|---|---|---|
+| Tower gold per kill | `10·1.15^(f-1)`: 1e7 @f100, 1.4e19 @f300, 2.9e46 @f750, 4e61 @f1000 | yes, and **faster than difficulty** (monster HP/atk and gear are `1.12^(f-1)`). Gold outgrows difficulty by `(1.15/1.12)^f ≈ 1.0268^f`: ×14 @f100, ×3e8 @f750. |
+| Excavation caches | `100·1.2^d` | yes, even faster (fixed in §5.1 → `1.07^d`) |
+| Pickaxes | 500 … 5e6 total | no |
+| Auto-Drill | `1000·1.5^n` | weakly (moved to stone in §5.1) |
+| Commodities | price clamped to fixed bands (ore 15–120 … crystal 1,500–15,000) | no |
+| Caravans | fixed 500 / 5,000 gold, 1.6× / 2.05× | no |
+| Gold → Chrono Sand | 1,000 gold → 30 s, linear, uncapped (v1.2.2) | no, and it becomes an *infinite time* source at 1e46 gold (B12) |
+| Golden Enchanter | `1e6·2.5^n` → +5% Aether per level | **yes, the only one** |
+
+So the Bazaar is irrelevant past roughly floor 60, and playtesters sit on ~1e46 gold with
+nothing to spend it on.
+
+**Decision: (d), a combination of (a) and (b), with (c) explicitly rejected.**
+
+1. **(a) Tower gold exponent 1.15 → 1.12.** `goldPerKill = 10 · 1.12^(f-1)` (×(1 + talents)
+   as today). This matches difficulty, so gold per *second of combat* stays proportional to
+   how hard the floor is, rather than accelerating ×1.0268 per floor.
+   - New values: 7.5e5 @f100, 5.2e15 @f300, 7.6e37 @f750, 1.3e50 @f1000. That is 13× less
+     at f100 and 4e8× less at f750.
+   - Also switch to a BigNum pow or clamp `f`; B5's overflow wall then moves from ≈6,220
+     to the same wall as monster HP, so the two stay consistent.
+2. **(b) Market Index**, anchored to the same curve so every Bazaar price is "N kills' worth"
+   at your best floor:
+   `M = 1.12^(hero.maxFloor − 1)`. M is a BigNum; maxFloor never decreases, so the index
+   can't be gamed by retreating.
+
+   | Bazaar item | Current | Proposed |
+   |---|---|---|
+   | Commodity price band | fixed `[min, max]`, random walk | `[min·M, max·M]`, same random walk on the *base* price, display = base × M. Garden commodities now pay ~`10–50 kills' worth` per harvest drop, a real Garden → gold link. |
+   | Buying commodities | fixed price | same × M (symmetric; no arbitrage across floors because the index only rises) |
+   | Caravan tiers | 500 / 5,000 gold, 2 / 5 min, 1.6× / 2.05× | **Small:** invest `200·M`, 10 min, **1.25×** (+50·M). **Large:** invest `2,000·M`, 60 min, **1.5×** (+1,000·M per hour ≈ 100 kills/hour ≈ 3% of active combat income). One caravan at a time, as today. **Payout fixed at dispatch.** |
+   | Aether Ore (§5.4) | no producer | 10% of stone tiles; price × M |
+
+3. **(c) %-of-current-gold caravans: rejected.**
+   - A caravan returning r on a fraction p of the current balance every T compounds:
+     `gold(t) = gold₀ · (1 + p(r−1))^(t/T)`.
+   - At today's 2.05× / 5 min with p = 100%, that is ×2.05 every 5 min = **×5.5e3 per
+     hour, ×1e90 per day**, independent of any other progress. That is exactly the
+     runaway this study is removing.
+   - Even a modest 1.1× per hour on 100% of gold is ×1e1 per day and ×1e7 per week.
+   - Index-anchored tiers cap the *investment* by progress, not by balance. Profit is
+     therefore linear in time and cannot compound.
+   - If a %-flavour is ever wanted, cap it: `invest = min(p·gold, K·M)`. It is then
+     identical to (b) once the cap binds.
+
+**Scaling late-game gold sinks.** The index-anchored Bazaar is a recurring sink, but it is
+small by design. The large sinks are:
+
+| Sink | Formula | Why it scales |
+|---|---|---|
+| **Golden Enchanter** (existing) | `1e6·2.5^n` gold → +5% Aether/level (additive in its own category) | Already geometric. Fix B4 with a BigNum pow. With Tower gold at 1.12^f, a level costs ×2.5 while best-floor income rises ×1.12/floor, so ~8 floors per Enchanter level: a steady, slow trickle. |
+| **Chrono Sand** (re-priced, see below) | `1,000 · M` gold per 30 s | tracks progress via M |
+| **Aether Forge in gold** (optional, wave 2) | let the Forge accept gold at `1e3·M_forge` per level, where `M_forge = 5^lvl` (mirrors its Aether curve `1e5·5^n`); either currency works | gives Tower gold a direct way back into combat power |
+
+**Chrono Sand at large magnitudes (B12).** Two problems: the conversion rate is fixed
+while gold is exponential, and the bank is uncapped while Fast Forward drains 30 s per
+click.
+
+1. **Price scales with the Market Index:** 30 s of sand costs `1,000 · M` gold, i.e. ~100
+   kills at your best floor. Converting your combat income gives roughly a 30% time bonus:
+   useful, not infinite.
+2. **Sand bank cap = the offline cap:** `1,440 s·(1 + 0.5·chrono_vault rank)`. This is the
+   same constant that already caps offline sand (`SaveManager.js:91`, here read in
+   seconds). The Max button then converts only up to the cap; excess gold stays gold.
+   With a capped bank there is no "1e37 years of sand" state.
+3. **Bigger Fast Forward:** three buttons, 30 s / 5 min / 1 h (cost 30 / 300 / 3,600 sand).
+   - For the longer warps, run the sim at **dt = 1.0** (3,600 ticks for 1 h, not 36,000).
+   - This is safe only after B2's accumulating drill timer, because today's
+     1-hit-per-tick cap would make large-dt warps under-mine.
+   - Combat is coarse at dt 1.0, but the hero attack interval is 1 s anyway.
+   - Fast Forward stays bounded by the bank cap, so a 1 h warp is at most a ~24 h total
+     per refill.
+
+**Projected: what a kill buys after the change** (one row per best floor):
+
+| Best floor | gold/kill | Small caravan | 30 s sand | next Enchanter level (level ≈ f/8) |
+|---|---|---|---|---|
+| 100 | 7.5e5 | 1.5e7 | 7.5e7 | ~1e6·2.5^12 = 6e10 (~8e4 kills) |
+| 300 | 5.2e15 | 1.0e17 | 5.2e17 | ~2.5^37·1e6 = 5e20 |
+| 750 | 7.6e37 | 1.5e39 | 7.6e39 | ~2.5^94·1e6 = 2.5e43 |
+
+The Enchanter stays the "big" sink at every scale; the other three stay proportionate.
+
+**Save compatibility for the existing ~1e46-gold saves:**
+- **Gold balance: leave it.** All new gold sinks are index-priced and capped (sand bank,
+  one caravan), except the Enchanter. The Enchanter absorbs a 1e46 hoard
+  logarithmically: `log₂.₅(1e46/1e6)` ≈ 100 levels, one-time ≈ ×6 Aether in its own
+  category. That is a one-off windfall, not a runaway.
+- **Optional "Treasury Reform"** if you want to remove even that:
+  `gold = min(gold, 1e4 · M(maxFloor))` on migration, with a changelog line. I recommend
+  *not* doing this; a visible confiscation feels worse than a one-time Enchanter spike.
+- **Chrono Sand already banked from bulk transmutes:** clamp to the new cap on load. This
+  is a one-time loss for anyone who converted 1e46 gold; say so in the changelog.
+- **Caravan in flight:** let it finish on its stored `investment × expectedProfit` (already
+  fixed at dispatch).
+- **Golden Synergy levels earned under 1.2^d mining:** keep them (§9).
+
+Golems and drills still deliberately **don't** cost gold (§5.1, §5.6), so the
+Excavation/Garden pace is insulated from combat gold.
 
 ### 5.6 Garden Golems — auto-harvest (coordinator item 1)
 
@@ -524,17 +634,37 @@ accumulating timer, ×1.25 when mana is full.
 
 ## 6. Global buff & cooldown bar (coordinator item 2)
 
-**Current:** buffs render only on the Monolith tab: `#active-buffs-list` (`index.html:160`)
-is rebuilt with `innerHTML` every frame in `renderMonolithOverview()` (`main.js:1528-1533`).
-A player casting Titan's Draught from Alchemy, or Midas from the Grimoire, cannot see it
-running on the Void Tower or Excavation tabs where it actually acts.
+**State as of v1.3.0:**
+- `js/tabBonuses.js` adds a per-tab **Active Bonuses** strip. On each tab it lists the
+  talents, ascension perks and timed buffs (`BUFF_TYPE_TABS`) that affect that tab.
+- This solves "what is boosting *this* tab".
+- It does **not** cover:
+  - Timed buffs whose payoff is on *another* tab. Philter is cast in Alchemy but only
+    listed on Monolith, so you can't see it ticking while you are in Alchemy or Excavation.
+  - Global effects: Chrono Warp, Frenzy, the Aether total.
+  - Spell cooldowns and mana affordability.
+  - Duration progress (it shows text `Ns left` only).
+  - Universal Mastery and the §5.3 links. Its inputs are talents, perks and buffs only.
 
-**Recommendation: one fixed global bar directly under the header** (`#top-dashboard`), not
-per-tab copies.
-- Buffs are cross-tab by nature: cast in one tab, they pay off in another.
-- Per-tab copies fragment the information and multiply DOM work.
+**Recommendation: keep both, split by job.**
 
-**Remove** the Monolith-only list, or keep it as a large-format duplicate.
+1. **Per-tab strip (existing), for *persistent* modifiers.**
+   - Keep talents and perks there.
+   - **Add** the Universal Mastery / §5.3 categories: Depth Resonance on Monolith, Depth →
+     HP on Tower, Geode/Nectar on Ascension, Catalyst on Monolith, Leyline Overflow on
+     Garden and Excavation.
+   - Optionally move the timed buffs out of the strip, or keep them as a one-line echo.
+   - Fix one mapping gap: `gold_mult` should also list `monolith` (Midas clicks use
+     `getGoldMultiplier`, `ClickerSystem.js:33`).
+2. **One thin fixed global bar directly under the header** (`#top-dashboard`) for
+   **everything timed or castable**: buff chips with progress bars, Frenzy, Chrono Warp,
+   and the six spell buttons with cooldowns.
+   - These are cross-tab by nature: cast in one tab, they pay off in another.
+   - A per-tab strip can only show the subset relevant to the current tab, so the player
+     loses sight of the rest exactly when they switch tabs to exploit it.
+
+**Remove** the Monolith-only `#active-buffs-list` (`index.html:160`), which is rebuilt
+with `innerHTML` every frame (`main.js:1528-1533`). The global bar supersedes it.
 
 **Buff chip contents** (one per active buff, plus Frenzy as a chip):
 
@@ -598,6 +728,9 @@ same accumulation → reinvestment → acceleration hook the Snake doc's buff ca
 | Catalyst effect @1w | ×1.02^n, unbounded (`opt`: ×1e148) | ×1.76 (n≈38), visible |
 | Subgame → Dust | none | ×1.9 (Geode) × up to ×2 (Nectar) ≈ **×3.8 dust gain at 1 w**, shown on the Ascend button |
 | Leyline Overflow | regen ×668 → garden ×600+ at 1 w | flat ×1.5 garden, ×1.25 drills |
+| Tower gold per kill @f300 / f750 | 1.4e19 / 2.9e46 | 5.2e15 / 7.6e37 (matches difficulty) |
+| Bazaar relevance | none past ~floor 60 | priced in kills at best floor (Market Index) |
+| 1e46 gold → Chrono Sand | ~3e44 s | capped at the bank cap (1,440 s base) |
 
 ---
 
@@ -608,27 +741,32 @@ L = >120 or new UI.
 
 | # | Change | Impact | Effort | Wave |
 |---|---|---|---|---|
-| 1 | Bug fixes B1 (rubys), B2 (drill timer), B3/B4/B5 (overflow guards: BigNum pow or clamp) | High: removes silent 0-gold, free Enchanter, combat wall, dead rubies | S | **Ship-first** |
+| 1 | Bug fixes B2 (drill timer), B3/B4/B5 (overflow guards: BigNum pow or clamp). B1 already fixed in v1.2.0. | High: removes silent 0-gold, free Enchanter, combat wall | S | **Ship-first** |
 | 2 | Excavation curves §5.1: HP `4·1.15^(d-1)`, stone yield `1.07^(d-1)`, cache `100·1.07^d`, pickaxe `2^L` for `50·2.5^L` stone, drills `30·1.6^n` stone | Very high: the actual slow-down | S–M | **Ship-first** |
 | 3 | Garden times ×15, Water +30 s / 60 s cooldown | Very high | S | **Ship-first** |
 | 4 | Linearize runaway links: Catalyst additive + `1.08^n` cost; Depth Resonance `1+0.02·D`; mana/HP `min(1, 0.01·D)`; Leyline Overflow flat ×1.5 / ×1.25; boss → pickaxe cap +100% | Very high: prevents re-runaway | S | **Ship-first** |
 | 5 | Additive Aether-buff category + 10 min duration cap (B6) | High: removes early ×12 stacking | S | **Ship-first** |
 | 6 | Geode Attunement + Nectar Offering (dust-gain links) shown on the Ascend button | Very high: answers "doesn't matter" | S–M | **Ship-first** |
-| 7 | Mastery readout panel and Aether/s tooltip | High (visibility) | M | **Ship-first** |
-| 8 | Global buff/cooldown bar §6 (incl. B9 `maxDuration`) | High (feel, cross-tab) | M | Ship-first if capacity, else wave 2 (independent of balance) |
+| 7 | Mastery readout: add Universal Mastery and §5.3 categories to the existing v1.3.0 per-tab strip, plus an Aether/s tooltip | High (visibility) | S–M | **Ship-first** |
+| 7a | **Gold:** Tower gold `10·1.12^(f-1)` (from 1.15); Market Index `M = 1.12^(maxFloor−1)` on commodity bands and caravan tiers (200·M / 10 min / 1.25×, 2,000·M / 60 min / 1.5×) | Very high: makes Bazaar and gold matter at every floor | S–M | **Ship-first** |
+| 7b | **Chrono Sand (B12):** price `1,000·M` gold per 30 s; bank cap = offline cap (1,440 s·(1+0.5·vault)); Max converts up to the cap | High: closes the 1e46-gold → infinite-time hole | S | **Ship-first** |
+| 8 | Global timed-buff/cooldown bar §6 (incl. B9 `maxDuration`), alongside the v1.3.0 per-tab strip | High (feel, cross-tab) | M | Ship-first if capacity, else wave 2 (independent of balance) |
+| 8a | Fast Forward 5 min / 1 h buttons (dt 1.0 sim; needs #1's drill timer) | Medium | S | Wave 2 |
+| 8b | Aether Forge also purchasable with gold | Medium (Tower gold → Tower power) | S | Wave 2 |
 | 9 | Garden Golems + per-row seed + offline garden | High (QoL; requested) | M–L | Wave 2 (needs #3 first, or it accelerates the old runaway) |
 | 10 | Offline Excavation (drills) | Medium–high | M | Wave 2 |
 | 11 | Elixir of Might/Vitality → +4% categories | Medium | S | Wave 2 |
 | 12 | Gem Polishing ladder | Medium (surplus → Catalyst) | S–M | Wave 2 |
 | 13 | Strata every 25 depth + amethyst chance by stratum + stratum toasts | Medium (milestone feel) | S–M | Wave 2 |
-| 14 | Fertilize wiring (B8), Aether Ore drop, caravan scaling | Low–medium | S each | Wave 3 |
+| 14 | Fertilize wiring (B8), Aether Ore drop | Low–medium | S each | Wave 3 |
 | 15 | Bounty reroll / no click bounties for idle | Medium (idle feel) | S | Wave 3 |
-| — | Core study: dust curve, ascension threshold, building milestones, combat gold `1.10^f` | Very high, out of scope | — | separate doc |
+| — | Core study: dust curve, ascension threshold, building milestones, combat floor pace (Forge/gear) | Very high, out of scope | — | separate doc |
 
-**Minimal ship-first set: #1–#7.** These are mostly constant and formula edits in
+**Minimal ship-first set: #1–#7b.** These are mostly constant and formula edits in
 `MiningSystem.js`, `GardenSystem.js`, `AlchemySystem.js`, `SpellSystem.js`,
-`GameState.js`, `CombatSystem.js:136-140`, `PrestigeSystem.js:33-43` (dust multipliers)
-and `MarketSystem.js:48`, plus one readout panel. Add #8 if the UI pass has room.
+`GameState.js`, `CombatSystem.js` (gold exponent, HP mastery), `PrestigeSystem.js:33-43`
+(dust multipliers) and `MarketSystem.js` (index, caravans, B4), plus extending the
+existing tab strip. Add #8 if the UI pass has room.
 
 Why Golems (#9) are wave 2: shipped against today's 8-minute grows and ×600 overflow,
 auto-harvest would make the garden *faster*.
@@ -644,7 +782,7 @@ gold ~1e309, 1,700 drills).
 
 | Field | Migration |
 |---|---|
-| `inventory.rubys` | `rubies += rubys; delete rubys` (B1) |
+| `inventory.rubys` | already migrated in v1.2.0 (`GameState.js:286-289`) |
 | `mining.depth` / `maxDepth` | Compress: `d' = d ≤ 60 ? d : round(60 + 10·log2(d/60))`. 47k → 156, 3,752 → 120, 500 → 91. Rank is preserved without leaving the player at a 1e8-HP wall. |
 | `mining.pickaxeTier` | Keep it as level L. Tier 5 = power 32 vs the old 35, an acceptable nerf. |
 | `mining.autoDrills` | `min(autoDrills, 12)`. No refund: gold is worthless in those saves. Optionally refund ~stone `30·1.6^12` as a goodwill bank. |
@@ -655,7 +793,10 @@ gold ~1e309, 1,700 drills).
 | `hero.baseAttack` / `maxHp` from old flat Elixirs | Leave as is (flat leftovers are harmless) and start the new % counters at 0 |
 | `market.goldenSynergy` | Leave (bounded by B4 fix). Optionally clamp to 200 for saves above that. |
 | `activeBuffs` | On load, clamp each `duration`/`maxDuration` to the new 10 min cap. Set `maxDuration = duration` where it is missing (B9). |
-| `gold` | Leave. Mining no longer depends on gold; combat gold is a separate study. |
+| `gold` (playtesters ~1e46) | Leave. All new sinks are index-priced and capped except the Enchanter, which absorbs a 1e46 hoard as a one-time ~100 levels (≈×6 Aether, own category). An optional "Treasury Reform" `min(gold, 1e4·M)` is *not* recommended (§5.5). |
+| `chronoSand` | Clamp to the new bank cap on load (one-time loss for bulk-transmuted sand; say so in the changelog) |
+| `market.items[*].price`, `history` | Keep stored base prices; display and trade at base × M from now on |
+| `market.caravan` in flight | Let it finish on stored investment × profit |
 
 Changelog copy should say plainly that Excavation and Garden were rebalanced and that very
 deep saves were compressed.
