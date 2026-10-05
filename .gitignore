@@ -1,3 +1,4 @@
 enable_auto_edits.py
 __pycache__/
 node_modules/
+.claude/

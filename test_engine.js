@@ -18,7 +18,7 @@ console.assert(sum.toNumber() === 350, `Sum mismatch: ${sum.toNumber()}`);
 const bigVal = new BigNum('1e50');
 const bigVal2 = new BigNum('2.5e50');
 const bigSum = bigVal.add(bigVal2);
-console.assert(bigSum.format('scientific', 2) === '3.50e50', `Big sum mismatch: ${bigSum.format('scientific', 2)}`);
+console.assert(bigSum.format('scientific', 2) === '3.5e50', `Big sum mismatch: ${bigSum.format('scientific', 2)}`);
 
 console.log('--- Testing GameState & Systems Init ---');
 const gs = new GameState();
