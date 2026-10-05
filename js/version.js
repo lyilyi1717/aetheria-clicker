@@ -1,9 +1,19 @@
 // Single source of truth for the game version and the About tab changelog.
 // Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
 
-export const VERSION = '2.1.0';
+export const VERSION = '2.1.1';
 
 export const CHANGELOG = [
+  {
+    version: '2.1.1',
+    date: '2026-10-05',
+    title: 'Excavation Unstuck',
+    changes: [
+      'Fixed Excavation sometimes freezing for good after finding the stairs; stuck saves repair themselves on load.',
+      'Very deep saves from before v2.0 resume at a depth your pickaxe can dig; your record depth and its bonuses are kept.',
+      'Dynamite and Void Cataclysm now hit each tile for 40x your pickaxe power instead of breaking it outright.'
+    ]
+  },
   {
     version: '2.1.0',
     date: '2026-10-05',
