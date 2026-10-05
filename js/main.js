@@ -22,6 +22,7 @@ import { VERSION, CHANGELOG } from './version.js';
 import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
 import { Leaderboard } from './leaderboard.js';
+import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 
 // Plain-number display in the player's notation (Settings tab); see BigNum.formatNumber
 const fmtNum = (n, precision = 2) => BigNum.formatNumber(n, precision);
@@ -736,33 +737,30 @@ class AetheriaApp {
     const monsterHpEl = document.getElementById('monster-hp-text');
     const monsterHpBar = document.getElementById('monster-hp-fill');
     const bossTimerEl = document.getElementById('boss-timer');
-    const monsterAvatarEl = document.querySelector('.monster-avatar');
 
-    if (monsterNameEl) monsterNameEl.textContent = m.name;
-    
-    if (monsterAvatarEl) {
-      // Only touch the DOM when the avatar changes (not 60 times a second)
-      let avatarKey = m.isBoss ? 'boss' : 'mob';
-      if (m.name.includes('Drifting Camry')) avatarKey = 'drifting_camry';
-      else if (m.name.includes('Giant Kabsa Monster')) avatarKey = 'giant_kabsa';
-      else if (m.name.includes('Angry Shayeb')) avatarKey = 'angry_shayeb';
-      if (monsterAvatarEl.dataset.avatar !== avatarKey) {
-        monsterAvatarEl.dataset.avatar = avatarKey;
-        if (avatarKey === 'boss') monsterAvatarEl.textContent = '👹';
-        else if (avatarKey === 'mob') monsterAvatarEl.textContent = '👾';
-        else monsterAvatarEl.innerHTML = `<img src="${avatarKey}.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: #050a07;">`;
+    if (monsterNameEl && monsterNameEl.textContent !== m.name) monsterNameEl.textContent = m.name;
+
+    // Portrait frame is static markup; MonsterPortrait only swaps its <img> src / fallback
+    // icon when the monster changes (art lookup + naming contract: js/bossArt.js)
+    if (!this.monsterPortrait) {
+      const frame = document.querySelector('.monster-avatar');
+      if (frame) {
+        this.monsterPortrait = new MonsterPortrait(frame);
+        loadBossArtManifest().then(n => { if (n) this.monsterPortrait.invalidate(); });
       }
     }
+    if (this.monsterPortrait) this.monsterPortrait.update(h.floor, m);
 
     if (monsterHpEl) monsterHpEl.textContent = `${this.combatSystem.fmt(Math.max(0, m.hp))} / ${this.combatSystem.fmt(m.maxHp)} HP`;
     if (monsterHpBar) monsterHpBar.style.width = `${Math.max(0, (m.hp / m.maxHp) * 100)}%`;
 
     if (bossTimerEl) {
+      // visibility (not display) so the portrait doesn't jump when a boss arrives
       if (m.isBoss) {
-        bossTimerEl.style.display = 'block';
+        bossTimerEl.style.visibility = 'visible';
         bossTimerEl.textContent = `⏱️ Enrage: ${m.timer.toFixed(1)}s`;
       } else {
-        bossTimerEl.style.display = 'none';
+        bossTimerEl.style.visibility = 'hidden';
       }
     }
 

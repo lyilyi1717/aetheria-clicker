@@ -242,8 +242,11 @@
 
               <!-- Monster Arena -->
               <div id="monster-arena-box" class="monster-arena-box" title="Click directly on the monster to attack rapidly!">
-                <div id="boss-timer" style="color: #ef4444; font-weight: bold; display: none;">⏱️ Enrage: 30s</div>
-                <div class="monster-avatar">👾</div>
+                <div id="boss-timer" style="color: #ef4444; font-weight: bold; visibility: hidden;">⏱️ Enrage: 30s</div>
+                <div class="monster-avatar" data-avatar="none">
+                  <span class="monster-avatar-fallback" aria-hidden="true">👾</span>
+                  <img class="monster-avatar-img" alt="" draggable="false" decoding="async">
+                </div>
                 <h3 id="monster-name">Aether Shade</h3>
 
                 <div class="combat-bar-container" style="max-width: 320px;">

@@ -1048,6 +1048,12 @@ body {
   gap: 1.5rem;
 }
 
+@media (max-width: 768px) {
+  .combat-arena {
+    grid-template-columns: 1fr;
+  }
+}
+
 .monster-arena-box {
   background: rgba(239, 68, 68, 0.05);
   border: 1px solid rgba(239, 68, 68, 0.3);
@@ -1064,10 +1070,54 @@ body {
   transform: translate(2px, -2px);
 }
 
+/* Fixed square portrait frame: the card never resizes when the monster or its art changes.
+   Art is 1:1 (boss art contract: js/bossArt.js) and covers the frame; the emoji fallback
+   shows while art loads or when there is none. */
 .monster-avatar {
-  font-size: 5rem;
+  position: relative;
+  flex: 0 0 auto;
+  width: min(220px, 100%);
+  aspect-ratio: 1 / 1;
   margin: 1rem 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.12), rgba(5, 10, 7, 0.6));
+  box-shadow: 0 0 24px rgba(239, 68, 68, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none; /* taps go to #monster-arena-box; no native image drag */
+}
+
+.monster-avatar.is-boss {
+  box-shadow: 0 0 28px rgba(239, 68, 68, 0.5);
+}
+
+.monster-avatar-fallback {
+  font-size: 5rem;
+  line-height: 1;
   filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.5));
+}
+
+.monster-avatar-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #050a07;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.monster-avatar.has-art .monster-avatar-img {
+  opacity: 1;
+}
+
+.monster-avatar.has-art .monster-avatar-fallback {
+  visibility: hidden;
 }
 
 .combat-bar-container {
