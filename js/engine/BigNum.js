@@ -283,6 +283,16 @@ export class BigNum {
     return `${this.m.toFixed(precision)}e${this.e}`;
   }
 
+  // Display helper for plain JS numbers (gear stats, counts, HP...) in the player's notation.
+  // Goes through BigNum so values past 2^53 never print as long raw digit strings.
+  static formatNumber(val, precision = 2) {
+    if (val instanceof BigNum) return val.format('standard', precision);
+    const n = Number(val);
+    if (Number.isNaN(n)) return '0';
+    if (!Number.isFinite(n)) return n > 0 ? '∞' : '-∞';
+    return new BigNum(n).format('standard', precision);
+  }
+
   toString() {
     return `${this.m}e${this.e}`;
   }

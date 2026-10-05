@@ -35,8 +35,9 @@ export class CombatSystem {
     this.initMonster();
   }
 
+  // Whole-number combat stats in the player's notation (1.5e12, not 2e12 or 1500000000000)
   fmt(val) {
-    return val < 1000 ? String(Math.floor(val)) : new BigNum(val).format('standard', 0);
+    return BigNum.formatNumber(Math.floor(val), 2);
   }
 
   initHero() {

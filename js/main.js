@@ -23,6 +23,9 @@ import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMu
 import { BuffBar } from './buffBar.js';
 import { Leaderboard } from './leaderboard.js';
 
+// Plain-number display in the player's notation (Settings tab); see BigNum.formatNumber
+const fmtNum = (n, precision = 2) => BigNum.formatNumber(n, precision);
+
 const INGREDIENT_NAMES = {
   ...ESSENCE_NAMES,
   rubies: 'Ruby', sapphires: 'Sapphire', emeralds: 'Emerald', diamonds: 'Diamond',
@@ -518,8 +521,8 @@ class AetheriaApp {
     const hours = (res.elapsedSeconds / 3600).toFixed(1);
     document.getElementById('offline-time-text').textContent = `${hours} hours`;
     document.getElementById('offline-aether-text').textContent = res.gainedAether.format('standard', 2);
-    document.getElementById('offline-chrono-text').textContent = `+${res.chronoEarned} Chrono Sand`
-      + (res.gardenHarvests ? ` · Garden Golems: +${res.gardenHarvests} harvests` : '');
+    document.getElementById('offline-chrono-text').textContent = `+${fmtNum(res.chronoEarned)} Chrono Sand`
+      + (res.gardenHarvests ? ` · Garden Golems: +${fmtNum(res.gardenHarvests)} harvests` : '');
     modal.classList.add('visible');
 
     const closeBtn = document.getElementById('offline-modal-close');
@@ -668,13 +671,13 @@ class AetheriaApp {
       const currentCps = this.buildingSystem.getBuildingProduction(def.id);
 
       const countEl = document.getElementById(`b-count-${def.id}`);
-      if (countEl) countEl.textContent = state.count;
+      if (countEl) countEl.textContent = fmtNum(state.count);
 
       const statsEl = document.getElementById(`b-stats-${def.id}`);
       if (statsEl) statsEl.textContent = `Yield: +${currentCps.format('standard', 1)}/s`;
 
       const buyLbl = document.getElementById(`buy-lbl-${def.id}`);
-      if (buyLbl) buyLbl.textContent = `Buy +${buyCount}`;
+      if (buyLbl) buyLbl.textContent = `Buy +${fmtNum(buyCount)}`;
 
       const costLbl = document.getElementById(`cost-lbl-${def.id}`);
       if (costLbl) costLbl.textContent = `💎 ${cost.format('standard', 1)}`;
@@ -779,18 +782,19 @@ class AetheriaApp {
 
     // Gear
     const gearCont = document.getElementById('hero-gear-container');
-    const gearSig = JSON.stringify(h.gear);
+    // Notation is part of the key so a Settings change re-renders the formatted stats
+    const gearSig = BigNum.notation + JSON.stringify(h.gear);
     if (gearCont && this.lastGearSig !== gearSig) {
       this.lastGearSig = gearSig;
       const getCls = (item) => item && item.rarity ? `gear-${item.rarity.toLowerCase()}` : '';
       gearCont.innerHTML = `
         <div class="gear-slot ${getCls(h.gear.weapon)}">
           <div class="slot-title">Weapon</div>
-          <div class="slot-item">${h.gear.weapon?.name || 'Empty'} (+${h.gear.weapon?.attack || 0} Atk)</div>
+          <div class="slot-item">${h.gear.weapon?.name || 'Empty'} (+${this.combatSystem.fmt(h.gear.weapon?.attack || 0)} Atk)</div>
         </div>
         <div class="gear-slot ${getCls(h.gear.armor)}">
           <div class="slot-title">Armor</div>
-          <div class="slot-item">${h.gear.armor?.name || 'Empty'} (+${h.gear.armor?.hp || 0} HP)</div>
+          <div class="slot-item">${h.gear.armor?.name || 'Empty'} (+${this.combatSystem.fmt(h.gear.armor?.hp || 0)} HP)</div>
         </div>
         <div class="gear-slot ${getCls(h.gear.amulet)}">
           <div class="slot-title">Amulet</div>
@@ -831,7 +835,7 @@ class AetheriaApp {
     const grid = this.gameState.miningGrid;
     if (!grid) return;
 
-    const fmt = (n, precision = 0) => (n < 1000 ? String(n) : new BigNum(n).format('standard', precision));
+    const fmt = (n, precision = 0) => fmtNum(n, precision);
     const setText = (id, text) => {
       const el = document.getElementById(id);
       if (el && el.textContent !== text) el.textContent = text;
@@ -877,7 +881,7 @@ class AetheriaApp {
       setText('mining-pick-name', getPickaxeName(level));
       setText('mining-pick-level', String(level));
       setText('mining-pick-power', fmt(this.miningSystem.getPickaxePower(), 1));
-      setText('mining-drill-count', String(grid.autoDrills));
+      setText('mining-drill-count', fmtNum(grid.autoDrills));
       setText('mining-drill-rate', this.miningSystem.getAutoDrillRate().toFixed(1));
       setText('mining-tile-hp', fmt(strata.maxHp, 1));
       setText('mining-stone-yield', fmt(this.miningSystem.getStoneYield(), 1));
@@ -948,11 +952,11 @@ class AetheriaApp {
       const inv = this.gameState.inventory;
       invEl.innerHTML = `
         <span class="res-badge">Stone: ${fmt(inv.stone || 0, 2)}</span>
-        <span class="res-badge" style="color:#ef4444">Fawanees: ${inv.rubies || 0}</span>
-        <span class="res-badge" style="color:#3b82f6">Dallahs: ${inv.sapphires || 0}</span>
-        <span class="res-badge" style="color:#10b981">Oud Wood: ${inv.emeralds || 0}</span>
-        <span class="res-badge" style="color:#38bdf8">Misbaha: ${inv.diamonds || 0}</span>
-        <span class="res-badge" style="color:#a855f7">Mabkhara: ${inv.voidAmethyst || 0}</span>
+        <span class="res-badge" style="color:#ef4444">Fawanees: ${fmtNum(inv.rubies || 0)}</span>
+        <span class="res-badge" style="color:#3b82f6">Dallahs: ${fmtNum(inv.sapphires || 0)}</span>
+        <span class="res-badge" style="color:#10b981">Oud Wood: ${fmtNum(inv.emeralds || 0)}</span>
+        <span class="res-badge" style="color:#38bdf8">Misbaha: ${fmtNum(inv.diamonds || 0)}</span>
+        <span class="res-badge" style="color:#a855f7">Mabkhara: ${fmtNum(inv.voidAmethyst || 0)}</span>
       `;
     }
   }
@@ -1112,7 +1116,7 @@ class AetheriaApp {
 
     for (const [id, def] of Object.entries(SEED_TYPES)) {
       const nmEl = document.getElementById(`seed-nm-${id}`);
-      if (nmEl) nmEl.textContent = `${def.name} (${garden.inventory[id] || 0})`;
+      if (nmEl) nmEl.textContent = `${def.name} (${fmtNum(garden.inventory[id] || 0)})`;
     }
 
     for (const p of garden.plots) {
@@ -1153,7 +1157,7 @@ class AetheriaApp {
       }
       for (const k of Object.keys(ESSENCE_NAMES)) {
         const el = document.getElementById(`ess-count-${k}`);
-        const v = String(ess[k] || 0);
+        const v = fmtNum(ess[k] || 0);
         if (el && el.textContent !== v) el.textContent = v;
       }
     }
@@ -1165,7 +1169,7 @@ class AetheriaApp {
     if (listCont) {
       listCont.innerHTML = RECIPES.map(r => {
         const costStr = Object.entries(this.alchemySystem.getRecipeCost(r)).map(([k, v]) =>
-          `<span id="alc-cost-${r.id}-${k}">${v}</span>x ${INGREDIENT_NAMES[k] || k} (<span id="alc-own-${r.id}-${k}">0</span>)`).join(', ');
+          `<span id="alc-cost-${r.id}-${k}">${fmtNum(v)}</span>x ${INGREDIENT_NAMES[k] || k} (<span id="alc-own-${r.id}-${k}">0</span>)`).join(', ');
         return `
           <div class="alchemy-card" id="alc-card-${r.id}">
             <div class="alc-info">
@@ -1216,23 +1220,23 @@ class AetheriaApp {
     for (const r of RECIPES) {
       for (const [k, amount] of Object.entries(this.alchemySystem.getRecipeCost(r))) {
         const el = document.getElementById(`alc-own-${r.id}-${k}`);
-        const v = `have ${inv[k] ?? ess[k] ?? 0}`;
+        const v = `have ${fmtNum(inv[k] ?? ess[k] ?? 0)}`;
         if (el && el.textContent !== v) el.textContent = v;
         const costEl = document.getElementById(`alc-cost-${r.id}-${k}`);
-        const c = String(amount);
+        const c = fmtNum(amount);
         if (costEl && costEl.textContent !== c) costEl.textContent = c;
       }
     }
     const catEl = document.getElementById('alc-catalyst-status');
     if (catEl) {
       const n = this.alchemySystem.getCatalystCount();
-      const t = `Brewed: ${n} (Aether x${this.gameState.getCatalystMult().toFixed(2)})`;
+      const t = `Brewed: ${fmtNum(n)} (Aether x${this.gameState.getCatalystMult().toFixed(2)})`;
       if (catEl.textContent !== t) catEl.textContent = t;
     }
     const chronoLbl = document.getElementById('chrono-transmute-lbl');
     if (chronoLbl) {
       const cap = this.gameState.getChronoSandCap();
-      const t = `⏳ Gold ➔ Chrono Sand (${this.alchemySystem.getChronoBatchCost().format('standard', 2)} Gold = 30s, bank ${Math.floor(this.gameState.chronoSand || 0)}/${cap}s):`;
+      const t = `⏳ Gold ➔ Chrono Sand (${this.alchemySystem.getChronoBatchCost().format('standard', 2)} Gold = 30s, bank ${fmtNum(Math.floor(this.gameState.chronoSand || 0))}/${fmtNum(cap)}s):`;
       if (chronoLbl.textContent !== t) chronoLbl.textContent = t;
     }
     const tStone = document.getElementById('btn-transmute-stone');
@@ -1373,12 +1377,12 @@ class AetheriaApp {
               <div class="b-title">${b.title}</div>
               <div class="b-desc">${b.desc}</div>
               <div class="b-progress-bar"><div class="fill" id="bounty-fill-${b.id}" style="width: ${pct}%"></div></div>
-              <div class="b-count" id="bounty-count-${b.id}">${b.current} / ${b.required}</div>
+              <div class="b-count" id="bounty-count-${b.id}">${fmtNum(b.current)} / ${fmtNum(b.required)}</div>
             </div>
             <div class="b-reward-box">
               <div>+${b.rewards.gold.format('standard', 0)} Gold</div>
-              <div>+${b.rewards.chrono} Chrono Sand</div>
-              <div>+${b.rewards.seals} Guild Seals</div>
+              <div>+${fmtNum(b.rewards.chrono)} Chrono Sand</div>
+              <div>+${fmtNum(b.rewards.seals)} Guild Seals</div>
               ${b.rewards.talentPoint ? '<div style="color:#ec4899;font-weight:bold">+1 Talent Point</div>' : ''}
               <button class="btn-claim-bounty ${b.completed ? 'ready' : 'disabled'}" id="bounty-btn-${b.id}" data-id="${b.id}">
                 ${b.completed ? '🎁 Claim' : 'In Progress'}
@@ -1398,7 +1402,7 @@ class AetheriaApp {
       if (!fill) continue;
       fill.style.width = `${Math.min(100, (b.current / b.required) * 100)}%`;
       const count = document.getElementById(`bounty-count-${b.id}`);
-      const countText = `${b.current} / ${b.required}`;
+      const countText = `${fmtNum(b.current)} / ${fmtNum(b.required)}`;
       if (count && count.textContent !== countText) count.textContent = countText;
       const btn = document.getElementById(`bounty-btn-${b.id}`);
       if (btn && b.completed && !btn.classList.contains('ready')) {
@@ -1413,7 +1417,7 @@ class AetheriaApp {
 
   updateQuartermasterUI() {
     const sealsEl = document.getElementById('qm-seals-count');
-    if (sealsEl) sealsEl.textContent = this.gameState.guildSeals || 0;
+    if (sealsEl) sealsEl.textContent = fmtNum(this.gameState.guildSeals || 0);
 
     const qmGrid = document.getElementById('quartermaster-upgrades-grid');
     if (!qmGrid) return;
@@ -1449,7 +1453,7 @@ class AetheriaApp {
 
         if (rEl) rEl.textContent = `Rank: ${rank} / ${u.maxRank}`;
         if (btn) {
-          btn.textContent = rank >= u.maxRank ? 'MAXED' : `Buy (${cost} Seals)`;
+          btn.textContent = rank >= u.maxRank ? 'MAXED' : `Buy (${fmtNum(cost)} Seals)`;
           btn.classList.toggle('active', canBuy);
           btn.classList.toggle('disabled', !canBuy);
         }
@@ -1506,7 +1510,7 @@ class AetheriaApp {
         row?.querySelector('.btn-market-buy')?.classList.toggle('disabled', !this.gameState.gold.gte(price));
         row?.querySelector('.btn-market-buy10')?.classList.toggle('disabled', !this.gameState.gold.gte(price.mul(new BigNum(10))));
       }
-      if (oEl) oEl.textContent = item.owned;
+      if (oEl) oEl.textContent = fmtNum(item.owned);
     }
     const idxEl = document.getElementById('market-index-display');
     if (idxEl) {
@@ -1608,7 +1612,7 @@ class AetheriaApp {
     if (ascBtn) {
       ascBtn.onclick = () => {
         const dm = this.prestigeSystem.getDustMultipliers();
-        const nectarNote = `\n\nNectar Offering: all ${dm.nectar} Celestial Nectar will be consumed (${fmtMult(dm.nectarMult)} dust).`;
+        const nectarNote = `\n\nNectar Offering: all ${fmtNum(dm.nectar)} Celestial Nectar will be consumed (${fmtMult(dm.nectarMult)} dust).`;
         if (confirm(`Ascend now? This resets Aether and Buildings to grant permanent Cosmic Dust and God Perks!${nectarNote}`)) {
           this.prestigeSystem.ascend();
           this.updateBuildingsUI();
@@ -1658,7 +1662,7 @@ class AetheriaApp {
 
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
     const dm = this.prestigeSystem.getDustMultipliers();
-    const breakdown = `${fmtMult(dm.geode)} from Depth ${dm.depth} · ${fmtMult(dm.nectarMult)} from ${dm.nectar} Nectar (consumed)`;
+    const breakdown = `${fmtMult(dm.geode)} from Depth ${dm.depth} · ${fmtMult(dm.nectarMult)} from ${fmtNum(dm.nectar)} Nectar (consumed)`;
     const bdEl = document.getElementById('pending-dust-breakdown');
     if (bdEl && bdEl.textContent !== breakdown) bdEl.textContent = breakdown;
     if (ascBtn) {
@@ -1749,16 +1753,16 @@ class AetheriaApp {
 
       statsCont.innerHTML = `
         <div class="stat-line"><span>Playtime:</span><strong>${days} Days (${hours} Hours)</strong></div>
-        <div class="stat-line"><span>Total Clicks:</span><strong>${this.gameState.totalClicks}</strong></div>
+        <div class="stat-line"><span>Total Clicks:</span><strong>${fmtNum(this.gameState.totalClicks)}</strong></div>
         <div class="stat-line"><span>Total Aether Gathered:</span><strong>${this.gameState.totalAetherEarned.format('standard', 2)}</strong></div>
-        <div class="stat-line"><span>Monsters Vanquished:</span><strong>${s.totalMonstersSlain}</strong></div>
-        <div class="stat-line"><span>Bosses Vanquished:</span><strong>${s.totalBossesSlain}</strong></div>
-        <div class="stat-line"><span>Blocks Excavated:</span><strong>${s.totalBlocksMined}</strong></div>
-        <div class="stat-line"><span>Plants Harvested:</span><strong>${s.totalPlantsHarvested}</strong></div>
-        <div class="stat-line"><span>Potions Brewed:</span><strong>${s.totalPotionsBrewed}</strong></div>
-        <div class="stat-line"><span>Spells Cast:</span><strong>${s.totalSpellsCast}</strong></div>
-        <div class="stat-line"><span>Guild Contracts Fulfilled:</span><strong>${s.totalBountiesCompleted}</strong></div>
-        <div class="stat-line"><span>Ascensions:</span><strong>${this.gameState.ascensionCount}</strong></div>
+        <div class="stat-line"><span>Monsters Vanquished:</span><strong>${fmtNum(s.totalMonstersSlain)}</strong></div>
+        <div class="stat-line"><span>Bosses Vanquished:</span><strong>${fmtNum(s.totalBossesSlain)}</strong></div>
+        <div class="stat-line"><span>Blocks Excavated:</span><strong>${fmtNum(s.totalBlocksMined)}</strong></div>
+        <div class="stat-line"><span>Plants Harvested:</span><strong>${fmtNum(s.totalPlantsHarvested)}</strong></div>
+        <div class="stat-line"><span>Potions Brewed:</span><strong>${fmtNum(s.totalPotionsBrewed)}</strong></div>
+        <div class="stat-line"><span>Spells Cast:</span><strong>${fmtNum(s.totalSpellsCast)}</strong></div>
+        <div class="stat-line"><span>Guild Contracts Fulfilled:</span><strong>${fmtNum(s.totalBountiesCompleted)}</strong></div>
+        <div class="stat-line"><span>Ascensions:</span><strong>${fmtNum(this.gameState.ascensionCount)}</strong></div>
       `;
     }
   }
@@ -1829,7 +1833,7 @@ class AetheriaApp {
       btn.disabled = disabled;
       btn.classList.toggle('disabled', disabled);
     }
-    const title = `Warp ${FF_WARP_SECONDS}s ahead for ${costText}${affordable ? '' : ` (you have ${sand})`}. ` +
+    const title = `Warp ${FF_WARP_SECONDS}s ahead for ${costText}${affordable ? '' : ` (you have ${fmtNum(sand)})`}. ` +
       `Each use this cycle costs x${FF_COST_GROWTH} more; the price resets after ${FF_RESET_MINUTES} min without a use.`;
     if (btn.title !== title) btn.title = title;
   }
@@ -1904,7 +1908,7 @@ class AetheriaApp {
 
     const manaEl = document.getElementById('stat-mana');
     const manaBar = document.getElementById('bar-mana-fill');
-    if (manaEl) manaEl.textContent = `${Math.floor(this.gameState.mana)} / ${this.gameState.maxMana}`;
+    if (manaEl) manaEl.textContent = `${fmtNum(Math.floor(this.gameState.mana))} / ${fmtNum(Math.floor(this.gameState.maxMana))}`;
     if (manaBar) manaBar.style.width = `${(this.gameState.mana / this.gameState.maxMana) * 100}%`;
 
     const chronoEl = document.getElementById('stat-chrono');
@@ -1912,7 +1916,7 @@ class AetheriaApp {
 
     const sealsEl = document.getElementById('stat-guild-seals');
     if (sealsEl) {
-      const seals = String(this.gameState.guildSeals || 0);
+      const seals = fmtNum(this.gameState.guildSeals || 0);
       if (sealsEl.textContent !== seals) sealsEl.textContent = seals;
     }
 
