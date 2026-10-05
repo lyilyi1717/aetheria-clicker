@@ -677,10 +677,10 @@ class AetheriaApp {
     if (heroHpBar) heroHpBar.style.width = `${Math.min(100, (h.hp / maxHp) * 100)}%`;
 
     const heroAtkEl = document.getElementById('hero-atk-text');
-    if (heroAtkEl) heroAtkEl.textContent = `Attack: ${this.combatSystem.getTotalAttack()} (Spd: ${h.attackSpeed}s)`;
+    if (heroAtkEl) heroAtkEl.textContent = `Attack: ${this.combatSystem.fmt(this.combatSystem.getTotalAttack())} (Spd: ${h.attackSpeed}s)`;
 
     const heroLvlEl = document.getElementById('hero-lvl-text');
-    if (heroLvlEl) heroLvlEl.textContent = `Level ${h.level} (${h.xp} / ${h.xpNeeded} XP)`;
+    if (heroLvlEl) heroLvlEl.textContent = `Level ${h.level} (${this.combatSystem.fmt(h.xp)} / ${this.combatSystem.fmt(h.xpNeeded)} XP)`;
 
     const monsterNameEl = document.getElementById('monster-name');
     const monsterHpEl = document.getElementById('monster-hp-text');
