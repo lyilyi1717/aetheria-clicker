@@ -9,6 +9,7 @@ import { AlchemySystem } from './js/systems/AlchemySystem.js';
 import { BountySystem } from './js/systems/BountySystem.js';
 import { PrestigeSystem } from './js/systems/PrestigeSystem.js';
 import { AchievementSystem } from './js/systems/AchievementSystem.js';
+import { bossSlot, resolveMonsterArt, fallbackIcon, registerBossArt, BOSS_ART } from './js/bossArt.js';
 
 console.log('--- Testing BigNum Math ---');
 const n1 = new BigNum(100);
@@ -75,5 +76,22 @@ assert.equal(gs.chronoSand, 1440, 'Chrono Sand must fit the base bank after Tran
 assert.ok(gs.hero.hp <= cs.getTotalMaxHp(), 'hero HP must fit max HP without Titan\'s Legacy');
 assert.equal(gs.frenzyActive, false);
 assert.equal(gs.frenzyTimer, 0);
+
+console.log('--- Testing boss art lookup ---');
+assert.deepEqual(bossSlot(10), { zone: 1, boss: 1 });
+assert.deepEqual(bossSlot(50), { zone: 1, boss: 5 });
+assert.deepEqual(bossSlot(60), { zone: 2, boss: 1 });
+assert.deepEqual(bossSlot(1010), { zone: 7, boss: 1 });
+assert.equal(bossSlot(9), null);
+assert.equal(resolveMonsterArt(9, 'Angry Shayeb'), 'angry_shayeb.jpg');
+assert.equal(resolveMonsterArt(40, '⚡ BOSS: Drifting Camry'), 'drifting_camry.jpg');
+assert.equal(resolveMonsterArt(10, '⚡ BOSS: Rukbah Soda'), null);
+assert.equal(fallbackIcon(10, true), '🏜️');
+assert.equal(fallbackIcon(9, false), '👾');
+assert.equal(registerBossArt({ bosses: [{ file: 'zone1_boss1.webp' }, { zone: 1, boss: 3, path: 'x/z.webp' }, { id: 'nope', path: 'a/b.webp' }] }), 2);
+assert.equal(resolveMonsterArt(10, '⚡ BOSS: Rukbah Soda'), 'assets/generated/bosses/zone1_boss1.webp');
+assert.equal(resolveMonsterArt(30, '⚡ BOSS: Giant Kabsa Monster'), 'x/z.webp');
+assert.equal(resolveMonsterArt(50, '⚡ BOSS: Abu Sarwal Wa Fanila'), 'assets/generated/bosses/zone1_boss1.webp', 'zone art cycles');
+for (const k of Object.keys(BOSS_ART)) delete BOSS_ART[k];
 
 console.log('✅ ALL ENGINE TESTS PASSED SUCCESSFULLY!');
