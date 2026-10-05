@@ -99,12 +99,13 @@ class AetheriaApp {
     this.elCache = new Map();
   }
 
-  // Cached document.getElementById for nodes that are created once and never replaced
+  // Cached document.getElementById for nodes that are normally created once
   // (static markup and the build*Structure() lists). The render tick used to do hundreds
   // of lookups per frame. Lists that are rebuilt (bounties, mining tiles) keep their own refs.
   $(id) {
     let el = this.elCache.get(id);
-    if (el === undefined) {
+    // Re-resolve if a structure was rebuilt after caching, so the UI never writes to a detached node.
+    if (el === undefined || !el.isConnected) {
       el = document.getElementById(id);
       if (el) this.elCache.set(id, el);
     }
