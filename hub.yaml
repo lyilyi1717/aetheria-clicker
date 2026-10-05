@@ -1,0 +1,8 @@
+title: Aetheria Clicker
+type: app
+start: python server.py
+port: 8101
+tags: [game, clicker]
+description: A long-lasting deep clicker and incremental game with nonstop active and idle activities.
+
+icon: icon.jpg

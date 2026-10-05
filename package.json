@@ -1,0 +1,13 @@
+{
+  "name": "aetheria-chronicles",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A long-lasting deep clicker and incremental game with nonstop active and idle activities.",
+  "scripts": {
+    "start": "python server.py",
+    "test": "node test_engine.js"
+  },
+  "keywords": ["clicker", "incremental", "idle-game", "rpg", "prestige"],
+  "author": "Antigravity",
+  "license": "MIT"
+}

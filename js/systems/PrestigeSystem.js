@@ -1,0 +1,124 @@
+import { BigNum } from '../engine/BigNum.js';
+import { sound } from '../engine/AudioEngine.js';
+import { particles } from '../engine/ParticleEngine.js';
+
+export const ASCENSION_PERKS = [
+  { id: 'genesis', name: 'Cosmic Genesis', desc: 'Start with 15 Tappers & 1,000 Gold on reset.', cost: 5, maxRank: 1 },
+  { id: 'eternal_resonance', name: 'Eternal Resonance', desc: '+50% All Aether Production per rank.', cost: 10, maxRank: 50 },
+  { id: 'hyper_click', name: 'Singularity Tap', desc: '+100% Click Yield per rank.', cost: 15, maxRank: 50 },
+  { id: 'auto_leylines', name: 'Automated Leylines', desc: 'Auto-casts spells when mana is full.', cost: 50, maxRank: 1 },
+  { id: 'chrono_vault', name: 'Chrono Reservoir', desc: 'Offline Sand bank cap increased by +720m.', cost: 25, maxRank: 10 },
+  { id: 'titan_legacy', name: "Titan's Legacy", desc: 'Hero starts with +100 HP and +25 Attack.', cost: 30, maxRank: 10 },
+  { id: 'astral_alchemist', name: 'Astral Crucible', desc: 'All potion durations doubled.', cost: 40, maxRank: 1 }
+];
+
+export class PrestigeSystem {
+  constructor(gameState) {
+    this.gameState = gameState;
+    this.initPerks();
+  }
+
+  initPerks() {
+    if (!this.gameState.ascensionPerks) {
+      this.gameState.ascensionPerks = {};
+    }
+    for (const p of ASCENSION_PERKS) {
+      if (!this.gameState.ascensionPerks[p.id]) {
+        this.gameState.ascensionPerks[p.id] = { rank: 0 };
+      }
+    }
+  }
+
+  // Calculate pending Cosmic Dust upon Ascension
+  getPendingCosmicDust() {
+    const totalAether = this.gameState.totalAetherEarned;
+    const threshold = new BigNum(1000000000); // 1 Billion
+
+    if (totalAether.lt(threshold)) return BigNum.zero();
+
+    // 150 * (Aether / 1e9)^0.25
+    const ratio = totalAether.div(threshold).toNumber();
+    const dust = Math.floor(150 * Math.pow(Math.max(1, ratio), 0.25));
+    return new BigNum(dust);
+  }
+
+  canAscend() {
+    return this.getPendingCosmicDust().gt(0);
+  }
+
+  ascend(force = false) {
+    const pending = this.getPendingCosmicDust();
+    if (pending.lte(0) && !force) return false;
+
+    this.gameState.cosmicDust = this.gameState.cosmicDust.add(pending);
+    this.gameState.totalCosmicDust = this.gameState.totalCosmicDust.add(pending);
+    this.gameState.ascensionCount++;
+
+    // Reset Aether, Buildings
+    this.gameState.aether = BigNum.zero();
+    this.gameState.totalAetherEarned = BigNum.zero(); // Fix: Reset Run Aether so you can't ascend infinitely!
+    this.gameState.clickPower = new BigNum(1);
+    this.gameState.comboCount = 0;
+    this.gameState.frenzyActive = false;
+
+    // Reset buildings to 0
+    for (const bId in this.gameState.buildings) {
+      this.gameState.buildings[bId].count = 0;
+    }
+
+    // Apply Genesis perk if unlocked
+    if (this.gameState.ascensionPerks.genesis?.rank > 0) {
+      this.gameState.buildings['tapper'].count = 15;
+      this.gameState.gold = this.gameState.gold.add(new BigNum(1000));
+    }
+
+    // Bonus Talent Points from Ascension
+    this.gameState.talentPoints += 3;
+
+    sound.playAscension();
+    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `ASCENDED! +${pending.format('standard', 0)} COSMIC DUST!`, '#06b6d4', true);
+    return true;
+  }
+
+  buyPerk(perkId) {
+    const def = ASCENSION_PERKS.find(p => p.id === perkId);
+    if (!def) return false;
+
+    const perkState = this.gameState.ascensionPerks[perkId];
+    if (perkState.rank >= def.maxRank) return false;
+
+    const cost = new BigNum(def.cost * Math.pow(1.5, perkState.rank));
+    if (this.gameState.cosmicDust.lt(cost)) return false;
+
+    this.gameState.cosmicDust = this.gameState.cosmicDust.sub(cost);
+    perkState.rank++;
+    sound.playBuy();
+    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `PERK UNLOCKED: ${def.name}!`, '#fbbf24', true);
+    return true;
+  }
+
+  // Multiverse Transcendence (Prestige Tier 2)
+  canTranscend() {
+    return this.gameState.totalCosmicDust.gte(new BigNum(50000));
+  }
+
+  transcend() {
+    if (!this.canTranscend()) return false;
+
+    const shardsGained = new BigNum(Math.floor(this.gameState.totalCosmicDust.toNumber() / 10000));
+    this.gameState.fractureShards = this.gameState.fractureShards.add(shardsGained);
+    this.gameState.transcendenceCount++;
+
+    // Reset Tier 1
+    this.ascend(true);
+    this.gameState.cosmicDust = BigNum.zero();
+    this.gameState.totalCosmicDust = BigNum.zero();
+    for (const p in this.gameState.ascensionPerks) {
+      this.gameState.ascensionPerks[p].rank = 0;
+    }
+
+    sound.playAscension();
+    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `TRANSCENDED REALITY! +${shardsGained.format('standard', 0)} FRACTURE SHARDS!`, '#ec4899', true);
+    return true;
+  }
+}

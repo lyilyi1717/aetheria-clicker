@@ -1,0 +1,57 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseGlow {
+  from {
+    text-shadow: 0 0 4px #ef4444;
+    transform: scale(1);
+  }
+  to {
+    text-shadow: 0 0 16px #ef4444, 0 0 24px #f87171;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes floatWobble {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translate(4px, -8px) rotate(5deg) scale(1.08);
+  }
+  50% {
+    transform: translate(-3px, -14px) rotate(-3deg) scale(1.12);
+  }
+  75% {
+    transform: translate(5px, -6px) rotate(4deg) scale(1.06);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}

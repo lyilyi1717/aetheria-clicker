@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetheria: Chronicles of Eternity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+  <!-- Canvas for dynamic floating damage numbers & particle sparks -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- Random Golden Rift Anomaly -->
+  <div id="golden-anomaly" title="Click the Cosmic Anomaly!">✨</div>
+
+  <!-- Main Layout -->
+  <div id="app-container">
+    <!-- Header Dashboard -->
+    <header id="top-dashboard">
+      <div class="title-group">
+        <h1 class="game-title">AETHERIA</h1>
+      </div>
+
+      <div class="resource-bar">
+        <div class="res-item" title="Aether: The primary energy used to construct generators and power your realm.">
+          <span class="res-lbl">Aether</span>
+          <span id="stat-aether" class="res-val" style="color: var(--accent-cyan)">0</span>
+          <span id="stat-aether-rate" class="res-sub">+0.0 /s</span>
+        </div>
+
+        <div class="res-item" title="Gold: Earned from combat, mining, market trading, and alchemy. Used for gear, pickaxes, and commodities.">
+          <span class="res-lbl">Gold</span>
+          <span id="stat-gold" class="res-val" style="color: var(--accent-gold)">0</span>
+        </div>
+
+        <div class="res-item mana-container" title="Mana: Regenerates constantly. Used to cast spells in the Arcane Grimoire.">
+          <div style="display:flex; justify-content:space-between">
+            <span class="res-lbl">Mana</span>
+            <span id="stat-mana" class="res-sub">100 / 100</span>
+          </div>
+          <div class="mini-bar">
+            <div id="bar-mana-fill" class="mini-bar-fill"></div>
+          </div>
+        </div>
+
+        <div class="res-item" title="Chrono Sand: Time warp energy earned while playing or offline. Spend to fast-forward simulation time!">
+          <span class="res-lbl">Chrono Sand</span>
+          <span id="stat-chrono" class="res-val" style="color: #38bdf8">60s</span>
+        </div>
+
+        <div class="res-item" title="Cosmic Dust: Prestige currency earned by Ascending. Each dust grants +2% permanent production!">
+          <span class="res-lbl">Cosmic Dust</span>
+          <span id="stat-cosmic-dust" class="res-val" style="color: var(--accent-purple)">0</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-time-warp" class="btn-action" title="Burn 30s Chrono Sand for an instant fast-forward simulation burst!">
+          ⚡ Fast Forward (30s)
+        </button>
+        <button id="btn-mute" class="btn-action">🔊 Sound On</button>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.25" style="width: 60px" title="Volume">
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div id="main-workspace">
+      <!-- Side Navigation -->
+      <nav id="side-nav">
+        <button class="nav-tab active" data-tab="monolith" title="Monolith: Manual clicking, combo meter, frenzy mode, and aether generators.">
+          <span class="nav-icon">🔮</span>
+          <span>Monolith</span>
+        </button>
+        <button class="nav-tab" data-tab="combat" title="Void Tower: 1000+ floor RPG auto/active combat, gear looting, and boss battles.">
+          <span class="nav-icon">⚔️</span>
+          <span>Void Tower</span>
+        </button>
+        <button class="nav-tab" data-tab="mining" title="Excavation: Dig underground strata for gems, gold, and stairs to deeper layers.">
+          <span class="nav-icon">⛏️</span>
+          <span>Excavation</span>
+        </button>
+        <button class="nav-tab" data-tab="garden" title="Garden: 16 plots of magical flora, real-time growth, cross-breeding, and essences.">
+          <span class="nav-icon">🌱</span>
+          <span>Garden</span>
+        </button>
+        <button class="nav-tab" data-tab="alchemy" title="Alchemy: Brew elixirs, synthesize permanent catalysts, and transmute resources.">
+          <span class="nav-icon">🧪</span>
+          <span>Alchemy</span>
+        </button>
+        <button class="nav-tab" data-tab="spells" title="Grimoire: Active spells to warp time, surge aether, and devastation strikes.">
+          <span class="nav-icon">✨</span>
+          <span>Grimoire</span>
+        </button>
+        <button class="nav-tab" data-tab="talents" title="Constellations: 5-branch celestial talent tree to customize your playstyle.">
+          <span class="nav-icon">🌌</span>
+          <span>Constellations</span>
+        </button>
+        <button class="nav-tab" data-tab="bounties" title="Bounties: Endless procedural guild contracts with instant rewards.">
+          <span class="nav-icon">📜</span>
+          <span>Bounties</span>
+        </button>
+        <button class="nav-tab" data-tab="market" title="Bazaar: Simulated commodity stock market and merchant caravan expeditions.">
+          <span class="nav-icon">🐪</span>
+          <span>Bazaar</span>
+        </button>
+        <button class="nav-tab" data-tab="prestige" title="Ascension: Soft reset your empire for permanent Cosmic Dust and God Perks.">
+          <span class="nav-icon">🏛️</span>
+          <span>Ascension</span>
+        </button>
+        <button class="nav-tab" data-tab="codex" title="Codex: Achievements (+1.5% boost each), lifetime stats, and save backups.">
+          <span class="nav-icon">🏆</span>
+          <span>Codex</span>
+        </button>
+      </nav>
+
+      <!-- Content Area -->
+      <main id="content-area">
+        <!-- TAB 1: Monolith & Generators -->
+        <section id="tab-monolith" class="tab-view active">
+          <div class="tab-guide-banner">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> Click the central <em>Primordial Monolith</em> to generate raw Aether. Rhythmic clicking builds your <strong>Combo Multiplier</strong> (up to 50x); maxing the bar triggers <strong>Frenzy Mode</strong> (5x yield & rapid auto-clicks). Spend Aether on <strong>Generators</strong> to automate massive passive income. Watch for floating <strong>Golden Anomalies</strong> for instant jackpot rewards!
+            </div>
+          </div>
+
+          <div class="panel-grid-2">
+            <!-- Left: Click Monolith -->
+            <div class="glass-card monolith-section">
+              <h2 style="font-family: var(--font-display); letter-spacing: 1px;">THE PRIMORDIAL MONOLITH</h2>
+              <div id="monolith-click-power" style="font-size: 0.9rem; color: var(--accent-cyan); margin-top: 0.25rem;">+1 per Click</div>
+
+              <div class="monolith-orb-wrapper">
+                <div class="orb-ring"></div>
+                <div id="monolith-orb" class="monolith-orb" title="Click to extract Aether!"></div>
+              </div>
+
+              <!-- Combo & Frenzy -->
+              <div class="combo-container">
+                <div id="combo-text" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-gold);">Combo Ready</div>
+                <div class="combo-bar">
+                  <div id="combo-bar-fill" class="combo-bar-fill"></div>
+                </div>
+                <div id="frenzy-badge" class="frenzy-badge" style="display: none;">🔥 FRENZY ACTIVE!</div>
+              </div>
+
+              <div id="active-buffs-list" class="active-buffs-list"></div>
+            </div>
+
+            <!-- Right: Generators List -->
+            <div class="glass-card">
+              <div class="buildings-header">
+                <h3>Aether Generators</h3>
+                <div class="buy-amount-group">
+                  <button class="buy-amt-btn active" data-amount="1">1x</button>
+                  <button class="buy-amt-btn" data-amount="10">10x</button>
+                  <button class="buy-amt-btn" data-amount="25">25x</button>
+                  <button class="buy-amt-btn" data-amount="100">100x</button>
+                  <button class="buy-amt-btn" data-amount="max">MAX</button>
+                </div>
+              </div>
+              <div id="building-list" class="building-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: Void Tower (Combat) -->
+        <section id="tab-combat" class="tab-view">
+          <div class="tab-guide-banner">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> Your <strong>Astral Champion</strong> continuously auto-battles through 1,000+ procedural dungeon floors. <strong>Click the monster directly</strong> to unleash rapid active strikes! Trigger your 4 active skills on cooldown. Defeat floor bosses every 10 floors before the 30-second enrage clock runs out to collect rare gear and Boss Tokens.
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h2 id="combat-floor-title" style="margin-bottom: 1rem;">Floor 1: Whispering Caverns</h2>
+            <div class="combat-arena">
+              <!-- Hero Status -->
+              <div class="glass-card">
+                <h3>Astral Champion</h3>
+                <div id="hero-lvl-text" style="font-size: 0.85rem; color: var(--accent-gold); margin-bottom: 0.5rem;">Level 1</div>
+                
+                <div class="combat-bar-container">
+                  <div id="hero-hp-text" style="font-size: 0.85rem;">100 / 100 HP</div>
+                  <div class="hp-bar hero-hp-bar">
+                    <div id="hero-hp-fill" class="hp-bar-fill"></div>
+                  </div>
+                </div>
+
+                <div id="hero-atk-text" style="font-size: 0.85rem; color: var(--accent-cyan); margin: 0.5rem 0;">Attack: 15</div>
+
+                <!-- Combat Skills -->
+                <div id="combat-skills-bar" class="combat-skills-bar"></div>
+
+                <!-- Gear Inventory -->
+                <h4 style="margin-top: 1rem; font-size: 0.85rem; text-transform: uppercase;">Hero Equipment</h4>
+                <div id="hero-gear-container" class="gear-grid"></div>
+                
+                <!-- The Aether Forge -->
+                <div class="glass-card" style="margin-top: 1.5rem; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2);">
+                  <h4 style="margin-top: 0; font-size: 0.85rem; text-transform: uppercase; color: var(--accent-cyan);">The Aether Forge</h4>
+                  <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">Infuse massive Aether to Awaken your gear: +25% Base Attack and Max HP per level.</p>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="color: var(--accent-cyan); font-size: 0.9rem;">Forge Level <span id="forge-level">0</span></strong>
+                    <button class="btn btn-outline" id="btn-forge-awaken" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Awaken (<span id="forge-cost">100.0k</span> Aether)</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Monster Arena -->
+              <div id="monster-arena-box" class="monster-arena-box" title="Click directly on the monster to attack rapidly!">
+                <div id="boss-timer" style="color: #ef4444; font-weight: bold; display: none;">⏱️ Enrage: 30s</div>
+                <div class="monster-avatar">👾</div>
+                <h3 id="monster-name">Aether Shade</h3>
+
+                <div class="combat-bar-container" style="max-width: 320px;">
+                  <div id="monster-hp-text" style="font-size: 0.85rem; text-align: center;">60 / 60 HP</div>
+                  <div class="hp-bar">
+                    <div id="monster-hp-fill" class="hp-bar-fill"></div>
+                  </div>
+                </div>
+
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem;">
+                  👉 <em>Click monster directly to unleash rapid active strikes!</em>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: Excavation (Mining) -->
+        <section id="tab-mining" class="tab-view">
+          <div class="tab-guide-banner">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> Click stone tiles on the 6×6 excavation grid to chisel through strata rock layers. Uncover <strong>Gemstones</strong> (Rubies, Sapphires, Emeralds, Diamonds, Void Amethysts), Gold caches, and the <strong>Stairs (🪜)</strong> to advance deeper into harder rock strata (Limestone ➔ Granite ➔ Obsidian ➔ Voidstone). Upgrade your pickaxe, place Auto-Drills, or trigger <strong>Dynamite</strong> to blast 3×3 tiles!
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h2 id="mining-depth-title">Mining Depth 1</h2>
+            <div id="mining-pickaxe-info" style="margin: 0.75rem 0;"></div>
+            <div id="minerals-inventory" style="margin-bottom: 1rem;"></div>
+
+            <div id="mining-grid-board" class="mining-grid-board"></div>
+            <p style="text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+              Chisel through strata blocks to discover gems, gold caches, and the ladder to deeper layers!
+            </p>
+          </div>
+        </section>
+
+        <!-- TAB 4: Botanical Nexus (Garden) -->
+        <section id="tab-garden" class="tab-view">
+          <div class="tab-guide-banner">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> Select a seed type and plant it in any of the 16 plots. Flora advances in real-time through <em>Seed ➔ Sprout ➔ Blooming ➔ Mature</em> stages. Use <strong>Water All</strong> for an instant 25s growth surge. When adjacent plants grow, they have a chance to <strong>cross-breed mutant seeds</strong>! Harvest mature plants for botanical essences used in Alchemy.
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h2>Botanical Nexus</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Cultivate magical flora to harvest rare essences for Alchemical Transmutation and Elixirs!
+            </p>
+
+            <div id="garden-seed-selector" class="seed-select-bar"></div>
+            <div id="garden-actions" style="margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+            <div id="garden-essences-list" style="margin-bottom: 1rem;"></div>
+
+            <div id="garden-plot-grid" class="garden-plot-grid"></div>
+          </div>
+        </section>
+
+        <!-- TAB 5: Alchemy -->
+        <section id="tab-alchemy" class="tab-view">
+          <div class="tab-guide-banner">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> Combine mined gemstones, dungeon monster drops, and garden essences in the crucible. Brew <strong>Timed Elixirs</strong> for massive temporary multipliers (Click yield, Hero Attack, Global CPS, Gold) or synthesize <strong>Permanent Catalysts</strong> that permanently enhance your hero's base stats and global production forever!
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h2>The Alchemical Crucible</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Synthesize botanical essences and mined gemstones into permanent stat catalysts & potent temporary elixirs!
+            </p>
+
+            <div id="transmutation-actions" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;"></div>
+            <div id="alchemy-recipes-list" class="alchemy-grid"></div>
+          </div>
+        </section>
+
+        <!-- TAB 6: Spells (Grimoire) -->
+        <section id="tab-spells" class="tab-view">
+          <div class="tab-guide-banner">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> Your Mana pool regenerates continuously. Cast tactical spells on cooldown: <strong>Aether Burst</strong> gives instant minutes of production, <strong>Chrono Warp</strong> accelerates game time by 5x, <strong>Midas' Blessing</strong> adds Gold to manual clicks, and <strong>Astral Renewal</strong> resets all active cooldowns across the entire game!
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h2>Arcane Grimoire</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Channel your Mana into tactical spells to surge production, warp time, and shatter obstacles!
+            </p>
+            <div id="spells-grid-container" class="spells-grid"></div>
+          </div>
+        </section>
+
+        <!-- TAB 7: Talents (Constellations) -->
+        <section id="tab-talents" class="tab-view">
+          <div class="tab-guide-banner">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> Earn <strong>Talent Points</strong> by leveling up your Hero, completing Guild Bounties, and Ascending. Allocate points into 5 branches: <em>Clicker</em> (crits & frenzy), <em>Architect</em> (generator output & discounts), <em>Warlord</em> (combat damage & loot), <em>Artisan</em> (mining & plants), and <em>Chronomancer</em> (mana & offline speed). Respec at any time for free!
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h2>Constellations of Eternity</h2>
+            <div id="talent-points-header" style="margin: 0.75rem 0; font-size: 1.1rem; color: var(--accent-gold);"></div>
+            <div id="talents-tree-grid" class="talents-grid"></div>
+          </div>
+        </section>
+
+        <!-- TAB 8: Bounties -->
+        <section id="tab-bounties" class="tab-view">
+          <div class="tab-guide-banner">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> The Adventurer's Guild issues continuous, infinite procedural contracts. Perform actions across clicking, combat, mining, gardening, and alchemy to complete them. Claiming a completed contract immediately awards Gold, Chrono Sand, Guild Seals, and occasional Talent Points, and instantly spawns a brand new bounty!
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h2>Adventurer's Guild Contracts</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Complete continuous infinite procedural tasks for Gold, Chrono Sand, Guild Seals, and Talent Points!
+            </p>
+            <div id="bounties-list-container" class="bounties-list"></div>
+
+            <h2 style="margin-top: 2rem; color: var(--accent-gold);">Guild Quartermaster</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Spend Guild Seals on permanent empire charters! Available Seals: <strong id="qm-seals-count" style="color: var(--accent-gold);">0</strong>
+            </p>
+            <div id="quartermaster-upgrades-grid" class="ascension-perks-grid"></div>
+          </div>
+        </section>
+
+        <!-- TAB 9: Bazaar (Market) -->
+        <section id="tab-market" class="tab-view">
+          <div class="tab-guide-banner">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> A simulated live commodity market. Commodity prices fluctuate every few seconds. Buy low during <em>Market Crashes (💥)</em> and sell high during <em>Market Surges (🚀)</em> to multiply your Gold. You can also dispatch <strong>Merchant Caravans</strong> on timed trade routes for guaranteed returns!
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h2>The Grand Bazaar & Caravan Exchange</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Trade fluctuating commodities: buy low during crashes and sell high during market surges!
+            </p>
+            <div id="market-commodities-list"></div>
+            <div id="market-caravan-panel" style="margin-top: 1.5rem;"></div>
+          </div>
+
+          <!-- THE HIGH ENCHANTER (Gold -> Aether Synergy) -->
+          <div class="glass-card" style="margin-top: 1.5rem;">
+            <h2>The High Enchanter</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              The High Enchanter weaves immense quantities of Gold into Golden Synergy threads, permanently multiplying your global Aether production.
+            </p>
+            <div id="market-enchanter-panel" style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+              <div>
+                <strong style="color: var(--accent-gold); font-size: 1.1rem;">Golden Synergy Lv. <span id="enchanter-level">0</span></strong>
+                <div style="font-size: 0.9rem; color: #a8a29e; margin-top: 0.2rem;">Current Bonus: <span id="enchanter-bonus" style="color: #4ade80">+0% Global Aether</span></div>
+              </div>
+              <button class="btn btn-outline" id="btn-buy-enchanter" style="min-width: 150px; font-weight: bold; border-color: var(--accent-gold); color: var(--accent-gold);">
+                Weave Spell (<span id="enchanter-cost">1.00M</span> Gold)
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 10: Ascension Temple -->
+        <section id="tab-prestige" class="tab-view">
+          <div class="tab-guide-banner">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> When you accumulate 1 Billion total Aether, you unlock <strong>Ascension</strong>. Ascending resets your earthly generators and Aether in exchange for permanent <strong>Cosmic Dust</strong> (+2% production each). Spend Dust in the temple on permanent <strong>God Perks</strong>. Reach 50,000 Cosmic Dust to <strong>Transcend Reality</strong> for Fracture Shards!
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="prestige-hero">
+              <h2 style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 0.5rem;">ASCENSION TEMPLE</h2>
+              <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 1rem;">
+                Sacrifice your earthly empire to transcend mortal limits. Harness permanent Cosmic Dust to empower all future runs!
+              </p>
+              <div id="pending-dust-display" style="font-size: 1.25rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 1rem;">
+                Pending Cosmic Dust: +0
+              </div>
+              <button id="btn-do-ascend" class="btn-action" style="padding: 0.6rem 1.5rem; font-size: 1rem;">
+                ✨ Ascend to the Stars
+              </button>
+            </div>
+
+            <h3>Ascension God Perks</h3>
+            <div id="ascension-perks-grid" class="ascension-perks-grid" style="margin-top: 1rem;"></div>
+
+            <div id="transcendence-section" style="margin-top: 2rem;"></div>
+          </div>
+        </section>
+
+        <!-- TAB 11: Codex & Settings -->
+        <section id="tab-codex" class="tab-view">
+          <div class="tab-guide-banner">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> Review your unlocked milestone achievements—each achievement grants a permanent <strong>+1.5% Global Production Aura</strong>. Check lifetime statistics tracking your 365-day empire, trigger manual saves, or export your save code string to easily backup your progress or play across devices.
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h2 id="achievements-unlocked-title">Milestone Achievements</h2>
+            <div id="achievements-grid" class="achievements-grid"></div>
+
+            <h3 style="margin-top: 2rem;">Lifetime Statistics</h3>
+            <div id="game-stats-container" style="margin-top: 0.75rem; max-width: 500px;"></div>
+
+            <h3 style="margin-top: 2rem;">Save & Backup Management</h3>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
+              <button id="btn-manual-save" class="btn-action">💾 Save Game</button>
+              <button id="btn-export-save" class="btn-action">📋 Export Save</button>
+              <button id="btn-import-save" class="btn-action">📥 Import Save</button>
+              <button id="btn-hard-reset" class="btn-action" style="border-color: #ef4444; color: #ef4444;">⚠️ Wipe Progress</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Offline Progress Modal -->
+  <div id="offline-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 style="font-family: var(--font-display); color: var(--accent-cyan); margin-bottom: 0.75rem;">WELCOME BACK, TRAVELER!</h2>
+      <p style="color: var(--text-muted);">While you were away across the astral plane for <strong id="offline-time-text">0 hours</strong>, your autonomous empire continued working:</p>
+      
+      <div style="margin: 1.5rem 0; padding: 1rem; background: rgba(56, 189, 248, 0.1); border-radius: 8px;">
+        <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-cyan);">+<span id="offline-aether-text">0</span> Aether</div>
+        <div id="offline-chrono-text" style="font-size: 1rem; color: var(--accent-gold); margin-top: 0.35rem;">+0 Chrono Sand</div>
+      </div>
+
+      <button id="offline-modal-close" class="btn-action" style="width: 100%; padding: 0.6rem;">Claim & Continue</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
