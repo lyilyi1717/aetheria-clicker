@@ -152,13 +152,22 @@ export class AlchemySystem {
     return true;
   }
 
-  transmuteGoldToChrono() {
-    const cost = new BigNum(1000);
-    if (this.gameState.gold.lt(cost)) return false;
-    this.gameState.gold = this.gameState.gold.sub(cost);
-    this.gameState.addChronoSand(30);
+  // How many 1,000-gold batches the player can afford right now
+  getMaxChronoBatches() {
+    const n = this.gameState.gold.div(new BigNum(1000)).floor().toNumber();
+    return Number.isFinite(n) ? Math.max(0, n) : 1e300;
+  }
+
+  // Convert gold to Chrono Sand at 1,000 gold -> 30 sand per batch.
+  // batches: a count, or 'max' to convert all gold.
+  transmuteGoldToChrono(batches = 1) {
+    const maxBatches = this.getMaxChronoBatches();
+    const n = batches === 'max' ? maxBatches : batches;
+    if (n < 1 || n > maxBatches) return false;
+    this.gameState.gold = this.gameState.gold.sub(new BigNum(1000).mul(new BigNum(n)));
+    const gained = this.gameState.addChronoSand(30 * n);
     sound.playSpell();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, '+30 Chrono Sand', '#38bdf8', true);
+    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+${new BigNum(gained).format('standard', 2)} Chrono Sand`, '#38bdf8', true);
     return true;
   }
 

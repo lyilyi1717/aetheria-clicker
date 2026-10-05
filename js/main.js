@@ -938,12 +938,25 @@ class AetheriaApp {
     if (transCont) {
       transCont.innerHTML = `
         <button id="btn-transmute-stone" class="btn-action">🪙 Transmute 50 Stone ➔ Gold</button>
-        <button id="btn-transmute-chrono" class="btn-action">⏳ Transmute 1,000 Gold ➔ 30 Chrono Sand</button>
+        <div class="chrono-transmute-group" id="chrono-transmute-group">
+          <span class="chrono-transmute-lbl">⏳ Gold ➔ Chrono Sand (1,000 Gold = 30s):</span>
+          <button class="btn-action" data-batches="1">x1</button>
+          <button class="btn-action" data-batches="10">x10</button>
+          <button class="btn-action" data-batches="100">x100</button>
+          <button class="btn-action" data-batches="1000">x1K</button>
+          <button class="btn-action" data-batches="max" id="btn-transmute-chrono-max">Max</button>
+        </div>
       `;
       const tStone = document.getElementById('btn-transmute-stone');
       if (tStone) tStone.onclick = () => { this.alchemySystem.transmuteStoneToGold(); this.updateAlchemyUI(); };
-      const tChrono = document.getElementById('btn-transmute-chrono');
-      if (tChrono) tChrono.onclick = () => { this.alchemySystem.transmuteGoldToChrono(); this.updateAlchemyUI(); };
+      const chronoGroup = document.getElementById('chrono-transmute-group');
+      if (chronoGroup) chronoGroup.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-batches]');
+        if (!btn) return;
+        const b = btn.dataset.batches;
+        this.alchemySystem.transmuteGoldToChrono(b === 'max' ? 'max' : parseInt(b, 10));
+        this.updateAlchemyUI();
+      });
     }
 
     this.updateAlchemyUI();
@@ -961,8 +974,16 @@ class AetheriaApp {
     }
     const tStone = document.getElementById('btn-transmute-stone');
     if (tStone) tStone.classList.toggle('disabled', (inv.stone || 0) < 50);
-    const tChrono = document.getElementById('btn-transmute-chrono');
-    if (tChrono) tChrono.classList.toggle('disabled', !this.gameState.gold.gte(new BigNum(1000)));
+    const maxBatches = this.alchemySystem.getMaxChronoBatches();
+    document.querySelectorAll('#chrono-transmute-group button[data-batches]').forEach(btn => {
+      const b = btn.dataset.batches;
+      btn.classList.toggle('disabled', b === 'max' ? maxBatches < 1 : maxBatches < parseInt(b, 10));
+    });
+    const maxBtn = document.getElementById('btn-transmute-chrono-max');
+    if (maxBtn) {
+      const label = maxBatches >= 1 ? `Max (+${new BigNum(maxBatches * 30).format('standard', 2)}s)` : 'Max';
+      if (maxBtn.textContent !== label) maxBtn.textContent = label;
+    }
     for (const r of RECIPES) {
       const can = this.alchemySystem.canBrew(r.id);
       const card = document.getElementById(`alc-card-${r.id}`);
@@ -1495,7 +1516,7 @@ class AetheriaApp {
     if (manaBar) manaBar.style.width = `${(this.gameState.mana / this.gameState.maxMana) * 100}%`;
 
     const chronoEl = document.getElementById('stat-chrono');
-    if (chronoEl) chronoEl.textContent = `${Math.floor(this.gameState.chronoSand)}s`;
+    if (chronoEl) chronoEl.textContent = `${new BigNum(Math.floor(this.gameState.chronoSand)).format('standard', 2)}s`;
 
     const dustEl = document.getElementById('stat-cosmic-dust');
     if (dustEl) dustEl.textContent = this.gameState.cosmicDust.format('standard', 0);

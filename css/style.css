@@ -195,6 +195,20 @@ body {
   margin-top: 0.5rem;
 }
 
+.chrono-transmute-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.chrono-transmute-lbl {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-right: 0.25rem;
+}
+
 .settings-group {
   display: flex;
   flex-direction: column;
