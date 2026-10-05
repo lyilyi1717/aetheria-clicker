@@ -41,6 +41,7 @@ class AetheriaApp {
       this.saveManager.lastSaveTime = savedData.savedAt || Date.now();
     }
     BigNum.notation = this.gameState.settings.notation;
+    if (typeof sound !== 'undefined' && this.gameState.settings.rhythmScale) { sound.rhythmScale = this.gameState.settings.rhythmScale; }
 
     // Attach systems
     this.clickerSystem = new ClickerSystem(this.gameState);
@@ -158,6 +159,31 @@ class AetheriaApp {
       for (const t in this.tabNeedsFullRender) this.tabNeedsFullRender[t] = true;
       this.saveManager.save();
     });
+    const rhythmCont = document.getElementById('settings-rhythm');
+    if (rhythmCont) {
+      const rhythmOptions = [
+        { id: 'pentatonic', label: 'Pentatonic (C Major)' },
+        { id: 'hijaz', label: 'Hijaz (Desert)' },
+        { id: 'mystic', label: 'Mystic (Byzantine)' },
+        { id: 'lofi', label: 'Lofi (A Minor)' },
+        { id: 'boss', label: 'Boss (Deep/Dark)' }
+      ];
+      if (!this.gameState.settings.rhythmScale) {
+        this.gameState.settings.rhythmScale = 'hijaz';
+      }
+      rhythmCont.innerHTML = rhythmOptions.map(o => `
+        <label class="settings-option">
+          <input type="radio" name="rhythmScale" value="${o.id}" ${this.gameState.settings.rhythmScale === o.id ? 'checked' : ''}>
+          <span>${o.label}</span>
+        </label>
+      `).join('');
+      rhythmCont.addEventListener('change', (e) => {
+        if (e.target.name !== 'rhythmScale') return;
+        this.gameState.settings.rhythmScale = e.target.value;
+        if (typeof sound !== 'undefined') { sound.rhythmScale = e.target.value; }
+        this.saveManager.save();
+      });
+    }
   }
 
   setupTabs() {
@@ -1924,4 +1950,6 @@ function setupTooltips() {
 window.addEventListener('DOMContentLoaded', () => {
   setupTooltips();
 });
+
+
 

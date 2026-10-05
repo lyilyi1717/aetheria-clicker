@@ -1,5 +1,14 @@
+
 // Procedural Web Audio API Sound Engine
 // Generates dynamic audio without any external assets or file dependencies
+
+export const SCALES = {
+  pentatonic: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25], // C Major Pentatonic
+  hijaz: [277.18, 293.66, 329.63, 392.00, 415.30, 554.37], // Hijaz / Desert scale
+  mystic: [261.63, 277.18, 329.63, 349.23, 415.30, 523.25], // Byzantine / Mystic
+  lofi: [220.00, 261.63, 293.66, 329.63, 392.00, 440.00], // A Minor Pentatonic
+  boss: [130.81, 138.59, 155.56, 174.61, 185.00, 207.65] // Dark / Deep
+};
 
 export class AudioEngine {
   constructor() {
@@ -7,6 +16,8 @@ export class AudioEngine {
     this.muted = false;
     this.volume = 0.25;
     this.initialized = false;
+    this.rhythmScale = 'hijaz';
+    this.noteIndex = 0;
   }
 
   init() {
@@ -50,7 +61,20 @@ export class AudioEngine {
     }
   }
 
-  // Sound: Normal Click
+  setRhythmScale(scaleName) {
+    if (SCALES[scaleName]) {
+      this.rhythmScale = scaleName;
+    }
+  }
+
+  getNextFreq() {
+    const scale = SCALES[this.rhythmScale] || SCALES.hijaz;
+    const freq = scale[this.noteIndex % scale.length];
+    this.noteIndex++;
+    return freq;
+  }
+
+  // Sound: Normal Click (Melodic)
   playClick(pitchMod = 1) {
     if (this.muted) return;
     this.ensureContext();
@@ -60,9 +84,11 @@ export class AudioEngine {
     const gain = this.ctx.createGain();
     const t = this.ctx.currentTime;
 
+    const baseFreq = this.getNextFreq();
+
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(440 * pitchMod, t);
-    osc.frequency.exponentialRampToValueAtTime(110 * pitchMod, t + 0.08);
+    osc.frequency.setValueAtTime(baseFreq * pitchMod, t);
+    osc.frequency.exponentialRampToValueAtTime((baseFreq / 4) * pitchMod, t + 0.08);
 
     gain.gain.setValueAtTime(0.4, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
@@ -81,7 +107,8 @@ export class AudioEngine {
     if (!this.ctx) return;
 
     const t = this.ctx.currentTime;
-    [660, 880, 1320].forEach((freq, idx) => {
+    const baseFreq = this.getNextFreq() * 1.5;
+    [baseFreq, baseFreq * 1.25, baseFreq * 1.5].forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
@@ -111,8 +138,9 @@ export class AudioEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(330, t);
-    osc.frequency.exponentialRampToValueAtTime(660, t + 0.1);
+    const baseFreq = this.getNextFreq();
+    osc.frequency.setValueAtTime(baseFreq, t);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 2, t + 0.1);
 
     gain.gain.setValueAtTime(0.25, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
@@ -124,7 +152,7 @@ export class AudioEngine {
     osc.stop(t + 0.12);
   }
 
-  // Sound: Combat Attack / Hit
+  // Sound: Combat Attack / Hit (Bassline Rhythm)
   playHit() {
     if (this.muted) return;
     this.ensureContext();
@@ -134,9 +162,11 @@ export class AudioEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
+    const baseFreq = this.getNextFreq() / 2;
+
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(180, t);
-    osc.frequency.exponentialRampToValueAtTime(40, t + 0.07);
+    osc.frequency.setValueAtTime(baseFreq, t);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq / 4, t + 0.07);
 
     gain.gain.setValueAtTime(0.3, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
@@ -159,8 +189,9 @@ export class AudioEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'square';
-    osc.frequency.setValueAtTime(220, t);
-    osc.frequency.exponentialRampToValueAtTime(55, t + 0.25);
+    const baseFreq = this.getNextFreq();
+    osc.frequency.setValueAtTime(baseFreq, t);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq / 4, t + 0.25);
 
     gain.gain.setValueAtTime(0.2, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
@@ -172,7 +203,7 @@ export class AudioEngine {
     osc.stop(t + 0.25);
   }
 
-  // Sound: Mining Dig
+  // Sound: Mining Dig (Deep Rhythm)
   playDig() {
     if (this.muted) return;
     this.ensureContext();
@@ -183,8 +214,9 @@ export class AudioEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(120, t);
-    osc.frequency.exponentialRampToValueAtTime(45, t + 0.06);
+    const baseFreq = this.getNextFreq() / 2.5;
+    osc.frequency.setValueAtTime(baseFreq, t);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq / 2.5, t + 0.06);
 
     gain.gain.setValueAtTime(0.4, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
@@ -196,17 +228,20 @@ export class AudioEngine {
     osc.stop(t + 0.06);
   }
 
-  // Sound: Gem / Relic Uncovered
+  // Sound: Gem / Relic Uncovered (Arpeggio)
   playGem() {
     if (this.muted) return;
     this.ensureContext();
     if (!this.ctx) return;
 
     const t = this.ctx.currentTime;
-    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+    const scale = SCALES[this.rhythmScale] || SCALES.hijaz;
+    
+    [0, 1, 3, 5].forEach((offset, i) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
+      const freq = scale[(this.noteIndex + offset) % scale.length] * 2;
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, t + i * 0.05);
 
@@ -219,6 +254,7 @@ export class AudioEngine {
       osc.start(t + i * 0.05);
       osc.stop(t + i * 0.05 + 0.2);
     });
+    this.noteIndex += 4;
   }
 
   // Sound: Spell Cast
@@ -232,8 +268,9 @@ export class AudioEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(250, t);
-    osc.frequency.exponentialRampToValueAtTime(1200, t + 0.25);
+    const baseFreq = this.getNextFreq();
+    osc.frequency.setValueAtTime(baseFreq, t);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 4, t + 0.25);
 
     gain.gain.setValueAtTime(0.35, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
@@ -251,7 +288,13 @@ export class AudioEngine {
     this.ensureContext();
     if (!this.ctx) return;
 
-    const chords = [440, 554.37, 659.25, 880];
+    const scale = SCALES[this.rhythmScale] || SCALES.hijaz;
+    const chords = [
+      scale[0 % scale.length],
+      scale[2 % scale.length] * 1.5,
+      scale[4 % scale.length] * 2,
+      scale[5 % scale.length] * 2
+    ];
     const t = this.ctx.currentTime;
 
     chords.forEach((freq, idx) => {
@@ -283,9 +326,10 @@ export class AudioEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(80, t);
-    osc.frequency.exponentialRampToValueAtTime(800, t + 0.8);
-    osc.frequency.exponentialRampToValueAtTime(200, t + 1.6);
+    const baseFreq = this.getNextFreq() / 2;
+    osc.frequency.setValueAtTime(baseFreq, t);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 10, t + 0.8);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 2, t + 1.6);
 
     gain.gain.setValueAtTime(0.4, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 1.6);
@@ -299,3 +343,4 @@ export class AudioEngine {
 }
 
 export const sound = new AudioEngine();
+
