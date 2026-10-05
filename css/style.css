@@ -291,9 +291,53 @@ body {
 .tab-bonus-chip.talent { border-color: rgba(168, 85, 247, 0.45); }
 .tab-bonus-chip.perk { border-color: rgba(234, 179, 8, 0.45); }
 .tab-bonus-chip.buff { border-color: rgba(56, 189, 248, 0.6); background: rgba(56, 189, 248, 0.08); }
+.tab-bonus-chip.mastery { border-color: rgba(16, 185, 129, 0.5); }
 
 @media (max-width: 600px) {
   .tab-bonus-chip { white-space: normal; }
+}
+
+/* Ascension: dust-gain breakdown under the pending dust, and the Masteries panel */
+.pending-dust-breakdown {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.masteries-hint {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0.6rem;
+}
+
+.masteries-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.mastery-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.1fr) 2fr minmax(90px, 0.8fr) 70px;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.5);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.mastery-row.active { opacity: 1; border-color: rgba(16, 185, 129, 0.4); }
+.mastery-row .m-name { color: var(--text-main); font-weight: 600; }
+.mastery-row .m-rule { font-size: 0.75rem; opacity: 0.8; }
+.mastery-row .m-value { text-align: right; font-weight: 700; color: var(--accent-cyan); }
+
+@media (max-width: 600px) {
+  .mastery-row { grid-template-columns: 1fr auto; }
+  .mastery-row .m-effect, .mastery-row .m-source { grid-column: 1 / -1; }
 }
 
 .chrono-transmute-group {

@@ -30,7 +30,7 @@
         <div class="res-item" title="Aether: The primary energy used to construct generators and power your realm.">
           <span class="res-lbl">Aether</span>
           <span id="stat-aether" class="res-val" style="color: var(--accent-cyan)">0</span>
-          <span id="stat-aether-rate" class="res-sub">+0.0 /s</span>
+          <span id="stat-aether-rate" class="res-sub" title="Mastery multipliers on Aether/s">+0.0 /s</span>
         </div>
 
         <div class="res-item" title="Gold: Earned from combat, mining, market trading, and alchemy. Used for gear, pickaxes, and commodities.">
@@ -431,15 +431,20 @@
               <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 1rem;">
                 Sacrifice your earthly empire to transcend mortal limits. Harness permanent Cosmic Dust to empower all future runs!
               </p>
-              <div id="pending-dust-display" style="font-size: 1.25rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 1rem;">
+              <div id="pending-dust-display" style="font-size: 1.25rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.35rem;">
                 Pending Cosmic Dust: +0
               </div>
+              <div id="pending-dust-breakdown" class="pending-dust-breakdown"></div>
               <button id="btn-do-ascend" class="btn-action" style="padding: 0.6rem 1.5rem; font-size: 1rem;">
                 ✨ Ascend to the Stars
               </button>
             </div>
 
-            <h3>Ascension God Perks</h3>
+            <h3>Masteries</h3>
+            <p class="masteries-hint">Permanent cross-bonuses earned from every subgame. Each is its own multiplier.</p>
+            <div id="masteries-panel" class="masteries-panel"></div>
+
+            <h3 style="margin-top: 1.5rem;">Ascension God Perks</h3>
             <div id="ascension-perks-grid" class="ascension-perks-grid" style="margin-top: 1rem;"></div>
 
             <div id="transcendence-section" style="margin-top: 2rem;"></div>

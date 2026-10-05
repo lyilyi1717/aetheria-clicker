@@ -12,6 +12,23 @@ export const ASCENSION_PERKS = [
   { id: 'astral_alchemist', name: 'Astral Crucible', desc: 'All potion durations doubled.', cost: 40, maxRank: 1 }
 ];
 
+// Dust-gain links (design doc §5.3). Each is its own multiplicative category on pending dust.
+// Geode Attunement (Excavation -> Dust): x(1 + 0.10 * floor(maxDepth / 10))
+export function getGeodeAttunementMult(gameState) {
+  const depth = gameState.miningGrid?.maxDepth || 0;
+  return 1 + 0.10 * Math.floor(depth / 10);
+}
+
+// Celestial Nectar currently held (all of it is consumed on Ascend)
+export function getNectarHeld(gameState) {
+  return Math.max(0, Math.floor(gameState.garden?.essences?.starNectar || 0));
+}
+
+// Nectar Offering (Garden -> Dust): x min(2, 1 + 0.02 * sqrt(nectar))
+export function getNectarOfferingMult(gameState) {
+  return Math.min(2, 1 + 0.02 * Math.sqrt(getNectarHeld(gameState)));
+}
+
 export class PrestigeSystem {
   constructor(gameState) {
     this.gameState = gameState;
@@ -29,8 +46,27 @@ export class PrestigeSystem {
     }
   }
 
-  // Calculate pending Cosmic Dust upon Ascension
+  // Breakdown of the dust-gain multipliers shown on the Ascend button
+  getDustMultipliers() {
+    return {
+      depth: this.gameState.miningGrid?.maxDepth || 0,
+      geode: getGeodeAttunementMult(this.gameState),
+      nectar: getNectarHeld(this.gameState),
+      nectarMult: getNectarOfferingMult(this.gameState)
+    };
+  }
+
+  // Calculate pending Cosmic Dust upon Ascension (base x Geode Attunement x Nectar Offering)
   getPendingCosmicDust() {
+    const base = this.getBaseCosmicDust();
+    if (base.lte(0)) return base;
+    const m = this.getDustMultipliers();
+    // tiny epsilon so float noise (e.g. 150 x 1.2 = 179.999...) never floors a whole dust away
+    return base.mul(new BigNum(m.geode * m.nectarMult * (1 + 1e-12))).floor();
+  }
+
+  // Base dust from run Aether only, before the dust-gain links
+  getBaseCosmicDust() {
     const totalAether = this.gameState.totalAetherEarned;
     const threshold = new BigNum(1000000000); // 1 Billion
 
@@ -53,6 +89,11 @@ export class PrestigeSystem {
     this.gameState.cosmicDust = this.gameState.cosmicDust.add(pending);
     this.gameState.totalCosmicDust = this.gameState.totalCosmicDust.add(pending);
     this.gameState.ascensionCount++;
+
+    // Nectar Offering: all Celestial Nectar is consumed by the Ascension
+    if (this.gameState.garden?.essences) {
+      this.gameState.garden.essences.starNectar = 0;
+    }
 
     // Reset Aether, Buildings
     this.gameState.aether = BigNum.zero();

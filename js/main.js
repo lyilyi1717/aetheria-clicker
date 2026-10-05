@@ -18,7 +18,7 @@ import { MarketSystem, COMMODITIES } from './systems/MarketSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
-import { getTabBonuses, SPELL_TABS } from './tabBonuses.js';
+import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
 
 const INGREDIENT_NAMES = {
   ...ESSENCE_NAMES,
@@ -1405,7 +1405,9 @@ class AetheriaApp {
     const ascBtn = document.getElementById('btn-do-ascend');
     if (ascBtn) {
       ascBtn.onclick = () => {
-        if (confirm('Ascend now? This resets Aether and Buildings to grant permanent Cosmic Dust and God Perks!')) {
+        const dm = this.prestigeSystem.getDustMultipliers();
+        const nectarNote = `\n\nNectar Offering: all ${dm.nectar} Celestial Nectar will be consumed (${fmtMult(dm.nectarMult)} dust).`;
+        if (confirm(`Ascend now? This resets Aether and Buildings to grant permanent Cosmic Dust and God Perks!${nectarNote}`)) {
           this.prestigeSystem.ascend();
           this.updateBuildingsUI();
           this.updatePrestigeUI();
@@ -1416,6 +1418,34 @@ class AetheriaApp {
     this.updatePrestigeUI();
   }
 
+  // Masteries panel: rows built once, values updated in place (no buttons inside)
+  updateMasteriesPanel() {
+    const panel = document.getElementById('masteries-panel');
+    if (!panel) return;
+    const list = getMasteries(this.gameState);
+    const key = list.map(m => m.id).join(',');
+    if (panel.dataset.key !== key) {
+      panel.dataset.key = key;
+      panel.innerHTML = list.map(m => `
+        <div class="mastery-row" data-mastery="${m.id}">
+          <span class="m-name">${m.icon} ${m.name}</span>
+          <span class="m-effect">${m.effect} <span class="m-rule">(${m.rule})</span></span>
+          <span class="m-source"></span>
+          <span class="m-value"></span>
+        </div>`).join('');
+    }
+    for (const m of list) {
+      const row = panel.querySelector(`[data-mastery="${m.id}"]`);
+      if (!row) continue;
+      const v = fmtMult(m.value);
+      const valEl = row.querySelector('.m-value');
+      const srcEl = row.querySelector('.m-source');
+      if (valEl.textContent !== v) valEl.textContent = v;
+      if (srcEl.textContent !== m.source) srcEl.textContent = m.source;
+      row.classList.toggle('active', m.value > 1);
+    }
+  }
+
   updatePrestigeUI() {
     const pending = this.prestigeSystem.getPendingCosmicDust();
     const pendEl = document.getElementById('pending-dust-display');
@@ -1423,6 +1453,18 @@ class AetheriaApp {
 
     if (pendEl) pendEl.textContent = `Pending Cosmic Dust: +${pending.format('standard', 0)}`;
     if (ascBtn) ascBtn.disabled = pending.lte(0);
+
+    // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
+    const dm = this.prestigeSystem.getDustMultipliers();
+    const breakdown = `${fmtMult(dm.geode)} from Depth ${dm.depth} · ${fmtMult(dm.nectarMult)} from ${dm.nectar} Nectar (consumed)`;
+    const bdEl = document.getElementById('pending-dust-breakdown');
+    if (bdEl && bdEl.textContent !== breakdown) bdEl.textContent = breakdown;
+    if (ascBtn) {
+      const tip = `Base ${this.prestigeSystem.getBaseCosmicDust().format('standard', 0)} Dust · ${breakdown}`;
+      if (ascBtn.title !== tip) ascBtn.title = tip;
+    }
+
+    this.updateMasteriesPanel();
 
     for (const p of ASCENSION_PERKS) {
       const state = this.gameState.ascensionPerks[p.id] || { rank: 0 };
@@ -1594,6 +1636,13 @@ class AetheriaApp {
     if (aetherRateEl) {
       const rate = this.gameState.getNetAetherPerSecond();
       aetherRateEl.textContent = `+${rate.format('standard', 2)} /s`;
+      // Mastery tooltip: refreshed every 30 frames (~0.5 s), only written when it changes
+      this.aetherTipTimer = (this.aetherTipTimer ?? 29) + 1;
+      if (this.aetherTipTimer >= 30) {
+        this.aetherTipTimer = 0;
+        const tip = getAetherMasteryTooltip(this.gameState);
+        if (aetherRateEl.title !== tip) aetherRateEl.title = tip;
+      }
     }
 
     const goldEl = document.getElementById('stat-gold');
