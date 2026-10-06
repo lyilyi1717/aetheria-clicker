@@ -28,6 +28,8 @@ export class GameState {
     this.cosmicDust = new BigNum(0);
     this.totalCosmicDust = new BigNum(0);
     this.ascensionCount = 0;
+    // Wall-clock ms when the current run began (Ascend minimum run, see PrestigeSystem.getMinRunRemaining)
+    this.runStartedAt = Date.now();
 
     this.fractureShards = new BigNum(0);
     this.transcendenceCount = 0;
@@ -315,6 +317,7 @@ export class GameState {
       cosmicDust: this.cosmicDust.toJSON(),
       totalCosmicDust: this.totalCosmicDust.toJSON(),
       ascensionCount: this.ascensionCount,
+      runStartedAt: this.runStartedAt,
       fractureShards: this.fractureShards.toJSON(),
       transcendenceCount: this.transcendenceCount,
       clickPower: this.clickPower.toJSON(),
@@ -359,6 +362,8 @@ export class GameState {
       this.cosmicDust = BigNum.fromJSON(data.cosmicDust);
       this.totalCosmicDust = BigNum.fromJSON(data.totalCosmicDust);
       this.ascensionCount = data.ascensionCount ?? 0;
+      // Saves from before R2 have no run clock: their run is old enough, so no wait
+      this.runStartedAt = Number.isFinite(data.runStartedAt) ? data.runStartedAt : 0;
       this.fractureShards = BigNum.fromJSON(data.fractureShards);
       this.transcendenceCount = data.transcendenceCount ?? 0;
       this.clickPower = BigNum.fromJSON(data.clickPower);
