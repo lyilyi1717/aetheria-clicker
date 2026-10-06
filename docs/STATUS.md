@@ -8,13 +8,14 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-_(none)_
+- R4 #6 Transcend rework (PR #35).
 
 ## Next up
 
-Ready (dependencies closed): R2 #4, R9 #11, R11 #13, R12 #14, R16 #18, R18 #20, R19 #21.
-R2, R9 and R12 all touch `js/main.js` (and R2/R9 `PrestigeSystem.js`): don't run them in parallel.
-R3 #5 is held per #23 default 5 (ship with or right before R5). R4 #6 needs R2.
+Ready now: R9 #11 (after R4 merges: both edit `PrestigeSystem.js` / `GameState.js`), R11 #13.
+After R4: R5 #7 (+ R3 #5, held per #23 default 5 to ship with R5), R6 #8, R13 #15.
+Then R10 #12 (needs R9), R14 #16 (needs R11), R7 #9 (needs R6), R15 #17 (needs R13),
+R20 #22 (needs R4, R13).
 
 ## Plan
 
@@ -56,6 +57,21 @@ R3 #5 is held per #23 default 5 (ship with or right before R5). R4 #6 needs R2.
   Bazaar while `hero.maxFloor` stays the record. Save v3: `migrations.js` step 3 shrinks gear,
   `CombatSystem.rebaseLegacyFloor` moves the hero to what the kit clears (saves from ~6k+ land
   near floor 5.5k). `npm run sim:tower` reports Tower pacing.
+- R2 #4 Dust exponent 1/3 (`DUST_EXPONENT`); Ascend needs a 10-min run (`GameState.runStartedAt`,
+  `PrestigeSystem.getMinRunRemaining`), shown on the button. The sim calls `ascend(true)`.
+- R12 #14 Offline Aether in bands (`computeOfflineBands` in `SaveManager.js`): 100% for 8 h, 50% to
+  24 h, then 0; each Chrono Reservoir rank adds 4 h to both. Modal in `js/ui/offlineModal.js`.
+- R16 #18 Bazaar: log-space mean reversion, 5% buy/sell spread, stock cap `floor(300/basePrice)`
+  (Amber/Crystal Garden-only), caravan cargo (opt-in checkbox). Constants at the top of
+  `MarketSystem.js`.
+- R18 #20 Wardens every 250 floors (x3 boss HP, 60 s, trophy +2% Tower gold, challenge passed
+  Wardens without moving the climb), Strata Relics (1/200, pity 400, +5% pickaxe), Aether Ore (10%
+  of stone tiles into `market.items.ore`), Gem Polishing 5:1. UI in `js/ui/wardens-relics.js`.
+- R19 #21 Leaderboard Season 2: `supabase/leaderboard_season2.sql` adds `leaderboard_season` and
+  freezes Season 1; the client ranks `getIndexFloor(hero)` and stays on Season 1 until the SQL is
+  run. **Owner action pending:** run that file in the Supabase SQL editor (steps in PR #34).
+- Tooling: `npm test` runs every `test_*.js` via `run_tests.mjs` (no `package.json` edit needed;
+  `npm test -- tower` runs a subset).
 - R17 #19 Garden breeding (`GardenSystem.breedPlots`, `HYBRIDS`), golden mutation 1%, 6
   `HYBRID_RECIPES` with discovery in `AlchemySystem`; UI in `js/ui/garden.js`.
 
@@ -67,10 +83,13 @@ R3 #5 is held per #23 default 5 (ship with or right before R5). R4 #6 needs R2.
   16 in the whole year, longest stretch with no reset 139 days. `npm run sim:check` fails on
   purpose until R4; CI only reports it for now. After R1 the casual longest gap is 189 days
   (the sim's Ascend rule changed, not the game).
-- Breeding unlocks at the first Transcend as a stand-in; R13 should switch
-  `GardenSystem.isBreedingUnlocked()` to the shard-tree node (`garden.breedingUnlocked`).
-- R19: old saves keep `maxFloor` up to ~723k while their floor/`indexFloor` is ~5.5k. Rank on
-  `indexFloor` or start the fresh season.
+- First-Transcend stand-ins for shard-tree unlocks (R13 should switch them to tree nodes):
+  `GardenSystem.isBreedingUnlocked()` (`garden.breedingUnlocked`) and
+  `CombatSystem.isWardensUnlocked()` (`hero.wardensUnlocked`).
+- R14 Codex: Warden trophies (`hero.wardens.defeated`) and relics (`miningGrid.relics`) are ready
+  to show as collections. Add `codex_pct` / `seals_lit` columns to `leaderboard_season` when R14 /
+  R15 ship (with a ceiling in `leaderboard_season_guard`).
+- After R2 the casual longest gap is 156 days; R4 is expected to switch CI to `sim:check`.
 
 ## Noticed (not yet an issue)
 
@@ -83,3 +102,7 @@ R3 #5 is held per #23 default 5 (ship with or right before R5). R4 #6 needs R2.
 - The app shell's fixed 220px sidebar doesn't collapse at phone width (~65px content column at
   375px), so every tab is cramped on phones. Pre-existing; worth its own issue.
 - The Transcend shard payout still reads `totalCosmicDust / 1e4` (R4 replaces it).
+- The Chrono Reservoir perk text (`PrestigeSystem.js` perk list, `tabBonuses.js`) only mentions the
+  Sand bank; since R12 it also extends offline Aether bands by 4 h per rank. Reword with R4/R6.
+- A brand-new account carrying a rebased legacy save shows floor <= 1,000 + 1,000/h on Season 2
+  for its first hours (R19 guard ceiling); old anonymous accounts can still post forged floors.
