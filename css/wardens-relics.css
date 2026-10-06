@@ -1,0 +1,52 @@
+/* Tower Wardens, Strata Relics, Aether Ore and Gem Polishing (R18). Linked from js/ui/wardens-relics.js */
+.wr-panel { margin-top: 1rem; }
+.wr-inset {
+  background: rgba(56, 189, 248, 0.05);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0 0 1rem;
+}
+.wr-head { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.wr-summary { font-size: 0.8rem; color: var(--accent-gold); }
+.wr-note { font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0; overflow-wrap: anywhere; }
+.wr-list { display: flex; flex-direction: column; gap: 0.4rem; max-height: 320px; overflow-y: auto; }
+.wr-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+.wr-row.is-done { border-color: rgba(251, 191, 36, 0.4); }
+.wr-row-main { display: flex; flex-direction: column; min-width: 0; font-size: 0.85rem; }
+.wr-row-main strong { overflow-wrap: anywhere; }
+.wr-sub { font-size: 0.75rem; color: var(--text-muted); }
+.wr-tag { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+.wr-tag-done { color: var(--accent-gold); }
+.wr-tag-live { color: var(--accent-red); }
+.wr-row .btn-action { padding: 0.3rem 0.6rem; font-size: 0.75rem; white-space: nowrap; }
+
+.relic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 0.4rem; margin-top: 0.5rem; }
+.relic-slot {
+  display: flex; align-items: center; gap: 0.35rem;
+  padding: 0.35rem 0.45rem;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  min-width: 0;
+}
+.relic-slot .relic-icon { font-size: 1.1rem; filter: grayscale(1) opacity(0.35); }
+.relic-slot .relic-name { overflow-wrap: anywhere; }
+.relic-slot.found { border-style: solid; border-color: rgba(251, 191, 36, 0.55); color: var(--text-main, #f8fafc); background: rgba(251, 191, 36, 0.07); }
+.relic-slot.found .relic-icon { filter: none; }
+.relic-slot.seeking { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
+.polish-row { margin-top: 0.4rem; }
+.polish-btns { display: flex; flex-wrap: wrap; gap: 0.35rem; min-width: 0; }
+
+@media (max-width: 480px) {
+  .relic-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wr-row { flex-wrap: wrap; }
+}

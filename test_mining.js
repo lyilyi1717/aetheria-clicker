@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
-import { MiningSystem, compressDepth, getPickaxeName, MINING_SCHEMA, EXPLOSIVE_HITS } from './js/systems/MiningSystem.js';
+import { MiningSystem, compressDepth, getPickaxeName, MINING_SCHEMA, EXPLOSIVE_HITS,
+  STRATA_RELICS, RELIC_CHANCE, RELIC_PITY, AETHER_ORE_CHANCE } from './js/systems/MiningSystem.js';
+import { MarketSystem } from './js/systems/MarketSystem.js';
+import { AlchemySystem, GEM_LADDER, POLISH_RATIO } from './js/systems/AlchemySystem.js';
 
 console.log('--- Testing Excavation curves (§5.1) ---');
 const gs = new GameState();
@@ -196,6 +199,154 @@ console.log('--- Regression: stuck Excavation (v2.1.0 playtest) ---');
   } finally {
     globalThis.setTimeout = realSetTimeout;
   }
+}
+
+console.log('--- R18: Strata Relics ---');
+{
+  const g = new GameState();
+  const m = new MiningSystem(g);
+  assert.equal(STRATA_RELICS.length, 7);
+  assert.deepEqual(g.miningGrid.relics, {});
+  assert.equal(g.miningGrid.relicPity, 0);
+  assert.equal(RELIC_CHANCE, 1 / 200);
+  assert.equal(RELIC_PITY, 400);
+
+  // A lucky roll (< 1/200) finds the current stratum's relic and resets the pity counter
+  m.random = () => 0.001;
+  const found = m.rollRelic();
+  assert.equal(found.id, STRATA_RELICS[0].id);
+  assert.ok(m.hasRelic(0));
+  assert.equal(g.miningGrid.relicPity, 0);
+  assert.equal(m.getRelicCount(), 1);
+
+  // Stratum 0 done and nothing missing above it: no roll, pity doesn't grow
+  assert.equal(m.getRelicTarget(), -1);
+  m.random = () => 0;
+  assert.equal(m.rollRelic(), null);
+  assert.equal(g.miningGrid.relicPity, 0);
+
+  // Pity: 399 unlucky tiles find nothing, the 400th always does
+  g.miningGrid.depth = 30; // Granite
+  m.random = () => 0.999;
+  for (let i = 0; i < RELIC_PITY - 1; i++) assert.equal(m.rollRelic(), null);
+  assert.equal(g.miningGrid.relicPity, RELIC_PITY - 1);
+  assert.equal(m.rollRelic().id, STRATA_RELICS[1].id);
+  assert.equal(g.miningGrid.relicPity, 0);
+
+  // Deep save: the current stratum's relic first, then the shallowest missing one above it
+  g.miningGrid.depth = 110; // Aetherite (index 4)
+  assert.equal(m.getRelicTarget(), 4);
+  m.random = () => 0;
+  m.rollRelic();
+  assert.ok(m.hasRelic(4));
+  assert.equal(m.getRelicTarget(), 2);
+  m.rollRelic();
+  m.rollRelic();
+  assert.ok(m.hasRelic(2) && m.hasRelic(3));
+  assert.equal(m.getRelicTarget(), -1, 'deeper relics (Starcore, Abyssal) need you there');
+  assert.ok(!m.hasRelic(5) && !m.hasRelic(6));
+
+  // Every broken tile rolls (through revealReward), stairs included
+  g.miningGrid.depth = 130; // Starcore (index 5)
+  m.random = () => 0;
+  m.revealReward({ content: 'stairs' });
+  assert.ok(m.hasRelic(5), 'stairs tile rolled for the Starcore relic');
+  m.descending = false;
+
+  // +5% pickaxe per relic (6 found here)
+  assert.equal(m.getRelicCount(), 6);
+  g.miningGrid.pickaxeTier = 10; // 1024
+  g.stats.totalBossesSlain = 0;
+  assert.equal(m.getPickaxePower(), Math.floor(1024 * 1.30));
+  g.miningGrid.pickaxeTier = 0;
+
+  // Relic state is saved with the mining slice and survives a reload; a pre-R18 grid
+  // (no relic fields) gets defaults
+  const s2 = new GameState();
+  s2.deserialize(JSON.parse(JSON.stringify(g.serialize())));
+  const m2 = new MiningSystem(s2);
+  assert.equal(m2.getRelicCount(), 6);
+  const old = new GameState();
+  old.miningGrid = { schema: MINING_SCHEMA, depth: 40, maxDepth: 40, pickaxeTier: 3, autoDrills: 2, dynamiteCooldown: 0,
+    blocks: Array.from({ length: 36 }, (_, i) => ({ id: i, content: i === 5 ? 'stairs' : 'stone', revealed: false, hp: 10, maxHp: 10 })) };
+  const mo = new MiningSystem(old);
+  assert.deepEqual(old.miningGrid.relics, {});
+  assert.equal(old.miningGrid.relicPity, 0);
+  assert.equal(mo.getRelicCount(), 0);
+  // A corrupted relic slice is reset rather than crashing
+  old.miningGrid.relics = 'garbage';
+  old.miningGrid.relicPity = NaN;
+  assert.equal(mo.getRelicCount(), 0);
+  assert.equal(old.miningGrid.relicPity, 0);
+}
+
+console.log('--- R18: Aether Ore ---');
+{
+  const g = new GameState();
+  const m = new MiningSystem(g);
+  assert.equal(AETHER_ORE_CHANCE, 0.10);
+  const stoneTile = () => ({ id: 0, content: 'stone', revealed: true, hp: 0, maxHp: 1 });
+  // Relic roll first (0.999: miss), then the ore roll
+  let seq = [0.999, 0.05];
+  m.random = () => seq.shift() ?? 0.999;
+  // No Bazaar state yet: ore waits in the inventory
+  m.revealReward(stoneTile());
+  assert.equal(g.inventory.aetherOre, 1);
+  assert.equal(g.miningGrid.oreFound, 1);
+  // Bazaar exists: the waiting ore and the new one go to market.items.ore
+  new MarketSystem(g);
+  const before = g.market.items.ore.owned;
+  seq = [0.999, 0.09];
+  m.revealReward(stoneTile());
+  assert.equal(g.market.items.ore.owned, before + 2);
+  assert.equal(g.inventory.aetherOre, 0);
+  // 0.10 and above: no ore; gems never drop ore
+  seq = [0.999, 0.10];
+  m.revealReward(stoneTile());
+  seq = [0.999, 0];
+  m.revealReward({ id: 1, content: 'ruby', revealed: true, hp: 0, maxHp: 1 });
+  assert.equal(g.market.items.ore.owned, before + 2);
+  assert.equal(g.miningGrid.oreFound, 2);
+
+  // Rate: ~10% of stone tiles over many seeded tiles
+  let a = 7;
+  m.random = () => { a = (a * 16807) % 2147483647; return a / 2147483647; };
+  const start = g.miningGrid.oreFound;
+  for (let i = 0; i < 20000; i++) m.revealReward(stoneTile());
+  const rate = (g.miningGrid.oreFound - start) / 20000;
+  assert.ok(rate > 0.09 && rate < 0.11, `ore rate ${rate}`);
+}
+
+console.log('--- R18: Gem Polishing ---');
+{
+  const g = new GameState();
+  const al = new AlchemySystem(g);
+  assert.deepEqual(GEM_LADDER, ['rubies', 'sapphires', 'emeralds', 'diamonds', 'voidAmethyst']);
+  assert.equal(POLISH_RATIO, 5);
+  g.inventory.rubies = 12;
+  assert.equal(al.getMaxPolish('rubies'), 2);
+  assert.equal(al.polishGem('rubies'), 1);
+  assert.equal(g.inventory.rubies, 7);
+  assert.equal(g.inventory.sapphires, 1);
+  assert.equal(al.polishGem('rubies', 2), 0, 'not enough for 2');
+  assert.equal(g.inventory.rubies, 7);
+  assert.equal(al.polishGem('rubies', 'max'), 1);
+  assert.equal(g.inventory.rubies, 2);
+  assert.equal(al.polishGem('rubies', 'max'), 0);
+  // Top tier and unknown keys can't be polished
+  g.inventory.voidAmethyst = 50;
+  assert.equal(al.getPolishTarget('voidAmethyst'), null);
+  assert.equal(al.polishGem('voidAmethyst', 'max'), 0);
+  assert.equal(al.polishGem('stone', 1), 0);
+  assert.equal(al.polishGem('rubies', -3), 0);
+  // 625 rubies = 1 Void Amethyst, all the way up the ladder
+  const h = new GameState();
+  const ah = new AlchemySystem(h);
+  h.inventory.rubies = 625;
+  for (const k of GEM_LADDER.slice(0, -1)) ah.polishGem(k, 'max');
+  assert.equal(h.inventory.voidAmethyst, 1);
+  assert.equal(h.inventory.rubies + h.inventory.sapphires + h.inventory.emeralds + h.inventory.diamonds, 0);
+  assert.equal(h.alchemy.gemsPolished, 125 + 25 + 5 + 1);
 }
 
 console.log('✅ MINING TESTS PASSED');

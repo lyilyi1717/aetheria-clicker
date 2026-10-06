@@ -394,6 +394,14 @@ Transcend (+Seal bonus), ~64 shards in a year at the simulated pace. Branches:
   +8 h; Fast Forward 6 h.
 - **Tower**: Wardens every 250 floors (unique trophies); hero gear stays one tier of
   rarity higher on roll; "Second Wind" (one free boss retry per boss).
+  *R18 implementation:* the tree does not exist yet, so Wardens unlock at the first Transcend
+  (`hero.wardensUnlocked` is the hook for the tree node). Before that, every 250th floor is an
+  ordinary boss. A Warden has x3 boss HP (attack as a boss), a 60 s timer and pays x3 boss gold
+  and XP plus 3 Void Cores and 3 Boss Tokens; a timeout or death retreats one floor like a boss.
+  The first kill of each Warden is a trophy (`hero.wardens.defeated`, keyed by floor) worth +2%
+  Tower kill gold (roadmap §5.3 Meme Trophies). Trophies add gold only, so they never restart
+  the climb. Wardens the hero passed before the unlock can be **challenged** from the Warden list
+  without leaving his floor; winning or losing returns him to it at no cost.
 - **Oasis**: Garden breeding (two adjacent mature plants may cross into a hybrid with a
   chance table; hybrids are new essences for 6 new recipes); golden mutation 1%; 5th Golem.
   *R17 implementation:* the shard tree does not exist yet, so breeding unlocks at the first
@@ -464,6 +472,15 @@ reset of some kind every 2–14 days for nine months.
 | Talents | remove +3/Ascension and the 20% roll; S1 stars + S2 Record stars + S3 Guild Rank; keystones move to the dust shop (§6.2) | roadmap §3 — agree, with the keystone move |
 | Achievements | 24 → ~90 ladder, +1% each (was 1.5%; 90 × 1.5% = ×2.35 is fine, but 1% keeps the category flat) | roadmap §5.3 |
 | Fast Forward | keep the 30 s escalator; dust-shop Hourglass adds 5 min / 1 h buttons at `dt = 1.0` | progression doc §5.5 |
+
+*R18 implementation (Excavation and Alchemy rows):* every broken tile (stairs included) rolls
+1/200 for a Strata Relic, with a pity of 400 tiles since the last relic (`miningGrid.relics`,
+`miningGrid.relicPity`); each relic is +5% pickaxe power. **Deviation:** the roll targets the
+current stratum's relic and, once that is found, the shallowest relic still missing above it, so
+saves that were already deep when R18 shipped can still complete the set. Deeper relics need the
+player there. Aether Ore: 10% of plain stone tiles add 1 to the Bazaar's existing `ore` stock
+(sold at its price x the Market Index; no Bazaar code changed). Gem Polishing is in
+`AlchemySystem.polishGem`: 5 of a tier make 1 of the next (ruby to void amethyst).
 
 ---
 
