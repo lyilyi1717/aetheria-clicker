@@ -10,6 +10,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 ## In progress
 
 - R4 #6 Transcend rework (PR #35).
+- R23 #46 Responsive app shell.
 
 ## Next up
 
@@ -17,7 +18,7 @@ Ready now: R9 #11 (after R4 merges: both edit `PrestigeSystem.js` / `GameState.j
 After R4: R5 #7 (+ R3 #5, held per #23 default 5 to ship with R5), R6 #8, R13 #15.
 Then R10 #12 (needs R9), R14 #16 (needs R11), R7 #9 (needs R6), R15 #17 (needs R13),
 R20 #22 (needs R4, R13).
-UI: R23 #46 (responsive app shell) is ready now, then R24 #47. R7 waits for R23 (both change
+UI: R24 #47 after R23 #46 (in progress). R7 waits for R23 (both change
 the nav).
 
 ## Plan
