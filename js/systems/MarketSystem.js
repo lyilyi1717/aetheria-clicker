@@ -11,8 +11,10 @@ export const COMMODITIES = [
 ];
 
 export class MarketSystem {
-  constructor(gameState) {
+  // rng: injectable () => [0,1) so tests can seed price ticks (defaults to Math.random)
+  constructor(gameState, rng = Math.random) {
     this.gameState = gameState;
+    this.rng = rng;
     this.tickTimer = 8.0; // price shift every 8s
     this.initMarket();
   }
@@ -169,7 +171,7 @@ export class MarketSystem {
     // Market Price Fluctuations
     this.tickTimer -= dt;
     if (this.tickTimer <= 0) {
-      this.tickTimer = 6.0 + Math.random() * 4.0;
+      this.tickTimer = 6.0 + this.rng() * 4.0;
       this.updatePrices();
     }
 
