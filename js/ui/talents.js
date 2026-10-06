@@ -8,18 +8,13 @@ import {
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 
+// Layout-only rules; colours, chips, cards and bars come from css/tokens.css and css/components.css
 const STYLE = `
-.ts-box { margin: 0.5rem 0 1rem; padding: 0.7rem 0.8rem; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); font-size: 0.9rem; }
-.ts-earned { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; color: var(--text-muted); }
-.ts-earned span { overflow-wrap: break-word; }
-.ts-next-h { margin: 0.6rem 0 0.3rem; font-weight: 700; color: var(--text-muted); }
-.ts-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.1rem 0.6rem; margin-bottom: 0.45rem; }
-.ts-row .l { overflow-wrap: break-word; }
-.ts-row .t { color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ts-bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
-.ts-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent-purple), var(--accent-gold)); }
-.ts-note { margin-top: 0.4rem; font-size: 0.78rem; color: var(--text-dim); }
-@media (max-width: 600px) { .ts-row { grid-template-columns: minmax(0, 1fr); } .ts-row .t { white-space: normal; } }
+.ts-earned { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.ts-row { display: grid; gap: var(--sp-1); margin-bottom: var(--sp-3); }
+.ts-row .top { display: flex; justify-content: space-between; gap: var(--sp-2); font-size: var(--fs-13); color: var(--text-1); }
+.ts-row .top .t { color: var(--text-3); white-space: nowrap; }
+.ts-note { margin: var(--sp-2) 0 0; font-size: var(--fs-12); color: var(--text-3); }
 `;
 
 export class TalentSourcesPanel {
@@ -52,10 +47,12 @@ export class TalentSourcesPanel {
     }
     const box = document.createElement('div');
     box.id = 'talent-sources';
-    box.className = 'ts-box';
+    box.className = 'card card-flat';
+    box.style.margin = 'var(--sp-3) 0 var(--sp-4)';
     box.innerHTML = `
-      <div class="ts-earned"><span id="ts-e-stars"></span><span id="ts-e-record"></span><span id="ts-e-guild"></span></div>
-      <div class="ts-next-h">Next stars:</div>
+      <div class="eyebrow">Where points come from</div>
+      <div class="ts-earned"><span class="chip dust num" id="ts-e-stars"></span><span class="chip dust num" id="ts-e-record"></span><span class="chip dust num" id="ts-e-guild"></span></div>
+      <div class="eyebrow" style="margin-bottom: var(--sp-2)">Next stars</div>
       <div id="ts-next"></div>
       <div class="ts-note">Points come from Milestone Stars (first Ascension, depth, Tower zones, first harvests, Catalysts, Transcend), Record Ascension (each 10x of your best single-run dust) and Guild Rank (contracts claimed). Ascending alone pays nothing.</div>`;
     header.insertAdjacentElement('afterend', box);
@@ -66,9 +63,9 @@ export class TalentSourcesPanel {
     for (let i = 0; i < 3; i++) {
       const row = document.createElement('div');
       row.className = 'ts-row';
-      row.innerHTML = '<span class="l"></span><span class="t"></span><div class="ts-bar"><div class="ts-fill"></div></div>';
+      row.innerHTML = '<div class="top"><span class="l"></span><span class="t num"></span></div><div class="bar dust"><i></i></div>';
       this.el.next.appendChild(row);
-      this.rows.push({ row, l: row.querySelector('.l'), t: row.querySelector('.t'), f: row.querySelector('.ts-fill') });
+      this.rows.push({ row, l: row.querySelector('.l'), t: row.querySelector('.t'), f: row.querySelector('.bar > i') });
     }
     this.render();
   }
