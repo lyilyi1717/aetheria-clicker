@@ -19,6 +19,17 @@ export const CHANGELOG = [
     ]
   },
   {
+    version: '3.1.0',
+    date: '2026-10-06',
+    title: 'Talent Points You Earn',
+    changes: [
+      'Talent points now come from things you achieve: Milestone Stars (your first Ascension, new Excavation depths, new Tower zones, your first Rose of Taif, Date Palm and Sidr Tree, 10, 25 and 50 Catalysts, and each Transcend), Record Ascensions (a point each time your best single Ascension pays ten times more Cosmic Dust than before) and Guild Rank (contracts you claim raise your rank, and each rank pays a point and 5 Guild Seals).',
+      'The flat +3 talent points per Ascension and the random 20% chance of a point from a bounty are gone. Every point you already have, spent or unspent, is kept, and nothing you already reached is paid a second time.',
+      'The Constellations tab shows where your points have come from and the three stars you are closest to, each with a progress bar.',
+      'Until the contract board is reworked, only one claimed contract per 30 minutes (with up to 6 saved up) counts toward Guild Rank. Claiming more still pays Gold, Guild Seals and Chrono Sand as before.'
+    ]
+  },
+  {
     version: '3.0.0',
     date: '2026-10-06',
     title: 'The Long Road (Redesign, Part 1)',
