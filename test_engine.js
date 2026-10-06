@@ -40,7 +40,7 @@ gs.gardenSystem = gar;
 gs.bountySystem = bou;
 gs.achievementSystem = ach;
 
-console.assert(BUILDING_DEFINITIONS.length === 14, `Expected 14 building definitions, got ${BUILDING_DEFINITIONS.length}`);
+console.assert(BUILDING_DEFINITIONS.length === 30, `Expected 30 building definitions (14 + 16 generated), got ${BUILDING_DEFINITIONS.length}`);
 
 // Test building cost & buy
 gs.aether = new BigNum(1000);
@@ -70,7 +70,7 @@ gs.chronoSand = 2880;
 gs.hero.hp = cs.getTotalMaxHp();
 gs.frenzyActive = true;
 gs.frenzyTimer = 9;
-gs.totalCosmicDust = new BigNum(60000);
+gs.totalCosmicDust = new BigNum(1e9); // R4 gate for the first Transcend
 assert.equal(pres.transcend(), true);
 assert.equal(gs.chronoSand, 1440, 'Chrono Sand must fit the base bank after Transcend');
 assert.ok(gs.hero.hp <= cs.getTotalMaxHp(), 'hero HP must fit max HP without Titan\'s Legacy');

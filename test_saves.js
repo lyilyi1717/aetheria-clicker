@@ -198,6 +198,68 @@ console.log('--- v2 -> v3: a deep pre-rebalance Tower save (floor 700k) is rebas
   }
 }
 
+console.log('--- v3 -> v4: saves that Transcended under the old rules are refunded (R4) ---');
+{
+  // Old rules: 50k-dust gate, floor(lifetime dust / 1e4) shards at +10% Aether each
+  const near = (a, b) => Math.abs(a / b - 1) < 1e-12;
+  const V3_TRANSCENDED = {
+    version: 3,
+    savedAt: 1760000000000,
+    aether: { m: 1, e: 15 },
+    totalAetherEarned: { m: 2, e: 15 },
+    cosmicDust: { m: 1, e: 3 },
+    totalCosmicDust: { m: 5, e: 3 },
+    ascensionCount: 30,
+    fractureShards: { m: 2.3, e: 1 }, // 23 shards: x3.3 under the old rules
+    transcendenceCount: 3,
+    buildings: { tapper: { count: 40 }, matrix: { count: 2 } }
+  };
+  const gs = new GameState();
+  gs.deserialize(clone(V3_TRANSCENDED));
+  // 2 shards per old Transcend (6: x11.4) beats matching the old x3.3 (3 shards)
+  assert.equal(gs.fractureShards.toNumber(), 6);
+  assert.equal(gs.totalFractureShards.toNumber(), 6);
+  assert.equal(gs.transcendenceCount, 3, 'old Transcends count: tiers 15-17 open');
+  // Dust the old Transcends took (23 x 1e4) comes back, lifetime and spendable
+  assert.ok(near(gs.totalCosmicDust.toNumber(), 5000 + 230000));
+  assert.ok(near(gs.cosmicDust.toNumber(), 1000 + 230000));
+  assert.deepEqual(gs.legacyTranscendRefund, { transcends: 3, oldShards: { m: 2.3, e: 1 }, shards: 6, dust: { m: 2.3, e: 5 } });
+  assert.equal(gs.buildings.tapper.count, 40);
+  // Never weaker: the new shard multiplier beats the old one
+  assert.ok(gs.getShardAetherMult().toNumber() >= 1 + 0.1 * 23);
+
+  // One Transcend at a very large pile: 1e4 shards (old x1,001). 2 shards would be x2.25, so the
+  // refund pays the fewest shards that match x1,001: ceil(log 1001 / log 1.5) = 18
+  const gsBig = new GameState();
+  gsBig.deserialize({ ...clone(V3_TRANSCENDED), transcendenceCount: 1, fractureShards: { m: 1, e: 4 } });
+  assert.equal(gsBig.totalFractureShards.toNumber(), 18);
+  assert.ok(gsBig.getShardAetherMult().toNumber() >= 1001);
+  assert.ok(near(gsBig.totalCosmicDust.toNumber(), 5000 + 1e8));
+
+  // Past 1e308 shards (an edited or runaway save): finite and still never weaker
+  const gsHuge = new GameState();
+  gsHuge.deserialize({ ...clone(V3_TRANSCENDED), fractureShards: { m: 1, e: 400 } });
+  assert.equal(gsHuge.totalFractureShards.toNumber(), Math.ceil(399 / Math.log10(1.5)));
+  assert.equal(gsHuge.totalCosmicDust.toString(), new BigNum(1, 404).add(5000).toString());
+
+  // Saves that never Transcended are unchanged apart from the new lifetime-shard field
+  const plain = migrateSave(clone(V2_FIXTURE));
+  assert.equal(plain.legacyTranscendRefund, undefined);
+  assert.deepEqual(plain.totalCosmicDust, V2_FIXTURE.totalCosmicDust);
+  const gsPlain = new GameState();
+  gsPlain.deserialize(clone(V2_FIXTURE));
+  assert.equal(gsPlain.totalFractureShards.toNumber(), 0);
+  assert.equal(gsPlain.legacyTranscendRefund, null);
+
+  // The migrated save round-trips, and is not refunded twice
+  const out = clone(gs.serialize());
+  assert.equal(out.version, SAVE_VERSION);
+  const gs2 = new GameState();
+  gs2.deserialize(clone(out));
+  assert.deepEqual(stable(gs2.serialize()), stable(out), 'a refunded save round-trips unchanged');
+  assert.ok(near(gs2.totalCosmicDust.toNumber(), 235000), 'not refunded twice');
+}
+
 console.log('--- Import goes through the same migration path ---');
 {
   const encode = d => btoa(encodeURIComponent(JSON.stringify(d)));

@@ -71,6 +71,7 @@ console.log('--- Quartermaster: a save missing a charter key can still buy it --
 console.log('--- Buildings: MAX buys exactly what the budget affords ---');
 {
   const gs = new GameState();
+  gs.transcendenceCount = 16; // every generated tier (15-30) unlocked, so MAX is checked on them too
   const bs = new BuildingSystem(gs);
   gs.buildingSystem = bs;
   let mismatches = 0;
@@ -116,11 +117,16 @@ console.log('--- Prestige: dust and shards stay finite past 1e308 ---');
   gs.totalAetherEarned = new BigNum(999999999);
   assert.equal(pres.getPendingCosmicDust().toNumber(), 0);
 
+  // Past 1e308 lifetime dust the dust multiplier stays a finite BigNum and Transcend still works
   gs.totalCosmicDust = new BigNum('1e310');
   gs.totalAetherEarned = BigNum.zero();
+  const dm = gs.getDustMultiplierBig();
+  assert.ok(Math.abs(dm.e + Math.log10(dm.m) - (310 + Math.log10(0.02))) < 1e-9, `dust mult ${dm}`);
+  gs.buildingSystem = new BuildingSystem(gs);
+  gs.buildings.tapper.count = 1;
+  assert.ok(gs.getNetAetherPerSecond().gt(new BigNum('1e300')), 'production uses the BigNum dust multiplier');
   assert.equal(pres.transcend(), true);
-  assert.ok(gs.fractureShards.gt(0), 'shards must not collapse to 0 at 1e310 dust');
-  assert.equal(gs.fractureShards.toString(), '1e306');
+  assert.equal(gs.fractureShards.toNumber(), 2, 'R4: 2 shards per Transcend, whatever the dust');
 }
 
 console.log('--- Combat: Aether Forge cost never overflows to free ---');
