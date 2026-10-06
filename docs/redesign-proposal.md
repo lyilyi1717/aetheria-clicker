@@ -561,8 +561,8 @@ is therefore 180 until the Chronicle (R20) restores 270.
 *Measured after R13* (same sim, which now Ascends by hand only while the player is there, and
 around the clock once Auto-Ascend is bought with the first Transcend's shards): casual first
 Ascension 10 min, 9 Ascensions on day 0 (was 12), first Transcend day 4.8 (was 7.4: fewer,
-longer early runs pay more dust under the cube root), 31 Transcends, 1,268 Ascensions, a reset
-at least every 14 days until day 185 (was 190), CPS 1.9e81 at a year.
+longer early runs pay more dust under the cube root), 31 Transcends, 1,267 Ascensions, a reset
+at least every 14 days until day 184 (was 189), CPS 2.2e81 at a year.
 
 **Current vs proposed, same profile:** today 16–17 Ascensions and ×200 CPS growth over the
 year; proposed ~2,800 Ascensions, 32 Transcends, 16 new generator tiers, ×1e63 growth, and a
