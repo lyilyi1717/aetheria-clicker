@@ -1,6 +1,5 @@
 import { BigNum } from '../engine/BigNum.js';
-import { sound } from '../engine/AudioEngine.js';
-import { particles } from '../engine/ParticleEngine.js';
+import { rewards } from '../ui/rewards.js';
 
 export const ACHIEVEMENTS = [
   // Clicks
@@ -68,8 +67,11 @@ export class AchievementSystem {
     this.gameState.achievements[ach.id] = {
       unlockedAt: Date.now()
     };
-    sound.playAchievement();
-    particles.spawnFloatingText(window.innerWidth / 2, 80, `🏆 ACHIEVEMENT UNLOCKED: ${ach.name}!`, '#fbbf24', true);
+    // Medium toast (bell); several at once fold into "N achievements unlocked"
+    rewards.notify({
+      tier: 'medium', kind: 'achievement', icon: '🏆', color: '#fbbf24',
+      title: `Achievement: ${ach.name}`, batchTitle: '{n} achievements unlocked'
+    });
   }
 
   getUnlockedCount() {

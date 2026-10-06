@@ -341,6 +341,100 @@ export class AudioEngine {
     osc.start(t);
     osc.stop(t + 1.6);
   }
+
+  // ---- Reward tiers (redesign §5.1): small = pluck, medium = bell, big = brass, epic = choir.
+  // All built from the selected rhythm scale, so they follow the player's Settings choice.
+
+  // One enveloped voice. attack/release in seconds; detune in cents; vibrato as a pitch fraction.
+  _voice(type, freq, start, dur, peak, { attack = 0.005, detune = 0, vibrato = 0 } = {}) {
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, start);
+    if (detune) osc.detune.setValueAtTime(detune, start);
+    if (vibrato) {
+      const lfo = this.ctx.createOscillator();
+      const lfoGain = this.ctx.createGain();
+      lfo.frequency.setValueAtTime(5.5, start);
+      lfoGain.gain.setValueAtTime(freq * vibrato, start);
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      lfo.start(start);
+      lfo.stop(start + dur);
+    }
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(peak, start + attack);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(start);
+    osc.stop(start + dur + 0.02);
+  }
+
+  _scale() {
+    return SCALES[this.rhythmScale] || SCALES.hijaz;
+  }
+
+  // Small: a short pluck
+  playPluck() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    this._voice('triangle', this._scale()[3] * 2, this.ctx.currentTime, 0.12, 0.2);
+  }
+
+  // Medium: 3-note bell arpeggio (sine + an inharmonic partial)
+  playBell() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const s = this._scale();
+    [s[0], s[2], s[4]].forEach((f, i) => {
+      const at = t + i * 0.09;
+      this._voice('sine', f * 2, at, 0.6, 0.22);
+      this._voice('sine', f * 2 * 2.76, at, 0.25, 0.05);
+    });
+  }
+
+  // Big: brass fanfare, short-short-short-long
+  playBrass() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const s = this._scale();
+    const notes = [[s[0], 0, 0.14], [s[0], 0.16, 0.14], [s[2], 0.32, 0.14], [s[4], 0.48, 0.7]];
+    for (const [f, off, dur] of notes) {
+      this._voice('sawtooth', f, t + off, dur, 0.12, { attack: 0.03 });
+      this._voice('square', f / 2, t + off, dur, 0.06, { attack: 0.03 });
+    }
+  }
+
+  // Epic: choir pad (detuned voices with vibrato, slow swell) under a rising motif
+  playChoir() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const s = this._scale();
+    for (const f of [s[0], s[2], s[4], s[0] * 2]) {
+      for (const d of [-9, 0, 9]) {
+        this._voice('sine', f, t, 2.6, 0.06, { attack: 0.6, detune: d, vibrato: 0.006 });
+      }
+    }
+    [s[0], s[2], s[4], s[5]].forEach((f, i) => {
+      this._voice('triangle', f * 2, t + 0.5 + i * 0.22, 0.5, 0.12, { attack: 0.02 });
+    });
+  }
+
+  // One entry point for the reward system (js/ui/rewards.js)
+  playTier(tier) {
+    if (tier === 'small') this.playPluck();
+    else if (tier === 'medium') this.playBell();
+    else if (tier === 'big') this.playBrass();
+    else if (tier === 'epic') this.playChoir();
+  }
 }
 
 export const sound = new AudioEngine();

@@ -1,5 +1,5 @@
 import { sound } from '../engine/AudioEngine.js';
-import { particles } from '../engine/ParticleEngine.js';
+import { rewards } from '../ui/rewards.js';
 
 export const TALENT_DEFINITIONS = [
   // Way of the Clicker
@@ -58,8 +58,11 @@ export class TalentTreeSystem {
     this.gameState.talents[talentId].rank++;
 
     this.applyTalentEffects(talentId);
-    sound.playAchievement();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `TALENT RANK UP: ${def.name}!`, '#fbbf24', true);
+    rewards.notify({
+      tier: 'medium', kind: `talent-${def.id}`, icon: '🌟', color: '#fbbf24',
+      title: `${def.name}: rank ${this.gameState.talents[talentId].rank}`,
+      batchTitle: `${def.name}: rank ${this.gameState.talents[talentId].rank}`
+    });
     return true;
   }
 
@@ -87,7 +90,7 @@ export class TalentTreeSystem {
     }
 
     sound.playSpell();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'TALENTS REFUNDED!', '#38bdf8', true);
+    rewards.notify({ tier: 'small', kind: 'talent-respec', icon: '🔄', color: '#38bdf8', title: 'Talents refunded' });
     return true;
   }
 }

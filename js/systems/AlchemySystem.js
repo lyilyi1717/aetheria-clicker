@@ -1,6 +1,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
+import { rewards } from '../ui/rewards.js';
 
 export const RECIPES = [
   // Timed Elixirs
@@ -146,8 +147,11 @@ export class AlchemySystem {
         state.discovered[r.id] = true;
         found.push(r);
         if (!silent) {
-          sound.playAchievement();
-          particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `RECIPE DISCOVERED: ${r.name}!`, '#f472b6', true);
+          // Big tier (§5.1 'unlock'): ceremony + brass
+          rewards.notify({
+            tier: 'big', kind: 'recipe-discovered', icon: '📖', color: '#f472b6',
+            title: `Recipe discovered: ${r.name}`, batchTitle: '{n} recipes discovered', detail: 'New brew in the Grimoire'
+          });
         }
       }
     }
@@ -182,9 +186,10 @@ export class AlchemySystem {
     const state = this.ensureState();
     state.gemsPolished = (Number(state.gemsPolished) || 0) + n;
     sound.playGem();
-    if (typeof window !== 'undefined') {
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `POLISHED ${n}x GEM!`, '#38bdf8', true);
-    }
+    rewards.notify({
+      tier: 'small', kind: 'gem-polish', icon: '💎', color: '#38bdf8',
+      title: 'Gems polished', amount: n, fmt: (v) => String(v), unit: n === 1 ? 'gem' : 'gems'
+    });
     return n;
   }
 
@@ -253,7 +258,7 @@ export class AlchemySystem {
           maxDuration: dur
         });
       }
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `BREWED: ${r.name}!`, '#a855f7', true);
+      rewards.notify({ tier: 'small', kind: `brew-${r.id}`, icon: '⚗️', color: '#a855f7', title: `Brewed: ${r.name}` });
     } else if (r.type === 'permanent') {
       if (r.id === 'perm_might') {
         this.gameState.hero.baseAttack += 15;
@@ -264,8 +269,7 @@ export class AlchemySystem {
         if (!this.gameState.alchemy) this.gameState.alchemy = { catalysts: 0 };
         this.gameState.alchemy.catalysts = this.getCatalystCount() + 1;
       }
-      sound.playAchievement();
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `PERMANENT BOOST: ${r.name}!`, '#fbbf24', true);
+      rewards.notify({ tier: 'medium', kind: `perm-${r.id}`, icon: '⚗️', color: '#fbbf24', title: `Permanent boost: ${r.name}` });
     }
 
     if (this.gameState.bountySystem) {
@@ -281,7 +285,10 @@ export class AlchemySystem {
     const goldGained = new BigNum(1.07).pow(this.gameState.miningGrid?.depth || 1).mul(new BigNum(200)).floor();
     this.gameState.gold = this.gameState.gold.add(goldGained);
     sound.playBuy();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+${goldGained.format('standard', 0)} GOLD`, '#eab308', true);
+    rewards.notify({
+      tier: 'small', kind: 'transmute-gold', icon: '🪙', color: '#eab308',
+      title: 'Stone transmuted', amount: goldGained, fmt: (g) => g.format('standard', 0), unit: 'gold'
+    });
     return true;
   }
 
@@ -313,7 +320,10 @@ export class AlchemySystem {
     this.gameState.gold = this.gameState.gold.sub(this.getChronoBatchCost().mul(new BigNum(n)));
     const gained = this.gameState.addChronoSand(30 * n);
     sound.playSpell();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+${new BigNum(gained).format('standard', 2)} Chrono Sand`, '#38bdf8', true);
+    rewards.notify({
+      tier: 'small', kind: 'chrono-sand', icon: '⏳', color: '#38bdf8',
+      title: 'Chrono Sand bought', amount: gained, fmt: (v) => new BigNum(v).format('standard', 2), unit: 'Chrono Sand'
+    });
     return true;
   }
 
