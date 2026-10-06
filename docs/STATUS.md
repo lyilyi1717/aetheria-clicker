@@ -12,7 +12,9 @@ _(none)_
 
 ## Next up
 
-**Wave 1** (independent, can run in parallel): R1 #3, R2 #4, R3 #5, R12 #14.
+Ready (dependencies closed): R2 #4, R9 #11, R11 #13, R12 #14, R16 #18, R18 #20, R19 #21.
+R2, R9 and R12 all touch `js/main.js` (and R2/R9 `PrestigeSystem.js`): don't run them in parallel.
+R3 #5 is held per #23 default 5 (ship with or right before R5). R4 #6 needs R2.
 
 ## Plan
 
@@ -47,14 +49,28 @@ _(none)_
   CI checks (`.github/workflows/checks.yml`), issues #2–#23.
 - R0 #2 Save versioning: `js/engine/migrations.js` holds the ordered `MIGRATIONS` chain;
   `GameState.deserialize` (and so save import) runs `migrateSave`. Tests in `test_saves.js`.
+- R1 #3 Dust multiplier is `1 + 0.02 * totalCosmicDust` (`GameState.getDustMultiplier()`); the
+  Transcend confirm uses `PrestigeSystem.getTranscendPreview()` (R4 should replace it). The sim
+  now Ascends when pending dust >= lifetime dust.
+- R8 #10 Tower: gear 1.11 (`gearFloorScale`), bosses x400 / 45 s, `hero.indexFloor` prices the
+  Bazaar while `hero.maxFloor` stays the record. Save v3: `migrations.js` step 3 shrinks gear,
+  `CombatSystem.rebaseLegacyFloor` moves the hero to what the kit clears (saves from ~6k+ land
+  near floor 5.5k). `npm run sim:tower` reports Tower pacing.
+- R17 #19 Garden breeding (`GardenSystem.breedPlots`, `HYBRIDS`), golden mutation 1%, 6
+  `HYBRID_RECIPES` with discovery in `AlchemySystem`; UI in `js/ui/garden.js`.
 
 ## Notes for the next session
 
 - Save format changes: add a step to `MIGRATIONS` in `js/engine/migrations.js` and an old-shape
-  fixture to `test_saves.js`. Current `SAVE_VERSION` is 2.
+  fixture to `test_saves.js`. Current `SAVE_VERSION` is 3 (R8).
 - Pacing baseline (today's game, casual profile): first Ascension 10 min, 12 Ascensions on day 0,
   16 in the whole year, longest stretch with no reset 139 days. `npm run sim:check` fails on
-  purpose until R4; CI only reports it for now.
+  purpose until R4; CI only reports it for now. After R1 the casual longest gap is 189 days
+  (the sim's Ascend rule changed, not the game).
+- Breeding unlocks at the first Transcend as a stand-in; R13 should switch
+  `GardenSystem.isBreedingUnlocked()` to the shard-tree node (`garden.breedingUnlocked`).
+- R19: old saves keep `maxFloor` up to ~723k while their floor/`indexFloor` is ~5.5k. Rank on
+  `indexFloor` or start the fresh season.
 
 ## Noticed (not yet an issue)
 
@@ -62,3 +78,8 @@ _(none)_
   `settings` over the current values, so keys the imported save lacks keep the old game's values.
 - Mining still runs its own schema-gated migration (`MiningSystem.migrateMiningGrid`,
   `miningGrid.schema`) outside the `MIGRATIONS` chain. It works; folding it in is optional.
+- Midas click gold (`ClickerSystem`) still scales 1.15^floor on the current floor, and bounty gold
+  scales with the current floor; neither follows the R8 curves.
+- The app shell's fixed 220px sidebar doesn't collapse at phone width (~65px content column at
+  375px), so every tab is cramped on phones. Pre-existing; worth its own issue.
+- The Transcend shard payout still reads `totalCosmicDust / 1e4` (R4 replaces it).
