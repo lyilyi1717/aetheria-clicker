@@ -7,8 +7,9 @@
 //
 // Profiles:
 //   idle   : taps 1/s for the first 3 min of every run, never casts; greedy-buys every 5 s
-//   casual : present 10 min of every hour (2 clicks/s at full combo, spells on cooldown,
-//            anomalies clicked), approximated as an income multiplier from the spell/anomaly code
+//   casual : present 10 min of every hour (2 clicks/s with combo, spells on cooldown,
+//            anomalies clicked), an income multiplier measured on the real spell/anomaly code
+//            (R3 block, sim/active-income.mjs)
 // Ascend policy: when pending dust >= max(10, current dust) and the run is at least 10 min old,
 // by hand only while the player is there (casual: the 10 present minutes of each hour; idle: a
 // glance once an hour) until the shard tree's Auto-Ascend is bought, then whenever the rule is met
@@ -28,6 +29,7 @@ import { AchievementSystem } from '../js/systems/AchievementSystem.js';
 import { UpgradeSystem, TIER_UPGRADE_MULT, SYNERGY_PER_UNIT, UPGRADE_DEFINITIONS, getUpgradeDefinition } from '../js/systems/UpgradeSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
 import { ShardTreeSystem, autoAscendRuleMet, getDeepBlueprintDivisor, canBuyNode } from '../js/systems/ShardTreeSystem.js';
+import { measureActiveIncome } from './active-income.mjs'; // R3 block below
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
@@ -43,6 +45,15 @@ export const TARGETS = {
   // 14 days until ~day 190, then layer 2 stalls (doc §6.4: Chronicle needed). R20 restores 270.
   gapWindowEndDay: 180
 };
+
+// --- R3 active income block --------------------------------------------------------------------
+// While the casual player is present, income is CPS x ACTIVE_MULT: the real SpellSystem and
+// ClickerSystem played attentively at a fixed CPS (sim/active-income.mjs: 2 clicks/s with combo
+// and Frenzy, Celestial/Chrono Warp/Burst on cooldown, every Golden Anomaly clicked), divided by
+// idle income. It includes the clicks' 3%-of-CPS share, so only the base click (click upgrades)
+// is added on top while present. SIM_ACTIVE_MULT=<x> overrides it (to compare tunings).
+const ACTIVE_MULT = process.env.SIM_ACTIVE_MULT ? Number(process.env.SIM_ACTIVE_MULT) : measureActiveIncome().ratio;
+// ---------------------------------------------------------------------------------------------
 
 const CHECKPOINTS = [
   ['10 min', 600], ['1 h', 3600], ['1 d', DAY], ['1 w', 7 * DAY],
@@ -175,8 +186,7 @@ function run(profile) {
   bs.buyAmount = 1;
 
   const presence = profile === 'casual' ? 600 : 0;
-  // Aether Burst +4x, Celestial +1x, Supernova anomaly +1.67x, clicks +0.3x while present.
-  const activeMult = (t) => (t % 3600 < presence ? 7.97 : 1);
+  const activeMult = (t) => (t % 3600 < presence ? ACTIVE_MULT : 1); // R3 block above
 
   // Greedy: buy the generator with the best Aether/s gained per Aether spent, one at a time.
   // Compared in log10 space (same ordering as the BigNum maths, ~20x faster with 30 tiers).
@@ -247,7 +257,8 @@ function run(profile) {
     const present = t % 3600 < presence;
     const clicksPerSec = present ? 2 : (t - runStart < 180 ? 1 : 0);
     clickRate = (present ? 5 : 1) * clicksPerSec;
-    const clickYield = gs.getClickBase().add(cps.mul(0.03)).mul(clickRate * dt);
+    // While present the 3%-of-CPS click share is inside ACTIVE_MULT (R3 block); idle taps add it here
+    const clickYield = (present ? gs.getClickBase() : gs.getClickBase().add(cps.mul(0.03))).mul(clickRate * dt);
     const income = cps.mul(dt * activeMult(t)).add(clickYield);
     gs.aether = gs.aether.add(income);
     gs.totalAetherEarned = gs.totalAetherEarned.add(income);
@@ -363,6 +374,7 @@ for (const profile of ['idle', 'casual']) {
 }
 
 console.log('## Core pacing report (sim/core-pacing.mjs)');
+console.log(`\nCasual active multiplier while present: x${ACTIVE_MULT.toFixed(2)} (R3, sim/active-income.mjs)`);
 console.log(out.join('\n'));
 console.log(`\nYear-one targets (casual): ${failures.length ? 'MISSED' : 'met'}`);
 for (const f of failures) console.log(`- ${f}`);
