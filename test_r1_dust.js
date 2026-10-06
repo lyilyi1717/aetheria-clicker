@@ -38,14 +38,14 @@ assert.ok(gs.getNetAetherPerSecond().gte(cpsBefore));
 gs.cosmicDust = BigNum.zero();
 assert.equal(gs.getDustMultiplier(), 11);
 
-console.log('--- R1: Transcend preview ---');
+console.log('--- R1: Transcend preview states the real trade (R4 numbers) ---');
 gs.totalCosmicDust = new BigNum(60000);
 const tp = ps.getTranscendPreview();
-assert.equal(tp.dustBefore, 1201);
-assert.equal(tp.dustAfter, 1);
-assert.equal(tp.shardsGained.toNumber(), 6);
-assert.ok(Math.abs(tp.shardAfter - 1.6) < 1e-9);
-assert.ok(Math.abs(tp.after - 1.6) < 1e-9);
-assert.ok(tp.before > tp.after);
+assert.ok(Math.abs(tp.dustBefore.toNumber() - 1201) < 1e-6);
+assert.equal(tp.dustAfter.toNumber(), 1, 'lifetime dust of the layer resets');
+assert.equal(tp.shardsGained, 2);
+assert.ok(Math.abs(tp.shardAfter.toNumber() - 2.25) < 1e-9);
+assert.ok(Math.abs(tp.after.toNumber() - 2.25) < 1e-9);
+assert.ok(tp.before.gt(tp.after));
 
 console.log('R1 DUST TESTS PASSED');

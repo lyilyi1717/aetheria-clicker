@@ -23,7 +23,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      # Report only for now: today's game misses the year-one targets by design of the old core.
-      # Roadmap #4 (Transcend rework) switches this step to `npm run sim:check` so it becomes a gate.
-      - name: Core pacing report
-        run: npm run sim | tee -a "$GITHUB_STEP_SUMMARY"
+      # Blocking since R4: fails when the casual profile misses the year-one pacing targets
+      # (TARGETS in sim/core-pacing.mjs). pipefail keeps the sim's exit code through tee.
+      - name: Core pacing check
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run sim:check | tee -a "$GITHUB_STEP_SUMMARY"

@@ -371,6 +371,33 @@ lifetime; each row unlocks a flavour text and a cosmetic skin for that card), **
 | Transcend reset | dust, perks, run | dust, dust shop, run; **keeps** unlocks, generator tiers, subgames, Codex; shard tree is permanent | the confirm lists it |
 | Offline | uncapped, `offlineEfficiency` 1.0 + talents | **100% for 8 h, then 50% to 24 h, then 0**, shown in the modal; Chrono Reservoir raises the 8 h | visible cap; no clock-skip jackpots |
 
+*R4 implementation notes.*
+- **Lifetime dust is per layer.** Transcend sets `totalCosmicDust` (and so the dust multiplier)
+  back to 0; the gate reads it, so "1e9 × 10^k" is dust earned since the last Transcend. Shards
+  are what carries over: they multiply Aether and dust gain and never reset, which is the
+  "compounds across layers" in the table. The panel and the confirm show the trade line by line
+  (`PrestigeSystem.getTranscendPreview`). In the sim, CPS is back to its pre-Transcend level a
+  median 0.3 days (max 0.5) after each Transcend.
+- **Shards:** `fractureShards` is the spendable balance (for the shard tree, R13) and
+  `totalFractureShards` is every shard ever earned; the ×1.5 multipliers read the lifetime count
+  so spending shards never lowers production (same rule as dust).
+- **Tiers 15–30** are generated in `BuildingSystem.js` from fixed data (ids, names, icons) with
+  cost ×18 and CPS ×7 per step; tier 30 is base cost ~7.3e35, base CPS ~7.0e23. Locked tiers
+  are hidden and cannot be bought; tiers open = `min(30, 14 + transcendenceCount)`.
+- **Gate growth stays ×10.** The two-regime gate (×30 per step from Transcend X, §10 risk 3,
+  #23 default 2) is implemented as a knob (`TRANSCEND_SLOW_FROM`) but off. Re-simulated on the
+  real classes, every ×30 regime made layer 2 stall earlier, not later: casual "a reset at
+  least every 14 days" holds until day 190 with ×10, day 130 with ×30 from Transcend X, day 117
+  from Transcend XX, day 157 from Transcend XXV. Past tier 30 each ×10 gate step costs ~×100
+  in run length (dust grows as Aether^⅓ and the multiplier is linear in dust) against ~×11 from
+  two more shards (2.25³); a steeper gate only stalls sooner.
+- **Refund for old Transcends (save v4).** Each old Transcend is re-scored as a new one
+  (`transcendenceCount` kept, so tiers and the next gate match a new player at that count).
+  Shards become `max(2 × Transcends, ⌈log(1 + 0.1·S) / log 1.5⌉)` for S old shards, so no
+  save's shard multiplier drops. The dust the old Transcends took is returned: the old payout
+  was `floor(dust / 1e4)`, so S × 1e4 dust goes back into lifetime and spendable dust. The
+  Transcend panel tells the player once what was refunded.
+
 ### 6.2 Dust shop (replaces the perk list)
 
 Costs in dust; each is a one-time feature unless marked. Tiers unlock by lifetime Ascension
@@ -465,6 +492,13 @@ Transcend 1 at rule "pending ≥ 0.3 × lifetime dust, run ≥ 15 min"; active �
   Transcend count and widens spacing to ~×1.15), shard multipliers (×1.5/×1.5; ×2/×2 keeps
   Transcends weekly through month 9 but CPS reaches 1e117), dust exponent (1/3), ascend
   rule, ladder cap (30; raise to 40 to delay the 2-month cap).
+
+*Measured after R4* (`npm run sim`, real classes, casual, no upgrade shop, no auto-Ascend,
+Ascend at pending ≥ lifetime dust, Transcend at the gate): first Transcend day 7.4, 31
+Transcends in the year (8 by month 1, 22 by month 3, 29 by month 6), tier 30 at day 55,
+1,274 Ascensions, CPS 1.8e81 at a year. A reset at least every 14 days until day 190; the last
+Transcends land at days 170, 209 and 312. `TARGETS.gapWindowEndDay` in `sim/core-pacing.mjs`
+is therefore 180 until the Chronicle (R20) restores 270.
 
 **Current vs proposed, same profile:** today 16–17 Ascensions and ×200 CPS growth over the
 year; proposed ~2,800 Ascensions, 32 Transcends, 16 new generator tiers, ×1e63 growth, and a
@@ -596,6 +630,10 @@ different game. #13–#20 are the year.
 3. **Ladder cap at tier 30 (month 2).** Either raise to 40 and slow Transcend gate growth to
    ×30, or let the Chronicle add tiers. I lean to ×30 gate growth from Transcend X onward
    (two-regime gate), to be re-simulated.
+   *Re-simulated in R4:* the ×30 regime makes it worse (gap target held to day 130 instead of
+   190), so the gate stays ×10 and the knob is off (§6.1 notes). Tier 30 lands at day 55; past
+   it, shards alone keep Transcends coming every 5–21 days to ~day 170, then at days 209 and 312. The Chronicle (or more
+   tiers) is what extends that.
 4. **Layer 3 is a content commitment**, roughly a Chapter a quarter. If the owner cannot ship
    that, stretch layer 2 instead (gate ×30, shards ×2/×2) and accept ~1e117.
 5. **Model fidelity.** `sim_core_proposed.mjs` is a float model, not the real classes, and it

@@ -2,6 +2,11 @@ import { BigNum } from '../engine/BigNum.js';
 import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
 import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
 
+// Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
+// PrestigeSystem imports audio/particles and GameState must stay loadable on its own.
+export const SHARD_AETHER_MULT = 1.5;
+export const SHARD_DUST_MULT = 1.5;
+
 // Timed buffs can be extended to at most 10 minutes (x perk/talent duration multipliers)
 export const BUFF_DURATION_CAP = 600;
 // Chrono Sand bank cap (minutes) before Chrono Reservoir ranks
@@ -31,8 +36,14 @@ export class GameState {
     // Wall-clock ms when the current run began (Ascend minimum run, see PrestigeSystem.getMinRunRemaining)
     this.runStartedAt = Date.now();
 
+    // Fracture Shards: fractureShards is the spendable balance (shard tree, R13);
+    // totalFractureShards is every shard ever earned and is what the x1.5 multipliers read,
+    // so spending shards never lowers production (same rule as lifetime dust)
     this.fractureShards = new BigNum(0);
+    this.totalFractureShards = new BigNum(0);
     this.transcendenceCount = 0;
+    // Set once by the R4 save migration for saves that Transcended under the old rules
+    this.legacyTranscendRefund = null;
 
     // Active Clicker Stats
     this.clickPower = new BigNum(1);
@@ -145,14 +156,6 @@ export class GameState {
       mult *= (1 + this.market.goldenSynergy * 0.05);
     }
 
-    // Cosmic Dust bonus: +2% production per dust EARNED (lifetime), so spending dust on perks never lowers it
-    mult *= this.getDustMultiplier();
-
-    // Fracture Shards (Transcendence): +10% production each
-    if (this.fractureShards.gt(0)) {
-      mult *= 1 + this.fractureShards.toNumber() * 0.1;
-    }
-
     // Active Aether buffs add together within one category (Celestial +300% & Philter +200% = x6)
     mult *= this.getAetherBuffMult();
 
@@ -161,7 +164,9 @@ export class GameState {
       mult *= (1 + this.quartermaster['aether_treaty'].rank * 0.25);
     }
 
-    return base.mul(mult);
+    // Cosmic Dust bonus (+2% per lifetime dust this layer) and Fracture Shards (x1.5 each) are
+    // BigNum: both grow without bound across a year and must not overflow a double
+    return base.mul(mult).mul(this.getDustMultiplierBig()).mul(this.getShardAetherMult());
   }
 
   // Calculate current click damage/yield
@@ -216,6 +221,27 @@ export class GameState {
   // Production multiplier from Cosmic Dust: 1 + 0.02 per lifetime dust (spending never lowers it)
   getDustMultiplier(total = this.totalCosmicDust) {
     return Math.max(1, 1 + total.toNumber() * 0.02);
+  }
+
+  // Same as getDustMultiplier, without the double overflow past 1e308 dust
+  getDustMultiplierBig(total = this.totalCosmicDust) {
+    return BigNum.one().add(total.mul(0.02)).max(1);
+  }
+
+  // Lifetime Fracture Shards as a plain count (shards are small integers; 0 if unset)
+  getShardCount(total = this.totalFractureShards) {
+    const n = total?.toNumber?.() ?? 0;
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+  }
+
+  // Fracture Shards: x1.5 Aether production per lifetime shard
+  getShardAetherMult(shards = this.getShardCount()) {
+    return new BigNum(SHARD_AETHER_MULT).pow(shards);
+  }
+
+  // Fracture Shards: x1.5 Cosmic Dust gain per lifetime shard
+  getShardDustMult(shards = this.getShardCount()) {
+    return new BigNum(SHARD_DUST_MULT).pow(shards);
   }
 
   // Depth Resonance (Excavation -> Aether): x(1 + 0.02 * maxDepth)
@@ -320,7 +346,9 @@ export class GameState {
       ascensionCount: this.ascensionCount,
       runStartedAt: this.runStartedAt,
       fractureShards: this.fractureShards.toJSON(),
+      totalFractureShards: this.totalFractureShards.toJSON(),
       transcendenceCount: this.transcendenceCount,
+      legacyTranscendRefund: this.legacyTranscendRefund,
       clickPower: this.clickPower.toJSON(),
       critChance: this.critChance,
       critMultiplier: this.critMultiplier,
@@ -366,7 +394,12 @@ export class GameState {
       // Saves from before R2 have no run clock: their run is old enough, so no wait
       this.runStartedAt = Number.isFinite(data.runStartedAt) ? data.runStartedAt : 0;
       this.fractureShards = BigNum.fromJSON(data.fractureShards);
-      this.transcendenceCount = data.transcendenceCount ?? 0;
+      // Lifetime shards can never be below the balance (the v4 migration sets both)
+      this.totalFractureShards = BigNum.fromJSON(data.totalFractureShards).max(this.fractureShards);
+      const tc = Math.floor(Number(data.transcendenceCount));
+      this.transcendenceCount = Number.isFinite(tc) && tc > 0 ? tc : 0;
+      this.legacyTranscendRefund = data.legacyTranscendRefund && typeof data.legacyTranscendRefund === 'object'
+        ? data.legacyTranscendRefund : null;
       this.clickPower = BigNum.fromJSON(data.clickPower);
       this.critChance = data.critChance ?? 0.05;
       this.critMultiplier = data.critMultiplier ?? 3.0;

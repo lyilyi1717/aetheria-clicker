@@ -130,6 +130,54 @@ export const BUILDING_DEFINITIONS = [
   }
 ];
 
+// Generator ladder (design doc 6.1, roadmap R4): the 14 hand-written tiers above, then one new
+// tier per Transcend up to 30. Tier n costs x18 and yields x7 over tier n-1 (the hand-written
+// ladder's own average ratios). Generated from fixed data so every build makes the same ids,
+// costs and yields: saves key buildings by id, so ids here must never change or be reordered.
+export const BASE_TIER_COUNT = 14;
+export const MAX_TIER_COUNT = 30;
+export const TIER_COST_RATIO = 18;
+export const TIER_CPS_RATIO = 7;
+
+const GENERATED_TIERS = [
+  ['falcon_club', 'Falcon Racing Club', '🦅', 'Trains hyperspace falcons to fetch aether from passing comets.'],
+  ['camel_derby', 'Robot Camel Derby', '🐪', 'Jockey drones race at relativistic speed; the wagers fuel the void.'],
+  ['date_vault', 'Date Palm Vault', '🌴', 'Ages sukkari dates until they collapse into sugar stars.'],
+  ['kabsa_reactor', 'Kabsa Fusion Reactor', '🍲', 'Fuses rice and saffron at the core of a captive sun.'],
+  ['oud_engine', 'Oud Resonance Engine', '🎶', 'Every strummed note splits into a thousand paying echoes.'],
+  ['dune_array', 'Dune Solar Array', '☀️', 'Turns the whole Rub al Khali into one shimmering collector.'],
+  ['mirage_forge', 'Mirage Forge', '🏜️', 'Hammers heat-shimmer mirages into solid, sellable reality.'],
+  ['qahwa_nebula', 'Qahwa Nebula', '☕', 'A cardamom cloud where new galaxies are brewed and poured.'],
+  ['sadu_loom', 'Sadu Star Loom', '🧶', 'Weaves constellations into rugs that pay rent across dimensions.'],
+  ['oasis_gate', 'Oasis Wormhole', '🌀', 'Every spring in the desert opens onto a richer universe.'],
+  ['cosmic_majlis', 'Cosmic Majlis', '🛋️', 'Elder gods drop by for coffee and leave tips the size of planets.'],
+  ['thobe_singularity', 'Thobe Singularity', '👘', 'A perfectly ironed thobe so crisp it bends spacetime.'],
+  ['hejaz_hyperrail', 'Hejaz Hyperrail', '🚄', 'The old railway, rebuilt to run between parallel timelines.'],
+  ['empty_quarter_engine', 'Empty Quarter Engine', '🌌', 'Harvests the nothing between grains of sand. There is a lot of it.'],
+  ['pearl_dyson', 'Pearl-Diver Dyson Sphere', '🦪', 'Divers wrap a star in nacre and harvest its glow.'],
+  ['eternal_dallah', 'The Eternal Dallah', '🏺', 'Pours a coffee that never ends, and so neither does the Aether.']
+];
+
+{
+  const top = BUILDING_DEFINITIONS[BASE_TIER_COUNT - 1];
+  GENERATED_TIERS.forEach(([id, name, icon, desc], i) => {
+    const step = i + 1;
+    BUILDING_DEFINITIONS.push({
+      id, name, desc, icon,
+      baseCost: top.baseCost.mul(new BigNum(TIER_COST_RATIO).pow(step)),
+      baseCps: top.baseCps.mul(new BigNum(TIER_CPS_RATIO).pow(step)),
+      costMult: 1.15
+    });
+  });
+  BUILDING_DEFINITIONS.forEach((def, i) => { def.tier = i + 1; });
+}
+
+// Tiers open to the player: the 14 base tiers plus one per Transcend, capped at 30
+export function getUnlockedTierCount(gameState) {
+  const t = Math.max(0, Math.floor(Number(gameState?.transcendenceCount) || 0));
+  return Math.min(MAX_TIER_COUNT, BASE_TIER_COUNT + t);
+}
+
 // id -> definition; the per-frame building UI used to linear-search this list per call
 const BUILDING_BY_ID = new Map(BUILDING_DEFINITIONS.map(d => [d.id, d]));
 
@@ -152,6 +200,15 @@ export class BuildingSystem {
         };
       }
     }
+  }
+
+  getUnlockedTierCount() {
+    return getUnlockedTierCount(this.gameState);
+  }
+
+  isTierUnlocked(id) {
+    const def = BUILDING_BY_ID.get(id);
+    return !!def && def.tier <= this.getUnlockedTierCount();
   }
 
   getTotalBuildingsCount() {
@@ -180,7 +237,7 @@ export class BuildingSystem {
 
   getMaxBuyable(id) {
     const def = BUILDING_BY_ID.get(id);
-    if (!def) return { count: 0, cost: BigNum.zero() };
+    if (!def || !this.isTierUnlocked(id)) return { count: 0, cost: BigNum.zero() };
 
     const current = this.gameState.buildings[id].count;
     const r = def.costMult;
@@ -212,7 +269,7 @@ export class BuildingSystem {
 
   buyBuilding(id) {
     const def = BUILDING_BY_ID.get(id);
-    if (!def) return false;
+    if (!def || !this.isTierUnlocked(id)) return false;
 
     let toBuy = 1;
     let cost = BigNum.zero();

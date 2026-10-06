@@ -1,6 +1,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
+import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
 
 export const ASCENSION_PERKS = [
   { id: 'genesis', name: 'Cosmic Genesis', desc: 'Start with 15 Tappers & 1,000 Gold on reset.', cost: 5, maxRank: 1 },
@@ -16,6 +17,18 @@ export const ASCENSION_PERKS = [
 export const DUST_EXPONENT = 1 / 3;
 // Shortest run that may Ascend (design doc 2.1 / 6.1)
 export const MIN_RUN_SECONDS = 600;
+
+// Transcend (layer 2, design doc 6.1 / roadmap R4)
+// Gate for the next Transcend, in lifetime dust of the current layer: 1e9 x 10^k, k = Transcends
+// so far. The two-regime knob from issue #23 (default 2: x30 per step from Transcend X onward)
+// is kept but off: re-simulated in R4, any x30 regime stalls layer 2 weeks to months earlier
+// (design doc 10, risk 3). Set TRANSCEND_SLOW_FROM to n to make Transcend n the first x30 step.
+export const TRANSCEND_BASE_GATE = 1e9;
+export const TRANSCEND_GATE_GROWTH = 10;
+export const TRANSCEND_GATE_GROWTH_LATE = 30;
+export const TRANSCEND_SLOW_FROM = Infinity;
+export const TRANSCEND_SHARDS = 2;        // shards paid per Transcend
+export { SHARD_AETHER_MULT, SHARD_DUST_MULT } from './GameState.js'; // x1.5 each per lifetime shard
 
 // Dust-gain links (design doc §5.3). Each is its own multiplicative category on pending dust.
 // Geode Attunement (Excavation -> Dust): x(1 + 0.10 * floor(maxDepth / 10))
@@ -53,21 +66,24 @@ export class PrestigeSystem {
 
   // Breakdown of the dust-gain multipliers shown on the Ascend button
   getDustMultipliers() {
+    const shards = this.gameState.getShardCount();
     return {
       depth: this.gameState.miningGrid?.maxDepth || 0,
       geode: getGeodeAttunementMult(this.gameState),
       nectar: getNectarHeld(this.gameState),
-      nectarMult: getNectarOfferingMult(this.gameState)
+      nectarMult: getNectarOfferingMult(this.gameState),
+      shards,
+      shardMult: this.gameState.getShardDustMult(shards)
     };
   }
 
-  // Calculate pending Cosmic Dust upon Ascension (base x Geode Attunement x Nectar Offering)
+  // Calculate pending Cosmic Dust upon Ascension (base x Geode Attunement x Nectar Offering x shards)
   getPendingCosmicDust() {
     const base = this.getBaseCosmicDust();
     if (base.lte(0)) return base;
     const m = this.getDustMultipliers();
     // tiny epsilon so float noise (e.g. 150 x 1.2 = 179.999...) never floors a whole dust away
-    return base.mul(new BigNum(m.geode * m.nectarMult * (1 + 1e-12))).floor();
+    return base.mul(new BigNum(m.geode * m.nectarMult * (1 + 1e-12))).mul(m.shardMult).floor();
   }
 
   // Base dust from run Aether only, before the dust-gain links
@@ -153,35 +169,56 @@ export class PrestigeSystem {
     return true;
   }
 
-  // Multiverse Transcendence (Prestige Tier 2)
-  canTranscend() {
-    return this.gameState.totalCosmicDust.gte(new BigNum(50000));
+  // Multiverse Transcendence (Prestige Tier 2, design doc 6.1)
+  // Lifetime dust (this layer) needed for Transcend number k + 1, k = Transcends so far
+  getTranscendGate(k = this.gameState.transcendenceCount || 0) {
+    const fast = Math.min(k, TRANSCEND_SLOW_FROM - 2);
+    const slow = Math.max(0, k - (TRANSCEND_SLOW_FROM - 2));
+    return new BigNum(TRANSCEND_BASE_GATE)
+      .mul(new BigNum(TRANSCEND_GATE_GROWTH).pow(fast))
+      .mul(new BigNum(TRANSCEND_GATE_GROWTH_LATE).pow(slow));
   }
 
-  // What Transcend trades, for the confirm dialog: lifetime dust (and so the dust multiplier)
-  // resets to 0, shards add +10% each. Reports the dust x shard Aether multiplier before and after.
+  canTranscend() {
+    return this.gameState.totalCosmicDust.gte(this.getTranscendGate());
+  }
+
+  // What Transcend trades, for the confirm dialog and the panel. Lifetime dust of this layer (and
+  // so the dust multiplier) goes back to 0; the run, dust and perks reset. In return: +2 shards
+  // (x1.5 Aether and x1.5 dust gain each, permanent) and the next generator tier.
+  // before/after compare the dust x shard Aether multipliers right before and right after.
   getTranscendPreview() {
     const gs = this.gameState;
-    const shards = gs.totalCosmicDust.div(10000).floor();
-    const shardMult = (n) => 1 + n.toNumber() * 0.1;
-    const dustBefore = gs.getDustMultiplier();
-    const dustAfter = gs.getDustMultiplier(BigNum.zero());
-    const shardBefore = shardMult(gs.fractureShards);
-    const shardAfter = shardMult(gs.fractureShards.add(shards));
+    const shardsBefore = gs.getShardCount();
+    const shardsAfter = shardsBefore + TRANSCEND_SHARDS;
+    const dustBefore = gs.getDustMultiplierBig();
+    const dustAfter = BigNum.one();
+    const shardBefore = gs.getShardAetherMult(shardsBefore);
+    const shardAfter = gs.getShardAetherMult(shardsAfter);
+    const tiersBefore = getUnlockedTierCount(gs);
+    const tiersAfter = getUnlockedTierCount({ transcendenceCount: (gs.transcendenceCount || 0) + 1 });
     return {
-      shardsGained: shards,
-      dustBefore, dustAfter, shardBefore, shardAfter,
-      before: dustBefore * shardBefore,
-      after: dustAfter * shardAfter
+      gate: this.getTranscendGate(),
+      nextGate: this.getTranscendGate((gs.transcendenceCount || 0) + 1),
+      shardsGained: TRANSCEND_SHARDS,
+      shardsBefore, shardsAfter,
+      dustBefore, dustAfter,
+      shardBefore, shardAfter,
+      dustGainBefore: gs.getShardDustMult(shardsBefore),
+      dustGainAfter: gs.getShardDustMult(shardsAfter),
+      tiersBefore, tiersAfter,
+      newTier: tiersAfter > tiersBefore ? BUILDING_DEFINITIONS[tiersAfter - 1] : null,
+      before: dustBefore.mul(shardBefore),
+      after: dustAfter.mul(shardAfter)
     };
   }
 
   transcend() {
     if (!this.canTranscend()) return false;
 
-    // BigNum division: toNumber() is Infinity past 1e308 dust, which floored to 0 shards
-    const shardsGained = this.gameState.totalCosmicDust.div(10000).floor();
+    const shardsGained = new BigNum(TRANSCEND_SHARDS);
     this.gameState.fractureShards = this.gameState.fractureShards.add(shardsGained);
+    this.gameState.totalFractureShards = this.gameState.totalFractureShards.add(shardsGained);
     this.gameState.transcendenceCount++;
 
     // Reset Tier 1
@@ -201,7 +238,7 @@ export class PrestigeSystem {
     }
 
     sound.playAscension();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `TRANSCENDED REALITY! +${shardsGained.format('standard', 0)} FRACTURE SHARDS!`, '#ec4899', true);
+    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `TRANSCENDED REALITY! +${TRANSCEND_SHARDS} FRACTURE SHARDS!`, '#ec4899', true);
     return true;
   }
 }
