@@ -105,8 +105,9 @@ export class SaveManager {
   processOfflineTime(savedAt) {
     if (!savedAt) return null;
     const now = Date.now();
+    // A clock moved backwards gives a negative gap: it pays nothing (never negative)
     const elapsedSeconds = Math.max(0, (now - savedAt) / 1000);
-    if (elapsedSeconds < 5) return null; // Ignore short micro-reloads
+    if (!Number.isFinite(elapsedSeconds) || elapsedSeconds < 5) return null; // Ignore short micro-reloads
 
     // Calculate offline resources based on current production rates
     const prodPerSec = this.gameState.getNetAetherPerSecond();
@@ -117,14 +118,17 @@ export class SaveManager {
       offlineEfficiency += this.gameState.quartermaster['chronos_contract'].rank * 0.05;
     }
     
-    const capped = elapsedSeconds > OFFLINE_AETHER_CAP;
-    const effectiveSecs = Math.min(elapsedSeconds, OFFLINE_AETHER_CAP) * offlineEfficiency;
+    // Banded payout (100% then 50%); Chrono Reservoir extends the bands. Efficiency (talents,
+    // Chronos Contract) multiplies whatever the bands pay.
+    const reservoirRank = this.gameState.ascensionPerks?.chrono_vault?.rank || 0;
+    const bands = computeOfflineBands(elapsedSeconds, reservoirRank);
+    const effectiveSecs = bands.paidSecs * offlineEfficiency;
 
     const gainedAether = prodPerSec.mul(effectiveSecs);
     this.gameState.aether = this.gameState.aether.add(gainedAether);
     this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(gainedAether);
 
-    // Give Chrono Sand / Time Warps (1 Chrono Sand per minute offline, capped at 1440 mins = 24 hrs)
+    // Give Chrono Sand / Time Warps (1 Chrono Sand per minute offline, up to the sand bank cap)
     const minutes = Math.floor(elapsedSeconds / 60);
     // Chrono Reservoir perk: +50% cap per rank. The same cap bounds the whole sand bank.
     const sandCap = this.gameState.getChronoSandCap();
@@ -137,7 +141,9 @@ export class SaveManager {
 
     return {
       elapsedSeconds,
-      capped,
+      capped: bands.capped,
+      bands,
+      efficiency: offlineEfficiency,
       gainedAether,
       chronoEarned,
       gardenHarvests: garden.harvests

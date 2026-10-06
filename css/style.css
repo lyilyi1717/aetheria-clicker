@@ -1692,8 +1692,22 @@ body {
   border-radius: 12px;
   padding: 2rem;
   max-width: 480px;
+  width: calc(100% - 32px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   text-align: center;
 }
+.offline-title { font-family: var(--font-display); color: var(--accent-cyan); margin-bottom: 0.75rem; }
+.offline-intro { color: var(--text-muted); }
+.offline-totals { margin: 1rem 0; padding: 1rem; background: rgba(56, 189, 248, 0.1); border-radius: 8px; }
+.offline-aether { font-size: 1.25rem; font-weight: 700; color: var(--accent-cyan); overflow-wrap: anywhere; }
+.offline-chrono { font-size: 1rem; color: var(--accent-gold); margin-top: 0.35rem; }
+.offline-breakdown { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 0 0 0.75rem; }
+.offline-breakdown td { padding: 0.3rem 0.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.06); text-align: right; }
+.offline-breakdown td:first-child { text-align: left; color: var(--text-muted); }
+.offline-breakdown tr.offline-total td { font-weight: 700; color: var(--text-main); border-bottom: 0; }
+.offline-note { color: var(--text-muted); font-size: 0.8rem; margin: 0 0 1rem; }
+.offline-close { width: 100%; padding: 0.6rem; }
 
 /* Golden Custom Tooltip */
 #global-tooltip {
