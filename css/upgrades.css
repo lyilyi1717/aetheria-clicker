@@ -1,0 +1,60 @@
+/* Upgrade shop (R5): js/ui/upgrades.js. Tokens and components from docs/ui-style-guide.md;
+   layout from docs/ui/mockups/app-shell.html (.upg-row tiles) and components.html (.upcard). */
+
+.monolith-right-col { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
+
+.upgrade-shop { padding: var(--sp-4); }
+.upg-head { margin-bottom: var(--sp-3); }
+.upg-head h3 { margin: 0; font-size: var(--fs-18); }
+.upg-sub { font-family: var(--font-ui); font-weight: 500; font-size: var(--fs-13); color: var(--text-3); margin-left: var(--sp-1); }
+
+/* Tile row: scrolls inside its own container, never the page */
+.upg-row { display: flex; gap: var(--sp-2); overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; }
+.upg {
+  flex: 0 0 auto; width: 56px; height: 56px; display: grid; place-items: center; position: relative;
+  border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-2);
+  color: var(--text-1); font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 0;
+  transition: border-color var(--dur-2) var(--ease-out), background var(--dur-1) var(--ease-out);
+}
+.upg:hover { background: var(--bg-3); }
+.upg:focus-visible { outline: 2px solid var(--aether); outline-offset: 2px; }
+.upg.aff { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-dim), 0 0 12px var(--gold-dim); }
+.upg.lock { opacity: 0.5; filter: grayscale(1); }
+.upg.is-selected { background: var(--bg-4); outline: 2px solid var(--aether); outline-offset: 1px; }
+.upg .p { position: absolute; left: 0; bottom: -1px; height: 3px; width: 0; background: var(--gold); border-radius: 0 0 6px 6px; transition: width var(--dur-3) var(--ease-out); }
+.upg .upg-mark { position: absolute; right: 3px; top: 2px; font-size: 10px; color: var(--gold); line-height: 1; }
+.upg.lock .upg-mark { color: var(--text-3); }
+.upg-more { font-size: var(--fs-13); font-weight: 700; color: var(--text-2); font-family: var(--font-ui); }
+
+/* Full card for the selected tile (components.html "R5 upgrade cards") */
+.upcard {
+  display: grid; grid-template-columns: 44px 1fr auto; gap: var(--sp-3); align-items: center;
+  margin-top: var(--sp-3); padding: var(--sp-3); border-radius: var(--r-2);
+  background: var(--bg-2); border: 1px solid var(--line-1);
+  transition: border-color var(--dur-2) var(--ease-out);
+}
+.upcard[hidden] { display: none; }
+.upcard.aff { border-color: rgba(251, 191, 36, 0.5); }
+.upcard.is-locked { opacity: 0.85; }
+.upcard-text { min-width: 0; }
+.upcard .n { font-weight: 700; font-size: var(--fs-13); color: var(--text-1); }
+.upcard .e { font-size: var(--fs-12); color: var(--text-2); }
+.upcard .req { font-size: var(--fs-11); color: var(--text-3); overflow-wrap: anywhere; }
+.upg-togo { font-size: var(--fs-12); color: var(--text-3); white-space: nowrap; }
+.upg-empty { font-size: var(--fs-12); color: var(--text-3); }
+
+@media (max-width: 639px) {
+  .upcard { grid-template-columns: 40px 1fr; }
+  .upcard .btn, .upcard .upg-togo { grid-column: 2; justify-self: start; }
+  .upcard .icon-tile { width: 40px; height: 40px; }
+}
+
+/* Reduced motion (style guide 6, R24): no fills sliding, no state transitions */
+:root[data-motion="reduced"] .upg,
+:root[data-motion="reduced"] .upg .p,
+:root[data-motion="reduced"] .upcard { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) .upg,
+  :root:not([data-motion="full"]) .upg .p,
+  :root:not([data-motion="full"]) .upcard { transition: none; }
+}

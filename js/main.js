@@ -27,6 +27,8 @@ import { BuffBar } from './buffBar.js';
 import { Shell } from './ui/shell.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
+import { UpgradeSystem } from './systems/UpgradeSystem.js';
+import { UpgradeShopUI } from './ui/upgrades.js';
 import { gearCard } from './ui/rarity.js';
 import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
@@ -76,6 +78,7 @@ class AetheriaApp {
     this.prestigeSystem = new PrestigeSystem(this.gameState);
     this.achievementSystem = new AchievementSystem(this.gameState);
     this.fastForwardSystem = new FastForwardSystem(this.gameState);
+    this.upgradeSystem = new UpgradeSystem(this.gameState);
 
     // Separate 1x/10x/MAX settings: Buildings use buildingSystem.buyAmount, the Enchanter this
     this.enchanterBuyAmount = 1;
@@ -88,6 +91,7 @@ class AetheriaApp {
     this.gameState.bountySystem = this.bountySystem;
     this.gameState.achievementSystem = this.achievementSystem;
     this.gameState.marketSystem = this.marketSystem;
+    this.gameState.upgradeSystem = this.upgradeSystem;
 
     // Game loop
     this.gameLoop = new GameLoop(
@@ -658,6 +662,8 @@ class AetheriaApp {
     this.breedingUI.build();
     this.wardensRelicsUI = new WardensRelicsUI(this, fmtNum);
     this.wardensRelicsUI.build();
+    this.upgradeShopUI = new UpgradeShopUI(this);
+    this.upgradeShopUI.build();
     this.buildSpellsStructure();
     this.buildTalentsStructure();
     this.buildBountiesStructure();
@@ -1879,6 +1885,7 @@ class AetheriaApp {
     if (this.currentTab === 'monolith') {
       this.renderMonolithOverview();
       this.updateBuildingsUI();
+      this.upgradeShopUI?.update();
     } else if (this.currentTab === 'combat') {
       this.updateCombatUI();
     } else if (this.currentTab === 'mining') {

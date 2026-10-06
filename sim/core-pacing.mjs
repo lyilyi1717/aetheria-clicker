@@ -22,7 +22,7 @@ import { GameState } from '../js/systems/GameState.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from '../js/systems/BuildingSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from '../js/systems/PrestigeSystem.js';
 import { AchievementSystem } from '../js/systems/AchievementSystem.js';
-import { UpgradeSystem } from '../js/systems/UpgradeSystem.js';
+import { UpgradeSystem, TIER_UPGRADE_MULT, SYNERGY_PER_UNIT } from '../js/systems/UpgradeSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
@@ -52,13 +52,35 @@ const CHECKPOINTS = [
 // (clicks/s x combo), converted into those units by dividing by the global multiplier.
 function makeUpgradeShopBuyer(gs, bs, us) {
   const lg = (x) => Math.log10(Math.abs(x.m)) + x.e;
+  // Sorted by cost so the scan stops at the first upgrade the budget can't reach
+  const entries = us.definitions.map(u => ({ u, costLog: lg(u.cost) })).sort((a, b) => a.costLog - b.costLog);
+  const baseCpsLog = new Map(BUILDING_DEFINITIONS.map(d => [d.id, lg(d.baseCps)]));
+  // log10 of one tier's output, same terms as BuildingSystem.getBuildingProduction (the sim
+  // has no talents), without allocating BigNums: this runs thousands of times per sim day
+  const prodLog = (id) => {
+    const cnt = gs.buildings[id].count;
+    if (cnt <= 0) return -Infinity;
+    return baseCpsLog.get(id) + Math.log10(cnt * bs.getMilestoneMultiplier(cnt) * gs.getTierUpgradeMult(id));
+  };
+  const tierGainLog = Math.log10(TIER_UPGRADE_MULT - 1);
+  // Not-yet-bought upgrades of the open tiers; rebuilt when a reset replaces gs.upgrades or a
+  // Transcend opens a tier, pruned as upgrades are bought
+  let remaining = [], forUpgrades = null, forTiers = -1;
   return (budgetLog, clickRate) => {
+    const tiers = bs.getUnlockedTierCount();
+    if (forUpgrades !== gs.upgrades || forTiers !== tiers) {
+      forUpgrades = gs.upgrades; forTiers = tiers;
+      remaining = entries.filter(({ u }) => u.tier <= tiers);
+    }
     let best = null, bestRatio = -Infinity;
     let globalLog = null;
-    for (const u of us.definitions) {
-      if (u.cost.e > budgetLog + 1) continue;          // cheap pre-filter before the BigNum checks
-      const cost = lg(u.cost);
-      if (cost > budgetLog + 1e-9 || !us.isAvailable(u.id)) continue;
+    let w = 0;
+    for (let i = 0; i < remaining.length; i++) {
+      const { u, costLog } = remaining[i];
+      if (gs.upgrades[u.id]) continue;               // bought: drop from the list
+      remaining[w++] = remaining[i];
+      if (costLog > budgetLog + 1e-9) { while (++i < remaining.length) remaining[w++] = remaining[i]; break; }
+      if (!us.isAvailable(u.id)) continue;
       let gainLog;
       if (u.kind === 'click') {
         if (clickRate <= 0) continue;
@@ -67,14 +89,15 @@ function makeUpgradeShopBuyer(gs, bs, us) {
           globalLog = base.gt(0) ? lg(gs.getNetAetherPerSecond()) - lg(base) : 0;
         }
         gainLog = lg(gs.getClickBase()) + Math.log10(clickRate) - globalLog;
+      } else if (u.kind === 'tier') {
+        gainLog = prodLog(u.building) + tierGainLog;
       } else {
-        const gain = us.getProductionGain(u.id);
-        if (!gain.gt(0)) continue;
-        gainLog = lg(gain);
+        gainLog = prodLog(u.building) + Math.log10(SYNERGY_PER_UNIT * gs.buildings[u.source].count);
       }
-      const ratio = gainLog - cost;
+      const ratio = gainLog - costLog;
       if (ratio > bestRatio) { bestRatio = ratio; best = u.id; }
     }
+    remaining.length = w;
     return best ? { id: best, ratio: bestRatio } : null;
   };
 }

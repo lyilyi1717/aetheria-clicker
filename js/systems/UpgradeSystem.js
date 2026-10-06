@@ -14,11 +14,11 @@ import { sound } from '../engine/AudioEngine.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
 
 export const TIER_UPGRADE_THRESHOLDS = [1, 10, 50, 100, 200];
-export const TIER_UPGRADE_MULT = 2;
+export const TIER_UPGRADE_MULT = Number(globalThis.process?.env?.TM || 2);
 export const CLICK_UPGRADE_COUNT = 15;
 export const CLICK_UPGRADE_MULT = 2;
 export const CLICK_UPGRADE_COST_FACTOR = 10;   // click upgrade i costs 10 x baseCost(tier i)
-export const SYNERGY_PER_UNIT = 0.01;          // +1% to tier A per tier B owned
+export const SYNERGY_PER_UNIT = Number(globalThis.process?.env?.SY || 0.01);         // +1% to tier A per tier B owned
 export const SYNERGY_MIN_TARGET = 25;          // own 25 of tier A ...
 export const SYNERGY_MIN_SOURCE = 50;          // ... and 50 of tier B to see the synergy
 export const SYNERGY_COST_EXP = 4;             // cost: baseCost(A) x 10^4
