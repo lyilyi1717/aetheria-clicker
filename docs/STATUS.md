@@ -109,6 +109,9 @@ the nav).
 - New UI: use the classes in `css/components.css` (live in `docs/ui/mockups/components.html`)
   and the tokens in `css/tokens.css`; no new hex values. Buy buttons: `.btn-primary` when
   affordable, `.is-locked` + `aria-disabled` with the missing amount otherwise.
+- Delegated click handlers in `main.js` (talents, spells, alchemy, quartermaster, perks) only fire
+  on buttons with the `active` class. Restyling a button must keep toggling it, or clicks do
+  nothing (talents broke this way after R22). `test_click_gates.js` guards it.
 
 ## Noticed (not yet an issue)
 
