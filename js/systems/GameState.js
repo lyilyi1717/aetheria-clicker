@@ -4,6 +4,7 @@ import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
 import { defaultRecords, sanitizeRecords, serializeRecords, seedRecords } from './TalentSources.js';
 import { defaultShardTreeState, sanitizeShardTreeState } from './ShardTreeSystem.js';
 import { defaultCalendarState, sanitizeCalendarState } from './CalendarSystem.js';
+import { getTierUpgradeMult, getClickUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
 
 // Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
 // PrestigeSystem imports audio/particles and GameState must stay loadable on its own.
@@ -63,6 +64,9 @@ export class GameState {
     this.frenzyTimer = 0;
     this.totalClicks = 0;
 
+    // Upgrade shop (R5, UpgradeSystem.js): { [id]: true } for upgrades bought this run
+    this.upgrades = {};
+
     // Materials / Inventory
     this.inventory = {
       stone: 0,
@@ -113,7 +117,8 @@ export class GameState {
     this.alchemy = { catalysts: 0 };
     this.spells = {};
     this.talents = {};
-    this.bounties = [];
+    this.bounties = [];     // the contract board
+    this.contracts = null;  // board timer { nextAt, lastClickAt }, set up by BountySystem
     this.market = null;
     this.ascensionPerks = {};
     this.achievements = {};
@@ -182,9 +187,19 @@ export class GameState {
     return base.mul(mult).mul(this.getDustMultiplierBig()).mul(this.getShardAetherMult());
   }
 
+  // Upgrade shop: output multiplier for one generator tier (BuildingSystem.getBuildingProduction)
+  getTierUpgradeMult(buildingId) {
+    return getTierUpgradeMult(this, buildingId);
+  }
+
+  // Base click before the CPS share: clickPower x 2^(click upgrades bought) (design doc 6.1)
+  getClickBase() {
+    return this.clickPower.mul(getClickUpgradeMult(this));
+  }
+
   // Calculate current click damage/yield
   getClickYield() {
-    let base = this.clickPower;
+    let base = this.getClickBase();
 
     // Add % of passive CPS to click
     const cps = this.getNetAetherPerSecond();
@@ -369,6 +384,7 @@ export class GameState {
       critChance: this.critChance,
       critMultiplier: this.critMultiplier,
       totalClicks: this.totalClicks,
+      upgrades: serializeUpgrades(this.upgrades),
       inventory: { ...this.inventory },
       stats: { ...this.stats },
       guildSeals: this.guildSeals,
@@ -383,6 +399,7 @@ export class GameState {
       spells: this.spells,
       talents: this.talents,
       bounties: this.bounties,
+      contracts: this.contracts ? { ...this.contracts } : null,
       quartermaster: this.quartermaster,
       market: this.market,
       ascensionPerks: this.ascensionPerks,
@@ -426,6 +443,8 @@ export class GameState {
       this.critChance = data.critChance ?? 0.05;
       this.critMultiplier = data.critMultiplier ?? 3.0;
       this.totalClicks = data.totalClicks ?? 0;
+      // Saves before R5 have no upgrades: nothing bought
+      this.upgrades = sanitizeUpgrades(data.upgrades);
       this.inventory = { ...this.inventory, ...(data.inventory || {}) };
       // Mining used to store rubies under 'rubys'; fold them into the real key
       if (this.inventory.rubys) {
@@ -450,6 +469,8 @@ export class GameState {
       for (const b of this.bounties) {
         b.rewards.gold = BigNum.fromJSON(b.rewards.gold);
       }
+      // Saves from before R10 have no board timer: BountySystem starts one (and keeps their contracts)
+      this.contracts = data.contracts && typeof data.contracts === 'object' ? { ...data.contracts } : null;
       this.quartermaster = data.quartermaster || null;
       this.market = data.market || null;
       if (this.market?.caravan) {

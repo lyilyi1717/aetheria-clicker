@@ -1,26 +1,34 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from '../ui/rewards.js';
-import { ensureRecords, grantTalentPoints, recordContractClaim } from './TalentSources.js';
+import { grantTalentPoints, recordContractClaim } from './TalentSources.js';
 
-// Stand-in for the paced contract board (roadmap 4.4, R10): the board still refills instantly, so
-// Guild Rank counts at most one claim per 30 min, banked up to 6 (the board's real ceiling of 48 a
-// day). Over-limit claims still pay gold, seals and sand. R10 replaces this with the real board and
-// calls recordContractClaim() directly.
-export const GUILD_CLAIM_INTERVAL_MS = 30 * 60 * 1000;
-export const GUILD_CLAIM_BANK = 6;
+// Contract board (roadmap 4.4, R10). The board holds up to BOARD_SIZE contracts. One new contract
+// arrives every CONTRACT_INTERVAL_MS of wall-clock time (never sped up by Fast Forward) while there
+// is a free slot; nothing refills instantly on claim. Time away is never punished: the board keeps
+// filling while the player is gone, up to its cap. The ceiling is 48 arrivals a day, which is what
+// the Guild Rank (S3) curve in TalentSources assumes. Each claimed contract counts toward the rank.
+export const CONTRACT_INTERVAL_MS = 30 * 60 * 1000;
+export const BOARD_SIZE = 6;
+export const STARTER_CONTRACTS = 4;          // a save with no board yet is topped up to this
+export const CLICK_RECENT_MS = 5 * 60 * 1000; // click contracts only roll if the player clicked this recently
+export const SIZE_PER_RANK = 0.15;            // required = reqBase * d * (1 + 0.15 * guildRank), up to `cap`
 
+// `tab` is the tab the contract is played in (a contract only rolls once that tab is open to the
+// player), `task(n)` the one-line task, `cap` the largest target (about 10 minutes of normal play).
 export const BOUNTY_TEMPLATES = [
-  { type: 'click', title: 'Energize the Monolith', reqBase: 50, icon: '👆', desc: 'Perform manual clicks' },
-  { type: 'crit_click', title: 'Critical Resonance', reqBase: 12, icon: '🎯', desc: 'Land critical clicks' },
-  { type: 'slay_monster', title: 'Purge the Catacombs', reqBase: 6, icon: '⚔️', desc: 'Slay dungeon monsters' },
-  { type: 'slay_boss', title: 'Boss Execution', reqBase: 1, icon: '👑', desc: 'Slay dungeon floor bosses' },
-  { type: 'mine_block', title: 'Subterranean Excavation', reqBase: 10, icon: '⛏️', desc: 'Mine underground tiles' },
-  { type: 'harvest_plant', title: 'Botanical Gathering', reqBase: 4, icon: '🌱', desc: 'Harvest mature plants' },
-  { type: 'brew_potion', title: 'Alchemist Calling', reqBase: 2, icon: '🧪', desc: 'Brew potions or catalysts' },
-  { type: 'cast_spell', title: 'Arcane Mastery', reqBase: 3, icon: '✨', desc: 'Cast active spells' },
-  { type: 'buy_building', title: 'Expanding Empire', reqBase: 10, icon: '🏛️', desc: 'Construct generators' }
+  { type: 'click', title: 'Energize the Monolith', reqBase: 50, cap: 600, icon: '👆', tab: 'monolith', desc: 'Perform manual clicks', task: n => `Click ${n} times` },
+  { type: 'crit_click', title: 'Critical Resonance', reqBase: 12, cap: 90, icon: '🎯', tab: 'monolith', desc: 'Land critical clicks', task: n => `Land ${n} critical clicks` },
+  { type: 'slay_monster', title: 'Purge the Catacombs', reqBase: 6, cap: 120, icon: '⚔️', tab: 'combat', desc: 'Slay dungeon monsters', task: n => `Slay ${n} dungeon monsters` },
+  { type: 'slay_boss', title: 'Boss Execution', reqBase: 1, cap: 4, icon: '👑', tab: 'combat', desc: 'Slay dungeon floor bosses', task: n => `Slay ${n} floor boss${n === 1 ? '' : 'es'}` },
+  { type: 'mine_block', title: 'Subterranean Excavation', reqBase: 10, cap: 150, icon: '⛏️', tab: 'mining', desc: 'Mine underground tiles', task: n => `Mine ${n} tiles` },
+  { type: 'harvest_plant', title: 'Botanical Gathering', reqBase: 4, cap: 40, icon: '🌱', tab: 'garden', desc: 'Harvest mature plants', task: n => `Harvest ${n} plants` },
+  { type: 'brew_potion', title: 'Alchemist Calling', reqBase: 2, cap: 12, icon: '🧪', tab: 'alchemy', desc: 'Brew potions or catalysts', task: n => `Brew ${n} potions` },
+  { type: 'cast_spell', title: 'Arcane Mastery', reqBase: 3, cap: 30, icon: '✨', tab: 'spells', desc: 'Cast active spells', task: n => `Cast ${n} spells` },
+  { type: 'buy_building', title: 'Expanding Empire', reqBase: 10, cap: 80, icon: '🏛️', tab: 'monolith', desc: 'Construct generators', task: n => `Build ${n} generators` }
 ];
+export const TAB_NAMES = { monolith: 'Falafel', combat: 'Tower', mining: 'Dig', garden: 'Garden', alchemy: 'Alchemy', spells: 'Grimoire' };
+const CLICK_TYPES = ['click', 'crit_click'];
 
 export const QUARTERMASTER_UPGRADES = [
   { id: 'aether_treaty', name: 'Aetheric Treaty', icon: '📜', desc: '+25% Global Aether Production per rank', baseCost: 5, costInc: 3, maxRank: 50 },
@@ -32,7 +40,8 @@ export const QUARTERMASTER_UPGRADES = [
 export class BountySystem {
   constructor(gameState) {
     this.gameState = gameState;
-    this.maxBounties = 4;
+    this.rng = Math.random;   // tests inject a seeded generator
+    this.seq = 0;
     this.initBounties();
     this.initQuartermaster();
   }
@@ -49,54 +58,115 @@ export class BountySystem {
     }
   }
 
-  initBounties() {
-    if (!Array.isArray(this.gameState.bounties)) {
-      this.gameState.bounties = [];
+  // Makes gs.bounties (the board) and gs.contracts (the timer) valid. Safe to call any time: a
+  // save import replaces both without going through the constructor, so update() calls it too.
+  initBounties(now = Date.now()) {
+    const gs = this.gameState;
+    if (!Array.isArray(gs.bounties)) gs.bounties = [];
+    // Legacy and corrupted entries: keep what can still be played and claimed
+    gs.bounties = gs.bounties.filter(b => b && b.rewards && Number.isFinite(Number(b.required)));
+    for (const b of gs.bounties) normalizeContract(b);
+    let c = gs.contracts;
+    if (!c || typeof c !== 'object') {
+      // First time on the board (a new game, or a save from before R10): keep the contracts the
+      // player already has, top up to the starter set, the next arrival is one interval away
+      c = gs.contracts = { nextAt: now + CONTRACT_INTERVAL_MS, lastClickAt: now };
+      while (gs.bounties.length < STARTER_CONTRACTS) gs.bounties.push(this.generateBounty(now));
     }
-    // Top up to the full board (a load may have dropped corrupted entries)
-    while (this.gameState.bounties.length < this.maxBounties) {
-      this.gameState.bounties.push(this.generateBounty());
-    }
+    c.nextAt = Number.isFinite(c.nextAt) ? c.nextAt : now + CONTRACT_INTERVAL_MS;
+    c.lastClickAt = Number.isFinite(c.lastClickAt) ? c.lastClickAt : 0;
+    // A clock set backwards must not freeze the timer for hours
+    if (c.nextAt > now + CONTRACT_INTERVAL_MS) c.nextAt = now + CONTRACT_INTERVAL_MS;
+    return c;
   }
 
-  generateBounty() {
-    const tmpl = BOUNTY_TEMPLATES[Math.floor(Math.random() * BOUNTY_TEMPLATES.length)];
-    const difficultyMult = 1 + Math.floor(Math.random() * 3);
-    const required = tmpl.reqBase * difficultyMult;
+  // Call every sim tick (cheap). Adds the contracts that arrived on the wall clock, up to the cap.
+  // The board keeps filling while the player is away; a full board holds the timer at one interval
+  // so a claim never refills instantly and a long absence never stacks arrivals past the cap.
+  update(now = Date.now()) {
+    const gs = this.gameState;
+    const c = this.initBounties(now);
+    if (gs.bounties.length >= BOARD_SIZE) {
+      c.nextAt = now + CONTRACT_INTERVAL_MS;
+      return 0;
+    }
+    if (now < c.nextAt) return 0;
+    let added = 0;
+    while (now >= c.nextAt && gs.bounties.length < BOARD_SIZE) {
+      gs.bounties.push(this.generateBounty(now));
+      c.nextAt += CONTRACT_INTERVAL_MS;
+      added++;
+    }
+    if (gs.bounties.length >= BOARD_SIZE) c.nextAt = now + CONTRACT_INTERVAL_MS;
+    return added;
+  }
 
-    const goldReward = new BigNum(250 * difficultyMult * Math.max(1, (this.gameState.hero?.floor || 1) * 0.5));
-    const sealsReward = 1 * difficultyMult;
-    const chronoReward = 15 * difficultyMult;
+  secondsToNext(now = Date.now()) {
+    const c = this.gameState.contracts;
+    if (!c || this.gameState.bounties.length >= BOARD_SIZE) return null;
+    return Math.max(0, Math.min(CONTRACT_INTERVAL_MS, c.nextAt - now) / 1000);
+  }
 
+  // Can the player do this contract type right now? A tab that is not open yet (R7 progressive
+  // unlocking will provide gs.isTabUnlocked) never rolls its contracts; click contracts need a
+  // click in the last 5 minutes so an idle board never fills with chores nobody is doing.
+  isTemplateAvailable(tmpl, now = Date.now()) {
+    const gs = this.gameState;
+    if (typeof gs.isTabUnlocked === 'function' && !gs.isTabUnlocked(tmpl.tab)) return false;
+    if (CLICK_TYPES.includes(tmpl.type)) {
+      const last = gs.contracts?.lastClickAt || 0;
+      if (now - last > CLICK_RECENT_MS) return false;
+    }
+    return true;
+  }
+
+  getGuildRank() {
+    return this.gameState.records?.guildRank || 0;
+  }
+
+  // exclude: a type to avoid (a reroll should not hand the same contract back)
+  generateBounty(now = Date.now(), exclude = null) {
+    const gs = this.gameState;
+    let pool = BOUNTY_TEMPLATES.filter(t => this.isTemplateAvailable(t, now));
+    if (exclude && pool.length > 1) pool = pool.filter(t => t.type !== exclude);
+    if (pool.length === 0) pool = BOUNTY_TEMPLATES.filter(t => t.type === 'buy_building');
+    const tmpl = pool[Math.floor(this.rng() * pool.length)];
+    const d = 1 + Math.floor(this.rng() * 3);
+    const rank = this.getGuildRank();
+    const required = Math.max(1, Math.min(tmpl.cap, Math.round(tmpl.reqBase * d * (1 + SIZE_PER_RANK * rank))));
+    // Gold is 250 * d * Market Index, so it keeps its worth at any depth
+    const goldReward = gs.getMarketIndex().mul(250 * d);
     return {
-      id: 'bounty_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      id: `bounty_${now}_${++this.seq}_${Math.floor(this.rng() * 1e6).toString(36)}`,
       type: tmpl.type,
       title: tmpl.title,
       icon: tmpl.icon,
-      desc: `${tmpl.desc} (${required})`,
+      tab: tmpl.tab,
+      d,
+      desc: tmpl.task(required),
       current: 0,
-      required: required,
+      required,
       completed: false,
       claimed: false,
+      rerolled: false,
       rewards: {
         gold: goldReward,
-        seals: sealsReward,
-        chrono: chronoReward,
+        seals: 1 * d,
+        chrono: 15 * d,
         talentPoint: false // R9: no random talent points; Guild Rank (S3) pays them
       }
     };
   }
 
-  checkProgress(actionType, amount = 1) {
-    let anyCompleted = false;
+  checkProgress(actionType, amount = 1, now = Date.now()) {
+    if (CLICK_TYPES.includes(actionType) && this.gameState.contracts) this.gameState.contracts.lastClickAt = now;
     for (const b of this.gameState.bounties) {
       if (!b.completed && b.type === actionType) {
         b.current = Math.min(b.required, b.current + amount);
         if (b.current >= b.required) {
           b.completed = true;
-          anyCompleted = true;
           rewards.notify({
-            tier: 'medium', kind: 'contract-complete', icon: '📜', color: '#fbbf24',
+            tier: 'medium', kind: 'contract', icon: '📜', color: '#fbbf24',
             title: `Contract complete: ${b.title}`, batchTitle: '{n} contracts complete', detail: 'Claim it on the board'
           });
         }
@@ -104,66 +174,69 @@ export class BountySystem {
     }
   }
 
+  // One free reroll per contract: swaps an unfinished contract for a fresh one in the same slot.
+  // No refill happens and the timer is untouched, so it cannot be used to farm contracts.
+  rerollBounty(bountyId, now = Date.now()) {
+    const bounties = this.gameState.bounties;
+    const idx = bounties.findIndex(b => b.id === bountyId);
+    if (idx === -1) return false;
+    const old = bounties[idx];
+    if (old.rerolled || old.completed || old.claimed || old.current > 0) return false;
+    const fresh = this.generateBounty(now, old.type);
+    fresh.rerolled = true;
+    bounties[idx] = fresh;
+    return true;
+  }
+
+  canReroll(b) {
+    return !!b && !b.rerolled && !b.completed && !b.claimed && !(b.current > 0);
+  }
+
   claimBounty(bountyId) {
-    const idx = this.gameState.bounties.findIndex(b => b.id === bountyId);
+    const gs = this.gameState;
+    const idx = gs.bounties.findIndex(b => b.id === bountyId);
     if (idx === -1) return false;
 
-    const b = this.gameState.bounties[idx];
+    const b = gs.bounties[idx];
     if (!b.completed || b.claimed) return false;
 
     b.claimed = true;
     sound.playBuy();
 
     // Grant rewards
-    this.gameState.gold = this.gameState.gold.add(b.rewards.gold);
-    this.gameState.guildSeals = (this.gameState.guildSeals || 0) + b.rewards.seals;
-    this.gameState.addChronoSand(b.rewards.chrono);
+    gs.gold = gs.gold.add(b.rewards.gold);
+    gs.guildSeals = (gs.guildSeals || 0) + b.rewards.seals;
+    gs.addChronoSand(b.rewards.chrono);
 
-    // Rank-count claims (stand-in pacing, see above)
-    if (this.consumeGuildClaim()) recordContractClaim(this.gameState, 1);
+    // Every claim counts toward Guild Rank (S3); a rank-up pays its talent point and seals itself
+    recordContractClaim(gs, 1);
 
     // A contract generated before R9 may still carry a talent point; honour it
     if (b.rewards.talentPoint) {
-      grantTalentPoints(this.gameState, 1, 'guild', 'Contract'); // toast comes from the grant hook
+      grantTalentPoints(gs, 1, 'guild', 'Contract'); // toast comes from the grant hook
     }
 
-    this.gameState.stats.totalBountiesCompleted++;
+    gs.stats.totalBountiesCompleted++;
 
-    // Replace with a new bounty immediately! (a Dallah bonus contract was an extra: no refill)
-    this.gameState.bounties.splice(idx, 1);
-    if (!b.bonus) this.gameState.bounties.push(this.generateBounty());
+    // The slot stays empty until the timer brings the next contract (update())
+    gs.bounties.splice(idx, 1);
     return true;
   }
 
-  // Daily Dallah gift (R15): one extra, already-finished contract, paying like a mid-size one.
-  // It sits beside the board and is not replaced once claimed.
+  // Daily Dallah gift (R15): one extra contract, already finished, paying like a size-2 contract.
+  // It joins the board (a slot until claimed) and counts toward Guild Rank like any claim; being
+  // ready-made, it cannot be rerolled. Returns the contract.
   grantBonusContract() {
+    const gs = this.gameState;
     const b = {
-      id: 'bounty_dallah_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-      type: 'dallah', title: 'Dallah Writ', icon: '☕', desc: 'A gift from the Dallah (ready to claim)',
-      current: 1, required: 1, completed: true, claimed: false, bonus: true,
-      rewards: {
-        gold: new BigNum(500 * Math.max(1, (this.gameState.hero?.floor || 1) * 0.5)),
-        seals: 2, chrono: 30, talentPoint: false
-      }
+      id: `bounty_dallah_${Date.now()}_${++this.seq}_${Math.floor(this.rng() * 1e6).toString(36)}`,
+      type: 'dallah', title: 'Dallah Writ', icon: '☕', tab: 'monolith', d: 2,
+      desc: 'A gift from the Dallah, ready to claim',
+      current: 1, required: 1, completed: true, claimed: false, rerolled: true, bonus: true,
+      rewards: { gold: gs.getMarketIndex().mul(500), seals: 2, chrono: 30, talentPoint: false }
     };
-    this.gameState.bounties.push(b);
-    return true;
-  }
-
-  // Token bucket: refills 1 per GUILD_CLAIM_INTERVAL_MS (wall clock), holds GUILD_CLAIM_BANK
-  consumeGuildClaim(now = Date.now()) {
-    const rec = ensureRecords(this.gameState);
-    let bk = rec.contractBucket;
-    if (!bk || !Number.isFinite(bk.tokens) || !Number.isFinite(bk.at)) bk = { tokens: GUILD_CLAIM_BANK, at: now };
-    // a clock set backwards must not freeze the bucket
-    const elapsed = Math.max(0, now - bk.at);
-    bk.tokens = Math.min(GUILD_CLAIM_BANK, bk.tokens + elapsed / GUILD_CLAIM_INTERVAL_MS);
-    bk.at = now;
-    rec.contractBucket = bk;
-    if (bk.tokens < 1) return false;
-    bk.tokens -= 1;
-    return true;
+    gs.bounties.push(b);
+    return b;
   }
 
   getQuartermasterCost(id) {
@@ -192,4 +265,23 @@ export class BountySystem {
     });
     return true;
   }
+}
+
+// Fills what a legacy or hand-edited contract may lack so the board code can rely on it
+function normalizeContract(b) {
+  b.required = Math.max(1, Number(b.required));
+  b.current = Math.max(0, Math.min(b.required, Number(b.current) || 0));
+  b.completed = !!b.completed || b.current >= b.required;
+  b.claimed = !!b.claimed;
+  b.rerolled = !!b.rerolled;
+  b.rewards.gold = b.rewards.gold instanceof BigNum ? b.rewards.gold : BigNum.fromJSON(b.rewards.gold);
+  b.rewards.seals = Number(b.rewards.seals) || 0;
+  b.rewards.chrono = Number(b.rewards.chrono) || 0;
+  const tmpl = BOUNTY_TEMPLATES.find(t => t.type === b.type);
+  if (!b.tab) b.tab = tmpl?.tab || 'monolith';
+  if (!b.icon) b.icon = tmpl?.icon || '📜';
+  if (!b.title) b.title = tmpl?.title || 'Guild contract';
+  if (!b.desc) b.desc = tmpl ? tmpl.task(b.required) : '';
+  // Legacy descriptions read "Perform manual clicks (50)": show the one-line task instead
+  else if (tmpl && /^[A-Za-z ]+ \(\d+\)$/.test(b.desc)) b.desc = tmpl.task(b.required);
 }

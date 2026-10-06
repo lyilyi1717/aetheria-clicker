@@ -20,6 +20,7 @@ import { MarketSystem, COMMODITIES, getStockCap } from './systems/MarketSystem.j
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
 import { TalentSourcesPanel } from './ui/talents.js';
+import { buildContractsBoard, updateContractsBoard, bindContracts } from './ui/contracts.js';
 import { AchievementSystem } from './systems/AchievementSystem.js';
 import { CollectionSystem } from './systems/CollectionSystem.js';
 import { CodexUI } from './ui/codex.js';
@@ -30,6 +31,8 @@ import { BuffBar } from './buffBar.js';
 import { Shell } from './ui/shell.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
+import { UpgradeSystem } from './systems/UpgradeSystem.js';
+import { UpgradeShopUI } from './ui/upgrades.js';
 import { ShardTreeUI } from './ui/shardTree.js';
 import { CalendarUI } from './ui/calendar.js';
 import { gearCard } from './ui/rarity.js';
@@ -82,6 +85,7 @@ class AetheriaApp {
     this.achievementSystem = new AchievementSystem(this.gameState);
     this.collectionSystem = new CollectionSystem(this.gameState);
     this.fastForwardSystem = new FastForwardSystem(this.gameState);
+    this.upgradeSystem = new UpgradeSystem(this.gameState);
 
     // Separate 1x/10x/MAX settings: Buildings use buildingSystem.buyAmount, the Enchanter this
     this.enchanterBuyAmount = 1;
@@ -95,6 +99,7 @@ class AetheriaApp {
     this.gameState.achievementSystem = this.achievementSystem;
     this.gameState.collectionSystem = this.collectionSystem;
     this.gameState.marketSystem = this.marketSystem;
+    this.gameState.upgradeSystem = this.upgradeSystem;
 
     // Game loop
     this.gameLoop = new GameLoop(
@@ -170,7 +175,7 @@ class AetheriaApp {
       bountyTab.classList.toggle('has-notif', bountyReady);
       bountyTab.title = bountyReady
         ? 'Bounties: a contract is complete and ready to claim!'
-        : 'Bounties: Endless procedural guild contracts with instant rewards.';
+        : 'Bounties: a board of guild contracts, one new contract every 30 minutes.';
     }
   }
 
@@ -510,16 +515,11 @@ class AetheriaApp {
       });
     }
 
-    // Event Delegation: Bounties & Quartermaster
+    // Event Delegation: Quartermaster (the contract board binds its own clicks, js/ui/contracts.js)
+    bindContracts(this);
     const bountiesTab = document.getElementById('tab-bounties');
     if (bountiesTab) {
       bountiesTab.addEventListener('click', (e) => {
-        const claimBtn = e.target.closest('.btn-claim-bounty.ready');
-        if (claimBtn) {
-          this.bountySystem.claimBounty(claimBtn.dataset.id);
-          this.buildBountiesStructure();
-        }
-        
         const qmBtn = e.target.closest('.btn-buy-qm-upgrade');
         if (qmBtn && qmBtn.classList.contains('active')) {
           this.bountySystem.buyQuartermasterUpgrade(qmBtn.dataset.id);
@@ -671,6 +671,8 @@ class AetheriaApp {
     this.breedingUI.build();
     this.wardensRelicsUI = new WardensRelicsUI(this, fmtNum);
     this.wardensRelicsUI.build();
+    this.upgradeShopUI = new UpgradeShopUI(this);
+    this.upgradeShopUI.build();
     this.buildSpellsStructure();
     this.buildTalentsStructure();
     this.buildBountiesStructure();
@@ -1409,52 +1411,12 @@ class AetheriaApp {
 
   // --- Bounties Structure ---
   buildBountiesStructure() {
-    const cont = document.getElementById('bounties-list-container');
-    if (cont) {
-      cont.innerHTML = this.gameState.bounties.map(b => {
-        const pct = Math.min(100, (b.current / b.required) * 100);
-        return `
-          <div class="bounty-card ${b.completed ? 'completed' : ''}" id="bounty-card-${b.id}">
-            <div class="b-icon">${b.icon}</div>
-            <div class="b-info">
-              <div class="b-title">${b.title}</div>
-              <div class="b-desc">${b.desc}</div>
-              <div class="b-progress-bar"><div class="fill" id="bounty-fill-${b.id}" style="width: ${pct}%"></div></div>
-              <div class="b-count" id="bounty-count-${b.id}">${fmtNum(b.current)} / ${fmtNum(b.required)}</div>
-            </div>
-            <div class="b-reward-box">
-              <div>+${b.rewards.gold.format('standard', 0)} Gold</div>
-              <div>+${fmtNum(b.rewards.chrono)} Chrono Sand</div>
-              <div>+${fmtNum(b.rewards.seals)} Guild Seals</div>
-              ${b.rewards.talentPoint ? '<div style="color:#ec4899;font-weight:bold">+1 Talent Point</div>' : ''}
-              <button class="btn-claim-bounty ${b.completed ? 'ready' : 'disabled'}" id="bounty-btn-${b.id}" data-id="${b.id}">
-                ${b.completed ? '🎁 Claim' : 'In Progress'}
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
+    buildContractsBoard(this);
     this.updateQuartermasterUI();
   }
 
   updateBountiesUI() {
-    for (const b of this.gameState.bounties) {
-      const fill = document.getElementById(`bounty-fill-${b.id}`);
-      if (!fill) continue;
-      setWidth(fill, `${Math.min(100, (b.current / b.required) * 100)}%`);
-      const count = document.getElementById(`bounty-count-${b.id}`);
-      const countText = `${fmtNum(b.current)} / ${fmtNum(b.required)}`;
-      if (count && count.textContent !== countText) count.textContent = countText;
-      const btn = document.getElementById(`bounty-btn-${b.id}`);
-      if (btn && b.completed && !btn.classList.contains('ready')) {
-        btn.classList.add('ready');
-        btn.classList.remove('disabled');
-        btn.textContent = '🎁 Claim';
-        document.getElementById(`bounty-card-${b.id}`)?.classList.add('completed');
-      }
-    }
+    updateContractsBoard(this);
     this.updateQuartermasterUI();
   }
 
@@ -1801,6 +1763,7 @@ class AetheriaApp {
     this.alchemySystem.update(dt, realDt);
     this.spellSystem.update(dt, realDt);
     this.marketSystem.update(dt);
+    this.bountySystem.update(); // contract board timer (wall clock, not sim time)
 
     // Passive aether income
     const aetherPerSec = this.gameState.getNetAetherPerSecond();
@@ -1884,6 +1847,7 @@ class AetheriaApp {
     if (this.currentTab === 'monolith') {
       this.renderMonolithOverview();
       this.updateBuildingsUI();
+      this.upgradeShopUI?.update();
     } else if (this.currentTab === 'combat') {
       this.updateCombatUI();
     } else if (this.currentTab === 'mining') {

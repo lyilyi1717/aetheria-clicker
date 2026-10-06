@@ -18,6 +18,28 @@ export const CHANGELOG = [
     ]
   },
   {
+    version: '3.5.0',
+    date: '2026-10-06',
+    title: 'The Upgrade Shop',
+    changes: [
+      'New on the Falafel tab: an Upgrades row above your generators. Each generator has 5 upgrades that appear at 1, 10, 50, 100 and 200 owned; each one makes that generator produce x1.25 (x3 with all five).',
+      '15 click upgrades, each doubling your base click (clicks are worth your base click plus 3% of your Aether per second, times combo), and 8 synergies such as "Dallah per Shawarma": +0.3% Giant Dallah output for every Shawarma Stall you own.',
+      'Tap an upgrade to see what it does, what it costs and how much Aether you are still missing. "Buy all" buys everything you can afford, cheapest first.',
+      'Upgrades last for one run: Ascending (and Transcending) clears them, so every run starts the climb again. Saves from before this update start with no upgrades bought.'
+    ]
+  },
+  {
+    version: '3.4.0',
+    date: '2026-10-06',
+    title: 'The Contract Board',
+    changes: [
+      'Bounties is now a board of up to 6 guild contracts that you pick from. A new contract is posted every 30 minutes, and the board keeps filling while you are away, so you always come back to a full board. Claiming a contract no longer replaces it at once: the empty slot refills on the timer. Fast Forward does not speed the timer up.',
+      'Every contract you claim counts toward Guild Rank (the old limit of one counted claim per 30 minutes is gone). A rank-up pays a Talent Point and 5 Guild Seals, up to about 48 contracts a day.',
+      'Each contract has one free reroll, and contracts only come from tabs you can play. Clicking contracts are only posted while you have clicked in the last 5 minutes, so an idle board no longer jams. Contracts grow 15% per Guild Rank (up to about ten minutes of play) and pay Gold equal to 250 x difficulty x your Market Index.',
+      'Contracts you already had keep working: they stay on the board and can be claimed as before (an old one that carried a Talent Point still pays it).'
+    ]
+  },
+  {
     version: '3.3.0',
     date: '2026-10-06',
     title: 'The Shard Tree',

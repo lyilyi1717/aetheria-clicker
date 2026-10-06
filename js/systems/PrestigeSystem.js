@@ -2,6 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { rewards } from '../ui/rewards.js';
 import { recordAscensionDust, checkMilestones } from './TalentSources.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
+import { resetUpgradesOnAscend, resetAllUpgrades } from './UpgradeSystem.js';
 
 export const ASCENSION_PERKS = [
   { id: 'genesis', name: 'Cosmic Genesis', desc: 'Start with 15 Tappers & 1,000 Gold on reset.', cost: 5, maxRank: 1 },
@@ -138,6 +139,8 @@ export class PrestigeSystem {
     for (const bId in this.gameState.buildings) {
       this.gameState.buildings[bId].count = 0;
     }
+    // Upgrade shop resets too, except what a Blueprint Memory keep rule holds (R5/R6)
+    resetUpgradesOnAscend(this.gameState);
 
     // Apply Genesis perk if unlocked
     if (this.gameState.ascensionPerks.genesis?.rank > 0) {
@@ -237,6 +240,7 @@ export class PrestigeSystem {
     this.ascend(true);
     this.gameState.cosmicDust = BigNum.zero();
     this.gameState.totalCosmicDust = BigNum.zero();
+    resetAllUpgrades(this.gameState); // Blueprint Memory is a dust-shop feature: gone with the dust
     for (const p in this.gameState.ascensionPerks) {
       this.gameState.ascensionPerks[p].rank = 0;
     }
