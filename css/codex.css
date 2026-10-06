@@ -1,0 +1,51 @@
+/* Codex 2.0: achievement ladder, collections, Generator Codex (R14). Linked from js/ui/codex.js */
+.codex-summary { margin: 0.5rem 0 1rem; }
+.codex-pct { font-size: 1rem; }
+.codex-pct strong { color: var(--accent-gold); font-size: 1.4rem; }
+.codex-bar { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); overflow: hidden; margin: 0.4rem 0; }
+.codex-bar span { display: block; height: 100%; background: linear-gradient(90deg, #a78bfa, #fbbf24); }
+.codex-sub, .codex-note { font-size: 0.8rem; color: var(--text-muted); overflow-wrap: anywhere; }
+.codex-note { margin: 0.5rem 0 1rem; }
+.codex-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.codex-tab {
+  padding: 0.4rem 0.8rem; font-size: 0.85rem; cursor: pointer; color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px;
+}
+.codex-tab.active { color: var(--accent-gold); border-color: rgba(251, 191, 36, 0.5); background: rgba(251, 191, 36, 0.08); }
+.codex-pane[hidden] { display: none; }
+.codex-group, .codex-set { margin-bottom: 1.25rem; }
+.codex-group-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+.codex-group-head h4 { margin: 0; font-size: 0.95rem; }
+.codex-group-head span { font-size: 0.8rem; color: var(--accent-gold); white-space: nowrap; }
+.codex-group .achievements-grid { margin-top: 0.5rem; }
+.codex-ach.next { border-color: rgba(167, 139, 250, 0.5); }
+.codex-set.complete { border-left: 3px solid var(--accent-gold); padding-left: 0.6rem; }
+.codex-entries { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.4rem; margin-top: 0.5rem; }
+.codex-entry {
+  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0 0.4rem;
+  padding: 0.35rem 0.5rem; min-width: 0; font-size: 0.75rem; color: var(--text-muted);
+  border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 6px;
+}
+.codex-entry.have { border-style: solid; border-color: rgba(251, 191, 36, 0.4); color: inherit; background: rgba(251, 191, 36, 0.05); }
+.codex-entry .ce-icon { font-size: 1.1rem; grid-row: span 2; }
+.codex-entry .ce-name { overflow-wrap: anywhere; }
+.codex-entry .ce-hint { font-size: 0.68rem; opacity: 0.8; }
+.codex-gens { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.5rem; }
+.codex-gen {
+  display: flex; gap: 0.6rem; padding: 0.55rem 0.65rem; min-width: 0;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;
+}
+.codex-gen.silhouette { opacity: 0.7; }
+.codex-gen.silhouette .cg-icon { filter: brightness(0) opacity(0.45); }
+.cg-icon { font-size: 1.8rem; line-height: 1; }
+.cg-main { min-width: 0; flex: 1; }
+.cg-name { font-size: 0.85rem; font-weight: 600; overflow-wrap: anywhere; }
+.cg-tier { font-size: 0.68rem; font-weight: 400; color: var(--text-muted); margin-left: 0.25rem; }
+.cg-flavour { font-size: 0.75rem; color: var(--text-muted); margin: 0.2rem 0; overflow-wrap: anywhere; }
+.cg-stars { display: flex; flex-wrap: wrap; gap: 0.2rem 0.6rem; font-size: 0.75rem; color: var(--text-muted); }
+.cg-stars .on { color: var(--accent-gold); }
+.cg-best { margin-left: auto; }
+@media (max-width: 480px) {
+  .codex-gens { grid-template-columns: 1fr; }
+  .codex-entries { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+}
