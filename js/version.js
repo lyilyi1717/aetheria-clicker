@@ -3,9 +3,20 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '3.4.0';
+export const VERSION = '3.5.0';
 
 export const CHANGELOG = [
+  {
+    version: '3.5.0',
+    date: '2026-10-06',
+    title: 'The Upgrade Shop',
+    changes: [
+      'New on the Falafel tab: an Upgrades row above your generators. Each generator has 5 upgrades that appear at 1, 10, 50, 100 and 200 owned; each one makes that generator produce x1.25 (x3 with all five).',
+      '15 click upgrades, each doubling your base click (clicks are worth your base click plus 3% of your Aether per second, times combo), and 8 synergies such as "Dallah per Shawarma": +0.3% Giant Dallah output for every Shawarma Stall you own.',
+      'Tap an upgrade to see what it does, what it costs and how much Aether you are still missing. "Buy all" buys everything you can afford, cheapest first.',
+      'Upgrades last for one run: Ascending (and Transcending) clears them, so every run starts the climb again. Saves from before this update start with no upgrades bought.'
+    ]
+  },
   {
     version: '3.4.0',
     date: '2026-10-06',
