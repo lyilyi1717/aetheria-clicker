@@ -2,10 +2,38 @@
 
 const SAVE_KEY = 'AETHERIA_CHRONICLES_SAVE_V1';
 
-// Offline Aether stops accruing after 24 h, matching the default Chrono Sand bank (1440 min).
-// Without it, moving the system clock forward credited unbounded Aether, which also fed the
-// Best Run Aether leaderboard stat.
-export const OFFLINE_AETHER_CAP = 24 * 3600; // seconds
+// Offline Aether is paid in two bands (docs/redesign-proposal.md section 8): 100% for the first
+// 8 h away, 50% from 8 h to 24 h, nothing beyond. Without a cap, moving the system clock forward
+// credited unbounded Aether, which also fed the Best Run Aether leaderboard stat.
+// Each Chrono Reservoir rank (ascension perk `chrono_vault`) adds 4 h to the full-rate band and
+// moves the end of the cap out by the same 4 h, so the 50% band stays 16 h long.
+export const OFFLINE_FULL_BAND = 8 * 3600; // seconds at 100%
+export const OFFLINE_AETHER_CAP = 24 * 3600; // seconds; nothing is paid beyond this (base)
+export const OFFLINE_HALF_RATE = 0.5;
+export const OFFLINE_RESERVOIR_BONUS = 4 * 3600; // seconds per Chrono Reservoir rank
+
+// Splits time away into paid bands. Pure: no game state, so it is easy to test.
+// Negative, NaN or infinite elapsed time (clock moved backwards) pays nothing.
+export function computeOfflineBands(elapsedSeconds, reservoirRank = 0) {
+  const elapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
+  const rank = Math.max(0, Number(reservoirRank) || 0);
+  const fullEnd = OFFLINE_FULL_BAND + rank * OFFLINE_RESERVOIR_BONUS;
+  const capEnd = OFFLINE_AETHER_CAP + rank * OFFLINE_RESERVOIR_BONUS;
+  const fullSecs = Math.min(elapsed, fullEnd);
+  const halfSecs = Math.max(0, Math.min(elapsed, capEnd) - fullEnd);
+  return {
+    elapsedSeconds: elapsed,
+    fullSecs,
+    halfSecs,
+    unpaidSecs: Math.max(0, elapsed - capEnd),
+    fullEnd,
+    capEnd,
+    halfRate: OFFLINE_HALF_RATE,
+    // Seconds of production credited before efficiency multipliers
+    paidSecs: fullSecs + halfSecs * OFFLINE_HALF_RATE,
+    capped: elapsed > capEnd
+  };
+}
 
 export class SaveManager {
   constructor(gameState) {
