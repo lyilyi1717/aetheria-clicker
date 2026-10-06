@@ -16,11 +16,13 @@ something new for a full year.
 
 ## The plan
 
-- **Spec:** `docs/redesign-proposal.md`. The roadmap is §9 (items 1–20, called R1–R20, plus R0
-  save versioning); the open questions are §10.
+- **Spec:** `docs/redesign-proposal.md`. Its roadmap is §9 (items 1–20, called R1–R20, plus R0
+  save versioning); the open questions are §10. Items from R21 on (UI follow-ups, player
+  feedback) were added later and are specified only in their issues.
 - **Tasks:** one GitHub issue per roadmap item, labelled `roadmap`, titled `R<n>: ...`. Each issue
   says the goal, spec section, files, dependencies, and "done when". The R-number is not the
-  GitHub issue number; the table in `docs/STATUS.md` maps them.
+  GitHub issue number; the Plan table in `docs/STATUS.md` maps them. Whoever files a new
+  roadmap issue adds its row there.
 - **Line numbers** in the doc and issues were correct when written and drift as code changes.
   Find the code by the function or constant name; don't trust the number.
 - **Owner decisions:** issue #23. If a question there has no answer, use its listed default.
@@ -50,7 +52,10 @@ Allowed, with these limits:
 - **Claude Code:** start each sub-agent as the `roadmap-coder` agent (`.claude/agents/`). The
   sub-agent model is set in `.claude/settings.json` and that agent's frontmatter; don't override it.
 - The coordinating session reviews each sub-agent's PR against its issue before reporting done,
-  and is the only one that edits `docs/STATUS.md` (avoids conflicts in that file).
+  and is the only one that edits `docs/STATUS.md` (avoids conflicts in that file). It moves each
+  merged item to "Done" in the same session.
+- **Merging `main` into a branch:** if `docs/STATUS.md` conflicts, keep both sides' entries. Never
+  delete another item's "In progress" line without writing its "Done" entry.
 
 ## Rules
 

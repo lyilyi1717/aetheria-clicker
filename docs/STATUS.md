@@ -3,8 +3,9 @@
 Progress log for the year-one redesign (`docs/redesign-proposal.md`). Every session reads this
 first and updates it before finishing (see `AGENTS.md`).
 
-Roadmap items are called **R0–R24**. GitHub numbers issues separately, so R*n* is issue #*n*+2
-(R0–R20); R21 is #42, R22 #45, R23 #46, R24 #47.
+Roadmap items are called **R0–R40**. R0–R20 are the design doc's §9 roadmap; R21 onward came
+later (UI review, player feedback) and live only as issues. GitHub numbers issues separately: the
+Plan table below maps every R-number to its issue.
 Owner decisions live in issue #23; if it has no answer, use the default listed there.
 
 ## In progress
@@ -12,8 +13,15 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-After R9: R10 #12. Chapter 2 is one more `CHAPTERS` entry.
-UI: R22–R24 and R7 are done.
+R0–R25 are all done. Next by the AGENTS.md rule: **R26 #62**.
+
+- Ready now: R26, R27, R28, R29, R30, R31, R33, R34, R35, R38, R40.
+- Safe to run side by side (no shared files): R26, R28, R30, R33, R38. Overlaps to avoid:
+  R26 + R27 (`main.js`), R27 + R34 (`CombatSystem.js`), R29 + R35 (CSS and tokens).
+- Blocked: R32 (R26), R36 (R27), R37 (R27, R36), R39's shared part (R37, R38; the local-only
+  ticker can ship first). R31 asks to go after R28 and R32, which also move income.
+- Need the owner first (`decision` label): R36 names, R38 Google provider and SQL, R40 submit path.
+- Chapter 2 of the Chronicle is one more `CHAPTERS` entry (no issue yet).
 
 ## Plan
 
@@ -44,6 +52,22 @@ UI: R22–R24 and R7 are done.
 | 4 | R22 Design tokens and base components (UI-2) | #45 | R21 |
 | 4 | R23 Responsive app shell (UI-1) | #46 | R22 |
 | 4 | R24 Reduced motion and touch tooltips (UI-3) | #47 | R22 (best after R23) |
+| 5 | R25 Reward toasts clear the buff bar | #61 | – |
+| 6 | R26 Dynamite blast lands outside the grid (bug) | #62 | – |
+| 6 | R27 Naming cleanup, remove the "Mutawa" boss (bug) | #63 | – |
+| 6 | R28 Frenzy every 20 combo clicks | #64 | – (coordinate with R3) |
+| 6 | R29 Clicker layout scales, bigger fonts | #65 | – |
+| 6 | R30 Friendly number notation (aa, ab, …) | #66 | – |
+| 6 | R31 Slower number growth (~1e12 at day 60) | #67 | – (after R28, R32) |
+| 6 | R32 Excavation pacing and Auto-Blast | #68 | R26 |
+| 6 | R33 Weekly Ledger goals take the week | #69 | – |
+| 6 | R34 Weapon and equipment levels | #70 | – |
+| 6 | R35 Switchable themes | #71 | – |
+| 7 | R36 Oil re-theme and new prestige names | #72 | R27 (owner names) |
+| 7 | R37 Arabic version (RTL) | #73 | R27, R36 |
+| 6 | R38 Player accounts and cloud save | #74 | – (owner enables Google) |
+| 7 | R39 News ticker | #75 | R37, R38 (shared part only) |
+| 6 | R40 Community Bugs & Features tab | #76 | – (owner picks submit path) |
 
 ## Done
 
@@ -133,6 +157,26 @@ UI: R22–R24 and R7 are done.
   `sim/active-income.mjs` measures active:idle on the real classes (x20.7 before, x7.2 now) and
   feeds the sim. Upgrade shop retuned to x1.2 / +0.1% synergy: casual first Transcend day 4.2.
 
+- R5 #7 Upgrade shop (PR #40): `js/systems/UpgradeSystem.js` (tier, click and synergy upgrades,
+  reset on Ascend/Transcend), panel `js/ui/upgrades.js` + `css/upgrades.css`, tests in
+  `test_upgrades.js`. The sim buys upgrades greedily; R3 later retuned the table to x1.2 / +0.1%.
+- R9 #11 Talent economy (PR #39): talent points from S1 stars, S2 records and S3 Guild Rank in
+  `js/systems/TalentSources.js`; sources header in `js/ui/talents.js`. Tests in `test_talents.js`.
+- R10 #12 Contract board (PR #55): `BountySystem.js` board with timed refill, reroll and Guild Rank
+  per claim; UI in `js/ui/contracts.js`. Tests in `test_contracts.js`.
+- R13 #15 Shard tree (PR #43): `js/systems/ShardTreeSystem.js` (Foundry, Chronos, Tower branches:
+  Auto-Ascend, Second Wind, Wardens node, offline +8 h, Long Sleep/Hourglass), panel
+  `js/ui/shardTree.js` + `css/shard-tree.css`. The sim models Auto-Ascend. Tests in
+  `test_shard_tree.js`.
+- R14 #16 Codex 2.0 (PR #41): achievement ladder in `AchievementSystem.js`, collections and the
+  Generator Codex in `js/systems/CollectionSystem.js`, UI `js/ui/codex.js` + `css/codex.css`.
+  Tests in `test_codex.js`.
+- R15 #17 Daily and weekly structure (PR #57): `js/systems/CalendarSystem.js` (Dallah dailies,
+  Ledger weeklies, Souq, Seals; Seal shards are spendable only), UI `js/ui/calendar.js` +
+  `css/calendar.css`. Tests in `test_calendar.js`.
+- (R5, R9, R13, R14 sat under "In progress" until the R6 merge dropped them without a Done entry;
+  R10 and R15 never got one. Restored from the merged PRs.)
+
 - R25 #61 Reward toasts clear the buff bar: `js/buffBar.js` writes its measured height to
   `--buff-bar-h` (token default 36px); `css/rewards.css` offsets the stack by it at 640px+ and caps
   its height above the bottom bar under 640px. Tests in `test_r25_toasts.js`; screenshots in
@@ -142,21 +186,16 @@ UI: R22–R24 and R7 are done.
 
 - **Changelog:** every player-visible PR bumps `VERSION` and adds a `CHANGELOG` entry in
   `js/version.js` (AGENTS.md "Version and changelog"; CI `changelog` job enforces it). v3.0.0
-  backfilled R0-R22, which had shipped without entries. Current version: 3.0.0.
+  backfilled R0-R22, which had shipped without entries. The current version is `VERSION` in
+  `js/version.js` (4.2.0 after R7).
 
 - Save format changes: add a step to `MIGRATIONS` in `js/engine/migrations.js` and an old-shape
-  fixture to `test_saves.js`. Current `SAVE_VERSION` is 3 (R8).
-- Pacing baseline (today's game, casual profile): first Ascension 10 min, 12 Ascensions on day 0,
-  16 in the whole year, longest stretch with no reset 139 days. `npm run sim:check` fails on
-  purpose until R4; CI only reports it for now. After R1 the casual longest gap is 189 days
-  (the sim's Ascend rule changed, not the game).
-- First-Transcend stand-ins for shard-tree unlocks (R13 should switch them to tree nodes):
-  `GardenSystem.isBreedingUnlocked()` (`garden.breedingUnlocked`) and
-  `CombatSystem.isWardensUnlocked()` (`hero.wardensUnlocked`).
-- R14 Codex: Warden trophies (`hero.wardens.defeated`) and relics (`miningGrid.relics`) are ready
-  to show as collections. Add `codex_pct` / `seals_lit` columns to `leaderboard_season` when R14 /
-  R15 ship (with a ceiling in `leaderboard_season_guard`).
-- After R2 the casual longest gap is 156 days; R4 is expected to switch CI to `sim:check`.
+  fixture to `test_saves.js`. `SAVE_VERSION` is derived from the last step (6 after R7).
+- Pacing: CI runs `npm run sim:check` (blocking). Run `npm run sim` for today's numbers.
+- Breeding still unlocks on the first-Transcend stand-in (`GardenSystem.isBreedingUnlocked()`);
+  Wardens moved to a shard-tree node in R13.
+- Leaderboard: `codex_pct` / `seals_lit` columns on `leaderboard_season` (with a ceiling in
+  `leaderboard_season_guard`) were planned for after R14/R15 and are not built yet.
 - New UI: use the classes in `css/components.css` (live in `docs/ui/mockups/components.html`)
   and the tokens in `css/tokens.css`; no new hex values. Buy buttons: `.btn-primary` when
   affordable, `.is-locked` + `aria-disabled` with the missing amount otherwise.
@@ -193,7 +232,6 @@ UI: R22–R24 and R7 are done.
   `miningGrid.schema`) outside the `MIGRATIONS` chain. It works; folding it in is optional.
 - Midas click gold (`ClickerSystem`) still scales 1.15^floor on the current floor, and bounty gold
   scales with the current floor; neither follows the R8 curves.
-- The Transcend shard payout still reads `totalCosmicDust / 1e4` (R4 replaces it).
 - A brand-new account carrying a rebased legacy save shows floor <= 1,000 + 1,000/h on Season 2
   for its first hours (R19 guard ceiling); old anonymous accounts can still post forged floors.
 - Combat floating damage text and particles still render over other tabs (seen on Excavation
