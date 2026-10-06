@@ -31,8 +31,8 @@ everywhere.
 
 ### 2.1 Tokens
 
-Paste-ready. UI-2 (see `docs/ui-review.md`) moves these into `css/tokens.css`; until then,
-copy them into the component's CSS file.
+These live in `css/tokens.css` (linked first in `index.html`); the components in §5 live in
+`css/components.css`. Use the tokens directly in new CSS; don't copy them.
 
 ```css
 :root {
@@ -115,7 +115,8 @@ New layers get a new accent (as Chronicle gets sand) so a new layer feels like a
 
 ### 2.3 Old → new names
 
-UI-2 aliases the current variables so existing CSS keeps working while tabs migrate.
+The current variables alias these in `css/style.css` (`:root`), so existing CSS keeps working
+while tabs migrate.
 
 | Current (`css/style.css`) | New token |
 |---|---|

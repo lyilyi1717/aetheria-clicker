@@ -7,10 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/garden-breeding.css">
   <link rel="stylesheet" href="css/rewards.css">
+  <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
   <!-- Canvas for dynamic floating damage numbers & particle sparks -->
@@ -31,19 +33,19 @@
       <div class="resource-bar">
         <div class="res-item" title="Aether: The primary energy used to construct generators and power your realm.">
           <span class="res-lbl">Aether</span>
-          <span id="stat-aether" class="res-val" style="color: var(--accent-cyan)">0</span>
-          <span id="stat-aether-rate" class="res-sub" title="Mastery multipliers on Aether/s">+0.0 /s</span>
+          <span id="stat-aether" class="res-val num" style="color: var(--accent-cyan)">0</span>
+          <span id="stat-aether-rate" class="res-sub num" title="Mastery multipliers on Aether/s">+0.0 /s</span>
         </div>
 
         <div class="res-item" title="Gold: Earned from combat, mining, market trading, and alchemy. Used for gear, pickaxes, and commodities.">
           <span class="res-lbl">Gold</span>
-          <span id="stat-gold" class="res-val" style="color: var(--accent-gold)">0</span>
+          <span id="stat-gold" class="res-val num" style="color: var(--accent-gold)">0</span>
         </div>
 
         <div class="res-item mana-container" title="Mana: Regenerates constantly. Used to cast spells in the Arcane Grimoire.">
           <div style="display:flex; justify-content:space-between">
             <span class="res-lbl">Mana</span>
-            <span id="stat-mana" class="res-sub">100 / 100</span>
+            <span id="stat-mana" class="res-sub num">100 / 100</span>
           </div>
           <div class="mini-bar">
             <div id="bar-mana-fill" class="mini-bar-fill"></div>
@@ -52,17 +54,17 @@
 
         <div class="res-item" title="Chrono Sand: Time warp energy earned while playing or offline. Spend to fast-forward simulation time!">
           <span class="res-lbl">Chrono Sand</span>
-          <span id="stat-chrono" class="res-val" style="color: #38bdf8">60s</span>
+          <span id="stat-chrono" class="res-val num" style="color: var(--sand)">60s</span>
         </div>
 
         <div class="res-item" title="Guild Seals: Earned from Bounty contracts. Spent on Quartermaster upgrades in the Bounties tab.">
           <span class="res-lbl">Guild Seals</span>
-          <span id="stat-guild-seals" class="res-val" style="color: #f59e0b">0</span>
+          <span id="stat-guild-seals" class="res-val num" style="color: #f59e0b">0</span>
         </div>
 
         <div class="res-item" title="Cosmic Dust: Prestige currency earned by Ascending. Each dust you have ever earned grants +2% permanent production, even after you spend it!">
           <span class="res-lbl">Cosmic Dust</span>
-          <span id="stat-cosmic-dust" class="res-val" style="color: var(--accent-purple)">0</span>
+          <span id="stat-cosmic-dust" class="res-val num" style="color: var(--accent-purple)">0</span>
         </div>
       </div>
 

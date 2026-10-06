@@ -1,0 +1,64 @@
+/* Aetheria design tokens (docs/ui-style-guide.md §2.1). Linked first in index.html.
+   Every colour, size and duration in new UI comes from here; the old names in
+   css/style.css alias to these (style guide §2.3). */
+:root {
+  /* Surfaces */
+  --bg-0: #050a07;            /* page */
+  --bg-1: #0a140f;            /* header, nav, modal */
+  --bg-2: #0f1d16;            /* card */
+  --bg-3: #16271e;            /* card hover / nested */
+  --bg-4: #1e3328;            /* pressed / selected */
+  /* Lines */
+  --line-1: rgba(148, 163, 184, 0.14);   /* hairline */
+  --line-2: rgba(148, 163, 184, 0.28);   /* control border */
+  --line-brand: rgba(52, 211, 153, 0.35);/* brand card border (was 0.6) */
+  /* Text */
+  --text-1: #f1f5f9;          /* primary   15.9:1 on bg-2 (card) */
+  --text-2: #b7c3cf;          /* secondary  9.7:1 on bg-2 */
+  --text-3: #8795a6;          /* tertiary / captions 5.7:1 on bg-2, 5.1:1 on bg-3 */
+  --text-on-accent: #0b1308;
+  /* Accents (one per currency / system) */
+  --aether: #38bdf8;  --aether-dim: rgba(56, 189, 248, 0.14);
+  --gold: #fbbf24;    --gold-dim: rgba(251, 191, 36, 0.14);
+  --dust: #c084fc;    --dust-dim: rgba(192, 132, 252, 0.14);
+  --shard: #f472b6;   --shard-dim: rgba(244, 114, 182, 0.14);
+  --life: #34d399;    --life-dim: rgba(52, 211, 153, 0.14);
+  --mana: #60a5fa;    --mana-dim: rgba(96, 165, 250, 0.14);
+  --sand: #e7c38a;    --sand-dim: rgba(231, 195, 138, 0.14);   /* Chrono Sand, Chronicle, Souq */
+  --danger: #f87171;  --danger-dim: rgba(248, 113, 113, 0.14);
+  --ok: #34d399; --warn: #fbbf24; --bad: #f87171;
+  /* Rarity (colour-blind safe: lightness ladder + glyph + label, never colour alone) */
+  --rarity-common: #9aa5b1;
+  --rarity-rare: #56b4e9;
+  --rarity-epic: #b388ff;
+  --rarity-legendary: #ef8a3c;
+  --rarity-cosmic: #ffd84d;
+  /* Type */
+  --font-display: 'Cinzel', Georgia, serif;
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --fs-11: 0.6875rem; --fs-12: 0.75rem; --fs-13: 0.8125rem; --fs-14: 0.875rem;
+  --fs-16: 1rem; --fs-18: 1.125rem; --fs-20: 1.25rem; --fs-24: 1.5rem; --fs-32: 2rem;
+  --lh-tight: 1.2; --lh-body: 1.45;
+  /* Space (4px grid) */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  --gutter: 16px;
+  /* Radius */
+  --r-1: 6px; --r-2: 10px; --r-3: 14px; --r-pill: 999px;
+  /* Elevation */
+  --el-1: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 16px rgba(0,0,0,0.35);
+  --el-2: 0 1px 0 rgba(255,255,255,0.06) inset, 0 12px 32px rgba(0,0,0,0.5);
+  --el-3: 0 24px 64px rgba(0,0,0,0.65);
+  --glow-gold: 0 0 0 1px var(--gold), 0 0 18px rgba(251,191,36,0.45);
+  --glow-dust: 0 0 0 1px var(--dust), 0 0 18px rgba(192,132,252,0.45);
+  /* Motion */
+  --dur-1: 120ms; --dur-2: 200ms; --dur-3: 320ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-pop: cubic-bezier(0.2, 1.4, 0.4, 1);
+  /* Layout */
+  --header-h: 56px; --nav-w: 220px; --rail-w: 64px; --bottom-nav-h: 60px; --tap: 44px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

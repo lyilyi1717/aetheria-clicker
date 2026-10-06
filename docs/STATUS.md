@@ -17,8 +17,8 @@ Ready now: R9 #11 (after R4 merges: both edit `PrestigeSystem.js` / `GameState.j
 After R4: R5 #7 (+ R3 #5, held per #23 default 5 to ship with R5), R6 #8, R13 #15.
 Then R10 #12 (needs R9), R14 #16 (needs R11), R7 #9 (needs R6), R15 #17 (needs R13),
 R20 #22 (needs R4, R13).
-UI: R22 #45 (tokens + components) is ready now, then R23 #46 (responsive app shell), then
-R24 #47. R7 waits for R23 (both change the nav).
+UI: R23 #46 (responsive app shell) is ready now, then R24 #47. R7 waits for R23 (both change
+the nav).
 
 ## Plan
 
@@ -85,6 +85,11 @@ R24 #47. R7 waits for R23 (both change the nav).
   file), style guide (`docs/ui-style-guide.md`, paste-ready tokens), mockups in
   `docs/ui/mockups/` (shell, components, R6, R7, R10, R13, R15, R20) and screenshots of every tab
   in `docs/ui/screenshots/`. AGENTS.md rule 7 now points UI work at both.
+- R22 #45 Design tokens and base components: `css/tokens.css` (style guide §2.1, linked first),
+  `css/components.css` (`.btn*`, `.card`, `.card-row`, `.chip`, `.bar`, `.segs`, `.num`,
+  `.rarity`, `.gear`). Old `--accent-*` / `--text-*` / `--bg-*` names alias the tokens in
+  `style.css`. Inter is the UI font. Generators, talents and gear use the components; gear
+  rarity markup comes from `js/ui/rarity.js`.
 
 ## Notes for the next session
 
@@ -101,6 +106,9 @@ R24 #47. R7 waits for R23 (both change the nav).
   to show as collections. Add `codex_pct` / `seals_lit` columns to `leaderboard_season` when R14 /
   R15 ship (with a ceiling in `leaderboard_season_guard`).
 - After R2 the casual longest gap is 156 days; R4 is expected to switch CI to `sim:check`.
+- New UI: use the classes in `css/components.css` (live in `docs/ui/mockups/components.html`)
+  and the tokens in `css/tokens.css`; no new hex values. Buy buttons: `.btn-primary` when
+  affordable, `.is-locked` + `aria-disabled` with the missing amount otherwise.
 
 ## Noticed (not yet an issue)
 

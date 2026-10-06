@@ -1,25 +1,26 @@
 /* Core Styles and Modern Glassmorphism Theme for Aetheria */
 :root {
-  --bg-primary: #050a07;
-  --bg-secondary: #0a140f;
-  --bg-card: rgba(10, 20, 15, 0.85);
-  --bg-card-hover: rgba(15, 30, 22, 0.95);
-  --border-color: rgba(52, 211, 153, 0.6);
-  --border-glow: rgba(52, 211, 153, 0.9);
+  /* Old names, kept so existing rules keep working. They alias the tokens in
+     css/tokens.css (docs/ui-style-guide.md §2.3); new CSS uses the tokens directly. */
+  --bg-primary: var(--bg-0);
+  --bg-secondary: var(--bg-1);
+  --bg-card: var(--bg-2);
+  --bg-card-hover: var(--bg-3);
+  --border-color: var(--line-1);
+  --border-glow: var(--line-brand);
 
-  --accent-cyan: #38bdf8;
-  --accent-gold: #fbbf24;
-  --accent-purple: #c084fc;
-  --accent-green: #34d399;
-  --accent-rose: #f472b6;
-  --accent-red: #f87171;
+  --accent-cyan: var(--aether);
+  --accent-gold: var(--gold);
+  --accent-purple: var(--dust);
+  --accent-green: var(--life);
+  --accent-rose: var(--shard);
+  --accent-red: var(--danger);
 
-  --text-main: #ffffff;
-  --text-muted: #e2e8f0;
-  --text-dim: #94a3b8;
+  --text-main: var(--text-1);
+  --text-muted: var(--text-2);
+  --text-dim: var(--text-3);
 
-  --font-display: 'Cinzel', 'Trajan Pro', 'Georgia', serif;
-  --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  --font-sans: var(--font-ui);
 }
 
 * {
@@ -33,10 +34,19 @@
 body {
   background-color: var(--bg-primary);
   color: var(--text-main);
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
+  font-size: var(--fs-14);
+  line-height: var(--lh-body);
+  /* Tabular figures everywhere so ticking numbers don't jitter; .num marks them explicitly */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
 }
 
 #particle-canvas {
@@ -936,40 +946,15 @@ body {
   padding-right: 0.25rem;
 }
 
-.building-card {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 8px;
-  padding: 0.65rem;
-  transition: all 0.15s ease;
-}
-
-.building-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(56, 189, 248, 0.3);
-}
-
-.b-icon {
-  font-size: 1.8rem;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-}
-
 .b-info {
   flex: 1;
+  min-width: 0;
 }
 
 .b-header {
   display: flex;
   justify-content: space-between;
+  gap: var(--sp-2);
   font-weight: 700;
   font-size: 0.95rem;
 }
@@ -988,40 +973,6 @@ body {
 .b-stats {
   font-size: 0.75rem;
   color: var(--accent-green);
-}
-
-.btn-buy-building {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  padding: 0.45rem 0.75rem;
-  border-radius: 6px;
-  border: 1px solid var(--accent-cyan);
-  background: rgba(56, 189, 248, 0.15);
-  color: var(--text-main);
-  cursor: pointer;
-  min-width: 100px;
-}
-
-.btn-buy-building:hover:not(.disabled) {
-  background: var(--accent-cyan);
-  color: #000;
-}
-
-.btn-buy-building.disabled {
-  opacity: 0.4;
-  border-color: #475569;
-  cursor: not-allowed;
-}
-
-.buy-lbl {
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.cost-lbl {
-  font-size: 0.85rem;
-  font-weight: 700;
 }
 
 /* Golden Anomaly */
@@ -1171,28 +1122,9 @@ body {
 
 .gear-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-2);
   margin-top: 1rem;
-}
-
-.gear-slot {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid #64748b;
-  border-radius: 6px;
-  padding: 0.5rem;
-}
-
-.slot-title {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.slot-item {
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-top: 2px;
 }
 
 /* Mining Tab */
@@ -1512,26 +1444,21 @@ body {
 /* Talents Tab */
 .talents-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: var(--sp-3);
   margin-top: 1rem;
 }
 
+/* Surface comes from .card (css/components.css) */
 .talent-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 1rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: var(--sp-2);
 }
 
-.branch-click { border-color: rgba(56, 189, 248, 0.3); }
-.branch-building { border-color: rgba(245, 158, 11, 0.3); }
-.branch-combat { border-color: rgba(239, 68, 68, 0.3); }
-.branch-artisan { border-color: rgba(16, 185, 129, 0.3); }
-.branch-chrono { border-color: rgba(168, 85, 247, 0.3); }
+.talent-card .t-name { font-weight: 700; font-size: var(--fs-16); }
+.talent-card .t-desc { flex: 1; color: var(--text-2); font-size: var(--fs-13); }
+.talent-card .btn { align-self: stretch; }
 
 /* Bounties Tab */
 .bounties-list {
@@ -1733,62 +1660,3 @@ body {
 #global-tooltip strong {
   color: var(--accent-gold);
 }
-
-
-.gear-slot {
-  background: rgba(15, 23, 42, 0.6) !important;
-  border-radius: 8px !important;
-  padding: 0.6rem !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  z-index: 1;
-}
-
-.gear-slot::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  opacity: 0.15;
-  z-index: -1;
-}
-
-/* Common (Gray) */
-.gear-common { border: 2px solid #94a3b8 !important; box-shadow: inset 0 0 10px rgba(148, 163, 184, 0.2); }
-.gear-common::before { background: linear-gradient(135deg, #475569, #1e293b); }
-
-/* Rare (Blue) */
-.gear-rare { border: 2px solid #38bdf8 !important; box-shadow: 0 0 8px rgba(56, 189, 248, 0.3), inset 0 0 15px rgba(56, 189, 248, 0.3); }
-.gear-rare::before { background: radial-gradient(circle at top left, #0ea5e9, #0f172a); opacity: 0.3; }
-
-/* Epic (Purple) */
-.gear-epic { border: 2px solid #a855f7 !important; box-shadow: 0 0 12px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.4); }
-.gear-epic::before { background: radial-gradient(circle at center, #9333ea, #3b0764); opacity: 0.4; }
-
-/* Legendary (Red) */
-.gear-legendary { border: 2px solid #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5), inset 0 0 25px rgba(239, 68, 68, 0.5); animation: pulse-legendary 2s infinite alternate; }
-.gear-legendary::before { background: linear-gradient(45deg, #b91c1c, #450a0a, #b91c1c); background-size: 200% 200%; animation: shine 3s linear infinite; opacity: 0.5; }
-
-/* Cosmic (Gold - The Ultimate Tier) */
-.gear-cosmic { border: 2px solid #fbbf24 !important; box-shadow: 0 0 25px rgba(251, 191, 36, 0.8), inset 0 0 35px rgba(251, 191, 36, 0.6); animation: pulse-cosmic 1.5s infinite alternate; }
-.gear-cosmic::before { background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 25%, #d97706 50%, #fbbf24 75%, #fef3c7 100%); background-size: 200% 200%; animation: shine 2s linear infinite; opacity: 0.6; }
-.gear-cosmic .slot-title, .gear-cosmic .slot-item { color: #fef3c7 !important; text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24, 0 2px 2px #000; }
-
-@keyframes pulse-legendary {
-  0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4), inset 0 0 15px rgba(239, 68, 68, 0.4); }
-  100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.7), inset 0 0 30px rgba(239, 68, 68, 0.6); }
-}
-
-@keyframes pulse-cosmic {
-  0% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.5), inset 0 0 20px rgba(251, 191, 36, 0.5); }
-  100% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.9), inset 0 0 40px rgba(251, 191, 36, 0.8); }
-}
-
-@keyframes shine {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
-}
-
-
-
