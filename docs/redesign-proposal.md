@@ -173,6 +173,19 @@ Four commodities on a clamped random walk (`MarketSystem.js:192`, ±17% per tick
 random walk is memoryless, so "buy low, sell high" is a coin flip with a 2% house edge. The
 Enchanter is the only sink that matters and it is a plain geometric ladder.
 
+*Shipped in R16 (the doc gave no numbers, so these are chosen; all in `MarketSystem.js`).* Each
+tick moves `ln(price)` 20% of the way back to `ln(basePrice)` plus a uniform shock of ±12%
+(stationary spread about ±15%, still clamped to the old bands), so dips are real buy signals. To
+stop trading volume scaling with the gold hoard (which would out-earn core income), buying costs
+1.05x and selling pays 0.95x the quote, and you may hold at most `floor(300 / basePrice)` units
+bought from the market (Aether Ore 6, Mana Silk 1; Solar Amber and Void Crystal are
+Garden-supplied only). Perfect-hindsight trading at the cap earns about 250 M/hour, under the
+small caravan's 300 M/hour. Caravan cargo: units held (auto-loaded, most valuable first, or
+passed explicitly to `dispatchCaravan`) ride along up to 2.5x the caravan's investment in
+mean-price value, and return `units x basePrice x M x 1.15` (small) or `x 1.3` (large), fixed at
+dispatch and added to the stored payout. Cargo is valued at the mean, not the live price, so the
+skill is holding goods bought low and shipping them.
+
 ### 2.8 Achievements, Codex, Leaderboard, Fast Forward
 
 24 achievements (`AchievementSystem.js`), each +1.5% (`GameState.js:116`); the roadmap measured
