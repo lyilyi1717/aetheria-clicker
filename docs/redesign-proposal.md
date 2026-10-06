@@ -270,7 +270,8 @@ shard-tree branch becomes affordable. Month 1: Garden breeding opens. Month 2: T
 (every 250 floors). Month 3: Stratum 7 (Abyssal Heart) in sight. Month 4: Chronicle unlocks.
 
 **Every season (3 months).** A Chronicle **Chapter**: a 6–10-week rule set with its own small
-upgrade tree and a Page reward, e.g. "Chapter of Sand" (Excavation is ×3 but Aether is ÷10;
+upgrade tree and a Page reward, e.g. "Chapter of Sand" (Excavation is ×3 but Aether is ÷10,
+shipped as ÷2, see §6.6;
 new relics in every stratum), "Chapter of the Caravan" (Bazaar prices follow a real trend;
 caravans carry gems), "Chapter of the Dallah" (Garden ×2, essences also feed the Monolith).
 Chapters rotate; a missed Chapter comes back next year. Leaderboard seasons align with
@@ -391,7 +392,7 @@ leaderboard column. No save migration: `codex` is a new additive field.
 | Milestones | ×2,2,2,2,3,3,4,5,10 at 10…1000 | same | good discrete pops; keep |
 | **Upgrade shop (new)** | none | per tier, 5 upgrades at owned ≥ 1/10/50/100/200, cost `baseCost × 10^(k+1)`, each **×1.25** that tier (draft: ×2, see R5 notes); 15 click upgrades (×2 each); 8 synergy upgrades ("Dallah per Shawarma": tier A **+0.3%** per tier B owned; draft: +1%) | the "one more" itch; ~60–170 purchases per run |
 | Click yield | `1 + 3% CPS`, `clickPower` constant | `clickPower × 2^(clickUpgrades) + 3% CPS`, combo 5× unchanged | clicks stay relevant in the first 5 min of every run |
-| Active multiplier | ~×7 (spells + anomalies) | **~×2** (Burst 45 s/45 s, Celestial ×2.5, Supernova 180 s) | idle is the baseline (pillar 4) |
+| Active multiplier | ~×7 (spells + anomalies; ×20.7 measured on the real classes, see R3 notes) | **~×2** (Burst 45 s/45 s, Celestial ×2.5, Supernova 180 s); shipped values measure ×7.2 (R3 notes) | idle is the baseline (pillar 4) |
 | Dust gain | `150 · (A/1e9)^0.25` | **`150 · (A/1e9)^(1/3)`** × Geode × Nectar × shard dust mult | cube root halves the run-length growth per Ascension |
 | Dust multiplier | `1 + 0.02 · cosmicDust` (spendable, `GameState.js:149`) | **`1 + 0.02 · totalCosmicDust`** (lifetime) | spending must never hurt |
 | Ascension count bonus (new) | — | `×(1 + 0.05 · ascensions)`, cap ×10 | small, visible, rewards repetition early |
@@ -445,6 +446,8 @@ leaderboard column. No save migration: `codex` is a new additive field.
   run (max 173 with 30 tiers).
   The early-Transcend shift is expected to come back with R3 (active ×8 → ×2 roughly halves
   casual income, #23 default 5); retune `TIER_UPGRADE_MULT` / `SYNERGY_PER_UNIT` then.
+  **Retuned with R3 to ×1.2 per tier upgrade (×2.49 for all 5) and +0.1% per synergy unit**
+  (see R3 notes).
 - **Reset:** Ascend clears bought upgrades except those a keep rule accepts
   (`addAscendKeepRule((upgrade, gameState) => bool)`; upgrades carry `kind`, `tier`, `level`),
   which is the hook for Blueprint Memory I/II (R6). Transcend clears all.
@@ -453,6 +456,35 @@ leaderboard column. No save migration: `codex` is a new additive field.
 - **UI:** a tile row on the Falafel tab above the generators (app-shell mockup), with the
   selected upgrade's full card under it and a "Buy all" button. Saved as an array of ids;
   saves without the field load with nothing bought.
+
+*R3 implementation notes (active income, `SpellSystem.js`, `ClickerSystem.js`,
+`sim/active-income.mjs`).*
+- **Values as specified:** Aether Burst 45 s of CPS on a 45 s cooldown, Celestial ×2.5 for 30 s,
+  Supernova 180 s of CPS (floor 500 clicks' worth on a fresh run). Anomaly weights out of 60:
+  Mirage 5 (1 in 12: ×2 Aether as an Aether buff plus ×2 gold, 60 s, a second one refreshes),
+  Caravan Star 3 (1 in 20: a free large caravan, `MarketSystem.getCaravanTier('large')`, no
+  cargo; if a caravan is already out its 1.5× return is paid at once), the four classics 13
+  each. Anomaly results are `rewards.notify` toasts. Mana overflow (+25% at full mana) is not
+  built.
+- **Measured, not estimated.** `sim/active-income.mjs` plays the real classes at a fixed CPS
+  (2 clicks/s with combo and Frenzy, Celestial → Chrono Warp → Burst whenever ready, every
+  anomaly clicked; seeded random) and divides by idle income. Before R3 this measures
+  **×20.7**, not ×7: the §2.1 estimate left out Chrono Warp (×5 speed for 15 s per 60 s, about
+  +1), Bursts cast inside Celestial (×4 on the payout) and Frenzy (combo 100 every ~50 s, then
+  ×25 clicks plus 6 auto-clicks/s). With the specified values it measures **×7.2** (spells and
+  anomalies without clicks ×6.5; Burst + Celestial + anomalies alone ×3.9–4.2; anomalies alone
+  ×1.5, was ×2.8). **Deviation (rule 5):** the specified values do not reach ×2 on their own.
+  Closing the rest needs changes outside this item's list (Chrono Warp's speed-up, Burst
+  paying base rather than buffed CPS, Frenzy's ×5 on top of combo); left for an owner
+  decision (STATUS "Noticed"). The pacing sim uses the measured ×7.2 while the casual player
+  is present (it was a hand-set ×7.97 that matched neither the old nor the new code).
+- **Pacing retune.** With R5's ×1.25 / +0.3% the casual first Transcend was day 1.5. Swept on
+  the real classes (casual first Transcend; idle in brackets): ×1.25/+0.3% 1.5 (3.4),
+  ×1.2/+0.3% 1.6 (2.9), ×1.15/+0.3% 3.7 (6.5), ×1.2/+0.1% **4.2 (7.2)**, ×1.15/+0.1% 3.8
+  (6.8), ×1.1/+0.1% 4.0 (7.0), ×1.05/+0.1% 4.1 (7.2). The synergy rate is the big lever; the
+  tier multiplier barely moves the first Transcend below ×1.2. Shipped ×1.2 / +0.1%: first
+  Transcend day 4.2, 32 Transcends in the year, a reset at least every 14 days until day 206
+  (was 184), median 58 upgrades per run.
 
 *R15 implementation notes (Seals, Dallah, Ledger, Souq; `js/systems/CalendarSystem.js`).*
 - **Seals are a shard bonus** (#23 default 4), not a Transcend gate. Tier I bars as in roadmap
@@ -508,7 +540,7 @@ count (1 / 3 / 5 / 10 / 20) so the shop grows with the player.
 | Asc 5 | **Hourglass of Al-Ula** (Fast Forward 5 min and 1 h buttons) | 300 |
 | Asc 10 | Automated Leylines (auto-cast at full mana) — keep | 500 |
 | Asc 10 | **Blueprint Memory II** (keep all upgrades of tiers 1–7) | 1,000 |
-| Asc 20 | **Resonant Start** (start each run with 1 of each of the 14 base tiers; see R6 notes) | 5,000 |
+| Asc 20 | **Resonant Start** (start each run with 1 of each of generators 1–10; see R6 notes) | 5,000 |
 | any | **Dust Amplifier** (repeatable): +10% dust gain, additive, cost 100 × 2^n | — |
 
 Everything here is a *thing the player can see working* on the next run. Dust itself is the
@@ -516,16 +548,17 @@ multiplier (`×(1 + 0.02 D_total)`), so nothing in the shop needs to be a percen
 worth it.
 
 *R6 implementation notes (`js/systems/DustShopSystem.js`, panel `js/ui/dustShop.js`).*
-- **Resonant Start covers the 14 base tiers, not every unlocked tier.** With every unlocked tier,
+- **Resonant Start covers generators 1–10, not every unlocked tier.** With every unlocked tier,
   each run after a Transcend started with tiers 15–30 already producing, so recovering from a
-  Transcend took minutes: the casual sim reached tier 30 in week 1 (16 Transcends) and then went
-  34 days without a reset (`sim:check` failed; a reset at least every 14 days only until day 131).
-  With the 14 base tiers: casual gap 5.9 days, a reset at least every 14 days until day 197 (main
-  before R6: 184). Capping or steepening Dust Amplifier instead (max 20 or 40 ranks, price ×4 or
-  ×10 per rank) did not pass.
+  Transcend took minutes: the casual sim reached tier 30 in week 1 and then went 34 days without a
+  reset (`sim:check` failed). With the 14 base tiers that passed (before R3/R20), but after the
+  Chronicle (ladder back to 14 tiers) it handed over the whole ladder and Transcends bunched up:
+  13 of 150 less than 6 h apart after the third and fourth Chronicles (R20's rule is none). With
+  generators 1–10: 0 of 125, casual longest gap 1.8 days to day 270, a reset at least every 14
+  days all year. Capping or steepening Dust Amplifier instead did not pass.
 - **Dust Amplifier** is as listed (+10% dust gain per rank, additive, price 100 × 2^n, no cap).
   It replaces most of what Eternal Resonance (+50% Aether per rank, removed) gave the old sim:
-  without it the casual first Transcend moves from day 1.5 to day 19.
+  without it the casual sim misses `sim:check` (a 37-day stretch with no reset).
 - **Old perks (save v5):** Cosmic Genesis, Chrono Reservoir, Titan's Legacy, Astral Crucible and
   Automated Leylines become owned shop items at their rank, free, even where the shop now asks
   more Ascensions. Eternal Resonance and Singularity Tap are refunded at their old prices
@@ -641,7 +674,7 @@ Ascend at pending ≥ lifetime dust, Transcend at the gate): first Transcend day
 Transcends in the year (8 by month 1, 22 by month 3, 29 by month 6), tier 30 at day 55,
 1,274 Ascensions, CPS 1.8e81 at a year. A reset at least every 14 days until day 190; the last
 Transcends land at days 170, 209 and 312. `TARGETS.gapWindowEndDay` in `sim/core-pacing.mjs`
-is therefore 180 until the Chronicle (R20) restores 270. *After R5* (upgrade shop, before R3):
+was therefore 180 until the Chronicle (R20) restored 270 (§6.6). *After R5* (upgrade shop, before R3):
 first Transcend day 1.5, 32 Transcends, a reset at least every 14 days until day 184 (R5 notes
 in §6.1).
 
@@ -650,6 +683,12 @@ around the clock once Auto-Ascend is bought with the first Transcend's shards): 
 Ascension 10 min, 9 Ascensions on day 0 (was 12), first Transcend day 4.8 (was 7.4: fewer,
 longer early runs pay more dust under the cube root), 31 Transcends, 1,267 Ascensions, a reset
 at least every 14 days until day 184 (was 189), CPS 2.2e81 at a year.
+
+*Measured after R3* (active multiplier measured on the real spells and anomalies, ×7.2 while
+present; upgrade shop retuned to ×1.2 / +0.1%): casual first Ascension 10 min, first Transcend
+**day 4.2** (was 1.5 after R5; idle 7.2, was 3.4), 3 Transcends by week 1, 11 by month 1, 23 by
+month 3, 32 in the year, 1,318 Ascensions, a reset at least every 14 days until day 206 (was
+184), CPS 2.4e82 at a year. Within the §6.4 target of ~day 6 (4–7).
 
 **Current vs proposed, same profile:** today 16–17 Ascensions and ×200 CPS growth over the
 year; proposed ~2,800 Ascensions, 32 Transcends, 16 new generator tiers, ×1e63 growth, and a
@@ -679,6 +718,49 @@ saves that were already deep when R18 shipped can still complete the set. Deeper
 player there. Aether Ore: 10% of plain stone tiles add 1 to the Bazaar's existing `ore` stock
 (sold at its price x the Market Index; no Bazaar code changed). Gem Polishing is in
 `AlchemySystem.polishGem`: 5 of a tier make 1 of the next (ruby to void amethyst).
+
+### 6.6 Chronicle (layer 3, R20; `js/systems/ChronicleSystem.js`)
+
+*As shipped.* Gate: 12 Transcends this Chronicle **and** Seal set I (all seven Seals, R15). A
+first Chronicle also opens at **24 Transcends** without the Seals (deviation, rule 5: the Seals
+include a Tower floor and 40% of the Codex, and no single subgame should lock a prestige layer
+away; 24 Transcends is ~day 90 casual, about when the calendar in §4.2 completes Seal set I).
+After the first Chronicle the Seal half counts as met.
+
+- **Resets:** run, shop upgrades, dust, lifetime dust, the Dust Shop (R6), Fracture Shards (both counters),
+  shard tree, Transcend count (ladder back to 14 tiers). **Keeps:** Pages, Page upgrades,
+  stamps, challenge records, Ascension count, talents, records, Codex, subgames, gold, sand,
+  Wardens and Garden breeding (as free unlocks). Lifetime Transcends
+  (`pastTranscends + transcendenceCount`) feed the talent ladder, achievements and leaderboard,
+  so nothing pays twice and no record goes backwards.
+- **Pages:** 3 + 1 per 2 Transcends past 12 per Chronicle. Every Page ever earned is **×1.4
+  Aether** (BigNum). Measured: ×1.5, or a dust-gain bonus per Page, bunched Transcends into
+  storms (several within hours) after the second Chronicle; ×1.4 keeps every Transcend at least
+  6 h apart in the sim.
+- **Page upgrades** (spendable Pages): Bookmark 3 (keep Auto-Ascend), Ink of Memory 4 (start with
+  2 shards), Second Reading 5 (first clears pay double), Margin Notes 6 (+25% Aether per cleared
+  challenge), Dog-Ear 5 (keep Long Sleep and Hourglass), Gilded Edges 8 (+1 Page per Chronicle).
+- **Challenge runner:** a challenge stashes the run (Aether, run Aether, generators, shop
+  upgrades, combo) in `chronicle.active` and starts a fresh one. Overrides are never written to
+  `GameState`: every hook reads `getActiveRules(gs)`, derived from the running challenge id or the
+  current Chapter. A save holds only ids and the stash; reload re-derives the rules; finishing or
+  abandoning restores the stash exactly. No Ascend, Transcend, Chronicle or Hourglass during one.
+- **Chapter 1, Sand** (10 weeks of real time from the first Chronicle): Excavation ×3, Aether
+  **÷2** (the §4.1 draft said ÷10). Both pass the sim (measured before R3); with ÷10 the first Transcend after
+  Chronicle I comes at +2.3 days instead of +1.6 and each later Chronicle lands ~7 days later.
+  A ten-week tax on the main currency right after the biggest reset of the game should read as
+  a twist, not a penalty, so the gentler ÷2 ships. Stamp pays 3 Pages. Challenges (layer
+  bonuses off; goal is run Aether): Dry Well (combo cap ×2, no Frenzy, 1e11, 3 Pages), Lights
+  Out (no spells, 1e11, 3), Small Souq (6 tiers, 1e10, 4, after 1 clear), Sandstorm (Aether ÷10,
+  1e10, 5, after 3). Past Chapters' challenges stay playable. A new Chapter is a new `CHAPTERS`
+  entry; `validateChapters` checks it.
+- **Measured** (`npm run sim` after R3, which begins a Chronicle once allowed and a week after
+  the last Transcend, buys Page upgrades, plays no challenges): casual Chronicles at days 105,
+  193, 276, 362; a reset at least every 14 days through day 365 (was day 206 without the
+  Chronicle); longest gap to day 270 2.4 days; 116 Transcends in the year, none within 6 h of
+  another. Idle: Chronicles at 122, 216, 306. CPS at a year is lower than without the layer
+  (~4e29 casual, just after Chronicle IV, vs 2e82): the layer restarts the climb rather than
+  inflating numbers.
 
 ---
 

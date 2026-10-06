@@ -36,6 +36,7 @@ import { WardensRelicsUI } from './ui/wardens-relics.js';
 import { UpgradeSystem } from './systems/UpgradeSystem.js';
 import { UpgradeShopUI } from './ui/upgrades.js';
 import { ShardTreeUI } from './ui/shardTree.js';
+import { ChronicleUI } from './ui/chronicle.js';
 import { CalendarUI } from './ui/calendar.js';
 import { gearCard } from './ui/rarity.js';
 import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
@@ -144,6 +145,9 @@ class AetheriaApp {
     // Shard tree (R13): creates this.shardTreeSystem, builds its panel, runs Auto-Ascend
     this.shardTreeUI = new ShardTreeUI(this);
     this.shardTreeUI.init();
+    // Chronicle (R20): creates this.chronicleSystem, builds its tab, runs challenge/Chapter checks
+    this.chronicleUI = new ChronicleUI(this);
+    this.chronicleUI.init();
     // Daily Dallah, Weekly Ledger, Souq Rotation, Seals (R15): creates this.calendarSystem
     this.calendarUI = new CalendarUI(this);
     this.calendarUI.init();
@@ -1615,7 +1619,7 @@ class AetheriaApp {
       ascBtn.onclick = () => {
         const dm = this.prestigeSystem.getDustMultipliers();
         const nectarNote = `\n\nNectar Offering: all ${fmtNum(dm.nectar)} Celestial Nectar will be consumed (${fmtMult(dm.nectarMult)} dust).`;
-        if (confirm(`Ascend now? This resets Aether and Buildings to grant permanent Cosmic Dust and God Perks!${nectarNote}`)) {
+        if (confirm(`Ascend now? This resets Aether and Buildings to grant Cosmic Dust to spend in the Dust Shop!${nectarNote}`)) {
           this.prestigeSystem.ascend();
           this.updateBuildingsUI();
           this.updatePrestigeUI();
@@ -1667,10 +1671,11 @@ class AetheriaApp {
     setText(pendEl, `Pending Cosmic Dust: +${pending.format('standard', 0)}`);
     if (ascBtn) {
       const wait = this.prestigeSystem.getMinRunRemaining();
-      const disabled = pending.lte(0) || wait > 0;
+      const inChallenge = !!this.gameState.chronicle?.active;   // R20: no Ascending mid-challenge
+      const disabled = pending.lte(0) || wait > 0 || inChallenge;
       if (ascBtn.disabled !== disabled) ascBtn.disabled = disabled;
       const m = Math.ceil(wait);
-      setText(ascBtn, wait > 0 ? `✨ Ascend in ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')} (min. run)` : '✨ Ascend to the Stars');
+      setText(ascBtn, inChallenge ? '✨ Ascend after your Chronicle challenge' : wait > 0 ? `✨ Ascend in ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')} (min. run)` : '✨ Ascend to the Stars');
     }
 
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
@@ -1810,6 +1815,7 @@ class AetheriaApp {
     this.wardensRelicsUI?.update(this.currentTab);
     this.shardTreeUI?.update(this.currentTab);
     this.dustShopUI?.update();
+    this.chronicleUI?.update(this.currentTab);
     this.calendarUI?.update(this.currentTab, dt);
     this.talentSourcesUI?.update(dt, this.currentTab);
 

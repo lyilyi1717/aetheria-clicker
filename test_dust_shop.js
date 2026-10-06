@@ -133,8 +133,9 @@ console.log('--- Cosmic Genesis and Resonant Start apply at the start of each ru
   assert.ok(ps.ascend(true));
   assert.equal(gs.buildings.tapper.count, GENESIS_STALLS);
   assert.equal(gs.gold.toNumber(), 1000);
-  for (const def of BUILDING_DEFINITIONS.slice(1, 14)) assert.equal(gs.buildings[def.id].count, 1, def.id);
-  // Only the 14 base tiers: Transcend tiers (15+) are never given, open or not
+  for (const def of BUILDING_DEFINITIONS.slice(1, 10)) assert.equal(gs.buildings[def.id].count, 1, def.id);
+  // Only generators 1-10: higher tiers are never given, open or not
+  assert.equal(gs.buildings[BUILDING_DEFINITIONS[10].id].count, 0, 'tier 11 is open but not given');
   assert.equal(gs.buildings[BUILDING_DEFINITIONS[14].id].count, 0, 'tier 15 is open but not given');
   assert.equal(gs.buildings[BUILDING_DEFINITIONS[16].id].count, 0, 'locked tiers are not given');
 }

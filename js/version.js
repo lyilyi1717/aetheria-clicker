@@ -3,20 +3,46 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '3.7.0';
+export const VERSION = '4.1.0';
 
 export const CHANGELOG = [
   {
-    version: '3.7.0',
+    version: '4.1.0',
     date: '2026-10-06',
     title: 'The Dust Shop',
     changes: [
       'Ascension perks are gone. In their place, the Ascension tab has a Dust Shop that sells new features instead of bigger numbers. New shelves open at Ascension 1, 3, 5, 10 and 20, so there is something new to buy as you keep Ascending.',
-      'New features: Blueprint Memory (keep the first 2 upgrades of every generator when you Ascend), Auto-Buy (buys the best-value generator every 10 s; switch it on or off above the generator list), Finger of Wasta (+1% production per 100 clicks this run, up to +50%), Golem Covenant (Golems are now bought through this), Hourglass of Al-Ula (5 min and 1 h Fast Forward buttons for 300 and 3,600 Chrono Sand), Blueprint Memory II (keep every upgrade of generators 1-7), Resonant Start (start each run with 1 of each of the 14 founding generators) and Dust Amplifier (+10% Cosmic Dust per rank, repeatable).',
+      'New features: Blueprint Memory (keep the first 2 upgrades of every generator when you Ascend), Auto-Buy (buys the best-value generator every 10 s; switch it on or off above the generator list), Finger of Wasta (+1% production per 100 clicks this run, up to +50%), Golem Covenant (Golems are now bought through this), Hourglass of Al-Ula (5 min and 1 h Fast Forward buttons for 300 and 3,600 Chrono Sand), Blueprint Memory II (keep every upgrade of generators 1-7), Resonant Start (start each run with 1 of each of the first 10 generators) and Dust Amplifier (+10% Cosmic Dust per rank, repeatable).',
       'Cosmic Genesis, Chrono Reservoir, Titan\'s Legacy, Astral Crucible and Automated Leylines are now Dust Shop items with the same effects.',
       'Your old perks carry over: the five kept perks stay bought at the rank you had, for free. Eternal Resonance and Singularity Tap were removed; every bit of dust you spent on them is refunded to your balance. If you already own Golems, you get Golem Covenant for free. The Dust Shop shows a one-time note with what was kept and refunded.',
-      'Spending dust still never lowers your production: the dust bonus counts all dust you have earned. Transcending empties the Dust Shop along with your dust, and the Transcend panel now says so.',
+      'Spending dust still never lowers your production: the dust bonus counts all dust you have earned. Transcending (and beginning a Chronicle) empties the Dust Shop along with your dust, and both confirm panels now say so.',
       'Buying Golems now needs Golem Covenant (Ascension 5). Golems you already own keep working.'
+    ]
+  },
+  {
+    version: '4.0.0',
+    date: '2026-10-06',
+    title: 'The Chronicle: a third prestige layer',
+    changes: [
+      'New Chronicle tab (Meta group). Once Transcends slow down, begin a Chronicle: at 12 Transcends with all seven Seals of Transcendence lit, or at 24 Transcends without them (after your first Chronicle, 12 is always enough). The panel lists exactly what starts again and what you keep before you confirm.',
+      'A Chronicle starts your run, shop upgrades, Cosmic Dust, God Perks, Fracture Shards, the Shard Tree and your Transcend count again (back to 14 generator tiers). You keep everything else: talents, records, the Codex, the Tower, Excavation, Garden, Alchemy, Guild, Bazaar, gold and sand. Wardens and Garden breeding stay unlocked, and your Transcend achievements and talent stars count every Chronicle.',
+      'Chronicle Pages: 3 for a Chronicle at 12 Transcends, +1 for every 2 Transcends past that. Every Page you have ever earned gives ×1.4 Aether for good; spending them never lowers it. Spend Pages on six permanent Page upgrades, such as Bookmark (keep Auto-Ascend through a Chronicle) and Ink of Memory (start each Chronicle with 2 Fracture Shards).',
+      'Chapter 1, Sand: your first Chronicle opens a ten-week season where Excavation digs ×3 but Aether is halved. Finishing it pays a stamp and 3 Pages.',
+      'Four challenges (Dry Well, Lights Out, Small Souq, Sandstorm): side runs with special rules and a goal that pay 3–5 Pages on the first clear. Starting one sets your current run aside; it comes back exactly as it was when you finish or abandon the challenge, even across a reload. Challenges stay open after the Chapter ends, so nothing can be missed.'
+    ]
+  },
+  {
+    version: '3.7.0',
+    date: '2026-10-06',
+    title: 'Idle is the baseline: active play rebalanced',
+    changes: [
+      'This is a nerf to active income. Being at the screen earned far more than being away, which made every hour offline feel like a loss. Active play still pays more than idle, just much less: an attentive player now earns about 7 times idle instead of about 20 times.',
+      'Aether Burst now grants 45 seconds of Aether production (was 2 minutes) and its cooldown is 45 s (was 30 s).',
+      'Celestial Alignment is +150% Aether for 30 s (was +300%).',
+      'Supernova anomalies grant 3 minutes of Aether production (was 10 minutes).',
+      'Two new Golden Anomalies. Mirage (1 in 12): double Aether and double gold for 60 s. Caravan Star (1 in 20): a free large caravan sets out from the Bazaar, or, if one is already on the road, its full return is paid to you at once.',
+      'Golden Anomalies now announce themselves with a notice in the corner instead of floating text.',
+      'Upgrade shop retuned to match: generator upgrades are x1.2 each (were x1.25, so all five give x2.5 instead of x3) and synergies are +0.1% per building (were +0.3%). Your first Transcend now comes after about four days of casual play rather than one and a half.'
     ]
   },
   {

@@ -9,13 +9,11 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R3 #5 and R20 #22 (other sessions; see their draft PRs). R7 #9 Progressive unlocking (next, after
-  R6).
+- R7 #9 Progressive unlocking (next; R6 is in).
 
 ## Next up
 
-After R5: R3 #5 (held per #23 default 5 to ship with R5) and R6 #8 (Blueprint Memory hooks).
-After R9: R10 #12. After R13: R15 #17, R20 #22. After R6: R7 #9.
+After R9: R10 #12. After R6: R7 #9. Chapter 2 is one more `CHAPTERS` entry.
 UI: R22–R24 are done. R7 can go once R6 is in.
 
 ## Plan
@@ -108,13 +106,27 @@ UI: R22–R24 are done. R7 can go once R6 is in.
 - R6 #8 Dust shop (`js/systems/DustShopSystem.js`, panel `js/ui/dustShop.js` on the Ascension
   tab, `css/dust-shop.css`): the 13 items of §6.2, tiers by Ascension count, Transcend empties it.
   Save v5 keeps 5 old perks as owned items and refunds Eternal Resonance / Singularity Tap into
-  spendable dust. Resonant Start gives the 14 base tiers only (all unlocked tiers broke
-  `sim:check`; numbers in §6.2 notes). Tests in `test_dust_shop.js`.
+  spendable dust. Resonant Start gives generators 1-10 only (all unlocked tiers broke
+  `sim:check`, all 14 made Transcend storms after a Chronicle; numbers in §6.2 notes). A Chronicle
+  empties the shop like a Transcend. Tests in `test_dust_shop.js`.
 - R24 #47 Reduced motion and touch tooltips: Settings → Reduce Motion (`settings.reduceMotion`
   auto/on/off, `js/ui/motion.js` sets `data-motion` on `<html>`); particles, shake, orb spin,
   background dust, count-ups and ceremonies follow it. "Ready" pulses run 3 times. Tooltips moved
   to `js/ui/tooltip.js`: bonus chips, gear and buff chips open a bottom sheet on tap. Tests in
   `test_r24_motion.js`; screenshots in `docs/ui/screenshots/r24/`.
+- R20 #22 Chronicle (layer 3): `js/systems/ChronicleSystem.js` (gate, Pages x1.4 Aether each,
+  Page upgrades, challenge runner, `CHAPTERS` data with Chapter 1 Sand), UI in
+  `js/ui/chronicle.js` + `css/chronicle.css`, tests in `test_chronicle.js`. Rule overrides are
+  never stored: hooks call `getActiveRules(gs)` (Building tiers, click combo/Frenzy, spells,
+  pickaxe, Aether). A challenge stashes the run (incl. shop upgrades) in `chronicle.active`.
+  Gate: 12 Transcends + Seal set I, or 24 Transcends for the first Chronicle without the Seals
+  (`CalendarSystem.getSealSetProgress`). Sim (after R3): `gapWindowEndDay` 270, resets every <=14 days to
+  day 365. Notes in doc §6.6. No save migration (additive `chronicle` field).
+
+- R3 #5 Active income: Burst 45 s / cd 45 s, Celestial x2.5, Supernova 180 s, Mirage (1/12) and
+  Caravan Star (1/20) anomalies (constants at the top of `SpellSystem.js` / `ClickerSystem.js`).
+  `sim/active-income.mjs` measures active:idle on the real classes (x20.7 before, x7.2 now) and
+  feeds the sim. Upgrade shop retuned to x1.2 / +0.1% synergy: casual first Transcend day 4.2.
 
 ## Notes for the next session
 
@@ -156,6 +168,11 @@ UI: R22–R24 are done. R7 can go once R6 is in.
   that loop forever must be ambient and listed in `test_r24_motion.js`.
 
 ## Noticed (not yet an issue)
+
+- **Active income is x7.2, not the doc's ~x2** (R3, design doc §6.1 R3 notes). The specified
+  spell/anomaly values were applied; the rest comes from Chrono Warp (~+1), Bursts cast inside
+  Celestial, and Frenzy clicks. Owner decision: which of those to trim (each changes the
+  pacing sim; re-run the R3 sweep after).
 
 - Save import merges into the running state: `deserialize` spreads `inventory`, `stats` and
   `settings` over the current values, so keys the imported save lacks keep the old game's values.

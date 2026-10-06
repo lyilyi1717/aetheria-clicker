@@ -291,6 +291,23 @@ console.log('--- v4 -> v5: Ascension perks become the Dust shop (R6) ---');
   assert.deepEqual(stable(gs2.serialize()), stable(out), 'a converted save round-trips unchanged');
 }
 
+console.log('--- v4 save from before the Chronicle (R20): additive, no migration step ---');
+{
+  // R20 adds the chronicle slice with defaults. transcendenceCount now counts this Chronicle's
+  // Transcends, which equals the lifetime count for every save made before the Chronicle shipped.
+  const old = clone(new GameState().serialize());
+  delete old.chronicle;
+  old.version = 4;
+  old.transcendenceCount = 17;
+  const gs = new GameState();
+  gs.deserialize(clone(old));
+  assert.equal(gs.transcendenceCount, 17);
+  assert.equal(gs.chronicle.count, 0);
+  assert.equal(gs.chronicle.pastTranscends, 0);
+  assert.equal(gs.chronicle.active, null);
+  assert.equal(gs.serialize().version, SAVE_VERSION);
+}
+
 console.log('--- Import goes through the same migration path ---');
 {
   const encode = d => btoa(encodeURIComponent(JSON.stringify(d)));
