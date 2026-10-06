@@ -102,15 +102,16 @@ console.log('--- Prestige: dust and shards stay finite past 1e308 ---');
   const gs = new GameState();
   const pres = new PrestigeSystem(gs);
   gs.totalAetherEarned = new BigNum('1e320');
+  gs.runStartedAt = 0; // minimum run met
   const dust = pres.getPendingCosmicDust();
   assert.ok(dust.gt(0), 'ascension must be possible at 1e320 run Aether');
   assert.equal(pres.canAscend(), true);
-  // 150 * (1e311)^0.25 = 150 * 10^77.75
-  assert.ok(Math.abs((dust.e + Math.log10(dust.m)) - (Math.log10(150) + 77.75)) < 1e-6, `dust ${dust}`);
-  // The small end is unchanged: 1e9 -> 150, 16e9 -> 300
+  // 150 * (1e311)^(1/3) = 150 * 10^(311/3)
+  assert.ok(Math.abs((dust.e + Math.log10(dust.m)) - (Math.log10(150) + 311 / 3)) < 1e-6, `dust ${dust}`);
+  // The small end: 1e9 -> 150, 8e9 -> 300 (cube root)
   gs.totalAetherEarned = new BigNum(1e9);
   assert.equal(pres.getPendingCosmicDust().toNumber(), 150);
-  gs.totalAetherEarned = new BigNum(16e9);
+  gs.totalAetherEarned = new BigNum(8e9);
   assert.equal(pres.getPendingCosmicDust().toNumber(), 300);
   gs.totalAetherEarned = new BigNum(999999999);
   assert.equal(pres.getPendingCosmicDust().toNumber(), 0);

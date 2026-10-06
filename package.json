@@ -5,7 +5,7 @@
   "description": "A long-lasting deep clicker and incremental game with nonstop active and idle activities.",
   "scripts": {
     "start": "python server.py",
-    "test": "node test_engine.js && node test_mining.js && node test_garden.js && node test_fastforward.js && node test_correctness.js && node test_saves.js && node test_r1_dust.js && node test_tower.js",
+    "test": "node test_engine.js && node test_mining.js && node test_garden.js && node test_fastforward.js && node test_correctness.js && node test_saves.js && node test_r1_dust.js && node test_tower.js && node test_market.js && node test_r2_dust_exponent.js",
     "sim": "node sim/core-pacing.mjs",
     "sim:check": "node sim/core-pacing.mjs --assert",
     "sim:tower": "node sim/tower-pacing.mjs"

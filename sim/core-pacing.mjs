@@ -105,7 +105,7 @@ function run(profile) {
     if (pending.gt(0)) {
       if (t - runStart >= 600 && pending.toNumber() >= Math.max(10, gs.totalCosmicDust.toNumber())) {
         resets.push(t);
-        ps.ascend();
+        ps.ascend(true); // the sim enforces the 10-min minimum itself (virtual time, not Date.now)
         runStart = t;
       }
       buyPerks();
