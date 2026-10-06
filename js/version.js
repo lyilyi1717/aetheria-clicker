@@ -3,9 +3,17 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.2.1';
+export const VERSION = '4.2.2';
 
 export const CHANGELOG = [
+  {
+    version: '4.2.2',
+    date: '2026-10-06',
+    title: 'Dallah, Codex, Leaderboard and Settings open again',
+    changes: [
+      'The Dallah, Codex, Leaderboard and Settings tabs showed an empty page unless the Chronicle tab was open. They now open normally.'
+    ]
+  },
   {
     version: '4.2.1',
     date: '2026-10-06',
