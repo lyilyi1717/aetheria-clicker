@@ -130,6 +130,9 @@ export const BUILDING_DEFINITIONS = [
   }
 ];
 
+// id -> definition; the per-frame building UI used to linear-search this list per call
+const BUILDING_BY_ID = new Map(BUILDING_DEFINITIONS.map(d => [d.id, d]));
+
 export class BuildingSystem {
   constructor(gameState) {
     this.gameState = gameState;
@@ -160,7 +163,7 @@ export class BuildingSystem {
   }
 
   getBuildingCost(id, countToAdd = 1) {
-    const def = BUILDING_DEFINITIONS.find(b => b.id === id);
+    const def = BUILDING_BY_ID.get(id);
     if (!def) return BigNum.zero();
     const current = this.gameState.buildings[id].count;
 
@@ -176,7 +179,7 @@ export class BuildingSystem {
   }
 
   getMaxBuyable(id) {
-    const def = BUILDING_DEFINITIONS.find(b => b.id === id);
+    const def = BUILDING_BY_ID.get(id);
     if (!def) return { count: 0, cost: BigNum.zero() };
 
     const current = this.gameState.buildings[id].count;
@@ -193,12 +196,22 @@ export class BuildingSystem {
     let n = Math.floor(Math.log(1 + Math.max(0, ratio)) / Math.log(r));
     n = Math.max(0, Math.min(10000, n));
 
-    const totalCost = this.getBuildingCost(id, n);
+    // The log estimate is off by one either way from float noise: with exactly the Aether
+    // for n buildings it often returned n - 1. Settle it against the real cost sum.
+    let totalCost = this.getBuildingCost(id, n);
+    while (n < 10000 && budget.gte(this.getBuildingCost(id, n + 1))) {
+      n++;
+      totalCost = this.getBuildingCost(id, n);
+    }
+    while (n > 0 && budget.lt(totalCost)) {
+      n--;
+      totalCost = this.getBuildingCost(id, n);
+    }
     return { count: n, cost: totalCost };
   }
 
   buyBuilding(id) {
-    const def = BUILDING_DEFINITIONS.find(b => b.id === id);
+    const def = BUILDING_BY_ID.get(id);
     if (!def) return false;
 
     let toBuy = 1;
@@ -248,7 +261,7 @@ export class BuildingSystem {
   }
 
   getBuildingProduction(id) {
-    const def = BUILDING_DEFINITIONS.find(b => b.id === id);
+    const def = BUILDING_BY_ID.get(id);
     if (!def) return BigNum.zero();
     const count = this.gameState.buildings[id].count;
     if (count <= 0) return BigNum.zero();

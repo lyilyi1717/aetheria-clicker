@@ -30,8 +30,10 @@ export class ClickerSystem {
     // Midas' Blessing spell: each click also mints gold scaled to the current dungeon floor
     if (this.gameState.activeBuffs.some(b => b.type === 'click_gold')) {
       const floor = this.gameState.hero?.floor || 1;
-      const clickGold = Math.max(1, Math.floor(5 * Math.pow(1.15, floor - 1) * this.gameState.getGoldMultiplier()));
-      this.gameState.gold = this.gameState.gold.add(new BigNum(clickGold));
+      // BigNum pow: Math.pow(1.15, 4400+) is Infinity, which new BigNum() turned into 0 gold
+      const clickGold = new BigNum(1.15).pow(Math.max(0, floor - 1))
+        .mul(5 * this.gameState.getGoldMultiplier()).floor().max(1);
+      this.gameState.gold = this.gameState.gold.add(clickGold);
     }
     this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(yieldAmount);
     this.gameState.totalClicks++;
