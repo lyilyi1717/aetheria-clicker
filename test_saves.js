@@ -4,9 +4,12 @@ import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
 import { SaveManager } from './js/engine/SaveManager.js';
+import { CombatSystem } from './js/systems/CombatSystem.js';
+import { particles } from './js/engine/ParticleEngine.js';
 import { MIGRATIONS, SAVE_VERSION, CATALYST_MIGRATION_CAP, getSaveVersion, migrateSave } from './js/engine/migrations.js';
 
 globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
+particles.suppressed = true;
 const store = new Map();
 globalThis.localStorage ??= {
   getItem: k => (store.has(k) ? store.get(k) : null),
@@ -156,6 +159,43 @@ console.log('--- v2 fixture loads and round-trips ---');
   const gs2 = new GameState();
   gs2.deserialize(clone(out));
   assert.deepEqual(stable(gs2.serialize()), stable(out), 'a v2 save round-trips unchanged');
+}
+
+console.log('--- v2 -> v3: a deep pre-rebalance Tower save (floor 700k) is rebased ---');
+{
+  // Old-shape hero: Cosmic kit rolled on the old 1.12 curve at the exponent cap (6000)
+  const cap = Math.pow(1.12, 6000);
+  const hero = {
+    level: 70, xp: 0, xpNeeded: 1e12, floor: 700000, maxFloor: 723053, hp: 1e298, maxHp: 100,
+    hpRegen: 3, baseAttack: 15, attackCooldown: 0, attackSpeed: 1, shield: 0, aetherForgeLevel: 28,
+    gear: {
+      weapon: { name: 'Cosmic WEAPON', attack: Math.floor(180 * cap), rarity: 'Cosmic' },
+      armor: { name: 'Cosmic ARMOR', hp: Math.floor(720 * cap), rarity: 'Cosmic' },
+      amulet: { name: 'Cosmic AMULET', crit: 0.5, rarity: 'Cosmic' },
+      relic: { name: 'Cosmic RELIC', lifesteal: 0.3, rarity: 'Cosmic' }
+    },
+    skills: { strike: { name: 'Heavy Strike', cd: 0, maxCd: 4, dmgMult: 2.5 } }
+  };
+  for (const fixture of [{ ...clone(V2_FIXTURE), hero: clone(hero) }, { ...clone(V1_FIXTURE), hero: clone(hero) }]) {
+    const gs = new GameState();
+    gs.deserialize(fixture);
+    const w = gs.hero.gear.weapon.attack;
+    assert.ok(Number.isFinite(w) && Math.abs(w / (180 * Math.pow(1.11, 6000)) - 1) < 1e-6, 'weapon rescaled to 1.11');
+    assert.equal(gs.hero.maxFloor, 723053, 'record kept');
+    assert.equal(gs.hero.indexFloor, 700000, 'provisional indexFloor until CombatSystem rebases the floor');
+    assert.equal(gs.hero.pendingFloorRebase, true);
+    // CombatSystem finishes the rebase on load (covered in depth in test_tower.js)
+    new CombatSystem(gs);
+    assert.ok(gs.hero.floor > 1000 && gs.hero.floor < 6001, `rebased floor ${gs.hero.floor}`);
+    assert.equal(gs.hero.indexFloor, gs.hero.floor);
+    assert.ok(gs.getMarketIndex().lt(new BigNum(1.12).pow(6000)));
+    const out = clone(gs.serialize());
+    assert.equal(out.version, SAVE_VERSION);
+    assert.equal(out.hero.pendingFloorRebase, undefined);
+    const gs2 = new GameState();
+    gs2.deserialize(clone(out));
+    assert.deepEqual(stable(gs2.serialize()), stable(out), 'a rebased save round-trips unchanged');
+  }
 }
 
 console.log('--- Import goes through the same migration path ---');

@@ -19,19 +19,43 @@ export const MONSTER_NAMES = [
 ];
 
 // Floor exponent cap for 1.12^(floor-1) on monster stats and gear. 1.12^6000 ~ 1e295, so
-// 250 x that (boss HP) and 180 x that (Cosmic gear) stay finite; Math.pow hit Infinity at ~6,220.
+// 400 x that (boss HP) and 180 x that (Cosmic gear) stay finite; Math.pow hit Infinity at ~6,220.
 export const COMBAT_SCALE_MAX_EXP = 6000;
 
 export const COMBAT_STAT_MAX = 1e300;
 
+// Monsters, gold and the Market Index grow 1.12^(floor-1); gear rolls at 1.11^(floor-1).
+// Gear then lags monsters by ~1.009^floor, so the Forge, levels, talents and the Quartermaster
+// have to close the gap and the climb decelerates (docs/gamification-roadmap.md §0.2). With
+// both at 1.12 the hero out-scaled the floor for ever (~1 floor/s auto-climb).
+export const MONSTER_FLOOR_BASE = 1.12;
+export const GEAR_FLOOR_BASE = 1.11;
+
+// Bosses (every 10th floor) are the Tower's medium beat: x400 HP, 45 s to kill them
+export const BOSS_HP_MULT = 400;
+export const BOSS_TIMER_SECONDS = 45;
+
 export function combatFloorScale(floor) {
-  return Math.pow(1.12, Math.min(COMBAT_SCALE_MAX_EXP, Math.max(0, floor - 1)));
+  return Math.pow(MONSTER_FLOOR_BASE, Math.min(COMBAT_SCALE_MAX_EXP, Math.max(0, floor - 1)));
+}
+
+export function gearFloorScale(floor) {
+  return Math.pow(GEAR_FLOOR_BASE, Math.min(COMBAT_SCALE_MAX_EXP, Math.max(0, floor - 1)));
+}
+
+// Floor the Market Index and other "best floor" economy reads use. Equals maxFloor on saves
+// that started on the 1.11 gear curve; legacy saves were rebased (migrations.js step 3) and
+// keep their old maxFloor only as the record.
+export function getIndexFloor(hero) {
+  const f = Number(hero?.indexFloor ?? hero?.maxFloor);
+  return Number.isFinite(f) && f >= 1 ? Math.floor(f) : 1;
 }
 
 export class CombatSystem {
   constructor(gameState) {
     this.gameState = gameState;
     this.initHero();
+    this.rebaseLegacyFloor();
     this.initMonster();
   }
 
@@ -48,6 +72,7 @@ export class CombatSystem {
         xpNeeded: 100,
         floor: 1,
         maxFloor: 1,
+        indexFloor: 1,
         hp: 100,
         maxHp: 100,
         hpRegen: 3, // per second
@@ -83,7 +108,7 @@ export class CombatSystem {
 
     // Scaling HP & Attack based on floor
     const scale = combatFloorScale(floor);
-    const hp = Math.floor((isBoss ? 250 : 60) * scale);
+    const hp = Math.floor((isBoss ? BOSS_HP_MULT : 60) * scale);
     const attack = Math.floor((isBoss ? 15 : 6) * scale);
 
     this.monster = {
@@ -93,9 +118,55 @@ export class CombatSystem {
       hp: hp,
       attack: attack,
       attackCooldown: 1.2,
-      timer: isBoss ? 30.0 : 0, // 30s boss timer
-      maxTimer: isBoss ? 30.0 : 0
+      timer: isBoss ? BOSS_TIMER_SECONDS : 0,
+      maxTimer: isBoss ? BOSS_TIMER_SECONDS : 0
     };
+  }
+
+  // True if the current kit beats a boss on `floor` within the boss timer and survives the
+  // fight. Closed-form and conservative: average crit (and any active attack buff) counts,
+  // regen/lifesteal/shield/skills/clicks don't, so it may undershoot by a few floors (the hero
+  // then climbs back on his own).
+  canClearBossFloor(floor) {
+    const h = this.gameState.hero;
+    const scale = combatFloorScale(floor);
+    const crit = Math.min(1, Math.max(0, h.gear.amulet?.crit || 0));
+    const dmg = this.getTotalAttack() * (1 + crit);
+    if (!(dmg > 0)) return false;
+    const speed = h.attackSpeed > 0 ? h.attackSpeed : 1;
+    const hits = Math.ceil((BOSS_HP_MULT * scale) / dmg);
+    if (hits * speed > BOSS_TIMER_SECONDS) return false;
+    const bossHits = Math.floor((hits * speed) / 1.2);
+    return bossHits * 15 * scale < this.getTotalMaxHp();
+  }
+
+  // Highest floor in [1, upTo] whose boss the kit clears (difficulty only grows with the floor,
+  // so a binary search is exact for the estimate). ~20 checks even at floor 700k.
+  getKitClearFloor(upTo) {
+    let lo = 1, hi = Math.max(1, Math.floor(upTo));
+    if (this.canClearBossFloor(hi)) return hi;
+    while (hi - lo > 1) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (this.canClearBossFloor(mid)) lo = mid; else hi = mid;
+    }
+    return lo;
+  }
+
+  // Legacy Tower rebase, second half (the first half, rescaling gear to the 1.11 curve, is
+  // migrations.js step 3, which flags the hero). Needs live combat stats, so it runs here:
+  // step the floor down to what the rebased kit clears, keep maxFloor as the record, and set
+  // indexFloor = min(maxFloor, rebased floor) for the Market Index.
+  rebaseLegacyFloor() {
+    const h = this.gameState.hero;
+    if (!h?.pendingFloorRebase) return false;
+    delete h.pendingFloorRebase;
+    const floor = Number.isFinite(h.floor) && h.floor >= 1 ? Math.floor(h.floor) : 1;
+    h.floor = this.getKitClearFloor(floor);
+    if (!(Number.isFinite(h.maxFloor) && h.maxFloor >= h.floor)) h.maxFloor = h.floor;
+    h.indexFloor = Math.min(h.maxFloor, h.floor);
+    h.hp = this.getTotalMaxHp();
+    h.shield = 0;
+    return true;
   }
 
   getZone(floor) {
@@ -247,7 +318,7 @@ export class CombatSystem {
     this.gameState.stats.totalMonstersSlain++;
     if (isBoss) this.gameState.stats.totalBossesSlain++;
 
-    // Gold reward scales with floor at 1.12^floor, the same curve as monster HP and gear,
+    // Gold reward scales with floor at 1.12^floor, the same curve as monster HP,
     // so gold stays proportional to difficulty (was 1.15^floor, which outgrew everything)
     let goldMult = 1;
     if (this.gameState.quartermaster && this.gameState.quartermaster['golden_req']) {
@@ -261,7 +332,7 @@ export class CombatSystem {
     }
     // Plunderer Greed talent (+25%/rank) and Midas Elixir
     goldMult *= (1 + (this.gameState.talents?.dungeon_wealth?.rank || 0) * 0.25) * this.gameState.getGoldMultiplier();
-    const goldEarned = new BigNum(1.12).pow(floor - 1).mul(new BigNum((isBoss ? 50 : 10) * goldMult)).floor();
+    const goldEarned = new BigNum(MONSTER_FLOOR_BASE).pow(floor - 1).mul(new BigNum((isBoss ? 50 : 10) * goldMult)).floor();
     this.gameState.gold = this.gameState.gold.add(goldEarned);
 
     // XP Reward
@@ -283,6 +354,9 @@ export class CombatSystem {
     h.floor++;
     if (h.floor > h.maxFloor) {
       h.maxFloor = h.floor;
+    }
+    if (h.floor > getIndexFloor(h)) {
+      h.indexFloor = h.floor;
     }
 
     // Check bounties
@@ -321,7 +395,7 @@ export class CombatSystem {
       rand -= r.weight;
     }
 
-    const scale = combatFloorScale(floor) * chosenRarity.mult;
+    const scale = gearFloorScale(floor) * chosenRarity.mult;
     let newItem = { name: `${chosenRarity.name} ${slot.toUpperCase()}`, rarity: chosenRarity.name, color: chosenRarity.color };
 
     if (slot === 'weapon') {
