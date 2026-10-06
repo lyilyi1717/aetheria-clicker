@@ -1,3 +1,4 @@
+import { recordHarvest } from './TalentSources.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
@@ -387,6 +388,7 @@ export class GardenSystem {
     this.gameState.stats.totalPlantsHarvested++;
 
     const seedId = plot.seed;
+    recordHarvest(this.gameState, seedId); // R9 first-harvest stars
     const isFertilized = plot.fertilized;
     const fertMult = isFertilized ? 2 : 1;
     // Golden mutation: 1% of harvests, x3 essence, logged in the Herbarium.

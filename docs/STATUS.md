@@ -9,14 +9,13 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R4 #6 Transcend rework (PR #35).
+- R5 #7 Upgrade shop (PR #40), R9 #11 Talent economy (PR #39), R13 #15 Shard tree (PR #43),
+  R14 #16 Codex 2.0 (PR #41).
 
 ## Next up
 
-Ready now: R9 #11 (after R4 merges: both edit `PrestigeSystem.js` / `GameState.js`), R11 #13.
-After R4: R5 #7 (+ R3 #5, held per #23 default 5 to ship with R5), R6 #8, R13 #15.
-Then R10 #12 (needs R9), R14 #16 (needs R11), R7 #9 (needs R6), R15 #17 (needs R13),
-R20 #22 (needs R4, R13).
+After R5: R3 #5 (held per #23 default 5 to ship with R5) and R6 #8 (Blueprint Memory hooks).
+After R9: R10 #12. After R13: R15 #17, R20 #22. After R6: R7 #9.
 UI: R22–R24 are done. R7 can go once R6 is in.
 
 ## Plan
@@ -78,6 +77,17 @@ UI: R22–R24 are done. R7 can go once R6 is in.
   run. **Owner action pending:** run that file in the Supabase SQL editor (steps in PR #34).
 - Tooling: `npm test` runs every `test_*.js` via `run_tests.mjs` (no `package.json` edit needed;
   `npm test -- tower` runs a subset).
+- R4 #6 Transcend rework: gate `1e9 x 10^k` dust of the layer, 2 shards per Transcend, each x1.5
+  Aether and x1.5 dust (`totalFractureShards`; `fractureShards` is the spendable balance for the
+  shard tree), tiers 15-30 generated in `BuildingSystem.js` (one per Transcend), panel in
+  `js/ui/prestige.js`. Save v4 refunds old Transcends. #23 default 2 (x30 gate growth) is built but
+  off (`TRANSCEND_SLOW_FROM = Infinity`): every x30 variant stalled layer 2 sooner in the sim.
+  CI runs `sim:check` (blocking); `gapWindowEndDay` is 180 until R20 restores 270.
+- R11 #13 Reward feedback: `rewards.notify({ tier, kind, title, amount, ... })` in
+  `js/ui/rewards.js`; queue rules in `js/ui/rewardQueue.js` (same `kind` merges, one big ceremony
+  per 60 s, hidden tab / warp batches into "N x ... while you were away"); tier sounds in
+  `AudioEngine.playTier`. Ascension = big ceremony, Transcend = epic; `ascend(true)` (Transcend's
+  internal call) shows none.
 - R17 #19 Garden breeding (`GardenSystem.breedPlots`, `HYBRIDS`), golden mutation 1%, 6
   `HYBRID_RECIPES` with discovery in `AlchemySystem`; UI in `js/ui/garden.js`.
 - R21 #42 UI review (`docs/ui-review.md`, 17 ranked findings + follow-ups UI-1..UI-3 ready to

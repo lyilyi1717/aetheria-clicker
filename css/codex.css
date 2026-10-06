@@ -1,0 +1,28 @@
+/* Codex 2.0 (R14): achievement ladder, collections, Generator Codex.
+   Built from css/tokens.css and css/components.css (.card, .card-row, .icon-tile, .chip, .bar,
+   .seg, .tag); only layout lives here. Linked from js/ui/codex.js. */
+.codex-summary { margin-bottom: var(--sp-4); }
+.codex-pct { font-size: var(--fs-32); font-weight: 700; color: var(--gold); line-height: var(--lh-tight); margin-bottom: var(--sp-2); }
+.codex-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0; }
+.codex-note, .codex-desc { font-size: var(--fs-12); color: var(--text-2); overflow-wrap: anywhere; }
+.codex-note { margin: var(--sp-3) 0; }
+.codex-seg { display: flex; margin-bottom: var(--sp-4); }
+.codex-seg button { flex: 1; min-height: var(--tap); font-size: var(--fs-13); }
+.codex-pane[hidden] { display: none; }
+.codex-group, .codex-set { margin-bottom: var(--sp-5); }
+.codex-group h4, .codex-set h4 { margin: 0; font-size: var(--fs-16); }
+.codex-list, .codex-entries { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--sp-2); margin-top: var(--sp-3); }
+.codex-gens { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--sp-2); }
+.codex-text { min-width: 0; flex: 1; }
+.codex-name { font-size: var(--fs-13); font-weight: 600; color: var(--text-1); overflow-wrap: anywhere; }
+.codex-ach.is-next { border-color: var(--aether); }
+.codex-ach.is-locked .codex-name, .codex-entry.is-locked .codex-name { color: var(--text-2); }
+.codex-gen { align-items: flex-start; }
+.codex-gen.silhouette .cg-shape { filter: brightness(0) opacity(0.5); }
+.cg-stars { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-3); margin-top: var(--sp-1); font-size: var(--fs-12); color: var(--text-3); }
+.cg-stars .on { color: var(--gold); }
+.cg-best { margin-left: auto; }
+@media (max-width: 480px) {
+  .codex-list, .codex-entries, .codex-gens { grid-template-columns: 1fr; }
+  .codex-seg button { font-size: var(--fs-12); padding: 0 var(--sp-1); }
+}
