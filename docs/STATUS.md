@@ -3,7 +3,8 @@
 Progress log for the year-one redesign (`docs/redesign-proposal.md`). Every session reads this
 first and updates it before finishing (see `AGENTS.md`).
 
-Roadmap items are called **R0–R20**. GitHub numbers issues separately, so R*n* is issue #*n*+2.
+Roadmap items are called **R0–R24**. GitHub numbers issues separately, so R*n* is issue #*n*+2
+(R0–R20); R21 is #42, R22 #45, R23 #46, R24 #47.
 Owner decisions live in issue #23; if it has no answer, use the default listed there.
 
 ## In progress
@@ -16,6 +17,7 @@ Ready now: R9 #11 (after R4 merges: both edit `PrestigeSystem.js` / `GameState.j
 After R4: R5 #7 (+ R3 #5, held per #23 default 5 to ship with R5), R6 #8, R13 #15.
 Then R10 #12 (needs R9), R14 #16 (needs R11), R7 #9 (needs R6), R15 #17 (needs R13),
 R20 #22 (needs R4, R13).
+UI: R22–R24 are done. R7 can go once R6 is in.
 
 ## Plan
 
@@ -28,20 +30,24 @@ R20 #22 (needs R4, R13).
 | 1 | R12 Offline cap and modal | #14 | – |
 | 2 | R4 Transcend rework | #6 | R0, R1, R2 |
 | 3 | R5 Upgrade shop | #7 | R4 |
-| 3 | R6 Dust shop of features | #8 | R0, R4 |
-| 4 | R7 Progressive unlocking | #9 | R6 |
+| 3 | R6 Dust shop of features | #8 | R0, R4, R21 |
+| 4 | R7 Progressive unlocking | #9 | R6, R21, R23 |
 | 4 | R8 Void Tower rebalance | #10 | – |
 | 4 | R9 Talent economy | #11 | R0 |
-| 4 | R10 Contract board | #12 | R9 |
+| 4 | R10 Contract board | #12 | R9, R21 |
 | 4 | R11 Reward feedback system | #13 | – |
-| 5 | R13 Shard tree | #15 | R4 |
+| 5 | R13 Shard tree | #15 | R4, R21 |
 | 5 | R14 Codex 2.0 | #16 | R11 |
-| 5 | R15 Daily and weekly structure | #17 | R13 |
+| 5 | R15 Daily and weekly structure | #17 | R13, R21 |
 | 5 | R16 Bazaar prices and caravans | #18 | – |
 | 5 | R17 Garden breeding and recipes | #19 | – |
 | 5 | R18 Wardens, relics, ore, polishing | #20 | R8 |
 | 5 | R19 Leaderboard Season 2 | #21 | R8 |
-| 5 | R20 Chronicle layer | #22 | R4, R13 |
+| 5 | R20 Chronicle layer | #22 | R4, R13, R21 |
+| 4 | R21 UI/UX review, style guide, mockups | #42 | – (blocks UI of R6, R7, R10, R13, R15, R20) |
+| 4 | R22 Design tokens and base components (UI-2) | #45 | R21 |
+| 4 | R23 Responsive app shell (UI-1) | #46 | R22 |
+| 4 | R24 Reduced motion and touch tooltips (UI-3) | #47 | R22 (best after R23) |
 
 ## Done
 
@@ -74,8 +80,32 @@ R20 #22 (needs R4, R13).
   `npm test -- tower` runs a subset).
 - R17 #19 Garden breeding (`GardenSystem.breedPlots`, `HYBRIDS`), golden mutation 1%, 6
   `HYBRID_RECIPES` with discovery in `AlchemySystem`; UI in `js/ui/garden.js`.
+- R21 #42 UI review (`docs/ui-review.md`, 17 ranked findings + follow-ups UI-1..UI-3 ready to
+  file), style guide (`docs/ui-style-guide.md`, paste-ready tokens), mockups in
+  `docs/ui/mockups/` (shell, components, R6, R7, R10, R13, R15, R20) and screenshots of every tab
+  in `docs/ui/screenshots/`. AGENTS.md rule 7 now points UI work at both.
+- R22 #45 Design tokens and base components: `css/tokens.css` (style guide §2.1, linked first),
+  `css/components.css` (`.btn*`, `.card`, `.card-row`, `.chip`, `.bar`, `.segs`, `.num`,
+  `.rarity`, `.gear`). Old `--accent-*` / `--text-*` / `--bg-*` names alias the tokens in
+  `style.css`. Inter is the UI font. Generators, talents and gear use the components; gear
+  rarity markup comes from `js/ui/rarity.js`.
+- R23 #46 Responsive app shell: one-row 56px header (hero currency per tab, then Aether/Gold/Dust;
+  Mana/Sand/Seals only where used; "next goal" chip), grouped 220px sidebar, 64px icon rail at
+  640–1023px, bottom bar + More sheet under 640px. `js/ui/shell.js` (helpers tested in
+  `test_r23_shell.js`); guides open once per tab (`settings.guidesSeen`; old saves get
+  `{ all: true }`). Art panels on Dig / Ascension / Bazaar removed; screenshots in
+  `docs/ui/screenshots/r23/`.
+- R24 #47 Reduced motion and touch tooltips: Settings → Reduce Motion (`settings.reduceMotion`
+  auto/on/off, `js/ui/motion.js` sets `data-motion` on `<html>`); particles, shake, orb spin,
+  background dust, count-ups and ceremonies follow it. "Ready" pulses run 3 times. Tooltips moved
+  to `js/ui/tooltip.js`: bonus chips, gear and buff chips open a bottom sheet on tap. Tests in
+  `test_r24_motion.js`; screenshots in `docs/ui/screenshots/r24/`.
 
 ## Notes for the next session
+
+- **Changelog:** every player-visible PR bumps `VERSION` and adds a `CHANGELOG` entry in
+  `js/version.js` (AGENTS.md "Version and changelog"; CI `changelog` job enforces it). v3.0.0
+  backfilled R0-R22, which had shipped without entries. Current version: 3.0.0.
 
 - Save format changes: add a step to `MIGRATIONS` in `js/engine/migrations.js` and an old-shape
   fixture to `test_saves.js`. Current `SAVE_VERSION` is 3 (R8).
@@ -90,6 +120,21 @@ R20 #22 (needs R4, R13).
   to show as collections. Add `codex_pct` / `seals_lit` columns to `leaderboard_season` when R14 /
   R15 ship (with a ceiling in `leaderboard_season_guard`).
 - After R2 the casual longest gap is 156 days; R4 is expected to switch CI to `sim:check`.
+- New UI: use the classes in `css/components.css` (live in `docs/ui/mockups/components.html`)
+  and the tokens in `css/tokens.css`; no new hex values. Buy buttons: `.btn-primary` when
+  affordable, `.is-locked` + `aria-disabled` with the missing amount otherwise.
+- Delegated click handlers in `main.js` (talents, spells, alchemy, quartermaster, perks) only fire
+  on buttons with the `active` class. Restyling a button must keep toggling it, or clicks do
+  nothing (talents broke this way after R22). `test_click_gates.js` guards it.
+
+- Shell (R23): new tabs need a `data-tab` button in all three navs in `index.html` (side nav
+  group, and the bottom bar or the More sheet) plus a `data-hint` on their guide banner;
+  `test_r23_shell.js` checks both. Per-tab header currencies live in `headerCurrencies()`.
+  R7 should hide locked tabs in all three navs.
+
+- Tooltips (R24): put `data-tip` (via `tipHtml`/`tipAttr` in `js/ui/tooltip.js`) on anything that
+  explains itself on hover; add its class to `TAP_TIP_SELECTOR` if phones need it. New animations
+  that loop forever must be ambient and listed in `test_r24_motion.js`.
 
 ## Noticed (not yet an issue)
 
@@ -99,10 +144,11 @@ R20 #22 (needs R4, R13).
   `miningGrid.schema`) outside the `MIGRATIONS` chain. It works; folding it in is optional.
 - Midas click gold (`ClickerSystem`) still scales 1.15^floor on the current floor, and bounty gold
   scales with the current floor; neither follows the R8 curves.
-- The app shell's fixed 220px sidebar doesn't collapse at phone width (~65px content column at
-  375px), so every tab is cramped on phones. Pre-existing; worth its own issue.
 - The Transcend shard payout still reads `totalCosmicDust / 1e4` (R4 replaces it).
 - The Chrono Reservoir perk text (`PrestigeSystem.js` perk list, `tabBonuses.js`) only mentions the
   Sand bank; since R12 it also extends offline Aether bands by 4 h per rank. Reword with R4/R6.
 - A brand-new account carrying a rebased legacy save shows floor <= 1,000 + 1,000/h on Season 2
   for its first hours (R19 guard ceiling); old anonymous accounts can still post forged floors.
+- Combat floating damage text and particles still render over other tabs (seen on Excavation
+  and over the Tower quick-cast chips; `docs/ui-review.md` finding 6). `1ae4d47` fixed it for
+  auto-attacks only.

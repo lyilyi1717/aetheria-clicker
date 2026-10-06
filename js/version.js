@@ -1,9 +1,30 @@
 // Single source of truth for the game version and the About tab changelog.
-// Add a new entry at the TOP of CHANGELOG and bump VERSION for every release.
+// Every PR that changes what players see or how the game plays adds an entry at the TOP of
+// CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
+// test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '2.7.1';
+export const VERSION = '3.0.0';
 
 export const CHANGELOG = [
+  {
+    version: '3.0.0',
+    date: '2026-10-06',
+    title: 'The Long Road (Redesign, Part 1)',
+    changes: [
+      'Transcend reworked: it now needs 1e9 Cosmic Dust earned since your last Transcend (x10 each time), pays 2 Fracture Shards, and every shard you have ever earned gives x1.5 Aether and x1.5 dust. The Transcend panel shows exactly what you gain and what resets.',
+      '16 new buildings (tiers 15 to 30): one more opens with each Transcend. Locked tiers stay hidden until you reach them. Old saves get a refund for the previous Transcend rules.',
+      'Cosmic Dust: the dust multiplier now counts all dust earned (+2% each), so spending dust never lowers it. Dust gain grows faster (exponent 1/3, was 1/4), and an Ascension needs a run of at least 10 minutes (the button shows the time left).',
+      'Offline progress: 100% Aether for the first 8 hours, 50% up to 24 hours, then nothing; each Chrono Reservoir rank adds 4 hours to both. A welcome-back window shows the breakdown.',
+      'Void Tower rebalanced: gear scales x1.11 per floor, bosses have x400 HP and 45 seconds. Very high floors from old saves move to the floor your gear can clear; your record floor is kept.',
+      'Wardens guard every 250th floor (x3 boss HP, 60 seconds; each trophy gives +2% Tower gold). Excavation adds Strata Relics (+5% pickaxe power each), Aether Ore and Gem Polishing (5 gems into 1 of the next kind).',
+      'Garden breeding: cross two grown plants into hybrids, with a 1% golden mutation and 6 hybrid recipes to discover in Alchemy.',
+      'Bazaar: prices drift back toward their normal value, buying and selling has a 5% spread, stock is capped, and caravans can carry cargo (optional).',
+      'Leaderboard Season 2 ranks the Tower floor under the new rules; Season 1 stays viewable.',
+      'Rewards now pop up as toasts, and big moments (Ascension, Transcend, perks) get a short skippable celebration with its own sound.',
+      'New look: a shared colour palette, the Inter font, clearer buy buttons that say how much you are missing, and gear rarity shown as border, symbol and word.',
+      'Faster rendering and smaller images; saves now carry a version number so future updates convert them safely.'
+    ]
+  },
   {
     version: '2.7.1',
     date: '2026-10-06',

@@ -33,6 +33,14 @@ export const PERK_TAB_EFFECTS = {
   chrono_vault:      { tabs: ['codex'], text: r => `+${r * 720}m Offline Sand cap` }
 };
 
+// What each Active Bonuses chip kind is, for its tooltip (R24)
+export const BONUS_KIND_LABELS = {
+  talent: 'Constellation talent',
+  perk: 'Ascension perk',
+  mastery: 'Universal Mastery',
+  buff: 'Timed buff'
+};
+
 // Timed buff type -> tabs where it matters
 export const BUFF_TYPE_TABS = {
   click_mult: ['monolith'],
