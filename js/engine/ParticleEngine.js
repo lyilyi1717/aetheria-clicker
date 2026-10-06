@@ -1,4 +1,11 @@
 // High-performance Particle and Floating Text Engine
+
+// "Reduce motion" (R24, js/ui/motion.js writes data-motion on <html>): no sparks, and floating
+// numbers fade where they appear instead of drifting
+export function motionReduced() {
+  return typeof document !== 'undefined' && document.documentElement?.dataset?.motion === 'reduced';
+}
+
 export class ParticleEngine {
   constructor() {
     this.canvas = null;
@@ -26,7 +33,7 @@ export class ParticleEngine {
   }
 
   spawnClickSparks(x, y, count = 12, color = '#38bdf8') {
-    if (this.suppressed) return;
+    if (this.suppressed || motionReduced()) return;
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 2 + Math.random() * 6;
@@ -45,6 +52,7 @@ export class ParticleEngine {
 
   spawnFloatingText(x, y, text, color = '#67e8f9', isCrit = false) {
     if (this.suppressed) return;
+    const still = motionReduced();
     this.texts.push({
       x: x + (Math.random() - 0.5) * 30,
       y: y + (Math.random() - 0.5) * 20,
@@ -52,8 +60,8 @@ export class ParticleEngine {
       color,
       isCrit,
       size: isCrit ? 22 : 16,
-      vy: isCrit ? -2.2 : -1.4,
-      vx: (Math.random() - 0.5) * 0.8,
+      vy: still ? 0 : (isCrit ? -2.2 : -1.4),
+      vx: still ? 0 : (Math.random() - 0.5) * 0.8,
       alpha: 1,
       decay: isCrit ? 0.012 : 0.018
     });

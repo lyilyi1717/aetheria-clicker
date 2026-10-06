@@ -110,7 +110,9 @@ export class GameState {
     this.market = null;
     this.ascensionPerks = {};
     this.achievements = {};
-    this.settings = { notation: 'scientific' };
+    // guidesSeen: tabs whose "How It Works" banner was shown expanded once (R23, js/ui/shell.js)
+    // reduceMotion: 'auto' follows the device, 'on' / 'off' override it (R24, js/ui/motion.js)
+    this.settings = { notation: 'scientific', guidesSeen: {}, reduceMotion: 'auto' };
   }
 
   // Calculate global aether production per second from all buildings + buffs
@@ -444,6 +446,12 @@ export class GameState {
       this.settings = { ...this.settings, ...(data.settings || {}) };
       // Saves from before R9 have no records: seed them from what the save shows (no grants)
       this.records = data.records ? sanitizeRecords(data.records) : seedRecords(this);
+      // Saves from before R23 have played past the first visits: start every guide collapsed
+      if (!data.settings || typeof data.settings.guidesSeen !== 'object' || !data.settings.guidesSeen) {
+        this.settings.guidesSeen = { all: true };
+      }
+      // Saves from before R24 (or with an unknown value) follow the device setting
+      if (!['auto', 'on', 'off'].includes(this.settings.reduceMotion)) this.settings.reduceMotion = 'auto';
       this.clampLoadedTimers();
     } catch (e) {
       console.error('Error during deserialize:', e);

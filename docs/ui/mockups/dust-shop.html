@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dust shop</title>
+<meta name="description" content="Dust shop mockup for R6: tiered feature shop replacing Ascension perks.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ==== Aetheria UI tokens (docs/ui-style-guide.md) ==== */
+:root {
+  /* Surfaces */
+  --bg-0: #050a07;            /* page */
+  --bg-1: #0a140f;            /* header, nav, modal */
+  --bg-2: #0f1d16;            /* card */
+  --bg-3: #16271e;            /* card hover / nested */
+  --bg-4: #1e3328;            /* pressed / selected */
+  /* Lines */
+  --line-1: rgba(148, 163, 184, 0.14);   /* hairline */
+  --line-2: rgba(148, 163, 184, 0.28);   /* control border */
+  --line-brand: rgba(52, 211, 153, 0.35);/* brand card border (was 0.6) */
+  /* Text */
+  --text-1: #f1f5f9;          /* primary  15.9:1 on bg-1 */
+  --text-2: #b7c3cf;          /* secondary 10.0:1 */
+  --text-3: #8795a6;          /* tertiary / captions 5.6:1 */
+  --text-on-accent: #0b1308;
+  /* Accents (one per currency / system) */
+  --aether: #38bdf8;  --aether-dim: rgba(56, 189, 248, 0.14);
+  --gold: #fbbf24;    --gold-dim: rgba(251, 191, 36, 0.14);
+  --dust: #c084fc;    --dust-dim: rgba(192, 132, 252, 0.14);
+  --shard: #f472b6;   --shard-dim: rgba(244, 114, 182, 0.14);
+  --life: #34d399;    --life-dim: rgba(52, 211, 153, 0.14);
+  --mana: #60a5fa;    --mana-dim: rgba(96, 165, 250, 0.14);
+  --sand: #e7c38a;    --sand-dim: rgba(231, 195, 138, 0.14);   /* Chrono Sand, Chronicle, Souq */
+  --danger: #f87171;  --danger-dim: rgba(248, 113, 113, 0.14);
+  --ok: #34d399; --warn: #fbbf24; --bad: #f87171;
+  /* Rarity (colour-blind safe: lightness ladder + glyph + label, never colour alone) */
+  --rarity-common: #9aa5b1;
+  --rarity-rare: #56b4e9;
+  --rarity-epic: #b388ff;
+  --rarity-legendary: #ef8a3c;
+  --rarity-cosmic: #ffd84d;
+  /* Type */
+  --font-display: 'Cinzel', Georgia, serif;
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --fs-11: 0.6875rem; --fs-12: 0.75rem; --fs-13: 0.8125rem; --fs-14: 0.875rem;
+  --fs-16: 1rem; --fs-18: 1.125rem; --fs-20: 1.25rem; --fs-24: 1.5rem; --fs-32: 2rem;
+  --lh-tight: 1.2; --lh-body: 1.45;
+  /* Space (4px grid) */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  --gutter: 16px;
+  /* Radius */
+  --r-1: 6px; --r-2: 10px; --r-3: 14px; --r-pill: 999px;
+  /* Elevation */
+  --el-1: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 16px rgba(0,0,0,0.35);
+  --el-2: 0 1px 0 rgba(255,255,255,0.06) inset, 0 12px 32px rgba(0,0,0,0.5);
+  --el-3: 0 24px 64px rgba(0,0,0,0.65);
+  --glow-gold: 0 0 0 1px var(--gold), 0 0 18px rgba(251,191,36,0.45);
+  --glow-dust: 0 0 0 1px var(--dust), 0 0 18px rgba(192,132,252,0.45);
+  /* Motion */
+  --dur-1: 120ms; --dur-2: 200ms; --dur-3: 320ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-pop: cubic-bezier(0.2, 1.4, 0.4, 1);
+  /* Layout */
+  --header-h: 56px; --nav-w: 220px; --rail-w: 64px; --bottom-nav-h: 60px; --tap: 44px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ==== Base ==== */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg-0); color: var(--text-1);
+  font-family: var(--font-ui); font-size: var(--fs-14); line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+}
+h1, h2, h3, h4 { margin: 0; line-height: var(--lh-tight); }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-24); letter-spacing: 0.02em; }
+h2 { font-size: var(--fs-20); font-weight: 700; }
+h3 { font-size: var(--fs-16); font-weight: 700; }
+.eyebrow { font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.muted { color: var(--text-2); } .dim { color: var(--text-3); }
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.c-aether { color: var(--aether); } .c-gold { color: var(--gold); } .c-dust { color: var(--dust); }
+.c-shard { color: var(--shard); } .c-life { color: var(--life); } .c-sand { color: var(--sand); } .c-danger { color: var(--danger); } .c-mana { color: var(--mana); }
+button { font: inherit; color: inherit; }
+a { color: var(--aether); }
+:focus-visible { outline: 2px solid var(--aether); outline-offset: 2px; border-radius: var(--r-1); }
+
+/* ==== Buttons ==== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  min-height: 40px; padding: 0 var(--sp-4); border-radius: var(--r-1);
+  border: 1px solid var(--line-2); background: var(--bg-3); color: var(--text-1);
+  font-weight: 600; font-size: var(--fs-14); cursor: pointer; white-space: nowrap;
+  transition: background var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+.btn:hover { background: var(--bg-4); }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--gold); border-color: var(--gold); color: var(--text-on-accent); }
+.btn-primary:hover { background: #ffd04d; box-shadow: var(--glow-gold); }
+.btn-aether { background: var(--aether-dim); border-color: var(--aether); color: var(--aether); }
+.btn-aether:hover { background: var(--aether); color: var(--text-on-accent); }
+.btn-dust { background: var(--dust-dim); border-color: var(--dust); color: var(--dust); }
+.btn-dust:hover { background: var(--dust); color: var(--text-on-accent); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--text-2); }
+.btn-ghost:hover { background: var(--bg-3); color: var(--text-1); }
+.btn-danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+.btn-sm { min-height: 32px; padding: 0 var(--sp-3); font-size: var(--fs-13); }
+.btn-lg { min-height: 48px; padding: 0 var(--sp-5); font-size: var(--fs-16); }
+.btn-block { width: 100%; white-space: normal; line-height: 1.25; padding-top: 8px; padding-bottom: 8px; }
+.btn[aria-disabled="true"], .btn.is-locked { cursor: not-allowed; background: var(--bg-2); border-color: var(--line-1); color: var(--text-3); box-shadow: none; }
+.btn-buy { flex-direction: column; gap: 0; line-height: 1.15; min-width: 104px; padding: var(--sp-2) var(--sp-3); }
+.btn-buy .lbl { font-size: var(--fs-11); font-weight: 600; opacity: 0.85; }
+.btn-buy .cost { font-size: var(--fs-14); font-weight: 700; }
+@media (pointer: coarse) { .btn { min-height: var(--tap); } .btn-sm { min-height: 40px; } }
+
+/* Segmented control (buy amount) */
+.seg { display: inline-flex; padding: 2px; gap: 2px; background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-1); }
+.seg button { min-height: 32px; min-width: 40px; padding: 0 var(--sp-2); border: 0; border-radius: 4px; background: transparent; color: var(--text-2); font-weight: 600; font-size: var(--fs-12); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--aether); color: var(--text-on-accent); }
+
+/* ==== Cards ==== */
+.card { background: var(--bg-2); border: 1px solid var(--line-1); border-radius: var(--r-2); padding: var(--sp-4); box-shadow: var(--el-1); }
+.card-brand { border-color: var(--line-brand); }
+.card-flat { box-shadow: none; }
+.card-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); border-radius: var(--r-2); background: var(--bg-2); border: 1px solid var(--line-1); }
+.card-row:hover { background: var(--bg-3); }
+.card-row.is-affordable { border-color: rgba(251,191,36,0.45); }
+.card-row.is-owned { border-color: var(--line-brand); }
+.card-row.is-locked { opacity: 0.72; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-3); flex-wrap: wrap; }
+.icon-tile { flex: 0 0 auto; width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--r-1); background: var(--bg-1); font-size: 1.5rem; line-height: 1; }
+.icon-tile.sm { width: 36px; height: 36px; font-size: 1.2rem; }
+.stack { display: flex; flex-direction: column; gap: var(--sp-3); }
+.stack > *, .grid > * { min-width: 0; }
+.grid { display: grid; gap: var(--sp-3); }
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-auto { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+@media (max-width: 639px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } .grid-2.keep { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ==== Chips / badges ==== */
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border-radius: var(--r-pill); border: 1px solid var(--line-2); background: var(--bg-1); color: var(--text-2); font-size: var(--fs-12); font-weight: 600; white-space: nowrap; }
+.chip strong { color: var(--text-1); }
+.chip.aether { border-color: var(--aether); color: var(--aether); background: var(--aether-dim); }
+.chip.gold { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+.chip.dust { border-color: var(--dust); color: var(--dust); background: var(--dust-dim); }
+.chip.life { border-color: var(--life); color: var(--life); background: var(--life-dim); }
+.chip.sand { border-color: var(--sand); color: var(--sand); background: var(--sand-dim); }
+.chip.danger { border-color: var(--danger); color: var(--danger); background: var(--danger-dim); }
+.badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: var(--r-pill); background: var(--danger); color: #fff; font-size: var(--fs-11); font-weight: 700; }
+.pip { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 2px var(--bg-1); }
+.tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; background: var(--bg-4); color: var(--text-2); }
+.tag.new { background: var(--gold); color: var(--text-on-accent); }
+.tag.tier { background: var(--dust-dim); color: var(--dust); }
+
+/* ==== Progress bars ==== */
+.bar { position: relative; height: 8px; border-radius: var(--r-pill); background: rgba(255,255,255,0.08); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: inherit; background: var(--aether); transition: width var(--dur-3) var(--ease-out); }
+.bar.gold > i { background: var(--gold); } .bar.dust > i { background: var(--dust); } .bar.life > i { background: var(--life); }
+.bar.danger > i { background: var(--danger); } .bar.sand > i { background: var(--sand); } .bar.shard > i { background: var(--shard); }
+.bar.lg { height: 12px; } .bar.xl { height: 18px; }
+.bar.xl > b { position: absolute; inset: 0; display: grid; place-items: center; font-size: var(--fs-11); font-weight: 700; color: var(--text-1); text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+.bar-row { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-12); color: var(--text-2); }
+.bar-row .bar { flex: 1; }
+.bar-row .val { font-variant-numeric: tabular-nums; color: var(--text-1); font-weight: 600; min-width: 3.5em; text-align: right; }
+.segs { display: flex; gap: 3px; } .segs i { flex: 1; height: 8px; border-radius: 2px; background: rgba(255,255,255,0.08); } .segs i.on { background: var(--gold); }
+
+/* ==== Rarity ==== */
+.rarity { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: var(--fs-12); }
+.rarity::before { content: attr(data-glyph); font-size: var(--fs-11); letter-spacing: -1px; }
+.rarity.common { color: var(--rarity-common); } .rarity.rare { color: var(--rarity-rare); } .rarity.epic { color: var(--rarity-epic); }
+.rarity.legendary { color: var(--rarity-legendary); } .rarity.cosmic { color: var(--rarity-cosmic); }
+.gear { position: relative; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-1); border-left-width: 4px; }
+.gear.common { border-left-color: var(--rarity-common); } .gear.rare { border-left-color: var(--rarity-rare); }
+.gear.epic { border-left-color: var(--rarity-epic); } .gear.legendary { border-left-color: var(--rarity-legendary); border-style: solid; }
+.gear.cosmic { border-left-color: var(--rarity-cosmic); box-shadow: 0 0 14px rgba(255,216,77,0.25); }
+.gear .slot { font-size: var(--fs-11); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+.gear .name { font-weight: 600; font-size: var(--fs-13); }
+
+/* ==== Toasts ==== */
+.toast-stack { position: fixed; top: calc(var(--header-h) + 8px); right: var(--gutter); z-index: 50; display: flex; flex-direction: column; gap: 8px; width: min(340px, calc(100vw - 32px)); pointer-events: none; }
+.toast { --accent: var(--aether); display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--r-2); background: rgba(8,16,12,0.96); border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); border-left: 4px solid var(--accent); box-shadow: var(--el-2); animation: toast-in var(--dur-3) var(--ease-out) both; }
+.toast .ic { font-size: 1.35rem; line-height: 1; }
+.toast .t { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-14); color: var(--accent); }
+.toast .v { font-weight: 700; font-size: var(--fs-13); font-variant-numeric: tabular-nums; }
+.toast .d { font-size: var(--fs-12); color: var(--text-3); }
+.toast.small { padding: 7px 12px; opacity: 0.92; } .toast.small .t { font-family: var(--font-ui); font-size: var(--fs-13); }
+.toast.big { border-width: 2px; border-left-width: 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 18%, rgba(8,16,12,0.97)), rgba(8,16,12,0.97)); }
+.toast.gold { --accent: var(--gold); } .toast.dust { --accent: var(--dust); } .toast.life { --accent: var(--life); } .toast.sand { --accent: var(--sand); } .toast.danger { --accent: var(--danger); }
+@keyframes toast-in { from { opacity: 0; transform: translateX(32px); } to { opacity: 1; transform: none; } }
+@media (max-width: 639px) { .toast-stack { top: 8px; left: 8px; right: 8px; width: auto; } }
+
+/* ==== Modal ==== */
+.scrim[hidden] { display: none; }
+.scrim { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.72); backdrop-filter: blur(6px); display: grid; place-items: center; padding: var(--gutter); }
+.modal { width: min(480px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--bg-1); border: 1px solid var(--line-2); border-radius: var(--r-3); box-shadow: var(--el-3); padding: var(--sp-5); }
+.modal h2 { font-family: var(--font-display); color: var(--gold); margin-bottom: var(--sp-2); }
+.modal .actions { display: flex; gap: var(--sp-2); margin-top: var(--sp-4); }
+.modal .actions .btn { flex: 1; }
+@media (max-width: 639px) { .scrim { align-items: end; padding: 0; } .modal { width: 100%; border-radius: var(--r-3) var(--r-3) 0 0; max-height: 92vh; padding-bottom: calc(var(--sp-5) + env(safe-area-inset-bottom)); } }
+
+/* ==== Tooltip ==== */
+.tip { position: relative; display: inline-block; }
+.tip .tipbox { position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); width: max-content; max-width: min(300px, calc(100vw - 32px)); padding: 8px 10px; border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-2); box-shadow: var(--el-2); color: var(--text-1); font-size: var(--fs-12); font-weight: 400; line-height: 1.4; z-index: 40; white-space: normal; text-align: left; }
+.tip .tipbox strong { color: var(--gold); }
+.tip .tipbox::after { content: ''; position: absolute; left: 50%; top: 100%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: var(--line-2); }
+
+/* ==== App shell ==== */
+.app { display: grid; grid-template-rows: var(--header-h) 1fr; grid-template-columns: var(--nav-w) 1fr; height: 100vh; height: 100dvh; }
+.hdr { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--sp-4); padding: 0 var(--gutter); background: var(--bg-1); border-bottom: 1px solid var(--line-1); min-width: 0; }
+.wordmark { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-16); letter-spacing: 0.12em; background: linear-gradient(135deg, var(--aether), var(--dust)); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; }
+.wordmark small { display: block; font: 600 var(--fs-11)/1 var(--font-ui); letter-spacing: 0.04em; -webkit-text-fill-color: var(--text-3); color: var(--text-3); margin-top: 2px; }
+.res-strip { flex: 1; display: flex; align-items: center; gap: var(--sp-5); min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.res-strip::-webkit-scrollbar { display: none; }
+.res { display: flex; flex-direction: column; line-height: 1.15; flex: 0 0 auto; }
+.res .k { font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.res .v { font-size: var(--fs-16); font-weight: 700; font-variant-numeric: tabular-nums; }
+.res .s { font-size: var(--fs-11); color: var(--text-3); font-variant-numeric: tabular-nums; }
+.res.hero .v { font-size: var(--fs-20); }
+.goal { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-2); padding: 6px 10px; border-radius: var(--r-1); background: var(--bg-2); border: 1px solid var(--line-1); font-size: var(--fs-12); color: var(--text-2); max-width: 260px; }
+.goal .bar { width: 64px; }
+.hdr-actions { display: flex; gap: var(--sp-2); }
+.nav { background: var(--bg-1); border-right: 1px solid var(--line-1); padding: var(--sp-3) var(--sp-2); display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+.nav a, .nav button { position: relative; display: flex; align-items: center; gap: var(--sp-3); min-height: 40px; padding: 0 var(--sp-3); border-radius: var(--r-1); border: 1px solid transparent; background: transparent; color: var(--text-2); font-weight: 600; font-size: var(--fs-14); text-decoration: none; cursor: pointer; text-align: left; width: 100%; }
+.nav a:hover { background: var(--bg-3); color: var(--text-1); }
+.nav a[aria-current="page"] { background: var(--aether-dim); border-color: rgba(56,189,248,0.35); color: var(--aether); }
+.nav .ic { width: 24px; text-align: center; font-size: 1.15rem; line-height: 1; }
+.nav .pip { position: absolute; left: 28px; top: 8px; }
+.nav .sep { height: 1px; background: var(--line-1); margin: var(--sp-2) var(--sp-2); }
+.nav .locked { color: var(--text-3); opacity: 0.8; }
+.nav .locked .ic { filter: grayscale(1); opacity: 0.6; }
+.nav .locked .sub { display: block; font-size: var(--fs-11); font-weight: 500; color: var(--text-3); }
+.nav .group { padding: var(--sp-3) var(--sp-3) var(--sp-1); font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.main { overflow-y: auto; padding: var(--sp-4) var(--gutter) var(--sp-6); min-width: 0; }
+.main > * + * { margin-top: var(--sp-4); }
+.page { max-width: 1100px; margin: 0 auto; }
+.bottom-nav { display: none; }
+.more-sheet { display: none; }
+
+/* Guide banner: collapsed by default, one line */
+.guide { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); background: var(--bg-2); border: 1px solid var(--line-1); color: var(--text-2); font-size: var(--fs-13); }
+.guide .ic { font-size: 1rem; }
+.guide .more { margin-left: auto; color: var(--aether); font-weight: 600; white-space: nowrap; }
+.guide.first { align-items: flex-start; border-color: var(--gold); background: linear-gradient(90deg, var(--gold-dim), var(--bg-2)); padding: var(--sp-3) var(--sp-4); }
+.guide.first .ic { font-size: 1.4rem; }
+.guide.first h3 { color: var(--gold); font-family: var(--font-display); margin-bottom: 4px; }
+.guide.first ol { margin: 6px 0 0 18px; padding: 0; color: var(--text-1); }
+.guide.first li + li { margin-top: 2px; }
+
+/* Tablet: icon rail */
+@media (max-width: 1023px) and (min-width: 640px) {
+  .app { grid-template-columns: var(--rail-w) 1fr; }
+  .nav a, .nav button { justify-content: center; padding: 0; }
+  .nav .lbl, .nav .sub, .nav .group { display: none; }
+  .nav .pip { left: 38px; }
+}
+/* Phone: bottom tab bar + sheet */
+@media (max-width: 639px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .hdr { flex-wrap: nowrap; gap: var(--sp-3); padding: 8px var(--gutter); min-height: var(--header-h); }
+  .wordmark { font-size: var(--fs-13); }
+  .wordmark small { display: none; }
+  .res-strip { gap: var(--sp-4); -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); padding-right: 24px; }
+  .res .v { font-size: var(--fs-14); } .res.hero .v { font-size: var(--fs-18); }
+  .res .k { font-size: 10px; }
+  .goal, .hdr-actions { display: none; }
+  .nav { display: none; }
+  .main { padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + var(--sp-5)); }
+  .bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(5, 1fr); height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: rgba(10,20,15,0.96); backdrop-filter: blur(12px); border-top: 1px solid var(--line-1); }
+  .bottom-nav a { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--text-3); text-decoration: none; font-size: var(--fs-11); font-weight: 600; min-height: var(--tap); }
+  .bottom-nav a .ic { font-size: 1.35rem; line-height: 1; }
+  .bottom-nav a[aria-current="page"] { color: var(--aether); }
+  .bottom-nav a[aria-current="page"]::before { content: ''; position: absolute; top: 0; width: 32px; height: 2px; border-radius: 2px; background: var(--aether); }
+  .bottom-nav .badge { position: absolute; top: 6px; left: calc(50% + 6px); }
+  .more-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: block; transform: translateY(100%); transition: transform var(--dur-3) var(--ease-out); background: var(--bg-1); border-top: 1px solid var(--line-2); border-radius: var(--r-3) var(--r-3) 0 0; padding: var(--sp-3) var(--gutter) calc(var(--sp-5) + env(safe-area-inset-bottom)); box-shadow: var(--el-3); max-height: 85vh; overflow: auto; }
+  .sheet-open .more-sheet { transform: none; }
+  .more-sheet .handle { width: 36px; height: 4px; border-radius: 2px; background: var(--line-2); margin: 0 auto var(--sp-3); }
+  .more-sheet .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-2); }
+  .more-sheet .grid-4 a { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: var(--sp-2) 2px; border-radius: var(--r-1); background: var(--bg-2); border: 1px solid var(--line-1); color: var(--text-2); font-size: var(--fs-11); font-weight: 600; text-decoration: none; text-align: center; min-height: 64px; justify-content: center; }
+  .more-sheet .grid-4 a .ic { font-size: 1.4rem; line-height: 1; }
+  .more-sheet .grid-4 a.locked { opacity: 0.55; } .more-sheet .grid-4 a.locked .ic { filter: grayscale(1); }
+  .more-sheet .grid-4 .badge { position: absolute; top: 4px; right: 4px; }
+  .more-sheet .util { display: flex; gap: var(--sp-2); margin-top: var(--sp-3); flex-wrap: wrap; }
+}
+
+/* Mockup annotations (not part of the game) */
+.note { margin: 0 0 var(--sp-3); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); background: rgba(231,195,138,0.08); border: 1px dashed rgba(231,195,138,0.5); color: var(--sand); font-size: var(--fs-12); }
+.note b { color: var(--text-1); }
+.note code { font-family: var(--font-mono); font-size: var(--fs-11); color: var(--text-1); }
+
+
+.asc-hero { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-4); align-items: center; padding: var(--sp-4) var(--sp-5); background: radial-gradient(circle at 20% 50%, var(--dust-dim), transparent 60%), var(--bg-2); border-color: rgba(192,132,252,0.4); }
+.asc-hero .big { font-size: var(--fs-32); font-weight: 800; color: var(--dust); font-variant-numeric: tabular-nums; line-height: 1; }
+.asc-hero .trade { display: flex; gap: var(--sp-4); margin-top: var(--sp-2); font-size: var(--fs-12); color: var(--text-2); flex-wrap: wrap; }
+.asc-hero .trade b { color: var(--text-1); }
+.tiers { display: flex; gap: var(--sp-2); overflow-x: auto; padding-bottom: 2px; }
+.tiers .chip { cursor: pointer; }
+.tiers .chip.on { border-color: var(--dust); color: var(--dust); background: var(--dust-dim); }
+.shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--sp-3); }
+.item { display: grid; grid-template-columns: 44px 1fr; gap: var(--sp-3); padding: var(--sp-3); border-radius: var(--r-2); background: var(--bg-2); border: 1px solid var(--line-1); }
+.item.aff { border-color: rgba(251,191,36,0.5); }
+.item.own { border-color: var(--line-brand); }
+.item.lock { opacity: 0.7; }
+.item .t { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.item .t h3 { font-size: var(--fs-14); }
+.item .d { font-size: var(--fs-12); color: var(--text-2); margin: 4px 0 8px; }
+.item .f { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.item .f .btn { min-width: 110px; }
+.item .rank { font-size: var(--fs-11); color: var(--text-3); }
+.item .see { font-size: var(--fs-11); color: var(--life); }
+@media (max-width: 639px) { .asc-hero { grid-template-columns: 1fr; } .asc-hero .btn { width: 100%; } .shop { grid-template-columns: 1fr; } }
+
+</style></head>
+<body>
+<div class="app">
+<header class="hdr">
+  <div class="wordmark">AETHERIA<small>Saudi Edition · v2.8</small></div>
+  <div class="res-strip">
+    <div class="res hero"><span class="k">Aether</span><span class="v c-aether">5.18e14</span><span class="s">+4.38e10 /s</span></div>
+    <div class="res"><span class="k">Gold</span><span class="v c-gold">3.4e7</span></div>
+    <div class="res"><span class="k">Dust</span><span class="v c-dust">3,200</span><span class="s">×65 production</span></div>
+    
+  </div>
+  <div class="goal tip" title="Next goals"><span>🎯</span><span>Asc 5 unlocks 3 features</span><span class="bar gold"><i style="width:60%"></i></span></div>
+  <div class="hdr-actions"><button class="btn btn-sm btn-aether">⚡ 30 s · 30 sand</button><button class="btn btn-sm btn-ghost" aria-label="Sound">🔊</button></div>
+</header>
+<nav class="nav" aria-label="Sections">
+<div class="group">Core</div>
+<a href="#"><span class="ic">🧆</span><span class="lbl">Falafel</span></a>
+<a href="#"><span class="ic">🩴</span><span class="lbl">Tower</span></a>
+<a href="#"><span class="ic">🛻</span><span class="lbl">Dig</span></a>
+<a href="#"><span class="ic">🌴</span><span class="lbl">Garden</span></a>
+<div class="group">Craft</div>
+<a href="#"><span class="ic">☕</span><span class="lbl">Alchemy</span></a>
+<a href="#"><span class="ic">🦅</span><span class="lbl">Grimoire</span></a>
+<a href="#"><span class="ic">📜</span><span class="lbl">Guild</span></a>
+<a href="#"><span class="ic">🐪</span><span class="lbl">Bazaar</span></a>
+<div class="group">Meta</div>
+<a href="#"><span class="ic">🌙</span><span class="lbl">Stars</span></a>
+<a href="#" aria-current="page"><span class="ic">🚀</span><span class="lbl">Ascension</span></a>
+<a class="locked" href="#" aria-disabled="true"><span class="ic">🔒</span><span class="lbl">???<span class="sub"></span></span></a>
+<a class="locked" href="#" aria-disabled="true"><span class="ic">🔒</span><span class="lbl">???<span class="sub"></span></span></a>
+<a class="locked" href="#" aria-disabled="true"><span class="ic">🔒</span><span class="lbl">???<span class="sub"></span></span></a>
+<div class="group">Records</div>
+<a href="#"><span class="ic">🏆</span><span class="lbl">Codex</span></a>
+<a href="#"><span class="ic">🏅</span><span class="lbl">Ranks</span></a>
+<a href="#"><span class="ic">⚙️</span><span class="lbl">Settings</span></a>
+</nav>
+<main class="main"><div class="page">
+
+<p class="note"><b>Mockup: Dust shop (R6, #8, spec §6.2).</b> Replaces the perk list. Three states per card: <b>affordable</b> (gold border, purple Buy), <b>owned</b> (green border, "see it" link to where it works), <b>locked</b> (tier chip says the Ascension count needed, card stays visible so the player has something to aim at; the tier after the next is hidden). Tier filter chips scroll horizontally on phone. The Ascend hero shows the trade in one line: what you gain, what resets, what you keep.</p>
+<section class="card asc-hero">
+  <div>
+    <div class="eyebrow">Ascend now for</div>
+    <div class="big num">+1,240 <span style="font-size:var(--fs-16);font-weight:600">Cosmic Dust</span></div>
+    <div class="trade"><span>Lifetime dust <b class="num">3,200 → 4,440</b></span><span>Production <b class="num">×65 → ×89.8</b></span><span>Run length <b>50 min</b></span></div>
+    <div class="trade dim" style="font-size:var(--fs-11)">Resets: Aether, generators, upgrades (Blueprint Memory keeps 2 per tier). Keeps: everything else.</div>
+  </div>
+  <button class="btn btn-primary btn-lg">✨ Ascend</button>
+</section>
+<div class="card-head" style="margin:0">
+  <h2>Dust Shop <span class="dim" style="font-size:var(--fs-13);font-weight:500">Balance <b class="c-dust num">3,200</b> · 7 affordable</span></h2>
+  <div class="tiers"><span class="chip on">All</span><span class="chip">Asc 1</span><span class="chip">Asc 3 <b>· you</b></span><span class="chip">Asc 5</span><span class="chip">Asc 10</span><span class="chip">Asc 20</span></div>
+</div>
+<div class="shop"><article class="item own">
+  <div class="icon-tile">🏪</div>
+  <div>
+    <div class="t"><h3>Cosmic Genesis</h3><span class="tag tier">Asc 1</span></div>
+    <p class="d">Start every run with 15 Shawarma Stalls and 1,000 Gold.</p>
+    <div class="f"><span class="rank">Bought</span><span class="see">✓ Owned · working next run</span></div>
+  </div>
+</article><article class="item own">
+  <div class="icon-tile">📐</div>
+  <div>
+    <div class="t"><h3>Blueprint Memory</h3><span class="tag tier">Asc 1</span></div>
+    <p class="d">Keep the first 2 upgrades of each tier through Ascension.</p>
+    <div class="f"><span class="rank">Bought</span><span class="see">✓ Owned</span></div>
+  </div>
+</article><article class="item aff">
+  <div class="icon-tile">⏳</div>
+  <div>
+    <div class="t"><h3>Chrono Reservoir</h3><span class="tag tier">Asc 1</span></div>
+    <p class="d">+4 h of offline Aether at 100% per rank.</p>
+    <div class="f"><span class="rank">Rank 2 / 10 · next 56</span><button class="btn btn-dust btn-sm">Buy · <span class="num">56</span> dust</button></div>
+  </div>
+</article><article class="item aff">
+  <div class="icon-tile">🤖</div>
+  <div>
+    <div class="t"><h3>Auto-Buy</h3><span class="tag tier">Asc 3</span></div>
+    <p class="d">Buys the best generator every 10 s. Toggle on the Falafel tab.</p>
+    <div class="f"><span class="rank">See it: Falafel tab</span><button class="btn btn-dust btn-sm">Buy · <span class="num">100</span> dust</button></div>
+  </div>
+</article><article class="item aff">
+  <div class="icon-tile">🛡️</div>
+  <div>
+    <div class="t"><h3>Titan's Legacy</h3><span class="tag tier">Asc 3</span></div>
+    <p class="d">Hero starts with +100 HP and +25 Attack per rank.</p>
+    <div class="f"><span class="rank">Rank 1 / 10</span><button class="btn btn-dust btn-sm">Buy · <span class="num">45</span> dust</button></div>
+  </div>
+</article><article class="item aff">
+  <div class="icon-tile">👆</div>
+  <div>
+    <div class="t"><h3>Finger of Wasta</h3><span class="tag tier">Asc 3</span></div>
+    <p class="d">+1% production per 100 clicks this run, up to +50%.</p>
+    <div class="f"><span class="rank">See it: combo bar</span><button class="btn btn-dust btn-sm">Buy · <span class="num">150</span> dust</button></div>
+  </div>
+</article><article class="item lock">
+  <div class="icon-tile">⚗️</div>
+  <div>
+    <div class="t"><h3>Astral Crucible</h3><span class="tag tier">Asc 5</span></div>
+    <p class="d">Elixirs last twice as long.</p>
+    <div class="f"><span class="rank">Unlocks at Ascension 5 (you: 3)</span><button class="btn btn-sm is-locked" aria-disabled="true">🔒 40 dust</button></div>
+  </div>
+</article><article class="item lock">
+  <div class="icon-tile">🗿</div>
+  <div>
+    <div class="t"><h3>Golem Covenant</h3><span class="tag tier">Asc 5</span></div>
+    <p class="d">Garden Golems become purchasable (Stone + Mana Sap).</p>
+    <div class="f"><span class="rank">Unlocks at Ascension 5</span><button class="btn btn-sm is-locked" aria-disabled="true">🔒 200 dust</button></div>
+  </div>
+</article><article class="item lock">
+  <div class="icon-tile">⌛</div>
+  <div>
+    <div class="t"><h3>Hourglass of Al-Ula</h3><span class="tag tier">Asc 5</span></div>
+    <p class="d">Adds 5 min and 1 h Fast Forward buttons.</p>
+    <div class="f"><span class="rank">Unlocks at Ascension 5</span><button class="btn btn-sm is-locked" aria-disabled="true">🔒 300 dust</button></div>
+  </div>
+</article><article class="item lock">
+  <div class="icon-tile">🔮</div>
+  <div>
+    <div class="t"><h3>Automated Leylines</h3><span class="tag tier">Asc 10</span></div>
+    <p class="d">Casts spells for you when Mana is full.</p>
+    <div class="f"><span class="rank">Unlocks at Ascension 10</span><button class="btn btn-sm is-locked" aria-disabled="true">🔒 500 dust</button></div>
+  </div>
+</article><article class="item aff">
+  <div class="icon-tile">✨</div>
+  <div>
+    <div class="t"><h3>Dust Amplifier</h3><span class="tag tier">Any</span></div>
+    <p class="d">+10% dust gain per rank (additive). Cost doubles each rank.</p>
+    <div class="f"><span class="rank">Rank 1 · next 200</span><button class="btn btn-dust btn-sm">Buy · <span class="num">200</span> dust</button></div>
+  </div>
+</article></div>
+<div class="card card-flat"><h3>Masteries</h3><p class="dim" style="font-size:var(--fs-12);margin:4px 0 0">Unchanged from today; keep the row layout but drop the 70% opacity on inactive rows (fails contrast). Move below the shop: it is reference, not a decision.</p></div>
+
+</div></main>
+</div>
+<nav class="bottom-nav" aria-label="Primary"><a href="#"><span class="ic">🧆</span>Falafel</a><a href="#"><span class="ic">🩴</span>Tower</a><a href="#"><span class="ic">🛻</span>Dig</a><a href="#" aria-current="page"><span class="ic">🚀</span>Ascension</a><a href="#" class="more-btn" onclick="document.body.classList.toggle('sheet-open');return false"><span class="ic">☰</span>More</a></nav>
+<div class="more-sheet" role="dialog" aria-label="All tabs">
+  <div class="handle"></div>
+  <div class="grid-4"><a href="#"><span class="ic">🌴</span>Garden</a><a href="#"><span class="ic">☕</span>Alchemy</a><a href="#"><span class="ic">🦅</span>Grimoire</a><a href="#"><span class="ic">📜</span>Guild</a><a href="#"><span class="ic">🐪</span>Bazaar</a><a href="#"><span class="ic">🌙</span>Stars</a><a href="#" class="locked"><span class="ic">🔒</span>???</a><a href="#" class="locked"><span class="ic">🔒</span>???</a><a href="#" class="locked"><span class="ic">🔒</span>???</a><a href="#"><span class="ic">🏆</span>Codex</a><a href="#"><span class="ic">🏅</span>Ranks</a><a href="#"><span class="ic">⚙️</span>Settings</a></div>
+  <div class="util"><button class="btn btn-sm">⚡ Fast Forward · 30 sand</button><button class="btn btn-sm btn-ghost">🔊 Sound</button><button class="btn btn-sm btn-ghost" onclick="document.body.classList.remove('sheet-open')">Close</button></div>
+</div>
+
+</body></html>

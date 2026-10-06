@@ -23,10 +23,14 @@ import { TalentSourcesPanel } from './ui/talents.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
 import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } from './systems/FastForwardSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
-import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
+import { getTabBonuses, BONUS_KIND_LABELS, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
+import { Shell } from './ui/shell.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
+import { gearCard } from './ui/rarity.js';
+import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
+import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { Leaderboard } from './leaderboard.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 
@@ -57,6 +61,7 @@ class AetheriaApp {
       this.saveManager.lastSaveTime = savedData.savedAt || Date.now();
     }
     BigNum.notation = this.gameState.settings.notation;
+    applyMotionSetting(this.gameState.settings);
     if (typeof sound !== 'undefined' && this.gameState.settings.rhythmScale) { sound.rhythmScale = this.gameState.settings.rhythmScale; }
 
     // Attach systems
@@ -123,6 +128,7 @@ class AetheriaApp {
     const canvas = document.getElementById('particle-canvas');
     if (canvas) particles.init(canvas);
     rewards.init();
+    initTooltips({ switchTab: (tab) => this.switchTab(tab) });
 
     // Setup DOM Listeners & Navigation
     this.setupEventListeners();
@@ -224,6 +230,7 @@ class AetheriaApp {
         this.saveManager.save();
       });
     }
+    renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, () => this.saveManager.save());
   }
 
   setupTabs() {
@@ -247,6 +254,7 @@ class AetheriaApp {
       view.classList.toggle('active', view.id === `tab-${tabName}`);
     });
     this.tabNeedsFullRender[tabName] = true;
+    this.shell?.onTabChange(tabName);
   }
 
   setupEventListeners() {
@@ -618,9 +626,13 @@ class AetheriaApp {
     const strip = this.$(`tab-bonus-${this.currentTab}`);
     if (!strip) return;
     const items = getTabBonuses(this.gameState, this.currentTab, TALENT_DEFINITIONS, ASCENSION_PERKS);
+    // One summary line that opens the chips on tap (R23; toggle in js/ui/shell.js)
     const html = items.length === 0 ? '' :
-      `<span class="tab-bonus-title">Active Bonuses</span>` +
-      items.map(i => `<span class="tab-bonus-chip ${i.kind}">${i.icon} <strong>${i.name}</strong> ${i.detail}</span>`).join('');
+      `<button class="tab-bonus-summary" type="button" aria-expanded="${strip.classList.contains('is-open')}">` +
+      `<span class="tab-bonus-title">✨ ${items.length} active bonus${items.length === 1 ? '' : 'es'}</span>` +
+      `<span class="tab-bonus-names">${items.map(i => i.name).join(' · ')}</span></button>` +
+      `<div class="tab-bonus-chips">` +
+      items.map(i => `<span class="tab-bonus-chip ${i.kind}" ${tipAttr(tipHtml(i.name, BONUS_KIND_LABELS[i.kind], i.detail))}>${i.icon} <strong>${i.name}</strong> ${i.detail}</span>`).join('') + `</div>`;
     // Compare against what we last wrote rather than reading innerHTML back (a DOM serialization)
     if (!this.bonusStripHtml) this.bonusStripHtml = {};
     if (this.bonusStripHtml[this.currentTab] !== html) {
@@ -636,6 +648,8 @@ class AetheriaApp {
     this.buildTabBonusStrips();
     this.buffBar = new BuffBar(this);
     this.buffBar.build();
+    this.shell = new Shell(this);
+    this.shell.build();
     this.buildBuildingsStructure();
     this.buildCombatStructure();
     this.buildMiningStructure();
@@ -659,19 +673,19 @@ class AetheriaApp {
     if (!container) return;
 
     container.innerHTML = BUILDING_DEFINITIONS.map(def => `
-      <div class="building-card" id="b-card-${def.id}" data-id="${def.id}">
-        <div class="b-icon">${def.icon}</div>
+      <div class="building-card card-row" id="b-card-${def.id}" data-id="${def.id}">
+        <div class="b-icon icon-tile">${def.icon}</div>
         <div class="b-info">
           <div class="b-header">
             <span class="b-name">${def.name}</span>
-            <span class="b-count" id="b-count-${def.id}">0</span>
+            <span class="b-count num" id="b-count-${def.id}">0</span>
           </div>
           <div class="b-desc">${def.desc}</div>
-          <div class="b-stats" id="b-stats-${def.id}">Yield: +0/s</div>
+          <div class="b-stats num" id="b-stats-${def.id}">Yield: +0/s</div>
         </div>
-        <button class="btn-buy-building" id="btn-buy-${def.id}" data-id="${def.id}">
-          <span class="buy-lbl" id="buy-lbl-${def.id}">Buy +1</span>
-          <span class="cost-lbl" id="cost-lbl-${def.id}">💎 0</span>
+        <button class="btn-buy-building btn btn-buy" id="btn-buy-${def.id}" data-id="${def.id}">
+          <span class="lbl" id="buy-lbl-${def.id}">Buy +1</span>
+          <span class="cost num" id="cost-lbl-${def.id}">💎 0</span>
         </button>
       </div>
     `).join('');
@@ -713,18 +727,19 @@ class AetheriaApp {
       setText(this.$(`b-count-${def.id}`), fmtNum(state.count));
       setText(this.$(`b-stats-${def.id}`), `Yield: +${currentCps.format('standard', 1)}/s`);
       setText(this.$(`buy-lbl-${def.id}`), `Buy +${fmtNum(buyCount)}`);
-      setText(this.$(`cost-lbl-${def.id}`), `💎 ${cost.format('standard', 1)}`);
+      // Affordable shows the price on a gold button; otherwise say how much Aether is missing
+      setText(this.$(`cost-lbl-${def.id}`), canAfford
+        ? `💎 ${cost.format('standard', 1)}`
+        : `need 💎 ${cost.sub(this.gameState.aether).format('standard', 1)}`);
 
       const card = this.$(`b-card-${def.id}`);
-      if (card) {
-        card.classList.toggle('affordable', canAfford);
-        card.classList.toggle('unaffordable', !canAfford);
-      }
+      if (card) card.classList.toggle('is-affordable', canAfford);
 
       const btn = this.$(`btn-buy-${def.id}`);
       if (btn) {
-        btn.classList.toggle('active', canAfford);
-        btn.classList.toggle('disabled', !canAfford);
+        btn.classList.toggle('btn-primary', canAfford);
+        btn.classList.toggle('is-locked', !canAfford);
+        btn.setAttribute('aria-disabled', String(!canAfford));
       }
     }
   }
@@ -806,25 +821,13 @@ class AetheriaApp {
     const gearSig = BigNum.notation + JSON.stringify(h.gear);
     if (gearCont && this.lastGearSig !== gearSig) {
       this.lastGearSig = gearSig;
-      const getCls = (item) => item && item.rarity ? `gear-${item.rarity.toLowerCase()}` : '';
-      gearCont.innerHTML = `
-        <div class="gear-slot ${getCls(h.gear.weapon)}">
-          <div class="slot-title">Weapon</div>
-          <div class="slot-item">${h.gear.weapon?.name || 'Empty'} (+${this.combatSystem.fmt(h.gear.weapon?.attack || 0)} Atk)</div>
-        </div>
-        <div class="gear-slot ${getCls(h.gear.armor)}">
-          <div class="slot-title">Armor</div>
-          <div class="slot-item">${h.gear.armor?.name || 'Empty'} (+${this.combatSystem.fmt(h.gear.armor?.hp || 0)} HP)</div>
-        </div>
-        <div class="gear-slot ${getCls(h.gear.amulet)}">
-          <div class="slot-title">Amulet</div>
-          <div class="slot-item">${h.gear.amulet?.name || 'Empty'} (+${((h.gear.amulet?.crit || 0) * 100).toFixed(0)}% Crit)</div>
-        </div>
-        <div class="gear-slot ${getCls(h.gear.relic)}">
-          <div class="slot-title">Relic</div>
-          <div class="slot-item">${h.gear.relic?.name || 'Empty'} (+${((h.gear.relic?.lifesteal || 0) * 100).toFixed(0)}% Drain)</div>
-        </div>
-      `;
+      const g = h.gear;
+      const fmt = (v) => this.combatSystem.fmt(v);
+      gearCont.innerHTML =
+        gearCard('Weapon', g.weapon, `+${fmt(g.weapon?.attack || 0)} Atk`) +
+        gearCard('Armor', g.armor, `+${fmt(g.armor?.hp || 0)} HP`) +
+        gearCard('Amulet', g.amulet, `+${((g.amulet?.crit || 0) * 100).toFixed(0)}% Crit`) +
+        gearCard('Relic', g.relic, `+${((g.relic?.lifesteal || 0) * 100).toFixed(0)}% Drain`);
     }
 
     // Aether Forge
@@ -1330,8 +1333,8 @@ class AetheriaApp {
     const ptsEl = document.getElementById('talent-points-header');
     if (ptsEl) {
       ptsEl.innerHTML = `
-        <span>Talent Points Available: <strong id="tp-avail-count">0</strong></span>
-        <button id="btn-respec-talents" class="btn-action" style="margin-left: 1rem">🔄 Respec All</button>
+        <span>Talent Points Available: <strong id="tp-avail-count" class="num">0</strong></span>
+        <button id="btn-respec-talents" class="btn btn-sm btn-ghost" style="margin-left: 1rem">🔄 Respec All</button>
       `;
       const respecBtn = document.getElementById('btn-respec-talents');
       if (respecBtn) respecBtn.onclick = () => {
@@ -1345,11 +1348,14 @@ class AetheriaApp {
     const grid = document.getElementById('talents-tree-grid');
     if (grid) {
       grid.innerHTML = TALENT_DEFINITIONS.map(t => `
-        <div class="talent-card branch-${t.branch}">
+        <div class="talent-card card branch-${t.branch}">
           <div class="t-name">${t.name}</div>
-          <div class="t-rank" id="t-rank-${t.id}">Rank 0 / ${t.maxRank}</div>
+          <div class="bar-row t-rank">
+            <div class="segs dust" id="t-segs-${t.id}">${'<i></i>'.repeat(t.maxRank)}</div>
+            <span class="val num" id="t-rank-${t.id}">0 / ${t.maxRank}</span>
+          </div>
           <div class="t-desc">${t.desc}</div>
-          <button class="btn-rank-talent" id="btn-talent-${t.id}" data-id="${t.id}">
+          <button class="btn-rank-talent btn btn-sm btn-dust" id="btn-talent-${t.id}" data-id="${t.id}">
             + Upgrade
           </button>
         </div>
@@ -1361,19 +1367,30 @@ class AetheriaApp {
   updateTalentsUI() {
     setText(this.$('tp-avail-count'), String(this.gameState.talentPoints));
     const respecBtn = this.$('btn-respec-talents');
-    if (respecBtn) respecBtn.classList.toggle('disabled', this.gameState.spentTalentPoints <= 0);
+    if (respecBtn) {
+      const noneSpent = this.gameState.spentTalentPoints <= 0;
+      respecBtn.classList.toggle('is-locked', noneSpent);
+      respecBtn.setAttribute('aria-disabled', String(noneSpent));
+    }
 
     for (const t of TALENT_DEFINITIONS) {
       const state = this.gameState.talents[t.id] || { rank: 0 };
       const isMax = state.rank >= t.maxRank;
       const canRank = !isMax && this.gameState.talentPoints > 0;
 
-      setText(this.$(`t-rank-${t.id}`), `Rank ${state.rank} / ${t.maxRank}`);
+      setText(this.$(`t-rank-${t.id}`), `${state.rank} / ${t.maxRank}`);
+      const segs = this.$(`t-segs-${t.id}`);
+      if (segs) {
+        for (let i = 0; i < segs.children.length; i++) segs.children[i].classList.toggle('on', i < state.rank);
+      }
       const btn = this.$(`btn-talent-${t.id}`);
       if (btn) {
-        setText(btn, isMax ? 'MAXED' : '+ Upgrade');
-        btn.classList.toggle('active', canRank);
-        btn.classList.toggle('disabled', !canRank);
+        // Locked buttons say what's missing rather than just greying out
+        setText(btn, isMax ? 'Maxed' : canRank ? '+ Upgrade' : 'Need 1 point');
+        btn.classList.toggle('btn-dust', canRank);
+        btn.classList.toggle('active', canRank); // the click handler requires it
+        btn.classList.toggle('is-locked', !canRank);
+        btn.setAttribute('aria-disabled', String(!canRank));
       }
     }
   }
@@ -1858,6 +1875,7 @@ class AetheriaApp {
     this.updateQuickCastBar();
     this.leaderboard.tick(this.currentTab === 'leaderboard', VERSION);
     this.buffBar.update();
+    this.shell?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
     this.talentSourcesUI?.update(dt, this.currentTab);
 
@@ -1983,61 +2001,3 @@ window.addEventListener('DOMContentLoaded', () => {
   window.gameApp = new AetheriaApp();
   window.gameApp.init();
 });
-
-// Global Custom Tooltip System
-function setupTooltips() {
-  const tooltip = document.createElement('div');
-  tooltip.id = 'global-tooltip';
-  document.body.appendChild(tooltip);
-
-  document.addEventListener('mouseover', e => {
-    const target = e.target.closest('[title], [data-original-title]');
-    if (!target) return;
-    
-    if (target.hasAttribute('title')) {
-      target.setAttribute('data-original-title', target.getAttribute('title'));
-      target.removeAttribute('title');
-    }
-    
-    const tipText = target.getAttribute('data-original-title');
-    if (!tipText) return;
-    
-    // Parse possible asterisks or emphasis for styling if needed
-    tooltip.innerHTML = tipText;
-    tooltip.classList.add('visible');
-    
-    const updatePosition = (x, y) => {
-      let left = x + 15;
-      let top = y + 15;
-      if (left + tooltip.offsetWidth > window.innerWidth) left = window.innerWidth - tooltip.offsetWidth - 10;
-      if (top + tooltip.offsetHeight > window.innerHeight) top = y - tooltip.offsetHeight - 15;
-      tooltip.style.left = left + 'px';
-      tooltip.style.top = top + 'px';
-    };
-    updatePosition(e.clientX, e.clientY);
-    
-    target._tooltipMove = (me) => updatePosition(me.clientX, me.clientY);
-    target.addEventListener('mousemove', target._tooltipMove);
-  });
-
-  document.addEventListener('mouseout', e => {
-    const target = e.target.closest('[data-original-title]');
-    if (!target) return;
-    if (target._tooltipMove) {
-      target.removeEventListener('mousemove', target._tooltipMove);
-      delete target._tooltipMove;
-    }
-    tooltip.classList.remove('visible');
-  });
-}
-
-// Intercept window.gameApp.init call if it exists, or just run it.
-// To avoid conflicts, we just add it to DOMContentLoaded.
-window.addEventListener('DOMContentLoaded', () => {
-  setupTooltips();
-});
-
-
-
-
-
