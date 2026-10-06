@@ -3,9 +3,21 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '3.0.0';
+export const VERSION = '3.4.0';
 
 export const CHANGELOG = [
+  {
+    version: '3.4.0',
+    date: '2026-10-06',
+    title: 'The Shard Tree',
+    changes: [
+      'Fracture Shards can now be spent in the Shard Tree (Ascension tab). Nodes are permanent: Transcend never resets them, and your shard bonus still counts every shard you have earned, so spending never lowers it.',
+      'Chronos branch: Auto-Ascend (2 shards) Ascends for you when the Ascension would multiply your dust by ×1.2, ×1.5 or ×2, or on a timer (10 min to 4 h). It never Ascends before the 10-minute minimum run, can be switched off, and shows one quiet notice instead of a celebration each time. Then Long Sleep (2 shards: offline Aether at 100% for 8 more hours) and Hourglass (3 shards: a 6-hour Fast Forward once a day).',
+      'Tower branch: Wardens (1 shard) and Second Wind (2 shards: once per boss fight, losing to a boss refills your HP and the timer instead of pushing you back; the boss keeps the damage you dealt).',
+      'Change: Wardens are now a Shard Tree node instead of opening at your first Transcend. If you have already Transcended, you keep them for free.',
+      'Foundry branch: 16 Deep Blueprints, one per Transcend building tier (15 to 30), each making that tier\'s upgrades 10× cheaper. They go on sale with the building upgrade shop.'
+    ]
+  },
   {
     version: '3.0.0',
     date: '2026-10-06',

@@ -59,9 +59,11 @@ console.log('--- Spending: balance only, multipliers never drop ---');
   assert.equal(getSpentShards(gs), 2);
   assert.equal(st.buy('chronos_auto_ascend'), false, 'cannot buy twice');
   assert.equal(st.buy('chronos_offline'), true);
+  assert.equal(getShardBalance(gs), 1);
+  assert.equal(st.buy('chronos_long_warp'), false, 'cannot afford 3 with 1');
+  assert.equal(st.getBlockReason('chronos_long_warp'), 'needs 3 shards');
+  assert.equal(st.buy('tower_wardens'), true);
   assert.equal(getShardBalance(gs), 0);
-  assert.equal(st.buy('tower_wardens'), false, 'cannot afford with 0');
-  assert.equal(st.getBlockReason('tower_wardens'), 'needs 1 shard');
   assert.equal(gs.getShardCount(), 5);
   assert.equal(st.buy('nope'), false);
 }
@@ -70,7 +72,7 @@ console.log('--- Prerequisites ---');
 {
   const { gs, st } = make(10);
   assert.match(st.getBlockReason('chronos_offline'), /needs Auto-Ascend/);
-  assert.match(st.getBlockReason('chronos_long_warp'), /needs Auto-Ascend/);
+  assert.match(st.getBlockReason('chronos_long_warp'), /needs Long Sleep/);
   assert.match(st.getBlockReason('tower_second_wind'), /needs Wardens/);
   assert.equal(st.buy('tower_second_wind'), false);
   assert.equal(getShardBalance(gs), 10, 'a refused buy spends nothing');
@@ -106,12 +108,12 @@ console.log('--- Chronos: offline +8 h ---');
 
 console.log('--- Chronos: 6 h Fast Forward once a day ---');
 {
-  const { gs, st, bs } = make(5);
+  const { gs, st, bs } = make(7);
   bs.buyBuilding('tapper');
   gs.buildings.tapper.count = 10;
   const now = 1e12;
   assert.equal(st.canLongWarp(now), false, 'needs the node');
-  st.buy('chronos_auto_ascend'); st.buy('chronos_long_warp');
+  st.buy('chronos_auto_ascend'); st.buy('chronos_offline'); st.buy('chronos_long_warp');
   assert.equal(st.canLongWarp(now), true);
   const cps = gs.getNetAetherPerSecond();
   const a0 = gs.aether;
@@ -231,8 +233,8 @@ console.log('--- Transcend keeps the tree; new shards add to the balance ---');
 
 console.log('--- Save/load round trip ---');
 {
-  const { gs, st } = make(6);
-  st.buy('chronos_auto_ascend'); st.buy('chronos_long_warp'); st.buy('tower_wardens');
+  const { gs, st } = make(8);
+  st.buy('chronos_auto_ascend'); st.buy('chronos_offline'); st.buy('chronos_long_warp'); st.buy('tower_wardens');
   st.setAutoAscendRule('x1.5');
   gs.shardTree.longWarpAt = 123456;
   const data = clone(gs.serialize());
@@ -240,7 +242,7 @@ console.log('--- Save/load round trip ---');
   gs2.deserialize(data);
   assert.deepEqual(gs2.shardTree, gs.shardTree);
   assert.equal(getShardBalance(gs2), 0);
-  assert.equal(gs2.getShardCount(), 6);
+  assert.equal(gs2.getShardCount(), 8);
   const cs2 = new CombatSystem(gs2);
   assert.equal(cs2.isWardensUnlocked(), true);
 }

@@ -6,11 +6,11 @@
 // not reset or refund it.
 //
 // First three branches:
-//   Foundry  16 "Deep Blueprint" nodes, one per Transcend tier (15-30): that tier's 5 shop
+//   Foundry  16 "Deep Blueprint" nodes (1 shard each), one per Transcend tier (15-30): that tier's 5 shop
 //            upgrades cost /10. Read by the upgrade shop through getDeepBlueprintDivisor().
-//   Chronos  Auto-Ascend (rule: x1.2 / x1.5 / x2 lifetime dust, or a timer), offline cap +8 h,
-//            a 6 h Fast Forward once per day.
-//   Tower    Wardens (every 250th floor) and Second Wind (one free retry per boss fight).
+//   Chronos  Auto-Ascend (2; rule: x1.2 / x1.5 / x2 lifetime dust, or a timer) -> Long Sleep
+//            (2; offline cap +8 h) -> Hourglass (3; a 6 h Fast Forward once per day).
+//   Tower    Wardens (1; every 250th floor) -> Second Wind (2; one free retry per boss fight).
 //
 // This module has no audio/DOM imports so GameState (and node tests) can load it on its own.
 // Sounds and notices live in js/ui/shardTree.js.
@@ -72,27 +72,27 @@ export const SHARD_TREE_NODES = [
   ...foundryNodes(),
   {
     id: 'chronos_auto_ascend', branch: 'chronos', cost: 2, icon: '♾️', name: 'Auto-Ascend',
-    desc: 'Ascends for you when your rule is met (×1.2 / ×1.5 / ×2 lifetime dust, or a timer). Never before the 10-min minimum run. Consumes held Nectar like a manual Ascend.',
+    desc: 'Ascends for you by your rule (dust ×1.2 / ×1.5 / ×2, or a timer), never before the 10-min minimum run. Uses held Nectar like a manual Ascend.',
     requires: []
   },
   {
-    id: 'chronos_offline', branch: 'chronos', cost: 3, icon: '🌙', name: 'Deep Reservoir',
-    desc: 'Offline Aether: +8 h at 100% (and the 24 h cap moves out by 8 h).',
+    id: 'chronos_offline', branch: 'chronos', cost: 2, icon: '🛌', name: 'Long Sleep',
+    desc: 'Offline Aether: +8 h at 100% (the 24 h cap moves out by 8 h too).',
     requires: ['chronos_auto_ascend']
   },
   {
-    id: 'chronos_long_warp', branch: 'chronos', cost: 3, icon: '⌛', name: 'Hourglass of Eternity',
+    id: 'chronos_long_warp', branch: 'chronos', cost: 3, icon: '⏩', name: 'Hourglass',
     desc: 'Once a day: Fast Forward 6 h (6 h of Aether production and Garden growth, instantly).',
-    requires: ['chronos_auto_ascend']
+    requires: ['chronos_offline']
   },
   {
     id: 'tower_wardens', branch: 'tower', cost: 1, icon: '🛡️', name: 'Wardens',
-    desc: 'Every 250th floor is a named Warden: ×3 boss HP, 60 s, ×3 spoils; each first kill is a trophy (+2% Tower gold).',
+    desc: 'A named Warden every 250 floors (×3 boss HP, 60 s, ×3 spoils); each first kill is a trophy, +2% Tower gold.',
     requires: []
   },
   {
     id: 'tower_second_wind', branch: 'tower', cost: 2, icon: '💨', name: 'Second Wind',
-    desc: 'Once per boss fight, a lost boss (timeout or defeat) does not push you back: your HP and the timer refill and the boss keeps the damage you dealt.',
+    desc: 'Once per boss fight, losing (timeout or defeat) refills your HP and the timer instead of pushing you back. The boss keeps its damage.',
     requires: ['tower_wardens']
   }
 ];
