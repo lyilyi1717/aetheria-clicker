@@ -340,6 +340,7 @@ console.log('--- Saves: old saves load with an empty calendar; junk is cleaned -
   assert.deepEqual(bad.weekly.stamps, [3]);
   assert.deepEqual(bad.seals, { deep: true });
   assert.deepEqual(sanitizeCalendarState(null), defaultCalendarState());
+  assert.deepEqual(sanitizeCalendarState(clone(defaultCalendarState())), defaultCalendarState(), 'a fresh calendar survives a save (null stays null)');
 
   const g = new GameState();
   const c = new CalendarSystem(g, () => MON);

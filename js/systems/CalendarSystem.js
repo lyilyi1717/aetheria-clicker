@@ -97,6 +97,7 @@ export function defaultCalendarState() {
 }
 
 const int = (v, min = 0) => {
+  if (v === null || v === undefined || v === '' || typeof v === 'boolean') return null;
   const x = Math.floor(Number(v));
   return Number.isFinite(x) && x >= min ? x : null;
 };
@@ -105,8 +106,7 @@ export function sanitizeCalendarState(raw) {
   const s = defaultCalendarState();
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return s;
   const d = raw.daily || {};
-  const lastDay = Number(d.lastDay);
-  s.daily.lastDay = Number.isFinite(lastDay) ? Math.floor(lastDay) : null;
+  s.daily.lastDay = int(d.lastDay, -1e9);
   s.daily.bank = Math.min(DALLAH_BANK_MAX, int(d.bank) ?? 0);
   s.daily.visits = int(d.visits) ?? 0;
   s.daily.claimedDays = int(d.claimedDays) ?? 0;

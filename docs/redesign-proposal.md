@@ -429,6 +429,37 @@ leaderboard column. No save migration: `codex` is a new additive field.
   was `floor(dust / 1e4)`, so S × 1e4 dust goes back into lifetime and spendable dust. The
   Transcend panel tells the player once what was refunded.
 
+*R15 implementation notes (Seals, Dallah, Ledger, Souq; `js/systems/CalendarSystem.js`).*
+- **Seals are a shard bonus** (#23 default 4), not a Transcend gate. Tier I bars as in roadmap
+  §5.1 (depth 100, floor 501, 25 Catalysts, 15 Ascensions, Guild Rank 7, `bestRunDust` 1e8, 40%
+  Codex). A Seal is a lifetime flag and never goes dark. Each Transcend pays
+  `2 + min(3, lit Seals)` shards into both `fractureShards` and `totalFractureShards`
+  (`PrestigeSystem.getTranscendShards`; the cap is `SEAL_SHARD_BONUS_MAX`). Tier II bars (roadmap
+  §5.1) are not built yet.
+- **Balance warning.** `npm run sim` does not model Seals (it Transcends for a flat 2). With a
+  stub that adds the bonus to every Transcend, casual pacing runs away because every shard is
+  x1.5 Aether and x1.5 dust gain, and the x10 gate cannot keep up: +1 Seal (3 shards) reaches
+  tier 30 and ~1e61 CPS by day 30 and a Transcend every few hours; +3 (5 shards) does 183
+  Transcends in week 1. The layer-2 runway is shard-limited (§10 risk 3), so any extra shard per
+  Transcend shifts it. The spec value (+3) ships as written in R15 and needs an owner decision, or
+  a re-simulated gate, before it is relied on; `SEAL_SHARD_BONUS_MAX` is the one number to change.
+- **Daily Dallah:** local calendar day. The first visit pours a cup; each later day adds one,
+  banking at most 3; claiming pays every banked day (60 Chrono Sand and one ready-to-claim bonus
+  contract each) and refreshes one 1 h "fresh coffee" buff (+25% Aether, additive with other
+  Aether buffs, exempt from the 10-minute buff cap). `visits` counts days seen, never a streak.
+- **Weekly Ledger:** weeks run Monday to Sunday. 3 distinct goals from a pool of ten, drawn from
+  those whose system the player has already met, seeded by the week number (same on every
+  device). Progress is how far a lifetime counter has grown since the week began. Each goal pays
+  6 Guild Seals once; all 3 add a stamp (cosmetic, kept forever).
+- **Souq Rotation:** a four-week cycle, so each returns: Truffle Season (Desert Truffle grows
+  x1.5), Falcon Week (Tower boss gold x1.5), Hourglass Week (Chrono Sand gained x1.5), Rosewater
+  Week (every plant grows x1.25).
+- **Clock rules.** The calendar only moves forward: "today" and "this week" are clamped to the
+  highest day and week already seen. Setting the clock back pays nothing twice and does not
+  rotate the Ledger back; returning to the old date pays nothing either. Missed days bank (cap
+  3), missed weeks rotate, and nothing already earned is removed. The cost of a clock set far into
+  the future is that the days in between do not pay again until the real date catches up.
+
 ### 6.2 Dust shop (replaces the perk list)
 
 Costs in dust; each is a one-time feature unless marked. Tiers unlock by lifetime Ascension
