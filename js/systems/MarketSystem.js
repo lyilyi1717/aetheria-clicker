@@ -1,6 +1,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
+import { MONSTER_FLOOR_BASE, getIndexFloor } from './CombatSystem.js';
 
 export const COMMODITIES = [
   { id: 'ore', name: 'Aether Ore', icon: '🪨', basePrice: 50, minPrice: 15, maxPrice: 120 },
@@ -44,10 +45,10 @@ export class MarketSystem {
   }
 
   // Market Index: every Bazaar price is "N kills' worth" at the player's best Tower floor.
-  // maxFloor never decreases, so retreating can't lower prices.
+  // Reads indexFloor (= maxFloor on new saves; the rebased floor on legacy saves, whose
+  // maxFloor is only a record). It never decreases, so retreating can't lower prices.
   getMarketIndex() {
-    const maxFloor = this.gameState.hero?.maxFloor || 1;
-    return new BigNum(1.12).pow(Math.max(0, maxFloor - 1));
+    return new BigNum(MONSTER_FLOOR_BASE).pow(getIndexFloor(this.gameState.hero) - 1);
   }
 
   getCommodityPrice(id) {

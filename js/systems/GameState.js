@@ -264,11 +264,11 @@ export class GameState {
     return this.isManaFull() ? 1.25 : 1;
   }
 
-  // Market Index M = 1.12^(maxFloor - 1); delegates to MarketSystem when linked
+  // Market Index M = 1.12^(indexFloor - 1); delegates to MarketSystem when linked
   getMarketIndex() {
     if (this.marketSystem) return this.marketSystem.getMarketIndex();
-    const maxFloor = this.hero?.maxFloor || 1;
-    return new BigNum(1.12).pow(Math.max(0, maxFloor - 1));
+    const f = Number(this.hero?.indexFloor ?? this.hero?.maxFloor);
+    return new BigNum(1.12).pow(Number.isFinite(f) && f > 1 ? Math.floor(f) - 1 : 0);
   }
 
   // Chrono Sand bank cap = offline cap: 1,440 s x (1 + 0.5 x Chrono Reservoir rank)

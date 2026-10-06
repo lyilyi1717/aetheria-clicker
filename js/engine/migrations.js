@@ -24,6 +24,37 @@ export const MIGRATIONS = [
       if (data.stats) data.stats.globalMultiplier = 1;
       return data;
     }
+  },
+  {
+    // v2 -> v3 (Tower rebalance, docs/gamification-roadmap.md §8): gear now rolls at
+    // 1.11^(f-1) instead of 1.12^(f-1). Rescale the equipped weapon/armor to the roll it would
+    // have had on the new curve, set indexFloor (the floor the Market Index reads; maxFloor
+    // stays the record), and flag the hero so CombatSystem.rebaseLegacyFloor steps the floor
+    // down to what the rescaled kit clears (that needs live combat stats). Constants are inlined
+    // on purpose: this step must keep doing the same thing if the live curves change later.
+    to: 3,
+    migrate(data) {
+      const h = data.hero;
+      if (!h || typeof h !== 'object') return data;
+      const rarityMult = { Common: 1, Rare: 2, Epic: 4, Legendary: 8, Cosmic: 18 };
+      const rescale = (item, stat, base) => {
+        if (!item || typeof item !== 'object') return;
+        const v = Number(item[stat]);
+        if (!(v > 0)) return;
+        const mult = rarityMult[item.rarity] || 1;
+        // Item floor f inferred from v = base * mult * 1.12^(f-1); rolls capped at exponent 6000
+        const exp = Math.min(6000, Math.log(v / (base * mult)) / Math.log(1.12));
+        if (!(exp > 0)) return; // starter kit or below the floor-1 roll: nothing to rescale
+        item[stat] = Math.max(1, Math.floor(Math.min(v, 1e300) * Math.pow(1.11 / 1.12, exp)));
+      };
+      rescale(h.gear?.weapon, 'attack', 10);
+      rescale(h.gear?.armor, 'hp', 40);
+      const floor = Number(h.floor), maxFloor = Number(h.maxFloor);
+      const f = Number.isFinite(floor) && floor >= 1 ? Math.floor(floor) : 1;
+      h.indexFloor = Number.isFinite(maxFloor) && maxFloor >= 1 ? Math.min(Math.floor(maxFloor), f) : f;
+      h.pendingFloorRebase = true;
+      return data;
+    }
   }
 ];
 
