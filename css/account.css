@@ -1,0 +1,53 @@
+/* Settings → Account & Cloud Save (R38, js/ui/account.js). Tokens only (css/tokens.css). */
+.acct { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-3); max-width: 420px; font-family: var(--font-ui); }
+.acct [hidden] { display: none !important; }
+.acct-lead, .acct-note { margin: 0; color: var(--text-2); font-size: var(--fs-13); line-height: var(--lh-body); }
+.acct-note { color: var(--text-3); font-size: var(--fs-12); }
+.acct-google { background: var(--bg-3); }
+.acct-google .acct-g { flex: 0 0 auto; }
+.acct-google.is-locked .acct-g { opacity: 0.5; }
+.acct-or { display: flex; align-items: center; gap: var(--sp-2); color: var(--text-3); font-size: var(--fs-12); }
+.acct-or::before, .acct-or::after { content: ''; flex: 1; height: 1px; background: var(--line-1); }
+.acct-form { display: flex; flex-direction: column; gap: var(--sp-3); }
+.acct-field { display: flex; flex-direction: column; gap: var(--sp-1); font-size: var(--fs-12); color: var(--text-2); font-weight: 600; }
+.acct-field input {
+  min-height: 40px; padding: 0 var(--sp-3); border-radius: var(--r-1); border: 1px solid var(--line-2);
+  background: var(--bg-1); color: var(--text-1); font-family: var(--font-ui); font-size: var(--fs-16); /* 16px: no zoom on iOS */
+}
+.acct-field input:focus-visible { outline: 2px solid var(--aether); outline-offset: 1px; border-color: transparent; }
+.acct-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.acct-actions .btn { flex: 1 1 140px; }
+.acct-forgot { align-self: flex-start; }
+.acct-status { margin: 0; font-size: var(--fs-13); color: var(--text-2); overflow-wrap: anywhere; }
+.acct-status[data-kind="ok"] { color: var(--life); }
+.acct-status[data-kind="bad"] { color: var(--danger); }
+.acct-who { padding: var(--sp-3); }
+.acct-who-text { min-width: 0; }
+.acct-email { font-weight: 600; color: var(--text-1); overflow-wrap: anywhere; }
+.acct-sub { font-size: var(--fs-12); color: var(--text-3); }
+
+/* Keep this device / Keep cloud: modal on desktop, bottom sheet on phone (style guide §5.7) */
+.acct-scrim { position: fixed; inset: 0; z-index: 10002; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(6px);
+  display: grid; place-items: center; padding: var(--gutter); }
+.acct-modal { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--bg-1);
+  border: 1px solid var(--line-2); border-radius: var(--r-3); box-shadow: var(--el-3); padding: var(--sp-5);
+  font-family: var(--font-ui); display: flex; flex-direction: column; gap: var(--sp-3); }
+.acct-modal h2 { margin: 0; font-family: var(--font-display); color: var(--gold); font-size: var(--fs-20); }
+.acct-modal > p { margin: 0; color: var(--text-2); font-size: var(--fs-14); }
+.acct-compare { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.acct-side { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-3); background: var(--bg-2);
+  border: 1px solid var(--line-1); border-radius: var(--r-2); min-width: 0; }
+.acct-side.is-newer { border-color: var(--line-brand); }
+.acct-side-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.acct-side dl { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-1) var(--sp-3); font-size: var(--fs-13); }
+.acct-side dt { color: var(--text-3); }
+.acct-side dd { margin: 0; color: var(--text-1); text-align: right; overflow-wrap: anywhere; }
+.acct-side .btn { margin-top: auto; }
+
+@media (max-width: 639px) {
+  .acct { max-width: none; }
+  .acct-compare { grid-template-columns: 1fr; }
+  .acct-scrim { align-items: end; padding: 0; }
+  .acct-modal { width: 100%; border-radius: var(--r-3) var(--r-3) 0 0; max-height: 92vh; padding-bottom: calc(var(--sp-5) + env(safe-area-inset-bottom)); }
+}
+@media (pointer: coarse) { .acct .btn, .acct-modal .btn, .acct-field input { min-height: var(--tap); } }

@@ -75,3 +75,21 @@ create trigger saves_touch
 -- RLS check (optional, run as two different signed-in users from the browser console or the
 -- SQL editor with "set role authenticated; set request.jwt.claims = '{"sub":"<uuid>"}'"):
 --   select * from public.saves;   -- returns only the caller's row, never another player's
+
+-- ---------------------------------------------------------------------------------------
+-- Leaderboard link. A signed-in player's leaderboard row is their account's row. The guest
+-- (anonymous) row this browser posted before signing in is deleted by the client so nobody
+-- is listed twice; this lets a player delete only their own current-season row. Skipped if
+-- supabase/leaderboard_season2.sql has not been run yet.
+do $$
+begin
+  if to_regclass('public.leaderboard_season') is not null then
+    drop policy if exists "players delete their own current row" on public.leaderboard_season;
+    create policy "players delete their own current row"
+      on public.leaderboard_season for delete
+      to authenticated
+      using ((select auth.uid()) = user_id);
+    grant delete on public.leaderboard_season to authenticated;
+  end if;
+end;
+$$;

@@ -43,6 +43,7 @@ import { gearCard } from './ui/rarity.js';
 import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { Leaderboard } from './leaderboard.js';
+import { AccountUI } from './ui/account.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 
 // Plain-number display in the player's notation (Settings tab); see BigNum.formatNumber
@@ -159,6 +160,9 @@ class AetheriaApp {
     // Setup DOM Listeners & Navigation
     this.setupEventListeners();
     this.setupTabs();
+    // Account & cloud save (R38): optional; signed out, the game saves locally as before
+    this.accountUI = new AccountUI(this);
+    this.accountUI.init();
 
     // Check offline time
     if (this.saveManager.lastSaveTime) {

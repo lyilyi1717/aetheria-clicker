@@ -90,12 +90,22 @@ export class SaveManager {
       const data = JSON.parse(decoded);
       // Valid JSON that isn't a save object would otherwise load as an empty game and be saved
       if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
-      // Same path as a normal load: deserialize runs the migration chain (migrations.js)
-      this.gameState.deserialize(data);
-      this.save();
-      return true;
+      return this.applySaveData(data);
     } catch (e) {
       console.error('Import failed:', e);
+      return false;
+    }
+  }
+
+  // Replace the current game with a parsed save object (import, cloud save download).
+  // Same path as a normal load: deserialize runs the migration chain (migrations.js).
+  // The caller reloads the page afterwards so every system starts from the new state.
+  applySaveData(data) {
+    try {
+      this.gameState.deserialize(data);
+      return this.save();
+    } catch (e) {
+      console.error('Applying save failed:', e);
       return false;
     }
   }
