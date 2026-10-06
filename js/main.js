@@ -19,10 +19,10 @@ import { BountySystem, QUARTERMASTER_UPGRADES } from './systems/BountySystem.js'
 import { MarketSystem, COMMODITIES, getStockCap } from './systems/MarketSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
+import { TalentSourcesPanel } from './ui/talents.js';
 import { AchievementSystem } from './systems/AchievementSystem.js';
 import { CollectionSystem } from './systems/CollectionSystem.js';
 import { CodexUI } from './ui/codex.js';
-import { TalentSourcesPanel } from './ui/talents.js';
 import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } from './systems/FastForwardSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
 import { getTabBonuses, BONUS_KIND_LABELS, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';

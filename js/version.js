@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '3.4.0';
+export const VERSION = '3.3.0';
 
 export const CHANGELOG = [
   {
-    version: '3.4.0',
+    version: '3.3.0',
     date: '2026-10-06',
     title: 'The Shard Tree',
     changes: [
@@ -16,6 +16,14 @@ export const CHANGELOG = [
       'Tower branch: Wardens (1 shard) and Second Wind (2 shards: once per boss fight, losing to a boss refills your HP and the timer instead of pushing you back; the boss keeps the damage you dealt).',
       'Change: Wardens are now a Shard Tree node instead of opening at your first Transcend. If you have already Transcended, you keep them for free.',
       'Foundry branch: 16 Deep Blueprints, one per Transcend building tier (15 to 30), each making that tier\'s upgrades 10× cheaper. They go on sale with the building upgrade shop.'
+    ]
+  },
+  {
+    version: '3.2.1',
+    date: '2026-10-06',
+    title: 'Hotfix: the game loads again',
+    changes: [
+      'Fixed a broken update that stopped the game from loading after the Codex 2.0 release. Your save was not affected.'
     ]
   },
   {
