@@ -71,6 +71,7 @@ These live in `css/tokens.css` (linked first in `index.html`); the components in
   --font-display: 'Cinzel', Georgia, serif;
   --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --fs-root: clamp(17px, 16px + 0.2vw, 18.5px);   /* :root font-size; every rem scales with it */
   --fs-11: 0.6875rem; --fs-12: 0.75rem; --fs-13: 0.8125rem; --fs-14: 0.875rem;
   --fs-16: 1rem; --fs-18: 1.125rem; --fs-20: 1.25rem; --fs-24: 1.5rem; --fs-32: 2rem;
   --lh-tight: 1.2; --lh-body: 1.45;
@@ -91,7 +92,10 @@ These live in `css/tokens.css` (linked first in `index.html`); the components in
   --ease-pop: cubic-bezier(0.2, 1.4, 0.4, 1);
   /* Layout */
   --header-h: 56px; --nav-w: 220px; --rail-w: 64px; --bottom-nav-h: 60px; --tap: 44px;
+  --content-max: 1440px;
+  --orb-size: clamp(170px, min(28vw, 30vh), 300px);
 }
+:root { font-size: var(--fs-root); }
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -152,12 +156,19 @@ Only Cosmic may glow. Gear cards show rarity as a 4px left border plus the glyph
 
 ## 3. Type
 
-- **UI:** Inter (`--font-ui`), 14px body, line height 1.45.
+- **Root size (R29):** `:root` takes `--fs-root`, which grows with the window: 17px on phones,
+  18.5px from about 1250px wide. All `--fs-*` steps are in rem, so the whole scale moves with it.
+  The step names are their size at a 16px root; the real size is about 6% bigger on a phone and
+  16% bigger on desktop (body `--fs-14` is ~14.9px at 375px, ~16.2px at 1366px and up).
+  Raise or lower all text by changing `--fs-root`, never with per-component overrides. Sizes
+  in `px` don't scale: write font sizes as `--fs-*` (or rem), spacing stays on the px grid.
+- **UI:** Inter (`--font-ui`), `--fs-14` body, line height 1.45.
 - **Display:** Cinzel (`--font-display`), only for tab titles, the wordmark, toast titles,
   ceremonies and modal titles. Never for numbers or body text.
 - **Numbers:** every changing number gets `.num` (`font-variant-numeric: tabular-nums`) so it
   doesn't jitter. Timers can use `--font-mono`.
-- **Scale:** 11 / 12 / 13 / 14 / 16 / 18 / 20 / 24 / 32 px (`--fs-*`). Nothing under 11px.
+- **Scale:** 11 / 12 / 13 / 14 / 16 / 18 / 20 / 24 / 32 (`--fs-*`, at a 16px root). Nothing
+  under `--fs-11`, and no font size in px.
 - **Hero number:** 32px, weight 800, in the currency's accent, with its rate (`+4.4e10 /s`) in
   `--text-3` beneath.
 - **Eyebrow labels** (currency names, section labels): 11px, 700, uppercase, 0.08em tracking,
@@ -298,9 +309,13 @@ stays available but never pushes the action below the fold again.
   rate, a "next goal" chip (desktop), then Fast Forward and sound at the right edge. On phone:
   compact row, currencies scroll horizontally with a fade at the edge; goal chip moves into the
   tab's main card; Fast Forward and sound move to the More sheet.
-- **Content:** max width 1100px, 16px gutter. Order on every tab: **action → state → upgrades
+- **Content:** max width `--content-max` (1440px), 16px gutter. Order on every tab: **action → state → upgrades
   → explanation**. Active-bonus chips collapse to one summary line.
 - **Two-column tabs** (Falafel: orb + generators) go to one column below 1024px, action first.
+- **Falafel (R29):** the orb is `--orb-size` (170px on phones, up to 300px on a 1080p screen;
+  capped by window height so it stays above the fold), the ring and combo bar scale from it.
+  From 1025px the orb card is sticky at the top of its column; the generator list grows with
+  the page there (two columns once each row gets 440px) and scrolls in its own box below that.
 - **Phone bottom stack:** bottom nav (60px + safe area); the buff bar sits directly above it;
   content gets matching bottom padding so nothing hides under either.
 - **No horizontal page scroll at 375px.** Wide content (tables, trees) either reflows or

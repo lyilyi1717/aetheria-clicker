@@ -523,8 +523,8 @@ button, input, select, textarea {
 /* Common Panels */
 .panel-grid-2 {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: clamp(var(--sp-3), 1.5vw, var(--sp-5));
 }
 
 @media (max-width: 1024px) {
@@ -561,7 +561,7 @@ button, input, select, textarea {
 
 .monolith-orb-wrapper {
   position: relative;
-  margin: 1.5rem 0;
+  margin: calc(var(--orb-size) * 0.15 + var(--sp-2)) 0; /* room for the ring */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -569,8 +569,8 @@ button, input, select, textarea {
 
 .orb-ring {
   position: absolute;
-  width: 220px;
-  height: 220px;
+  width: calc(var(--orb-size) * 1.3);
+  height: calc(var(--orb-size) * 1.3);
   border-radius: 50%;
   border: 2px solid rgba(251, 191, 36, 0.6); /* Golden holy ring */
   box-shadow: 0 0 15px rgba(251, 191, 36, 0.4), inset 0 0 15px rgba(251, 191, 36, 0.4);
@@ -580,8 +580,8 @@ button, input, select, textarea {
 }
 
 .monolith-orb {
-  width: 170px;
-  height: 170px;
+  width: var(--orb-size);
+  height: var(--orb-size);
   border-radius: 50%;
   background: transparent; /* No more blue background! */
   box-shadow: 0 0 45px rgba(251, 191, 36, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.2); /* Holy golden glow */
@@ -595,15 +595,19 @@ button, input, select, textarea {
   box-shadow: 0 0 70px rgba(251, 191, 36, 0.9), inset 0 0 30px rgba(255, 255, 255, 0.8);
 }
 
+.monolith-title { font-family: var(--font-display); font-size: clamp(var(--fs-20), 0.9rem + 1vw, var(--fs-24)); letter-spacing: 1px; }
+.monolith-click-power { margin-top: var(--sp-1); font-size: var(--fs-16); font-weight: 600; color: var(--aether); }
+.combo-text { font-size: var(--fs-14); font-weight: 700; color: var(--gold); }
+
 .combo-container {
   width: 100%;
-  max-width: 320px;
+  max-width: max(320px, calc(var(--orb-size) * 1.6));
   margin-top: 1rem;
 }
 
 .combo-bar {
   width: 100%;
-  height: 10px;
+  height: 12px; /* style guide §5.4: combo bars are .lg */
   background: rgba(255, 255, 255, 0.1);
   border-radius: 5px;
   overflow: hidden;
@@ -673,10 +677,11 @@ button, input, select, textarea {
 .buy-amt-btn.active { background: var(--accent-cyan); color: #000; box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
 
 .building-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  max-height: 600px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(440px, 100%), 1fr)); /* two columns only when each row has room */
+  align-content: start;
+  gap: var(--sp-3);
+  max-height: max(420px, 70vh);
   overflow-y: auto;
   padding-right: 0.25rem;
 }
@@ -1245,8 +1250,10 @@ button, input, select, textarea {
 /* Market Tab */
 .commodity-row {
   display: flex;
+  flex-wrap: wrap; /* phone: the trade buttons drop to their own row instead of stacking */
   align-items: center;
   justify-content: space-between;
+  gap: var(--sp-2) var(--sp-4);
   padding: 0.85rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -1255,9 +1262,11 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  min-width: 180px;
+  flex: 1 1 180px;
+  min-width: min(180px, 100%);
 }
 
+.c-actions { display: flex; gap: var(--sp-1); }
 .c-actions button {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1265,8 +1274,12 @@ button, input, select, textarea {
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   cursor: pointer;
-  margin-left: 0.3rem;
-  font-size: 0.75rem;
+  min-height: 36px;
+  font-size: var(--fs-13);
+}
+@media (max-width: 639px) {
+  .c-actions { flex-basis: 100%; }
+  .c-actions button { flex: 1; min-height: var(--tap); }
 }
 
 /* Prestige Tab */
@@ -1563,7 +1576,7 @@ button, input, select, textarea {
 .more-btn .pip[hidden] { display: none; }
 
 #content-area { flex: 1; min-width: 0; padding: var(--sp-4) var(--gutter) var(--sp-6); overflow-y: auto; position: relative; }
-.tab-view { max-width: 1100px; margin: 0 auto; }
+.tab-view { max-width: var(--content-max); margin: 0 auto; }
 
 /* Phone-only pieces stay out of the way on larger screens */
 .bottom-nav, .more-sheet, .sheet-scrim { display: none; }
@@ -1634,7 +1647,12 @@ button, input, select, textarea {
 
 /* Falafel: orb card at the top of its column, not centred in a tall card */
 #tab-monolith .panel-grid-2 { align-items: start; }
-#tab-monolith .monolith-section { justify-content: flex-start; }
+#tab-monolith .monolith-section { justify-content: flex-start; padding-block: clamp(var(--sp-4), 2vw, var(--sp-5)); }
+/* Two columns: the Falafel stays in view while the generator list scrolls with the page */
+@media (min-width: 1025px) {
+  #tab-monolith .monolith-section { position: sticky; top: 0; }
+  #tab-monolith .building-list { max-height: none; overflow: visible; }
+}
 /* Grid children may shrink below their content (no sideways overflow at 375px) */
 .panel-grid-2 > *, .combat-arena > * { min-width: 0; }
 
@@ -1662,7 +1680,7 @@ button, input, select, textarea {
   }
   .res .v { font-size: var(--fs-14); }
   .res.hero .v { font-size: var(--fs-18); }
-  .res .k { font-size: 10px; }
+  .res .k { font-size: var(--fs-11); }
   .side-nav { display: none; }
   #content-area { padding-bottom: calc(var(--sp-5) + var(--bottom-nav-h) + env(safe-area-inset-bottom)); }
 
