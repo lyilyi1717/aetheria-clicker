@@ -1,4 +1,5 @@
 // SaveManager: LocalStorage, Auto-Save, Export/Import, and Offline Progression
+import { getOfflineBonusSeconds } from '../systems/ShardTreeSystem.js';
 
 const SAVE_KEY = 'AETHERIA_CHRONICLES_SAVE_V1';
 
@@ -14,11 +15,13 @@ export const OFFLINE_RESERVOIR_BONUS = 4 * 3600; // seconds per Chrono Reservoir
 
 // Splits time away into paid bands. Pure: no game state, so it is easy to test.
 // Negative, NaN or infinite elapsed time (clock moved backwards) pays nothing.
-export function computeOfflineBands(elapsedSeconds, reservoirRank = 0) {
+// bonusSeconds (shard tree Deep Reservoir, R13) extends both bands like Reservoir ranks do.
+export function computeOfflineBands(elapsedSeconds, reservoirRank = 0, bonusSeconds = 0) {
   const elapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
   const rank = Math.max(0, Number(reservoirRank) || 0);
-  const fullEnd = OFFLINE_FULL_BAND + rank * OFFLINE_RESERVOIR_BONUS;
-  const capEnd = OFFLINE_AETHER_CAP + rank * OFFLINE_RESERVOIR_BONUS;
+  const bonus = Math.max(0, Number(bonusSeconds) || 0);
+  const fullEnd = OFFLINE_FULL_BAND + rank * OFFLINE_RESERVOIR_BONUS + bonus;
+  const capEnd = OFFLINE_AETHER_CAP + rank * OFFLINE_RESERVOIR_BONUS + bonus;
   const fullSecs = Math.min(elapsed, fullEnd);
   const halfSecs = Math.max(0, Math.min(elapsed, capEnd) - fullEnd);
   return {
@@ -121,7 +124,7 @@ export class SaveManager {
     // Banded payout (100% then 50%); Chrono Reservoir extends the bands. Efficiency (talents,
     // Chronos Contract) multiplies whatever the bands pay.
     const reservoirRank = this.gameState.ascensionPerks?.chrono_vault?.rank || 0;
-    const bands = computeOfflineBands(elapsedSeconds, reservoirRank);
+    const bands = computeOfflineBands(elapsedSeconds, reservoirRank, getOfflineBonusSeconds(this.gameState));
     const effectiveSecs = bands.paidSecs * offlineEfficiency;
 
     const gainedAether = prodPerSec.mul(effectiveSecs);

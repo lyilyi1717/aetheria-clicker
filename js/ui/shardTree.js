@@ -1,0 +1,331 @@
+// Shard tree panel (R13, docs/redesign-proposal.md §6.3; mockup docs/ui/mockups/shard-tree.html),
+// in the Ascension tab under the Transcend panel. main.js only calls init() once and
+// update(currentTab) every frame. The DOM is built once and updated in place, so buttons are
+// never replaced under the pointer.
+//
+// It also owns the Auto-Ascend clock: a 1 s interval (it keeps running in background tabs, where
+// requestAnimationFrame stops) asks the system whether to Ascend. Auto-Ascensions skip the big
+// Ascension ceremony and are announced through rewards.js as one medium toast of kind
+// 'auto-ascend' (§10 risk 2): same-kind toasts merge ("Auto-Ascended ×3", dust summed), and while
+// the tab is hidden rewards.js holds them in its away batch and shows one on return.
+import { BigNum } from '../engine/BigNum.js';
+import { sound } from '../engine/AudioEngine.js';
+import { rewards } from './rewards.js';
+import {
+  ShardTreeSystem, SHARD_TREE_BRANCHES, SHARD_TREE_NODES, AUTO_ASCEND_RULES, AUTO_ASCEND_TIMER_OPTIONS,
+  LONG_WARP_SECONDS, getShardBalance, getSpentShards, getNode, autoAscendRuleMet
+} from '../systems/ShardTreeSystem.js';
+
+const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
+const setAttr = (el, k, v) => { if (el && el.getAttribute(k) !== v) el.setAttribute(k, v); };
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmtBig = (d) => (d instanceof BigNum ? d : new BigNum(d)).format('standard', 0);
+const SHARD = '◆';
+
+function fmtClock(seconds) {
+  const s = Math.max(0, Math.ceil(seconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return h > 0 ? `${h} h ${String(m).padStart(2, '0')} min` : `${m}:${String(sec).padStart(2, '0')}`;
+}
+
+function fmtMult(b) {
+  if (b.lt(1e6)) {
+    const n = b.toNumber();
+    return `×${n >= 10 ? n.toLocaleString(undefined, { maximumFractionDigits: 1 }) : n.toFixed(2)}`;
+  }
+  return `×${b.format('scientific', 2)}`;
+}
+
+export class ShardTreeUI {
+  constructor(app) {
+    this.app = app;
+    this.nodeEls = new Map();
+    this.timer = null;
+    this.filter = 'all';
+    this.selectedTier = null;   // Foundry tile picked for the detail row
+  }
+
+  get gs() { return this.app.gameState; }
+  get sys() { return this.app.shardTreeSystem; }
+
+  init() {
+    if (!this.app.shardTreeSystem) {
+      this.app.shardTreeSystem = new ShardTreeSystem(this.app.gameState, this.app.prestigeSystem);
+    }
+    this.gs.shardTreeSystem = this.app.shardTreeSystem;
+    this.build();
+    if (!this.timer) this.timer = setInterval(() => this.tickAutoAscend(), 1000);
+  }
+
+  // Auto-Ascend check; at most one Ascension per call (the 10-min minimum run spaces them anyway)
+  tickAutoAscend() {
+    this.sys.tick();
+    const batch = this.sys.takeAutoAscendBatch();
+    if (!batch) return;
+    rewards.notify({
+      tier: 'medium', kind: 'auto-ascend', icon: '🔁', color: '#c084fc',
+      title: batch.count > 1 ? `Auto-Ascended ×${batch.count}` : 'Auto-Ascended', batchTitle: 'Auto-Ascended ×{n}',
+      amount: batch.dust, fmt: fmtBig, unit: 'Cosmic Dust'
+    });
+  }
+
+  nodeHtml(n) {
+    const req = n.requires.length ? `Needs ${n.requires.map(r => esc(getNode(r).name)).join(', ')}` : 'No prerequisite';
+    return `
+      <div class="st-node" data-node="${n.id}">
+        <div class="st-orb" aria-hidden="true">${n.icon}</div>
+        <div class="st-node-text">
+          <div class="st-n">${esc(n.name)}</div>
+          <div class="st-e">${esc(n.desc)}</div>
+          <div class="st-req" data-req>${req}</div>
+        </div>
+        <div class="st-act">
+          <span class="st-state" data-state hidden>Owned</span>
+          <button class="btn btn-sm num" data-buy="${n.id}">${n.cost} ${SHARD}</button>
+        </div>
+      </div>`;
+  }
+
+  build() {
+    const cont = document.getElementById('shard-tree-section');
+    if (!cont || cont.dataset.built) return;
+    cont.dataset.built = '1';
+
+    const foundry = SHARD_TREE_NODES.filter(n => n.branch === 'foundry');
+    const tiles = foundry.map(n => `<button class="st-tile num" data-tile="${n.tier}" aria-label="Tier ${n.tier} Deep Blueprint">${n.tier}</button>`).join('');
+    const nodes = (b) => SHARD_TREE_NODES.filter(n => n.branch === b).map(n => this.nodeHtml(n)).join('');
+    const seg = (name, opts) => `<div class="seg" role="group" data-seg="${name}">${opts.map(([v, l]) => `<button type="button" data-v="${v}" aria-pressed="false">${l}</button>`).join('')}</div>`;
+
+    cont.innerHTML = `
+      <div class="st-wrap">
+        <section class="card st-head">
+          <div>
+            <div class="eyebrow">Fracture Shards</div>
+            <div class="st-big num" data-st="balance"></div>
+            <div class="st-sub num" data-st="sub"></div>
+          </div>
+          <div class="st-head-r">
+            <div class="bar-row"><span data-st="gateLabel"></span><span class="bar shard"><i data-st="gateFill"></i></span><span class="val" data-st="gatePct"></span></div>
+          </div>
+        </section>
+        <p class="st-intro">Spend shards on permanent nodes; Transcend never resets the tree. Your shard bonus counts every shard you have <em>earned</em>, so spending never lowers it.</p>
+        <div class="st-filter" role="group" aria-label="Show branch">
+          <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
+          ${SHARD_TREE_BRANCHES.map(b => `<button type="button" class="chip" data-filter="${b.id}" aria-pressed="false">${b.icon} ${esc(b.name)} <span class="num" data-count="${b.id}"></span></button>`).join('')}
+        </div>
+        <div class="st-tree" data-filter-on="all">
+          <section class="card st-branch" data-branch="foundry">
+            <h3>${SHARD_TREE_BRANCHES[0].icon} Foundry <small>Deep Blueprint: a Transcend tier's upgrades cost ÷10 · 1 ${SHARD} each</small></h3>
+            <div class="st-foundry">${tiles}</div>
+            <div class="st-tile-detail">
+              <div class="st-tile-text"><div class="st-n" data-fd="name"></div><div class="st-req" data-fd="req"></div></div>
+              <button class="btn btn-sm num" data-fd="buy"></button>
+            </div>
+          </section>
+          <section class="card st-branch" data-branch="chronos">
+            <h3>${SHARD_TREE_BRANCHES[1].icon} Chronos <small class="num" data-count2="chronos"></small></h3>
+            <div class="st-nodes">${nodes('chronos')}</div>
+            <div class="st-auto" data-auto hidden>
+              <div class="st-auto-row"><span class="st-lbl">Auto-Ascend</span>${seg('enabled', [['on', 'On'], ['off', 'Off']])}</div>
+              <div class="st-auto-row"><span class="st-lbl">When dust ≥</span>${seg('rule', AUTO_ASCEND_RULES.map(r => [r.id, r.id === 'timer' ? 'Timer' : `×${r.mult}`]))}</div>
+              <div class="st-auto-row" data-auto-timer><span class="st-lbl">Every</span>${seg('timer', AUTO_ASCEND_TIMER_OPTIONS.map(m => [String(m), m < 60 ? `${m} min` : `${m / 60} h`]))}</div>
+              <div class="st-auto-status" data-auto-status></div>
+            </div>
+            <button class="btn btn-sand st-warp" data-warp hidden></button>
+          </section>
+          <section class="card st-branch" data-branch="tower">
+            <h3>${SHARD_TREE_BRANCHES[2].icon} Tower <small class="num" data-count2="tower"></small></h3>
+            <div class="st-nodes">${nodes('tower')}</div>
+          </section>
+        </div>
+      </div>`;
+
+    const q = (sel) => cont.querySelector(sel);
+    for (const n of SHARD_TREE_NODES) {
+      if (n.branch === 'foundry') {
+        this.nodeEls.set(n.id, { el: q(`[data-tile="${n.tier}"]`) });
+      } else {
+        const el = q(`[data-node="${n.id}"]`);
+        this.nodeEls.set(n.id, { el, btn: el.querySelector('[data-buy]'), state: el.querySelector('[data-state]'), req: el.querySelector('[data-req]') });
+      }
+    }
+    this.el = {
+      tree: q('.st-tree'),
+      balance: q('[data-st="balance"]'), sub: q('[data-st="sub"]'),
+      gateLabel: q('[data-st="gateLabel"]'), gateFill: q('[data-st="gateFill"]'), gatePct: q('[data-st="gatePct"]'),
+      filters: [...cont.querySelectorAll('[data-filter]')],
+      counts: Object.fromEntries(SHARD_TREE_BRANCHES.map(b => [b.id, q(`[data-count="${b.id}"]`)])),
+      counts2: { chronos: q('[data-count2="chronos"]'), tower: q('[data-count2="tower"]') },
+      fdName: q('[data-fd="name"]'), fdReq: q('[data-fd="req"]'), fdBuy: q('[data-fd="buy"]'),
+      auto: q('[data-auto]'), autoTimer: q('[data-auto-timer]'), autoStatus: q('[data-auto-status]'),
+      segs: { enabled: q('[data-seg="enabled"]'), rule: q('[data-seg="rule"]'), timer: q('[data-seg="timer"]') },
+      warp: q('[data-warp]')
+    };
+
+    cont.addEventListener('click', (e) => {
+      const t = e.target;
+      const buy = t.closest('[data-buy]');
+      if (buy) return this.buy(buy.dataset.buy);
+      const tile = t.closest('[data-tile]');
+      if (tile) { this.selectedTier = Number(tile.dataset.tile); return this.update('prestige'); }
+      if (t.closest('[data-fd="buy"]')) return this.buy(`foundry_t${this.currentTier()}`);
+      if (t.closest('[data-warp]')) return this.longWarp();
+      const f = t.closest('[data-filter]');
+      if (f) { this.filter = f.dataset.filter; return this.update('prestige'); }
+      const sb = t.closest('[data-seg] button');
+      if (sb) {
+        const which = sb.parentElement.dataset.seg;
+        const v = sb.dataset.v;
+        if (which === 'enabled') this.sys.setAutoAscendEnabled(v === 'on');
+        else if (which === 'rule') this.sys.setAutoAscendRule(v);
+        else if (which === 'timer') this.sys.setAutoAscendTimer(Number(v));
+        this.update('prestige');
+      }
+    });
+    this.update('prestige');
+  }
+
+  // Foundry tile in the detail row: the picked one, else the first one not owned yet
+  currentTier() {
+    if (this.selectedTier) return this.selectedTier;
+    const next = SHARD_TREE_NODES.find(n => n.branch === 'foundry' && !this.sys.has(n.id));
+    return next ? next.tier : 30;
+  }
+
+  buy(id) {
+    const node = getNode(id);
+    if (!node || !this.sys.buy(id)) return;
+    sound.playBuy();
+    rewards.notify({ tier: 'medium', kind: 'shard-node', icon: node.icon, color: '#f472b6', title: `Shard Tree: ${node.name}`, batchTitle: '{n} shard nodes' });
+    this.update('prestige');
+  }
+
+  longWarp() {
+    const res = this.sys.useLongWarp();
+    if (!res) return;
+    rewards.notify({
+      tier: 'medium', kind: 'long-warp', icon: '⏩', color: '#e7c38a',
+      title: `${LONG_WARP_SECONDS / 3600} h Fast Forward`, amount: res.aether, fmt: fmtBig, unit: 'Aether',
+      detail: res.gardenHarvests ? `${res.gardenHarvests} Garden harvests` : ''
+    });
+    this.update('prestige');
+  }
+
+  update(tab) {
+    if (tab !== 'prestige' || !this.el) return;
+    const gs = this.gs;
+    const sys = this.sys;
+    const el = this.el;
+    const balance = getShardBalance(gs);
+    setText(el.balance, `${balance} ${SHARD}`);
+    setText(el.sub, `Earned ${gs.getShardCount()} · spent ${getSpentShards(gs)} · ${fmtMult(gs.getShardAetherMult())} Aether and dust gain`);
+
+    // Next Transcend progress (lifetime dust of this layer vs the gate)
+    const ps = this.app.prestigeSystem;
+    const gate = ps.getTranscendGate();
+    const pct = Math.max(0, Math.min(100, 100 * gs.totalCosmicDust.div(gate).toNumber()));
+    setText(el.gateLabel, `Next Transcend · ${fmtBig(gate)} dust`);
+    const w = `${pct.toFixed(1)}%`;
+    if (el.gateFill.style.width !== w) el.gateFill.style.width = w;
+    setText(el.gatePct, `${Math.floor(pct)}%`);
+
+    // Branch filter (mainly for phones, where the branches stack)
+    setAttr(el.tree, 'data-filter-on', this.filter);
+    for (const f of el.filters) setAttr(f, 'aria-pressed', String(f.dataset.filter === this.filter));
+
+    const owned = {};
+    for (const n of SHARD_TREE_NODES) {
+      const refs = this.nodeEls.get(n.id);
+      const reason = sys.getBlockReason(n.id);
+      const isOwned = reason === 'owned';
+      if (isOwned) owned[n.branch] = (owned[n.branch] || 0) + 1;
+      const state = isOwned ? 'own' : reason === null ? 'aff' : 'lock';
+      for (const c of ['own', 'aff', 'lock']) refs.el.classList.toggle(c, c === state);
+      if (n.branch === 'foundry') {
+        refs.el.classList.toggle('sel', n.tier === this.currentTier());
+        setAttr(refs.el, 'aria-label', `Tier ${n.tier} Deep Blueprint: ${isOwned ? 'owned' : (reason || 'can buy')}`);
+        continue;
+      }
+      const granted = isOwned && gs.shardTree?.granted?.[n.id];
+      refs.state.hidden = !isOwned;
+      setText(refs.state, granted ? 'Owned (kept)' : 'Owned');
+      refs.btn.hidden = isOwned;
+      refs.btn.classList.toggle('btn-primary', state === 'aff');
+      refs.btn.classList.toggle('is-locked', state === 'lock');
+      setAttr(refs.btn, 'aria-disabled', String(state !== 'aff'));
+      setAttr(refs.btn, 'title', state === 'aff' ? `Buy for ${n.cost} shard${n.cost === 1 ? '' : 's'}` : (reason || ''));
+      const reqText = isOwned
+        ? (granted ? 'Kept free: you had it before the shard tree' : '')
+        : (reason && reason.startsWith('needs ') ? reason[0].toUpperCase() + reason.slice(1) : (n.requires.length ? `After ${n.requires.map(r => getNode(r).name).join(', ')}` : 'No prerequisite'));
+      setText(refs.req, reqText);
+    }
+    for (const b of SHARD_TREE_BRANCHES) {
+      const total = SHARD_TREE_NODES.filter(n => n.branch === b.id).length;
+      setText(el.counts[b.id], `${owned[b.id] || 0}/${total}`);
+      if (el.counts2[b.id]) setText(el.counts2[b.id], `${owned[b.id] || 0} / ${total}`);
+    }
+
+    // Foundry detail row: one buy button for the picked tile
+    const tier = this.currentTier();
+    const fid = `foundry_t${tier}`;
+    const fr = sys.getBlockReason(fid);
+    setText(el.fdName, `Tier ${tier}: Deep Blueprint`);
+    setText(el.fdReq, fr === 'owned' ? 'Owned: its 5 upgrades cost ÷10' : fr === null ? 'Its 5 upgrades will cost ÷10' : `Locked: ${fr}`);
+    el.fdBuy.hidden = fr === 'owned';
+    el.fdBuy.classList.toggle('btn-primary', fr === null);
+    el.fdBuy.classList.toggle('is-locked', fr !== null);
+    setAttr(el.fdBuy, 'aria-disabled', String(fr !== null));
+    setText(el.fdBuy, `1 ${SHARD}`);
+
+    this.updateAutoAscend();
+    this.updateLongWarp();
+  }
+
+  updateAutoAscend() {
+    const el = this.el;
+    const has = this.sys.has('chronos_auto_ascend');
+    if (el.auto.hidden === has) el.auto.hidden = !has;
+    if (!has) return;
+    const a = this.gs.shardTree.autoAscend;
+    const press = (segEl, v) => { for (const b of segEl.children) setAttr(b, 'aria-pressed', String(b.dataset.v === v)); };
+    press(el.segs.enabled, a.enabled ? 'on' : 'off');
+    press(el.segs.rule, a.rule);
+    press(el.segs.timer, String(a.timerMin));
+    const isTimer = a.rule === 'timer';
+    if (el.autoTimer.hidden === isTimer) el.autoTimer.hidden = !isTimer;
+
+    const ps = this.app.prestigeSystem;
+    const now = Date.now();
+    const wait = ps.getMinRunRemaining(now);
+    const pending = ps.getPendingCosmicDust();
+    let status;
+    if (!a.enabled) status = 'Off: you Ascend by hand.';
+    else if (wait > 0) status = `Waiting for the 10-min minimum run (${fmtClock(wait)}).`;
+    else if (pending.lte(0)) status = 'Waiting for this run\'s first Cosmic Dust (1e9 run Aether).';
+    else if (isTimer) {
+      const left = a.timerMin * 60 - (now - (this.gs.runStartedAt || 0)) / 1000;
+      status = left > 0 ? `Next Auto-Ascend in ${fmtClock(left)}.` : 'Ascending…';
+    } else {
+      const rule = AUTO_ASCEND_RULES.find(r => r.id === a.rule);
+      const need = this.gs.totalCosmicDust.mul(rule.mult - 1).ceil();
+      status = autoAscendRuleMet(a, pending, this.gs.totalCosmicDust, Infinity)
+        ? 'Ascending…'
+        : `Pending ${fmtBig(pending)} of ${fmtBig(need)} dust.`;
+    }
+    setText(el.autoStatus, status);
+  }
+
+  updateLongWarp() {
+    const btn = this.el.warp;
+    const has = this.sys.has('chronos_long_warp');
+    if (btn.hidden === has) btn.hidden = !has;
+    if (!has) return;
+    const left = this.sys.getLongWarpReadyIn();
+    const ready = left <= 0;
+    btn.classList.toggle('is-locked', !ready);
+    setAttr(btn, 'aria-disabled', String(!ready));
+    setText(btn, ready ? '⏩ Fast Forward 6 h' : `⏩ 6 h Fast Forward in ${fmtClock(left)}`);
+  }
+}

@@ -75,7 +75,7 @@ export class TranscendPanel {
           <div class="tr-gain"><div class="h">You gain</div><ul data-tr="gain"></ul></div>
           <div class="tr-lose"><div class="h">You reset</div><ul data-tr="lose"></ul></div>
         </div>
-        <div class="tr-keep">You keep: generator tiers, Fracture Shards, talents, Tower, Excavation, Garden,
+        <div class="tr-keep">You keep: generator tiers, Fracture Shards, the Shard Tree, talents, Tower, Excavation, Garden,
           Alchemy, Bazaar, Codex and your Ascension count.</div>
         <button id="btn-do-transcend" class="btn-action"></button>
       </div>
