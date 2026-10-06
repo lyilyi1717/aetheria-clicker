@@ -115,6 +115,19 @@ console.log('--- index.html: bottom bar, More sheet, guide hints, no art panels 
   assert.deepEqual([...side].sort(), [...sections].sort(), 'side nav reaches every tab');
   assert.deepEqual([...bottom, ...sheet].sort(), [...sections].sort(), 'bottom bar + More sheet reach every tab once');
 
+  // Every tab section is closed before the next opens (an unclosed Chronicle section once hid
+  // the tabs after it unless Chronicle was open)
+  const tags = [...html.matchAll(/<section id="tab-(\w+)"|<\/section>/g)];
+  let open = null;
+  for (const t of tags) {
+    if (t[1]) {
+      assert.equal(open, null, `tab-${t[1]} opens inside tab-${open}`);
+      open = t[1];
+    } else {
+      open = null;
+    }
+  }
+
   const banners = [...html.matchAll(/<div class="tab-guide-banner"([^>]*)>/g)];
   assert.ok(banners.length >= 11);
   for (const b of banners) assert.match(b[1], /data-hint="[^"]{10,}"/, 'every guide has a one-line hint');
