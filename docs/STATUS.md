@@ -10,16 +10,20 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
+A coordinating session runs these in separate sessions (one branch and PR each):
+
+- R27 #63 Naming cleanup (`claude/r27-naming-cleanup`)
+- R33 #69 Weekly goals (PR #92, reviewed; merging main for its version number)
+- R38 #74 Cloud save (`claude/r38-cloud-save`)
 
 ## Next up
 
-R0–R25 are all done. Next by the AGENTS.md rule: **R26 #62**.
+R0–R26, R28 and R30 are done.
 
-- Ready now: R26, R27, R28, R29, R30, R31, R33, R34, R35, R38, R40.
-- Safe to run side by side (no shared files): R26, R28, R30, R33, R38. Overlaps to avoid:
-  R26 + R27 (`main.js`), R27 + R34 (`CombatSystem.js`), R29 + R35 (CSS and tokens).
-- Blocked: R32 (R26), R36 (R27), R37 (R27, R36), R39's shared part (R37, R38; the local-only
-  ticker can ship first). R31 asks to go after R28 and R32, which also move income.
+- Ready now: R29, R31 (after R32), R32, R34 (after R27: `CombatSystem.js`), R35, R40.
+- Overlaps to avoid: R27 + R34 (`CombatSystem.js`), R29 + R35 (CSS and tokens).
+- Blocked: R36 (R27), R37 (R27, R36), R39's shared part (R37, R38; the local-only ticker can
+  ship first).
 - Need the owner first (`decision` label): R36 names, R38 Google provider and SQL, R40 submit path.
 - Chapter 2 of the Chronicle is one more `CHAPTERS` entry (no issue yet).
 
@@ -177,6 +181,20 @@ R0–R25 are all done. Next by the AGENTS.md rule: **R26 #62**.
 - (R5, R9, R13, R14 sat under "In progress" until the R6 merge dropped them without a Done entry;
   R10 and R15 never got one. Restored from the merged PRs.)
 
+- R26 #62 Blast on the grid (PR #89, 4.2.1): `getBlastArea(centerId, gridSize)` in
+  `MiningSystem.js`; `blastBlocks` spawns effects on each tile's own rect (`#mine-tile-<id>`) and
+  flashes them (`.blast-flash`). Tests in `test_r26_blast.js`.
+- Fix (PR #90, 4.2.2): `tab-chronicle` was never closed in `index.html`, hiding Dallah, Codex,
+  Leaderboard and Settings unless Chronicle was open. `test_r23_shell.js` now fails on nested
+  tab sections.
+- R30 #66 Letters notation (PR #88, 4.3.0): `BigNum.notation` defaults to `'letters'` (K, M, B, T,
+  aa…zz, aaa…, each x1000, so az = 1e90, ba = 1e93; the issue's examples were off by one step).
+  Save v7 moves saves on the old default (scientific or unset) to letters. `test_r30_letters.js`.
+- R28 #64 Frenzy every 20 (PR #91, 4.4.0): constants in `js/systems/combo.js`. Combo x5 at 20
+  clicks, never reset by Frenzy; Frenzy x3 click yield for 4 s per milestone, +4 s per milestone
+  while running (cap 30 s), no auto-clicks. Active/idle x6.98 (was x7.10); clicking alone x1.56
+  (was x2.73). Combo bar in `js/ui/comboBar.js`. `test_r28_frenzy.js`.
+
 - R25 #61 Reward toasts clear the buff bar: `js/buffBar.js` writes its measured height to
   `--buff-bar-h` (token default 36px); `css/rewards.css` offsets the stack by it at 640px+ and caps
   its height above the bottom bar under 640px. Tests in `test_r25_toasts.js`; screenshots in
@@ -217,6 +235,9 @@ R0–R25 are all done. Next by the AGENTS.md rule: **R26 #62**.
   that loop forever must be ambient and listed in `test_r24_motion.js`.
 
 ## Noticed (not yet an issue)
+
+- Combo and Frenzy timers run on game time, so during Chrono Warp (x5) the 2 s combo window is
+  0.4 s (seen in `sim/active-income.mjs`; check whether the real loop does the same).
 
 - R7 starter gifts not built: Rare weapon (Tower), half-filled first contract (Bounties), free
   Cold Vimto brew (Alchemy), free caravan (Bazaar). Save export/import still sits in the Codex

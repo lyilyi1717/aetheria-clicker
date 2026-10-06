@@ -3,6 +3,7 @@ import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
+import { COMBO_FULL, FRENZY_AUTO_CLICKS, FRENZY_EVERY, FRENZY_DURATION, FRENZY_MAX_TIMER } from './combo.js';
 
 // --- R3 Golden Anomalies (docs/redesign-proposal.md §5.2) ---
 // Spawn every 60-120 s after the last click (50-90 s after one escapes). Weights are out of 60:
@@ -43,6 +44,9 @@ export class ClickerSystem {
     this.anomalyX = 50;
     this.anomalyY = 50;
     this.anomalyType = 'jackpot';
+    // Combo count at the last Frenzy milestone (not saved; reset when the combo drains to 0),
+    // so a short pause can't re-fire the same milestone
+    this.lastFrenzyAt = 0;
   }
 
   handleClick(clientX, clientY, isAutoClick = false) {
@@ -54,7 +58,7 @@ export class ClickerSystem {
       yieldAmount = yieldAmount.mul(this.gameState.critMultiplier);
       sound.playCrit();
     } else {
-      sound.playClick(1 + (this.gameState.comboCount % 20) * 0.03);
+      sound.playClick(1 + (this.gameState.comboCount % FRENZY_EVERY) * 0.03);
     }
 
     // Award aether
@@ -73,14 +77,17 @@ export class ClickerSystem {
 
     // Increment combo (frenzy auto-clicks don't count)
     if (!isAutoClick) {
-      this.gameState.comboCount = Math.min(100, this.gameState.comboCount + 1);
+      if (this.gameState.comboCount <= 0) this.lastFrenzyAt = 0;
+      this.gameState.comboCount = this.gameState.comboCount + 1;
       this.gameState.comboTimer = 2.0; // 2 seconds to keep combo active
-    }
 
-    // Trigger frenzy if combo hits 100
-    // (a Chronicle challenge may forbid Frenzy, R20)
-    if (this.gameState.comboCount >= 100 && !this.gameState.frenzyActive && !getActiveRules(this.gameState).noFrenzy) {
-      this.triggerFrenzy(15);
+      // Every 20th combo click starts (or extends) Frenzy
+      // (a Chronicle challenge may forbid Frenzy, R20)
+      const combo = this.gameState.comboCount;
+      if (combo % FRENZY_EVERY === 0 && combo > this.lastFrenzyAt && !getActiveRules(this.gameState).noFrenzy) {
+        this.lastFrenzyAt = combo;
+        this.triggerFrenzy(FRENZY_DURATION);
+      }
     }
 
     // Spawn visual feedback
@@ -97,9 +104,16 @@ export class ClickerSystem {
     }
   }
 
-  triggerFrenzy(duration = 15) {
-    this.gameState.frenzyActive = true;
-    this.gameState.frenzyTimer = duration;
+  // Starts Frenzy, or adds `duration` to a running one (up to FRENZY_MAX_TIMER, or the
+  // current timer if it is already longer, e.g. after a Time Flux)
+  triggerFrenzy(duration = FRENZY_DURATION) {
+    const gs = this.gameState;
+    if (gs.frenzyActive && gs.frenzyTimer > 0) {
+      gs.frenzyTimer = Math.max(gs.frenzyTimer, Math.min(FRENZY_MAX_TIMER, gs.frenzyTimer + duration));
+    } else {
+      gs.frenzyActive = true;
+      gs.frenzyTimer = duration;
+    }
     sound.playSpell();
   }
 
@@ -108,7 +122,9 @@ export class ClickerSystem {
     if (this.gameState.comboTimer > 0) {
       this.gameState.comboTimer -= dt;
       if (this.gameState.comboTimer <= 0) {
-        this.gameState.comboCount = Math.max(0, this.gameState.comboCount - 5);
+        // Above a full bar, the clicks toward the next Frenzy are lost at once; then it drains
+        const c = Math.min(COMBO_FULL, this.gameState.comboCount);
+        this.gameState.comboCount = Math.max(0, c - 5);
         if (this.gameState.comboCount > 0) {
           this.gameState.comboTimer = 0.2; // drain smoothly
         }
@@ -118,18 +134,20 @@ export class ClickerSystem {
     // Frenzy timer decay
     if (this.gameState.frenzyActive) {
       this.gameState.frenzyTimer -= dt;
-      // Auto-click pulse during frenzy (5 clicks/sec)
-      if (Math.random() < dt * 6) {
+      // Auto-click pulse during frenzy (~FRENZY_AUTO_CLICKS per second)
+      if (Math.random() < dt * FRENZY_AUTO_CLICKS) {
         const fakeX = window.innerWidth / 2 + (Math.random() - 0.5) * 120;
         const fakeY = window.innerHeight / 2 + (Math.random() - 0.5) * 120;
         this.handleClick(fakeX, fakeY, true);
       }
       if (this.gameState.frenzyTimer <= 0) {
+        // The combo carries on (R28): only a pause in clicking drains it
         this.gameState.frenzyActive = false;
-        this.gameState.comboCount = 0;
-        this.gameState.comboTimer = 0;
+        this.gameState.frenzyTimer = 0;
       }
     }
+
+    if (this.gameState.comboCount <= 0) this.lastFrenzyAt = 0;
 
     // Golden Rift Anomaly Spawning
     if (!this.anomalyActive) {

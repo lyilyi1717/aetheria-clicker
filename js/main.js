@@ -42,6 +42,7 @@ import { CalendarUI } from './ui/calendar.js';
 import { gearCard } from './ui/rarity.js';
 import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
+import { renderCombo } from './ui/comboBar.js';
 import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
@@ -214,10 +215,11 @@ class AetheriaApp {
   buildSettingsStructure() {
     const cont = document.getElementById('settings-notation');
     if (!cont) return;
-    const sample = new BigNum(1.5, 10);
+    const sample = new BigNum(1.5, 16);
     const options = [
+      { id: 'letters', label: 'Letters (K, M, B, T, aa, ab…)' },
       { id: 'scientific', label: 'Scientific' },
-      { id: 'suffix', label: 'Standard (K, M, B…)' },
+      { id: 'suffix', label: 'Named (K, M, B, Qa, Qi…)' },
       { id: 'engineering', label: 'Engineering' }
     ];
     cont.innerHTML = options.map(o => `
@@ -1917,13 +1919,7 @@ class AetheriaApp {
       setText(clickPowerEl, `+${clickVal.format('standard', 1)} per Click`);
     }
 
-    const comboBar = this.$('combo-bar-fill');
-    const comboText = this.$('combo-text');
-    if (comboBar && comboText) {
-      const combo = this.gameState.comboCount;
-      setWidth(comboBar, `${Math.min(100, combo)}%`);
-      setText(comboText, combo > 0 ? `${combo}x Combo! (${(1 + Math.min(50, combo) * 0.08).toFixed(1)}x boost)` : 'Combo Ready');
-    }
+    renderCombo(this.$('combo-bar-fill'), this.$('combo-text'), this.gameState, this.clickerSystem);
 
     const frenzyBadge = this.$('frenzy-badge');
     if (frenzyBadge) {

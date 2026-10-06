@@ -260,7 +260,8 @@ stratum or zone every 1–3 days in week 1. One dust-shop feature. From day 6, a
 2–4 days that hands you a new generator tier and shards to spend. Golem rows and caravans
 finished overnight. A Codex row filled.
 
-**Every week.** Weekly Ledger: 3 goals drawn from unlocked tabs, Seals + a Codex stamp.
+**Every week.** Weekly Ledger: 3 goals drawn from unlocked tabs, sized to about 4.5 days of
+the player's own typical play (R33), Seals + a Codex stamp.
 Souq Rotation: one gentle world modifier that returns later (Truffle Season, Falcon Week).
 A Seal of Transcendence lights roughly weekly through month 2 (depth 100, floor 501, 25
 Catalysts, Guild Rank 7, bestRunDust 1e8, 40% Codex, 15 Ascensions).
@@ -338,7 +339,8 @@ As built (R11, `js/ui/rewards.js` + pure rules in `js/ui/rewardQueue.js`, sounds
   through 15 click upgrades (×2 each, Aether cost on the generator cost curve) and a dust-shop
   "Finger of Wasta" (+1% CPS per 100 clicks this run, cap +50%). Combo stays 5× but **crits
   during Frenzy spawn a mini-anomaly 10% of the time** (a 3 s "ember" worth 30 s of CPS). The
-  combo bar gets a visible "Frenzy in N" counter so the 100th click is anticipated.
+  combo bar gets a visible "Frenzy in N" counter so the next Frenzy is anticipated (every 20
+  combo clicks since R28; see the R28 notes in §6.1).
 - **Crits.** Base 5% ×3 stays; show a crit streak counter; 3 crits in a row = "Resonance!"
   (×2 for the next click). Variable ratio on top of fixed ratio.
 - **Golden Anomalies.** Keep the 60–120 s spawn but **retune Supernova from 600 s to 180 s of
@@ -486,6 +488,26 @@ leaderboard column. No save migration: `codex` is a new additive field.
   Transcend day 4.2, 32 Transcends in the year, a reset at least every 14 days until day 206
   (was 184), median 58 upgrades per run.
 
+*R28 implementation notes (Frenzy every 20 combo clicks; `js/systems/combo.js`,
+`ClickerSystem.js`, `js/ui/comboBar.js`; player feedback, not in the original spec).*
+- **Combo:** ×1 + 0.2 per click, full ×5 at click 20 (was +0.08 per click, ×5 at 50; the count
+  was capped at 100). The count is no longer capped. Frenzy ending leaves it alone; only a 2 s
+  pause drains it (above 20 it falls straight back to 20, then −5 every 0.2 s as before).
+- **Frenzy at 20, 40, 60, …** of an unbroken combo. A milestone during a running Frenzy
+  **extends** it by its duration, capped at 30 s (a longer timer, e.g. Time Flux's 25 s, is
+  never shortened); nothing is queued. `ClickerSystem.lastFrenzyAt` (not saved, reset when the
+  combo reaches 0) stops a short pause from re-firing the same milestone.
+- **Retune (rule 5 deviation from "Frenzy ×5"):** five times as many Frenzies at the old
+  values measured ×9.5 active/idle (was ×7.2). Swept on `sim/active-income.mjs` (6 seeds × 6 h,
+  full rotation; main ×7.10): 3 s ×5 with 6 auto-clicks/s ×9.4; 2 s ×2 auto ×7.3; 3 s ×2 no
+  auto ×6.9; **4 s ×3 no auto ×7.0**; 5 s ×3 no auto ×7.2. Shipped: Frenzy is ×3 click yield
+  for 4 s per milestone with no auto-clicks (at 2 clicks/s that is ~40% uptime). Measured
+  ×6.86 on the default seed (was ×7.23). Clicks-only play drops from ×2.73 to ×1.56: a steady
+  clicker no longer gets the old 15 s auto-click burst, so clicking alone is a nerf; the
+  ×2 target (R3) is still not met and stays an owner decision.
+- The §5.2 "Frenzy in N" counter is built (combo bar text); the bar fills over the first 20
+  clicks, then shows progress to the next milestone.
+
 *R15 implementation notes (Seals, Dallah, Ledger, Souq; `js/systems/CalendarSystem.js`).*
 - **Seals are a shard bonus** (#23 default 4), not a Transcend gate. Tier I bars as in roadmap
   §5.1 (depth 100, floor 501, 25 Catalysts, 15 Ascensions, Guild Rank 7, `bestRunDust` 1e8, 40%
@@ -512,7 +534,21 @@ leaderboard column. No save migration: `codex` is a new additive field.
 - **Weekly Ledger:** weeks run Monday to Sunday. 3 distinct goals from a pool of ten, drawn from
   those whose system the player has already met, seeded by the week number (same on every
   device). Progress is how far a lifetime counter has grown since the week began. Each goal pays
-  6 Guild Seals once; all 3 add a stamp (cosmetic, kept forever).
+  10 Guild Seals once (6 before R33); all 3 add a stamp (cosmetic, kept forever).
+- **Weekly targets (R33).** Flat targets (2 bosses, 300 clicks...) were finishable in one sitting,
+  so weeklies felt like dailies. Each goal now asks for `LEDGER_WEEK_DAYS` = 4.5 x the player's
+  typical day for that stat: on each new day seen, the growth of every goal stat since the last
+  day seen is recorded (`calendar.rates`, last 7 samples), and the target is 4.5 x the median,
+  rounded to 2 significant figures, never below the old flat target (and depth capped at 25).
+  With fewer than 3 samples a goal asks for a fixed `start` (about 2.5x the old target). Days
+  not opened add no sample, so a break never moves targets; the median shrugs off one binge or
+  one idle day. Result (`test_r33_weekly.js`, a mid-game player at 30 min/day): no goal is done
+  after a 1 h or even a 2 h session, all three are done after 5 days, leaving 2-3 days of slack
+  in the week. Someone who plays 1 h a day gets twice the targets, still ~4.5 of their days.
+  A week drawn before R33 keeps its flat targets and 6-Seal reward until it rotates (goals
+  without a stored `target` are read as legacy). Multi-system goals were considered and left
+  out: pace-relative targets already stop an AFK stat from finishing a week in one sitting.
+  `npm run sim` does not model the Ledger (subgames off), so its report is unchanged.
 - **Souq Rotation:** a four-week cycle, so each returns: Truffle Season (Desert Truffle grows
   x1.5), Falcon Week (Tower boss gold x1.5), Hourglass Week (Chrono Sand gained x1.5), Rosewater
   Week (every plant grows x1.25).
@@ -799,8 +835,9 @@ After the first Chronicle the Seal half counts as met.
   tricks pay more than the cap.
 - **Daily Dallah** (roadmap §5.4): first visit of a calendar day; banks 3 days; no streak,
   "days visited" is a lifetime count.
-- **Weekly Ledger**: 3 goals from unlocked tabs; Seals + stamp; rotates Monday; missing one
-  loses nothing.
+- **Weekly Ledger**: 3 goals from unlocked tabs, each sized to ~4.5 days of the player's own
+  typical day (R33), so a week takes several sessions but leaves 2–3 days of slack; Seals +
+  stamp; rotates Monday; missing one loses nothing.
 - **Souq Rotation**: one modifier per week, always positive, always returns.
 - **Seasons = Chapters** (3 months): new rules, new collection, new leaderboard; a Chapter
   missed is a Chapter next year. No exclusive items ever.

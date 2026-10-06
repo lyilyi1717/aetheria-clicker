@@ -3,9 +3,72 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.2.0';
+export const VERSION = '4.6.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.6.0',
+    date: '2026-10-06',
+    title: 'Accounts and cloud save',
+    changes: [
+      'New in Settings: Account & Cloud Save. Sign in with Google or with an email and password to keep your progress in the cloud and continue on another device or browser. Forgot your password? A reset link comes by email.',
+      'Accounts are optional. Without one the game saves in this browser exactly as before.',
+      'While signed in, your game saves to the cloud every 3 minutes, when you press Save Game and when you leave the page. Signing in on a new device loads your cloud save.',
+      'Your progress is never overwritten without asking: if this device and the cloud have different progress, you choose "Keep this device" or "Keep cloud", with each save\'s time, Ascensions, Transcends, floor and depth side by side.',
+      'Your leaderboard entry now belongs to your account, so it follows you to every device. Your old guest entry for this season is replaced by it, so you are only listed once.'
+    ]
+  },
+  {
+    version: '4.5.0',
+    date: '2026-10-06',
+    title: 'Weekly Ledger goals are a real week',
+    changes: [
+      'Weekly Ledger goals are harder now: they could often be finished in one sitting, which made them feel like dailies. Each goal now asks for about 4.5 of your usual days of progress, so a week takes a few visits but still leaves 2 to 3 days of slack.',
+      'Goals are sized to your own pace: the game remembers how much you did of each thing (bosses, blocks, harvests, clicks...) on your last 7 days played and uses a typical day, so the Ledger keeps up as you grow. A single big or idle day barely moves it, and days you do not play are not counted.',
+      'Until it has seen 3 of your days, a goal uses a starting target (for example Slay 200 Tower fiends, was 60). No goal is ever easier than before.',
+      'Each Ledger goal now pays 10 Guild Seals (was 6), 30 for the full week.',
+      'This week\'s goals keep their old targets and old 6-Seal reward until the Ledger rotates on Monday. Missing a week still loses nothing.'
+    ]
+  },
+  {
+    version: '4.4.0',
+    date: '2026-10-06',
+    title: 'Frenzy every 20 clicks',
+    changes: [
+      'Your click combo now reaches its full x5 boost after 20 clicks (was 50).',
+      'Every 20 clicks in a row (20, 40, 60, ...) sets off a Frenzy. When a Frenzy ends your combo keeps going instead of dropping back to 0, so you never have to rebuild 100 clicks again. Only pausing for 2 seconds drains the combo.',
+      'Frenzy is shorter and gentler so it can come much more often: x3 click yield for 4 s (was x5 and rapid auto-clicks for 15 s). Reaching the next 20 while a Frenzy is running adds 4 s, up to 30 s. Overall, attentive play earns about the same as before; pure clicking without spells earns a little less, and a Time Flux anomaly is now 25 s of the new x3 Frenzy.',
+      'The combo bar fills over the first 20 clicks, then shows your progress to the next Frenzy, with a "Frenzy in N" counter.'
+    ]
+  },
+  {
+    version: '4.3.0',
+    date: '2026-10-06',
+    title: 'Friendlier big numbers',
+    changes: [
+      'New default number notation, Letters: 1.50K, 2.30M, 4.00B, 7.25T, then aa, ab, ac… after trillion (1.00aa is 1,000 T, 1.00ab is 1,000 aa, and so on). After zz comes aaa, so it never runs out.',
+      'If you were on Scientific (the old default), your game now uses Letters. Prefer 1.5e16? Switch back in Settings with one tap. Players who picked Standard or Engineering keep their choice.',
+      'The old Standard option (Qa, Qi, Sx…) is still in Settings, now called Named, along with Scientific and Engineering.'
+    ]
+  },
+  {
+    version: '4.2.2',
+    date: '2026-10-06',
+    title: 'Dallah, Codex, Leaderboard and Settings open again',
+    changes: [
+      'The Dallah, Codex, Leaderboard and Settings tabs showed an empty page unless the Chronicle tab was open. They now open normally.'
+    ]
+  },
+  {
+    version: '4.2.1',
+    date: '2026-10-06',
+    title: 'Dynamite blasts land on the grid',
+    changes: [
+      'The Excavation 3x3 blast now shows its sparks and rewards on the tiles it actually hit, instead of in the middle of the screen. Blasted tiles flash orange so you can see the 3x3 area.',
+      'Blasts near an edge or corner only hit the tiles that are on the grid (4 at a corner, 6 along an edge), as before; only the effects were in the wrong place.',
+      'Void Cataclysm also shows its mining effects on the tiles it hits while the Excavation grid is on screen.'
+    ]
+  },
   {
     version: '4.2.0',
     date: '2026-10-06',
