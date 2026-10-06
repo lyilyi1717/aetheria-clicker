@@ -130,7 +130,7 @@ console.log('--- Locked tiers: upgrades for tiers 15-30 stay hidden until the ti
   assert.equal(us.isAvailable(`${t15.id}_u1`), true);
 }
 
-console.log('--- Effect: x2 per tier upgrade on that tier only; synergy +1% per source owned ---');
+console.log('--- Effect: xTIER_UPGRADE_MULT per tier upgrade on that tier only; synergy per source owned ---');
 {
   const { gs, bs, us } = make();
   gs.buildings.tapper.count = 200;

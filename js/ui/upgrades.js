@@ -89,7 +89,7 @@ export class UpgradeShopUI {
     const n = this.us.buyAllAffordable();
     if (n <= 0) return;
     rewards.notify({
-      tier: 'small', kind: 'upgrade', icon: '⬆️',
+      tier: 'small', kind: 'upgrade-all', icon: '⬆️',
       title: n === 1 ? '1 upgrade bought' : `${n} upgrades bought`
     });
     this.afterBuy();

@@ -22,7 +22,7 @@ import { GameState } from '../js/systems/GameState.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from '../js/systems/BuildingSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from '../js/systems/PrestigeSystem.js';
 import { AchievementSystem } from '../js/systems/AchievementSystem.js';
-import { UpgradeSystem, TIER_UPGRADE_MULT, SYNERGY_PER_UNIT } from '../js/systems/UpgradeSystem.js';
+import { UpgradeSystem, TIER_UPGRADE_MULT, SYNERGY_PER_UNIT, UPGRADE_DEFINITIONS, getUpgradeDefinition } from '../js/systems/UpgradeSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
@@ -46,62 +46,86 @@ const CHECKPOINTS = [
 ];
 
 // --- R5 upgrade shop block -------------------------------------------------------------------
-// Returns best(budgetLog, clickRate) -> { id, ratio } | null: the affordable upgrade with the best
-// log10(Aether/s gained per Aether spent), in the same units as the generator greedy (generator
-// output before global multipliers). Click upgrades are valued at the current click rate
-// (clicks/s x combo), converted into those units by dividing by the global multiplier.
+// The sim buys upgrades in the same greedy loop as generators, by log10(Aether/s gained per
+// Aether spent) in the generator greedy's units (generator output before global multipliers).
+// Click upgrades are valued at the current click rate (clicks/s x combo), converted into those
+// units by dividing by the global multiplier.
+//   shop.refresh()           at the start of each greedy pass: collect available upgrades
+//   shop.onBuilding(id)      after a generator purchase: its upgrades/synergies may have opened
+//   shop.best(budget, rate)  -> { id, ratio } | null, the best affordable available upgrade
+//   shop.buy(id)             buys it and updates the candidate list
+// Only the available ones are scored, so a pass costs a handful of checks, not 173.
 function makeUpgradeShopBuyer(gs, bs, us) {
   const lg = (x) => Math.log10(Math.abs(x.m)) + x.e;
-  // Sorted by cost so the scan stops at the first upgrade the budget can't reach
-  const entries = us.definitions.map(u => ({ u, costLog: lg(u.cost) })).sort((a, b) => a.costLog - b.costLog);
+  const costLog = new Map(us.definitions.map(u => [u.id, lg(u.cost)]));
   const baseCpsLog = new Map(BUILDING_DEFINITIONS.map(d => [d.id, lg(d.baseCps)]));
+  const byBuilding = new Map();   // building id -> upgrades whose availability depends on its count
+  for (const u of us.definitions) {
+    for (const id of [u.building, u.source]) {
+      if (!id) continue;
+      if (!byBuilding.has(id)) byBuilding.set(id, []);
+      byBuilding.get(id).push(u.id);
+    }
+  }
   // log10 of one tier's output, same terms as BuildingSystem.getBuildingProduction (the sim
-  // has no talents), without allocating BigNums: this runs thousands of times per sim day
+  // has no talents), without allocating BigNums
   const prodLog = (id) => {
     const cnt = gs.buildings[id].count;
     if (cnt <= 0) return -Infinity;
     return baseCpsLog.get(id) + Math.log10(cnt * bs.getMilestoneMultiplier(cnt) * gs.getTierUpgradeMult(id));
   };
   const tierGainLog = Math.log10(TIER_UPGRADE_MULT - 1);
-  // Not-yet-bought upgrades of the open tiers; rebuilt when a reset replaces gs.upgrades or a
-  // Transcend opens a tier, pruned as upgrades are bought
-  let remaining = [], forUpgrades = null, forTiers = -1;
-  return (budgetLog, clickRate) => {
-    const tiers = bs.getUnlockedTierCount();
-    if (forUpgrades !== gs.upgrades || forTiers !== tiers) {
-      forUpgrades = gs.upgrades; forTiers = tiers;
-      remaining = entries.filter(({ u }) => u.tier <= tiers);
-    }
-    let best = null, bestRatio = -Infinity;
-    let globalLog = null;
-    let w = 0;
-    for (let i = 0; i < remaining.length; i++) {
-      const { u, costLog } = remaining[i];
-      if (gs.upgrades[u.id]) continue;               // bought: drop from the list
-      remaining[w++] = remaining[i];
-      if (costLog > budgetLog + 1e-9) { while (++i < remaining.length) remaining[w++] = remaining[i]; break; }
-      if (!us.isAvailable(u.id)) continue;
-      let gainLog;
-      if (u.kind === 'click') {
-        if (clickRate <= 0) continue;
-        if (globalLog === null) {
-          const base = bs.getTotalProduction();
-          globalLog = base.gt(0) ? lg(gs.getNetAetherPerSecond()) - lg(base) : 0;
+  const candidates = new Set();
+  return {
+    refresh() {
+      candidates.clear();
+      for (const u of us.definitions) if (us.isAvailable(u.id)) candidates.add(u.id);
+    },
+    onBuilding(id) {
+      for (const uid of byBuilding.get(id) || []) if (!candidates.has(uid) && us.isAvailable(uid)) candidates.add(uid);
+    },
+    buy(id) {
+      if (!us.buy(id)) return false;
+      candidates.delete(id);
+      const u = us.definitions.find(d => d.id === id);
+      if (u.kind === 'click' && us.isAvailable(`click_${u.level + 1}`)) candidates.add(`click_${u.level + 1}`);
+      return true;
+    },
+    best(budgetLog, clickRate) {
+      let best = null, bestRatio = -Infinity, globalLog = null;
+      for (const id of candidates) {
+        const c = costLog.get(id);
+        if (c > budgetLog + 1e-9) continue;
+        const u = getUpgradeDefinition(id);
+        let gainLog;
+        if (u.kind === 'click') {
+          if (clickRate <= 0) continue;
+          if (globalLog === null) {
+            const base = bs.getTotalProduction();
+            globalLog = base.gt(0) ? lg(gs.getNetAetherPerSecond()) - lg(base) : 0;
+          }
+          gainLog = lg(gs.getClickBase()) + Math.log10(clickRate) - globalLog;
+        } else if (u.kind === 'tier') {
+          gainLog = prodLog(u.building) + tierGainLog;
+        } else {
+          gainLog = prodLog(u.building) + Math.log10(SYNERGY_PER_UNIT * gs.buildings[u.source].count);
         }
-        gainLog = lg(gs.getClickBase()) + Math.log10(clickRate) - globalLog;
-      } else if (u.kind === 'tier') {
-        gainLog = prodLog(u.building) + tierGainLog;
-      } else {
-        gainLog = prodLog(u.building) + Math.log10(SYNERGY_PER_UNIT * gs.buildings[u.source].count);
+        const ratio = gainLog - c;
+        if (ratio > bestRatio) { bestRatio = ratio; best = id; }
       }
-      const ratio = gainLog - costLog;
-      if (ratio > bestRatio) { bestRatio = ratio; best = u.id; }
+      return best ? { id: best, ratio: bestRatio } : null;
     }
-    remaining.length = w;
-    return best ? { id: best, ratio: bestRatio } : null;
   };
 }
 // --- end R5 block ------------------------------------------------------------------------------
+
+// synergy source building -> target buildings (a source purchase changes the target's multiplier)
+const SYNERGY_TARGETS_OF = new Map();
+for (const u of UPGRADE_DEFINITIONS) {
+  if (u.kind !== 'synergy') continue;
+  if (!SYNERGY_TARGETS_OF.has(u.source)) SYNERGY_TARGETS_OF.set(u.source, []);
+  SYNERGY_TARGETS_OF.get(u.source).push(u.building);
+}
 
 function run(profile) {
   const gs = new GameState();
@@ -110,7 +134,7 @@ function run(profile) {
   const ach = new AchievementSystem(gs);
   const us = new UpgradeSystem(gs);
   gs.buildingSystem = bs; gs.achievementSystem = ach; gs.upgradeSystem = us;
-  const bestUpgrade = makeUpgradeShopBuyer(gs, bs, us);
+  const shop = makeUpgradeShopBuyer(gs, bs, us);
   let clickRate = 0; // clicks/s x combo right now, for valuing click upgrades
   bs.buyAmount = 1;
 
@@ -122,27 +146,39 @@ function run(profile) {
   // Compared in log10 space (same ordering as the BigNum maths, ~20x faster with 30 tiers).
   const lg = (x) => Math.log10(Math.abs(x.m)) + x.e;
   const LOG_R = Math.log10(1.15);
+  const DEF_LOGS = BUILDING_DEFINITIONS.map(d => ({ def: d, costLog: lg(d.baseCost), cpsLog: lg(d.baseCps) }));
   const greedyBuy = () => {
-    const unlocked = BUILDING_DEFINITIONS.slice(0, bs.getUnlockedTierCount());
+    const unlocked = DEF_LOGS.slice(0, bs.getUnlockedTierCount());
     const costMult = Math.log10(bs.getCostMultiplier());
+    // Upgrade multiplier per tier (log10), recomputed only after an upgrade or a synergy source changes
+    const multLog = new Map();
+    const tierMultLog = (id) => {
+      let v = multLog.get(id);
+      if (v === undefined) { v = Math.log10(gs.getTierUpgradeMult(id)); multLog.set(id, v); }
+      return v;
+    };
+    shop.refresh();
     for (let k = 0; k < 50; k++) {
       if (gs.aether.m <= 0) return;
       const budget = lg(gs.aether);
       let best = null, bestRatio = -Infinity;
-      for (const def of unlocked) {
+      for (const { def, costLog, cpsLog } of unlocked) {
         const cnt = gs.buildings[def.id].count;
-        const cost = lg(def.baseCost) + cnt * LOG_R + costMult;
+        const cost = costLog + cnt * LOG_R + costMult;
         if (cost > budget + 1e-9) continue;
         const gain = (cnt + 1) * bs.getMilestoneMultiplier(cnt + 1) - cnt * bs.getMilestoneMultiplier(cnt);
-        const ratio = lg(def.baseCps) + Math.log10(gain) + Math.log10(gs.getTierUpgradeMult(def.id)) - cost;
+        const ratio = cpsLog + Math.log10(gain) + tierMultLog(def.id) - cost;
         if (ratio > bestRatio) { bestRatio = ratio; best = def.id; }
       }
-      const up = bestUpgrade(budget, clickRate);
+      const up = shop.best(budget, clickRate);
       if (up && up.ratio >= bestRatio) {
-        if (!us.buy(up.id)) return;
+        if (!shop.buy(up.id)) return;
+        multLog.clear();
         continue;
       }
       if (!best || !bs.buyBuilding(best)) return;
+      shop.onBuilding(best);
+      for (const target of SYNERGY_TARGETS_OF.get(best) || []) multLog.delete(target);
     }
   };
 
