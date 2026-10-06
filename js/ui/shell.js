@@ -202,7 +202,8 @@ export class Shell {
     // Red dots: copy the side nav's has-notif onto the bar/sheet copies, and onto More
     let sheetNotif = false;
     for (const side of this.sideTabs) {
-      const on = side.classList.contains('has-notif');
+      // A locked tab (R7) never lights a dot, even if its system has something ready
+      const on = side.classList.contains('has-notif') && this.app.gameState.isTabUnlocked?.(side.dataset.tab) !== false;
       for (const copy of document.querySelectorAll(`#bottom-nav .nav-tab[data-tab="${side.dataset.tab}"], #more-sheet .nav-tab[data-tab="${side.dataset.tab}"]`)) {
         if (copy.classList.contains('has-notif') !== on) copy.classList.toggle('has-notif', on);
       }

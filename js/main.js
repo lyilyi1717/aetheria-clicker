@@ -31,6 +31,7 @@ import { VERSION, CHANGELOG } from './version.js';
 import { getTabBonuses, BONUS_KIND_LABELS, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
 import { Shell } from './ui/shell.js';
+import { UnlocksUI } from './ui/unlocks.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
 import { UpgradeSystem } from './systems/UpgradeSystem.js';
@@ -103,6 +104,8 @@ class AetheriaApp {
     this.gameState.collectionSystem = this.collectionSystem;
     this.gameState.marketSystem = this.marketSystem;
     this.gameState.upgradeSystem = this.upgradeSystem;
+    this.gameState.alchemySystem = this.alchemySystem;   // unlock checks (R7)
+    this.gameState.prestigeSystem = this.prestigeSystem;
 
     // Game loop
     this.gameLoop = new GameLoop(
@@ -269,6 +272,7 @@ class AetheriaApp {
   }
 
   switchTab(tabName) {
+    if (!this.gameState.isTabUnlocked(tabName)) return; // locked tabs can't be opened (R7)
     this.currentTab = tabName;
     document.querySelectorAll('.nav-tab').forEach(b => {
       b.classList.toggle('active', b.dataset.tab === tabName);
@@ -278,6 +282,7 @@ class AetheriaApp {
     });
     this.tabNeedsFullRender[tabName] = true;
     this.shell?.onTabChange(tabName);
+    this.unlocksUI?.onTabChange(tabName);
   }
 
   setupEventListeners() {
@@ -656,6 +661,8 @@ class AetheriaApp {
     this.buffBar.build();
     this.shell = new Shell(this);
     this.shell.build();
+    this.unlocksUI = new UnlocksUI(this);
+    this.unlocksUI.build();
     this.buildBuildingsStructure();
     this.buildCombatStructure();
     this.buildMiningStructure();
@@ -1731,7 +1738,8 @@ class AetheriaApp {
   // Simulation tick (fixed rate)
   onSimTick(dt, realDt = dt) {
     this.clickerSystem.update(dt);
-    this.combatSystem.update(dt);
+    // The Tower starts climbing when its tab opens (R7)
+    if (this.gameState.isTabUnlocked('combat')) this.combatSystem.update(dt);
     this.miningSystem.update(dt);
     this.gardenSystem.update(dt);
     this.alchemySystem.update(dt, realDt);
@@ -1812,6 +1820,7 @@ class AetheriaApp {
     this.leaderboard.tick(this.currentTab === 'leaderboard', VERSION);
     this.buffBar.update();
     this.shell?.update(dt);
+    this.unlocksUI?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
     this.shardTreeUI?.update(this.currentTab);
     this.dustShopUI?.update();

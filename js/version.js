@@ -3,9 +3,22 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.1.1';
+export const VERSION = '4.2.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.2.0',
+    date: '2026-10-06',
+    title: 'Tabs open as you play',
+    changes: [
+      'A new game starts with just the Falafel. Each other tab opens when you reach its goal, with a gold "NEW" toast and a NEW tag on the tab until you visit it: Codex at 3 achievements, Void Tower at 10 Shawarma Stalls, Excavation after the floor-20 boss, Grimoire after the floor-40 boss, Bounties at depth 10, Garden at depth 15, Alchemy once you can brew a recipe, Ascension once it pays Cosmic Dust (1e9 Aether in one run), Constellations, Leaderboard and the Dallah at your first Ascension, the Bazaar at Ascension 2 and floor 150, and the Chronicle at your first Transcend.',
+      'The next tab to open shows in the menu as a locked "???" with its goal and a progress bar, so you always know what is coming. On phones the bottom bar keeps its places with dimmed "Soon" slots.',
+      'Some tabs bring a starter gift when they open: 30 stone for Excavation, a full mana bar for the Grimoire and 2 Mint seeds for the Garden.',
+      'The Void Tower hero starts climbing when the Tower opens (not before), and the Quick Cast bar appears with the Grimoire.',
+      'Contracts and Weekly Ledger goals only ask for things in tabs you have open.',
+      'Existing saves keep every tab they have used: if you have Ascended, Transcended or begun a Chronicle, everything stays open; otherwise every tab you played in (or already earned) stays open, with no NEW tags. Settings and About are always open.'
+    ]
+  },
   {
     version: '4.1.1',
     date: '2026-10-06',

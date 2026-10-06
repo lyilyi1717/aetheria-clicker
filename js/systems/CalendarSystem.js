@@ -50,19 +50,20 @@ export const SEAL_SHARD_BONUS_MAX = 3;        // +1 shard per lit Seal at each T
 
 // Ledger goals: progress is "how much the lifetime counter has grown since the week began", so
 // nothing here needs a hook in the system that owns the counter. `ok(gs)` keeps a goal out of the
-// draw until the player has met the system it asks about ("goals drawn from unlocked tabs").
+// draw until the player has met the system it asks about, and `tab` keeps it out until that tab
+// is unlocked (R7, "goals drawn from unlocked tabs").
 const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 export const LEDGER_GOALS = [
-  { id: 'bosses', icon: '💀', label: 'Defeat 2 Tower bosses', target: 2, stat: gs => n(gs.stats?.totalBossesSlain), ok: gs => n(gs.hero?.maxFloor) >= 10 },
-  { id: 'fiends', icon: '⚔️', label: 'Slay 60 Tower fiends', target: 60, stat: gs => n(gs.stats?.totalMonstersSlain), ok: gs => true },
-  { id: 'depths', icon: '⛏️', label: 'Descend 3 depths', target: 3, stat: gs => n(gs.miningGrid?.maxDepth), ok: gs => n(gs.miningGrid?.maxDepth) >= 1 && n(gs.miningGrid?.maxDepth) < 150 },
-  { id: 'blocks', icon: '🧱', label: 'Excavate 150 blocks', target: 150, stat: gs => n(gs.stats?.totalBlocksMined), ok: gs => !!gs.miningGrid },
-  { id: 'harvest', icon: '🌱', label: 'Harvest 12 plants', target: 12, stat: gs => n(gs.stats?.totalPlantsHarvested), ok: gs => !!gs.garden },
-  { id: 'brew', icon: '🧪', label: 'Brew 5 potions or Catalysts', target: 5, stat: gs => n(gs.stats?.totalPotionsBrewed), ok: gs => !!gs.alchemy },
-  { id: 'spells', icon: '✨', label: 'Cast 15 spells', target: 15, stat: gs => n(gs.stats?.totalSpellsCast), ok: gs => n(gs.stats?.totalSpellsCast) > 0 || n(gs.ascensionCount) > 0 },
-  { id: 'contracts', icon: '📜', label: 'Complete 5 contracts', target: 5, stat: gs => n(gs.stats?.totalBountiesCompleted), ok: gs => true },
-  { id: 'ascend', icon: '🚀', label: 'Ascend 3 times', target: 3, stat: gs => n(gs.ascensionCount), ok: gs => n(gs.ascensionCount) >= 1 },
-  { id: 'clicks', icon: '🧆', label: 'Click the Monolith 300 times', target: 300, stat: gs => n(gs.totalClicks), ok: gs => true }
+  { id: 'bosses', tab: 'combat', icon: '💀', label: 'Defeat 2 Tower bosses', target: 2, stat: gs => n(gs.stats?.totalBossesSlain), ok: gs => n(gs.hero?.maxFloor) >= 10 },
+  { id: 'fiends', tab: 'combat', icon: '⚔️', label: 'Slay 60 Tower fiends', target: 60, stat: gs => n(gs.stats?.totalMonstersSlain), ok: gs => true },
+  { id: 'depths', tab: 'mining', icon: '⛏️', label: 'Descend 3 depths', target: 3, stat: gs => n(gs.miningGrid?.maxDepth), ok: gs => n(gs.miningGrid?.maxDepth) >= 1 && n(gs.miningGrid?.maxDepth) < 150 },
+  { id: 'blocks', tab: 'mining', icon: '🧱', label: 'Excavate 150 blocks', target: 150, stat: gs => n(gs.stats?.totalBlocksMined), ok: gs => !!gs.miningGrid },
+  { id: 'harvest', tab: 'garden', icon: '🌱', label: 'Harvest 12 plants', target: 12, stat: gs => n(gs.stats?.totalPlantsHarvested), ok: gs => !!gs.garden },
+  { id: 'brew', tab: 'alchemy', icon: '🧪', label: 'Brew 5 potions or Catalysts', target: 5, stat: gs => n(gs.stats?.totalPotionsBrewed), ok: gs => !!gs.alchemy },
+  { id: 'spells', tab: 'spells', icon: '✨', label: 'Cast 15 spells', target: 15, stat: gs => n(gs.stats?.totalSpellsCast), ok: gs => n(gs.stats?.totalSpellsCast) > 0 || n(gs.ascensionCount) > 0 },
+  { id: 'contracts', tab: 'bounties', icon: '📜', label: 'Complete 5 contracts', target: 5, stat: gs => n(gs.stats?.totalBountiesCompleted), ok: gs => true },
+  { id: 'ascend', tab: 'prestige', icon: '🚀', label: 'Ascend 3 times', target: 3, stat: gs => n(gs.ascensionCount), ok: gs => n(gs.ascensionCount) >= 1 },
+  { id: 'clicks', tab: 'monolith', icon: '🧆', label: 'Click the Monolith 300 times', target: 300, stat: gs => n(gs.totalClicks), ok: gs => true }
 ];
 const GOAL_BY_ID = new Map(LEDGER_GOALS.map(g => [g.id, g]));
 
@@ -255,7 +256,10 @@ export class CalendarSystem {
   updateWeekly() {
     const w = this.state.weekly;
     const week = weekIndexOfDay(dayIndexOf(this.clock()));
-    if (w.week !== null && week <= w.week) return false;  // same week, or the clock went back
+    if (w.week !== null && week <= w.week) {  // same week, or the clock went back
+      this.topUpGoals();
+      return false;
+    }
     if (w.firstWeek === null) w.firstWeek = week;
     w.week = week;
     w.goals = this.drawGoals(week).map(def => ({ id: def.id, base: def.stat(this.gameState), done: false }));
@@ -263,14 +267,28 @@ export class CalendarSystem {
   }
 
   // Three distinct goals from those the player can already do, the same for a given week
-  drawGoals(week) {
+  // (`skip`: ids already on the Ledger, for topUpGoals)
+  drawGoals(week, count = LEDGER_GOAL_COUNT, skip = new Set()) {
     const rand = mulberry32(Math.imul(week, 2654435761) ^ 0x9e3779b9);
-    const pool = LEDGER_GOALS.filter(g => { try { return g.ok(this.gameState); } catch { return false; } });
+    // Goals only come from tabs the player has open (R7 progressive unlocking)
+    const gs = this.gameState;
+    const open = (g) => typeof gs.isTabUnlocked !== 'function' || gs.isTabUnlocked(g.tab);
+    const pool = LEDGER_GOALS.filter(g => { try { return !skip.has(g.id) && open(g) && g.ok(gs); } catch { return false; } });
     const picked = [];
-    while (picked.length < LEDGER_GOAL_COUNT && pool.length) {
+    while (picked.length < count && pool.length) {
       picked.push(pool.splice(Math.floor(rand() * pool.length), 1)[0]);
     }
     return picked;
+  }
+
+  // A week drawn while few tabs were open (R7) gains goals as more tabs unlock, up to 3
+  topUpGoals() {
+    const w = this.state.weekly;
+    if (w.week === null || w.goals.length >= LEDGER_GOAL_COUNT) return;
+    const skip = new Set(w.goals.map(g => g.id));
+    for (const def of this.drawGoals(w.week + w.goals.length, LEDGER_GOAL_COUNT - w.goals.length, skip)) {
+      w.goals.push({ id: def.id, base: def.stat(this.gameState), done: false });
+    }
   }
 
   // Credits finished goals (6 Guild Seals each) and the week's stamp when all are done

@@ -1,0 +1,48 @@
+/* Progressive tab unlocking (R7, js/ui/unlocks.js; mockup docs/ui/mockups/tab-unlock.html) */
+
+/* Locked tabs are hidden; .nav-tab's display:flex would otherwise beat [hidden] */
+.nav-tab[hidden], .nav-group[hidden], .quick-cast-bar[hidden] { display: none !important; }
+
+/* Teaser: the next locked tab as a silhouette with its trigger and live progress */
+.nav-tab.is-teaser, .nav-tab.is-soon { cursor: default; color: var(--text-3); }
+.nav-tab.is-teaser:hover, .nav-tab.is-soon:hover { background: transparent; color: var(--text-3); }
+.nav-tab.is-teaser .nav-icon, .nav-tab.is-soon .nav-icon { filter: grayscale(1); opacity: 0.6; }
+.nav-tab.is-teaser.has-notif::after, .nav-tab.is-soon.has-notif::after { display: none; }
+.side-nav .nav-tab.is-teaser { min-height: 52px; padding-top: 6px; padding-bottom: 10px; }
+.side-nav .nav-tab.is-teaser .nav-lbl { display: flex; flex-direction: column; min-width: 0; }
+.nav-sub { display: block; font-size: var(--fs-11); font-weight: 500; line-height: 1.3; color: var(--text-3); }
+.nav-lock-bar {
+  position: absolute; left: 12px; right: 12px; bottom: 4px; height: 3px; overflow: hidden;
+  border-radius: var(--r-pill); background: rgba(255, 255, 255, 0.08);
+}
+.nav-lock-bar > i { display: block; height: 100%; border-radius: inherit; background: var(--gold); transition: width var(--dur-3) var(--ease-out); }
+
+/* Reveal: gold button with a NEW tag until the first visit */
+.nav-tab.is-new { color: var(--gold); }
+.nav-tab.is-new.is-revealed { border-color: var(--gold); background: var(--gold-dim); box-shadow: var(--glow-gold); animation: unlock-reveal 0.9s var(--ease-pop) both; }
+.nav-new {
+  margin-left: auto; padding: 1px 6px; border-radius: 4px;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.04em; line-height: 1.4;
+  background: var(--gold); color: var(--text-on-accent);
+  animation: unlock-new-pulse 1.6s ease-in-out 3; /* pulses 3 times, then stays */
+}
+@keyframes unlock-reveal { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+@keyframes unlock-new-pulse { 50% { box-shadow: 0 0 0 4px var(--gold-dim); } }
+
+/* Tablet rail: icon only, NEW as a corner tag */
+@media (max-width: 1023px) {
+  .side-nav .nav-tab.is-teaser { min-height: 44px; padding-top: 0; padding-bottom: 0; }
+  .side-nav .nav-tab.is-teaser .nav-lbl { display: none; }
+  .side-nav .nav-lock-bar { left: 8px; right: 8px; }
+  .side-nav .nav-new { position: absolute; top: 2px; right: 2px; margin: 0; padding: 0 3px; font-size: 8px; }
+}
+
+/* Phone: bottom bar keeps its 5 slots (locked = dimmed "Soon"); sheet tiles carry the tag */
+@media (max-width: 639px) {
+  .bottom-nav .nav-tab.is-soon { opacity: 0.45; }
+  .bottom-nav .nav-tab.is-teaser { opacity: 0.7; }
+  .bottom-nav .nav-lock-bar, .more-grid .nav-lock-bar { left: 25%; right: 25%; bottom: 6px; }
+  .bottom-nav .nav-new, .more-grid .nav-new { position: absolute; top: 4px; right: 6px; margin: 0; padding: 0 4px; font-size: 9px; }
+  .more-grid .nav-tab.is-teaser { opacity: 0.6; }
+  .bottom-nav .nav-tab.is-new.is-revealed { box-shadow: none; background: transparent; border: 0; }
+}
