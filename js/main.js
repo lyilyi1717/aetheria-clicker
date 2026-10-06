@@ -23,6 +23,7 @@ import { VERSION, CHANGELOG } from './version.js';
 import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
 import { GardenBreedingUI } from './ui/garden.js';
+import { WardensRelicsUI } from './ui/wardens-relics.js';
 import { Leaderboard } from './leaderboard.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 
@@ -638,6 +639,8 @@ class AetheriaApp {
     this.buildAlchemyStructure();
     this.breedingUI = new GardenBreedingUI(this, fmtNum);
     this.breedingUI.build();
+    this.wardensRelicsUI = new WardensRelicsUI(this, fmtNum);
+    this.wardensRelicsUI.build();
     this.buildSpellsStructure();
     this.buildTalentsStructure();
     this.buildBountiesStructure();
@@ -1867,6 +1870,7 @@ class AetheriaApp {
     this.updateQuickCastBar();
     this.leaderboard.tick(this.currentTab === 'leaderboard', VERSION);
     this.buffBar.update();
+    this.wardensRelicsUI?.update(this.currentTab);
 
     // Fast, lightweight state updates without replacing DOM nodes
     if (this.currentTab === 'monolith') {

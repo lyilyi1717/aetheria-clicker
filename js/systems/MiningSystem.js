@@ -15,6 +15,27 @@ export const STRATA = [
   { name: 'Abyssal Heart', icon: '🖤', color: '#7f1d1d', minDepth: 151 }
 ];
 
+// Strata Relics (R18; gamification-roadmap §5.3): one per stratum. Each broken tile has a
+// RELIC_CHANCE roll for the current stratum's relic; RELIC_PITY tiles without a relic
+// guarantee the next one. Once the current stratum's relic is found, rolls go to the
+// shallowest relic still missing, so a save that is already deep can still finish the set.
+// Each relic: +5% pickaxe power.
+export const STRATA_RELICS = [
+  { id: 'fossil_date_pit', name: 'Fossilised Date Pit', icon: '🌰' },
+  { id: 'granite_falcon', name: 'Granite Falcon Perch', icon: '🦅' },
+  { id: 'obsidian_mabkhara', name: 'Obsidian Incense Burner', icon: '🏺' },
+  { id: 'voidstone_compass', name: 'Voidstone Qibla Compass', icon: '🧭' },
+  { id: 'aetherite_oud', name: 'Aetherite Oud', icon: '🪕' },
+  { id: 'starcore_astrolabe', name: 'Starcore Astrolabe', icon: '✴️' },
+  { id: 'abyssal_pearl', name: 'Pearl of the Abyssal Heart', icon: '🦪' }
+];
+export const RELIC_CHANCE = 1 / 200;
+export const RELIC_PITY = 400;
+export const RELIC_PICK_BONUS = 0.05;
+// Aether Ore (progression doc §5.4): 10% of plain stone tiles also drop 1 ore, sold in the
+// Bazaar (market.items.ore) at its price x the Market Index.
+export const AETHER_ORE_CHANCE = 0.10;
+
 // Pickaxe is a level L (stored in miningGrid.pickaxeTier). Names cycle through these,
 // then "+N" on the last one.
 export const PICKAXE_NAMES = [
@@ -65,7 +86,77 @@ export class MiningSystem {
     this.drillTargetId = -1;
     this.descending = false; // stairs found, new grid pending
     this.descendTimer = 0;
+    // Relic and ore rolls draw from this (tests inject a seeded source)
+    this.random = () => Math.random();
     this.initMiningGrid();
+  }
+
+  // Saves from before R18 have no relic fields. Also called lazily: a save import replaces
+  // miningGrid at runtime.
+  ensureRelicState() {
+    const grid = this.gameState.miningGrid;
+    if (!grid) return null;
+    if (!grid.relics || typeof grid.relics !== 'object' || Array.isArray(grid.relics)) grid.relics = {};
+    const pity = Number(grid.relicPity);
+    grid.relicPity = Number.isFinite(pity) && pity > 0 ? Math.floor(pity) : 0;
+    const ore = Number(grid.oreFound);
+    grid.oreFound = Number.isFinite(ore) && ore > 0 ? Math.floor(ore) : 0;
+    return grid;
+  }
+
+  hasRelic(index) {
+    return this.ensureRelicState()?.relics[STRATA_RELICS[index]?.id] === true;
+  }
+
+  getRelicCount() {
+    return STRATA_RELICS.reduce((n, _, i) => n + (this.hasRelic(i) ? 1 : 0), 0);
+  }
+
+  getRelicPickMult() {
+    return 1 + RELIC_PICK_BONUS * this.getRelicCount();
+  }
+
+  // Index of the relic the next tile rolls for, or -1 when none is available here: the
+  // current stratum's, else the shallowest missing one above it. Deeper relics need you there.
+  getRelicTarget(depth = this.gameState.miningGrid.depth) {
+    const current = this.getStratumIndex(depth);
+    if (!this.hasRelic(current)) return current;
+    for (let i = 0; i < current; i++) if (!this.hasRelic(i)) return i;
+    return -1;
+  }
+
+  // One roll per broken tile. Returns the relic found, or null.
+  rollRelic(x, y) {
+    const target = this.getRelicTarget();
+    if (target < 0) return null;
+    const grid = this.ensureRelicState();
+    grid.relicPity++;
+    if (!(this.random() < RELIC_CHANCE || grid.relicPity >= RELIC_PITY)) return null;
+    const relic = STRATA_RELICS[target];
+    grid.relics[relic.id] = true;
+    grid.relicPity = 0;
+    sound.playAchievement();
+    if (typeof window !== 'undefined') {
+      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 3,
+        `${relic.icon} STRATA RELIC: ${relic.name.toUpperCase()}! (+${Math.round(RELIC_PICK_BONUS * 100)}% pickaxe)`, '#fbbf24', true);
+    }
+    return relic;
+  }
+
+  // Adds Aether Ore to the Bazaar stock. If the Bazaar state doesn't exist yet (only in
+  // headless use; the app builds every system at start), ore waits in inventory.aetherOre and
+  // moves over with the next drop.
+  addAetherOre(n = 1) {
+    const grid = this.ensureRelicState();
+    if (grid) grid.oreFound += n;
+    const inv = this.gameState.inventory;
+    const item = this.gameState.market?.items?.ore;
+    if (!item) {
+      inv.aetherOre = (inv.aetherOre || 0) + n;
+      return;
+    }
+    item.owned = (item.owned || 0) + n + (inv.aetherOre || 0);
+    inv.aetherOre = 0;
   }
 
   // Dynamite cooldown lives in the saved mining slice: as a plain field on the system it
@@ -87,11 +178,15 @@ export class MiningSystem {
         pickaxeTier: 0,
         autoDrills: 0,
         dynamiteCooldown: 0,
+        relics: {},
+        relicPity: 0,
+        oreFound: 0,
         blocks: []
       };
       this.generateNewGrid();
       return;
     }
+    this.ensureRelicState();
     const grid = this.gameState.miningGrid;
     const cd = Number(grid.dynamiteCooldown);
     grid.dynamiteCooldown = Number.isFinite(cd) ? Math.max(0, Math.min(DYNAMITE_COOLDOWN, cd)) : 0;
@@ -242,6 +337,8 @@ export class MiningSystem {
     }
     // Universal Mastery: Dungeon Mastery (+2.0% Pickaxe Power per 10 bosses slain, max +100%)
     power *= (1 + this.getDungeonPickBonus());
+    // Strata Relics: +5% each
+    power *= this.getRelicPickMult();
     return Math.floor(power);
   }
 
@@ -289,6 +386,10 @@ export class MiningSystem {
 
     const grid = this.gameState.miningGrid;
 
+    // Every broken tile (stairs included) rolls for a Strata Relic, before the stairs move
+    // the depth on
+    this.rollRelic(x, y);
+
     if (block.content === 'stairs') {
       sound.playAchievement();
       if (x && y) particles.spawnFloatingText(x, y, 'STAIRS FOUND! DEPTH +1', '#38bdf8', true);
@@ -334,6 +435,10 @@ export class MiningSystem {
     const stone = this.getStoneYield(grid.depth);
     this.gameState.inventory.stone = (this.gameState.inventory.stone || 0) + stone;
     if (x && y && stone > 1) particles.spawnFloatingText(x, y, `+${new BigNum(stone).format('standard', 0)} STONE`, '#94a3b8');
+    if (this.random() < AETHER_ORE_CHANCE) {
+      this.addAetherOre(1);
+      if (x && y) particles.spawnFloatingText(x, y + 24, '+1 AETHER ORE', '#22d3ee');
+    }
   }
 
   // Cost of reaching pickaxe level L: 50 * 2.5^L stone

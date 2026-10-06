@@ -100,6 +100,12 @@ export const HYBRID_RECIPES = [
 
 const ALL_RECIPES = [...RECIPES, ...HYBRID_RECIPES];
 
+// Gem Polishing (R18; progression doc §5.4): 5 of a gem -> 1 of the next tier. Surplus low
+// gems feed the Catalyst's Void Amethyst bottleneck at an intentionally poor rate
+// (625 rubies = 1 amethyst).
+export const GEM_LADDER = ['rubies', 'sapphires', 'emeralds', 'diamonds', 'voidAmethyst'];
+export const POLISH_RATIO = 5;
+
 export class AlchemySystem {
   constructor(gameState) {
     this.gameState = gameState;
@@ -146,6 +152,40 @@ export class AlchemySystem {
       }
     }
     return found;
+  }
+
+  // --- Gem Polishing ---
+
+  // The gem one polish of `fromKey` makes, or null for the top tier / unknown keys
+  getPolishTarget(fromKey) {
+    const i = GEM_LADDER.indexOf(fromKey);
+    return i >= 0 && i < GEM_LADDER.length - 1 ? GEM_LADDER[i + 1] : null;
+  }
+
+  getMaxPolish(fromKey) {
+    if (!this.getPolishTarget(fromKey)) return 0;
+    const have = Math.floor(Number(this.gameState.inventory?.[fromKey]) || 0);
+    return Math.max(0, Math.floor(have / POLISH_RATIO));
+  }
+
+  // Polishes `times` batches (or 'max') of 5 `fromKey` into 1 of the next gem each.
+  // Returns how many gems were made (0 if it couldn't).
+  polishGem(fromKey, times = 1) {
+    const to = this.getPolishTarget(fromKey);
+    if (!to) return 0;
+    const max = this.getMaxPolish(fromKey);
+    const n = times === 'max' ? max : Math.floor(Number(times) || 0);
+    if (n < 1 || n > max) return 0;
+    const inv = this.gameState.inventory;
+    inv[fromKey] -= n * POLISH_RATIO;
+    inv[to] = (inv[to] || 0) + n;
+    const state = this.ensureState();
+    state.gemsPolished = (Number(state.gemsPolished) || 0) + n;
+    sound.playGem();
+    if (typeof window !== 'undefined') {
+      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `POLISHED ${n}x GEM!`, '#38bdf8', true);
+    }
+    return n;
   }
 
   getCatalystCount() {

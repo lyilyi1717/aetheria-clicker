@@ -35,6 +35,44 @@ export const GEAR_FLOOR_BASE = 1.11;
 export const BOSS_HP_MULT = 400;
 export const BOSS_TIMER_SECONDS = 45;
 
+// Wardens (R18, docs/redesign-proposal.md §6.3/§6.5): every 250th floor, once unlocked, the
+// boss is a named Warden with x3 boss HP and a 60 s timer. First kill of each = a trophy.
+export const WARDEN_INTERVAL = 250;
+export const WARDEN_HP_MULT = 3;
+export const WARDEN_TIMER_SECONDS = 60;
+// Each Warden trophy: +2% Tower gold (additive; gamification-roadmap §5.3 Meme Trophies). Gold
+// only, so trophies never speed up the climb itself.
+export const WARDEN_TROPHY_GOLD = 0.02;
+// Warden kills pay x3 boss gold and XP and drop 3 Void Cores + 3 Boss Tokens (bosses: 1 + 1)
+export const WARDEN_REWARD_MULT = 3;
+
+// Named Wardens for floors 250, 500, 750, ... The list cycles with a numeral after floor 2,500.
+export const WARDEN_NAMES = [
+  'Saher, the All-Seeing Camera',
+  'The Sand Sultan',
+  'Al-Modir the Eternal',
+  'The Wasta Broker',
+  'Dallah Colossus',
+  'The Endless Traffic Jam',
+  'Grand Mufti of Memes',
+  'Kabsa Leviathan',
+  'The Falcon Tax Collector',
+  'Ghost of the Old Souq'
+];
+
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+
+export function isWardenFloorNumber(floor) {
+  return Number.isInteger(floor) && floor >= WARDEN_INTERVAL && floor % WARDEN_INTERVAL === 0;
+}
+
+export function getWardenName(floor) {
+  const i = Math.max(0, Math.floor(floor / WARDEN_INTERVAL) - 1);
+  const cycle = Math.floor(i / WARDEN_NAMES.length);
+  const base = WARDEN_NAMES[i % WARDEN_NAMES.length];
+  return cycle === 0 ? base : `${base} ${ROMAN[cycle + 1] || cycle + 1}`;
+}
+
 export function combatFloorScale(floor) {
   return Math.pow(MONSTER_FLOOR_BASE, Math.min(COMBAT_SCALE_MAX_EXP, Math.max(0, floor - 1)));
 }
@@ -54,7 +92,11 @@ export function getIndexFloor(hero) {
 export class CombatSystem {
   constructor(gameState) {
     this.gameState = gameState;
+    // Active Warden challenge (not saved): { floor } of a passed Warden the hero is fighting
+    // without leaving his climb floor. A reload simply ends it.
+    this.wardenChallenge = null;
     this.initHero();
+    this.ensureWardenState();
     this.rebaseLegacyFloor();
     this.initMonster();
   }
@@ -97,29 +139,103 @@ export class CombatSystem {
     }
   }
 
+  // --- Wardens (R18) ---
+
+  // Saves from before R18 have no hero.wardens; trophies are keyed by floor.
+  ensureWardenState() {
+    const h = this.gameState.hero;
+    if (!h) return null;
+    const w = h.wardens;
+    if (!w || typeof w !== 'object' || Array.isArray(w)) h.wardens = { defeated: {} };
+    const d = h.wardens.defeated;
+    if (!d || typeof d !== 'object' || Array.isArray(d)) h.wardens.defeated = {};
+    return h.wardens;
+  }
+
+  // Doc: a shard-tree node (§6.3 Tower branch). The tree (R13) doesn't exist yet, so Wardens
+  // unlock at the first Transcend; hero.wardensUnlocked is the hook for the tree node.
+  isWardensUnlocked() {
+    return this.gameState.hero?.wardensUnlocked === true || (this.gameState.transcendenceCount || 0) >= 1;
+  }
+
+  isWardenFloor(floor) {
+    return this.isWardensUnlocked() && isWardenFloorNumber(floor);
+  }
+
+  isWardenDefeated(floor) {
+    return this.ensureWardenState()?.defeated[floor] === true;
+  }
+
+  getWardenTrophyCount() {
+    const d = this.ensureWardenState()?.defeated || {};
+    return Object.keys(d).filter(k => d[k] === true).length;
+  }
+
+  getWardenGoldMult() {
+    return 1 + WARDEN_TROPHY_GOLD * this.getWardenTrophyCount();
+  }
+
+  // Warden floors the hero has reached (up to indexFloor) plus the next one ahead
+  getWardenFloors() {
+    const reached = Math.floor(getIndexFloor(this.gameState.hero) / WARDEN_INTERVAL) * WARDEN_INTERVAL;
+    const floors = [];
+    for (let f = WARDEN_INTERVAL; f <= reached + WARDEN_INTERVAL; f += WARDEN_INTERVAL) floors.push(f);
+    return floors;
+  }
+
+  // A passed Warden whose trophy is missing (e.g. Wardens unlocked after the hero climbed past
+  // floor 250) can be fought from the Warden list. The hero keeps his climb floor; winning
+  // or losing just ends the challenge.
+  canChallengeWarden(floor) {
+    return this.isWardenFloor(floor) && !this.wardenChallenge && !this.isWardenDefeated(floor) &&
+      floor < this.gameState.hero.floor && floor <= getIndexFloor(this.gameState.hero);
+  }
+
+  challengeWarden(floor) {
+    if (!this.canChallengeWarden(floor)) return false;
+    this.wardenChallenge = { floor };
+    this.initMonster();
+    return true;
+  }
+
+  endWardenChallenge() {
+    if (!this.wardenChallenge) return false;
+    this.wardenChallenge = null;
+    this.initMonster();
+    return true;
+  }
+
+  // The floor the current fight is on (a challenged Warden's, else the climb floor)
+  getFightFloor() {
+    return this.wardenChallenge ? this.wardenChallenge.floor : this.gameState.hero.floor;
+  }
+
   initMonster() {
-    const floor = this.gameState.hero.floor;
+    const floor = this.getFightFloor();
+    const isWarden = this.isWardenFloor(floor);
     const isBoss = floor % 10 === 0;
-    const zone = this.getZone(floor);
 
     const nameIdx = (floor - 1) % MONSTER_NAMES.length;
     const prefix = isBoss ? '⚡ BOSS: ' : '';
-    const name = prefix + MONSTER_NAMES[nameIdx];
+    const name = isWarden ? `🛡️ WARDEN: ${getWardenName(floor)}` : prefix + MONSTER_NAMES[nameIdx];
 
     // Scaling HP & Attack based on floor
     const scale = combatFloorScale(floor);
-    const hp = Math.floor((isBoss ? BOSS_HP_MULT : 60) * scale);
+    const hp = Math.floor((isBoss ? BOSS_HP_MULT * (isWarden ? WARDEN_HP_MULT : 1) : 60) * scale);
     const attack = Math.floor((isBoss ? 15 : 6) * scale);
+    const timer = isWarden ? WARDEN_TIMER_SECONDS : (isBoss ? BOSS_TIMER_SECONDS : 0);
 
     this.monster = {
       name,
       isBoss,
+      isWarden,
+      floor,
       maxHp: hp,
       hp: hp,
       attack: attack,
       attackCooldown: 1.2,
-      timer: isBoss ? BOSS_TIMER_SECONDS : 0,
-      maxTimer: isBoss ? BOSS_TIMER_SECONDS : 0
+      timer,
+      maxTimer: timer
     };
   }
 
@@ -312,8 +428,10 @@ export class CombatSystem {
   onMonsterDefeated() {
     sound.playDefeat();
     const h = this.gameState.hero;
-    const floor = h.floor;
+    const floor = this.getFightFloor();
     const isBoss = this.monster.isBoss;
+    const isWarden = !!this.monster.isWarden;
+    const rewardMult = isWarden ? WARDEN_REWARD_MULT : 1;
 
     this.gameState.stats.totalMonstersSlain++;
     if (isBoss) this.gameState.stats.totalBossesSlain++;
@@ -332,11 +450,13 @@ export class CombatSystem {
     }
     // Plunderer Greed talent (+25%/rank) and Midas Elixir
     goldMult *= (1 + (this.gameState.talents?.dungeon_wealth?.rank || 0) * 0.25) * this.gameState.getGoldMultiplier();
-    const goldEarned = new BigNum(MONSTER_FLOOR_BASE).pow(floor - 1).mul(new BigNum((isBoss ? 50 : 10) * goldMult)).floor();
+    // Warden trophies: +2% Tower gold each
+    goldMult *= this.getWardenGoldMult();
+    const goldEarned = new BigNum(MONSTER_FLOOR_BASE).pow(floor - 1).mul(new BigNum((isBoss ? 50 : 10) * rewardMult * goldMult)).floor();
     this.gameState.gold = this.gameState.gold.add(goldEarned);
 
     // XP Reward
-    const xpGained = (isBoss ? 40 : 10) * floor;
+    const xpGained = (isBoss ? 40 : 10) * rewardMult * floor;
     h.xp += xpGained;
     if (h.xp >= h.xpNeeded) {
       h.level++;
@@ -350,6 +470,20 @@ export class CombatSystem {
     // Loot drops
     this.rollLoot(floor, isBoss);
 
+    if (isWarden) this.onWardenDefeated(floor);
+
+    // Check bounties
+    if (this.gameState.bountySystem) {
+      this.gameState.bountySystem.checkProgress('slay_monster', 1);
+      if (isBoss) this.gameState.bountySystem.checkProgress('slay_boss', 1);
+    }
+
+    // A challenged Warden doesn't move the climb: back to the hero's own floor
+    if (this.wardenChallenge) {
+      this.endWardenChallenge();
+      return;
+    }
+
     // Advance floor
     h.floor++;
     if (h.floor > h.maxFloor) {
@@ -359,13 +493,23 @@ export class CombatSystem {
       h.indexFloor = h.floor;
     }
 
-    // Check bounties
-    if (this.gameState.bountySystem) {
-      this.gameState.bountySystem.checkProgress('slay_monster', 1);
-      if (isBoss) this.gameState.bountySystem.checkProgress('slay_boss', 1);
-    }
-
     this.initMonster();
+  }
+
+  // Extra Warden spoils, and the trophy on the first kill of each Warden
+  onWardenDefeated(floor) {
+    const inv = this.gameState.inventory;
+    inv.voidCores = (inv.voidCores || 0) + 2; // with rollLoot's boss drop: 3 per Warden
+    inv.bossTokens = (inv.bossTokens || 0) + 2;
+    const w = this.ensureWardenState();
+    if (w.defeated[floor]) return false;
+    w.defeated[floor] = true;
+    sound.playAscension();
+    if (typeof window !== 'undefined') {
+      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2 - 80,
+        `🏆 WARDEN TROPHY: ${getWardenName(floor)}! (+${Math.round(WARDEN_TROPHY_GOLD * 100)}% Tower gold)`, '#fbbf24', true);
+    }
+    return true;
   }
 
   rollLoot(floor, isBoss) {
@@ -459,6 +603,12 @@ export class CombatSystem {
     if (this.monster.isBoss) {
       this.monster.timer -= dt;
       if (this.monster.timer <= 0) {
+        if (this.wardenChallenge) {
+          // A lost challenge costs nothing: the hero returns to his climb floor
+          particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'THE WARDEN HOLDS! BACK TO THE CLIMB', '#ef4444', true);
+          this.endWardenChallenge();
+          return;
+        }
         // Failed boss timer -> retreat 1 floor
         particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'BOSS TIMEOUT! RETREATING', '#ef4444', true);
         h.floor = Math.max(1, h.floor - 1);
@@ -488,10 +638,15 @@ export class CombatSystem {
         }
 
         if (h.hp <= 0) {
+          h.hp = this.getTotalMaxHp();
+          if (this.wardenChallenge) {
+            particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'THE WARDEN HOLDS! BACK TO THE CLIMB', '#ef4444', true);
+            this.endWardenChallenge();
+            return;
+          }
           // Hero died -> retreat 1 floor and restore HP
           particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'DEFEATED! RETREATING 1 FLOOR', '#ef4444', true);
           h.floor = Math.max(1, h.floor - 1);
-          h.hp = this.getTotalMaxHp();
           this.initMonster();
         }
       }
