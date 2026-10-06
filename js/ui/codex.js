@@ -27,11 +27,11 @@ export class CodexUI {
     this.ensureStylesheet();
     this.root.innerHTML = `
       <div class="codex-summary" id="codex-summary"></div>
-      <div class="codex-tabs" role="tablist">
-        ${PANES.map(([id, label]) => `<button class="codex-tab" role="tab" data-pane="${id}">${label}</button>`).join('')}
+      <div class="seg codex-seg" role="group" aria-label="Codex sections">
+        ${PANES.map(([id, label]) => `<button type="button" data-pane="${id}" aria-pressed="false">${label}</button>`).join('')}
       </div>
-      ${PANES.map(([id]) => `<div class="codex-pane" id="codex-pane-${id}" role="tabpanel"></div>`).join('')}`;
-    this.root.querySelectorAll('.codex-tab').forEach(btn => btn.addEventListener('click', () => {
+      ${PANES.map(([id]) => `<div class="codex-pane" id="codex-pane-${id}"></div>`).join('')}`;
+    this.root.querySelectorAll('.codex-seg button').forEach(btn => btn.addEventListener('click', () => {
       this.pane = btn.dataset.pane;
       try { localStorage.setItem('aetheria_codex_pane', this.pane); } catch (e) { /* ignore */ }
       this.update();
@@ -59,14 +59,17 @@ export class CodexUI {
     const progress = this.collections.getCodexProgress();
     const bonus = this.app.achievementSystem.getBonusMultiplier() - 1;
     this.setHtml('summary', document.getElementById('codex-summary'), `
-      <div class="codex-pct"><strong>${pct1(progress.percent)}</strong> Codex complete</div>
-      <div class="codex-bar"><span style="width:${progress.percent.toFixed(1)}%"></span></div>
-      <div class="codex-sub">${progress.ladderHave}/${progress.ladderTotal} achievements, ${progress.setsDone}/${progress.setsTotal} collections.
-        Bonus: <strong>+${(bonus * 100).toFixed(1)}% Aether</strong></div>`);
-    this.root.querySelectorAll('.codex-tab').forEach(b => {
-      const on = b.dataset.pane === this.pane;
-      b.classList.toggle('active', on);
-      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      <div class="eyebrow">Codex complete</div>
+      <div class="codex-pct num">${pct1(progress.percent)}</div>
+      <div class="bar-row"><div class="bar gold lg"><i style="width:${progress.percent.toFixed(1)}%"></i></div>
+        <span class="val num">${progress.have}/${progress.total}</span></div>
+      <div class="codex-chips">
+        <span class="chip">${progress.ladderHave}/${progress.ladderTotal} achievements</span>
+        <span class="chip">${progress.setsDone}/${progress.setsTotal} collections</span>
+        <span class="chip gold">+${(bonus * 100).toFixed(1)}% Aether</span>
+      </div>`);
+    this.root.querySelectorAll('.codex-seg button').forEach(b => {
+      b.setAttribute('aria-pressed', b.dataset.pane === this.pane ? 'true' : 'false');
     });
     for (const [id] of PANES) {
       const el = document.getElementById(`codex-pane-${id}`);
@@ -77,36 +80,38 @@ export class CodexUI {
 
   render_ladder() {
     const saved = this.gs.achievements || {};
-    const info = `<p class="codex-note">Each original achievement gives +${LEGACY_BONUS * 100}% Aether, each new rung +${LADDER_BONUS * 100}%. Every rung is earned by playing; nothing here expires.</p>`;
+    const info = `<p class="codex-note">Each original achievement gives +${LEGACY_BONUS * 100}% Aether, each new rung +${LADDER_BONUS * 100}%. Rungs are earned by playing and never expire.</p>`;
     return info + LADDER_GROUPS.map(g => {
       const list = ACHIEVEMENTS.filter(a => a.group === g.id);
       const have = list.filter(a => saved[a.id]).length;
       let nextShown = false;
-      const cards = list.map(a => {
+      const rows = list.map(a => {
         const done = !!saved[a.id];
         const next = !done && !nextShown;
         if (next) nextShown = true;
-        const cls = done ? 'unlocked' : next ? 'locked next' : 'locked';
-        return `<div class="ach-card codex-ach ${cls}">
-          <div class="a-icon">${done || next ? a.icon : '🔒'}</div>
-          <div class="a-name">${done || next ? esc(a.name) : '???'}</div>
-          <div class="a-desc">${esc(a.desc)}</div></div>`;
+        const cls = done ? 'is-owned' : next ? 'is-next' : 'is-locked';
+        const state = done ? '<span class="tag">Done</span>' : next ? '<span class="tag tier">Next</span>' : '';
+        return `<div class="card-row codex-ach ${cls}">
+          <div class="icon-tile sm">${done || next ? a.icon : '🔒'}</div>
+          <div class="codex-text"><div class="codex-name">${done || next ? esc(a.name) : 'Locked rung'}</div>
+            <div class="codex-desc">${esc(a.desc)}</div></div>${state}</div>`;
       }).join('');
-      return `<div class="codex-group"><div class="codex-group-head"><h4>${esc(g.label)}</h4><span>${have}/${list.length}</span></div>
-        <div class="achievements-grid">${cards}</div></div>`;
+      return `<section class="codex-group"><div class="card-head"><h4>${esc(g.label)}</h4><span class="chip num">${have}/${list.length}</span></div>
+        <div class="codex-list">${rows}</div></section>`;
     }).join('');
   }
 
   render_collections() {
     const sets = this.collections.getCollections().filter(c => !c.id.startsWith('generators_'));
     return `<p class="codex-note">Each finished set gives +${SET_BONUS * 100}% Aether. Entries fill from what you have already done, so older saves arrive with theirs.</p>` +
-      sets.map(c => `<div class="codex-set ${c.complete ? 'complete' : ''}">
-        <div class="codex-group-head"><h4>${c.icon} ${esc(c.name)}</h4><span>${c.have}/${c.total}${c.complete ? ' ★' : c.total - c.have === 1 ? ' (1 to go)' : ''}</span></div>
-        <div class="codex-sub">${esc(c.blurb)} <em>${esc(c.where)}</em></div>
-        <div class="codex-entries">${c.entries.map(e => `<div class="codex-entry ${e.have ? 'have' : ''}" title="${esc(e.hint)}">
-          <span class="ce-icon">${e.have ? e.icon : '❔'}</span>
-          <span class="ce-name">${e.have ? esc(e.name) : '???'}</span>
-          <span class="ce-hint">${e.have ? '' : esc(e.hint)}</span></div>`).join('')}</div></div>`).join('');
+      sets.map(c => `<section class="card codex-set ${c.complete ? 'card-brand' : ''}">
+        <div class="card-head"><h4>${c.icon} ${esc(c.name)}</h4>
+          <span class="chip ${c.complete ? 'gold' : ''} num">${c.have}/${c.total}${c.complete ? ' ★ Complete' : c.total - c.have === 1 ? ' (1 to go)' : ''}</span></div>
+        <div class="codex-desc">${esc(c.blurb)} <em>${esc(c.where)}</em></div>
+        <div class="codex-entries">${c.entries.map(e => `<div class="card-row codex-entry ${e.have ? 'is-owned' : 'is-locked'}" title="${esc(e.hint)}">
+          <div class="icon-tile sm">${e.have ? e.icon : '❔'}</div>
+          <div class="codex-text"><div class="codex-name">${e.have ? esc(e.name) : 'Not found yet'}</div>
+            <div class="codex-desc">${e.have ? 'Collected' : esc(e.hint)}</div></div></div>`).join('')}</div></section>`).join('');
   }
 
   render_generators() {
@@ -114,16 +119,17 @@ export class CodexUI {
     const all = this.collections.getCollections();
     const sets = GENERATOR_MILESTONES.map(n => {
       const c = all.find(x => x.id === `generators_${n}`);
-      return `x${n}: ${c.have}/${c.total}${c.complete ? ' ★' : ''}`;
-    }).join(' &middot; ');
-    return `<p class="codex-note">Own ${GENERATOR_MILESTONES.join(' / ')} of a generator to fill its stars and read its entry. Your best count is kept through Ascensions. Completing a whole column gives +${SET_BONUS * 100}% Aether. ${sets}</p>
-      <div class="codex-gens">${rows.map(r => `<div class="codex-gen ${r.silhouette ? 'silhouette' : ''}">
-        <div class="cg-icon">${r.icon}</div>
-        <div class="cg-main">
-          <div class="cg-name">${r.silhouette ? '???' : esc(r.name)} <span class="cg-tier">Tier ${r.tier}</span></div>
-          <div class="cg-flavour">${r.silhouette ? (r.tierLocked ? 'Unlocks with a later Transcend.' : 'Not built yet.') : esc(r.flavour)}</div>
-          <div class="cg-stars">${r.milestones.map(m => `<span class="${m.done ? 'on' : ''}" title="Own ${m.n}">${m.done ? '★' : '☆'} ${m.n}</span>`).join('')}
-            ${r.best ? `<span class="cg-best">best ${r.best.toLocaleString('en-US')}</span>` : ''}</div>
+      return `<span class="chip ${c.complete ? 'gold' : ''} num">x${n}: ${c.have}/${c.total}${c.complete ? ' ★' : ''}</span>`;
+    }).join('');
+    return `<p class="codex-note">Own ${GENERATOR_MILESTONES.join(' / ')} of a generator to earn its stars and read its entry. Your best count is kept through Ascensions. Finishing a whole column gives +${SET_BONUS * 100}% Aether.</p>
+      <div class="codex-chips">${sets}</div>
+      <div class="codex-gens">${rows.map(r => `<div class="card-row codex-gen ${r.silhouette ? 'is-locked silhouette' : r.stars === 3 ? 'is-owned' : ''}">
+        <div class="icon-tile">${r.silhouette ? '<span class="cg-shape">' + r.icon + '</span>' : r.icon}</div>
+        <div class="codex-text">
+          <div class="codex-name">${r.silhouette ? 'Unknown generator' : esc(r.name)} <span class="tag tier">Tier ${r.tier}</span></div>
+          <div class="codex-desc">${r.silhouette ? (r.tierLocked ? 'Opens with a later Transcend.' : 'Build one to reveal it.') : esc(r.flavour)}</div>
+          <div class="cg-stars">${r.milestones.map(m => `<span class="num ${m.done ? 'on' : ''}">${m.done ? '★' : '☆'} ${m.n}</span>`).join('')}
+            ${r.best ? `<span class="num cg-best">best ${r.best.toLocaleString('en-US')}</span>` : ''}</div>
         </div></div>`).join('')}</div>`;
   }
 }
