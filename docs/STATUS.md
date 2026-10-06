@@ -9,6 +9,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
+- R25 #61 Reward toasts clear the buff bar.
 - R5 #7 Upgrade shop (PR #40), R9 #11 Talent economy (PR #39), R13 #15 Shard tree (PR #43),
   R14 #16 Codex 2.0 (PR #41).
 
