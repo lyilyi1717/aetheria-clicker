@@ -392,7 +392,7 @@ leaderboard column. No save migration: `codex` is a new additive field.
 | Milestones | ×2,2,2,2,3,3,4,5,10 at 10…1000 | same | good discrete pops; keep |
 | **Upgrade shop (new)** | none | per tier, 5 upgrades at owned ≥ 1/10/50/100/200, cost `baseCost × 10^(k+1)`, each **×1.25** that tier (draft: ×2, see R5 notes); 15 click upgrades (×2 each); 8 synergy upgrades ("Dallah per Shawarma": tier A **+0.3%** per tier B owned; draft: +1%) | the "one more" itch; ~60–170 purchases per run |
 | Click yield | `1 + 3% CPS`, `clickPower` constant | `clickPower × 2^(clickUpgrades) + 3% CPS`, combo 5× unchanged | clicks stay relevant in the first 5 min of every run |
-| Active multiplier | ~×7 (spells + anomalies) | **~×2** (Burst 45 s/45 s, Celestial ×2.5, Supernova 180 s) | idle is the baseline (pillar 4) |
+| Active multiplier | ~×7 (spells + anomalies; ×20.7 measured on the real classes, see R3 notes) | **~×2** (Burst 45 s/45 s, Celestial ×2.5, Supernova 180 s); shipped values measure ×7.2 (R3 notes) | idle is the baseline (pillar 4) |
 | Dust gain | `150 · (A/1e9)^0.25` | **`150 · (A/1e9)^(1/3)`** × Geode × Nectar × shard dust mult | cube root halves the run-length growth per Ascension |
 | Dust multiplier | `1 + 0.02 · cosmicDust` (spendable, `GameState.js:149`) | **`1 + 0.02 · totalCosmicDust`** (lifetime) | spending must never hurt |
 | Ascension count bonus (new) | — | `×(1 + 0.05 · ascensions)`, cap ×10 | small, visible, rewards repetition early |
@@ -446,6 +446,8 @@ leaderboard column. No save migration: `codex` is a new additive field.
   run (max 173 with 30 tiers).
   The early-Transcend shift is expected to come back with R3 (active ×8 → ×2 roughly halves
   casual income, #23 default 5); retune `TIER_UPGRADE_MULT` / `SYNERGY_PER_UNIT` then.
+  **Retuned with R3 to ×1.2 per tier upgrade (×2.49 for all 5) and +0.1% per synergy unit**
+  (see R3 notes).
 - **Reset:** Ascend clears bought upgrades except those a keep rule accepts
   (`addAscendKeepRule((upgrade, gameState) => bool)`; upgrades carry `kind`, `tier`, `level`),
   which is the hook for Blueprint Memory I/II (R6). Transcend clears all.
@@ -454,6 +456,35 @@ leaderboard column. No save migration: `codex` is a new additive field.
 - **UI:** a tile row on the Falafel tab above the generators (app-shell mockup), with the
   selected upgrade's full card under it and a "Buy all" button. Saved as an array of ids;
   saves without the field load with nothing bought.
+
+*R3 implementation notes (active income, `SpellSystem.js`, `ClickerSystem.js`,
+`sim/active-income.mjs`).*
+- **Values as specified:** Aether Burst 45 s of CPS on a 45 s cooldown, Celestial ×2.5 for 30 s,
+  Supernova 180 s of CPS (floor 500 clicks' worth on a fresh run). Anomaly weights out of 60:
+  Mirage 5 (1 in 12: ×2 Aether as an Aether buff plus ×2 gold, 60 s, a second one refreshes),
+  Caravan Star 3 (1 in 20: a free large caravan, `MarketSystem.getCaravanTier('large')`, no
+  cargo; if a caravan is already out its 1.5× return is paid at once), the four classics 13
+  each. Anomaly results are `rewards.notify` toasts. Mana overflow (+25% at full mana) is not
+  built.
+- **Measured, not estimated.** `sim/active-income.mjs` plays the real classes at a fixed CPS
+  (2 clicks/s with combo and Frenzy, Celestial → Chrono Warp → Burst whenever ready, every
+  anomaly clicked; seeded random) and divides by idle income. Before R3 this measures
+  **×20.7**, not ×7: the §2.1 estimate left out Chrono Warp (×5 speed for 15 s per 60 s, about
+  +1), Bursts cast inside Celestial (×4 on the payout) and Frenzy (combo 100 every ~50 s, then
+  ×25 clicks plus 6 auto-clicks/s). With the specified values it measures **×7.2** (spells and
+  anomalies without clicks ×6.5; Burst + Celestial + anomalies alone ×3.9–4.2; anomalies alone
+  ×1.5, was ×2.8). **Deviation (rule 5):** the specified values do not reach ×2 on their own.
+  Closing the rest needs changes outside this item's list (Chrono Warp's speed-up, Burst
+  paying base rather than buffed CPS, Frenzy's ×5 on top of combo); left for an owner
+  decision (STATUS "Noticed"). The pacing sim uses the measured ×7.2 while the casual player
+  is present (it was a hand-set ×7.97 that matched neither the old nor the new code).
+- **Pacing retune.** With R5's ×1.25 / +0.3% the casual first Transcend was day 1.5. Swept on
+  the real classes (casual first Transcend; idle in brackets): ×1.25/+0.3% 1.5 (3.4),
+  ×1.2/+0.3% 1.6 (2.9), ×1.15/+0.3% 3.7 (6.5), ×1.2/+0.1% **4.2 (7.2)**, ×1.15/+0.1% 3.8
+  (6.8), ×1.1/+0.1% 4.0 (7.0), ×1.05/+0.1% 4.1 (7.2). The synergy rate is the big lever; the
+  tier multiplier barely moves the first Transcend below ×1.2. Shipped ×1.2 / +0.1%: first
+  Transcend day 4.2, 32 Transcends in the year, a reset at least every 14 days until day 206
+  (was 184), median 58 upgrades per run.
 
 *R15 implementation notes (Seals, Dallah, Ledger, Souq; `js/systems/CalendarSystem.js`).*
 - **Seals are a shard bonus** (#23 default 4), not a Transcend gate. Tier I bars as in roadmap
@@ -628,6 +659,12 @@ Ascension 10 min, 9 Ascensions on day 0 (was 12), first Transcend day 4.8 (was 7
 longer early runs pay more dust under the cube root), 31 Transcends, 1,267 Ascensions, a reset
 at least every 14 days until day 184 (was 189), CPS 2.2e81 at a year.
 
+*Measured after R3* (active multiplier measured on the real spells and anomalies, ×7.2 while
+present; upgrade shop retuned to ×1.2 / +0.1%): casual first Ascension 10 min, first Transcend
+**day 4.2** (was 1.5 after R5; idle 7.2, was 3.4), 3 Transcends by week 1, 11 by month 1, 23 by
+month 3, 32 in the year, 1,318 Ascensions, a reset at least every 14 days until day 206 (was
+184), CPS 2.4e82 at a year. Within the §6.4 target of ~day 6 (4–7).
+
 **Current vs proposed, same profile:** today 16–17 Ascensions and ×200 CPS growth over the
 year; proposed ~2,800 Ascensions, 32 Transcends, 16 new generator tiers, ×1e63 growth, and a
 reset of some kind every 2–14 days for nine months.
@@ -684,7 +721,7 @@ After the first Chronicle the Seal half counts as met.
   current Chapter. A save holds only ids and the stash; reload re-derives the rules; finishing or
   abandoning restores the stash exactly. No Ascend, Transcend, Chronicle or Hourglass during one.
 - **Chapter 1, Sand** (10 weeks of real time from the first Chronicle): Excavation ×3, Aether
-  **÷2** (the §4.1 draft said ÷10). Both pass the sim; with ÷10 the first Transcend after
+  **÷2** (the §4.1 draft said ÷10). Both pass the sim (measured before R3); with ÷10 the first Transcend after
   Chronicle I comes at +2.3 days instead of +1.6 and each later Chronicle lands ~7 days later.
   A ten-week tax on the main currency right after the biggest reset of the game should read as
   a twist, not a penalty, so the gentler ÷2 ships. Stamp pays 3 Pages. Challenges (layer
@@ -692,12 +729,13 @@ After the first Chronicle the Seal half counts as met.
   Out (no spells, 1e11, 3), Small Souq (6 tiers, 1e10, 4, after 1 clear), Sandstorm (Aether ÷10,
   1e10, 5, after 3). Past Chapters' challenges stay playable. A new Chapter is a new `CHAPTERS`
   entry; `validateChapters` checks it.
-- **Measured** (`npm run sim`, which begins a Chronicle once allowed and a week after the last
-  Transcend, buys Page upgrades, plays no challenges): casual Chronicles at days 91, 179, 265,
-  352; a reset at least every 14 days through day 365 (was day 184); longest gap to day 270
-  0.8 days; 125 Transcends in the year, none within 6 h of another. Idle: Chronicles at 111,
-  205, 295. CPS at a year is lower than before (~1e46 vs 8e82 casual): the layer restarts the
-  climb rather than inflating numbers.
+- **Measured** (`npm run sim` after R3, which begins a Chronicle once allowed and a week after
+  the last Transcend, buys Page upgrades, plays no challenges): casual Chronicles at days 105,
+  193, 276, 362; a reset at least every 14 days through day 365 (was day 206 without the
+  Chronicle); longest gap to day 270 2.4 days; 116 Transcends in the year, none within 6 h of
+  another. Idle: Chronicles at 122, 216, 306. CPS at a year is lower than without the layer
+  (~4e29 casual, just after Chronicle IV, vs 2e82): the layer restarts the climb rather than
+  inflating numbers.
 
 ---
 

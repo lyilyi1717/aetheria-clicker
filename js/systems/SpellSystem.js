@@ -3,14 +3,23 @@ import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from '../ui/rewards.js';
 
+// --- R3 active income (docs/redesign-proposal.md §5.2, §6.1) ---
+// Active play should earn about 2-3x idle, not ~8x: Burst pays 45 s of CPS on a 45 s cooldown
+// (was 120 s / 30 s), Celestial is x2.5 (was x4). test_active_income.js measures the ratio.
+export const BURST_CPS_SECONDS = 45;
+export const BURST_COOLDOWN = 45;
+export const BURST_MIN_CLICKS = 100;        // floor for a fresh run: 100 clicks' worth
+export const CELESTIAL_MULT = 2.5;
+export const CELESTIAL_DURATION = 30;
+
 export const SPELLS = [
   {
     id: 'aether_burst',
     name: 'Aether Burst',
     icon: '⚡',
     manaCost: 25,
-    cooldown: 30,
-    desc: 'Instantly grants 2 minutes of ambient Aether production.'
+    cooldown: BURST_COOLDOWN,
+    desc: `Instantly grants ${BURST_CPS_SECONDS} seconds of ambient Aether production.`
   },
   {
     id: 'chrono_warp',
@@ -34,7 +43,7 @@ export const SPELLS = [
     icon: '🌟',
     manaCost: 50,
     cooldown: 90,
-    desc: 'Aligns zodiac constellations: +300% Aether production for 30s.'
+    desc: `Aligns zodiac constellations: +${Math.round((CELESTIAL_MULT - 1) * 100)}% Aether production for ${CELESTIAL_DURATION}s.`
   },
   {
     id: 'void_strike',
@@ -105,7 +114,7 @@ export class SpellSystem {
 
     if (spellId === 'aether_burst') {
       const cps = this.gameState.getNetAetherPerSecond();
-      const payout = cps.mul(120).max(this.gameState.getClickYield().mul(100));
+      const payout = cps.mul(BURST_CPS_SECONDS).max(this.gameState.getClickYield().mul(BURST_MIN_CLICKS));
       this.gameState.aether = this.gameState.aether.add(payout);
       this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(payout);
       this.notifySpell('🔮', 'Aether Burst', '#38bdf8', { amount: payout, fmt: (a) => a.format('standard', 2), unit: 'Aether' });
@@ -138,11 +147,11 @@ export class SpellSystem {
         id: 'celestial_alignment',
         name: 'Celestial Alignment',
         type: 'aether_mult',
-        value: 4.0,
-        duration: 30,
-        maxDuration: 30
+        value: CELESTIAL_MULT,
+        duration: CELESTIAL_DURATION,
+        maxDuration: CELESTIAL_DURATION
       });
-      this.notifySpell('🌟', 'Celestial Alignment', '#ec4899', { detail: '+300% Aether for 30s' });
+      this.notifySpell('🌟', 'Celestial Alignment', '#ec4899', { detail: `+${Math.round((CELESTIAL_MULT - 1) * 100)}% Aether for ${CELESTIAL_DURATION}s` });
     } else if (spellId === 'void_strike') {
       if (this.gameState.combatSystem && this.gameState.combatSystem.monster) {
         const m = this.gameState.combatSystem.monster;

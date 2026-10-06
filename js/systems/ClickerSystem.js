@@ -2,10 +2,42 @@ import { BigNum } from '../engine/BigNum.js';
 import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
+import { rewards } from '../ui/rewards.js';
+
+// --- R3 Golden Anomalies (docs/redesign-proposal.md §5.2) ---
+// Spawn every 60-120 s after the last click (50-90 s after one escapes). Weights are out of 60:
+// Mirage 1 in 12, Caravan Star 1 in 20, the four classics share the rest (13/60 each).
+export const ANOMALY_WEIGHTS = {
+  supernova: 13, time_flux: 13, mana_cache: 13, gem_cache: 13, mirage: 5, caravan_star: 3
+};
+export const SUPERNOVA_CPS_SECONDS = 180;   // was 600
+export const SUPERNOVA_MIN_CLICKS = 500;
+export const MIRAGE_MULT = 2;               // x2 Aether production and gold
+export const MIRAGE_DURATION = 60;
+// Caravan Star: a free large caravan (MarketSystem.getCaravanTier('large'): 60 min, pays 1.5x
+// its 2,000 x Market Index list price, no cargo). If a caravan is already on the road, the
+// free one's payout is paid at once instead.
+const LARGE_CARAVAN = { invest: 2000, minutes: 60, profit: 1.5 }; // fallback without a Bazaar
+
+// Pick an anomaly type for a roll r in [0, 1)
+export function pickAnomalyType(r) {
+  const entries = Object.entries(ANOMALY_WEIGHTS);
+  const total = entries.reduce((a, [, w]) => a + w, 0);
+  let x = r * total;
+  for (const [id, w] of entries) {
+    if (x < w) return id;
+    x -= w;
+  }
+  return entries[entries.length - 1][0];
+}
+
+const fmtStd = (a) => a.format('standard', 2);
 
 export class ClickerSystem {
-  constructor(gameState) {
+  // rng: injectable () => [0,1) so tests can seed anomaly rolls (defaults to Math.random)
+  constructor(gameState, rng = Math.random) {
     this.gameState = gameState;
+    this.rng = rng;
     this.anomalyTimer = 45; // seconds until next golden rift anomaly
     this.anomalyActive = false;
     this.anomalyX = 50;
@@ -110,7 +142,7 @@ export class ClickerSystem {
       this.anomalyLife -= dt;
       if (this.anomalyLife <= 0) {
         this.anomalyActive = false;
-        this.anomalyTimer = 50 + Math.random() * 40;
+        this.anomalyTimer = 50 + this.rng() * 40;
       }
     }
   }
@@ -118,45 +150,81 @@ export class ClickerSystem {
   spawnAnomaly() {
     this.anomalyActive = true;
     this.anomalyLife = 12; // 12 seconds to click it
-    this.anomalyX = 15 + Math.random() * 70; // % across screen
-    this.anomalyY = 20 + Math.random() * 60; // % down screen
-
-    const types = ['supernova', 'time_flux', 'mana_cache', 'gem_cache'];
-    this.anomalyType = types[Math.floor(Math.random() * types.length)];
+    this.anomalyX = 15 + this.rng() * 70; // % across screen
+    this.anomalyY = 20 + this.rng() * 60; // % down screen
+    this.anomalyType = pickAnomalyType(this.rng());
   }
 
   clickAnomaly(x, y) {
     if (!this.anomalyActive) return;
     this.anomalyActive = false;
-    this.anomalyTimer = 60 + Math.random() * 60;
+    this.anomalyTimer = 60 + this.rng() * 60;
 
     sound.playGem();
-    particles.spawnClickSparks(x, y, 35, '#eab308');
+    if (x && y) particles.spawnClickSparks(x, y, 35, '#eab308');
 
-    let rewardText = '';
     const cps = this.gameState.getNetAetherPerSecond();
+    const note = { tier: 'medium', icon: '✨', color: '#fde047' };
 
     if (this.anomalyType === 'supernova') {
-      // 10 minutes worth of Aether or minimum 5000 * click
-      const payout = cps.mul(600).max(this.gameState.getClickYield().mul(500));
+      // 3 minutes of Aether, or 500 clicks' worth on a fresh run
+      const payout = cps.mul(SUPERNOVA_CPS_SECONDS).max(this.gameState.getClickYield().mul(SUPERNOVA_MIN_CLICKS));
       this.gameState.aether = this.gameState.aether.add(payout);
       this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(payout);
-      rewardText = 'SUPERNOVA! +' + payout.format('standard', 2) + ' Aether';
+      rewards.notify({ ...note, kind: 'anomaly-supernova', icon: '💥', title: 'Supernova!', amount: payout, fmt: fmtStd, unit: 'Aether' });
     } else if (this.anomalyType === 'time_flux') {
       this.triggerFrenzy(25);
-      rewardText = 'TIME FLUX! 25s Frenzy Active!';
+      rewards.notify({ ...note, kind: 'anomaly-flux', icon: '⏱️', title: 'Time Flux!', detail: '25 s of Frenzy' });
     } else if (this.anomalyType === 'mana_cache') {
       this.gameState.mana = this.gameState.maxMana;
       this.gameState.addChronoSand(120);
-      rewardText = 'COSMIC CACHE! Full Mana + 120 Chrono Sand';
+      rewards.notify({ ...note, kind: 'anomaly-cache', icon: '💠', title: 'Cosmic Cache!', detail: 'Full Mana and 120 s of Chrono Sand' });
+    } else if (this.anomalyType === 'mirage') {
+      this.applyMirage();
+      rewards.notify({ ...note, kind: 'anomaly-mirage', icon: '🌫️', color: '#c084fc', title: 'Mirage!', detail: `x${MIRAGE_MULT} Aether and gold for ${MIRAGE_DURATION} s` });
+    } else if (this.anomalyType === 'caravan_star') {
+      const res = this.applyCaravanStar();
+      rewards.notify({
+        ...note, kind: 'anomaly-caravan', icon: '🐪', color: '#fbbf24', title: 'Caravan Star!',
+        detail: res.dispatched ? `A free large caravan sets out (back in ${res.minutes} min)` : 'A free caravan arrives at once',
+        ...(res.dispatched ? {} : { amount: res.payout, fmt: (a) => a.format('standard', 0), unit: 'gold' })
+      });
     } else {
       const gems = ['rubies', 'sapphires', 'emeralds', 'diamonds'];
-      const gem = gems[Math.floor(Math.random() * gems.length)];
-      const amount = 3 + Math.floor(Math.random() * 5);
+      const gem = gems[Math.floor(this.rng() * gems.length)];
+      const amount = 3 + Math.floor(this.rng() * 5);
       this.gameState.inventory[gem] = (this.gameState.inventory[gem] || 0) + amount;
-      rewardText = `ANCIENT VEIN! +${amount} ${gem.toUpperCase()}`;
+      rewards.notify({ ...note, kind: 'anomaly-vein', icon: '💎', title: 'Ancient Vein!', detail: `+${amount} ${gem}` });
     }
+  }
 
-    particles.spawnFloatingText(x, y, rewardText, '#fde047', true);
+  // Mirage: x2 Aether production (an Aether buff, adds to Celestial like other Aether buffs) and
+  // x2 gold for 60 s. A second Mirage refreshes the timer instead of stacking.
+  applyMirage() {
+    const gs = this.gameState;
+    gs.activeBuffs = gs.activeBuffs.filter(b => b.id !== 'mirage' && b.id !== 'mirage_gold');
+    gs.activeBuffs.push(
+      { id: 'mirage', name: 'Mirage (Aether)', type: 'aether_mult', value: MIRAGE_MULT, duration: MIRAGE_DURATION, maxDuration: MIRAGE_DURATION },
+      { id: 'mirage_gold', name: 'Mirage (Gold)', type: 'gold_mult', value: MIRAGE_MULT, duration: MIRAGE_DURATION, maxDuration: MIRAGE_DURATION }
+    );
+  }
+
+  // Caravan Star: dispatch a free large caravan, or pay its return now if the road is busy.
+  // Returns { dispatched, payout }.
+  applyCaravanStar() {
+    const gs = this.gameState;
+    const { invest, minutes, profit } = gs.marketSystem?.getCaravanTier('large')
+      ?? { ...LARGE_CARAVAN, invest: gs.getMarketIndex().mul(LARGE_CARAVAN.invest) };
+    const payout = invest.mul(profit);
+    const caravan = gs.market?.caravan;
+    if (caravan && !caravan.active) {
+      Object.assign(caravan, {
+        active: true, duration: minutes * 60, maxDuration: minutes * 60,
+        investment: invest, expectedProfit: profit, payout, cargo: null
+      });
+      return { dispatched: true, payout, minutes };
+    }
+    gs.gold = gs.gold.add(payout);
+    return { dispatched: false, payout, minutes };
   }
 }

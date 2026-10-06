@@ -116,8 +116,13 @@ UI: R22–R24 are done. R7 can go once R6 is in.
   never stored: hooks call `getActiveRules(gs)` (Building tiers, click combo/Frenzy, spells,
   pickaxe, Aether). A challenge stashes the run (incl. shop upgrades) in `chronicle.active`.
   Gate: 12 Transcends + Seal set I, or 24 Transcends for the first Chronicle without the Seals
-  (`CalendarSystem.getSealSetProgress`). Sim: `gapWindowEndDay` 270, resets every <=14 days to
+  (`CalendarSystem.getSealSetProgress`). Sim (after R3): `gapWindowEndDay` 270, resets every <=14 days to
   day 365. Notes in doc §6.6. No save migration (additive `chronicle` field).
+
+- R3 #5 Active income: Burst 45 s / cd 45 s, Celestial x2.5, Supernova 180 s, Mirage (1/12) and
+  Caravan Star (1/20) anomalies (constants at the top of `SpellSystem.js` / `ClickerSystem.js`).
+  `sim/active-income.mjs` measures active:idle on the real classes (x20.7 before, x7.2 now) and
+  feeds the sim. Upgrade shop retuned to x1.2 / +0.1% synergy: casual first Transcend day 4.2.
 
 ## Notes for the next session
 
@@ -155,6 +160,11 @@ UI: R22–R24 are done. R7 can go once R6 is in.
   that loop forever must be ambient and listed in `test_r24_motion.js`.
 
 ## Noticed (not yet an issue)
+
+- **Active income is x7.2, not the doc's ~x2** (R3, design doc §6.1 R3 notes). The specified
+  spell/anomaly values were applied; the rest comes from Chrono Warp (~+1), Bursts cast inside
+  Celestial, and Frenzy clicks. Owner decision: which of those to trim (each changes the
+  pacing sim; re-run the R3 sweep after).
 
 - Save import merges into the running state: `deserialize` spreads `inventory`, `stats` and
   `settings` over the current values, so keys the imported save lacks keep the old game's values.

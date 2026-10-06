@@ -19,6 +19,20 @@ export const CHANGELOG = [
     ]
   },
   {
+    version: '3.7.0',
+    date: '2026-10-06',
+    title: 'Idle is the baseline: active play rebalanced',
+    changes: [
+      'This is a nerf to active income. Being at the screen earned far more than being away, which made every hour offline feel like a loss. Active play still pays more than idle, just much less: an attentive player now earns about 7 times idle instead of about 20 times.',
+      'Aether Burst now grants 45 seconds of Aether production (was 2 minutes) and its cooldown is 45 s (was 30 s).',
+      'Celestial Alignment is +150% Aether for 30 s (was +300%).',
+      'Supernova anomalies grant 3 minutes of Aether production (was 10 minutes).',
+      'Two new Golden Anomalies. Mirage (1 in 12): double Aether and double gold for 60 s. Caravan Star (1 in 20): a free large caravan sets out from the Bazaar, or, if one is already on the road, its full return is paid to you at once.',
+      'Golden Anomalies now announce themselves with a notice in the corner instead of floating text.',
+      'Upgrade shop retuned to match: generator upgrades are x1.2 each (were x1.25, so all five give x2.5 instead of x3) and synergies are +0.1% per building (were +0.3%). Your first Transcend now comes after about four days of casual play rather than one and a half.'
+    ]
+  },
+  {
     version: '3.6.0',
     date: '2026-10-06',
     title: 'The Dallah: something new every day and week',
