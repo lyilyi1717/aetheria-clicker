@@ -96,7 +96,8 @@ export class TranscendPanel {
 
   tradeLines(tp) {
     const gain = [
-      `+${tp.shardsGained} Fracture Shards (${tp.shardsBefore} → ${tp.shardsAfter})${tp.sealBonus > 0 ? `, incl. +${tp.sealBonus} from lit Seals` : ''}`,
+      `+${tp.shardsGained} Fracture Shards (${tp.shardsBefore} → ${tp.shardsAfter})`,
+      ...(tp.sealShards > 0 ? [`+${tp.sealShards} more shards to spend in the Shard Tree (lit Seals; they do not raise the bonus)`] : []),
       `Aether ${fmtBigMult(tp.shardBefore)} → ${fmtBigMult(tp.shardAfter)} from shards`,
       `Cosmic Dust gain ${fmtBigMult(tp.dustGainBefore)} → ${fmtBigMult(tp.dustGainAfter)}`,
       tp.newTier ? `New generator: ${tp.newTier.icon} ${tp.newTier.name} (tier ${tp.newTier.tier})`

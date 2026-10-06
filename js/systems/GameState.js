@@ -429,8 +429,9 @@ export class GameState {
       // Saves from before R2 have no run clock: their run is old enough, so no wait
       this.runStartedAt = Number.isFinite(data.runStartedAt) ? data.runStartedAt : 0;
       this.fractureShards = BigNum.fromJSON(data.fractureShards);
-      // Lifetime shards can never be below the balance (the v4 migration sets both)
-      this.totalFractureShards = BigNum.fromJSON(data.totalFractureShards).max(this.fractureShards);
+      // Not clamped to the balance: Seal shards (R15) are spendable only, so the balance can pass
+      // the lifetime count (which is what the multipliers read)
+      this.totalFractureShards = BigNum.fromJSON(data.totalFractureShards);
       const tc = Math.floor(Number(data.transcendenceCount));
       this.transcendenceCount = Number.isFinite(tc) && tc > 0 ? tc : 0;
       this.legacyTranscendRefund = data.legacyTranscendRefund && typeof data.legacyTranscendRefund === 'object'

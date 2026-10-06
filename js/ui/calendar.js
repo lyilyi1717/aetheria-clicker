@@ -86,7 +86,7 @@ export class CalendarUI {
                   <div class="bar gold" data-bar><i></i></div>
                 </div>`).join('')}
             </div>
-            <p class="cal-note">A lit Seal never goes dark. Each lit Seal adds +1 Fracture Shard at every Transcend, up to +${SEAL_SHARD_BONUS_MAX}.</p>
+            <p class="cal-note">A lit Seal never goes dark. Each lit Seal adds +1 Fracture Shard to spend at every Transcend, up to +${SEAL_SHARD_BONUS_MAX} (they do not raise the shard bonus).</p>
           </section>
         </div>
         <section class="card cal-ledger" aria-labelledby="cal-ledger-h">
@@ -175,7 +175,7 @@ export class CalendarUI {
   renderSeals() {
     const seals = this.sys.getSeals();
     const lit = seals.filter(s => s.lit).length;
-    setText(this.el.sealSummary, `${lit} / ${SEALS.length} lit · +${Math.min(SEAL_SHARD_BONUS_MAX, lit)} ◆ at each Transcend`);
+    setText(this.el.sealSummary, `${lit} / ${SEALS.length} lit · +${Math.min(SEAL_SHARD_BONUS_MAX, lit)} ◆ to spend at each Transcend`);
     for (const s of seals) {
       const el = this.sealEls.get(s.id);
       if (!el) continue;

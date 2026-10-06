@@ -288,7 +288,7 @@ console.log('--- Seals: lit by progress, never go dark ---');
   assert.equal(Object.keys(gs2.calendar.seals).length, 7, 'lit Seals are saved');
 }
 
-console.log('--- Seals feed shards: +1 per lit Seal, max +3, both shard counters ---');
+console.log('--- Seals feed shards: +1 per lit Seal, max +3, spendable only (never the multiplier) ---');
 {
   const make = (lit) => {
     const { gs, cal } = setup();
@@ -300,20 +300,30 @@ console.log('--- Seals feed shards: +1 per lit Seal, max +3, both shard counters
   };
   for (const [lit, bonus] of [[0, 0], [1, 1], [3, 3], [5, 3], [7, 3]]) {
     const { gs, ps } = make(lit);
-    assert.equal(ps.getTranscendPreview().shardsGained, TRANSCEND_SHARDS + bonus);
+    const tp = ps.getTranscendPreview();
+    assert.equal(tp.shardsGained, TRANSCEND_SHARDS, 'the preview base stays 2');
+    assert.equal(tp.sealShards, bonus);
+    assert.equal(tp.shardsAfter, TRANSCEND_SHARDS, 'the multiplier count excludes Seal shards');
     assert.equal(ps.transcend(), true);
     assert.equal(gs.fractureShards.toNumber(), TRANSCEND_SHARDS + bonus, `${lit} lit: spendable`);
-    assert.equal(gs.totalFractureShards.toNumber(), TRANSCEND_SHARDS + bonus, `${lit} lit: lifetime (the multiplier)`);
+    assert.equal(gs.totalFractureShards.toNumber(), TRANSCEND_SHARDS, `${lit} lit: lifetime (the multiplier) stays +2`);
+    assert.equal(gs.getShardCount(), TRANSCEND_SHARDS);
+    assert.ok(gs.getShardAetherMult().eq(new BigNum(1.5).pow(2)), 'x1.5 per base shard only');
+    // the balance may exceed the lifetime count; a save round trip must not "fix" that
+    const gs2 = new GameState();
+    gs2.deserialize(clone(gs.serialize()));
+    assert.equal(gs2.fractureShards.toNumber(), TRANSCEND_SHARDS + bonus);
+    assert.equal(gs2.totalFractureShards.toNumber(), TRANSCEND_SHARDS);
   }
-  // no calendar attached: plain 2
+  // no calendar attached: plain 2 on both
   const gs = new GameState(); gs.buildingSystem = new BuildingSystem(gs);
   const ps = new PrestigeSystem(gs);
   gs.totalCosmicDust = new BigNum(TRANSCEND_BASE_GATE);
-  assert.equal(ps.getTranscendPreview().shardsGained, 2);
+  assert.equal(ps.getTranscendPreview().sealShards, 0);
   // A Seal met right now counts at the moment of Transcend, without waiting for a tick
   const m = make(0);
   m.gs.alchemy = { catalysts: 25 };
-  assert.equal(m.ps.getTranscendPreview().shardsGained, 3);
+  assert.equal(m.ps.getTranscendPreview().sealShards, 1);
 }
 
 console.log('--- Saves: old saves load with an empty calendar; junk is cleaned ---');

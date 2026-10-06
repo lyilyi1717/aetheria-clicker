@@ -457,17 +457,22 @@ leaderboard column. No save migration: `codex` is a new additive field.
 *R15 implementation notes (Seals, Dallah, Ledger, Souq; `js/systems/CalendarSystem.js`).*
 - **Seals are a shard bonus** (#23 default 4), not a Transcend gate. Tier I bars as in roadmap
   §5.1 (depth 100, floor 501, 25 Catalysts, 15 Ascensions, Guild Rank 7, `bestRunDust` 1e8, 40%
-  Codex). A Seal is a lifetime flag and never goes dark. Each Transcend pays
-  `2 + min(3, lit Seals)` shards into both `fractureShards` and `totalFractureShards`
-  (`PrestigeSystem.getTranscendShards`; the cap is `SEAL_SHARD_BONUS_MAX`). Tier II bars (roadmap
-  §5.1) are not built yet.
-- **Balance warning.** `npm run sim` does not model Seals (it Transcends for a flat 2). With a
-  stub that adds the bonus to every Transcend, casual pacing runs away because every shard is
-  x1.5 Aether and x1.5 dust gain, and the x10 gate cannot keep up: +1 Seal (3 shards) reaches
-  tier 30 and ~1e61 CPS by day 30 and a Transcend every few hours; +3 (5 shards) does 183
-  Transcends in week 1. The layer-2 runway is shard-limited (§10 risk 3), so any extra shard per
-  Transcend shifts it. The spec value (+3) ships as written in R15 and needs an owner decision, or
-  a re-simulated gate, before it is relied on; `SEAL_SHARD_BONUS_MAX` is the one number to change.
+  Codex). A Seal is a lifetime flag and never goes dark. **Deviation from the §6.1 table (rule
+  5):** each Transcend pays 2 shards to both counters as before, plus `min(3, lit Seals)`
+  **spendable shards only** (added to `fractureShards`, the shard-tree balance, never to
+  `totalFractureShards`, which the x1.5 multipliers read). `PrestigeSystem.getTranscendShards`
+  returns `{ base, seals }`; the cap is `SEAL_SHARD_BONUS_MAX`. Tier II bars (roadmap §5.1) are
+  not built yet. `deserialize` no longer clamps lifetime shards up to the balance, since the
+  balance can now pass it.
+- **Why.** Counting Seal shards toward the multiplier was measured on the real classes with a
+  stub bonus on every Transcend (casual): +1 Seal (3 shards) reached ~1e61 CPS by day 30 and a
+  Transcend every few hours by month 3; +3 (5 shards) did 183 Transcends in week 1. Every
+  multiplier shard is x1.5 Aether and x1.5 dust gain and the x10 gate cannot keep up (§10 risk 3:
+  the layer-2 runway is shard-limited). As spendable-only shards they cannot move the
+  multiplier; with the same stub (+3 spendable at every Transcend) casual still has 32
+  Transcends in the year, 8.05e82 CPS and a reset at least every 14 days until day 184, the same
+  as without. `npm run sim` does not model Seals (it pays a flat 2); the stub shows they do not
+  change the headline, so it was left alone.
 - **Daily Dallah:** local calendar day. The first visit pours a cup; each later day adds one,
   banking at most 3; claiming pays every banked day (60 Chrono Sand and one ready-to-claim bonus
   contract each) and refreshes one 1 h "fresh coffee" buff (+25% Aether, additive with other
