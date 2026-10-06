@@ -31,6 +31,7 @@ import { BuffBar } from './buffBar.js';
 import { Shell } from './ui/shell.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
+import { ShardTreeUI } from './ui/shardTree.js';
 import { gearCard } from './ui/rarity.js';
 import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
@@ -133,6 +134,9 @@ class AetheriaApp {
     const canvas = document.getElementById('particle-canvas');
     if (canvas) particles.init(canvas);
     rewards.init();
+    // Shard tree (R13): creates this.shardTreeSystem, builds its panel, runs Auto-Ascend
+    this.shardTreeUI = new ShardTreeUI(this);
+    this.shardTreeUI.init();
     initTooltips({ switchTab: (tab) => this.switchTab(tab) });
 
     // Setup DOM Listeners & Navigation
@@ -1825,6 +1829,7 @@ class AetheriaApp {
     this.buffBar.update();
     this.shell?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
+    this.shardTreeUI?.update(this.currentTab);
     this.talentSourcesUI?.update(dt, this.currentTab);
 
     // Fast, lightweight state updates without replacing DOM nodes

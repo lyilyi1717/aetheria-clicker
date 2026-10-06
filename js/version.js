@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '3.5.0';
+export const VERSION = '3.4.0';
 
 export const CHANGELOG = [
   {
-    version: '3.5.0',
+    version: '3.4.0',
     date: '2026-10-06',
     title: 'The Contract Board',
     changes: [
@@ -15,6 +15,26 @@ export const CHANGELOG = [
       'Every contract you claim counts toward Guild Rank (the old limit of one counted claim per 30 minutes is gone). A rank-up pays a Talent Point and 5 Guild Seals, up to about 48 contracts a day.',
       'Each contract has one free reroll, and contracts only come from tabs you can play. Clicking contracts are only posted while you have clicked in the last 5 minutes, so an idle board no longer jams. Contracts grow 15% per Guild Rank (up to about ten minutes of play) and pay Gold equal to 250 x difficulty x your Market Index.',
       'Contracts you already had keep working: they stay on the board and can be claimed as before (an old one that carried a Talent Point still pays it).'
+    ]
+  },
+  {
+    version: '3.3.0',
+    date: '2026-10-06',
+    title: 'The Shard Tree',
+    changes: [
+      'Fracture Shards can now be spent in the Shard Tree (Ascension tab). Nodes are permanent: Transcend never resets them, and your shard bonus still counts every shard you have earned, so spending never lowers it.',
+      'Chronos branch: Auto-Ascend (2 shards) Ascends for you when the Ascension would multiply your dust by ×1.2, ×1.5 or ×2, or on a timer (10 min to 4 h). It never Ascends before the 10-minute minimum run, can be switched off, and shows one quiet notice instead of a celebration each time. Then Long Sleep (2 shards: offline Aether at 100% for 8 more hours) and Hourglass (3 shards: a 6-hour Fast Forward once a day).',
+      'Tower branch: Wardens (1 shard) and Second Wind (2 shards: once per boss fight, losing to a boss refills your HP and the timer instead of pushing you back; the boss keeps the damage you dealt).',
+      'Change: Wardens are now a Shard Tree node instead of opening at your first Transcend. If you have already Transcended, you keep them for free.',
+      'Foundry branch: 16 Deep Blueprints, one per Transcend building tier (15 to 30), each making that tier\'s upgrades 10× cheaper. They go on sale with the building upgrade shop.'
+    ]
+  },
+  {
+    version: '3.2.1',
+    date: '2026-10-06',
+    title: 'Hotfix: the game loads again',
+    changes: [
+      'Fixed a broken update that stopped the game from loading after the Codex 2.0 release. Your save was not affected.'
     ]
   },
   {

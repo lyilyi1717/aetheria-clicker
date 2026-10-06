@@ -2,6 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
 import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
 import { defaultRecords, sanitizeRecords, serializeRecords, seedRecords } from './TalentSources.js';
+import { defaultShardTreeState, sanitizeShardTreeState } from './ShardTreeSystem.js';
 
 // Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
 // PrestigeSystem imports audio/particles and GameState must stay loadable on its own.
@@ -45,6 +46,8 @@ export class GameState {
     this.transcendenceCount = 0;
     // Set once by the R4 save migration for saves that Transcended under the old rules
     this.legacyTranscendRefund = null;
+    // Shard tree (R13): permanent nodes bought with fractureShards; Transcend never resets it
+    this.shardTree = defaultShardTreeState();
 
     // Active Clicker Stats
     this.clickPower = new BigNum(1);
@@ -356,6 +359,7 @@ export class GameState {
       totalFractureShards: this.totalFractureShards.toJSON(),
       transcendenceCount: this.transcendenceCount,
       legacyTranscendRefund: this.legacyTranscendRefund,
+      shardTree: this.shardTree,
       clickPower: this.clickPower.toJSON(),
       critChance: this.critChance,
       critMultiplier: this.critMultiplier,
@@ -410,6 +414,8 @@ export class GameState {
       this.transcendenceCount = Number.isFinite(tc) && tc > 0 ? tc : 0;
       this.legacyTranscendRefund = data.legacyTranscendRefund && typeof data.legacyTranscendRefund === 'object'
         ? data.legacyTranscendRefund : null;
+      // Saves from before R13 have no tree: empty, except Wardens stay free if they had them
+      this.shardTree = sanitizeShardTreeState(data.shardTree, { transcendenceCount: this.transcendenceCount });
       this.clickPower = BigNum.fromJSON(data.clickPower);
       this.critChance = data.critChance ?? 0.05;
       this.critMultiplier = data.critMultiplier ?? 3.0;

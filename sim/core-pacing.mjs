@@ -9,7 +9,10 @@
 //   idle   : taps 1/s for the first 3 min of every run, never casts; greedy-buys every 5 s
 //   casual : present 10 min of every hour (2 clicks/s at full combo, spells on cooldown,
 //            anomalies clicked), approximated as an income multiplier from the spell/anomaly code
-// Ascend policy: when pending dust >= max(10, current dust) and the run is at least 10 min old.
+// Ascend policy: when pending dust >= max(10, current dust) and the run is at least 10 min old,
+// by hand only while the player is there (casual: the 10 present minutes of each hour; idle: a
+// glance once an hour) until the shard tree's Auto-Ascend is bought, then whenever the rule is met
+// (R13; see the shard-tree block below).
 // Transcend policy: as soon as lifetime dust reaches the gate (R4). Each Transcend unlocks the
 // next generator tier and counts as a reset in the gap measurement.
 //
@@ -21,6 +24,7 @@ import { BuildingSystem, BUILDING_DEFINITIONS } from '../js/systems/BuildingSyst
 import { PrestigeSystem, ASCENSION_PERKS } from '../js/systems/PrestigeSystem.js';
 import { AchievementSystem } from '../js/systems/AchievementSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
+import { ShardTreeSystem, autoAscendRuleMet } from '../js/systems/ShardTreeSystem.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
@@ -42,12 +46,35 @@ const CHECKPOINTS = [
   ['1 mo', 30 * DAY], ['3 mo', 90 * DAY], ['6 mo', 180 * DAY], ['1 y', YEAR]
 ];
 
+// ---- Shard tree (R13) ---------------------------------------------------------------------
+// The player buys Auto-Ascend (2 shards) as soon as the first Transcend pays for it and keeps the
+// default rule (x2 lifetime dust, the same threshold the manual policy uses). Nothing else on the
+// tree changes this model: Foundry needs the upgrade shop, the sim has no offline gap for Long
+// Sleep or Hourglass to fill, and Tower nodes don't touch the core economy.
+function makeShardTreeModel(gs, ps) {
+  const tree = new ShardTreeSystem(gs, ps);
+  return {
+    buyNodes() {
+      if (!tree.has('chronos_auto_ascend')) tree.buy('chronos_auto_ascend');
+    },
+    // Auto-Ascend decision in sim time (the real system reads Date.now; same rule and minimum)
+    autoAscendDue(pending, runSeconds) {
+      return tree.has('chronos_auto_ascend') && gs.shardTree.autoAscend.enabled && runSeconds >= 600 &&
+        autoAscendRuleMet(gs.shardTree.autoAscend, pending, gs.totalCosmicDust, runSeconds);
+    },
+    owns: (id) => tree.has(id)
+  };
+}
+// ---------------------------------------------------------------------------------------------
+
 function run(profile) {
   const gs = new GameState();
   const bs = new BuildingSystem(gs);
   const ps = new PrestigeSystem(gs);
   const ach = new AchievementSystem(gs);
   gs.buildingSystem = bs; gs.achievementSystem = ach;
+  const shardTree = makeShardTreeModel(gs, ps);
+  let autoAscendDay = null;
   bs.buyAmount = 1;
 
   const presence = profile === 'casual' ? 600 : 0;
@@ -114,7 +141,11 @@ function run(profile) {
 
     const pending = ps.getPendingCosmicDust();
     if (pending.gt(0)) {
-      if (t - runStart >= 600 && pending.gte(gs.totalCosmicDust.max(10))) {
+      // By hand while present (casual: up to the moment they leave; idle: one glance an hour), or by
+      // Auto-Ascend once it is owned
+      const here = profile === 'casual' ? t % 3600 <= presence : t % 3600 < dt;
+      const manual = here && t - runStart >= 600 && pending.gte(gs.totalCosmicDust.max(10));
+      if (manual || shardTree.autoAscendDue(pending, t - runStart)) {
         resets.push(t);
         ps.ascend(true); // the sim enforces the 10-min minimum itself (virtual time, not Date.now)
         runStart = t;
@@ -133,6 +164,8 @@ function run(profile) {
       resets.push(t);
       ps.transcend();
       runStart = t;
+      shardTree.buyNodes();
+      if (autoAscendDay === null && shardTree.owns('chronos_auto_ascend')) autoAscendDay = t / DAY;
     }
 
     while (ci < CHECKPOINTS.length && t >= CHECKPOINTS[ci][1]) {
@@ -171,6 +204,7 @@ function run(profile) {
     transcendDays: transcends.map(x => x / DAY),
     regainDays,
     maxGapDays: maxGap / DAY,
+    autoAscendDay,
     gapKeptUntilDay: keptUntil / DAY
   };
 }
@@ -191,6 +225,7 @@ for (const profile of ['idle', 'casual']) {
     const sorted = [...r.regainDays].sort((a, b) => a - b);
     out.push(`- CPS back to its pre-Transcend level after: median ${sorted[sorted.length >> 1].toFixed(1)} d, max ${sorted.at(-1).toFixed(1)} d (${sorted.length} of ${r.transcendDays.length} Transcends)`);
   }
+  out.push(`- Auto-Ascend bought: ${r.autoAscendDay === null ? 'never' : `day ${r.autoAscendDay.toFixed(1)}`}`);
   out.push(`- Transcends at day: ${r.transcendDays.length ? r.transcendDays.map(d => d.toFixed(1)).join(', ') : 'none'}`);
   out.push(`- longest stretch with no reset (day 1..${TARGETS.gapWindowEndDay}): ${r.maxGapDays.toFixed(1)} days`);
   out.push(`- a reset at least every ${TARGETS.maxGapDaysAfterDay1} days until day ${r.gapKeptUntilDay.toFixed(0)}`);
