@@ -201,6 +201,14 @@ function browser(name) {
   await A.cloud.sync('hide');
   assert.equal(db.log[0].keepalive, true);
 
+  // Wipe Progress reloads the page: the page-hide upload must not save the old game back
+  await tick();
+  const before = A.sm.load();
+  A.mem.delete('AETHERIA_CHRONICLES_SAVE_V1');
+  assert.equal(await A.cloud.sync('hide'), null, 'nothing saved locally: nothing uploaded');
+  assert.equal(A.mem.has('AETHERIA_CHRONICLES_SAVE_V1'), false, 'wipe stays wiped');
+  A.mem.set('AETHERIA_CHRONICLES_SAVE_V1', JSON.stringify(before));
+
   // Browser B, brand-new game: logging in loads the cloud save through deserialize + migrations
   await tick();
   const B = browser('B');

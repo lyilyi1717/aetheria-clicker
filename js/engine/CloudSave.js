@@ -382,8 +382,10 @@ export class CloudSave {
     if (!res.ok) throw new Error(`Cloud save failed (${res.status}).`);
   }
 
-  localSave() {
-    this.saveManager.save();
+  // On page hide, upload only what is already saved: saving here would undo Wipe Progress
+  // and Import (both clear or replace the save, then reload the page).
+  localSave(reason) {
+    if (reason !== 'hide') this.saveManager.save();
     return this.saveManager.load();
   }
 
@@ -400,7 +402,7 @@ export class CloudSave {
   async runSync(reason) {
     if (reason !== 'hide') this.setStatus('syncing', reason === 'login' ? 'Checking your cloud save…' : 'Saving to the cloud…');
     try {
-      const local = this.localSave();
+      const local = this.localSave(reason);
       if (!local) return null;
       const rec = this.syncRecord;
       const uid = this.session.user_id;
