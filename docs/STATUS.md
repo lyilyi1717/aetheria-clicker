@@ -10,7 +10,6 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 ## In progress
 
 - R4 #6 Transcend rework (PR #35).
-- R24 #47 Reduced motion and touch tooltips.
 
 ## Next up
 
@@ -18,8 +17,7 @@ Ready now: R9 #11 (after R4 merges: both edit `PrestigeSystem.js` / `GameState.j
 After R4: R5 #7 (+ R3 #5, held per #23 default 5 to ship with R5), R6 #8, R13 #15.
 Then R10 #12 (needs R9), R14 #16 (needs R11), R7 #9 (needs R6), R15 #17 (needs R13),
 R20 #22 (needs R4, R13).
-UI: R24 #47 is ready now. R7 can go once R6 and R21 are in (R23 is done). R7 waits for R23 (both change
-the nav).
+UI: R22–R24 are done. R7 can go once R6 is in.
 
 ## Plan
 
@@ -97,6 +95,11 @@ the nav).
   `test_r23_shell.js`); guides open once per tab (`settings.guidesSeen`; old saves get
   `{ all: true }`). Art panels on Dig / Ascension / Bazaar removed; screenshots in
   `docs/ui/screenshots/r23/`.
+- R24 #47 Reduced motion and touch tooltips: Settings → Reduce Motion (`settings.reduceMotion`
+  auto/on/off, `js/ui/motion.js` sets `data-motion` on `<html>`); particles, shake, orb spin,
+  background dust, count-ups and ceremonies follow it. "Ready" pulses run 3 times. Tooltips moved
+  to `js/ui/tooltip.js`: bonus chips, gear and buff chips open a bottom sheet on tap. Tests in
+  `test_r24_motion.js`; screenshots in `docs/ui/screenshots/r24/`.
 
 ## Notes for the next session
 
@@ -124,6 +127,10 @@ the nav).
   group, and the bottom bar or the More sheet) plus a `data-hint` on their guide banner;
   `test_r23_shell.js` checks both. Per-tab header currencies live in `headerCurrencies()`.
   R7 should hide locked tabs in all three navs.
+
+- Tooltips (R24): put `data-tip` (via `tipHtml`/`tipAttr` in `js/ui/tooltip.js`) on anything that
+  explains itself on hover; add its class to `TAP_TIP_SELECTOR` if phones need it. New animations
+  that loop forever must be ambient and listed in `test_r24_motion.js`.
 
 ## Noticed (not yet an issue)
 

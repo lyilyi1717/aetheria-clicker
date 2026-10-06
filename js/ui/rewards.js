@@ -17,6 +17,7 @@
 
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
+import { isReducedMotion } from './motion.js';
 import {
   ToastQueue, CeremonyScheduler, RewardBatch, rewardTitle, rewardValue, normalizeTier
 } from './rewardQueue.js';
@@ -99,9 +100,9 @@ class RewardFeedback {
     this.tickHandle = setInterval(() => this.tick(), TICK_MS);
   }
 
+  // Device setting or the in-game "Reduce motion" (R24, js/ui/motion.js)
   reducedMotion() {
-    return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return isReducedMotion();
   }
 
   // ---- public API --------------------------------------------------------------------------

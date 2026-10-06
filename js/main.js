@@ -22,12 +22,14 @@ import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
 import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } from './systems/FastForwardSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
-import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
+import { getTabBonuses, BONUS_KIND_LABELS, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
 import { Shell } from './ui/shell.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
 import { gearCard } from './ui/rarity.js';
+import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
+import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { Leaderboard } from './leaderboard.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 
@@ -58,6 +60,7 @@ class AetheriaApp {
       this.saveManager.lastSaveTime = savedData.savedAt || Date.now();
     }
     BigNum.notation = this.gameState.settings.notation;
+    applyMotionSetting(this.gameState.settings);
     if (typeof sound !== 'undefined' && this.gameState.settings.rhythmScale) { sound.rhythmScale = this.gameState.settings.rhythmScale; }
 
     // Attach systems
@@ -124,6 +127,7 @@ class AetheriaApp {
     const canvas = document.getElementById('particle-canvas');
     if (canvas) particles.init(canvas);
     rewards.init();
+    initTooltips({ switchTab: (tab) => this.switchTab(tab) });
 
     // Setup DOM Listeners & Navigation
     this.setupEventListeners();
@@ -225,6 +229,7 @@ class AetheriaApp {
         this.saveManager.save();
       });
     }
+    renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, () => this.saveManager.save());
   }
 
   setupTabs() {
@@ -626,7 +631,7 @@ class AetheriaApp {
       `<span class="tab-bonus-title">✨ ${items.length} active bonus${items.length === 1 ? '' : 'es'}</span>` +
       `<span class="tab-bonus-names">${items.map(i => i.name).join(' · ')}</span></button>` +
       `<div class="tab-bonus-chips">` +
-      items.map(i => `<span class="tab-bonus-chip ${i.kind}">${i.icon} <strong>${i.name}</strong> ${i.detail}</span>`).join('') + `</div>`;
+      items.map(i => `<span class="tab-bonus-chip ${i.kind}" ${tipAttr(tipHtml(i.name, BONUS_KIND_LABELS[i.kind], i.detail))}>${i.icon} <strong>${i.name}</strong> ${i.detail}</span>`).join('') + `</div>`;
     // Compare against what we last wrote rather than reading innerHTML back (a DOM serialization)
     if (!this.bonusStripHtml) this.bonusStripHtml = {};
     if (this.bonusStripHtml[this.currentTab] !== html) {
@@ -1992,61 +1997,3 @@ window.addEventListener('DOMContentLoaded', () => {
   window.gameApp = new AetheriaApp();
   window.gameApp.init();
 });
-
-// Global Custom Tooltip System
-function setupTooltips() {
-  const tooltip = document.createElement('div');
-  tooltip.id = 'global-tooltip';
-  document.body.appendChild(tooltip);
-
-  document.addEventListener('mouseover', e => {
-    const target = e.target.closest('[title], [data-original-title]');
-    if (!target) return;
-    
-    if (target.hasAttribute('title')) {
-      target.setAttribute('data-original-title', target.getAttribute('title'));
-      target.removeAttribute('title');
-    }
-    
-    const tipText = target.getAttribute('data-original-title');
-    if (!tipText) return;
-    
-    // Parse possible asterisks or emphasis for styling if needed
-    tooltip.innerHTML = tipText;
-    tooltip.classList.add('visible');
-    
-    const updatePosition = (x, y) => {
-      let left = x + 15;
-      let top = y + 15;
-      if (left + tooltip.offsetWidth > window.innerWidth) left = window.innerWidth - tooltip.offsetWidth - 10;
-      if (top + tooltip.offsetHeight > window.innerHeight) top = y - tooltip.offsetHeight - 15;
-      tooltip.style.left = left + 'px';
-      tooltip.style.top = top + 'px';
-    };
-    updatePosition(e.clientX, e.clientY);
-    
-    target._tooltipMove = (me) => updatePosition(me.clientX, me.clientY);
-    target.addEventListener('mousemove', target._tooltipMove);
-  });
-
-  document.addEventListener('mouseout', e => {
-    const target = e.target.closest('[data-original-title]');
-    if (!target) return;
-    if (target._tooltipMove) {
-      target.removeEventListener('mousemove', target._tooltipMove);
-      delete target._tooltipMove;
-    }
-    tooltip.classList.remove('visible');
-  });
-}
-
-// Intercept window.gameApp.init call if it exists, or just run it.
-// To avoid conflicts, we just add it to DOMContentLoaded.
-window.addEventListener('DOMContentLoaded', () => {
-  setupTooltips();
-});
-
-
-
-
-

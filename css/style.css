@@ -294,7 +294,7 @@ button, input, select, textarea {
   z-index: 20;
 }
 
-.buff-bar[hidden], .bb-spells[hidden], .bb-tip[hidden] { display: none; }
+.buff-bar[hidden], .bb-spells[hidden] { display: none; }
 
 .bb-buffs {
   flex: 1;
@@ -414,23 +414,6 @@ button, input, select, textarea {
 .bb-spell .bb-time { color: var(--text-muted); }
 .bb-spell.bb-no-mana { opacity: 0.55; }
 .bb-spell-long { border-style: dashed; border-color: var(--accent-purple); }
-
-.bb-tip {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  transform: translateX(-50%);
-  max-width: calc(100vw - 16px);
-  padding: 0.35rem 0.6rem;
-  border-radius: 6px;
-  border: 1px solid var(--border-glow);
-  background: var(--bg-secondary);
-  color: var(--text-main);
-  font-size: 0.75rem;
-  white-space: normal;
-  text-align: center;
-  pointer-events: none;
-  z-index: 21;
-}
 
 @media (max-width: 639px) {
   .buff-bar {
@@ -637,7 +620,7 @@ button, input, select, textarea {
   font-weight: 800;
   color: #ef4444;
   text-shadow: 0 0 10px #ef4444;
-  animation: pulseGlow 1s infinite alternate;
+  animation: pulseGlow 0.5s 6 alternate; /* 3 pulses, then still (style guide §6) */
 }
 
 .active-buffs-list {
@@ -1386,30 +1369,53 @@ button, input, select, textarea {
 .offline-note { color: var(--text-muted); font-size: 0.8rem; margin: 0 0 1rem; }
 .offline-close { width: 100%; padding: 0.6rem; }
 
-/* Golden Custom Tooltip */
+/* Tooltips (R24, style guide §5.8; js/ui/tooltip.js): hover tip by the cursor, bottom sheet on tap */
 #global-tooltip {
   position: fixed;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--accent-gold);
-  border-radius: 6px;
-  color: var(--text-main);
-  padding: 0.6rem 0.8rem;
-  font-size: 0.85rem;
+  background: var(--bg-1);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-1);
+  color: var(--text-1);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-12);
   pointer-events: none;
   z-index: 10000;
-  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
-  max-width: 320px;
+  box-shadow: var(--el-2);
+  max-width: 300px;
   opacity: 0;
-  transition: opacity 0.2s ease;
-  line-height: 1.4;
+  transition: opacity var(--dur-2) var(--ease-out);
+  line-height: 1.45;
 }
 #global-tooltip.visible {
   opacity: 1;
 }
-#global-tooltip strong {
-  color: var(--accent-gold);
+#global-tooltip strong, .tip-sheet-body strong {
+  color: var(--gold);
 }
+.tip-scrim { position: fixed; inset: 0; z-index: 10001; background: rgba(0, 0, 0, 0.55); }
+.tip-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 10002;
+  width: min(100%, 480px);
+  transform: translateX(-50%);
+  padding: var(--sp-3) var(--gutter) calc(var(--sp-4) + env(safe-area-inset-bottom));
+  background: var(--bg-1);
+  border: 1px solid var(--line-2);
+  border-bottom: 0;
+  border-radius: var(--r-3) var(--r-3) 0 0;
+  box-shadow: var(--el-3);
+  animation: tip-sheet-in var(--dur-3) var(--ease-out);
+}
+.tip-scrim[hidden], .tip-sheet[hidden] { display: none; }
+.tip-sheet .handle { width: 36px; height: 4px; border-radius: 2px; background: var(--line-2); margin: 0 auto var(--sp-3); }
+.tip-sheet-body { font-size: var(--fs-14); line-height: 1.5; color: var(--text-2); overflow-wrap: anywhere; }
+.tip-sheet-body strong { font-size: var(--fs-16); }
+.tip-sheet-actions { display: flex; gap: var(--sp-2); margin-top: var(--sp-4); }
+.tip-sheet-actions .btn { flex: 1; min-height: var(--tap); }
+.tip-sheet-actions .btn[hidden] { display: none; }
+@keyframes tip-sheet-in { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
 
 /* ==== App shell (R23: docs/ui-style-guide.md §5.9, §5.10, §7; docs/ui/mockups/app-shell.html) ====
    >=1024px: 220px sidebar + one-row 56px header. 640-1023px: 64px icon rail.
@@ -1556,7 +1562,7 @@ button, input, select, textarea {
   border-radius: 50%;
   background: var(--danger);
   box-shadow: 0 0 0 2px var(--bg-1);
-  animation: notif-pulse 1.6s ease-in-out infinite;
+  animation: notif-pulse 1.6s ease-in-out 3; /* a "ready" dot pulses 3 times, then stays */
 }
 .more-btn .pip[hidden] { display: none; }
 

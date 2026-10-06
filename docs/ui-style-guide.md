@@ -248,6 +248,11 @@ what is lost, in two columns.
 only way in:** on touch, tapping the element (or its ⓘ) opens the same content as a bottom
 sheet.
 
+As built (R24): `js/ui/tooltip.js`. Give an element `data-tip` (build it with `tipHtml(title,
+...lines)` / `tipAttr()`) or a `title`; hover shows `#global-tooltip`. Elements matching
+`TAP_TIP_SELECTOR` (bonus chips, gear, buff chips) open a `.tip-sheet` on a touch tap; a chip
+with `data-tab` gets a "Go to …" button (`data-go-label` names it).
+
 ### 5.9 Navigation
 
 - **Desktop ≥1024px:** 220px sidebar with groups (Core / Craft / Meta / Records), active item
@@ -278,6 +283,12 @@ stays available but never pushes the action below the fold again.
   snap.
 - Nothing flashes more than 3 times per second. Nothing pulses forever; a "ready" glow pulses
   at most 3 times, then stays still.
+- As built (R24): Settings → Reduce Motion is `settings.reduceMotion` (`auto` / `on` / `off`,
+  default `auto`); `js/ui/motion.js` writes `data-motion="reduced"` or `"full"` on `<html>`.
+  Style reduced-motion rules on `:root[data-motion="reduced"]`, plus the same rule inside
+  `@media (prefers-reduced-motion: reduce)` scoped to `:root:not([data-motion="full"])` for the
+  moment before JS runs. JS checks `isReducedMotion()`. An `infinite` animation is only allowed
+  for ambient motion (`test_r24_motion.js` lists them).
 
 ---
 

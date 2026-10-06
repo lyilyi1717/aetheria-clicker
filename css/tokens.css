@@ -58,7 +58,13 @@
   /* Layout */
   --header-h: 56px; --nav-w: 220px; --rail-w: 64px; --bottom-nav-h: 60px; --tap: 44px;
 }
+/* Reduced motion (§6): the device setting applies until js/ui/motion.js writes data-motion on
+   <html>; after that the in-game "Reduce motion" setting decides ("full" opts out). */
 @media (prefers-reduced-motion: reduce) {
-  :root { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
-  *, *::before, *::after { animation: none !important; transition: none !important; }
+  :root:not([data-motion="full"]) { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
+  :root:not([data-motion="full"]) *, :root:not([data-motion="full"]) *::before,
+  :root:not([data-motion="full"]) *::after { animation: none !important; transition: none !important; }
 }
+:root[data-motion="reduced"] { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
+:root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after { animation: none !important; transition: none !important; }
