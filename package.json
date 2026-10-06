@@ -7,7 +7,8 @@
     "start": "python server.py",
     "test": "node test_engine.js && node test_mining.js && node test_garden.js && node test_fastforward.js && node test_correctness.js && node test_saves.js",
     "sim": "node sim/core-pacing.mjs",
-    "sim:check": "node sim/core-pacing.mjs --assert"
+    "sim:check": "node sim/core-pacing.mjs --assert",
+    "sim:tower": "node sim/tower-pacing.mjs"
   },
   "keywords": ["clicker", "incremental", "idle-game", "rpg", "prestige"],
   "author": "Antigravity",
