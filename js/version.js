@@ -3,9 +3,20 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.3.0';
+export const VERSION = '4.4.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.4.0',
+    date: '2026-10-06',
+    title: 'Frenzy every 20 clicks',
+    changes: [
+      'Your click combo now reaches its full x5 boost after 20 clicks (was 50).',
+      'Every 20 clicks in a row (20, 40, 60, ...) sets off a Frenzy. When a Frenzy ends your combo keeps going instead of dropping back to 0, so you never have to rebuild 100 clicks again. Only pausing for 2 seconds drains the combo.',
+      'Frenzy is shorter and gentler so it can come much more often: x3 click yield for 4 s (was x5 and rapid auto-clicks for 15 s). Reaching the next 20 while a Frenzy is running adds 4 s, up to 30 s. Overall, attentive play earns about the same as before; pure clicking without spells earns a little less, and a Time Flux anomaly is now 25 s of the new x3 Frenzy.',
+      'The combo bar fills over the first 20 clicks, then shows your progress to the next Frenzy, with a "Frenzy in N" counter.'
+    ]
+  },
   {
     version: '4.3.0',
     date: '2026-10-06',
