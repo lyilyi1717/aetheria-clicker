@@ -1,0 +1,103 @@
+/* Aetheria base components (docs/ui-style-guide.md §3–§5).
+   Built only from css/tokens.css; the live reference is docs/ui/mockups/components.html.
+   App shell, toasts, modals and tooltips are not here yet (R23, R11, R24). */
+
+/* ==== Type helpers ==== */
+.eyebrow { font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.c-aether { color: var(--aether); } .c-gold { color: var(--gold); } .c-dust { color: var(--dust); }
+.c-shard { color: var(--shard); } .c-life { color: var(--life); } .c-sand { color: var(--sand); }
+.c-danger { color: var(--danger); } .c-mana { color: var(--mana); }
+
+/* ==== Buttons ==== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  min-height: 40px; padding: 0 var(--sp-4); border-radius: var(--r-1);
+  border: 1px solid var(--line-2); background: var(--bg-3); color: var(--text-1);
+  font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-14); cursor: pointer; white-space: nowrap;
+  transition: background var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+.btn:hover { background: var(--bg-4); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 2px solid var(--aether); outline-offset: 2px; }
+.btn-primary { background: var(--gold); border-color: var(--gold); color: var(--text-on-accent); }
+.btn-primary:hover { background: #ffd04d; box-shadow: var(--glow-gold); }
+.btn-aether { background: var(--aether-dim); border-color: var(--aether); color: var(--aether); }
+.btn-aether:hover { background: var(--aether); color: var(--text-on-accent); }
+.btn-dust { background: var(--dust-dim); border-color: var(--dust); color: var(--dust); }
+.btn-dust:hover { background: var(--dust); color: var(--text-on-accent); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--text-2); }
+.btn-ghost:hover { background: var(--bg-3); color: var(--text-1); }
+.btn-danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+.btn-sm { min-height: 32px; padding: 0 var(--sp-3); font-size: var(--fs-13); }
+.btn-lg { min-height: 48px; padding: 0 var(--sp-5); font-size: var(--fs-16); }
+.btn-block { width: 100%; white-space: normal; line-height: 1.25; padding-top: 8px; padding-bottom: 8px; }
+.btn[aria-disabled="true"], .btn.is-locked { cursor: not-allowed; background: var(--bg-2); border-color: var(--line-1); color: var(--text-3); box-shadow: none; transform: none; }
+.btn-buy { flex-direction: column; gap: 0; line-height: 1.15; min-width: 104px; padding: var(--sp-2) var(--sp-3); }
+.btn-buy .lbl { font-size: var(--fs-11); font-weight: 600; opacity: 0.85; }
+.btn-buy .cost { font-size: var(--fs-14); font-weight: 700; }
+@media (pointer: coarse) { .btn { min-height: var(--tap); } .btn-sm { min-height: 40px; } }
+
+/* Segmented control (buy amount) */
+.seg { display: inline-flex; padding: 2px; gap: 2px; background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-1); }
+.seg button { min-height: 32px; min-width: 40px; padding: 0 var(--sp-2); border: 0; border-radius: 4px; background: transparent; color: var(--text-2); font-weight: 600; font-size: var(--fs-12); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--aether); color: var(--text-on-accent); }
+
+/* ==== Cards ==== */
+.card { background: var(--bg-2); border: 1px solid var(--line-1); border-radius: var(--r-2); padding: var(--sp-4); box-shadow: var(--el-1); }
+.card-brand { border-color: var(--line-brand); }
+.card-flat { box-shadow: none; }
+.card-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); border-radius: var(--r-2); background: var(--bg-2); border: 1px solid var(--line-1); transition: background var(--dur-1) var(--ease-out), border-color var(--dur-2) var(--ease-out); }
+.card-row:hover { background: var(--bg-3); }
+.card-row.is-affordable { border-color: rgba(251, 191, 36, 0.45); }
+.card-row.is-owned { border-color: var(--line-brand); }
+.card-row.is-locked { opacity: 0.72; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-3); flex-wrap: wrap; }
+.icon-tile { flex: 0 0 auto; width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--r-1); background: var(--bg-1); font-size: 1.5rem; line-height: 1; }
+.icon-tile.sm { width: 36px; height: 36px; font-size: 1.2rem; }
+
+/* ==== Chips, tags, badges ==== */
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border-radius: var(--r-pill); border: 1px solid var(--line-2); background: var(--bg-1); color: var(--text-2); font-size: var(--fs-12); font-weight: 600; white-space: nowrap; }
+.chip strong { color: var(--text-1); }
+.chip.aether { border-color: var(--aether); color: var(--aether); background: var(--aether-dim); }
+.chip.gold { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+.chip.dust { border-color: var(--dust); color: var(--dust); background: var(--dust-dim); }
+.chip.life { border-color: var(--life); color: var(--life); background: var(--life-dim); }
+.chip.sand { border-color: var(--sand); color: var(--sand); background: var(--sand-dim); }
+.chip.danger { border-color: var(--danger); color: var(--danger); background: var(--danger-dim); }
+.badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: var(--r-pill); background: var(--danger); color: #fff; font-size: var(--fs-11); font-weight: 700; }
+.pip { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 2px var(--bg-1); }
+.tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; background: var(--bg-4); color: var(--text-2); }
+.tag.new { background: var(--gold); color: var(--text-on-accent); }
+.tag.tier { background: var(--dust-dim); color: var(--dust); }
+
+/* ==== Progress bars ==== */
+.bar { position: relative; height: 8px; border-radius: var(--r-pill); background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: inherit; background: var(--aether); transition: width var(--dur-3) var(--ease-out); }
+.bar.gold > i { background: var(--gold); } .bar.dust > i { background: var(--dust); } .bar.life > i { background: var(--life); }
+.bar.danger > i { background: var(--danger); } .bar.sand > i { background: var(--sand); } .bar.shard > i { background: var(--shard); }
+.bar.lg { height: 12px; } .bar.xl { height: 18px; }
+.bar.xl > b { position: absolute; inset: 0; display: grid; place-items: center; font-size: var(--fs-11); font-weight: 700; color: var(--text-1); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); }
+.bar-row { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-12); color: var(--text-2); }
+.bar-row .bar, .bar-row .segs { flex: 1; }
+.bar-row .val { font-variant-numeric: tabular-nums; color: var(--text-1); font-weight: 600; min-width: 3.5em; text-align: right; }
+.segs { display: flex; gap: 3px; }
+.segs i { flex: 1; height: 8px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); }
+.segs i.on { background: var(--gold); }
+.segs.dust i.on { background: var(--dust); }
+
+/* ==== Rarity (colour + glyph + word, style guide §2.4) ==== */
+.rarity { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: var(--fs-12); }
+.rarity::before { content: attr(data-glyph); font-size: var(--fs-11); letter-spacing: -1px; }
+.rarity.common { color: var(--rarity-common); } .rarity.rare { color: var(--rarity-rare); } .rarity.epic { color: var(--rarity-epic); }
+.rarity.legendary { color: var(--rarity-legendary); } .rarity.cosmic { color: var(--rarity-cosmic); }
+.gear { position: relative; min-width: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-1); border-left-width: 4px; }
+.gear.common { border-left-color: var(--rarity-common); } .gear.rare { border-left-color: var(--rarity-rare); }
+.gear.epic { border-left-color: var(--rarity-epic); } .gear.legendary { border-left-color: var(--rarity-legendary); }
+/* Only Cosmic may glow */
+.gear.cosmic { border-left-color: var(--rarity-cosmic); box-shadow: 0 0 14px rgba(255, 216, 77, 0.25); }
+.gear .slot { font-size: var(--fs-11); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+.gear .name { font-weight: 600; font-size: var(--fs-13); overflow-wrap: anywhere; }
+.gear .stat { font-size: var(--fs-12); color: var(--text-2); }
+.gear-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; }
