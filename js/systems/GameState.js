@@ -1,6 +1,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
 import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
+import { defaultRecords, sanitizeRecords, serializeRecords, seedRecords } from './TalentSources.js';
 
 // Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
 // PrestigeSystem imports audio/particles and GameState must stay loadable on its own.
@@ -94,6 +95,8 @@ export class GameState {
     this.guildSeals = 0;
     this.talentPoints = 0;
     this.spentTalentPoints = 0;
+    // Lifetime records that pay talent points (R9, TalentSources.js); Ascend/Transcend never reset it
+    this.records = defaultRecords();
 
     // System sub-states (initialized by their respective systems)
     this.buildings = {};
@@ -358,6 +361,7 @@ export class GameState {
       guildSeals: this.guildSeals,
       talentPoints: this.talentPoints,
       spentTalentPoints: this.spentTalentPoints,
+      records: serializeRecords(this.records),
       buildings: this.buildings,
       hero: this.hero,
       mining: this.miningGrid,
@@ -438,6 +442,8 @@ export class GameState {
       this.achievements = data.achievements || {};
       this.activeBuffs = Array.isArray(data.activeBuffs) ? data.activeBuffs : [];
       this.settings = { ...this.settings, ...(data.settings || {}) };
+      // Saves from before R9 have no records: seed them from what the save shows (no grants)
+      this.records = data.records ? sanitizeRecords(data.records) : seedRecords(this);
       this.clampLoadedTimers();
     } catch (e) {
       console.error('Error during deserialize:', e);

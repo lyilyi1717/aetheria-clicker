@@ -1,6 +1,14 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
+import { ensureRecords, grantTalentPoints, recordContractClaim } from './TalentSources.js';
+
+// Stand-in for the paced contract board (roadmap 4.4, R10): the board still refills instantly, so
+// Guild Rank counts at most one claim per 30 min, banked up to 6 (the board's real ceiling of 48 a
+// day). Over-limit claims still pay gold, seals and sand. R10 replaces this with the real board and
+// calls recordContractClaim() directly.
+export const GUILD_CLAIM_INTERVAL_MS = 30 * 60 * 1000;
+export const GUILD_CLAIM_BANK = 6;
 
 export const BOUNTY_TEMPLATES = [
   { type: 'click', title: 'Energize the Monolith', reqBase: 50, icon: '👆', desc: 'Perform manual clicks' },
@@ -59,7 +67,6 @@ export class BountySystem {
     const goldReward = new BigNum(250 * difficultyMult * Math.max(1, (this.gameState.hero?.floor || 1) * 0.5));
     const sealsReward = 1 * difficultyMult;
     const chronoReward = 15 * difficultyMult;
-    const givesTalent = Math.random() < 0.2; // 20% chance of a talent point!
 
     return {
       id: 'bounty_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
@@ -75,7 +82,7 @@ export class BountySystem {
         gold: goldReward,
         seals: sealsReward,
         chrono: chronoReward,
-        talentPoint: givesTalent
+        talentPoint: false // R9: no random talent points; Guild Rank (S3) pays them
       }
     };
   }
@@ -110,8 +117,12 @@ export class BountySystem {
     this.gameState.guildSeals = (this.gameState.guildSeals || 0) + b.rewards.seals;
     this.gameState.addChronoSand(b.rewards.chrono);
 
+    // Rank-count claims (stand-in pacing, see above)
+    if (this.consumeGuildClaim()) recordContractClaim(this.gameState, 1);
+
+    // A contract generated before R9 may still carry a talent point; honour it
     if (b.rewards.talentPoint) {
-      this.gameState.talentPoints++;
+      grantTalentPoints(this.gameState, 1, 'guild', 'Contract');
       particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, '+1 TALENT POINT!', '#ec4899', true);
     }
 
@@ -120,6 +131,21 @@ export class BountySystem {
     // Replace with a new bounty immediately!
     this.gameState.bounties.splice(idx, 1);
     this.gameState.bounties.push(this.generateBounty());
+    return true;
+  }
+
+  // Token bucket: refills 1 per GUILD_CLAIM_INTERVAL_MS (wall clock), holds GUILD_CLAIM_BANK
+  consumeGuildClaim(now = Date.now()) {
+    const rec = ensureRecords(this.gameState);
+    let bk = rec.contractBucket;
+    if (!bk || !Number.isFinite(bk.tokens) || !Number.isFinite(bk.at)) bk = { tokens: GUILD_CLAIM_BANK, at: now };
+    // a clock set backwards must not freeze the bucket
+    const elapsed = Math.max(0, now - bk.at);
+    bk.tokens = Math.min(GUILD_CLAIM_BANK, bk.tokens + elapsed / GUILD_CLAIM_INTERVAL_MS);
+    bk.at = now;
+    rec.contractBucket = bk;
+    if (bk.tokens < 1) return false;
+    bk.tokens -= 1;
     return true;
   }
 
