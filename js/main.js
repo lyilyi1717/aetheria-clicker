@@ -1712,7 +1712,9 @@ class AetheriaApp {
         `;
         document.getElementById('btn-do-transcend').addEventListener('click', () => {
           if (!this.prestigeSystem.canTranscend()) return;
-          if (confirm('Transcend Reality? This resets your Ascension (Cosmic Dust and perks) in exchange for Fracture Shards, each granting +10% All Aether Production permanently.')) {
+          const tp = this.prestigeSystem.getTranscendPreview();
+          const tradeNote = `\n\nDust multiplier: ${fmtMult(tp.dustBefore)} -> ${fmtMult(tp.dustAfter)} (lifetime dust resets to 0).\nShards: +${tp.shardsGained.format('standard', 0)} (${fmtMult(tp.shardBefore)} -> ${fmtMult(tp.shardAfter)}).\nCombined dust and shard multiplier: ${fmtMult(tp.before)} -> ${fmtMult(tp.after)}.`;
+          if (confirm(`Transcend Reality? This resets your Ascension (Cosmic Dust and perks) in exchange for Fracture Shards, each granting +10% All Aether Production permanently.${tradeNote}`)) {
             this.prestigeSystem.transcend();
             this.updateBuildingsUI();
             this.updatePrestigeUI();
