@@ -10,6 +10,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 ## In progress
 
 - R4 #6 Transcend rework (PR #35).
+- R24 #47 Reduced motion and touch tooltips.
 
 ## Next up
 
