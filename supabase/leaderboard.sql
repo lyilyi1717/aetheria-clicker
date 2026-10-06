@@ -54,7 +54,8 @@ grant insert, update on public.leaderboard to authenticated;
 --   * sets last_seen to the server clock, and keeps updated_at (the tie-break: first to
 --     reach a score ranks higher) unless a ranked stat actually changed;
 --   * clamps each stat to a generous ceiling for the account's age. Measured play is far
---     below these (an optimal bot: ~31 ascensions/h, depth ~3,750 in its first hour), so
+--     below these (an optimal bot: ~31 ascensions/h, depth ~3,750 in its first hour; the
+--     fastest real player on 2026-10-06 reached floor 24,517 in about 5 h), so
 --     honest players never hit them; a forged row gets clamped instead of rejected, so a
 --     legitimate client never gets stuck in an error loop.
 -- Anonymous accounts are free to create, so this bounds fake scores rather than ruling
@@ -78,7 +79,7 @@ begin
     new.aether_log10 := 0;
   end if;
   new.aether_log10 := greatest(0, least(new.aether_log10, 300 + 100 * hours, 9e15));
-  new.max_floor    := greatest(1, least(new.max_floor::double precision, 10000 + 10000 * hours, 2147483647))::integer;
+  new.max_floor    := greatest(1, least(new.max_floor::double precision, 25000 + 25000 * hours, 2147483647))::integer;
   new.ascensions   := greatest(0, least(new.ascensions::double precision, 100 + 100 * hours, 2147483647))::integer;
   new.max_depth    := greatest(1, least(new.max_depth::double precision, 10000 + 10000 * hours, 2147483647))::integer;
   new.aether_text  := left(new.aether_text, 32);
