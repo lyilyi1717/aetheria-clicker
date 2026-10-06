@@ -3,12 +3,12 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '3.4.0';
+export const VERSION = '3.2.0';
 
 export const CHANGELOG = [
   {
-    version: '3.4.0',
-    date: '2026-10-07',
+    version: '3.2.0',
+    date: '2026-10-06',
     title: 'Codex 2.0',
     changes: [
       'The Codex tab now has three sections: Achievements, Collections and the Generator Codex, with an overall Codex percentage at the top.',
