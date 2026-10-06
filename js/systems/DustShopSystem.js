@@ -48,7 +48,7 @@ export const DUST_SHOP_ITEMS = [
   { id: 'astral_alchemist', tier: 5, icon: '⚗️', name: 'Astral Crucible', cost: 40, maxRank: 1,
     desc: 'Elixirs last twice as long (and can stack twice as long).', see: 'See it: Alchemy' },
   { id: 'golem_covenant', tier: 5, icon: '🗿', name: 'Golem Covenant', cost: 200, maxRank: 1,
-    desc: 'Garden Golems can be bought (Stone + Mana Sap). Golems you own always keep working.', see: 'See it: Garden' },
+    desc: 'Garden Golems can be bought (Stone + Lemon Drops). Golems you own always keep working.', see: 'See it: Garden' },
   { id: 'hourglass', tier: 5, icon: '⌛', name: 'Hourglass of Al-Ula', cost: 300, maxRank: 1,
     desc: 'Adds 5 min and 1 h Fast Forward buttons (300 and 3,600 Chrono Sand).', see: 'See it: Fast Forward' },
   { id: 'auto_leylines', tier: 10, icon: '🔮', name: 'Automated Leylines', cost: 500, maxRank: 1,

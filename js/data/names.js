@@ -10,11 +10,11 @@ export const ITEM_NAMES = {
   obsidian: { name: 'Obsidian', plural: 'Obsidian', icon: '⬛', color: '#334155' },
   voidstone: { name: 'Voidstone', plural: 'Voidstone', icon: '🔮', color: '#4c1d95' },
   // Excavation treasures (the gem ladder, lowest first)
-  rubies: { name: 'Fanoos', plural: 'Fawanees', icon: '🏮', color: '#ef4444' },
-  sapphires: { name: 'Dallah', plural: 'Dallahs', icon: '🫖', color: '#3b82f6' },
-  emeralds: { name: 'Oud Wood', plural: 'Oud Wood', icon: '🪵', color: '#10b981' },
-  diamonds: { name: 'Misbaha', plural: 'Misbaha', icon: '📿', color: '#38bdf8' },
-  voidAmethyst: { name: 'Mabkhara', plural: 'Mabkhara', icon: '🏺', color: '#a855f7' },
+  rubies: { name: 'Fanoos', plural: 'Fawanees', icon: '🔴', color: '#ef4444' },
+  sapphires: { name: 'Dallah', plural: 'Dallahs', icon: '🔵', color: '#3b82f6' },
+  emeralds: { name: 'Oud Wood', plural: 'Oud Wood', icon: '🟢', color: '#10b981' },
+  diamonds: { name: 'Misbaha', plural: 'Misbaha', icon: '💎', color: '#38bdf8' },
+  voidAmethyst: { name: 'Mabkhara', plural: 'Mabkhara', icon: '🟣', color: '#a855f7' },
   // Void Tower drops
   monsterBones: { name: 'Monster Bone', plural: 'Monster Bones', icon: '🦴', color: '#e5e7eb' },
   voidCores: { name: 'Void Core', plural: 'Void Cores', icon: '🌀', color: '#8b5cf6' },

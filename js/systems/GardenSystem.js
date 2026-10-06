@@ -3,15 +3,16 @@ import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { hasShopItem } from './DustShopSystem.js';
+import { ITEM_NAMES } from '../data/names.js';
 
 // Grow times are ×15 the v1.x values (§5.2): 5 min / 11 min / 19 min / 30 min / 1 h / 2 h.
 export const SEED_TYPES = {
-  spore: { id: 'spore', name: 'Mint Leaf', icon: '🌿', growTime: 300, desc: 'Yields Fresh Mint' },
-  mana_lily: { id: 'mana_lily', name: 'Hasawi Lemon', icon: '🍋', growTime: 675, desc: 'Restores Mana & yields Lemon Drops' },
-  solar_fern: { id: 'solar_fern', name: 'Desert Truffle (Fagga)', icon: '🥔', growTime: 1125, desc: 'Yields Truffle Oil' },
-  frost_petal: { id: 'frost_petal', name: 'Rose of Taif', icon: '🌹', growTime: 1800, desc: 'Yields Taif Rosewater' },
-  void_orchid: { id: 'void_orchid', name: 'Date Palm', icon: '🌴', growTime: 3600, desc: 'Yields Golden Dates' },
-  star_lotus: { id: 'star_lotus', name: 'Sidr Tree', icon: '🌳', growTime: 7200, desc: 'Yields Sidr Honey' }
+  spore: { id: 'spore', name: 'Mint Leaf', icon: '🌿', growTime: 300, desc: `Yields ${ITEM_NAMES.sporePowder.name}` },
+  mana_lily: { id: 'mana_lily', name: 'Hasawi Lemon', icon: '🍋', growTime: 675, desc: `Restores Mana & yields ${ITEM_NAMES.manaSap.name}` },
+  solar_fern: { id: 'solar_fern', name: 'Desert Truffle (Fagga)', icon: '🥔', growTime: 1125, desc: `Yields ${ITEM_NAMES.solarDew.name}` },
+  frost_petal: { id: 'frost_petal', name: 'Rose of Taif', icon: '🌹', growTime: 1800, desc: `Yields ${ITEM_NAMES.cryoEssence.name}` },
+  void_orchid: { id: 'void_orchid', name: 'Date Palm', icon: '🌴', growTime: 3600, desc: `Yields ${ITEM_NAMES.voidPollen.name}` },
+  star_lotus: { id: 'star_lotus', name: 'Sidr Tree', icon: '🌳', growTime: 7200, desc: `Yields ${ITEM_NAMES.starNectar.name}` }
 };
 
 // Water All (§5.2): +30 s growth on a 60 s cooldown
@@ -37,14 +38,9 @@ const ESSENCE_BY_SEED = {
   star_lotus: 'starNectar'
 };
 
-export const ESSENCE_NAMES = {
-  sporePowder: 'Fresh Mint',
-  manaSap: 'Lemon Drops',
-  solarDew: 'Truffle Oil',
-  cryoEssence: 'Taif Rosewater',
-  voidPollen: 'Golden Dates',
-  starNectar: 'Sidr Honey'
-};
+export const ESSENCE_NAMES = Object.fromEntries(
+  Object.values(ESSENCE_BY_SEED).map(k => [k, ITEM_NAMES[k].name])
+);
 
 // --- Breeding, golden mutation, hybrids (R17, §2.4) ---
 // Golden mutation: 1% of harvests; that harvest yields x3 essence and is logged in the Herbarium.
@@ -55,12 +51,12 @@ export const GOLDEN_ESSENCE_MULT = 3;
 // Neighbouring tiers cross at 30%; the Mint x Sidr long cross is rarer at 15%. A cross harvests
 // both plants exactly as a normal harvest would, so a miss costs nothing.
 export const HYBRIDS = {
-  limonana: { id: 'limonana', name: 'Limonana', icon: '🍹', parents: ['spore', 'mana_lily'], chance: 0.30 },
-  truffleZest: { id: 'truffleZest', name: 'Lemon Truffle Zest', icon: '🍋', parents: ['mana_lily', 'solar_fern'], chance: 0.30 },
-  roseTruffle: { id: 'roseTruffle', name: 'Rose Truffle Jam', icon: '🥘', parents: ['solar_fern', 'frost_petal'], chance: 0.30 },
-  roseDate: { id: 'roseDate', name: 'Rose Date Syrup', icon: '🍯', parents: ['frost_petal', 'void_orchid'], chance: 0.30 },
-  honeyDate: { id: 'honeyDate', name: 'Honeyed Dates', icon: '🌴', parents: ['void_orchid', 'star_lotus'], chance: 0.30 },
-  mintHoney: { id: 'mintHoney', name: 'Mint Honey Tea', icon: '🍵', parents: ['spore', 'star_lotus'], chance: 0.15 }
+  limonana: { id: 'limonana', name: ITEM_NAMES.limonana.name, icon: ITEM_NAMES.limonana.icon, parents: ['spore', 'mana_lily'], chance: 0.30 },
+  truffleZest: { id: 'truffleZest', name: ITEM_NAMES.truffleZest.name, icon: ITEM_NAMES.truffleZest.icon, parents: ['mana_lily', 'solar_fern'], chance: 0.30 },
+  roseTruffle: { id: 'roseTruffle', name: ITEM_NAMES.roseTruffle.name, icon: ITEM_NAMES.roseTruffle.icon, parents: ['solar_fern', 'frost_petal'], chance: 0.30 },
+  roseDate: { id: 'roseDate', name: ITEM_NAMES.roseDate.name, icon: ITEM_NAMES.roseDate.icon, parents: ['frost_petal', 'void_orchid'], chance: 0.30 },
+  honeyDate: { id: 'honeyDate', name: ITEM_NAMES.honeyDate.name, icon: ITEM_NAMES.honeyDate.icon, parents: ['void_orchid', 'star_lotus'], chance: 0.30 },
+  mintHoney: { id: 'mintHoney', name: ITEM_NAMES.mintHoney.name, icon: ITEM_NAMES.mintHoney.icon, parents: ['spore', 'star_lotus'], chance: 0.15 }
 };
 
 export const HYBRID_ESSENCE_NAMES = Object.fromEntries(Object.values(HYBRIDS).map(h => [h.id, h.name]));
