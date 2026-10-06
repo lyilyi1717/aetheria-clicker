@@ -2,6 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { rewards } from '../ui/rewards.js';
 import { recordAscensionDust, checkMilestones } from './TalentSources.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
+import { isChallengeActive } from './ChronicleSystem.js';
 
 export const ASCENSION_PERKS = [
   { id: 'genesis', name: 'Cosmic Genesis', desc: 'Start with 15 Tappers & 1,000 Gold on reset.', cost: 5, maxRank: 1 },
@@ -107,7 +108,8 @@ export class PrestigeSystem {
   }
 
   canAscend(now = Date.now()) {
-    return this.getPendingCosmicDust().gt(0) && this.getMinRunRemaining(now) <= 0;
+    // A Chronicle challenge (R20) is a side run: no Ascending until it ends
+    return !isChallengeActive(this.gameState) && this.getPendingCosmicDust().gt(0) && this.getMinRunRemaining(now) <= 0;
   }
 
   // quiet: skip the ceremony; auto-Ascend (shard tree, R13) announces its own batched toast
@@ -182,7 +184,8 @@ export class PrestigeSystem {
   }
 
   canTranscend() {
-    return this.gameState.totalCosmicDust.gte(this.getTranscendGate());
+    // Not during a Chronicle challenge (R20)
+    return !isChallengeActive(this.gameState) && this.gameState.totalCosmicDust.gte(this.getTranscendGate());
   }
 
   // What Transcend trades, for the confirm dialog and the panel. Lifetime dust of this layer (and

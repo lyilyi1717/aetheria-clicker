@@ -15,6 +15,7 @@
 // (R13; see the shard-tree block below).
 // Transcend policy: as soon as lifetime dust reaches the gate (R4). Each Transcend unlocks the
 // next generator tier and counts as a reset in the gap measurement.
+// Chronicle policy (R20, layer 3): see the Chronicle block below.
 //
 // When an economy PR changes the core (new prestige layer, shop, formulas), update this script
 // so it still models what a real player would do, and paste the before/after report in the PR.
@@ -25,6 +26,7 @@ import { PrestigeSystem, ASCENSION_PERKS } from '../js/systems/PrestigeSystem.js
 import { AchievementSystem } from '../js/systems/AchievementSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
 import { ShardTreeSystem, autoAscendRuleMet } from '../js/systems/ShardTreeSystem.js';
+import { ChronicleSystem, chronicleClock, PAGE_UPGRADES } from '../js/systems/ChronicleSystem.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
@@ -36,9 +38,9 @@ const YEAR = 365 * DAY;
 export const TARGETS = {
   firstAscensionMaxMin: 30,      // casual player's first Ascension within 30 min
   maxGapDaysAfterDay1: 14,       // never more than 14 days without a reset (days 1..gapWindowEndDay)
-  // The doc's goal is day 270. With Transcend (R4) the casual core keeps a reset at least every
-  // 14 days until ~day 190, then layer 2 stalls (doc §6.4: Chronicle needed). R20 restores 270.
-  gapWindowEndDay: 180
+  // The doc's goal (day 270). Layer 2 alone stalls ~day 185 (doc §6.4); the Chronicle (R20)
+  // restarts the Transcend ladder so resets keep coming.
+  gapWindowEndDay: 270
 };
 
 const CHECKPOINTS = [
@@ -67,6 +69,37 @@ function makeShardTreeModel(gs, ps) {
 }
 // ---------------------------------------------------------------------------------------------
 
+// ---- Chronicle (R20) ------------------------------------------------------------------------
+// The Chapter's 10-week window runs on the sim clock (chronicleClock). Policy: begin a Chronicle
+// once it is allowed and layer 2 has slowed down (the last Transcend is at least
+// CHRONICLE_AFTER_SLOW_DAYS old), which is when a player would trade the Transcend ladder for
+// Pages. Pages go to Page upgrades in PAGE_BUY_ORDER as soon as they are affordable. The sim does
+// not play challenges (their Pages would only make it faster), so this is the slow case.
+const SIM_EPOCH = Date.UTC(2026, 0, 1);
+const CHRONICLE_AFTER_SLOW_DAYS = 7;
+const PAGE_BUY_ORDER = ['bookmark', 'ink', 'dog_ear', 'gilded_edges', 'margin_notes', 'second_reading'];
+function makeChronicleModel(gs, ps, clock) {
+  chronicleClock.now = () => SIM_EPOCH + clock() * 1000;
+  const sys = new ChronicleSystem(gs, ps);
+  const log = [];
+  return {
+    sys, log,
+    // Returns true if a Chronicle began (the run, dust, shards, tree and Transcends reset)
+    maybeChronicle(t, lastTranscendAt) {
+      sys.advanceChapters();
+      if (!sys.canChronicle() || t - lastTranscendAt < CHRONICLE_AFTER_SLOW_DAYS * DAY) return false;
+      const cps = gs.getNetAetherPerSecond();
+      const res = sys.chronicle();
+      if (!res) return false;
+      for (const id of PAGE_BUY_ORDER) sys.buyUpgrade(id);
+      log.push({ day: t / DAY, pages: res.pages, cps: cps.format('scientific', 1) });
+      return true;
+    }
+  };
+}
+if (PAGE_BUY_ORDER.length !== PAGE_UPGRADES.length) throw new Error('sim: PAGE_BUY_ORDER is missing a Page upgrade');
+// ---------------------------------------------------------------------------------------------
+
 function run(profile) {
   const gs = new GameState();
   const bs = new BuildingSystem(gs);
@@ -74,6 +107,9 @@ function run(profile) {
   const ach = new AchievementSystem(gs);
   gs.buildingSystem = bs; gs.achievementSystem = ach;
   const shardTree = makeShardTreeModel(gs, ps);
+  let t = 0;
+  const chronicle = makeChronicleModel(gs, ps, () => t);
+  let lastTranscendAt = 0;
   let autoAscendDay = null;
   bs.buyAmount = 1;
 
@@ -120,7 +156,7 @@ function run(profile) {
 
   const dtFor = (t) => t < 3600 ? 1 : t < DAY ? 10 : t < 7 * DAY ? 60 : 300;
 
-  let t = 0, runStart = 0, ci = 0;
+  let runStart = 0, ci = 0;
   const resets = [];
   const transcends = [];
   const regainDays = [];   // days after each Transcend until CPS is back to its pre-Transcend level
@@ -166,6 +202,12 @@ function run(profile) {
       runStart = t;
       shardTree.buyNodes();
       if (autoAscendDay === null && shardTree.owns('chronos_auto_ascend')) autoAscendDay = t / DAY;
+      lastTranscendAt = t;
+    }
+    if (chronicle.maybeChronicle(t, lastTranscendAt)) {
+      resets.push(t);
+      runStart = t;
+      regainFrom = null;
     }
 
     while (ci < CHECKPOINTS.length && t >= CHECKPOINTS[ci][1]) {
@@ -175,7 +217,9 @@ function run(profile) {
         asc: gs.ascensionCount,
         dust: gs.totalCosmicDust.format('scientific', 2),
         trans: gs.transcendenceCount,
-        tiers: bs.getUnlockedTierCount()
+        tiers: bs.getUnlockedTierCount(),
+        chron: gs.chronicle.count,
+        pages: gs.chronicle.totalPages
       });
       ci++;
     }
@@ -205,6 +249,7 @@ function run(profile) {
     regainDays,
     maxGapDays: maxGap / DAY,
     autoAscendDay,
+    chronicles: chronicle.log,
     gapKeptUntilDay: keptUntil / DAY
   };
 }
@@ -215,9 +260,9 @@ const out = [];
 for (const profile of ['idle', 'casual']) {
   const r = run(profile);
   out.push(`\n### profile: ${profile}\n`);
-  out.push('| time | CPS | Ascensions | lifetime dust (this layer) | Transcends | tiers |');
-  out.push('|---|---|---|---|---|---|');
-  for (const row of r.rows) out.push(`| ${row.label} | ${row.cps} | ${row.asc} | ${row.dust} | ${row.trans} | ${row.tiers} |`);
+  out.push('| time | CPS | Ascensions | lifetime dust (this layer) | Transcends (this Chronicle) | tiers | Chronicles | Pages earned |');
+  out.push('|---|---|---|---|---|---|---|---|');
+  for (const row of r.rows) out.push(`| ${row.label} | ${row.cps} | ${row.asc} | ${row.dust} | ${row.trans} | ${row.tiers} | ${row.chron} | ${row.pages} |`);
   out.push('');
   out.push(`- first Ascension: ${r.firstResetMin.toFixed(1)} min`);
   out.push(`- resets (Ascensions + Transcends) on day 0: ${r.resetsDay0}; in the year: ${r.resetsYear}`);
@@ -227,6 +272,13 @@ for (const profile of ['idle', 'casual']) {
   }
   out.push(`- Auto-Ascend bought: ${r.autoAscendDay === null ? 'never' : `day ${r.autoAscendDay.toFixed(1)}`}`);
   out.push(`- Transcends at day: ${r.transcendDays.length ? r.transcendDays.map(d => d.toFixed(1)).join(', ') : 'none'}`);
+  out.push(`- Chronicles at day: ${r.chronicles.length ? r.chronicles.map(c => {
+    const next = r.transcendDays.find(d => d > c.day);
+    return `${c.day.toFixed(1)} (CPS before it ${c.cps}, +${c.pages} Pages, first Transcend after it ${next === undefined ? 'never' : `+${(next - c.day).toFixed(1)} d`})`;
+  }).join(', ') : 'none'}`);
+  // Transcend storms (R20): each Transcend is an epic ceremony, so they should not bunch up
+  const close = r.transcendDays.filter((d, i) => i > 0 && d - r.transcendDays[i - 1] < 0.25).length;
+  out.push(`- Transcends less than 6 h after the previous one: ${close} of ${r.transcendDays.length}`);
   out.push(`- longest stretch with no reset (day 1..${TARGETS.gapWindowEndDay}): ${r.maxGapDays.toFixed(1)} days`);
   out.push(`- a reset at least every ${TARGETS.maxGapDaysAfterDay1} days until day ${r.gapKeptUntilDay.toFixed(0)}`);
   if (profile === 'casual') {

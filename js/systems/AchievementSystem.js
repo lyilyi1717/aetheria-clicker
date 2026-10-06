@@ -1,4 +1,5 @@
 import { BigNum } from '../engine/BigNum.js';
+import { getLifetimeTranscends } from './ChronicleSystem.js';
 import { rewards } from '../ui/rewards.js';
 
 const LEGACY_ACHIEVEMENTS = [
@@ -79,7 +80,7 @@ const LADDER_STATS = [
     [100, 'Incantor', '📖'], [1000, 'Archmage', '🪄'], [10000, 'Weaver of Worlds', '🔯']] },
   { stat: 'ascend', get: gs => gs.ascensionCount || 0, desc: n => `Ascend ${f(n)} times.`, rungs: [
     [5, 'Star Climber', '🌟'], [10, 'Constellation Maker', '⭐'], [25, 'Dust Magnate', '🌌'], [50, 'Cycle Master', '🔄'], [100, 'Hundredfold Rebirth', '🎆']] },
-  { stat: 'transcend', get: gs => gs.transcendenceCount || 0, desc: n => `Transcend ${f(n)} ${n === 1 ? 'time' : 'times'}.`, rungs: [
+  { stat: 'transcend', get: gs => getLifetimeTranscends(gs), desc: n => `Transcend ${f(n)} ${n === 1 ? 'time' : 'times'}.`, rungs: [
     [1, 'Beyond the Veil', '🪽'], [2, 'Twice Risen', '🕊️'], [5, 'Fifth Ladder', '🪜'], [10, 'Tenfold Ascendant', '🔱'],
     [20, 'Cosmic Cartographer', '🧭'], [32, 'Eternity Walker', '🏺']] },
   { stat: 'bounties', get: gs => gs.stats?.totalBountiesCompleted || 0, desc: n => `Complete ${f(n)} guild contracts.`, rungs: [

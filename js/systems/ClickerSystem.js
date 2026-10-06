@@ -1,4 +1,5 @@
 import { BigNum } from '../engine/BigNum.js';
+import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 
@@ -45,7 +46,8 @@ export class ClickerSystem {
     }
 
     // Trigger frenzy if combo hits 100
-    if (this.gameState.comboCount >= 100 && !this.gameState.frenzyActive) {
+    // (a Chronicle challenge may forbid Frenzy, R20)
+    if (this.gameState.comboCount >= 100 && !this.gameState.frenzyActive && !getActiveRules(this.gameState).noFrenzy) {
       this.triggerFrenzy(15);
     }
 

@@ -1,4 +1,5 @@
 import { BigNum } from '../engine/BigNum.js';
+import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 
 export const BUILDING_DEFINITIONS = [
@@ -175,7 +176,8 @@ const GENERATED_TIERS = [
 // Tiers open to the player: the 14 base tiers plus one per Transcend, capped at 30
 export function getUnlockedTierCount(gameState) {
   const t = Math.max(0, Math.floor(Number(gameState?.transcendenceCount) || 0));
-  return Math.min(MAX_TIER_COUNT, BASE_TIER_COUNT + t);
+  // A Chronicle challenge may close the upper tiers (Small Souq, R20)
+  return Math.min(MAX_TIER_COUNT, BASE_TIER_COUNT + t, getActiveRules(gameState).maxTiers);
 }
 
 // id -> definition; the per-frame building UI used to linear-search this list per call
