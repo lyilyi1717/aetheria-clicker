@@ -17,6 +17,12 @@ export const DUST_EXPONENT = 1 / 3;
 // Shortest run that may Ascend (design doc 2.1 / 6.1)
 export const MIN_RUN_SECONDS = 600;
 
+// Transcend (layer 2, design doc 6.1 / roadmap R4)
+export const TRANSCEND_BASE_GATE = 1e9;   // lifetime dust (this layer) for the first Transcend
+export const TRANSCEND_SHARDS = 2;        // shards paid per Transcend
+export const SHARD_AETHER_MULT = 1.5;     // x Aether per lifetime shard
+export const SHARD_DUST_MULT = 1.5;       // x dust gain per lifetime shard
+
 // Dust-gain links (design doc §5.3). Each is its own multiplicative category on pending dust.
 // Geode Attunement (Excavation -> Dust): x(1 + 0.10 * floor(maxDepth / 10))
 export function getGeodeAttunementMult(gameState) {
