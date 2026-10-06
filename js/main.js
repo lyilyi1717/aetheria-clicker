@@ -211,10 +211,11 @@ class AetheriaApp {
   buildSettingsStructure() {
     const cont = document.getElementById('settings-notation');
     if (!cont) return;
-    const sample = new BigNum(1.5, 10);
+    const sample = new BigNum(1.5, 16);
     const options = [
+      { id: 'letters', label: 'Letters (K, M, B, T, aa, ab…)' },
       { id: 'scientific', label: 'Scientific' },
-      { id: 'suffix', label: 'Standard (K, M, B…)' },
+      { id: 'suffix', label: 'Named (K, M, B, Qa, Qi…)' },
       { id: 'engineering', label: 'Engineering' }
     ];
     cont.innerHTML = options.map(o => `

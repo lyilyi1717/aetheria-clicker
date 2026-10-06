@@ -181,6 +181,19 @@ export const MIGRATIONS = [
       data.unlockSeen = seen;
       return data;
     }
+  },
+  {
+    // v6 -> v7 (letter notation, roadmap R30): 'letters' (K, M, B, T, aa, ab...) is the new
+    // default notation. Saves on the old default ('scientific', or no setting at all) switch to
+    // it; a save can't tell a deliberate Scientific pick from the default, and Settings switches
+    // back in one tap. Saves that picked Standard or Engineering keep their choice.
+    to: 7,
+    migrate(data) {
+      const settings = data.settings && typeof data.settings === 'object' ? { ...data.settings } : {};
+      if (settings.notation === undefined || settings.notation === 'scientific') settings.notation = 'letters';
+      data.settings = settings;
+      return data;
+    }
   }
 ];
 

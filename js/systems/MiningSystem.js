@@ -60,6 +60,48 @@ export const DESCEND_DELAY = 0.4;
 // explosives find the stairs at a fixed rate whatever the tile HP, far past the pickaxe.
 export const EXPLOSIVE_HITS = 40;
 export const DYNAMITE_COOLDOWN = 25; // seconds, saved in miningGrid.dynamiteCooldown
+
+// Tile indices of the 3x3 blast centred on centerId, clipped to the gridSize x gridSize grid
+// (a corner centre gives 4 tiles, an edge centre 6).
+export function getBlastArea(centerId, gridSize) {
+  const cx = centerId % gridSize;
+  const cy = Math.floor(centerId / gridSize);
+  const ids = [];
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      const x = cx + dx, y = cy + dy;
+      if (x < 0 || y < 0 || x >= gridSize || y >= gridSize) continue;
+      ids.push(y * gridSize + x);
+    }
+  }
+  return ids;
+}
+
+function tileEl(id) {
+  return typeof document !== 'undefined' ? document.getElementById(`mine-tile-${id}`) : null;
+}
+
+// Centre of a tile on screen, or null when the grid isn't rendered or is hidden.
+function tileScreenPos(id) {
+  const el = tileEl(id);
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  if (!r.width || !r.height) return null;
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+}
+
+// Outline the blasted tiles with an orange flash so the 3x3 shape is visible. Restarts the
+// animation when the same tile is blasted again before it ends.
+function flashTiles(ids) {
+  for (const id of ids) {
+    const el = tileEl(id);
+    if (!el) continue;
+    el.classList.remove('blast-flash');
+    void el.offsetWidth;
+    el.classList.add('blast-flash');
+    setTimeout(() => el.classList.remove('blast-flash'), 700);
+  }
+}
 // Schema 3 rebase: a save whose kit needs more than STUCK seconds per tile moves up to the
 // deepest depth it digs in TARGET seconds per tile. maxDepth is kept.
 const REBASE_STUCK_SECONDS = 12 * 3600;
@@ -373,12 +415,18 @@ export class MiningSystem {
   }
 
   // Dynamite / Void Cataclysm: EXPLOSIVE_HITS pickaxe hits on each target tile. Stops once
-  // the stairs break, since the rest of the old grid is spent.
-  blastBlocks(targets, x, y) {
+  // the stairs break, since the rest of the old grid is spent. Effects spawn on each tile's
+  // own on-screen spot; (x, y) is only the fallback when the grid isn't on screen (e.g. a
+  // spell cast from another tab). flashIds: tiles to flash (default: the targets).
+  blastBlocks(targets, x, y, flashIds = targets.map(b => b.id)) {
     const dmg = this.getPickaxePower() * EXPLOSIVE_HITS;
+    flashTiles(flashIds);
     for (const b of targets) {
       if (this.descending) break;
-      this.damageBlock(b, dmg, x, y);
+      const pos = tileScreenPos(b.id);
+      const px = pos ? pos.x : x, py = pos ? pos.y : y;
+      if (pos) particles.spawnClickSparks(px, py, 10, '#f97316');
+      this.damageBlock(b, dmg, px, py);
     }
   }
 
@@ -494,21 +542,12 @@ export class MiningSystem {
     this.dynamiteCooldown = DYNAMITE_COOLDOWN;
     sound.playHit();
 
-    // Blast a 3x3 area centred on a random unrevealed block
+    // Blast a 3x3 area centred on a random unrevealed block (clipped at the grid edges).
+    // Effects used to spawn at the middle of the window, which looked like a miss.
     const center = unrevealed[Math.floor(Math.random() * unrevealed.length)];
-    const cx = center.id % this.gridSize;
-    const cy = Math.floor(center.id / this.gridSize);
-    const targets = [];
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        const x = cx + dx, y = cy + dy;
-        if (x < 0 || y < 0 || x >= this.gridSize || y >= this.gridSize) continue;
-        const b = blocks[y * this.gridSize + x];
-        if (b && !b.revealed) targets.push(b);
-      }
-    }
-    const w = typeof window !== 'undefined' ? window : null;
-    this.blastBlocks(targets, w ? w.innerWidth / 2 : 0, w ? w.innerHeight / 2 : 0);
+    const area = getBlastArea(center.id, this.gridSize);
+    const targets = area.map(i => blocks[i]).filter(b => b && !b.revealed);
+    this.blastBlocks(targets, null, null, area);
     return true;
   }
 

@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.3.0';
+export const VERSION = '4.4.0';
 
 export const CHANGELOG = [
   {
-    version: '4.3.0',
+    version: '4.4.0',
     date: '2026-10-06',
     title: 'Frenzy every 20 clicks',
     changes: [
@@ -15,6 +15,34 @@ export const CHANGELOG = [
       'Every 20 clicks in a row (20, 40, 60, ...) sets off a Frenzy. When a Frenzy ends your combo keeps going instead of dropping back to 0, so you never have to rebuild 100 clicks again. Only pausing for 2 seconds drains the combo.',
       'Frenzy is shorter and gentler so it can come much more often: x3 click yield for 4 s (was x5 and rapid auto-clicks for 15 s). Reaching the next 20 while a Frenzy is running adds 4 s, up to 30 s. Overall, attentive play earns about the same as before; pure clicking without spells earns a little less, and a Time Flux anomaly is now 25 s of the new x3 Frenzy.',
       'The combo bar fills over the first 20 clicks, then shows your progress to the next Frenzy, with a "Frenzy in N" counter.'
+    ]
+  },
+  {
+    version: '4.3.0',
+    date: '2026-10-06',
+    title: 'Friendlier big numbers',
+    changes: [
+      'New default number notation, Letters: 1.50K, 2.30M, 4.00B, 7.25T, then aa, ab, ac… after trillion (1.00aa is 1,000 T, 1.00ab is 1,000 aa, and so on). After zz comes aaa, so it never runs out.',
+      'If you were on Scientific (the old default), your game now uses Letters. Prefer 1.5e16? Switch back in Settings with one tap. Players who picked Standard or Engineering keep their choice.',
+      'The old Standard option (Qa, Qi, Sx…) is still in Settings, now called Named, along with Scientific and Engineering.'
+    ]
+  },
+  {
+    version: '4.2.2',
+    date: '2026-10-06',
+    title: 'Dallah, Codex, Leaderboard and Settings open again',
+    changes: [
+      'The Dallah, Codex, Leaderboard and Settings tabs showed an empty page unless the Chronicle tab was open. They now open normally.'
+    ]
+  },
+  {
+    version: '4.2.1',
+    date: '2026-10-06',
+    title: 'Dynamite blasts land on the grid',
+    changes: [
+      'The Excavation 3x3 blast now shows its sparks and rewards on the tiles it actually hit, instead of in the middle of the screen. Blasted tiles flash orange so you can see the 3x3 area.',
+      'Blasts near an edge or corner only hit the tiles that are on the grid (4 at a corner, 6 along an edge), as before; only the effects were in the wrong place.',
+      'Void Cataclysm also shows its mining effects on the tiles it hits while the Excavation grid is on screen.'
     ]
   },
   {
