@@ -5,6 +5,7 @@
 // Clicks are delegated on the bar, so per-frame updates never swallow taps.
 
 import { SPELLS } from './systems/SpellSystem.js';
+import { tipHtml } from './ui/tooltip.js';
 
 // Icon per buff id (recipe/spell), falling back to the buff type
 const BUFF_ICONS = {
@@ -29,8 +30,6 @@ const BUFF_TARGETS = {
   frenzy: { tag: 'Monolith', tab: 'monolith', affects: 'auto-clicks' }
 };
 
-const MOBILE_QUERY = '(max-width: 639px)';
-
 export function formatClock(sec) {
   const s = Math.max(0, Math.ceil(sec));
   const m = Math.floor(s / 60);
@@ -51,46 +50,19 @@ export class BuffBar {
     this.bar = document.getElementById('buff-bar');
     this.buffRow = document.getElementById('buff-bar-buffs');
     this.spellRow = document.getElementById('buff-bar-spells');
-    this.tip = document.getElementById('buff-bar-tip');
     this.chips = new Map();     // key -> { el, timeEl, fillEl, last }
     this.seenMax = new Map();   // key -> largest duration seen (fallback when maxDuration missing)
     this.visible = false;
-    this.tipKey = null;
   }
 
   build() {
     if (!this.bar) return;
+    // On touch, js/ui/tooltip.js catches the tap first and opens the chip's tip as a bottom
+    // sheet with a "Go to" button; mouse clicks jump straight to the tab.
     this.bar.addEventListener('click', (e) => {
       const chip = e.target.closest('.bb-chip');
-      if (!chip) return;
-      const isMobile = window.matchMedia && window.matchMedia(MOBILE_QUERY).matches;
-      // Mobile: first tap shows name/tag tooltip, second tap jumps
-      if (isMobile && this.tipKey !== chip.dataset.key) {
-        this.showTip(chip);
-        return;
-      }
-      this.hideTip();
-      if (chip.dataset.tab) this.app.switchTab(chip.dataset.tab);
+      if (chip?.dataset.tab) this.app.switchTab(chip.dataset.tab);
     });
-    document.addEventListener('click', (e) => {
-      if (this.tipKey && !e.target.closest('#buff-bar')) this.hideTip();
-    });
-  }
-
-  showTip(chip) {
-    if (!this.tip) return;
-    this.tipKey = chip.dataset.key;
-    this.tip.textContent = chip.title + (chip.dataset.tab ? ' — tap again to go' : '');
-    const r = chip.getBoundingClientRect();
-    const barRect = this.bar.getBoundingClientRect();
-    const center = Math.max(8, Math.min(window.innerWidth - 8, r.left + r.width / 2));
-    this.tip.style.left = `${center - barRect.left}px`;
-    this.tip.hidden = false;
-  }
-
-  hideTip() {
-    this.tipKey = null;
-    if (this.tip) this.tip.hidden = true;
   }
 
   // Collect everything that should be on the bar this frame
@@ -127,10 +99,11 @@ export class BuffBar {
     el.type = 'button';
     el.className = 'bb-chip bb-buff';
     el.dataset.key = b.key;
-    if (target.tab) el.dataset.tab = target.tab;
+    if (target.tab) { el.dataset.tab = target.tab; el.dataset.goLabel = target.tag; }
     el.dataset.type = b.type;
     const stack = stackText(b);
-    el.title = `${b.name}${stack ? ` (${stack})` : ''} → ${target.tag}${target.affects ? `: ${target.affects}` : ''}`;
+    el.dataset.tip = tipHtml(`${b.name}${stack ? ` (${stack})` : ''}`,
+      `→ ${target.tag}${target.affects ? `: ${target.affects}` : ''}`);
     el.innerHTML = `<span class="bb-icon">${BUFF_ICONS[b.id] || '✨'}</span>`
       + `<span class="bb-name">${b.name}</span>`
       + (stack ? `<span class="bb-stack">${stack}</span>` : '')
@@ -146,7 +119,8 @@ export class BuffBar {
     el.className = 'bb-chip bb-spell' + (s.id === 'astral_refresh' ? ' bb-spell-long' : '');
     el.dataset.key = `cd:${s.id}`;
     el.dataset.tab = 'spells';
-    el.title = `${s.name} cooling down → Grimoire`;
+    el.dataset.goLabel = 'Grimoire';
+    el.dataset.tip = tipHtml(s.name, 'Cooling down → Grimoire');
     el.innerHTML = `<span class="bb-icon">${s.icon}</span><span class="bb-time"></span>`;
     return { el, timeEl: el.querySelector('.bb-time'), fillEl: null, last: {} };
   }
@@ -197,7 +171,6 @@ export class BuffBar {
       chip.el.remove();
       this.chips.delete(key);
       this.seenMax.delete(key);
-      if (this.tipKey === key) this.hideTip();
     }
 
     const show = this.chips.size > 0;
@@ -205,7 +178,6 @@ export class BuffBar {
       this.visible = show;
       this.bar.hidden = !show;
       document.body.classList.toggle('has-buff-bar', show);
-      if (!show) this.hideTip();
     }
     const hasSpells = spells.length > 0;
     if (this.spellRow.hidden === hasSpells) this.spellRow.hidden = !hasSpells;

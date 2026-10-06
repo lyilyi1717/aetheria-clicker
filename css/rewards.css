@@ -3,7 +3,7 @@
 /* ---- Toasts: top-right stack, max 3, never catch input ---- */
 .reward-toasts {
   position: fixed;
-  top: 72px;
+  top: calc(var(--header-h) + 8px); /* below the header (R23) */
   right: 16px;
   z-index: 10001;
   display: flex;
@@ -151,14 +151,15 @@
 
 /* Phone width: toasts span the top, under the header */
 @media (max-width: 600px) {
-  .reward-toasts { top: 8px; right: 8px; left: 8px; width: auto; align-items: stretch; }
+  .reward-toasts { top: calc(var(--header-h) + 8px); right: 8px; left: 8px; width: auto; align-items: stretch; }
   .reward-toast { padding: 8px 10px; }
   .reward-ceremony-icon { font-size: 2.6rem; }
 }
 
+/* Reduced motion: the device setting until js/ui/motion.js sets data-motion, then the in-game one */
 @media (prefers-reduced-motion: reduce) {
-  .reward-toast, .reward-toast.is-bumped, .reward-toast.is-leaving,
-  .reward-ceremony.is-open, .reward-ceremony-card, .reward-pulse { animation: none; }
-  .reward-toast.is-leaving { opacity: 0; }
-  .reward-ceremony-burst { animation: none; opacity: 0.5; }
+  :root:not([data-motion="full"]) .reward-toast.is-leaving { opacity: 0; }
+  :root:not([data-motion="full"]) .reward-ceremony-burst { opacity: 0.5; }
 }
+:root[data-motion="reduced"] .reward-toast.is-leaving { opacity: 0; }
+:root[data-motion="reduced"] .reward-ceremony-burst { opacity: 0.5; }

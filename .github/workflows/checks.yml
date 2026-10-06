@@ -16,6 +16,29 @@ jobs:
       - name: Unit tests
         run: npm test
 
+  # A PR that changes the game (js/, css/, index.html, art) must add a changelog entry in
+  # js/version.js, so the About tab stays current (AGENTS.md, "Version and changelog").
+  # Purely internal changes (refactor, tests-only fix) can opt out with the `no-changelog` label.
+  changelog:
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'no-changelog')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Game changes come with a changelog entry
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          changed=$(git diff --name-only "$BASE_SHA"...HEAD)
+          game=$(echo "$changed" | grep -E '^(js/|css/|index\.html$|assets/|[^/]+\.(webp|png|jpe?g|svg|css)$)' || true)
+          if [ -z "$game" ]; then echo "No game files changed; no changelog needed."; exit 0; fi
+          if echo "$changed" | grep -qx 'js/version.js'; then echo "js/version.js updated."; exit 0; fi
+          echo "::error file=js/version.js::This PR changes game files but adds no changelog entry. Bump VERSION and add an entry at the top of CHANGELOG in js/version.js (AGENTS.md, 'Version and changelog'), or add the 'no-changelog' label if players can't notice the change."
+          echo "Game files changed:"; echo "$game"
+          exit 1
+
   pacing:
     runs-on: ubuntu-latest
     steps:
