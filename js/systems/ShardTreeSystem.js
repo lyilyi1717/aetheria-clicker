@@ -15,6 +15,7 @@
 // This module has no audio/DOM imports so GameState (and node tests) can load it on its own.
 // Sounds and notices live in js/ui/shardTree.js.
 import { BigNum } from '../engine/BigNum.js';
+import { isChallengeActive } from './ChronicleSystem.js';
 
 // Same ladder as BuildingSystem.getUnlockedTierCount (14 base tiers + 1 per Transcend, max 30).
 // Repeated here so this module stays free of BuildingSystem's audio import; test_shard_tree.js
@@ -312,7 +313,8 @@ export class ShardTreeSystem {
   }
 
   canLongWarp(now = this.now()) {
-    return this.has('chronos_long_warp') && this.getLongWarpReadyIn(now) <= 0;
+    // Not during a Chronicle challenge (R20): 6 h of production would skip the challenge
+    return this.has('chronos_long_warp') && this.getLongWarpReadyIn(now) <= 0 && !isChallengeActive(this.gameState);
   }
 
   // Pays 6 h of current Aether production without timed buffs (100%, like the first offline band) and grows the

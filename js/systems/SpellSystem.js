@@ -1,4 +1,5 @@
 import { BigNum } from '../engine/BigNum.js';
+import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from '../ui/rewards.js';
 
@@ -83,6 +84,8 @@ export class SpellSystem {
   canCast(spellId) {
     const s = SPELLS.find(sp => sp.id === spellId);
     if (!s) return false;
+    // Lights Out (Chronicle challenge, R20): no spells, Automated Leylines included
+    if (getActiveRules(this.gameState).noSpells) return false;
     const state = this.gameState.spells[spellId];
     if (state.cd > 0) return false;
     if (this.gameState.mana < s.manaCost) return false;

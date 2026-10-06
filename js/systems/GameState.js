@@ -3,6 +3,9 @@ import { defaultFastForwardState, sanitizeFastForwardState } from './FastForward
 import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
 import { defaultRecords, sanitizeRecords, serializeRecords, seedRecords } from './TalentSources.js';
 import { defaultShardTreeState, sanitizeShardTreeState } from './ShardTreeSystem.js';
+import {
+  defaultChronicleState, sanitizeChronicleState, restoreStash, getActiveRules, getPageAetherMult
+} from './ChronicleSystem.js';
 import { defaultCalendarState, sanitizeCalendarState } from './CalendarSystem.js';
 import { getTierUpgradeMult, getClickUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
 
@@ -50,6 +53,9 @@ export class GameState {
     this.legacyTranscendRefund = null;
     // Shard tree (R13): permanent nodes bought with fractureShards; Transcend never resets it
     this.shardTree = defaultShardTreeState();
+    // Chronicle (R20, layer 3): Pages, Page upgrades, Chapter, challenge records and a running
+    // challenge (id + stashed run). Rule overrides are derived from it, never stored elsewhere.
+    this.chronicle = defaultChronicleState();
 
     // Daily Dallah, Weekly Ledger, Seals (R15, CalendarSystem.js); nothing in it is ever taken away
     this.calendar = defaultCalendarState();
@@ -182,9 +188,15 @@ export class GameState {
       mult *= (1 + this.quartermaster['aether_treaty'].rank * 0.25);
     }
 
-    // Cosmic Dust bonus (+2% per lifetime dust this layer) and Fracture Shards (x1.5 each) are
-    // BigNum: both grow without bound across a year and must not overflow a double
-    return base.mul(mult).mul(this.getDustMultiplierBig()).mul(this.getShardAetherMult());
+    // Chronicle rules (R20): the Chapter's world rules and a running challenge's overrides
+    const rules = getActiveRules(this);
+    mult *= rules.aetherMult;
+
+    // Cosmic Dust bonus (+2% per lifetime dust this layer), Fracture Shards (x1.5 each) and
+    // Chronicle Pages (x1.4 each) are BigNum: they grow without bound across a year and must not
+    // overflow a double. Challenges that turn the layer bonuses off count them as x1.
+    if (rules.layerBonusesOff) return base.mul(mult);
+    return base.mul(mult).mul(this.getDustMultiplierBig()).mul(this.getShardAetherMult()).mul(getPageAetherMult(this));
   }
 
   // Upgrade shop: output multiplier for one generator tier (BuildingSystem.getBuildingProduction)
@@ -216,8 +228,9 @@ export class GameState {
       base = base.mul(1 + this.talents.click_power.rank * 0.25);
     }
 
-    // Combo multiplier (up to 5x base)
-    const comboMult = 1 + Math.min(50, this.comboCount) * 0.08;
+    // Combo multiplier (up to 5x base; a challenge may cap it lower)
+    const rules = getActiveRules(this);
+    const comboMult = Math.min(rules.comboCap, 1 + Math.min(50, this.comboCount) * 0.08);
     base = base.mul(comboMult);
 
     // Ascension Perk: Singularity Tap (+100% per rank)
@@ -228,7 +241,7 @@ export class GameState {
     }
 
     // Frenzy multiplier
-    if (this.frenzyActive) {
+    if (this.frenzyActive && !rules.noFrenzy) {
       base = base.mul(5.0);
     }
 
@@ -379,6 +392,7 @@ export class GameState {
       transcendenceCount: this.transcendenceCount,
       legacyTranscendRefund: this.legacyTranscendRefund,
       shardTree: this.shardTree,
+      chronicle: this.chronicle,
       calendar: this.calendar,
       clickPower: this.clickPower.toJSON(),
       critChance: this.critChance,
@@ -442,6 +456,8 @@ export class GameState {
         ? data.legacyTranscendRefund : null;
       // Saves from before R13 have no tree: empty, except Wardens stay free if they had them
       this.shardTree = sanitizeShardTreeState(data.shardTree, { transcendenceCount: this.transcendenceCount });
+      // Saves from before R20 have no Chronicle: a fresh one (nothing to convert)
+      this.chronicle = sanitizeChronicleState(data.chronicle);
       // Saves from before R15 have no calendar: it starts empty and fills on the first visit
       this.calendar = sanitizeCalendarState(data.calendar);
       this.clickPower = BigNum.fromJSON(data.clickPower);
@@ -495,6 +511,8 @@ export class GameState {
       }
       // Saves from before R24 (or with an unknown value) follow the device setting
       if (!['auto', 'on', 'off'].includes(this.settings.reduceMotion)) this.settings.reduceMotion = 'auto';
+      // A challenge whose data no longer exists can't run: put the stashed run back
+      if (this.chronicle.active && !this.chronicle.active.id) restoreStash(this);
       this.clampLoadedTimers();
     } catch (e) {
       console.error('Error during deserialize:', e);

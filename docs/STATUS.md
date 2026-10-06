@@ -15,7 +15,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 ## Next up
 
 After R5: R3 #5 (held per #23 default 5 to ship with R5) and R6 #8 (Blueprint Memory hooks).
-After R9: R10 #12. After R13: R15 #17, R20 #22. After R6: R7 #9.
+After R9: R10 #12. After R13: R15 #17. After R6: R7 #9. Chapter 2 is one more `CHAPTERS` entry.
 UI: R22–R24 are done. R7 can go once R6 is in.
 
 ## Plan
@@ -110,6 +110,14 @@ UI: R22–R24 are done. R7 can go once R6 is in.
   background dust, count-ups and ceremonies follow it. "Ready" pulses run 3 times. Tooltips moved
   to `js/ui/tooltip.js`: bonus chips, gear and buff chips open a bottom sheet on tap. Tests in
   `test_r24_motion.js`; screenshots in `docs/ui/screenshots/r24/`.
+- R20 #22 Chronicle (layer 3): `js/systems/ChronicleSystem.js` (gate, Pages x1.4 Aether each,
+  Page upgrades, challenge runner, `CHAPTERS` data with Chapter 1 Sand), UI in
+  `js/ui/chronicle.js` + `css/chronicle.css`, tests in `test_chronicle.js`. Rule overrides are
+  never stored: hooks call `getActiveRules(gs)` (Building tiers, click combo/Frenzy, spells,
+  pickaxe, Aether). A challenge stashes the run (incl. shop upgrades) in `chronicle.active`.
+  Gate: 12 Transcends + Seal set I, or 24 Transcends for the first Chronicle without the Seals
+  (`CalendarSystem.getSealSetProgress`). Sim (after R3): `gapWindowEndDay` 270, resets every <=14 days to
+  day 365. Notes in doc §6.6. No save migration (additive `chronicle` field).
 
 - R3 #5 Active income: Burst 45 s / cd 45 s, Celestial x2.5, Supernova 180 s, Mirage (1/12) and
   Caravan Star (1/20) anomalies (constants at the top of `SpellSystem.js` / `ClickerSystem.js`).

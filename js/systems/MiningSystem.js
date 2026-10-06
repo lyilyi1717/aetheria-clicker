@@ -1,4 +1,5 @@
 import { BigNum } from '../engine/BigNum.js';
+import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
@@ -341,6 +342,8 @@ export class MiningSystem {
     power *= (1 + this.getDungeonPickBonus());
     // Strata Relics: +5% each
     power *= this.getRelicPickMult();
+    // Chronicle Chapter rules (R20): Chapter of Sand digs x3
+    power *= getActiveRules(this.gameState).excavationMult;
     return Math.floor(power);
   }
 
