@@ -1374,6 +1374,7 @@ class AetheriaApp {
         // Locked buttons say what's missing rather than just greying out
         setText(btn, isMax ? 'Maxed' : canRank ? '+ Upgrade' : 'Need 1 point');
         btn.classList.toggle('btn-dust', canRank);
+        btn.classList.toggle('active', canRank); // the click handler requires it
         btn.classList.toggle('is-locked', !canRank);
         btn.setAttribute('aria-disabled', String(!canRank));
       }
