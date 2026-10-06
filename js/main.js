@@ -17,6 +17,7 @@ import { TalentTreeSystem, TALENT_DEFINITIONS } from './systems/TalentTreeSystem
 import { BountySystem, QUARTERMASTER_UPGRADES } from './systems/BountySystem.js';
 import { MarketSystem, COMMODITIES, getStockCap } from './systems/MarketSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
+import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
 import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } from './systems/FastForwardSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
@@ -679,6 +680,12 @@ class AetheriaApp {
     const buyAmt = this.buildingSystem.buyAmount;
 
     for (const def of BUILDING_DEFINITIONS) {
+      // Tiers 15-30 open one per Transcend (R4); locked ones stay hidden
+      const unlocked = this.buildingSystem.isTierUnlocked(def.id);
+      const cardEl = this.$(`b-card-${def.id}`);
+      const display = unlocked ? '' : 'none'; // .building-card sets display, so [hidden] would not hide it
+      if (cardEl && cardEl.style.display !== display) cardEl.style.display = display;
+      if (!unlocked) continue;
       const state = this.gameState.buildings[def.id] || { count: 0 };
       let cost = BigNum.zero();
       let buyCount = 1;
@@ -1642,6 +1649,8 @@ class AetheriaApp {
       };
     }
 
+    this.transcendUI = new TranscendPanel(this);
+    this.transcendUI.build();
     this.updatePrestigeUI();
   }
 
@@ -1690,7 +1699,8 @@ class AetheriaApp {
 
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
     const dm = this.prestigeSystem.getDustMultipliers();
-    const breakdown = `${fmtMult(dm.geode)} from Depth ${dm.depth} · ${fmtMult(dm.nectarMult)} from ${fmtNum(dm.nectar)} Nectar (consumed)`;
+    const breakdown = `${fmtMult(dm.geode)} from Depth ${dm.depth} · ${fmtMult(dm.nectarMult)} from ${fmtNum(dm.nectar)} Nectar (consumed)` +
+      (dm.shards > 0 ? ` · ${fmtBigMult(dm.shardMult)} from ${dm.shards} Fracture Shards` : '');
     setText(this.$('pending-dust-breakdown'), breakdown);
     if (ascBtn) {
       const tip = `Base ${this.prestigeSystem.getBaseCosmicDust().format('standard', 0)} Dust · ${breakdown}`;
@@ -1713,36 +1723,7 @@ class AetheriaApp {
       }
     }
 
-    const transCont = this.$('transcendence-section');
-    if (transCont) {
-      // Built once and updated in place: rebuilding every frame swallowed button clicks
-      if (!transCont.dataset.built) {
-        transCont.dataset.built = '1';
-        transCont.innerHTML = `
-          <div class="transcend-box">
-            <h3>🌌 Multiverse Transcendence (Prestige Tier 2)</h3>
-            <p>Fracture Shards: <strong id="fracture-shards-count"></strong> (+10% All Aether Production each). Requires 50,000+ Total Cosmic Dust.</p>
-            <button id="btn-do-transcend" class="btn-action"></button>
-          </div>
-        `;
-        document.getElementById('btn-do-transcend').addEventListener('click', () => {
-          if (!this.prestigeSystem.canTranscend()) return;
-          const tp = this.prestigeSystem.getTranscendPreview();
-          const tradeNote = `\n\nDust multiplier: ${fmtMult(tp.dustBefore)} -> ${fmtMult(tp.dustAfter)} (lifetime dust resets to 0).\nShards: +${tp.shardsGained.format('standard', 0)} (${fmtMult(tp.shardBefore)} -> ${fmtMult(tp.shardAfter)}).\nCombined dust and shard multiplier: ${fmtMult(tp.before)} -> ${fmtMult(tp.after)}.`;
-          if (confirm(`Transcend Reality? This resets your Ascension (Cosmic Dust and perks) in exchange for Fracture Shards, each granting +10% All Aether Production permanently.${tradeNote}`)) {
-            this.prestigeSystem.transcend();
-            this.updateBuildingsUI();
-            this.updatePrestigeUI();
-          }
-        });
-      }
-      const canT = this.prestigeSystem.canTranscend();
-      setText(this.$('fracture-shards-count'), this.gameState.fractureShards.format('standard', 0));
-      const tBtn = this.$('btn-do-transcend');
-      setText(tBtn, canT ? '✨ Transcend Reality!' : 'Locked (Needs 50K Cosmic Dust)');
-      tBtn.classList.toggle('active', canT);
-      tBtn.classList.toggle('disabled', !canT);
-    }
+    this.transcendUI?.update();
   }
 
   // --- Codex Structure ---

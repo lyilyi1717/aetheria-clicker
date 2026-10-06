@@ -31,8 +31,10 @@ const YEAR = 365 * DAY;
 // Year-one targets from docs/redesign-proposal.md (§4.2, §6.4). Enforced only with --assert.
 export const TARGETS = {
   firstAscensionMaxMin: 30,      // casual player's first Ascension within 30 min
-  maxGapDaysAfterDay1: 14,       // never more than 14 days without a reset (days 1..270)
-  gapWindowEndDay: 180            // was 270; R4 core holds it to ~day 190, R20 (Chronicle) restores 270
+  maxGapDaysAfterDay1: 14,       // never more than 14 days without a reset (days 1..gapWindowEndDay)
+  // The doc's goal is day 270. With Transcend (R4) the casual core keeps a reset at least every
+  // 14 days until ~day 190, then layer 2 stalls (doc §6.4: Chronicle needed). R20 restores 270.
+  gapWindowEndDay: 180
 };
 
 const CHECKPOINTS = [
