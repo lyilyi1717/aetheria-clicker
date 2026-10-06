@@ -68,7 +68,7 @@
 }
 
 .dynamic-pulse {
-  animation: buttonPulse 2s infinite;
+  animation: buttonPulse 2s 3; /* a "ready" glow pulses at most 3 times (style guide §6) */
 }
 
 .dynamic-float {
@@ -95,3 +95,13 @@ body::before {
   z-index: 1;
 }
 
+/* Reduced motion (R24, style guide §6): the global rule in tokens.css stops every animation and
+   transition; these drop what is still drawn without one. */
+:root[data-motion="reduced"] body::before { display: none; } /* drifting background dust */
+:root[data-motion="reduced"] .monster-arena-box.hit-shake,
+:root[data-motion="reduced"] .monolith-orb.pulse,
+:root[data-motion="reduced"] .monolith-orb:active { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) body::before { display: none; }
+  :root:not([data-motion="full"]) .monster-arena-box.hit-shake { transform: none; }
+}

@@ -1,6 +1,7 @@
 /* Aetheria base components (docs/ui-style-guide.md §3–§5).
    Built only from css/tokens.css; the live reference is docs/ui/mockups/components.html.
-   App shell, toasts, modals and tooltips are not here yet (R23, R11, R24). */
+   App shell, toasts and tooltips live elsewhere: css/style.css (R23 shell, R24 tooltip + tap
+   sheet, js/ui/tooltip.js) and css/rewards.css (R11). */
 
 /* ==== Type helpers ==== */
 .eyebrow { font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
