@@ -1,6 +1,9 @@
--- Aetheria Clicker leaderboard schema.
+-- Aetheria Clicker leaderboard schema (Season 1).
 -- Paste into Supabase Dashboard -> SQL Editor -> New query -> Run. Safe to re-run.
 -- Players sign in anonymously; each player can only insert/update their own row.
+-- Season 2 and later: supabase/leaderboard_season2.sql, which also freezes this table as a
+-- read-only Hall of Fame. Re-running this file re-opens Season 1 for writes, so run
+-- leaderboard_season2.sql again after it.
 
 create table if not exists public.leaderboard (
   user_id        uuid primary key default auth.uid() references auth.users (id) on delete cascade,

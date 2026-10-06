@@ -484,7 +484,7 @@ reset of some kind every 2–14 days for nine months.
 | Bounties / Quartermaster | **Rework** | wall-clock board, Guild Rank; Quartermaster stays as the Seal sink |
 | Bazaar | **Rework** | mean-reverting prices, caravan cargo; otherwise it is dead weight |
 | Achievements / Codex | **Extend** | ladder + collections; it is the retention spine |
-| Leaderboard | **Keep, re-season** | Season 2 columns per roadmap §5.5 |
+| Leaderboard | **Keep, re-season** | Season 2 columns per roadmap §5.5. *Shipped in R19 with the stats that exist today (Max Floor on `hero.indexFloor`, Best Run Aether, Ascensions, Transcends, Max Depth); Seals lit and Codex % join as columns when R15/R14 ship. Season 1 stays readable as a frozen Hall of Fame.* |
 | Fast Forward | **Keep** | bounded; a dust-shop feature |
 | Chrono Sand | **Keep** | with Hourglass it has a sink again |
 | **Cut**: Eternal Resonance, Singularity Tap perks | **Cut** | the dust multiplier already is the number; both are counter-productive to buy today |
@@ -543,7 +543,7 @@ dependencies respected.
 | 16 | **Bazaar mean-reverting prices + caravan cargo** | `MarketSystem.js:189-206, 147-166` | makes trading a skill | S–M |
 | 17 | **Garden breeding + golden mutation + 6 hybrid recipes + recipe discovery** | `GardenSystem.js`, `AlchemySystem.js` | month-1 content | M–L |
 | 18 | **Wardens + Strata Relics + Aether Ore + Gem Polishing** | `CombatSystem.js`, `MiningSystem.js`, `AlchemySystem.js` | month-2 content | M |
-| 19 | **Leaderboard Season 2** | `js/leaderboard.js`, `supabase/leaderboard.sql` | fairness after #8 | S–M |
+| 19 | **Leaderboard Season 2** | `js/leaderboard.js`, `supabase/leaderboard_season2.sql` (new table `leaderboard_season`, keyed by season; Season 1 table frozen, never rewritten) | fairness after #8 | S–M |
 | 20 | **Chronicle layer**: Pages, Challenge runner (rule overrides on `GameState`), Chapter 1 "Sand" | new `js/systems/ChronicleSystem.js`, `main.js`, `index.html` | months 4–12 | L |
 
 **Minimum set that changes the verdict: #1–#6.** They touch only the core files, keep every
