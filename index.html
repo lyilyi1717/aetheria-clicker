@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="css/rewards.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/shard-tree.css">
+  <link rel="stylesheet" href="css/chronicle.css">
 </head>
 <body>
   <!-- Canvas for dynamic floating damage numbers & particle sparks -->
@@ -54,6 +55,10 @@
         <div class="res" data-res="sand" title="Chrono Sand: Time warp energy earned while playing or offline. Spend to fast-forward simulation time!" hidden>
           <span class="k">Chrono Sand</span>
           <span id="stat-chrono" class="v num c-sand">60s</span>
+        </div>
+        <div class="res" data-res="pages" title="Chronicle Pages: earned by beginning a Chronicle and clearing challenges. Every Page ever earned gives ×1.4 Aether; spend them on Page upgrades." hidden>
+          <span class="k">Pages</span>
+          <span id="stat-pages" class="v num c-sand">0</span>
         </div>
         <div class="res" data-res="seals" title="Guild Seals: Earned from Bounty contracts. Spent on Quartermaster upgrades in the Bounties tab." hidden>
           <span class="k">Guild Seals</span>
@@ -131,6 +136,10 @@
           <span class="nav-icon">🚀</span>
           <span class="nav-lbl">Ascension</span>
         </button>
+        <button class="nav-tab" data-tab="chronicle" title="Chronicle: the third prestige layer. Pages, Chapters and challenges.">
+          <span class="nav-icon">📖</span>
+          <span class="nav-lbl">Chronicle</span>
+        </button>
         <div class="nav-group">Records</div>
         <button class="nav-tab" data-tab="codex" title="Codex: Achievements (+1.5% boost each), lifetime stats, and save backups.">
           <span class="nav-icon">🏆</span>
@@ -168,6 +177,7 @@
           <button class="nav-tab" data-tab="bounties"><span class="nav-icon">📜</span><span class="nav-lbl">Bounties</span></button>
           <button class="nav-tab" data-tab="market"><span class="nav-icon">🐪</span><span class="nav-lbl">Bazaar</span></button>
           <button class="nav-tab" data-tab="talents"><span class="nav-icon">🌙</span><span class="nav-lbl">Constellations</span></button>
+          <button class="nav-tab" data-tab="chronicle"><span class="nav-icon">📖</span><span class="nav-lbl">Chronicle</span></button>
           <button class="nav-tab" data-tab="codex"><span class="nav-icon">🏆</span><span class="nav-lbl">Codex</span></button>
           <button class="nav-tab" data-tab="leaderboard"><span class="nav-icon">🏅</span><span class="nav-lbl">Leaderboard</span></button>
           <button class="nav-tab" data-tab="settings"><span class="nav-icon">⚙️</span><span class="nav-lbl">Settings</span></button>
@@ -506,6 +516,18 @@
 
             <div id="shard-tree-section" style="margin-top: 2rem;"></div>
           </div>
+        </section>
+
+        <!-- Chronicle (prestige layer 3, R20): built by js/ui/chronicle.js -->
+        <section id="tab-chronicle" class="tab-view">
+          <div class="tab-guide-banner" data-hint="Begin a Chronicle at 12 Transcends for Pages; play the Chapter's challenges for more.">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> The <strong>Chronicle</strong> is the third prestige layer. Once Transcends slow down, begin a Chronicle: your dust, shards, shard tree and Transcend count start again, and you earn <strong>Chronicle Pages</strong>. Every Page you have ever earned gives ×1.4 Aether, and spent Pages buy permanent upgrades. Your first Chronicle opens <strong>Chapter 1: Sand</strong>, a ten-week season with its own rules and four <strong>challenges</strong>: side runs with special rules that pay Pages. Starting a challenge sets your current run aside; it comes back exactly as it was when the challenge ends.
+              <div class="guide-flow"><span><strong>Produces:</strong> Chronicle Pages, Chapter stamps, challenge records</span><span><strong>Used in:</strong> Pages multiply Aether (×1.4 each, forever) and buy Page upgrades that carry Auto-Ascend, shards and more through each Chronicle.</span></div>
+            </div>
+          </div>
+          <div id="chronicle-section"></div>
         </section>
 
         <!-- TAB 11: Codex & Settings -->

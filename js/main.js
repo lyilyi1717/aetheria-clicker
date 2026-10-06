@@ -31,6 +31,7 @@ import { Shell } from './ui/shell.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
 import { ShardTreeUI } from './ui/shardTree.js';
+import { ChronicleUI } from './ui/chronicle.js';
 import { gearCard } from './ui/rarity.js';
 import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
@@ -136,6 +137,9 @@ class AetheriaApp {
     // Shard tree (R13): creates this.shardTreeSystem, builds its panel, runs Auto-Ascend
     this.shardTreeUI = new ShardTreeUI(this);
     this.shardTreeUI.init();
+    // Chronicle (R20): creates this.chronicleSystem, builds its tab, runs challenge/Chapter checks
+    this.chronicleUI = new ChronicleUI(this);
+    this.chronicleUI.init();
     initTooltips({ switchTab: (tab) => this.switchTab(tab) });
 
     // Setup DOM Listeners & Navigation
@@ -1721,10 +1725,11 @@ class AetheriaApp {
     setText(pendEl, `Pending Cosmic Dust: +${pending.format('standard', 0)}`);
     if (ascBtn) {
       const wait = this.prestigeSystem.getMinRunRemaining();
-      const disabled = pending.lte(0) || wait > 0;
+      const inChallenge = !!this.gameState.chronicle?.active;   // R20: no Ascending mid-challenge
+      const disabled = pending.lte(0) || wait > 0 || inChallenge;
       if (ascBtn.disabled !== disabled) ascBtn.disabled = disabled;
       const m = Math.ceil(wait);
-      setText(ascBtn, wait > 0 ? `✨ Ascend in ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')} (min. run)` : '✨ Ascend to the Stars');
+      setText(ascBtn, inChallenge ? '✨ Ascend after your Chronicle challenge' : wait > 0 ? `✨ Ascend in ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')} (min. run)` : '✨ Ascend to the Stars');
     }
 
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
@@ -1873,6 +1878,7 @@ class AetheriaApp {
     this.shell?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
     this.shardTreeUI?.update(this.currentTab);
+    this.chronicleUI?.update(this.currentTab);
     this.talentSourcesUI?.update(dt, this.currentTab);
 
     // Fast, lightweight state updates without replacing DOM nodes
