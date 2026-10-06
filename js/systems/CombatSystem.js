@@ -35,6 +35,12 @@ export const GEAR_FLOOR_BASE = 1.11;
 export const BOSS_HP_MULT = 400;
 export const BOSS_TIMER_SECONDS = 45;
 
+// Wardens (R18, docs/redesign-proposal.md §6.3/§6.5): every 250th floor, once unlocked, the
+// boss is a named Warden with x3 boss HP and a 60 s timer. First kill of each = a trophy.
+export const WARDEN_INTERVAL = 250;
+export const WARDEN_HP_MULT = 3;
+export const WARDEN_TIMER_SECONDS = 60;
+
 export function combatFloorScale(floor) {
   return Math.pow(MONSTER_FLOOR_BASE, Math.min(COMBAT_SCALE_MAX_EXP, Math.max(0, floor - 1)));
 }
