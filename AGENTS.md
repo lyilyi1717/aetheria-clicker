@@ -47,6 +47,8 @@ Allowed, with these limits:
   opened right away (that's the claim other sessions see). Sub-agents never share a checkout.
 - **No two sub-agents on items that touch the same files** (see each issue's "Files" line).
   When in doubt, run them one after another.
+- **Claude Code:** start each sub-agent as the `roadmap-coder` agent (`.claude/agents/`). The
+  sub-agent model is set in `.claude/settings.json` and that agent's frontmatter; don't override it.
 - The coordinating session reviews each sub-agent's PR against its issue before reporting done,
   and is the only one that edits `docs/STATUS.md` (avoids conflicts in that file).
 
@@ -75,7 +77,8 @@ Allowed, with these limits:
    exists (open the `.html` in a browser; say in the PR if you deviate and why). Check it at
    ~375px wide as well as desktop and run the checklist in the style guide's §8.
 8. **No dark patterns.** No punishing absence, no fake scarcity, no pay-to-skip.
-9. Don't put AI model names in commits, code, or docs.
+9. Don't put AI model names in commits, code, or docs (agent config under `.claude/` is the
+   one exception).
 10. **Every player-visible change gets a changelog entry.** See "Version and changelog" below.
 
 ## Version and changelog
