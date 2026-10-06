@@ -3,12 +3,14 @@
 Progress log for the year-one redesign (`docs/redesign-proposal.md`). Every session reads this
 first and updates it before finishing (see `AGENTS.md`).
 
-Roadmap items are called **R0–R20**. GitHub numbers issues separately, so R*n* is issue #*n*+2.
+Roadmap items are called **R0–R21**. GitHub numbers issues separately, so R*n* is issue #*n*+2
+(R0–R20); R21 is #42.
 Owner decisions live in issue #23; if it has no answer, use the default listed there.
 
 ## In progress
 
 - R4 #6 Transcend rework (PR #35).
+- R21 #42 UI/UX review, style guide and mockups.
 
 ## Next up
 
@@ -28,20 +30,21 @@ R20 #22 (needs R4, R13).
 | 1 | R12 Offline cap and modal | #14 | – |
 | 2 | R4 Transcend rework | #6 | R0, R1, R2 |
 | 3 | R5 Upgrade shop | #7 | R4 |
-| 3 | R6 Dust shop of features | #8 | R0, R4 |
-| 4 | R7 Progressive unlocking | #9 | R6 |
+| 3 | R6 Dust shop of features | #8 | R0, R4, R21 |
+| 4 | R7 Progressive unlocking | #9 | R6, R21 |
 | 4 | R8 Void Tower rebalance | #10 | – |
 | 4 | R9 Talent economy | #11 | R0 |
-| 4 | R10 Contract board | #12 | R9 |
+| 4 | R10 Contract board | #12 | R9, R21 |
 | 4 | R11 Reward feedback system | #13 | – |
-| 5 | R13 Shard tree | #15 | R4 |
+| 5 | R13 Shard tree | #15 | R4, R21 |
 | 5 | R14 Codex 2.0 | #16 | R11 |
-| 5 | R15 Daily and weekly structure | #17 | R13 |
+| 5 | R15 Daily and weekly structure | #17 | R13, R21 |
 | 5 | R16 Bazaar prices and caravans | #18 | – |
 | 5 | R17 Garden breeding and recipes | #19 | – |
 | 5 | R18 Wardens, relics, ore, polishing | #20 | R8 |
 | 5 | R19 Leaderboard Season 2 | #21 | R8 |
-| 5 | R20 Chronicle layer | #22 | R4, R13 |
+| 5 | R20 Chronicle layer | #22 | R4, R13, R21 |
+| 4 | R21 UI/UX review, style guide, mockups | #42 | – (blocks UI of R6, R7, R10, R13, R15, R20) |
 
 ## Done
 
