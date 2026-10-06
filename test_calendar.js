@@ -23,6 +23,18 @@ const DAY = 86400000;
 const at = (m, d, h = 12) => new Date(2026, m - 1, d, h, 0, 0).getTime();
 const MON = at(10, 5);
 
+// Grows the lifetime counter a Ledger goal reads by `k`
+function bump(gs, id, k) {
+  const add = {
+    bosses: () => { gs.stats.totalBossesSlain += k; }, fiends: () => { gs.stats.totalMonstersSlain += k; },
+    depths: () => { gs.miningGrid.maxDepth += k; }, blocks: () => { gs.stats.totalBlocksMined += k; },
+    harvest: () => { gs.stats.totalPlantsHarvested += k; }, brew: () => { gs.stats.totalPotionsBrewed += k; },
+    spells: () => { gs.stats.totalSpellsCast += k; }, contracts: () => { gs.stats.totalBountiesCompleted += k; },
+    ascend: () => { gs.ascensionCount += k; }, clicks: () => { gs.totalClicks += k; }
+  };
+  add[id]();
+}
+
 function setup(start = MON) {
   let now = start;
   const gs = new GameState();
@@ -195,15 +207,8 @@ console.log('--- Weekly Ledger: progress is growth this week; goals pay Guild Se
   assert.ok(goals.every(g => g.have === 0), 'lifetime totals from before the week do not count');
   const seals0 = gs.guildSeals;
   const grow = (g) => {
-    const bump = {
-      bosses: () => { gs.stats.totalBossesSlain += 2; }, fiends: () => { gs.stats.totalMonstersSlain += 60; },
-      depths: () => { gs.miningGrid.maxDepth += 3; }, blocks: () => { gs.stats.totalBlocksMined += 150; },
-      harvest: () => { gs.stats.totalPlantsHarvested += 12; }, brew: () => { gs.stats.totalPotionsBrewed += 5; },
-      spells: () => { gs.stats.totalSpellsCast += 15; }, contracts: () => { gs.stats.totalBountiesCompleted += 5; },
-      ascend: () => { gs.ascensionCount += 3; }, clicks: () => { gs.totalClicks += 300; }
-    };
     assert.ok(LEDGER_GOALS.some(d => d.id === g.id));
-    bump[g.id]();
+    bump(gs, g.id, g.target);
   };
   grow(goals[0]); cal.tick();
   assert.equal(gs.guildSeals, seals0 + LEDGER_GOAL_SEALS);
@@ -348,7 +353,7 @@ console.log('--- Saves: old saves load with an empty calendar; junk is cleaned -
   assert.equal(bad.daily.bank, DALLAH_BANK_MAX);
   assert.equal(bad.daily.visits, 0);
   assert.equal(bad.weekly.week, null);
-  assert.deepEqual(bad.weekly.goals, [{ id: 'clicks', base: 0, done: false }]);
+  assert.deepEqual(bad.weekly.goals, [{ id: 'clicks', base: 0, done: false, target: 300, seals: 6 }], 'a goal with no target is a pre-R33 goal');
   assert.deepEqual(bad.weekly.stamps, [3]);
   assert.deepEqual(bad.seals, { deep: true });
   assert.deepEqual(sanitizeCalendarState(null), defaultCalendarState());
