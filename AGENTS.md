@@ -60,8 +60,9 @@ Allowed, with these limits:
    `{ to: n + 1, migrate(data) }` to `MIGRATIONS` in `js/engine/migrations.js` (the version bumps
    with it; never edit a shipped step) and add a test that loads an old-shaped save (see
    `test_saves.js`).
-3. **Tests must pass:** `npm test`. Add tests for new logic next to the existing `test_*.js`
-   files and add them to the `test` script in `package.json`.
+3. **Tests must pass:** `npm test`. Add tests for new logic in a `test_*.js` file in the repo
+   root (a new file or an existing one). `npm test` runs every `test_*.js` automatically
+   (`run_tests.mjs`), so don't edit the `test` script in `package.json`.
 4. **Economy changes need numbers.** If you touch production, costs, prestige, spells, or offline
    gains, run `npm run sim` before and after and paste both reports in the PR. If the sim no
    longer models the game (new layer, new shop), update `sim/core-pacing.mjs` in the same PR.
@@ -85,7 +86,7 @@ Allowed, with these limits:
 ## Commands
 
 ```bash
-npm test          # all unit tests
+npm test          # all unit tests (every test_*.js; `npm test -- tower` runs a subset)
 npm run sim       # core pacing report for a simulated year (~5 s)
 npm run sim:check # same, but exits 1 if the year-one pacing targets are missed
 npm start         # local server on http://localhost:8101

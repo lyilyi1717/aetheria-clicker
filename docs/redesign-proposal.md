@@ -173,6 +173,19 @@ Four commodities on a clamped random walk (`MarketSystem.js:192`, ±17% per tick
 random walk is memoryless, so "buy low, sell high" is a coin flip with a 2% house edge. The
 Enchanter is the only sink that matters and it is a plain geometric ladder.
 
+*Shipped in R16 (the doc gave no numbers, so these are chosen; all in `MarketSystem.js`).* Each
+tick moves `ln(price)` 20% of the way back to `ln(basePrice)` plus a uniform shock of ±12%
+(stationary spread about ±15%, still clamped to the old bands), so dips are real buy signals. To
+stop trading volume scaling with the gold hoard (which would out-earn core income), buying costs
+1.05x and selling pays 0.95x the quote, and you may hold at most `floor(300 / basePrice)` units
+bought from the market (Aether Ore 6, Mana Silk 1; Solar Amber and Void Crystal are
+Garden-supplied only). Perfect-hindsight trading at the cap earns about 250 M/hour, under the
+small caravan's 300 M/hour. Caravan cargo: units held (auto-loaded, most valuable first, or
+passed explicitly to `dispatchCaravan`) ride along up to 2.5x the caravan's investment in
+mean-price value, and return `units x basePrice x M x 1.15` (small) or `x 1.3` (large), fixed at
+dispatch and added to the stored payout. Cargo is valued at the mean, not the live price, so the
+skill is holding goods bought low and shipping them.
+
 ### 2.8 Achievements, Codex, Leaderboard, Fast Forward
 
 24 achievements (`AchievementSystem.js`), each +1.5% (`GameState.js:116`); the roadmap measured
@@ -394,6 +407,14 @@ Transcend (+Seal bonus), ~64 shards in a year at the simulated pace. Branches:
   +8 h; Fast Forward 6 h.
 - **Tower**: Wardens every 250 floors (unique trophies); hero gear stays one tier of
   rarity higher on roll; "Second Wind" (one free boss retry per boss).
+  *R18 implementation:* the tree does not exist yet, so Wardens unlock at the first Transcend
+  (`hero.wardensUnlocked` is the hook for the tree node). Before that, every 250th floor is an
+  ordinary boss. A Warden has x3 boss HP (attack as a boss), a 60 s timer and pays x3 boss gold
+  and XP plus 3 Void Cores and 3 Boss Tokens; a timeout or death retreats one floor like a boss.
+  The first kill of each Warden is a trophy (`hero.wardens.defeated`, keyed by floor) worth +2%
+  Tower kill gold (roadmap §5.3 Meme Trophies). Trophies add gold only, so they never restart
+  the climb. Wardens the hero passed before the unlock can be **challenged** from the Warden list
+  without leaving his floor; winning or losing returns him to it at no cost.
 - **Oasis**: Garden breeding (two adjacent mature plants may cross into a hybrid with a
   chance table; hybrids are new essences for 6 new recipes); golden mutation 1%; 5th Golem.
   *R17 implementation:* the shard tree does not exist yet, so breeding unlocks at the first
@@ -465,6 +486,15 @@ reset of some kind every 2–14 days for nine months.
 | Achievements | 24 → ~90 ladder, +1% each (was 1.5%; 90 × 1.5% = ×2.35 is fine, but 1% keeps the category flat) | roadmap §5.3 |
 | Fast Forward | keep the 30 s escalator; dust-shop Hourglass adds 5 min / 1 h buttons at `dt = 1.0` | progression doc §5.5 |
 
+*R18 implementation (Excavation and Alchemy rows):* every broken tile (stairs included) rolls
+1/200 for a Strata Relic, with a pity of 400 tiles since the last relic (`miningGrid.relics`,
+`miningGrid.relicPity`); each relic is +5% pickaxe power. **Deviation:** the roll targets the
+current stratum's relic and, once that is found, the shallowest relic still missing above it, so
+saves that were already deep when R18 shipped can still complete the set. Deeper relics need the
+player there. Aether Ore: 10% of plain stone tiles add 1 to the Bazaar's existing `ore` stock
+(sold at its price x the Market Index; no Bazaar code changed). Gem Polishing is in
+`AlchemySystem.polishGem`: 5 of a tier make 1 of the next (ruby to void amethyst).
+
 ---
 
 ## 7. System-by-system: keep / cut / merge / rework
@@ -484,7 +514,7 @@ reset of some kind every 2–14 days for nine months.
 | Bounties / Quartermaster | **Rework** | wall-clock board, Guild Rank; Quartermaster stays as the Seal sink |
 | Bazaar | **Rework** | mean-reverting prices, caravan cargo; otherwise it is dead weight |
 | Achievements / Codex | **Extend** | ladder + collections; it is the retention spine |
-| Leaderboard | **Keep, re-season** | Season 2 columns per roadmap §5.5 |
+| Leaderboard | **Keep, re-season** | Season 2 columns per roadmap §5.5. *Shipped in R19 with the stats that exist today (Max Floor on `hero.indexFloor`, Best Run Aether, Ascensions, Transcends, Max Depth); Seals lit and Codex % join as columns when R15/R14 ship. Season 1 stays readable as a frozen Hall of Fame.* |
 | Fast Forward | **Keep** | bounded; a dust-shop feature |
 | Chrono Sand | **Keep** | with Hourglass it has a sink again |
 | **Cut**: Eternal Resonance, Singularity Tap perks | **Cut** | the dust multiplier already is the number; both are counter-productive to buy today |
@@ -496,7 +526,9 @@ reset of some kind every 2–14 days for nine months.
 ## 8. Retention without dark patterns
 
 - **Offline.** 100% for 8 h, 50% to 24 h, 0 after; the modal shows the cap and what finished
-  (Golem harvests, caravan, contracts arrived). Chrono Reservoir buys more cap. No clock
+  (Golem harvests, caravan, contracts arrived). Chrono Reservoir buys more cap: each rank
+  adds 4 h to the 100% band and moves the end of the cap out by 4 h (the 50% band stays 16 h);
+  built in R12 (`computeOfflineBands`). Efficiency multipliers apply to the banded total. No clock
   tricks pay more than the cap.
 - **Daily Dallah** (roadmap §5.4): first visit of a calendar day; banks 3 days; no streak,
   "days visited" is a lifetime count.
@@ -543,7 +575,7 @@ dependencies respected.
 | 16 | **Bazaar mean-reverting prices + caravan cargo** | `MarketSystem.js:189-206, 147-166` | makes trading a skill | S–M |
 | 17 | **Garden breeding + golden mutation + 6 hybrid recipes + recipe discovery** | `GardenSystem.js`, `AlchemySystem.js` | month-1 content | M–L |
 | 18 | **Wardens + Strata Relics + Aether Ore + Gem Polishing** | `CombatSystem.js`, `MiningSystem.js`, `AlchemySystem.js` | month-2 content | M |
-| 19 | **Leaderboard Season 2** | `js/leaderboard.js`, `supabase/leaderboard.sql` | fairness after #8 | S–M |
+| 19 | **Leaderboard Season 2** | `js/leaderboard.js`, `supabase/leaderboard_season2.sql` (new table `leaderboard_season`, keyed by season; Season 1 table frozen, never rewritten) | fairness after #8 | S–M |
 | 20 | **Chronicle layer**: Pages, Challenge runner (rule overrides on `GameState`), Chapter 1 "Sand" | new `js/systems/ChronicleSystem.js`, `main.js`, `index.html` | months 4–12 | L |
 
 **Minimum set that changes the verdict: #1–#6.** They touch only the core files, keep every

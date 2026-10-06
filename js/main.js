@@ -1,7 +1,8 @@
 import { BigNum } from './engine/BigNum.js';
 import { sound } from './engine/AudioEngine.js';
 import { particles } from './engine/ParticleEngine.js';
-import { SaveManager, OFFLINE_AETHER_CAP } from './engine/SaveManager.js';
+import { SaveManager } from './engine/SaveManager.js';
+import { renderOfflineModal } from './ui/offlineModal.js';
 import { GameLoop } from './engine/GameLoop.js';
 
 import { GameState } from './systems/GameState.js';
@@ -14,7 +15,7 @@ import { AlchemySystem, RECIPES } from './systems/AlchemySystem.js';
 import { SpellSystem, SPELLS } from './systems/SpellSystem.js';
 import { TalentTreeSystem, TALENT_DEFINITIONS } from './systems/TalentTreeSystem.js';
 import { BountySystem, QUARTERMASTER_UPGRADES } from './systems/BountySystem.js';
-import { MarketSystem, COMMODITIES } from './systems/MarketSystem.js';
+import { MarketSystem, COMMODITIES, getStockCap } from './systems/MarketSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
 import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } from './systems/FastForwardSystem.js';
@@ -22,6 +23,7 @@ import { VERSION, CHANGELOG } from './version.js';
 import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
 import { GardenBreedingUI } from './ui/garden.js';
+import { WardensRelicsUI } from './ui/wardens-relics.js';
 import { Leaderboard } from './leaderboard.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 
@@ -539,20 +541,7 @@ class AetheriaApp {
   }
 
   showOfflineModal(res) {
-    const modal = document.getElementById('offline-modal');
-    if (!modal) return;
-    const hours = (res.elapsedSeconds / 3600).toFixed(1);
-    document.getElementById('offline-time-text').textContent = `${hours} hours`
-      + (res.capped ? ` (Aether capped at ${OFFLINE_AETHER_CAP / 3600} h)` : '');
-    document.getElementById('offline-aether-text').textContent = res.gainedAether.format('standard', 2);
-    document.getElementById('offline-chrono-text').textContent = `+${fmtNum(res.chronoEarned)} Chrono Sand`
-      + (res.gardenHarvests ? ` · Garden Golems: +${fmtNum(res.gardenHarvests)} harvests` : '');
-    modal.classList.add('visible');
-
-    const closeBtn = document.getElementById('offline-modal-close');
-    if (closeBtn) {
-      closeBtn.onclick = () => modal.classList.remove('visible');
-    }
+    renderOfflineModal(res);
   }
 
   // Build the initial DOM cards once (never destroyed every frame!)
@@ -650,6 +639,8 @@ class AetheriaApp {
     this.buildAlchemyStructure();
     this.breedingUI = new GardenBreedingUI(this, fmtNum);
     this.breedingUI.build();
+    this.wardensRelicsUI = new WardensRelicsUI(this, fmtNum);
+    this.wardensRelicsUI.build();
     this.buildSpellsStructure();
     this.buildTalentsStructure();
     this.buildBountiesStructure();
@@ -1521,10 +1512,15 @@ class AetheriaApp {
         }
       }
       if (pEl) {
-        const price = this.marketSystem.getCommodityPrice(c.id);
-        setText(pEl, price.format('standard', 2));
-        buyBtn?.classList.toggle('disabled', !this.gameState.gold.gte(price));
-        buy10Btn?.classList.toggle('disabled', !this.gameState.gold.gte(price.mul(10)));
+        setText(pEl, this.marketSystem.getCommodityPrice(c.id).format('standard', 2));
+        // Buys pay the 5% markup and stop at the stock cap (Amber and Crystal: Garden-only)
+        const buyPrice = this.marketSystem.getBuyPrice(c.id);
+        const cap = getStockCap(c.id);
+        const room = Math.max(0, cap - item.owned);
+        buyBtn?.classList.toggle('disabled', room < 1 || !this.gameState.gold.gte(buyPrice));
+        buy10Btn?.classList.toggle('disabled', room < 1 || !this.gameState.gold.gte(buyPrice.mul(Math.min(10, room))));
+        const tip = cap === 0 ? 'Garden-only: cannot be bought here' : `Buy at +5% (holding limit ${cap} bought units)`;
+        if (buyBtn && buyBtn.title !== tip) { buyBtn.title = tip; if (buy10Btn) buy10Btn.title = tip; }
       }
       setText(oEl, fmtNum(item.owned));
     }
@@ -1544,6 +1540,7 @@ class AetheriaApp {
           <div class="caravan-dispatch-box" id="caravan-dispatch">
             <h3>🐪 Dispatch Trade Caravan</h3>
             <p>Send gold into distant trade routes for guaranteed profit! Caravan sizes scale with your deepest Void Tower floor.</p>
+            <label class="caravan-cargo-opt"><input type="checkbox" id="caravan-load-cargo"> Load cargo: <span id="caravan-cargo-preview"></span></label>
             <button id="btn-send-caravan-1" class="btn-action"></button>
             <button id="btn-send-caravan-2" class="btn-action"></button>
           </div>
@@ -1551,8 +1548,10 @@ class AetheriaApp {
         carCont.addEventListener('click', (e) => {
           const btn = e.target.closest('button');
           if (!btn) return;
-          if (btn.id === 'btn-send-caravan-1') this.marketSystem.dispatchCaravan('small');
-          else if (btn.id === 'btn-send-caravan-2') this.marketSystem.dispatchCaravan('large');
+          // Cargo is opt-in: held goods only ride along when the box is ticked
+          const cargo = this.$('caravan-load-cargo')?.checked ? undefined : 'none';
+          if (btn.id === 'btn-send-caravan-1') this.marketSystem.dispatchCaravan('small', cargo);
+          else if (btn.id === 'btn-send-caravan-2') this.marketSystem.dispatchCaravan('large', cargo);
           else return;
           this.updateMarketUI();
         });
@@ -1575,6 +1574,14 @@ class AetheriaApp {
           setText(btn, `Send ${t.invest.format('standard', 2)} Gold (${t.minutes} Min - ${t.profit}x Return)`);
           btn.classList.toggle('disabled', !this.gameState.gold.gte(t.invest));
         }
+        // What ticking "Load cargo" would ship (small / large caravan), at mean price x premium
+        const preview = ['small', 'large'].map(tier => {
+          const pick = this.marketSystem.pickCargo(tier);
+          if (!pick) return null;
+          const name = COMMODITIES.find(x => x.id === pick.id)?.name || pick.id;
+          return `${tier} ${pick.units} ${name} (+${this.marketSystem.getCargoPayout(pick.id, pick.units, tier).format('standard', 2)})`;
+        }).filter(Boolean);
+        setText(this.$('caravan-cargo-preview'), preview.length ? preview.join(' · ') : 'no commodities held');
       }
     }
 
@@ -1863,6 +1870,7 @@ class AetheriaApp {
     this.updateQuickCastBar();
     this.leaderboard.tick(this.currentTab === 'leaderboard', VERSION);
     this.buffBar.update();
+    this.wardensRelicsUI?.update(this.currentTab);
 
     // Fast, lightweight state updates without replacing DOM nodes
     if (this.currentTab === 'monolith') {

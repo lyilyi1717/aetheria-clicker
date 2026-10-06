@@ -197,13 +197,14 @@ console.log('--- Offline Aether is capped (clock-forward exploit) ---');
   const rate = gs.getNetAetherPerSecond();
   assert.ok(rate.gt(BigNum.zero()), 'test needs a positive production rate');
   const sm = new SaveManager(gs);
-  // A year of "offline" time (or a clock moved forward a year) only credits the cap
+  // A year of "offline" time (or a clock moved forward a year) only credits the bands:
+  // 8 h at 100% + 16 h at 50% = 16 h of production
   const res = sm.processOfflineTime(Date.now() - 365 * 24 * 3600 * 1000);
   assert.equal(OFFLINE_AETHER_CAP, 24 * 3600);
   assert.ok(res.capped, 'result reports that the cap applied');
-  assert.ok(Math.abs(res.gainedAether.div(rate).toNumber() - OFFLINE_AETHER_CAP) < 1, 'credits exactly the cap');
+  assert.ok(Math.abs(res.gainedAether.div(rate).toNumber() - 16 * 3600) < 1, 'credits exactly the banded cap');
   assert.ok(res.elapsedSeconds > OFFLINE_AETHER_CAP, 'real elapsed time is still reported');
-  // Under the cap nothing changes
+  // Under the full-rate band nothing changes
   gs.aether = BigNum.zero();
   const short = sm.processOfflineTime(Date.now() - 3600 * 1000);
   assert.ok(!short.capped);
