@@ -1,12 +1,11 @@
 import { BigNum } from '../engine/BigNum.js';
 import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
+import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
 
 // Timed buffs can be extended to at most 10 minutes (x perk/talent duration multipliers)
 export const BUFF_DURATION_CAP = 600;
 // Chrono Sand bank cap (seconds) before Chrono Reservoir ranks; same constant as the offline cap
 export const CHRONO_SAND_BASE_CAP = 1440;
-// Old saves with more compounding Catalyst brews than this are trimmed on migration
-export const CATALYST_MIGRATION_CAP = 50;
 
 export class GameState {
   constructor() {
@@ -302,7 +301,7 @@ export class GameState {
 
   serialize() {
     return {
-      version: 2,
+      version: SAVE_VERSION,
       savedAt: Date.now(),
       aether: this.aether.toJSON(),
       totalAetherEarned: this.totalAetherEarned.toJSON(),
@@ -343,24 +342,10 @@ export class GameState {
     };
   }
 
-  // v1 -> v2 (balance update): Catalyst compounding -> additive count. Mining migrates its own fields.
-  // Mutates the raw save object before it is read. Other slices add their own v2 fields here.
-  migrateV1toV2(data) {
-    // Philosopher's Catalyst: globalMultiplier = 1.02^n becomes alchemy.catalysts = n (max 50)
-    const gm = data.stats?.globalMultiplier;
-    data.alchemy = { ...(data.alchemy || {}) };
-    if (typeof gm === 'number' && gm > 1) {
-      const n = Math.round(Math.log(gm) / Math.log(1.02));
-      data.alchemy.catalysts = Math.min(Number.isFinite(n) ? n : CATALYST_MIGRATION_CAP, CATALYST_MIGRATION_CAP);
-    }
-    if (data.stats) data.stats.globalMultiplier = 1;
-    data.version = 2;
-    return data;
-  }
-
   deserialize(data) {
     if (!data) return;
-    if ((data.version || 1) < 2) this.migrateV1toV2(data);
+    // Upgrade older saves step by step (js/engine/migrations.js) before any field is read
+    data = migrateSave(data);
     try {
       this.aether = BigNum.fromJSON(data.aether);
       this.totalAetherEarned = BigNum.fromJSON(data.totalAetherEarned);

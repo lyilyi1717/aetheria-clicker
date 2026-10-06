@@ -1,0 +1,181 @@
+// Save versioning: the migration chain upgrades old-shaped saves, and both fixtures round-trip.
+// Run: node test_saves.js
+import assert from 'node:assert/strict';
+import { BigNum } from './js/engine/BigNum.js';
+import { GameState } from './js/systems/GameState.js';
+import { SaveManager } from './js/engine/SaveManager.js';
+import { MIGRATIONS, SAVE_VERSION, CATALYST_MIGRATION_CAP, getSaveVersion, migrateSave } from './js/engine/migrations.js';
+
+globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
+const store = new Map();
+globalThis.localStorage ??= {
+  getItem: k => (store.has(k) ? store.get(k) : null),
+  setItem: (k, v) => store.set(k, String(v)),
+  removeItem: k => store.delete(k)
+};
+
+const clone = o => JSON.parse(JSON.stringify(o));
+// Fields stamped from the wall clock on save/load (savedAt, and the Fast Forward high-water
+// mark that follows it) legitimately differ between two serializes; compare the rest.
+const stable = o => {
+  const c = clone(o);
+  delete c.savedAt;
+  if (c.fastForward) delete c.fastForward.clockMark;
+  return c;
+};
+
+// A pre-balance-update save: no `version`, compounding Catalyst stored as stats.globalMultiplier
+const V1_FIXTURE = {
+  savedAt: 1700000000000,
+  aether: { m: 1.5, e: 12 },
+  totalAetherEarned: { m: 3, e: 14 },
+  gold: { m: 4, e: 3 },
+  cosmicDust: { m: 2, e: 2 },
+  totalCosmicDust: { m: 5, e: 2 },
+  ascensionCount: 3,
+  totalClicks: 1234,
+  stats: { globalMultiplier: Math.pow(1.02, 12) },
+  alchemy: { brewed: 4 },
+  inventory: { herbs: 7 },
+  buildings: { tapper: { count: 10 } },
+  settings: { notation: 'suffix' }
+};
+
+// A current-shape save as v2 wrote it
+const V2_FIXTURE = {
+  version: 2,
+  savedAt: 1750000000000,
+  aether: { m: 7, e: 20 },
+  totalAetherEarned: { m: 8, e: 21 },
+  gold: { m: 1, e: 6 },
+  cosmicDust: { m: 3, e: 4 },
+  totalCosmicDust: { m: 9, e: 4 },
+  ascensionCount: 11,
+  stats: { globalMultiplier: 1 },
+  alchemy: { catalysts: 9 },
+  inventory: { herbs: 2, rubies: 5 },
+  buildings: { tapper: { count: 40 } },
+  settings: { notation: 'scientific' }
+};
+
+console.log('--- migrations.js: chain is ordered and SAVE_VERSION is its last step ---');
+{
+  assert.ok(MIGRATIONS.length >= 1);
+  assert.equal(MIGRATIONS[0].to, 2, 'v1 -> v2 is the first step');
+  MIGRATIONS.forEach((s, i) => {
+    assert.equal(typeof s.migrate, 'function');
+    if (i > 0) assert.equal(s.to, MIGRATIONS[i - 1].to + 1, 'steps go up one version at a time');
+  });
+  assert.equal(SAVE_VERSION, MIGRATIONS.at(-1).to);
+  assert.equal(new GameState().serialize().version, SAVE_VERSION);
+}
+
+console.log('--- getSaveVersion: missing or junk versions count as v1 ---');
+{
+  assert.equal(getSaveVersion({}), 1);
+  assert.equal(getSaveVersion({ version: 'abc' }), 1);
+  assert.equal(getSaveVersion({ version: -3 }), 1);
+  assert.equal(getSaveVersion({ version: NaN }), 1);
+  assert.equal(getSaveVersion({ version: '2' }), 2);
+  assert.equal(getSaveVersion({ version: 2 }), 2);
+}
+
+console.log('--- migrateSave: runs every step above the save version ---');
+{
+  // A fake chain proves steps run in order, only above the save's version
+  const seen = [];
+  const step = to => ({ to, migrate(d) { seen.push([to, d.version]); d[`v${to}`] = true; return d; } });
+  const chain = [step(2), step(3), step(4)];
+  const fromV1 = migrateSave({}, chain);
+  assert.deepEqual(seen, [[2, undefined], [3, 2], [4, 3]], 'each step sees the previous version');
+  assert.equal(fromV1.version, 4);
+  seen.length = 0;
+  const fromV3 = migrateSave({ version: 3 }, chain);
+  assert.deepEqual(seen, [[4, 3]], 'steps at or below the save version are skipped');
+  assert.equal(fromV3.v2, undefined);
+  assert.equal(fromV3.version, 4);
+  seen.length = 0;
+  assert.equal(migrateSave({ version: 4 }, chain).version, 4);
+  assert.deepEqual(seen, []);
+
+  const v1 = migrateSave(clone(V1_FIXTURE));
+  assert.equal(v1.version, SAVE_VERSION);
+  assert.equal(v1.alchemy.catalysts, 12, '1.02^12 compounding -> 12 additive catalysts');
+  assert.equal(v1.alchemy.brewed, 4, 'other alchemy fields are kept');
+  assert.equal(v1.stats.globalMultiplier, 1);
+
+  // Behaviour of the v1 -> v2 step is unchanged: huge multipliers are capped
+  const big = migrateSave({ stats: { globalMultiplier: Math.pow(1.02, 400) } });
+  assert.equal(big.alchemy.catalysts, CATALYST_MIGRATION_CAP);
+  const inf = migrateSave({ stats: { globalMultiplier: Infinity } });
+  assert.equal(inf.alchemy.catalysts, CATALYST_MIGRATION_CAP);
+
+  // A current save is not touched (the v2 step would otherwise reset nothing, but must not run)
+  const v2 = clone(V2_FIXTURE);
+  v2.stats.globalMultiplier = 1.5; // would be rewritten if the v1 step ran again
+  assert.equal(migrateSave(v2).stats.globalMultiplier, 1.5);
+
+  // A save from a newer build keeps its version; nothing is downgraded
+  const future = migrateSave({ version: SAVE_VERSION + 5, stats: { globalMultiplier: 3 } });
+  assert.equal(future.version, SAVE_VERSION + 5);
+  assert.equal(future.stats.globalMultiplier, 3);
+
+  assert.equal(migrateSave(null), null);
+}
+
+console.log('--- v1 fixture loads and round-trips ---');
+{
+  const gs = new GameState();
+  gs.deserialize(clone(V1_FIXTURE));
+  assert.equal(gs.aether.toString(), new BigNum(1.5e12).toString());
+  assert.equal(gs.ascensionCount, 3);
+  assert.equal(gs.totalClicks, 1234);
+  assert.equal(gs.alchemy.catalysts, 12);
+  assert.equal(gs.stats.globalMultiplier, 1);
+  assert.equal(gs.inventory.herbs, 7);
+  assert.equal(gs.buildings.tapper.count, 10);
+  assert.equal(gs.settings.notation, 'suffix');
+
+  const out = clone(gs.serialize());
+  assert.equal(out.version, SAVE_VERSION);
+  const gs2 = new GameState();
+  gs2.deserialize(clone(out));
+  assert.deepEqual(stable(gs2.serialize()), stable(out), 'a migrated v1 save round-trips unchanged');
+}
+
+console.log('--- v2 fixture loads and round-trips ---');
+{
+  const gs = new GameState();
+  gs.deserialize(clone(V2_FIXTURE));
+  assert.equal(gs.ascensionCount, 11);
+  assert.equal(gs.alchemy.catalysts, 9, 'a current save keeps its catalysts');
+  assert.equal(gs.inventory.rubies, 5);
+  assert.equal(gs.settings.notation, 'scientific');
+
+  const out = clone(gs.serialize());
+  const gs2 = new GameState();
+  gs2.deserialize(clone(out));
+  assert.deepEqual(stable(gs2.serialize()), stable(out), 'a v2 save round-trips unchanged');
+}
+
+console.log('--- Import goes through the same migration path ---');
+{
+  const encode = d => btoa(encodeURIComponent(JSON.stringify(d)));
+  const gs = new GameState();
+  const sm = new SaveManager(gs);
+  assert.equal(sm.importSaveString(encode(V1_FIXTURE)), true);
+  assert.equal(gs.alchemy.catalysts, 12, 'imported v1 save is migrated');
+  assert.equal(gs.stats.globalMultiplier, 1);
+  const stored = JSON.parse(localStorage.getItem('AETHERIA_CHRONICLES_SAVE_V1'));
+  assert.equal(stored.version, SAVE_VERSION, 'import re-saves at the current version');
+
+  // Valid JSON that is not a save object is rejected and does not touch the game
+  gs.ascensionCount = 42;
+  for (const junk of [1, 'text', null, [1, 2]]) {
+    assert.equal(sm.importSaveString(encode(junk)), false, `reject ${JSON.stringify(junk)}`);
+  }
+  assert.equal(sm.importSaveString('not base64 !!'), false);
+  assert.equal(gs.ascensionCount, 42);
+}
+
+console.log('All save versioning tests passed.');
