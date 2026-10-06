@@ -1,6 +1,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
+import { rewards } from '../ui/rewards.js';
 
 export const ZONES = [
   { name: 'Thumama Dunes', minFloor: 1, maxFloor: 50, color: '#f59e0b', icon: '🏜️' },
@@ -360,8 +361,10 @@ export class CombatSystem {
       this.gameState.aether = this.gameState.aether.sub(cost);
       this.gameState.hero.aetherForgeLevel = (this.gameState.hero.aetherForgeLevel || 0) + 1;
       this.gameState.hero.hp = this.getTotalMaxHp(); // Heal to new max
-      sound.playAscension();
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `AETHER FORGE AWAKENED!`, '#38bdf8', true);
+      rewards.notify({
+        tier: 'medium', kind: 'aether-forge', icon: '🔥', color: '#38bdf8',
+        title: `Aether Forge Lv ${this.gameState.hero.aetherForgeLevel}`, detail: 'Max HP up, hero healed'
+      });
       return true;
     }
     return false;
@@ -463,8 +466,10 @@ export class CombatSystem {
       h.xp -= h.xpNeeded;
       h.xpNeeded = Math.floor(h.xpNeeded * 1.35);
       h.hp = this.getTotalMaxHp();
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `HERO LEVEL UP! LV ${h.level}`, '#fbbf24', true);
-      sound.playAchievement();
+      rewards.notify({
+        tier: 'medium', kind: 'hero-level', icon: '⬆️', color: '#fbbf24',
+        title: `Hero level ${h.level}`, batchTitle: `Hero level ${h.level} (+{n} levels)`
+      });
     }
 
     // Loot drops
@@ -504,12 +509,26 @@ export class CombatSystem {
     const w = this.ensureWardenState();
     if (w.defeated[floor]) return false;
     w.defeated[floor] = true;
-    sound.playAscension();
-    if (typeof window !== 'undefined') {
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2 - 80,
-        `🏆 WARDEN TROPHY: ${getWardenName(floor)}! (+${Math.round(WARDEN_TROPHY_GOLD * 100)}% Tower gold)`, '#fbbf24', true);
-    }
+    // Epic tier (§5.1): ceremony + choir
+    rewards.notify({
+      tier: 'epic', kind: 'warden-trophy', icon: '🏆', color: '#fbbf24',
+      title: `Warden Trophy: ${getWardenName(floor)}`, batchTitle: '{n} Warden Trophies',
+      detail: `+${Math.round(WARDEN_TROPHY_GOLD * 100)}% Tower gold`
+    });
     return true;
+  }
+
+  // Tower setbacks: a quiet red toast; an auto-climb bouncing off a boss folds into one (×N)
+  notifySetback(title) {
+    rewards.notify({ tier: 'small', kind: 'tower-setback', icon: '⚠️', color: '#ef4444', title });
+  }
+
+  // Gear upgrades drop often while climbing: a quiet toast, folded into "N gear upgrades"
+  notifyGear(label, item) {
+    rewards.notify({
+      tier: 'small', kind: 'gear', icon: '⚔️', color: item.color,
+      title: `${label}: ${item.name}`, batchTitle: '{n} gear upgrades'
+    });
   }
 
   rollLoot(floor, isBoss) {
@@ -522,11 +541,12 @@ export class CombatSystem {
     const slot = slots[Math.floor(Math.random() * slots.length)];
 
     const rarities = [
-      { name: 'Common', color: '#94a3b8', mult: 1, weight: 60 },      // Gray
-      { name: 'Rare', color: '#38bdf8', mult: 2, weight: 25 },        // Blue
-      { name: 'Epic', color: '#a855f7', mult: 4, weight: 10 },        // Purple
-      { name: 'Legendary', color: '#ef4444', mult: 8, weight: 4 },    // Red
-      { name: 'Cosmic', color: '#fbbf24', mult: 18, weight: 1 }       // Gold (Highest)
+      // Colours match the --rarity-* tokens in css/tokens.css (used for the loot toast)
+      { name: 'Common', color: '#9aa5b1', mult: 1, weight: 60 },      // Gray
+      { name: 'Rare', color: '#56b4e9', mult: 2, weight: 25 },        // Blue
+      { name: 'Epic', color: '#b388ff', mult: 4, weight: 10 },        // Violet
+      { name: 'Legendary', color: '#ef8a3c', mult: 8, weight: 4 },    // Orange (red means danger)
+      { name: 'Cosmic', color: '#ffd84d', mult: 18, weight: 1 }       // Gold (Highest)
     ];
 
     let rand = Math.random() * 100;
@@ -546,13 +566,13 @@ export class CombatSystem {
       newItem.attack = Math.max(1, Math.floor(10 * scale));
       if (newItem.attack > (this.gameState.hero.gear.weapon?.attack || 0)) {
         this.gameState.hero.gear.weapon = newItem;
-        particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2 - 50, `NEW WEAPON: ${newItem.name}`, chosenRarity.color, true);
+        this.notifyGear('New weapon', newItem);
       }
     } else if (slot === 'armor') {
       newItem.hp = Math.max(1, Math.floor(40 * scale));
       if (newItem.hp > (this.gameState.hero.gear.armor?.hp || 0)) {
         this.gameState.hero.gear.armor = newItem;
-        particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2 - 50, `NEW ARMOR: ${newItem.name}`, chosenRarity.color, true);
+        this.notifyGear('New armor', newItem);
       }
     } else if (slot === 'amulet') {
       newItem.crit = Math.min(0.5, 0.02 + floor * 0.001 * chosenRarity.mult);
@@ -601,16 +621,17 @@ export class CombatSystem {
 
     // Boss Timer
     if (this.monster.isBoss) {
-      this.monster.timer -= dt;
+      // A ceremony on screen pauses the boss timer it would otherwise waste (§5.1 big tier)
+      if (!rewards.isCeremonyActive()) this.monster.timer -= dt;
       if (this.monster.timer <= 0) {
         if (this.wardenChallenge) {
           // A lost challenge costs nothing: the hero returns to his climb floor
-          particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'THE WARDEN HOLDS! BACK TO THE CLIMB', '#ef4444', true);
+          this.notifySetback('The Warden holds! Back to the climb');
           this.endWardenChallenge();
           return;
         }
         // Failed boss timer -> retreat 1 floor
-        particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'BOSS TIMEOUT! RETREATING', '#ef4444', true);
+        this.notifySetback('Boss timeout: retreating 1 floor');
         h.floor = Math.max(1, h.floor - 1);
         this.initMonster();
         return;
@@ -640,12 +661,12 @@ export class CombatSystem {
         if (h.hp <= 0) {
           h.hp = this.getTotalMaxHp();
           if (this.wardenChallenge) {
-            particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'THE WARDEN HOLDS! BACK TO THE CLIMB', '#ef4444', true);
+            this.notifySetback('The Warden holds! Back to the climb');
             this.endWardenChallenge();
             return;
           }
           // Hero died -> retreat 1 floor and restore HP
-          particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'DEFEATED! RETREATING 1 FLOOR', '#ef4444', true);
+          this.notifySetback('Defeated: retreating 1 floor');
           h.floor = Math.max(1, h.floor - 1);
           this.initMonster();
         }

@@ -1,6 +1,6 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
-import { particles } from '../engine/ParticleEngine.js';
+import { rewards } from '../ui/rewards.js';
 
 export const SPELLS = [
   {
@@ -80,6 +80,12 @@ export class SpellSystem {
     return true;
   }
 
+  // Spell feedback is a quiet toast (the cast sound already played); auto-casts of the same
+  // spell fold into one ("Aether Burst ×3", amounts summed)
+  notifySpell(icon, name, color, extra = {}) {
+    rewards.notify({ tier: 'small', kind: `spell-${name}`, icon, color, title: name, ...extra });
+  }
+
   castSpell(spellId) {
     if (!this.canCast(spellId)) return false;
 
@@ -99,7 +105,7 @@ export class SpellSystem {
       const payout = cps.mul(120).max(this.gameState.getClickYield().mul(100));
       this.gameState.aether = this.gameState.aether.add(payout);
       this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(payout);
-      particles.spawnFloatingText(x, y, `BURST! +${payout.format('standard', 2)} AETHER`, '#38bdf8', true);
+      this.notifySpell('🔮', 'Aether Burst', '#38bdf8', { amount: payout, fmt: (a) => a.format('standard', 2), unit: 'Aether' });
     } else if (spellId === 'chrono_warp') {
       this.removeBuff('chrono_warp');
       this.gameState.activeBuffs.push({
@@ -111,7 +117,7 @@ export class SpellSystem {
         maxDuration: 15
       });
       if (this.gameLoop) this.gameLoop.timeScale = 5.0;
-      particles.spawnFloatingText(x, y, '⏳ TIME ACCELERATED 5X!', '#f59e0b', true);
+      this.notifySpell('⏳', 'Chrono Warp', '#f59e0b', { detail: 'Time ×5 for 15s' });
     } else if (spellId === 'midas_touch') {
       this.removeBuff('midas_touch');
       this.gameState.activeBuffs.push({
@@ -122,7 +128,7 @@ export class SpellSystem {
         duration: 25,
         maxDuration: 25
       });
-      particles.spawnFloatingText(x, y, '🪙 MIDAS BLESSING ACTIVE!', '#eab308', true);
+      this.notifySpell('🪙', "Midas' Blessing", '#eab308', { detail: 'Clicks give gold for 25s' });
     } else if (spellId === 'celestial_alignment') {
       this.removeBuff('celestial_alignment');
       this.gameState.activeBuffs.push({
@@ -133,7 +139,7 @@ export class SpellSystem {
         duration: 30,
         maxDuration: 30
       });
-      particles.spawnFloatingText(x, y, '🌟 +300% AETHER FOR 30s!', '#ec4899', true);
+      this.notifySpell('🌟', 'Celestial Alignment', '#ec4899', { detail: '+300% Aether for 30s' });
     } else if (spellId === 'void_strike') {
       if (this.gameState.combatSystem && this.gameState.combatSystem.monster) {
         const m = this.gameState.combatSystem.monster;
@@ -152,7 +158,7 @@ export class SpellSystem {
         }
         ms.blastBlocks(picks, x, y);
       }
-      particles.spawnFloatingText(x, y, '☄️ VOID CATACLYSM!', '#a855f7', true);
+      this.notifySpell('☄️', 'Void Cataclysm', '#a855f7');
     } else if (spellId === 'astral_refresh') {
       for (const key in this.gameState.spells) {
         if (key !== 'astral_refresh') {
@@ -164,7 +170,7 @@ export class SpellSystem {
           this.gameState.hero.skills[k].cd = 0;
         }
       }
-      particles.spawnFloatingText(x, y, '🌀 ALL COOLDOWNS RESET!', '#06b6d4', true);
+      this.notifySpell('🌀', 'Astral Refresh', '#06b6d4', { detail: 'All cooldowns reset' });
     }
 
     if (this.gameState.bountySystem) {
