@@ -17,13 +17,16 @@
 // next generator tier and counts as a reset in the gap measurement.
 // Upgrade shop (R5): upgrades compete with generators in the same greedy loop, by Aether/s gained
 // per Aether spent (see makeUpgradeShopBuyer below).
+// Dust shop (R6): after every reset the player buys every open shop item, then Dust Amplifier ranks
+// with the dust left (see the dust shop block below).
 //
 // When an economy PR changes the core (new prestige layer, shop, formulas), update this script
 // so it still models what a real player would do, and paste the before/after report in the PR.
 import { BigNum } from '../js/engine/BigNum.js';
 import { GameState } from '../js/systems/GameState.js';
 import { BuildingSystem, BUILDING_DEFINITIONS, MAX_TIER_COUNT } from '../js/systems/BuildingSystem.js';
-import { PrestigeSystem, ASCENSION_PERKS } from '../js/systems/PrestigeSystem.js';
+import { PrestigeSystem } from '../js/systems/PrestigeSystem.js';
+import { DUST_SHOP_ITEMS, buyShopItem } from '../js/systems/DustShopSystem.js';
 import { AchievementSystem } from '../js/systems/AchievementSystem.js';
 import { UpgradeSystem, TIER_UPGRADE_MULT, SYNERGY_PER_UNIT, UPGRADE_DEFINITIONS, getUpgradeDefinition } from '../js/systems/UpgradeSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
@@ -159,6 +162,34 @@ function makeShardTreeModel(gs, ps) {
 }
 // ---------------------------------------------------------------------------------------------
 
+// ---- Dust shop (R6) ---------------------------------------------------------------------------
+// Called after each Ascension and Transcend (the only times dust changes). Spending never lowers
+// the dust multiplier (it reads lifetime dust), so the player buys every open item in shop order
+// (ranked items up to their max), then pours what is left into Dust Amplifier (+10% dust gain per
+// rank, price x2 each). What the sim models of the items:
+//   - Cosmic Genesis, Resonant Start: PrestigeSystem.ascend applies them to the new run;
+//   - Blueprint Memory I/II: the upgrade shop's keep rules (real UpgradeSystem reset);
+//   - Finger of Wasta: the loop below counts clicks into gs.totalClicks (up to +50%);
+//   - Dust Amplifier: PrestigeSystem.getPendingCosmicDust.
+// Auto-Buy changes nothing here (the sim already greedy-buys every 5 s in both profiles); Chrono
+// Reservoir, Hourglass, Golems, Titan, Crucible and Leylines touch nothing the core sim models.
+function makeDustShopModel(gs) {
+  const items = DUST_SHOP_ITEMS.filter(d => d.id !== 'dust_amplifier');
+  const firstBuy = new Map();   // item id -> day first bought (report)
+  return {
+    buyAll(t) {
+      for (const d of items) {
+        for (let k = 0; k < 10 && buyShopItem(gs, d.id); k++) {
+          if (!firstBuy.has(d.id)) firstBuy.set(d.id, t / DAY);
+        }
+      }
+      for (let k = 0; k < 400 && buyShopItem(gs, 'dust_amplifier'); k++);
+    },
+    firstBuy
+  };
+}
+// ---------------------------------------------------------------------------------------------
+
 function run(profile) {
   const gs = new GameState();
   const bs = new BuildingSystem(gs);
@@ -171,6 +202,7 @@ function run(profile) {
 
   gs.buildingSystem = bs; gs.achievementSystem = ach;
   const shardTree = makeShardTreeModel(gs, ps);
+  const dustShop = makeDustShopModel(gs);
   let autoAscendDay = null;
   bs.buyAmount = 1;
 
@@ -218,20 +250,6 @@ function run(profile) {
     }
   };
 
-  const buyPerks = () => {
-    const def = ASCENSION_PERKS.find(p => p.id === 'eternal_resonance');
-    for (let k = 0; def && k < 20; k++) {
-      const st = gs.ascensionPerks.eternal_resonance;
-      if (st.rank >= def.maxRank) break;
-      const cost = def.cost * Math.pow(1.5, st.rank);
-      const D = gs.cosmicDust.toNumber();
-      if (D < cost) break;
-      // The dust multiplier reads lifetime dust, so spending never lowers it: a rank is a pure gain.
-      ps.buyPerk('eternal_resonance');
-    }
-    if (gs.ascensionPerks.genesis?.rank === 0 && gs.cosmicDust.toNumber() >= 15) ps.buyPerk('genesis');
-  };
-
   const dtFor = (t) => t < 3600 ? 1 : t < DAY ? 10 : t < 7 * DAY ? 60 : 300;
 
   let t = 0, runStart = 0, ci = 0;
@@ -247,6 +265,7 @@ function run(profile) {
     const present = t % 3600 < presence;
     const clicksPerSec = present ? 2 : (t - runStart < 180 ? 1 : 0);
     clickRate = (present ? 5 : 1) * clicksPerSec;
+    gs.totalClicks += clicksPerSec * dt;   // Finger of Wasta counts this run's clicks
     const clickYield = gs.getClickBase().add(cps.mul(0.03)).mul(clickRate * dt);
     const income = cps.mul(dt * activeMult(t)).add(clickYield);
     gs.aether = gs.aether.add(income);
@@ -266,8 +285,8 @@ function run(profile) {
         upgradesPerRun.push(us.getBoughtCount());
         ps.ascend(true); // the sim enforces the 10-min minimum itself (virtual time, not Date.now)
         runStart = t;
+        dustShop.buyAll(t);
       }
-      buyPerks();
     }
 
     if (regainFrom && gs.getNetAetherPerSecond().gte(regainFrom.cps)) {
@@ -282,6 +301,7 @@ function run(profile) {
       ps.transcend();
       runStart = t;
       shardTree.buyNodes();
+      dustShop.buyAll(t);
       if (autoAscendDay === null && shardTree.owns('chronos_auto_ascend')) autoAscendDay = t / DAY;
     }
 
@@ -324,6 +344,8 @@ function run(profile) {
     maxGapDays: maxGap / DAY,
     upgradesPerRun,
     autoAscendDay,
+    shopFirstBuy: dustShop.firstBuy,
+    amplifierRank: gs.dustShop.ranks.dust_amplifier || 0,
     gapKeptUntilDay: keptUntil / DAY
   };
 }
@@ -349,6 +371,7 @@ for (const profile of ['idle', 'casual']) {
     out.push(`- CPS back to its pre-Transcend level after: median ${sorted[sorted.length >> 1].toFixed(1)} d, max ${sorted.at(-1).toFixed(1)} d (${sorted.length} of ${r.transcendDays.length} Transcends)`);
   }
   out.push(`- Auto-Ascend bought: ${r.autoAscendDay === null ? 'never' : `day ${r.autoAscendDay.toFixed(1)}`}`);
+  out.push(`- dust shop, first bought (day): ${[...r.shopFirstBuy].map(([id, d]) => `${id} ${d.toFixed(2)}`).join(', ') || 'nothing'}; Dust Amplifier rank at year end ${r.amplifierRank}`);
   out.push(`- Transcends at day: ${r.transcendDays.length ? r.transcendDays.map(d => d.toFixed(1)).join(', ') : 'none'}`);
   out.push(`- longest stretch with no reset (day 1..${TARGETS.gapWindowEndDay}): ${r.maxGapDays.toFixed(1)} days`);
   out.push(`- a reset at least every ${TARGETS.maxGapDaysAfterDay1} days until day ${r.gapKeptUntilDay.toFixed(0)}`);
