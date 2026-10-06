@@ -34,6 +34,7 @@ import { WardensRelicsUI } from './ui/wardens-relics.js';
 import { UpgradeSystem } from './systems/UpgradeSystem.js';
 import { UpgradeShopUI } from './ui/upgrades.js';
 import { ShardTreeUI } from './ui/shardTree.js';
+import { CalendarUI } from './ui/calendar.js';
 import { gearCard } from './ui/rarity.js';
 import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
@@ -141,6 +142,9 @@ class AetheriaApp {
     // Shard tree (R13): creates this.shardTreeSystem, builds its panel, runs Auto-Ascend
     this.shardTreeUI = new ShardTreeUI(this);
     this.shardTreeUI.init();
+    // Daily Dallah, Weekly Ledger, Souq Rotation, Seals (R15): creates this.calendarSystem
+    this.calendarUI = new CalendarUI(this);
+    this.calendarUI.init();
     initTooltips({ switchTab: (tab) => this.switchTab(tab) });
 
     // Setup DOM Listeners & Navigation
@@ -1836,6 +1840,7 @@ class AetheriaApp {
     this.shell?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
     this.shardTreeUI?.update(this.currentTab);
+    this.calendarUI?.update(this.currentTab, dt);
     this.talentSourcesUI?.update(dt, this.currentTab);
 
     // Fast, lightweight state updates without replacing DOM nodes

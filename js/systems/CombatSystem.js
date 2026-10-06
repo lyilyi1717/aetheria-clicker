@@ -469,6 +469,8 @@ export class CombatSystem {
     goldMult *= (1 + (this.gameState.talents?.dungeon_wealth?.rank || 0) * 0.25) * this.gameState.getGoldMultiplier();
     // Warden trophies: +2% Tower gold each
     goldMult *= this.getWardenGoldMult();
+    // Falcon Week (Souq Rotation, R15): boss gold x1.5
+    if (isBoss) goldMult *= this.gameState.calendarSystem?.getBossGoldMult?.() || 1;
     const goldEarned = new BigNum(MONSTER_FLOOR_BASE).pow(floor - 1).mul(new BigNum((isBoss ? 50 : 10) * rewardMult * goldMult)).floor();
     this.gameState.gold = this.gameState.gold.add(goldEarned);
 

@@ -188,14 +188,24 @@ export class PrestigeSystem {
     return this.gameState.totalCosmicDust.gte(this.getTranscendGate());
   }
 
+  // Shards the next Transcend pays (R15, §6.1). `base` (2) raises both counters, so it is in the
+  // x1.5 multipliers. `seals` (+1 per lit Seal of Transcendence, up to +3) is spendable only: it
+  // goes to fractureShards (the shard tree) and never to totalFractureShards, because every
+  // multiplier shard compounds and any extra one per Transcend runs the layer away (doc §6.1).
+  getTranscendShards() {
+    this.gameState.calendarSystem?.updateSeals?.();
+    return { base: TRANSCEND_SHARDS, seals: this.gameState.calendarSystem?.getSealShardBonus?.() || 0 };
+  }
+
   // What Transcend trades, for the confirm dialog and the panel. Lifetime dust of this layer (and
   // so the dust multiplier) goes back to 0; the run, dust and perks reset. In return: +2 shards
   // (x1.5 Aether and x1.5 dust gain each, permanent) and the next generator tier.
   // before/after compare the dust x shard Aether multipliers right before and right after.
   getTranscendPreview() {
     const gs = this.gameState;
+    const { base: payout, seals: sealShards } = this.getTranscendShards();
     const shardsBefore = gs.getShardCount();
-    const shardsAfter = shardsBefore + TRANSCEND_SHARDS;
+    const shardsAfter = shardsBefore + payout;
     const dustBefore = gs.getDustMultiplierBig();
     const dustAfter = BigNum.one();
     const shardBefore = gs.getShardAetherMult(shardsBefore);
@@ -205,7 +215,8 @@ export class PrestigeSystem {
     return {
       gate: this.getTranscendGate(),
       nextGate: this.getTranscendGate((gs.transcendenceCount || 0) + 1),
-      shardsGained: TRANSCEND_SHARDS,
+      shardsGained: payout,
+      sealShards,   // spendable only: not in shardsAfter or any multiplier
       shardsBefore, shardsAfter,
       dustBefore, dustAfter,
       shardBefore, shardAfter,
@@ -221,8 +232,10 @@ export class PrestigeSystem {
   transcend() {
     if (!this.canTranscend()) return false;
 
-    const shardsGained = new BigNum(TRANSCEND_SHARDS);
-    this.gameState.fractureShards = this.gameState.fractureShards.add(shardsGained);
+    const { base: payout, seals: sealShards } = this.getTranscendShards();
+    const shardsGained = new BigNum(payout);
+    // The base shards count for the multipliers (lifetime) and the shard tree (spendable)
+    this.gameState.fractureShards = this.gameState.fractureShards.add(shardsGained).add(sealShards);
     this.gameState.totalFractureShards = this.gameState.totalFractureShards.add(shardsGained);
     this.gameState.transcendenceCount++;
 
@@ -243,7 +256,7 @@ export class PrestigeSystem {
       hero.hp = Math.min(hero.hp, this.gameState.combatSystem.getTotalMaxHp());
     }
 
-    rewards.notify({ tier: 'epic', kind: 'transcend', icon: '🌌', color: '#ec4899', title: 'Transcended Reality', batchTitle: '{n} Transcends', amount: TRANSCEND_SHARDS, fmt: (n) => String(n), unit: 'Fracture Shards' });
+    rewards.notify({ tier: 'epic', kind: 'transcend', icon: '🌌', color: '#ec4899', title: 'Transcended Reality', batchTitle: '{n} Transcends', amount: payout, fmt: (n) => String(n), unit: 'Fracture Shards', detail: sealShards > 0 ? `+${sealShards} more to spend (Seals)` : undefined });
     return true;
   }
 }

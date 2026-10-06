@@ -514,9 +514,12 @@ export class GardenSystem {
     // Leyline Overflow: x1.5 growth while mana is full
     const haste = this.getGrowthMultiplier() * (this.gameState.getLeylineGardenMult?.() || 1);
     const plots = this.gameState.garden.plots;
+    const souq = this.gameState.calendarSystem;
     for (const plot of plots) {
       if (plot.seed && plot.progress < plot.maxTime) {
-        plot.progress = Math.min(plot.maxTime, plot.progress + dt * haste);
+        // Souq Rotation (R15): Truffle Season / Rosewater Week
+        const week = souq?.getGardenGrowthMult?.(plot.seed) || 1;
+        plot.progress = Math.min(plot.maxTime, plot.progress + dt * haste * week);
       }
       // Recompute stage every tick: Water All and Leyline Overflow push progress from
       // outside this loop, and skipping the 'mature' step left plots unharvestable.
