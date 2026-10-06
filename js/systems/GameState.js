@@ -143,11 +143,8 @@ export class GameState {
       mult *= (1 + this.market.goldenSynergy * 0.05);
     }
 
-    // Multiply by Cosmic Dust bonus (each cosmic dust gives +2% production)
-    if (this.cosmicDust.gt(0)) {
-      const dustMult = 1 + this.cosmicDust.toNumber() * 0.02;
-      mult *= Math.max(1, dustMult);
-    }
+    // Cosmic Dust bonus: +2% production per dust EARNED (lifetime), so spending dust on perks never lowers it
+    mult *= this.getDustMultiplier();
 
     // Fracture Shards (Transcendence): +10% production each
     if (this.fractureShards.gt(0)) {
@@ -215,6 +212,11 @@ export class GameState {
   }
 
   // Depth Resonance (Excavation -> Aether): x(1 + 0.02 * maxDepth)
+  // Production multiplier from Cosmic Dust: 1 + 0.02 per lifetime dust (spending never lowers it)
+  getDustMultiplier(total = this.totalCosmicDust) {
+    return Math.max(1, 1 + total.toNumber() * 0.02);
+  }
+
   getDepthResonanceMult() {
     return 1 + 0.02 * this.getMaxDepth();
   }
