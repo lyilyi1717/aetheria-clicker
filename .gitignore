@@ -1,4 +1,7 @@
 enable_auto_edits.py
 __pycache__/
 node_modules/
-.claude/
+# Local Claude Code state stays ignored; shared agent config is tracked.
+.claude/*
+!.claude/settings.json
+!.claude/agents/
