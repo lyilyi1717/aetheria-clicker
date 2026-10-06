@@ -260,7 +260,8 @@ stratum or zone every 1–3 days in week 1. One dust-shop feature. From day 6, a
 2–4 days that hands you a new generator tier and shards to spend. Golem rows and caravans
 finished overnight. A Codex row filled.
 
-**Every week.** Weekly Ledger: 3 goals drawn from unlocked tabs, Seals + a Codex stamp.
+**Every week.** Weekly Ledger: 3 goals drawn from unlocked tabs, sized to about 4.5 days of
+the player's own typical play (R33), Seals + a Codex stamp.
 Souq Rotation: one gentle world modifier that returns later (Truffle Season, Falcon Week).
 A Seal of Transcendence lights roughly weekly through month 2 (depth 100, floor 501, 25
 Catalysts, Guild Rank 7, bestRunDust 1e8, 40% Codex, 15 Ascensions).
@@ -799,8 +800,9 @@ After the first Chronicle the Seal half counts as met.
   tricks pay more than the cap.
 - **Daily Dallah** (roadmap §5.4): first visit of a calendar day; banks 3 days; no streak,
   "days visited" is a lifetime count.
-- **Weekly Ledger**: 3 goals from unlocked tabs; Seals + stamp; rotates Monday; missing one
-  loses nothing.
+- **Weekly Ledger**: 3 goals from unlocked tabs, each sized to ~4.5 days of the player's own
+  typical day (R33), so a week takes several sessions but leaves 2–3 days of slack; Seals +
+  stamp; rotates Monday; missing one loses nothing.
 - **Souq Rotation**: one modifier per week, always positive, always returns.
 - **Seasons = Chapters** (3 months): new rules, new collection, new leaderboard; a Chapter
   missed is a Chapter next year. No exclusive items ever.
