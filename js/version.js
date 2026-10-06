@@ -3,9 +3,19 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.2.0';
+export const VERSION = '4.2.1';
 
 export const CHANGELOG = [
+  {
+    version: '4.2.1',
+    date: '2026-10-06',
+    title: 'Dynamite blasts land on the grid',
+    changes: [
+      'The Excavation 3x3 blast now shows its sparks and rewards on the tiles it actually hit, instead of in the middle of the screen. Blasted tiles flash orange so you can see the 3x3 area.',
+      'Blasts near an edge or corner only hit the tiles that are on the grid (4 at a corner, 6 along an edge), as before; only the effects were in the wrong place.',
+      'Void Cataclysm also shows its mining effects on the tiles it hits while the Excavation grid is on screen.'
+    ]
+  },
   {
     version: '4.2.0',
     date: '2026-10-06',
