@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.4.0';
+export const VERSION = '4.5.0';
 
 export const CHANGELOG = [
   {
-    version: '4.4.0',
+    version: '4.5.0',
     date: '2026-10-06',
     title: 'Weekly Ledger goals are a real week',
     changes: [
@@ -16,6 +16,17 @@ export const CHANGELOG = [
       'Until it has seen 3 of your days, a goal uses a starting target (for example Slay 200 Tower fiends, was 60). No goal is ever easier than before.',
       'Each Ledger goal now pays 10 Guild Seals (was 6), 30 for the full week.',
       'This week\'s goals keep their old targets and old 6-Seal reward until the Ledger rotates on Monday. Missing a week still loses nothing.'
+    ]
+  },
+  {
+    version: '4.4.0',
+    date: '2026-10-06',
+    title: 'Frenzy every 20 clicks',
+    changes: [
+      'Your click combo now reaches its full x5 boost after 20 clicks (was 50).',
+      'Every 20 clicks in a row (20, 40, 60, ...) sets off a Frenzy. When a Frenzy ends your combo keeps going instead of dropping back to 0, so you never have to rebuild 100 clicks again. Only pausing for 2 seconds drains the combo.',
+      'Frenzy is shorter and gentler so it can come much more often: x3 click yield for 4 s (was x5 and rapid auto-clicks for 15 s). Reaching the next 20 while a Frenzy is running adds 4 s, up to 30 s. Overall, attentive play earns about the same as before; pure clicking without spells earns a little less, and a Time Flux anomaly is now 25 s of the new x3 Frenzy.',
+      'The combo bar fills over the first 20 clicks, then shows your progress to the next Frenzy, with a "Frenzy in N" counter.'
     ]
   },
   {

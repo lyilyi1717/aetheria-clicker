@@ -4,6 +4,7 @@
 // Chips are keyed by id: created once on appear, updated in place per frame, removed on expire.
 // Clicks are delegated on the bar, so per-frame updates never swallow taps.
 
+import { FRENZY_MULT } from './systems/combo.js';
 import { SPELLS } from './systems/SpellSystem.js';
 import { tipHtml } from './ui/tooltip.js';
 
@@ -27,7 +28,7 @@ const BUFF_TARGETS = {
   hero_atk: { tag: 'Void Tower', tab: 'combat', affects: 'hero attack' },
   gold_mult: { tag: 'Gold', tab: 'combat', affects: 'Tower kills, Excavation caches, Midas clicks' },
   time_speed: { tag: 'All', tab: null, affects: 'game speed' },
-  frenzy: { tag: 'Monolith', tab: 'monolith', affects: 'auto-clicks' }
+  frenzy: { tag: 'Monolith', tab: 'monolith', affects: 'clicks only' }
 };
 
 export function formatClock(sec) {
@@ -39,7 +40,7 @@ export function formatClock(sec) {
 function stackText(b) {
   if (b.type === 'click_gold') return 'gold clicks';
   if (b.type === 'time_speed') return `${b.value}x speed`;
-  if (b.type === 'frenzy') return '5 clicks/s';
+  if (b.type === 'frenzy') return `x${FRENZY_MULT} clicks`;
   if (typeof b.value === 'number') return `+${Math.round((b.value - 1) * 100)}%`;
   return '';
 }

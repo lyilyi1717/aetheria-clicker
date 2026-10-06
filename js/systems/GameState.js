@@ -1,4 +1,5 @@
 import { BigNum } from '../engine/BigNum.js';
+import { comboMultiplier, FRENZY_MULT } from './combo.js';
 import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
 import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
 import { defaultRecords, sanitizeRecords, serializeRecords, seedRecords } from './TalentSources.js';
@@ -239,14 +240,14 @@ export class GameState {
       base = base.mul(1 + this.talents.click_power.rank * 0.25);
     }
 
-    // Combo multiplier (up to 5x base; a challenge may cap it lower)
+    // Combo multiplier (x5 at 20 clicks; a challenge may cap it lower)
     const rules = getActiveRules(this);
-    const comboMult = Math.min(rules.comboCap, 1 + Math.min(50, this.comboCount) * 0.08);
+    const comboMult = Math.min(rules.comboCap, comboMultiplier(this.comboCount));
     base = base.mul(comboMult);
 
     // Frenzy multiplier
     if (this.frenzyActive && !rules.noFrenzy) {
-      base = base.mul(5.0);
+      base = base.mul(FRENZY_MULT);
     }
 
     // Active buffs

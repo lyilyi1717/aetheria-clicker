@@ -2,7 +2,7 @@
 // §5.2, §6.1). Plays `seconds` of attentive play at a fixed generator output and returns the
 // Aether earned divided by what the same time earns idle (generators only).
 //
-// The attentive player: clicks 2/s (combo builds to x5, Frenzy at 100), casts Celestial
+// The attentive player: clicks 2/s (combo x5 after 20 clicks, Frenzy every 20), casts Celestial
 // Alignment, Chrono Warp and Aether Burst whenever ready and affordable (in that order, so a
 // Burst lands inside Celestial when it can), and clicks every Golden Anomaly as it appears.
 // Midas, Void Cataclysm and Astral Renewal don't make Aether and are left out. Chrono Warp's x5
