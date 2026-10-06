@@ -10,6 +10,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 ## In progress
 
 - R4 #6 Transcend rework (PR #35).
+- R22 #45 Design tokens and base components.
 
 ## Next up
 
