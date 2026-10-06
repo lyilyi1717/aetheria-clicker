@@ -26,6 +26,8 @@ gs.inventory.stone = 100;
 gs.garden.essences.manaSap = 50;
 check(!gar.buyGolem(), 'cannot buy without stone');
 gs.inventory.stone = 1500;
+check(!gar.buyGolem() && gs.garden.golems === 0, 'cannot buy without Golem Covenant (dust shop)');
+gs.dustShop.ranks.golem_covenant = 1;
 check(gar.buyGolem() && gs.garden.golems === 1 && gs.inventory.stone === 1350 && gs.garden.essences.manaSap === 40, 'buy golem 1');
 check(gar.buyGolem() && gs.garden.golems === 2 && gs.inventory.stone === 150, 'buy golem 2');
 

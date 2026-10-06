@@ -52,7 +52,7 @@ const climbed = (n) => {
   gs.cosmicDust = new BigNum(3e20);
   gs.totalCosmicDust = new BigNum(9e20);
   gs.ascensionCount = 400;
-  gs.ascensionPerks.genesis.rank = 1;
+  gs.dustShop.ranks.genesis = 1;
   gs.aether = new BigNum(1e40);
   gs.totalAetherEarned = new BigNum(5e40);
   gs.buildings.tapper.count = 300;
@@ -180,7 +180,7 @@ console.log('--- Chronicle reset: exactly what the preview lists resets, the res
   // generators (Cosmic Genesis, owned at the moment of the reset, starts the run with 15 Stalls, as on Transcend)
   for (const [id, b] of Object.entries(gs.buildings)) assert.equal(b.count, id === 'tapper' ? 15 : 0, `generator ${id}`);
   assert.ok(gs.cosmicDust.eq(0) && gs.totalCosmicDust.eq(0), 'dust and lifetime dust');
-  assert.equal(gs.ascensionPerks.genesis.rank, 0, 'perks');
+  assert.deepEqual(gs.dustShop.ranks, {}, 'dust shop');
   assert.ok(gs.fractureShards.eq(0) && gs.totalFractureShards.eq(0), 'shards');
   assert.equal(gs.transcendenceCount, 0, 'Transcends this Chronicle');
   assert.equal(getUnlockedTierCount(gs), 14, 'ladder back to 14 tiers');

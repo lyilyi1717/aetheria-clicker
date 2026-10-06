@@ -3,6 +3,7 @@ import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { hasWardensNode, hasSecondWind } from './ShardTreeSystem.js';
+import { getShopRank } from './DustShopSystem.js';
 
 export const ZONES = [
   { name: 'Thumama Dunes', minFloor: 1, maxFloor: 50, color: '#f59e0b', icon: '🏜️' },
@@ -310,8 +311,8 @@ export class CombatSystem {
   getTotalAttack() {
     const h = this.gameState.hero;
     let atk = h.baseAttack + (h.gear.weapon ? h.gear.weapon.attack : 0);
-    // Titan's Legacy perk: +25 Attack per rank
-    atk += (this.gameState.ascensionPerks?.titan_legacy?.rank || 0) * 25;
+    // Titan's Legacy (dust shop): +25 Attack per rank
+    atk += getShopRank(this.gameState, 'titan_legacy') * 25;
     // Add level bonus
     atk += (h.level - 1) * 4;
 
@@ -348,8 +349,8 @@ export class CombatSystem {
   getTotalMaxHp() {
     const h = this.gameState.hero;
     let hp = h.maxHp + (h.gear.armor ? h.gear.armor.hp : 0) + (h.level - 1) * 20;
-    // Titan's Legacy perk: +100 HP per rank
-    hp += (this.gameState.ascensionPerks?.titan_legacy?.rank || 0) * 100;
+    // Titan's Legacy (dust shop): +100 HP per rank
+    hp += getShopRank(this.gameState, 'titan_legacy') * 100;
     
     // Excavation -> hero Max HP: +1% per max depth, capped at +100%
     hp *= this.gameState.getDepthVitalityMult();

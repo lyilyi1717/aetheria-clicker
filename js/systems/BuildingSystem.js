@@ -269,7 +269,8 @@ export class BuildingSystem {
     return { count: n, cost: totalCost };
   }
 
-  buyBuilding(id) {
+  // quiet: no buy sound (dust shop Auto-Buy buys in the background)
+  buyBuilding(id, { quiet = false } = {}) {
     const def = BUILDING_BY_ID.get(id);
     if (!def || !this.isTierUnlocked(id)) return false;
 
@@ -288,7 +289,7 @@ export class BuildingSystem {
     if (toBuy > 0 && this.gameState.aether.gte(cost)) {
       this.gameState.aether = this.gameState.aether.sub(cost);
       this.gameState.buildings[id].count += toBuy;
-      sound.playBuy();
+      if (!quiet) sound.playBuy();
 
       // Check bounties
       if (this.gameState.bountySystem) {

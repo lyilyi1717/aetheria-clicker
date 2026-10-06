@@ -267,7 +267,7 @@ export class ChronicleUI {
     const name = `Chronicle ${roman(p.number)}`;
     setText(this.modal.title, `Begin ${name}?`);
     setText(this.modal.yes, `Begin ${name}`);
-    const perks = Object.values(gs.ascensionPerks || {}).filter(x => x.rank > 0).length;
+    const features = Object.values(gs.dustShop?.ranks || {}).filter(r => r > 0).length;
     const keep = [
       `${p.pagesBefore} Pages earned + ${p.pages} new (Aether ${fmtMult(p.aetherMultBefore)} → ${fmtMult(p.aetherMultAfter)})`,
       `${gs.ascensionCount.toLocaleString()} Ascensions, talents, Codex and achievements`,
@@ -277,7 +277,7 @@ export class ChronicleUI {
     if (p.keepsAutoAscend) keep.push('Auto-Ascend (Bookmark)');
     if (p.startsChapter) keep.push(`Chapter 1 begins: ${p.startsChapter.name}`);
     const lose = [
-      `${fmtBig(p.dust)} lifetime dust, ${perks} God Perk${perks === 1 ? '' : 's'}`,
+      `${fmtBig(p.dust)} lifetime dust, ${features} Dust Shop feature${features === 1 ? '' : 's'}`,
       `${p.shards} shards${p.shardsAfter ? ` (you start with ${p.shardsAfter})` : ''}, ${p.treeNodes} shard tree node${p.treeNodes === 1 ? '' : 's'}`,
       `${p.transcends} Transcends: back to 14 generator tiers`,
       'The current run'

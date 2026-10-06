@@ -241,7 +241,7 @@ export class AlchemySystem {
     if (r.type === 'buff') {
       // Add or extend active buff
       const existing = this.gameState.activeBuffs.find(b => b.id === r.id);
-      // Astral Crucible perk doubles durations; Brewmaster Secret adds +25% per rank
+      // Astral Crucible (dust shop) doubles durations; Brewmaster Secret adds +25% per rank
       const dur = r.duration * this.gameState.getBuffDurationMult();
       // Extending stops at 10 min x the same duration multipliers
       const cap = this.gameState.getBuffDurationCap();

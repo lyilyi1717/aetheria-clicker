@@ -36,7 +36,7 @@ console.log('--- GameState: a corrupted sub-slice does not abort the rest of the
 {
   const src = new GameState();
   new PrestigeSystem(src);
-  src.ascensionPerks.eternal_resonance.rank = 7;
+  src.dustShop.ranks.chrono_vault = 7;
   src.achievements = { click_1: { unlockedAt: 1 } };
   src.settings.notation = 'suffix';
   const data = JSON.parse(JSON.stringify(src.serialize()));
@@ -44,7 +44,7 @@ console.log('--- GameState: a corrupted sub-slice does not abort the rest of the
   const gs = new GameState();
   gs.deserialize(data);
   assert.deepEqual(gs.bounties, []);
-  assert.equal(gs.ascensionPerks.eternal_resonance.rank, 7, 'perks after the bad slice must still load');
+  assert.equal(gs.dustShop.ranks.chrono_vault, 7, 'dust shop after the bad slice must still load');
   assert.equal(Object.keys(gs.achievements).length, 1);
   assert.equal(gs.settings.notation, 'suffix');
 

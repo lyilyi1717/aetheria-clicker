@@ -8,13 +8,14 @@ import {
 } from './ChronicleSystem.js';
 import { defaultCalendarState, sanitizeCalendarState } from './CalendarSystem.js';
 import { getTierUpgradeMult, getClickUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
+import { defaultDustShopState, sanitizeDustShopState, getShopRank, hasShopItem, getFingerOfWastaMult } from './DustShopSystem.js';
 
 // Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
 // PrestigeSystem imports audio/particles and GameState must stay loadable on its own.
 export const SHARD_AETHER_MULT = 1.5;
 export const SHARD_DUST_MULT = 1.5;
 
-// Timed buffs can be extended to at most 10 minutes (x perk/talent duration multipliers)
+// Timed buffs can be extended to at most 10 minutes (x Astral Crucible/talent duration multipliers)
 export const BUFF_DURATION_CAP = 600;
 // Chrono Sand bank cap (minutes) before Chrono Reservoir ranks
 export const CHRONO_SAND_BASE_CAP = 1440;
@@ -126,7 +127,10 @@ export class GameState {
     this.bounties = [];     // the contract board
     this.contracts = null;  // board timer { nextAt, lastClickAt }, set up by BountySystem
     this.market = null;
-    this.ascensionPerks = {};
+    // Dust shop (R6, DustShopSystem.js): features bought with Cosmic Dust; Transcend resets it
+    this.dustShop = defaultDustShopState();
+    // Set once by the v5 save migration: what happened to the old Ascension perks
+    this.legacyPerkRefund = null;
     this.achievements = {};
     this.codex = {}; // Generator Codex high-water marks and announced entries (CollectionSystem)
     // guidesSeen: tabs whose "How It Works" banner was shown expanded once (R23, js/ui/shell.js)
@@ -153,11 +157,8 @@ export class GameState {
       mult *= this.achievementSystem.getBonusMultiplier();
     }
 
-    // Multiply by Ascension Perks (Eternal Resonance = +50% per rank)
-    if (this.ascensionPerks && this.ascensionPerks['eternal_resonance']) {
-      const perkRank = this.ascensionPerks['eternal_resonance'].rank || 0;
-      mult *= (1 + perkRank * 0.50);
-    }
+    // Dust shop Finger of Wasta: +1% per 100 clicks this run, up to +50%
+    mult *= getFingerOfWastaMult(this);
 
     // Universal Mastery: Building Mastery (+1.5% Global Aether per 100 total buildings)
     if (this.buildingSystem) {
@@ -233,13 +234,6 @@ export class GameState {
     const comboMult = Math.min(rules.comboCap, 1 + Math.min(50, this.comboCount) * 0.08);
     base = base.mul(comboMult);
 
-    // Ascension Perk: Singularity Tap (+100% per rank)
-    if (this.ascensionPerks && this.ascensionPerks['hyper_click']) {
-      const perkRank = this.ascensionPerks['hyper_click'].rank || 0;
-      const clickMult = 1 + perkRank * 1.0;
-      base = base.mul(clickMult);
-    }
-
     // Frenzy multiplier
     if (this.frenzyActive && !rules.noFrenzy) {
       base = base.mul(5.0);
@@ -309,9 +303,9 @@ export class GameState {
     return 1 + bonus;
   }
 
-  // Astral Crucible perk (x2) and Brewmaster Secret talent (+25%/rank) stretch buff durations
+  // Astral Crucible (dust shop, x2) and Brewmaster Secret talent (+25%/rank) stretch buff durations
   getBuffDurationMult() {
-    let mult = this.ascensionPerks?.astral_alchemist?.rank > 0 ? 2 : 1;
+    let mult = hasShopItem(this, 'astral_alchemist') ? 2 : 1;
     mult *= 1 + (this.talents?.catalyst_potency?.rank || 0) * 0.25;
     return mult;
   }
@@ -345,7 +339,7 @@ export class GameState {
   // Chrono Sand bank cap: 1,440 x (1 + 0.5 x Chrono Reservoir rank). Offline Aether bands are
   // separate (SaveManager computeOfflineBands: Reservoir adds 4 h of full-rate time per rank).
   getChronoSandCap() {
-    return CHRONO_SAND_BASE_CAP * (1 + 0.5 * (this.ascensionPerks?.chrono_vault?.rank || 0));
+    return CHRONO_SAND_BASE_CAP * (1 + 0.5 * getShopRank(this, 'chrono_vault'));
   }
 
   // Midas Elixir (gold_mult buffs) multiplies all earned gold
@@ -416,7 +410,8 @@ export class GameState {
       contracts: this.contracts ? { ...this.contracts } : null,
       quartermaster: this.quartermaster,
       market: this.market,
-      ascensionPerks: this.ascensionPerks,
+      dustShop: this.dustShop,
+      legacyPerkRefund: this.legacyPerkRefund,
       achievements: this.achievements,
       codex: this.codex,
       // Chrono Warp is excluded: the loop's timeScale isn't saved, so it would come back inert
@@ -498,7 +493,10 @@ export class GameState {
         this.market.caravan.investment = BigNum.fromJSON(this.market.caravan.investment);
         if (this.market.caravan.payout) this.market.caravan.payout = BigNum.fromJSON(this.market.caravan.payout);
       }
-      this.ascensionPerks = data.ascensionPerks || {};
+      // Saves from before R6 arrive here with their perks already turned into shop ranks (v5)
+      this.dustShop = sanitizeDustShopState(data.dustShop, this.totalClicks);
+      this.legacyPerkRefund = data.legacyPerkRefund && typeof data.legacyPerkRefund === 'object'
+        ? data.legacyPerkRefund : null;
       this.achievements = data.achievements || {};
       this.codex = data.codex && typeof data.codex === 'object' ? data.codex : {};
       this.activeBuffs = Array.isArray(data.activeBuffs) ? data.activeBuffs : [];

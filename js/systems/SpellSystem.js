@@ -2,6 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from '../ui/rewards.js';
+import { hasShopItem } from './DustShopSystem.js';
 
 // --- R3 active income (docs/redesign-proposal.md §5.2, §6.1) ---
 // Active play should earn about 2-3x idle, not ~8x: Burst pays 45 s of CPS on a 45 s cooldown
@@ -210,8 +211,8 @@ export class SpellSystem {
   }
 
   update(dt, realDt = dt) {
-    // Automated Leylines perk: when mana is full, auto-cast the next ready spell
-    if (this.gameState.ascensionPerks?.auto_leylines?.rank > 0 && this.gameState.mana >= this.gameState.maxMana) {
+    // Automated Leylines (dust shop): when mana is full, auto-cast the next ready spell
+    if (hasShopItem(this.gameState, 'auto_leylines') && this.gameState.mana >= this.gameState.maxMana) {
       const next = SPELLS.find(d => d.id !== 'astral_refresh' && this.canCast(d.id));
       if (next) this.castSpell(next.id);
     }

@@ -197,6 +197,7 @@ console.log('--- Reset on Ascend; Blueprint Memory keep rules; full reset on Tra
 
   // Keep rule (what R6 Blueprint Memory registers): first 2 upgrades of each tier
   gs.dustShopTest = { blueprint: true };
+  const rulesBefore = ASCEND_KEEP_RULES.length; // the dust shop registers its own Blueprint Memory rule
   const remove = addAscendKeepRule((u, s) => s.dustShopTest?.blueprint && u.kind === 'tier' && u.level <= 2);
   try {
     gs.buildings.tapper.count = 200;
@@ -223,7 +224,7 @@ console.log('--- Reset on Ascend; Blueprint Memory keep rules; full reset on Tra
   } finally {
     remove();
   }
-  assert.equal(ASCEND_KEEP_RULES.length, 0, 'remover unregisters the rule');
+  assert.equal(ASCEND_KEEP_RULES.length, rulesBefore, 'remover unregisters the rule');
 }
 
 console.log('--- Save/load: bought upgrades round-trip; old saves load with none ---');

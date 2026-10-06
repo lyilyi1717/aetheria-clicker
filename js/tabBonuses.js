@@ -1,7 +1,8 @@
-// Per-tab "Active Bonuses" strip: shows which Constellation talents, Ascension perks,
+// Per-tab "Active Bonuses" strip: shows which Constellation talents, Dust shop features,
 // Universal Mastery cross-bonuses and timed buffs (elixirs/spells) affect the current tab.
 
 import { getGeodeAttunementMult, getNectarOfferingMult, getNectarHeld } from './systems/PrestigeSystem.js';
+import { getRunClicks, getFingerOfWastaMult } from './systems/DustShopSystem.js';
 
 const pct = (v) => `${Math.round(v)}%`;
 
@@ -24,19 +25,21 @@ export const TALENT_TAB_EFFECTS = {
   chrono_mastery:        { tabs: ['alchemy', 'bounties'], text: r => `+${pct(r * 50)} Chrono Sand gains` }
 };
 
-export const PERK_TAB_EFFECTS = {
-  eternal_resonance: { tabs: ['monolith'], text: r => `+${pct(r * 50)} Aether Production` },
-  hyper_click:       { tabs: ['monolith'], text: r => `+${pct(r * 100)} Click Yield` },
+// Dust shop item id -> tabs it affects + effect text (gs is passed for live values)
+export const SHOP_TAB_EFFECTS = {
+  finger_of_wasta:   { tabs: ['monolith'], text: (r, gs) => `+${pct((getFingerOfWastaMult(gs) - 1) * 100)} Aether (${getRunClicks(gs).toLocaleString('en-US')} clicks this run)` },
+  auto_buy:          { tabs: ['monolith'], text: (r, gs) => (gs.dustShop?.autoBuy ? 'Buys the best generator every 10 s' : 'Switched off') },
   titan_legacy:      { tabs: ['combat'], text: r => `+${r * 100} HP, +${r * 25} Attack` },
-  astral_alchemist:  { tabs: ['alchemy'], text: () => '2x Potion Duration' },
+  astral_alchemist:  { tabs: ['alchemy'], text: () => '2x Elixir Duration' },
+  golem_covenant:    { tabs: ['garden'], text: () => 'Golems can be bought' },
   auto_leylines:     { tabs: ['spells'], text: () => 'Auto-casts spells at full mana' },
-  chrono_vault:      { tabs: ['codex'], text: r => `+${r * 720}m Offline Sand cap` }
+  chrono_vault:      { tabs: ['codex'], text: r => `+${r * 4} h offline Aether at 100%, +${r * 50}% Sand bank` }
 };
 
 // What each Active Bonuses chip kind is, for its tooltip (R24)
 export const BONUS_KIND_LABELS = {
   talent: 'Constellation talent',
-  perk: 'Ascension perk',
+  perk: 'Dust shop feature',
   mastery: 'Universal Mastery',
   buff: 'Timed buff'
 };
@@ -132,7 +135,7 @@ export function getAetherMasteryTooltip(gs) {
     rows.map(m => `${fmtMult(m.value)} ${m.name} (${m.source})`).join('\n');
 }
 
-export function getTabBonuses(gameState, tab, talentDefs, perkDefs) {
+export function getTabBonuses(gameState, tab, talentDefs, shopDefs) {
   const items = [];
   for (const def of talentDefs) {
     const fx = TALENT_TAB_EFFECTS[def.id];
@@ -141,11 +144,11 @@ export function getTabBonuses(gameState, tab, talentDefs, perkDefs) {
       items.push({ kind: 'talent', icon: '🌌', name: def.name, detail: `R${rank} · ${fx.text(rank)}` });
     }
   }
-  for (const def of perkDefs) {
-    const fx = PERK_TAB_EFFECTS[def.id];
-    const rank = gameState.ascensionPerks?.[def.id]?.rank || 0;
+  for (const def of shopDefs) {
+    const fx = SHOP_TAB_EFFECTS[def.id];
+    const rank = gameState.dustShop?.ranks?.[def.id] || 0;
     if (fx && rank > 0 && fx.tabs.includes(tab)) {
-      items.push({ kind: 'perk', icon: '🏛️', name: def.name, detail: fx.text(rank) });
+      items.push({ kind: 'perk', icon: def.icon, name: def.name, detail: fx.text(rank, gameState) });
     }
   }
   for (const m of getMasteries(gameState)) {
