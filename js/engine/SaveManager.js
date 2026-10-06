@@ -2,10 +2,38 @@
 
 const SAVE_KEY = 'AETHERIA_CHRONICLES_SAVE_V1';
 
-// Offline Aether stops accruing after 24 h, matching the default Chrono Sand bank (1440 min).
-// Without it, moving the system clock forward credited unbounded Aether, which also fed the
-// Best Run Aether leaderboard stat.
-export const OFFLINE_AETHER_CAP = 24 * 3600; // seconds
+// Offline Aether is paid in two bands (docs/redesign-proposal.md section 8): 100% for the first
+// 8 h away, 50% from 8 h to 24 h, nothing beyond. Without a cap, moving the system clock forward
+// credited unbounded Aether, which also fed the Best Run Aether leaderboard stat.
+// Each Chrono Reservoir rank (ascension perk `chrono_vault`) adds 4 h to the full-rate band and
+// moves the end of the cap out by the same 4 h, so the 50% band stays 16 h long.
+export const OFFLINE_FULL_BAND = 8 * 3600; // seconds at 100%
+export const OFFLINE_AETHER_CAP = 24 * 3600; // seconds; nothing is paid beyond this (base)
+export const OFFLINE_HALF_RATE = 0.5;
+export const OFFLINE_RESERVOIR_BONUS = 4 * 3600; // seconds per Chrono Reservoir rank
+
+// Splits time away into paid bands. Pure: no game state, so it is easy to test.
+// Negative, NaN or infinite elapsed time (clock moved backwards) pays nothing.
+export function computeOfflineBands(elapsedSeconds, reservoirRank = 0) {
+  const elapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
+  const rank = Math.max(0, Number(reservoirRank) || 0);
+  const fullEnd = OFFLINE_FULL_BAND + rank * OFFLINE_RESERVOIR_BONUS;
+  const capEnd = OFFLINE_AETHER_CAP + rank * OFFLINE_RESERVOIR_BONUS;
+  const fullSecs = Math.min(elapsed, fullEnd);
+  const halfSecs = Math.max(0, Math.min(elapsed, capEnd) - fullEnd);
+  return {
+    elapsedSeconds: elapsed,
+    fullSecs,
+    halfSecs,
+    unpaidSecs: Math.max(0, elapsed - capEnd),
+    fullEnd,
+    capEnd,
+    halfRate: OFFLINE_HALF_RATE,
+    // Seconds of production credited before efficiency multipliers
+    paidSecs: fullSecs + halfSecs * OFFLINE_HALF_RATE,
+    capped: elapsed > capEnd
+  };
+}
 
 export class SaveManager {
   constructor(gameState) {
@@ -77,8 +105,9 @@ export class SaveManager {
   processOfflineTime(savedAt) {
     if (!savedAt) return null;
     const now = Date.now();
+    // A clock moved backwards gives a negative gap: it pays nothing (never negative)
     const elapsedSeconds = Math.max(0, (now - savedAt) / 1000);
-    if (elapsedSeconds < 5) return null; // Ignore short micro-reloads
+    if (!Number.isFinite(elapsedSeconds) || elapsedSeconds < 5) return null; // Ignore short micro-reloads
 
     // Calculate offline resources based on current production rates
     const prodPerSec = this.gameState.getNetAetherPerSecond();
@@ -89,14 +118,17 @@ export class SaveManager {
       offlineEfficiency += this.gameState.quartermaster['chronos_contract'].rank * 0.05;
     }
     
-    const capped = elapsedSeconds > OFFLINE_AETHER_CAP;
-    const effectiveSecs = Math.min(elapsedSeconds, OFFLINE_AETHER_CAP) * offlineEfficiency;
+    // Banded payout (100% then 50%); Chrono Reservoir extends the bands. Efficiency (talents,
+    // Chronos Contract) multiplies whatever the bands pay.
+    const reservoirRank = this.gameState.ascensionPerks?.chrono_vault?.rank || 0;
+    const bands = computeOfflineBands(elapsedSeconds, reservoirRank);
+    const effectiveSecs = bands.paidSecs * offlineEfficiency;
 
     const gainedAether = prodPerSec.mul(effectiveSecs);
     this.gameState.aether = this.gameState.aether.add(gainedAether);
     this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(gainedAether);
 
-    // Give Chrono Sand / Time Warps (1 Chrono Sand per minute offline, capped at 1440 mins = 24 hrs)
+    // Give Chrono Sand / Time Warps (1 Chrono Sand per minute offline, up to the sand bank cap)
     const minutes = Math.floor(elapsedSeconds / 60);
     // Chrono Reservoir perk: +50% cap per rank. The same cap bounds the whole sand bank.
     const sandCap = this.gameState.getChronoSandCap();
@@ -109,7 +141,9 @@ export class SaveManager {
 
     return {
       elapsedSeconds,
-      capped,
+      capped: bands.capped,
+      bands,
+      efficiency: offlineEfficiency,
       gainedAether,
       chronoEarned,
       gardenHarvests: garden.harvests

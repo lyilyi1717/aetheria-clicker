@@ -1,7 +1,8 @@
 import { BigNum } from './engine/BigNum.js';
 import { sound } from './engine/AudioEngine.js';
 import { particles } from './engine/ParticleEngine.js';
-import { SaveManager, OFFLINE_AETHER_CAP } from './engine/SaveManager.js';
+import { SaveManager } from './engine/SaveManager.js';
+import { renderOfflineModal } from './ui/offlineModal.js';
 import { GameLoop } from './engine/GameLoop.js';
 
 import { GameState } from './systems/GameState.js';
@@ -539,20 +540,7 @@ class AetheriaApp {
   }
 
   showOfflineModal(res) {
-    const modal = document.getElementById('offline-modal');
-    if (!modal) return;
-    const hours = (res.elapsedSeconds / 3600).toFixed(1);
-    document.getElementById('offline-time-text').textContent = `${hours} hours`
-      + (res.capped ? ` (Aether capped at ${OFFLINE_AETHER_CAP / 3600} h)` : '');
-    document.getElementById('offline-aether-text').textContent = res.gainedAether.format('standard', 2);
-    document.getElementById('offline-chrono-text').textContent = `+${fmtNum(res.chronoEarned)} Chrono Sand`
-      + (res.gardenHarvests ? ` · Garden Golems: +${fmtNum(res.gardenHarvests)} harvests` : '');
-    modal.classList.add('visible');
-
-    const closeBtn = document.getElementById('offline-modal-close');
-    if (closeBtn) {
-      closeBtn.onclick = () => modal.classList.remove('visible');
-    }
+    renderOfflineModal(res);
   }
 
   // Build the initial DOM cards once (never destroyed every frame!)

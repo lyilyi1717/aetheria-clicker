@@ -4,7 +4,7 @@ import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
 
 // Timed buffs can be extended to at most 10 minutes (x perk/talent duration multipliers)
 export const BUFF_DURATION_CAP = 600;
-// Chrono Sand bank cap (seconds) before Chrono Reservoir ranks; same constant as the offline cap
+// Chrono Sand bank cap (minutes) before Chrono Reservoir ranks
 export const CHRONO_SAND_BASE_CAP = 1440;
 
 export class GameState {
@@ -275,7 +275,8 @@ export class GameState {
     return new BigNum(1.12).pow(Number.isFinite(f) && f > 1 ? Math.floor(f) - 1 : 0);
   }
 
-  // Chrono Sand bank cap = offline cap: 1,440 s x (1 + 0.5 x Chrono Reservoir rank)
+  // Chrono Sand bank cap: 1,440 x (1 + 0.5 x Chrono Reservoir rank). Offline Aether bands are
+  // separate (SaveManager computeOfflineBands: Reservoir adds 4 h of full-rate time per rank).
   getChronoSandCap() {
     return CHRONO_SAND_BASE_CAP * (1 + 0.5 * (this.ascensionPerks?.chrono_vault?.rank || 0));
   }
