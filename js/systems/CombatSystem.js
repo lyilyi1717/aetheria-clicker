@@ -468,7 +468,7 @@ export class CombatSystem {
       h.hp = this.getTotalMaxHp();
       rewards.notify({
         tier: 'medium', kind: 'hero-level', icon: '⬆️', color: '#fbbf24',
-        title: `Hero level ${h.level}`, batchTitle: `Hero level ${h.level} (+{n})`
+        title: `Hero level ${h.level}`, batchTitle: `Hero level ${h.level} (+{n} levels)`
       });
     }
 

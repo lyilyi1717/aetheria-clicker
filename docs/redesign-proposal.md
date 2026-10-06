@@ -310,6 +310,27 @@ rhythmic sound box) and absent at every tier above it: every big moment is the s
 | Big (per session) | Ascension, new tier bought, zone/stratum entered, Guild Rank, unlock | **ceremony**: 1.2 s dim + radial burst from the source, number count-up (dust), screen settles on the thing that changed | fanfare (new sample) | one per 60 s; the game pauses timers it would otherwise waste (boss timer) |
 | Epic (weekly) | Transcend, Chronicle, Seal, set complete, Warden | full-screen shader moment (the falafel cracks, the sky changes colour for the rest of the session), new background palette, 3 s | unique motif per epic | confirm dialog states exactly what is kept and lost |
 
+As built (R11, `js/ui/rewards.js` + pure rules in `js/ui/rewardQueue.js`, sounds in
+`AudioEngine.playTier`):
+
+- **Small action confirmations** that used centre-screen float text (bought goods, watered,
+  spell cast, Tower setbacks, gear drops) became a *quiet small toast* (no extra sound: the action
+  already made one), not float text, so the centre of the screen is left to clicks and crits.
+  Float numbers at the point of action (click yield, damage, harvest, tile loot, the Tower
+  skill's shield/heal numbers next to its damage) stay as they were.
+- **Coalescing:** a toast of the same `kind` still on screen or waiting absorbs new events
+  (count ×N, amounts summed), for at most 12 s; max 3 stacked, 6 waiting, the rest fold into
+  "+N more rewards". Toasts never take input (`pointer-events: none`).
+- **Big over the 60 s budget** becomes a big-styled toast instead of a ceremony; epic ceremonies
+  are never dropped and queue (same kind merges). Ceremonies last 2.4 s (big) / 3.6 s (epic),
+  shorter with `prefers-reduced-motion` (no burst/scale animation), and a click or Esc skips.
+  The boss timer pauses while one is open.
+- **Batching:** while the tab is hidden, and inside a Fast Forward warp, events are held and
+  come back as one entry per kind ("12 Ascensions · While you were away: +3.1e7 dust"), which
+  then goes through the same rules (so at most one ceremony). This answers §10 risk 2.
+- The epic "shader moment" (falafel cracks, sky colour) is not built yet: epic is the ceremony
+  with its own background and the choir; the full-screen palette shift is left to R4/R20.
+
 ### 5.2 Moment-to-moment changes
 
 - **Clicks matter again.** Click yield = `clickPower × (1 + 3% CPS)` where `clickPower` grows
@@ -567,7 +588,7 @@ dependencies respected.
 | 8 | **Tower gear 1.11** + hero rebase + `indexFloor`; boss timer 45 s / HP 400× | `CombatSystem.js:27-29, 86, 96, 323`, `MarketSystem.js:48` | ends the auto-climb; bosses matter | S + M |
 | 9 | **Talent economy** (roadmap §3): remove +3 and the 20% roll; S1/S2/S3 | `PrestigeSystem.js:119`, `BountySystem.js:58`, new `records` slice in `GameState.js`, `main.js` Constellations header | points feel earned | M |
 | 10 | **Contract board** (roadmap §4.4) | `BountySystem.js` | fixes the idle jam; feeds S3 | S–M |
-| 11 | **Reward grammar**: toast component, ceremony overlay, tier instruments; route every `spawnFloatingText` at screen centre through it | new `js/toasts.js`, `AudioEngine.js`, `css/animations.css`, call sites in `js/systems/*` | dopamine | M–L |
+| 11 | **Reward grammar**: toast component, ceremony overlay, tier instruments; route every `spawnFloatingText` at screen centre through it | new `js/ui/rewards.js` (+ `js/ui/rewardQueue.js`, `css/rewards.css`), `AudioEngine.js`, call sites in `js/systems/*` | dopamine | M–L |
 | 12 | **Offline cap + modal** (8 h / 50% to 24 h); Chrono Reservoir raises it | `SaveManager.js:69-107`, `main.js:519`, `index.html:559` | pillar 4; closes clock skips | S |
 | 13 | **Shard tree UI + first 3 branches** (Foundry, Chronos with auto-Ascend, Tower Second Wind) | new `js/systems/ShardTreeSystem.js`, `main.js`, `index.html` | layer-2 spend | L |
 | 14 | **Codex 2.0**: achievement ladder, collections, Generator Codex, batched toasts | `AchievementSystem.js`, new `CollectionSystem.js`, `main.js` | long goals | M–L |
