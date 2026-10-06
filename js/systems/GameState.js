@@ -1,6 +1,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
 import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
+import { defaultRecords, sanitizeRecords, serializeRecords, seedRecords } from './TalentSources.js';
 import { defaultShardTreeState, sanitizeShardTreeState } from './ShardTreeSystem.js';
 
 // Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
@@ -97,6 +98,8 @@ export class GameState {
     this.guildSeals = 0;
     this.talentPoints = 0;
     this.spentTalentPoints = 0;
+    // Lifetime records that pay talent points (R9, TalentSources.js); Ascend/Transcend never reset it
+    this.records = defaultRecords();
 
     // System sub-states (initialized by their respective systems)
     this.buildings = {};
@@ -110,6 +113,7 @@ export class GameState {
     this.market = null;
     this.ascensionPerks = {};
     this.achievements = {};
+    this.codex = {}; // Generator Codex high-water marks and announced entries (CollectionSystem)
     // guidesSeen: tabs whose "How It Works" banner was shown expanded once (R23, js/ui/shell.js)
     // reduceMotion: 'auto' follows the device, 'on' / 'off' override it (R24, js/ui/motion.js)
     this.settings = { notation: 'scientific', guidesSeen: {}, reduceMotion: 'auto' };
@@ -128,10 +132,10 @@ export class GameState {
     // Philosopher's Catalyst: +2% Aether per brew, additive within its own category
     mult *= this.getCatalystMult();
 
-    // Multiply by achievements bonus (each achievement gives +1%)
+    // Achievement ladder (+1.5% per original achievement, +0.5% per rung) and completed
+    // Codex sets (+1% each), one additive category (R14)
     if (this.achievementSystem) {
-      const achBonus = 1 + (this.achievementSystem.getUnlockedCount() * 0.015);
-      mult *= achBonus;
+      mult *= this.achievementSystem.getBonusMultiplier();
     }
 
     // Multiply by Ascension Perks (Eternal Resonance = +50% per rank)
@@ -364,6 +368,7 @@ export class GameState {
       guildSeals: this.guildSeals,
       talentPoints: this.talentPoints,
       spentTalentPoints: this.spentTalentPoints,
+      records: serializeRecords(this.records),
       buildings: this.buildings,
       hero: this.hero,
       mining: this.miningGrid,
@@ -376,6 +381,7 @@ export class GameState {
       market: this.market,
       ascensionPerks: this.ascensionPerks,
       achievements: this.achievements,
+      codex: this.codex,
       // Chrono Warp is excluded: the loop's timeScale isn't saved, so it would come back inert
       activeBuffs: this.activeBuffs.filter(b => b.type !== 'time_speed'),
       settings: this.settings
@@ -444,8 +450,11 @@ export class GameState {
       }
       this.ascensionPerks = data.ascensionPerks || {};
       this.achievements = data.achievements || {};
+      this.codex = data.codex && typeof data.codex === 'object' ? data.codex : {};
       this.activeBuffs = Array.isArray(data.activeBuffs) ? data.activeBuffs : [];
       this.settings = { ...this.settings, ...(data.settings || {}) };
+      // Saves from before R9 have no records: seed them from what the save shows (no grants)
+      this.records = data.records ? sanitizeRecords(data.records) : seedRecords(this);
       // Saves from before R23 have played past the first visits: start every guide collapsed
       if (!data.settings || typeof data.settings.guidesSeen !== 'object' || !data.settings.guidesSeen) {
         this.settings.guidesSeen = { all: true };

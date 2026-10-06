@@ -1,5 +1,6 @@
 import { BigNum } from '../engine/BigNum.js';
 import { rewards } from '../ui/rewards.js';
+import { recordAscensionDust, checkMilestones } from './TalentSources.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
 
 export const ASCENSION_PERKS = [
@@ -144,8 +145,10 @@ export class PrestigeSystem {
       this.gameState.gold = this.gameState.gold.add(new BigNum(1000));
     }
 
-    // Bonus Talent Points from Ascension
-    this.gameState.talentPoints += 3;
+    // Talent points (R9): no flat grant. S2 pays Record Ascension stars, S1 the first Ascension and
+    // (via transcend(), which calls this with force) the Transcend ladder.
+    recordAscensionDust(this.gameState, pending);
+    checkMilestones(this.gameState);
 
     // Big tier ceremony (§5.1). Transcend calls ascend(true) and shows its own epic one instead.
     if (!force && !quiet) rewards.notify({ tier: 'big', kind: 'ascension', icon: '✨', color: '#06b6d4', title: 'Ascended!', batchTitle: '{n} Ascensions', amount: pending, fmt: (d) => d.format('standard', 0), unit: 'Cosmic Dust' });
