@@ -253,9 +253,13 @@ console.log('--- R18: Wardens every 250 floors (60 s, x3 boss HP) ---');
   assert.ok(cs.monster.isBoss && !cs.monster.isWarden);
   assert.equal(cs.monster.timer, BOSS_TIMER_SECONDS);
 
-  // Stand-in unlock: first Transcend (or the hero.wardensUnlocked hook for the shard tree)
+  // R13: a Transcend alone no longer unlocks Wardens; the shard-tree node (or the
+  // hero.wardensUnlocked flag) does
   gs.transcendenceCount = 1;
+  assert.equal(cs.isWardensUnlocked(), false);
+  gs.shardTree.owned.tower_wardens = true;
   assert.equal(cs.isWardensUnlocked(), true);
+  gs.shardTree.owned = {};
   gs.transcendenceCount = 0;
   gs.hero.wardensUnlocked = true;
   assert.equal(cs.isWardensUnlocked(), true);
@@ -336,7 +340,7 @@ console.log('--- R18: challenging a passed Warden ---');
   cs.initMonster();
   // Locked: no challenge
   assert.equal(cs.challengeWarden(250), false);
-  gs.transcendenceCount = 1;
+  gs.shardTree.owned.tower_wardens = true; // R13: the Tower node unlocks Wardens
   assert.deepEqual(cs.getWardenFloors(), [250, 500, 750]);
   assert.equal(cs.canChallengeWarden(750), false, 'not reached yet');
   assert.equal(cs.canChallengeWarden(260), false, 'not a Warden floor');

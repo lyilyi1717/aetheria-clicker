@@ -26,6 +26,7 @@ import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMu
 import { BuffBar } from './buffBar.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
+import { ShardTreeUI } from './ui/shardTree.js';
 import { Leaderboard } from './leaderboard.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 
@@ -122,6 +123,9 @@ class AetheriaApp {
     const canvas = document.getElementById('particle-canvas');
     if (canvas) particles.init(canvas);
     rewards.init();
+    // Shard tree (R13): creates this.shardTreeSystem, builds its panel, runs Auto-Ascend
+    this.shardTreeUI = new ShardTreeUI(this);
+    this.shardTreeUI.init();
 
     // Setup DOM Listeners & Navigation
     this.setupEventListeners();
@@ -1856,6 +1860,7 @@ class AetheriaApp {
     this.leaderboard.tick(this.currentTab === 'leaderboard', VERSION);
     this.buffBar.update();
     this.wardensRelicsUI?.update(this.currentTab);
+    this.shardTreeUI?.update(this.currentTab);
 
     // Fast, lightweight state updates without replacing DOM nodes
     if (this.currentTab === 'monolith') {

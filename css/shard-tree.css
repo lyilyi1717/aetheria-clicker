@@ -1,0 +1,39 @@
+/* Shard tree panel (R13). Built by js/ui/shardTree.js inside #shard-tree-section. */
+.st-box { display: flex; flex-direction: column; gap: 0.6rem; }
+.st-box h3 { margin: 0; }
+.st-intro { margin: 0; font-size: 0.82rem; color: var(--text-dim); }
+.st-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; }
+.st-stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 0.45rem 0.6rem; min-width: 0; }
+.st-stat .k { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+.st-stat .v { font-weight: 700; color: var(--accent-rose); }
+.st-branches { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.75rem; align-items: start; }
+.st-branch { background: rgba(244,114,182,0.04); border: 1px solid rgba(244,114,182,0.25); border-radius: 10px; padding: 0.65rem; min-width: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+.st-branch-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; font-weight: 700; font-family: var(--font-display); }
+.st-branch-count { font-family: var(--font-sans); font-size: 0.78rem; color: var(--text-dim); font-weight: 600; }
+.st-branch-desc, .st-foundry-note { font-size: 0.78rem; color: var(--text-dim); }
+.st-nodes { display: flex; flex-direction: column; gap: 0.45rem; }
+.st-node { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.5rem 0.6rem; display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+.st-node.owned { border-color: rgba(52,211,153,0.55); background: rgba(52,211,153,0.07); }
+.st-node.ready { border-color: rgba(244,114,182,0.7); box-shadow: 0 0 8px rgba(244,114,182,0.25); }
+.st-node.locked { opacity: 0.8; }
+.st-node-head, .st-node-foot { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.st-node-name { font-weight: 700; overflow-wrap: anywhere; }
+.st-cost { font-size: 0.8rem; color: var(--accent-rose); white-space: nowrap; }
+.st-desc { font-size: 0.8rem; color: var(--text-muted); overflow-wrap: anywhere; }
+.st-req, .st-status { font-size: 0.74rem; color: var(--text-dim); overflow-wrap: anywhere; }
+.st-buy { flex-shrink: 0; border: 1px solid rgba(244,114,182,0.6); background: rgba(244,114,182,0.15); color: var(--text-main); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; min-height: 32px; }
+.st-buy:disabled { cursor: default; opacity: 0.55; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); }
+.owned .st-buy:disabled { opacity: 1; color: var(--accent-green); border-color: rgba(52,211,153,0.5); background: transparent; }
+.st-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 0.35rem; }
+.st-chip { display: flex; flex-direction: column; align-items: stretch; gap: 0.2rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 0.3rem; text-align: center; }
+.st-chip.owned { border-color: rgba(52,211,153,0.55); background: rgba(52,211,153,0.07); }
+.st-chip.ready { border-color: rgba(244,114,182,0.7); }
+.st-chip-name { font-size: 0.78rem; font-weight: 700; }
+.st-chip .st-buy { padding: 0.2rem; font-size: 0.75rem; min-height: 28px; }
+.st-auto { display: flex; flex-direction: column; gap: 0.35rem; border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 0.4rem; }
+.st-auto-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; }
+.st-auto-row select { background: var(--bg-secondary); color: var(--text-main); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 0.25rem 0.4rem; min-height: 32px; }
+.st-auto-row input[type="checkbox"] { width: 18px; height: 18px; }
+.st-auto-status { font-size: 0.78rem; color: var(--accent-cyan); overflow-wrap: anywhere; }
+.st-warp { align-self: flex-start; padding: 0.4rem 0.9rem; font-size: 0.85rem; }
+.st-box [hidden] { display: none !important; }
