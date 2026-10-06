@@ -136,7 +136,7 @@ export class GameState {
     this.codex = {}; // Generator Codex high-water marks and announced entries (CollectionSystem)
     // guidesSeen: tabs whose "How It Works" banner was shown expanded once (R23, js/ui/shell.js)
     // reduceMotion: 'auto' follows the device, 'on' / 'off' override it (R24, js/ui/motion.js)
-    this.settings = { notation: 'scientific', guidesSeen: {}, reduceMotion: 'auto' };
+    this.settings = { notation: 'letters', guidesSeen: {}, reduceMotion: 'auto' };
     // Progressive tab unlocking (R7, UnlockSystem.js): { [tabId]: unlockedAtMs } and the tabs
     // visited since their reveal. Never cleared by Ascension, Transcend or Chronicle.
     this.unlocks = {};

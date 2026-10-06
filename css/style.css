@@ -480,6 +480,8 @@ button, input, select, textarea {
 .settings-sample {
   margin-left: auto;
   font-family: monospace;
+  direction: ltr; /* numbers read left to right inside RTL text */
+  unicode-bidi: isolate;
   color: var(--accent-cyan);
 }
 
@@ -887,6 +889,16 @@ button, input, select, textarea {
   background: rgba(56, 189, 248, 0.1);
   border-color: rgba(56, 189, 248, 0.3);
   cursor: default;
+}
+
+/* Dynamite / Void Cataclysm: the blasted tiles flash orange (colour only, no movement) */
+.mine-tile.blast-flash {
+  animation: blast-flash 0.6s ease-out;
+}
+
+@keyframes blast-flash {
+  from { box-shadow: inset 0 0 0 2px #f97316, inset 0 0 18px rgba(249, 115, 22, 0.55); border-color: #f97316; }
+  to { box-shadow: inset 0 0 0 2px rgba(249, 115, 22, 0), inset 0 0 18px rgba(249, 115, 22, 0); }
 }
 
 .tile-hp-bar {
