@@ -117,7 +117,8 @@ Impact: **H** blocks play or hides the core loop · **M** slows the player down 
 
 ## Proposed follow-up issues
 
-Ready to paste into GitHub. Each is larger than any single roadmap item should absorb.
+Each is larger than any single roadmap item should absorb. **Filed:** UI-1 as R23 #46, UI-2 as
+R22 #45 (it lands first; the shell builds on its tokens), UI-3 as R24 #47.
 
 ### UI-1: Responsive app shell (header, navigation, guide banners)
 
