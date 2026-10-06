@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/upgrades.css">
   <link rel="stylesheet" href="css/shard-tree.css">
+  <link rel="stylesheet" href="css/dust-shop.css">
 </head>
 <body>
   <!-- Canvas for dynamic floating damage numbers & particle sparks -->
@@ -128,7 +129,7 @@
           <span class="nav-icon">🌙</span>
           <span class="nav-lbl">Constellations</span>
         </button>
-        <button class="nav-tab" data-tab="prestige" title="Ascension: Soft reset your empire for permanent Cosmic Dust and God Perks.">
+        <button class="nav-tab" data-tab="prestige" title="Ascension: Soft reset your empire for permanent Cosmic Dust and Dust Shop features.">
           <span class="nav-icon">🚀</span>
           <span class="nav-lbl">Ascension</span>
         </button>
@@ -479,8 +480,8 @@
           <div class="tab-guide-banner" data-hint="Ascend to turn this run's Aether into Cosmic Dust: +2% production per dust, forever.">
             <span class="guide-icon">💡</span>
             <div class="guide-text">
-              <strong>How It Works:</strong> When you accumulate 1 Billion total Aether, you unlock <strong>Ascension</strong>. Ascending resets your earthly generators and Aether in exchange for permanent <strong>Cosmic Dust</strong> (+2% production per dust earned; spending it never lowers this). Spend Dust in the temple on permanent <strong>God Perks</strong>. Reach 1 Billion lifetime Cosmic Dust (×10 more each time) to <strong>Transcend Reality</strong>: +2 Fracture Shards and a new generator tier each time!
-              <div class="guide-flow"><span><strong>Produces:</strong> Cosmic Dust, God Perks, Fracture Shards, Record Ascension Talent Points</span><span><strong>Used in:</strong> Perks boost Aether, Clicks, Spells, Offline Sand, the Hero and Potions. Each Fracture Shard gives ×1.5 Aether production and ×1.5 Cosmic Dust gain; each Transcend opens a new generator tier (up to 30).</span></div>
+              <strong>How It Works:</strong> When you accumulate 1 Billion total Aether, you unlock <strong>Ascension</strong>. Ascending resets your earthly generators and Aether in exchange for permanent <strong>Cosmic Dust</strong> (+2% production per dust earned; spending it never lowers this). Spend Dust in the <strong>Dust Shop</strong> on features for every run: Auto-Buy, Blueprint Memory, Golems, longer Fast Forwards and more, with new tiers at Ascension 1, 3, 5, 10 and 20. Reach 1 Billion lifetime Cosmic Dust (×10 more each time) to <strong>Transcend Reality</strong>: +2 Fracture Shards and a new generator tier each time!
+              <div class="guide-flow"><span><strong>Produces:</strong> Cosmic Dust, Dust Shop features, Fracture Shards, Record Ascension Talent Points</span><span><strong>Used in:</strong> Shop features automate generators, Spells and Golems, keep upgrades, extend offline time and Fast Forward, and boost the Hero and Elixirs. Each Fracture Shard gives ×1.5 Aether production and ×1.5 Cosmic Dust gain; each Transcend opens a new generator tier (up to 30).</span></div>
             </div>
           </div>
 
@@ -499,12 +500,12 @@
               </button>
             </div>
 
-            <h3>Masteries</h3>
+            <!-- Dust shop (R6): built by js/ui/dustShop.js -->
+            <div id="dust-shop-section"></div>
+
+            <h3 style="margin-top: 1.5rem;">Masteries</h3>
             <p class="masteries-hint">Permanent cross-bonuses earned from every subgame. Each is its own multiplier.</p>
             <div id="masteries-panel" class="masteries-panel"></div>
-
-            <h3 style="margin-top: 1.5rem;">Ascension God Perks</h3>
-            <div id="ascension-perks-grid" class="ascension-perks-grid" style="margin-top: 1rem;"></div>
 
             <div id="transcendence-section" style="margin-top: 2rem;"></div>
 

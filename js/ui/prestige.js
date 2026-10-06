@@ -104,7 +104,7 @@ export class TranscendPanel {
     ];
     const lose = [
       `Dust multiplier ${fmtBigMult(tp.dustBefore)} → ${fmtBigMult(tp.dustAfter)} (this layer's lifetime dust starts again at 0)`,
-      'Cosmic Dust and all God Perks',
+      'Cosmic Dust and every Dust Shop purchase (Auto-Buy, Blueprint Memory, Hourglass, ...)',
       'The run: Aether and generators (like an Ascension)'
     ];
     return { gain, lose };
@@ -121,7 +121,7 @@ export class TranscendPanel {
       `\nNext Transcend at ${tp.nextGate.format('standard', 0)} lifetime dust.`;
     if (!confirm(msg)) return;
     this.ps.transcend();
-    // New tier cards appear; perks and dust were reset
+    // New tier cards appear; the dust shop and dust were reset
     this.app.updateBuildingsUI();
     this.app.updatePrestigeUI();
   }

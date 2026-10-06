@@ -20,7 +20,6 @@ const gates = {
   '.btn-rank-talent': 'updateTalentsUI',
   '.btn-cast-spell': 'updateSpellsUI',
   '.btn-buy-qm-upgrade': 'updateQuartermasterUI',
-  '.btn-buy-perk': 'updatePrestigeUI',
   '.btn-brew': 'updateAlchemyUI',
 };
 for (const [selector, updater] of Object.entries(gates)) {

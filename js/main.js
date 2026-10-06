@@ -17,7 +17,9 @@ import { SpellSystem, SPELLS } from './systems/SpellSystem.js';
 import { TalentTreeSystem, TALENT_DEFINITIONS } from './systems/TalentTreeSystem.js';
 import { BountySystem, QUARTERMASTER_UPGRADES } from './systems/BountySystem.js';
 import { MarketSystem, COMMODITIES, getStockCap } from './systems/MarketSystem.js';
-import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
+import { PrestigeSystem } from './systems/PrestigeSystem.js';
+import { DUST_SHOP_ITEMS } from './systems/DustShopSystem.js';
+import { DustShopUI } from './ui/dustShop.js';
 import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
 import { TalentSourcesPanel } from './ui/talents.js';
 import { buildContractsBoard, updateContractsBoard, bindContracts } from './ui/contracts.js';
@@ -546,18 +548,6 @@ class AetheriaApp {
         }
       });
     }
-
-    // Event Delegation: Prestige Perks
-    const perkGrid = document.getElementById('ascension-perks-grid');
-    if (perkGrid) {
-      perkGrid.addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-buy-perk');
-        if (btn && btn.classList.contains('active')) {
-          this.prestigeSystem.buyPerk(btn.dataset.id);
-          this.updatePrestigeUI();
-        }
-      });
-    }
   }
 
   showOfflineModal(res) {
@@ -633,7 +623,7 @@ class AetheriaApp {
     this.bonusStripTab = this.currentTab;
     const strip = this.$(`tab-bonus-${this.currentTab}`);
     if (!strip) return;
-    const items = getTabBonuses(this.gameState, this.currentTab, TALENT_DEFINITIONS, ASCENSION_PERKS);
+    const items = getTabBonuses(this.gameState, this.currentTab, TALENT_DEFINITIONS, DUST_SHOP_ITEMS);
     // One summary line that opens the chips on tap (R23; toggle in js/ui/shell.js)
     const html = items.length === 0 ? '' :
       `<button class="tab-bonus-summary" type="button" aria-expanded="${strip.classList.contains('is-open')}">` +
@@ -1130,9 +1120,9 @@ class AetheriaApp {
     const buyGolemBtn = this.$('btn-buy-golem');
     if (buyGolemBtn) {
       const cost = this.gardenSystem.getNextGolemCost();
-      const t = cost
-        ? `🗿 Buy Golem (Row ${golems + 1}): ${new BigNum(cost.stone).format('standard', 0)} Stone + ${new BigNum(cost.manaSap).format('standard', 0)} Mana Sap`
-        : '🗿 All rows automated';
+      const t = !cost ? '🗿 All rows automated'
+        : !this.gardenSystem.isGolemPurchaseUnlocked() ? '🔒 Golems: buy Golem Covenant in the Dust Shop (Ascension 5)'
+        : `🗿 Buy Golem (Row ${golems + 1}): ${new BigNum(cost.stone).format('standard', 0)} Stone + ${new BigNum(cost.manaSap).format('standard', 0)} Mana Sap`;
       setText(buyGolemBtn, t);
       buyGolemBtn.classList.toggle('disabled', !this.gardenSystem.canBuyGolem());
     }
@@ -1612,19 +1602,9 @@ class AetheriaApp {
 
   // --- Prestige Structure ---
   buildPrestigeStructure() {
-    const perksCont = document.getElementById('ascension-perks-grid');
-    if (perksCont) {
-      perksCont.innerHTML = ASCENSION_PERKS.map(p => `
-        <div class="perk-card">
-          <div class="p-name">${p.name}</div>
-          <div class="p-rank" id="perk-rank-${p.id}">Rank: 0 / ${p.maxRank}</div>
-          <div class="p-desc">${p.desc}</div>
-          <button class="btn-buy-perk" id="btn-perk-${p.id}" data-id="${p.id}">
-            Unlock
-          </button>
-        </div>
-      `).join('');
-    }
+    // Dust shop (R6, js/ui/dustShop.js): panel, Auto-Buy switch and clock, Hourglass warps
+    this.dustShopUI = new DustShopUI(this);
+    this.dustShopUI.init();
 
     const ascBtn = document.getElementById('btn-do-ascend');
     if (ascBtn) {
@@ -1692,6 +1672,7 @@ class AetheriaApp {
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
     const dm = this.prestigeSystem.getDustMultipliers();
     const breakdown = `${fmtMult(dm.geode)} from Depth ${dm.depth} · ${fmtMult(dm.nectarMult)} from ${fmtNum(dm.nectar)} Nectar (consumed)` +
+      (dm.amplifier > 1 ? ` · ${fmtMult(dm.amplifier)} from Dust Amplifier` : '') +
       (dm.shards > 0 ? ` · ${fmtBigMult(dm.shardMult)} from ${dm.shards} Fracture Shards` : '');
     setText(this.$('pending-dust-breakdown'), breakdown);
     if (ascBtn) {
@@ -1701,19 +1682,7 @@ class AetheriaApp {
 
     this.updateMasteriesPanel();
 
-    for (const p of ASCENSION_PERKS) {
-      const state = this.gameState.ascensionPerks[p.id] || { rank: 0 };
-      const cost = new BigNum(p.cost * Math.pow(1.5, state.rank));
-      const canBuy = this.gameState.cosmicDust.gte(cost) && state.rank < p.maxRank;
-
-      setText(this.$(`perk-rank-${p.id}`), `Rank: ${state.rank} / ${p.maxRank}`);
-      const btn = this.$(`btn-perk-${p.id}`);
-      if (btn) {
-        setText(btn, state.rank >= p.maxRank ? 'MAXED' : `Unlock (${cost.format('standard', 0)} Dust)`);
-        btn.classList.toggle('active', canBuy);
-        btn.classList.toggle('disabled', !canBuy);
-      }
-    }
+    this.dustShopUI?.update();
 
     this.transcendUI?.update();
   }
@@ -1836,6 +1805,7 @@ class AetheriaApp {
     this.shell?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
     this.shardTreeUI?.update(this.currentTab);
+    this.dustShopUI?.update();
     this.talentSourcesUI?.update(dt, this.currentTab);
 
     // Fast, lightweight state updates without replacing DOM nodes
