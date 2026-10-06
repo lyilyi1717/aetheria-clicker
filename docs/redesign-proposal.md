@@ -338,7 +338,8 @@ As built (R11, `js/ui/rewards.js` + pure rules in `js/ui/rewardQueue.js`, sounds
   through 15 click upgrades (×2 each, Aether cost on the generator cost curve) and a dust-shop
   "Finger of Wasta" (+1% CPS per 100 clicks this run, cap +50%). Combo stays 5× but **crits
   during Frenzy spawn a mini-anomaly 10% of the time** (a 3 s "ember" worth 30 s of CPS). The
-  combo bar gets a visible "Frenzy in N" counter so the 100th click is anticipated.
+  combo bar gets a visible "Frenzy in N" counter so the next Frenzy is anticipated (every 20
+  combo clicks since R28; see the R28 notes in §6.1).
 - **Crits.** Base 5% ×3 stays; show a crit streak counter; 3 crits in a row = "Resonance!"
   (×2 for the next click). Variable ratio on top of fixed ratio.
 - **Golden Anomalies.** Keep the 60–120 s spawn but **retune Supernova from 600 s to 180 s of
@@ -485,6 +486,26 @@ leaderboard column. No save migration: `codex` is a new additive field.
   tier multiplier barely moves the first Transcend below ×1.2. Shipped ×1.2 / +0.1%: first
   Transcend day 4.2, 32 Transcends in the year, a reset at least every 14 days until day 206
   (was 184), median 58 upgrades per run.
+
+*R28 implementation notes (Frenzy every 20 combo clicks; `js/systems/combo.js`,
+`ClickerSystem.js`, `js/ui/comboBar.js`; player feedback, not in the original spec).*
+- **Combo:** ×1 + 0.2 per click, full ×5 at click 20 (was +0.08 per click, ×5 at 50; the count
+  was capped at 100). The count is no longer capped. Frenzy ending leaves it alone; only a 2 s
+  pause drains it (above 20 it falls straight back to 20, then −5 every 0.2 s as before).
+- **Frenzy at 20, 40, 60, …** of an unbroken combo. A milestone during a running Frenzy
+  **extends** it by its duration, capped at 30 s (a longer timer, e.g. Time Flux's 25 s, is
+  never shortened); nothing is queued. `ClickerSystem.lastFrenzyAt` (not saved, reset when the
+  combo reaches 0) stops a short pause from re-firing the same milestone.
+- **Retune (rule 5 deviation from "Frenzy ×5"):** five times as many Frenzies at the old
+  values measured ×9.5 active/idle (was ×7.2). Swept on `sim/active-income.mjs` (6 seeds × 6 h,
+  full rotation; main ×7.10): 3 s ×5 with 6 auto-clicks/s ×9.4; 2 s ×2 auto ×7.3; 3 s ×2 no
+  auto ×6.9; **4 s ×3 no auto ×7.0**; 5 s ×3 no auto ×7.2. Shipped: Frenzy is ×3 click yield
+  for 4 s per milestone with no auto-clicks (at 2 clicks/s that is ~40% uptime). Measured
+  ×6.86 on the default seed (was ×7.23). Clicks-only play drops from ×2.73 to ×1.56: a steady
+  clicker no longer gets the old 15 s auto-click burst, so clicking alone is a nerf; the
+  ×2 target (R3) is still not met and stays an owner decision.
+- The §5.2 "Frenzy in N" counter is built (combo bar text); the bar fills over the first 20
+  clicks, then shows progress to the next milestone.
 
 *R15 implementation notes (Seals, Dallah, Ledger, Souq; `js/systems/CalendarSystem.js`).*
 - **Seals are a shard bonus** (#23 default 4), not a Transcend gate. Tier I bars as in roadmap
