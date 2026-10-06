@@ -211,12 +211,12 @@ export class GameState {
     return this.miningGrid?.maxDepth || 0;
   }
 
-  // Depth Resonance (Excavation -> Aether): x(1 + 0.02 * maxDepth)
   // Production multiplier from Cosmic Dust: 1 + 0.02 per lifetime dust (spending never lowers it)
   getDustMultiplier(total = this.totalCosmicDust) {
     return Math.max(1, 1 + total.toNumber() * 0.02);
   }
 
+  // Depth Resonance (Excavation -> Aether): x(1 + 0.02 * maxDepth)
   getDepthResonanceMult() {
     return 1 + 0.02 * this.getMaxDepth();
   }
