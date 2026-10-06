@@ -31,7 +31,8 @@
 .ds-rank:empty { display: none; }
 .ds-see { font-size: var(--fs-11); color: var(--life); }
 
-/* Auto-Buy switch on the Falafel tab */
+/* Auto-Buy switch on the Falafel tab: the header row wraps so the chip never clips on phones */
+#tab-monolith .buildings-header { flex-wrap: wrap; gap: var(--sp-2); }
 .ds-autobuy { cursor: pointer; }
 .ds-autobuy[hidden] { display: none; }
 

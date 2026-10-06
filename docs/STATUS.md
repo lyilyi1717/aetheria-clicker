@@ -9,8 +9,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R5 #7 Upgrade shop (PR #40), R9 #11 Talent economy (PR #39), R13 #15 Shard tree (PR #43),
-  R14 #16 Codex 2.0 (PR #41).
+- R3 #5 and R20 #22 (other sessions; see their draft PRs). R7 #9 Progressive unlocking (next, after
+  R6).
 
 ## Next up
 
@@ -105,6 +105,11 @@ UI: R22–R24 are done. R7 can go once R6 is in.
   `test_r23_shell.js`); guides open once per tab (`settings.guidesSeen`; old saves get
   `{ all: true }`). Art panels on Dig / Ascension / Bazaar removed; screenshots in
   `docs/ui/screenshots/r23/`.
+- R6 #8 Dust shop (`js/systems/DustShopSystem.js`, panel `js/ui/dustShop.js` on the Ascension
+  tab, `css/dust-shop.css`): the 13 items of §6.2, tiers by Ascension count, Transcend empties it.
+  Save v5 keeps 5 old perks as owned items and refunds Eternal Resonance / Singularity Tap into
+  spendable dust. Resonant Start gives the 14 base tiers only (all unlocked tiers broke
+  `sim:check`; numbers in §6.2 notes). Tests in `test_dust_shop.js`.
 - R24 #47 Reduced motion and touch tooltips: Settings → Reduce Motion (`settings.reduceMotion`
   auto/on/off, `js/ui/motion.js` sets `data-motion` on `<html>`); particles, shake, orb spin,
   background dust, count-ups and ceremonies follow it. "Ready" pulses run 3 times. Tooltips moved
@@ -137,6 +142,10 @@ UI: R22–R24 are done. R7 can go once R6 is in.
   on buttons with the `active` class. Restyling a button must keep toggling it, or clicks do
   nothing (talents broke this way after R22). `test_click_gates.js` guards it.
 
+- Dust shop (R6): read items with `hasShopItem(gs, id)` / `getShopRank(gs, id)` from
+  `DustShopSystem.js` (pure, no DOM). Keystones R7 moves into the shop go in `DUST_SHOP_ITEMS`.
+  Auto-Buy's 10 s timer and the Hourglass buttons are owned by `js/ui/dustShop.js`.
+
 - Shell (R23): new tabs need a `data-tab` button in all three navs in `index.html` (side nav
   group, and the bottom bar or the More sheet) plus a `data-hint` on their guide banner;
   `test_r23_shell.js` checks both. Per-tab header currencies live in `headerCurrencies()`.
@@ -155,8 +164,6 @@ UI: R22–R24 are done. R7 can go once R6 is in.
 - Midas click gold (`ClickerSystem`) still scales 1.15^floor on the current floor, and bounty gold
   scales with the current floor; neither follows the R8 curves.
 - The Transcend shard payout still reads `totalCosmicDust / 1e4` (R4 replaces it).
-- The Chrono Reservoir perk text (`PrestigeSystem.js` perk list, `tabBonuses.js`) only mentions the
-  Sand bank; since R12 it also extends offline Aether bands by 4 h per rank. Reword with R4/R6.
 - A brand-new account carrying a rebased legacy save shows floor <= 1,000 + 1,000/h on Season 2
   for its first hours (R19 guard ceiling); old anonymous accounts can still post forged floors.
 - Combat floating damage text and particles still render over other tabs (seen on Excavation

@@ -10,7 +10,7 @@
 // Pure functions of gameState (no audio, no DOM), so GameState, the sim and tests can use them.
 // State: gameState.dustShop = { ranks: { [id]: rank }, autoBuy: bool, runClickBase: number }.
 import { BigNum } from '../engine/BigNum.js';
-import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
+import { BUILDING_DEFINITIONS, BASE_TIER_COUNT } from './BuildingSystem.js';
 import { addAscendKeepRule } from './UpgradeSystem.js';
 
 // Lifetime Ascensions needed for each tier; 0 = open from the start ("any")
@@ -55,7 +55,7 @@ export const DUST_SHOP_ITEMS = [
   { id: 'blueprint_memory_2', tier: 10, icon: '🏛️', name: 'Blueprint Memory II', cost: 1000, maxRank: 1,
     desc: `Keep every upgrade of generators 1-${BLUEPRINT_MEMORY_2_TIERS} (and click upgrades 1-${BLUEPRINT_MEMORY_2_TIERS}) through Ascension.`, see: 'Kept on your next Ascension' },
   { id: 'resonant_start', tier: 20, icon: '🎼', name: 'Resonant Start', cost: 5000, maxRank: 1,
-    desc: 'Start every run with 1 of every generator you have unlocked.', see: 'Working from your next run' },
+    desc: `Start every run with 1 of each of the ${BASE_TIER_COUNT} founding generators (${BUILDING_DEFINITIONS[0].name} to ${BUILDING_DEFINITIONS[BASE_TIER_COUNT - 1].name}).`, see: 'Working from your next run' },
   { id: 'dust_amplifier', tier: 0, icon: '✨', name: 'Dust Amplifier', cost: 100, growth: 2, maxRank: Infinity,
     desc: '+10% Cosmic Dust from every Ascension per rank (additive). Price doubles each rank.', see: 'See it: Ascend button' }
 ];
@@ -177,9 +177,11 @@ export function applyRunStart(gs) {
     gs.buildings.tapper.count = Math.max(gs.buildings.tapper.count || 0, GENESIS_STALLS);
     gs.gold = gs.gold.add(new BigNum(GENESIS_GOLD));
   }
+  // Resonant Start covers the 14 base tiers only. With every unlocked tier (doc draft) a fresh run
+  // after Transcend began with tiers 15-30 already producing, so layer 2 ran out of tiers by week 1
+  // and the casual sim then went 34 days without a reset (see docs/redesign-proposal.md 6.2 notes).
   if (hasShopItem(gs, 'resonant_start')) {
-    const tiers = getUnlockedTierCount(gs);
-    for (const def of BUILDING_DEFINITIONS.slice(0, tiers)) {
+    for (const def of BUILDING_DEFINITIONS.slice(0, BASE_TIER_COUNT)) {
       const b = gs.buildings?.[def.id];
       if (b && (b.count || 0) < 1) b.count = 1;
     }

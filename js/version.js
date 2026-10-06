@@ -11,7 +11,12 @@ export const CHANGELOG = [
     date: '2026-10-06',
     title: 'The Dust Shop',
     changes: [
-      'TODO'
+      'Ascension perks are gone. In their place, the Ascension tab has a Dust Shop that sells new features instead of bigger numbers. New shelves open at Ascension 1, 3, 5, 10 and 20, so there is something new to buy as you keep Ascending.',
+      'New features: Blueprint Memory (keep the first 2 upgrades of every generator when you Ascend), Auto-Buy (buys the best-value generator every 10 s; switch it on or off above the generator list), Finger of Wasta (+1% production per 100 clicks this run, up to +50%), Golem Covenant (Golems are now bought through this), Hourglass of Al-Ula (5 min and 1 h Fast Forward buttons for 300 and 3,600 Chrono Sand), Blueprint Memory II (keep every upgrade of generators 1-7), Resonant Start (start each run with 1 of each of the 14 founding generators) and Dust Amplifier (+10% Cosmic Dust per rank, repeatable).',
+      'Cosmic Genesis, Chrono Reservoir, Titan\'s Legacy, Astral Crucible and Automated Leylines are now Dust Shop items with the same effects.',
+      'Your old perks carry over: the five kept perks stay bought at the rank you had, for free. Eternal Resonance and Singularity Tap were removed; every bit of dust you spent on them is refunded to your balance. If you already own Golems, you get Golem Covenant for free. The Dust Shop shows a one-time note with what was kept and refunded.',
+      'Spending dust still never lowers your production: the dust bonus counts all dust you have earned. Transcending empties the Dust Shop along with your dust, and the Transcend panel now says so.',
+      'Buying Golems now needs Golem Covenant (Ascension 5). Golems you already own keep working.'
     ]
   },
   {
