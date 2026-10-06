@@ -362,3 +362,16 @@ console.log('--- Saves: old saves load with an empty calendar; junk is cleaned -
 }
 
 console.log('R15 calendar tests passed');
+
+console.log('--- R15: a save missing totalFractureShards falls back to the balance ---');
+{
+  const { GameState } = await import('./js/systems/GameState.js');
+  const src = new GameState();
+  const data = JSON.parse(JSON.stringify(src.serialize()));
+  data.fractureShards = { m: 6, e: 0 };
+  delete data.totalFractureShards;
+  const gs = new GameState();
+  gs.deserialize(data);
+  if (gs.totalFractureShards.toNumber() !== 6) throw new Error(`expected 6 lifetime shards, got ${gs.totalFractureShards.toNumber()}`);
+  console.log('ok');
+}

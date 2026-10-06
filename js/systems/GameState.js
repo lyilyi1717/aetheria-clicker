@@ -431,7 +431,11 @@ export class GameState {
       this.fractureShards = BigNum.fromJSON(data.fractureShards);
       // Not clamped to the balance: Seal shards (R15) are spendable only, so the balance can pass
       // the lifetime count (which is what the multipliers read)
-      this.totalFractureShards = BigNum.fromJSON(data.totalFractureShards);
+      // A save missing the field entirely (hand-edited / partial) falls back to the balance so it
+      // keeps its bonus; saves from the v4 migration on always carry it
+      this.totalFractureShards = data.totalFractureShards == null
+        ? this.fractureShards
+        : BigNum.fromJSON(data.totalFractureShards);
       const tc = Math.floor(Number(data.transcendenceCount));
       this.transcendenceCount = Number.isFinite(tc) && tc > 0 ? tc : 0;
       this.legacyTranscendRefund = data.legacyTranscendRefund && typeof data.legacyTranscendRefund === 'object'
