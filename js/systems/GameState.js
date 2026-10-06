@@ -3,6 +3,7 @@ import { defaultFastForwardState, sanitizeFastForwardState } from './FastForward
 import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
 import { defaultRecords, sanitizeRecords, serializeRecords, seedRecords } from './TalentSources.js';
 import { defaultShardTreeState, sanitizeShardTreeState } from './ShardTreeSystem.js';
+import { defaultCalendarState, sanitizeCalendarState } from './CalendarSystem.js';
 
 // Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
 // PrestigeSystem imports audio/particles and GameState must stay loadable on its own.
@@ -48,6 +49,9 @@ export class GameState {
     this.legacyTranscendRefund = null;
     // Shard tree (R13): permanent nodes bought with fractureShards; Transcend never resets it
     this.shardTree = defaultShardTreeState();
+
+    // Daily Dallah, Weekly Ledger, Seals (R15, CalendarSystem.js); nothing in it is ever taken away
+    this.calendar = defaultCalendarState();
 
     // Active Clicker Stats
     this.clickPower = new BigNum(1);
@@ -327,7 +331,8 @@ export class GameState {
 
   // Temporal Siphon talent: +50% Chrono Sand per rank
   getChronoSandGainMult() {
-    return 1 + (this.talents?.chrono_mastery?.rank || 0) * 0.5;
+    // Hourglass Week (Souq Rotation, R15) multiplies it
+    return (1 + (this.talents?.chrono_mastery?.rank || 0) * 0.5) * (this.calendarSystem?.getSandGainMult?.() || 1);
   }
 
   // Adds sand up to the bank cap; returns what was actually banked
@@ -359,6 +364,7 @@ export class GameState {
       transcendenceCount: this.transcendenceCount,
       legacyTranscendRefund: this.legacyTranscendRefund,
       shardTree: this.shardTree,
+      calendar: this.calendar,
       clickPower: this.clickPower.toJSON(),
       critChance: this.critChance,
       critMultiplier: this.critMultiplier,
@@ -414,6 +420,8 @@ export class GameState {
         ? data.legacyTranscendRefund : null;
       // Saves from before R13 have no tree: empty, except Wardens stay free if they had them
       this.shardTree = sanitizeShardTreeState(data.shardTree, { transcendenceCount: this.transcendenceCount });
+      // Saves from before R15 have no calendar: it starts empty and fills on the first visit
+      this.calendar = sanitizeCalendarState(data.calendar);
       this.clickPower = BigNum.fromJSON(data.clickPower);
       this.critChance = data.critChance ?? 0.05;
       this.critMultiplier = data.critMultiplier ?? 3.0;
@@ -471,6 +479,7 @@ export class GameState {
   clampLoadedTimers() {
     const cap = this.getBuffDurationCap();
     for (const b of this.activeBuffs) {
+      if (b.fixed) continue; // Dallah coffee: fixed 1 h, outside the 10-min cap
       b.duration = Math.min(cap, Number(b.duration) || 0);
       b.maxDuration = Math.min(cap, Math.max(b.duration, Number(b.maxDuration) || 0));
     }

@@ -129,9 +129,25 @@ export class BountySystem {
 
     this.gameState.stats.totalBountiesCompleted++;
 
-    // Replace with a new bounty immediately!
+    // Replace with a new bounty immediately! (a Dallah bonus contract was an extra: no refill)
     this.gameState.bounties.splice(idx, 1);
-    this.gameState.bounties.push(this.generateBounty());
+    if (!b.bonus) this.gameState.bounties.push(this.generateBounty());
+    return true;
+  }
+
+  // Daily Dallah gift (R15): one extra, already-finished contract, paying like a mid-size one.
+  // It sits beside the board and is not replaced once claimed.
+  grantBonusContract() {
+    const b = {
+      id: 'bounty_dallah_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      type: 'dallah', title: 'Dallah Writ', icon: '☕', desc: 'A gift from the Dallah (ready to claim)',
+      current: 1, required: 1, completed: true, claimed: false, bonus: true,
+      rewards: {
+        gold: new BigNum(500 * Math.max(1, (this.gameState.hero?.floor || 1) * 0.5)),
+        seals: 2, chrono: 30, talentPoint: false
+      }
+    };
+    this.gameState.bounties.push(b);
     return true;
   }
 
