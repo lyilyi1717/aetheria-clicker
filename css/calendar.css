@@ -1,0 +1,62 @@
+/* Dallah tab (R15). Built by js/ui/calendar.js inside #calendar-root.
+   Follows docs/ui/mockups/daily-weekly.html; tokens from css/tokens.css, components from
+   css/components.css (.card, .btn, .chip, .bar, .tag, .icon-tile). No animation here. */
+#calendar-root { font-family: var(--font-ui); }
+#calendar-root [hidden] { display: none !important; }
+.cal { display: grid; grid-template-columns: 1.1fr 1fr; gap: var(--sp-4); align-items: start; }
+.cal-col { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
+.cal > *, .cal-col > * { min-width: 0; }
+.cal-dim { font-size: var(--fs-12); color: var(--text-3); }
+.cal-note { margin: var(--sp-3) 0 0; font-size: var(--fs-12); color: var(--text-3); }
+.cal h2 { margin: 0; font-size: var(--fs-20); font-weight: 700; line-height: var(--lh-tight); color: var(--text-1); }
+
+/* Daily Dallah */
+.cal-dallah { border-color: rgba(231, 195, 138, 0.45); background: radial-gradient(circle at 85% 20%, var(--sand-dim), transparent 50%), var(--bg-2); }
+.cal-dallah-top { display: grid; grid-template-columns: 64px 1fr; gap: var(--sp-3); align-items: center; }
+.cal-cup { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 2rem; background: var(--sand-dim); border: 2px solid var(--sand); }
+.cal-gift { display: flex; gap: 6px; flex-wrap: wrap; margin: var(--sp-3) 0; }
+.cal-dallah-foot { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.cal-dallah-foot .btn:disabled { cursor: default; background: var(--bg-2); border-color: var(--line-1); color: var(--text-3); box-shadow: none; }
+.cal-bank { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: var(--fs-12); color: var(--text-3); }
+.cal-bank i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-2); display: grid; place-items: center; font-style: normal; font-size: 11px; }
+.cal-bank i.on { border-color: var(--sand); background: var(--sand-dim); color: var(--sand); }
+
+/* Souq Rotation */
+.cal-souq { display: grid; grid-template-columns: 44px 1fr auto; gap: var(--sp-3); align-items: center; }
+.cal-souq-name { font-weight: 700; }
+
+/* Seals */
+.cal-seals { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--sp-2); }
+.cal-seal { text-align: center; padding: var(--sp-2) 2px; border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-1); min-width: 0; }
+.cal-seal-lamp { width: 36px; height: 36px; margin: 0 auto 4px; border-radius: 50%; display: grid; place-items: center; font-size: 1.1rem; background: var(--bg-2); border: 2px solid var(--line-2); filter: grayscale(1); opacity: 0.5; }
+.cal-seal.lit .cal-seal-lamp { filter: none; opacity: 1; border-color: var(--gold); background: var(--gold-dim); box-shadow: 0 0 12px rgba(251, 191, 36, 0.4); }
+.cal-seal-n { font-size: 10px; color: var(--text-3); line-height: 1.2; overflow-wrap: anywhere; }
+.cal-seal.lit .cal-seal-n { color: var(--text-1); }
+.cal-seal-state { font-size: var(--fs-11); font-weight: 700; color: var(--text-3); margin-top: 2px; }
+.cal-seal.lit .cal-seal-state { color: var(--gold); }
+.cal-seal .bar { height: 3px; margin-top: 4px; }
+
+/* Weekly Ledger */
+.cal-goal { display: grid; grid-template-columns: 36px 1fr auto; gap: var(--sp-3); align-items: center; padding: var(--sp-2) 0; border-top: 1px solid var(--line-1); }
+.cal-goal:first-child { border-top: 0; }
+.cal-goal-main { min-width: 0; }
+.cal-goal-g { font-weight: 600; font-size: var(--fs-13); }
+.cal-goal.done .cal-goal-g { color: var(--life); }
+.cal-goal .bar { margin: 4px 0; }
+.cal-goal-s { font-size: var(--fs-11); color: var(--text-3); }
+.cal-ledger-foot { margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--line-1); display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.cal-stamps { margin-top: var(--sp-4); }
+.cal-stamps .eyebrow { margin-bottom: 6px; }
+.cal-stamp-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cal-dimchip { opacity: 0.6; }
+
+@media (max-width: 1023px) { .cal { grid-template-columns: 1fr; } }
+@media (max-width: 639px) {
+  .cal-seals { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .cal-dallah-top { grid-template-columns: 52px 1fr; }
+  .cal-cup { width: 52px; height: 52px; font-size: 1.6rem; }
+  .cal-souq { grid-template-columns: 44px 1fr; }
+  .cal-souq .chip { grid-column: 1 / -1; justify-self: start; }
+  .cal-dallah-foot .btn { width: 100%; }
+}
+@media (pointer: coarse) { .cal-dallah-foot .btn { min-height: var(--tap); } }

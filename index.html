@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="css/upgrades.css">
   <link rel="stylesheet" href="css/shard-tree.css">
   <link rel="stylesheet" href="css/dust-shop.css">
+  <link rel="stylesheet" href="css/calendar.css">
 </head>
 <body>
   <!-- Canvas for dynamic floating damage numbers & particle sparks -->
@@ -133,6 +134,10 @@
           <span class="nav-icon">🚀</span>
           <span class="nav-lbl">Ascension</span>
         </button>
+        <button class="nav-tab" data-tab="calendar" title="Dallah: daily gift, weekly goals, Seals and the weekly Souq modifier.">
+          <span class="nav-icon">☕</span>
+          <span class="nav-lbl">Dallah</span>
+        </button>
         <div class="nav-group">Records</div>
         <button class="nav-tab" data-tab="codex" title="Codex: Achievements (+1.5% boost each), lifetime stats, and save backups.">
           <span class="nav-icon">🏆</span>
@@ -170,6 +175,7 @@
           <button class="nav-tab" data-tab="bounties"><span class="nav-icon">📜</span><span class="nav-lbl">Bounties</span></button>
           <button class="nav-tab" data-tab="market"><span class="nav-icon">🐪</span><span class="nav-lbl">Bazaar</span></button>
           <button class="nav-tab" data-tab="talents"><span class="nav-icon">🌙</span><span class="nav-lbl">Constellations</span></button>
+          <button class="nav-tab" data-tab="calendar"><span class="nav-icon">☕</span><span class="nav-lbl">Dallah</span></button>
           <button class="nav-tab" data-tab="codex"><span class="nav-icon">🏆</span><span class="nav-lbl">Codex</span></button>
           <button class="nav-tab" data-tab="leaderboard"><span class="nav-icon">🏅</span><span class="nav-lbl">Leaderboard</span></button>
           <button class="nav-tab" data-tab="settings"><span class="nav-icon">⚙️</span><span class="nav-lbl">Settings</span></button>
@@ -511,6 +517,18 @@
 
             <div id="shard-tree-section" style="margin-top: 2rem;"></div>
           </div>
+        </section>
+
+        <!-- TAB: Dallah (R15): daily gift, weekly Ledger, Souq Rotation, Seals -->
+        <section id="tab-calendar" class="tab-view">
+          <div class="tab-guide-banner" data-hint="A daily gift, three weekly goals, a weekly market modifier and the Seals that add shards. Nothing here is ever lost by staying away.">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> The <strong>Dallah</strong> pours a gift on your first visit each day; missed days wait for you (up to 3) and there is no streak to lose. The <strong>Ledger</strong> sets 3 goals every Monday for Guild Seals and a stamp. Each lit <strong>Seal</strong> adds +1 Fracture Shard to spend at every Transcend (up to +3) and never goes dark.
+              <div class="guide-flow"><span><strong>Produces:</strong> Chrono Sand, contracts, Guild Seals, Shards</span><span><strong>Used in:</strong> Fast Forward, Quartermaster charters, Transcend.</span></div>
+            </div>
+          </div>
+          <div id="calendar-root"></div>
         </section>
 
         <!-- TAB 11: Codex & Settings -->

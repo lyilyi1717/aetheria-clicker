@@ -3,15 +3,26 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '3.6.0';
+export const VERSION = '3.7.0';
 
 export const CHANGELOG = [
   {
-    version: '3.6.0',
+    version: '3.7.0',
     date: '2026-10-06',
     title: 'The Dust Shop',
     changes: [
-      'Ascension perks are replaced by a Dust Shop that sells new features, opening in tiers as you Ascend more.'
+      'TODO'
+    ]
+  },
+  {
+    version: '3.6.0',
+    date: '2026-10-06',
+    title: 'The Dallah: something new every day and week',
+    changes: [
+      'New Dallah tab (Meta group). The Daily Dallah pours a gift on your first visit of each day: +60 Chrono Sand, a ready-to-claim bonus contract and an hour of +25% Aether. Days you miss wait for you, up to 3, and claiming them pays every banked day. There is no streak: the number on the card is just how many days you have visited, and nothing is ever lost by staying away.',
+      'Weekly Ledger: every Monday it sets 3 goals from things you can already do (bosses, depths, harvests, brewing, contracts and more). Each goal pays 6 Guild Seals, and finishing all three adds a stamp for the week. Progress counts from the start of the week. A week you skip costs you nothing.',
+      'Souq Rotation: one friendly modifier each week, always positive and always coming back: Truffle Season (Desert Truffle grows ×1.5), Falcon Week (Tower boss gold ×1.5), Hourglass Week (Chrono Sand gained ×1.5) and Rosewater Week (every plant grows ×1.25).',
+      'Seals of Transcendence: seven lamps that light for good once you reach depth 100, Tower floor 501, 25 Catalysts, 15 Ascensions, Guild Rank 7, a 1e8 Cosmic Dust Ascension and 40% of the Codex. Each lit Seal adds +1 Fracture Shard to spend in the Shard Tree at every Transcend, up to +3 (so up to 3 extra shards to spend on top of the 2 you already get). These extra shards do not raise your ×1.5 shard bonus. Seals are a bonus, not a requirement to Transcend. If you already meet a Seal, it lights the next time you open the game.'
     ]
   },
   {

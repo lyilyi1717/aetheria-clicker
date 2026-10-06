@@ -15,7 +15,7 @@ const ASCEND_GATE = 1e9; // lifetime run Aether before Ascension pays dust (Pres
 // Header currencies per tab, hero first. Aether, Gold and Dust always show; Mana only where
 // spells are cast, Sand and Seals only where they are spent.
 const HERO = { combat: 'gold', mining: 'gold', market: 'gold', prestige: 'dust' };
-const EXTRA = { alchemy: ['sand'], bounties: ['seals', 'sand'], spells: ['mana'] };
+const EXTRA = { alchemy: ['sand'], bounties: ['seals', 'sand'], spells: ['mana'], calendar: ['sand', 'seals'] };
 
 export function headerCurrencies(tab) {
   const hero = HERO[tab] || 'aether';
