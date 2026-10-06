@@ -3,8 +3,8 @@
 Progress log for the year-one redesign (`docs/redesign-proposal.md`). Every session reads this
 first and updates it before finishing (see `AGENTS.md`).
 
-Roadmap items are called **R0–R21**. GitHub numbers issues separately, so R*n* is issue #*n*+2
-(R0–R20); R21 is #42.
+Roadmap items are called **R0–R24**. GitHub numbers issues separately, so R*n* is issue #*n*+2
+(R0–R20); R21 is #42, R22 #45, R23 #46, R24 #47.
 Owner decisions live in issue #23; if it has no answer, use the default listed there.
 
 ## In progress
@@ -17,8 +17,8 @@ Ready now: R9 #11 (after R4 merges: both edit `PrestigeSystem.js` / `GameState.j
 After R4: R5 #7 (+ R3 #5, held per #23 default 5 to ship with R5), R6 #8, R13 #15.
 Then R10 #12 (needs R9), R14 #16 (needs R11), R7 #9 (needs R6), R15 #17 (needs R13),
 R20 #22 (needs R4, R13).
-UI: UI-1 (responsive app shell) and UI-2 (tokens + components) are proposed in
-`docs/ui-review.md`; once filed as issues they should land before the other UI-heavy items.
+UI: R22 #45 (tokens + components) is ready now, then R23 #46 (responsive app shell), then
+R24 #47. R7 waits for R23 (both change the nav).
 
 ## Plan
 
@@ -32,7 +32,7 @@ UI: UI-1 (responsive app shell) and UI-2 (tokens + components) are proposed in
 | 2 | R4 Transcend rework | #6 | R0, R1, R2 |
 | 3 | R5 Upgrade shop | #7 | R4 |
 | 3 | R6 Dust shop of features | #8 | R0, R4, R21 |
-| 4 | R7 Progressive unlocking | #9 | R6, R21 |
+| 4 | R7 Progressive unlocking | #9 | R6, R21, R23 |
 | 4 | R8 Void Tower rebalance | #10 | – |
 | 4 | R9 Talent economy | #11 | R0 |
 | 4 | R10 Contract board | #12 | R9, R21 |
@@ -46,6 +46,9 @@ UI: UI-1 (responsive app shell) and UI-2 (tokens + components) are proposed in
 | 5 | R19 Leaderboard Season 2 | #21 | R8 |
 | 5 | R20 Chronicle layer | #22 | R4, R13, R21 |
 | 4 | R21 UI/UX review, style guide, mockups | #42 | – (blocks UI of R6, R7, R10, R13, R15, R20) |
+| 4 | R22 Design tokens and base components (UI-2) | #45 | R21 |
+| 4 | R23 Responsive app shell (UI-1) | #46 | R22 |
+| 4 | R24 Reduced motion and touch tooltips (UI-3) | #47 | R22 (best after R23) |
 
 ## Done
 
