@@ -3,9 +3,21 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.3.0';
+export const VERSION = '4.4.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.4.0',
+    date: '2026-10-06',
+    title: 'Weekly Ledger goals are a real week',
+    changes: [
+      'Weekly Ledger goals are harder now: they could often be finished in one sitting, which made them feel like dailies. Each goal now asks for about 4.5 of your usual days of progress, so a week takes a few visits but still leaves 2 to 3 days of slack.',
+      'Goals are sized to your own pace: the game remembers how much you did of each thing (bosses, blocks, harvests, clicks...) on your last 7 days played and uses a typical day, so the Ledger keeps up as you grow. A single big or idle day barely moves it, and days you do not play are not counted.',
+      'Until it has seen 3 of your days, a goal uses a starting target (for example Slay 200 Tower fiends, was 60). No goal is ever easier than before.',
+      'Each Ledger goal now pays 10 Guild Seals (was 6), 30 for the full week.',
+      'This week\'s goals keep their old targets and old 6-Seal reward until the Ledger rotates on Monday. Missing a week still loses nothing.'
+    ]
+  },
   {
     version: '4.3.0',
     date: '2026-10-06',
