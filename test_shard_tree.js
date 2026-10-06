@@ -120,6 +120,12 @@ console.log('--- Chronos: 6 h Fast Forward once a day ---');
   const res = st.useLongWarp(now);
   assert.ok(res && res.aether.eq(cps.mul(LONG_WARP_SECONDS)));
   assert.ok(gs.aether.sub(a0).eq(res.aether));
+  // A timed Aether buff active at the time is not stretched over 6 h
+  gs.shardTree.longWarpAt = 0;
+  gs.activeBuffs.push({ id: 'x', type: 'aether_mult', value: 4, duration: 30, maxDuration: 30 });
+  const res2 = st.useLongWarp(now);
+  assert.ok(Math.abs(res2.aether.toNumber() / res.aether.toNumber() - 1) < 1e-9, 'buffs excluded');
+  gs.activeBuffs.length = 0;
   assert.equal(st.useLongWarp(now + 1000), null, 'cooldown');
   assert.equal(Math.round(st.getLongWarpReadyIn(now + 3600e3)), LONG_WARP_COOLDOWN_MS / 1000 - 3600);
   assert.ok(st.getLongWarpReadyIn(now - 365 * 86400e3) <= LONG_WARP_COOLDOWN_MS / 1000, 'clock set back: at most one cooldown');

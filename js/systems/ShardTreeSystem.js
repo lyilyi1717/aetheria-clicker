@@ -315,12 +315,14 @@ export class ShardTreeSystem {
     return this.has('chronos_long_warp') && this.getLongWarpReadyIn(now) <= 0;
   }
 
-  // Pays 6 h of current Aether production (100%, like the first offline band) and grows the
+  // Pays 6 h of current Aether production without timed buffs (100%, like the first offline band) and grows the
   // Garden for 6 h. Returns { aether, gardenHarvests } or null.
   useLongWarp(now = this.now()) {
     if (!this.canLongWarp(now)) return null;
     const gs = this.gameState;
-    const aether = gs.getNetAetherPerSecond().mul(LONG_WARP_SECONDS);
+    // Base rate without timed Aether buffs, so a spell cast right before can't be stretched to 6 h
+    const buffMult = typeof gs.getAetherBuffMult === 'function' ? gs.getAetherBuffMult() : 1;
+    const aether = gs.getNetAetherPerSecond().div(buffMult > 0 ? buffMult : 1).mul(LONG_WARP_SECONDS);
     gs.aether = gs.aether.add(aether);
     gs.totalAetherEarned = gs.totalAetherEarned.add(aether);
     const garden = gs.gardenSystem?.applyOfflineTime?.(LONG_WARP_SECONDS) || { harvests: 0 };
