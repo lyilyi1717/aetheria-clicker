@@ -1,6 +1,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
 import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
+import { getTierUpgradeMult, getClickUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
 
 // Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
 // PrestigeSystem imports audio/particles and GameState must stay loadable on its own.
@@ -54,6 +55,9 @@ export class GameState {
     this.frenzyActive = false;
     this.frenzyTimer = 0;
     this.totalClicks = 0;
+
+    // Upgrade shop (R5, UpgradeSystem.js): { [id]: true } for upgrades bought this run
+    this.upgrades = {};
 
     // Materials / Inventory
     this.inventory = {
@@ -169,9 +173,19 @@ export class GameState {
     return base.mul(mult).mul(this.getDustMultiplierBig()).mul(this.getShardAetherMult());
   }
 
+  // Upgrade shop: output multiplier for one generator tier (BuildingSystem.getBuildingProduction)
+  getTierUpgradeMult(buildingId) {
+    return getTierUpgradeMult(this, buildingId);
+  }
+
+  // Base click before the CPS share: clickPower x 2^(click upgrades bought) (design doc 6.1)
+  getClickBase() {
+    return this.clickPower.mul(getClickUpgradeMult(this));
+  }
+
   // Calculate current click damage/yield
   getClickYield() {
-    let base = this.clickPower;
+    let base = this.getClickBase();
 
     // Add % of passive CPS to click
     const cps = this.getNetAetherPerSecond();
@@ -353,6 +367,7 @@ export class GameState {
       critChance: this.critChance,
       critMultiplier: this.critMultiplier,
       totalClicks: this.totalClicks,
+      upgrades: serializeUpgrades(this.upgrades),
       inventory: { ...this.inventory },
       stats: { ...this.stats },
       guildSeals: this.guildSeals,
@@ -404,6 +419,8 @@ export class GameState {
       this.critChance = data.critChance ?? 0.05;
       this.critMultiplier = data.critMultiplier ?? 3.0;
       this.totalClicks = data.totalClicks ?? 0;
+      // Saves before R5 have no upgrades: nothing bought
+      this.upgrades = sanitizeUpgrades(data.upgrades);
       this.inventory = { ...this.inventory, ...(data.inventory || {}) };
       // Mining used to store rubies under 'rubys'; fold them into the real key
       if (this.inventory.rubys) {

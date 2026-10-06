@@ -12,6 +12,8 @@
 // Ascend policy: when pending dust >= max(10, current dust) and the run is at least 10 min old.
 // Transcend policy: as soon as lifetime dust reaches the gate (R4). Each Transcend unlocks the
 // next generator tier and counts as a reset in the gap measurement.
+// Upgrade shop (R5): upgrades compete with generators in the same greedy loop, by Aether/s gained
+// per Aether spent (see makeUpgradeShopBuyer below).
 //
 // When an economy PR changes the core (new prestige layer, shop, formulas), update this script
 // so it still models what a real player would do, and paste the before/after report in the PR.
@@ -20,6 +22,7 @@ import { GameState } from '../js/systems/GameState.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from '../js/systems/BuildingSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from '../js/systems/PrestigeSystem.js';
 import { AchievementSystem } from '../js/systems/AchievementSystem.js';
+import { UpgradeSystem } from '../js/systems/UpgradeSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
@@ -42,12 +45,50 @@ const CHECKPOINTS = [
   ['1 mo', 30 * DAY], ['3 mo', 90 * DAY], ['6 mo', 180 * DAY], ['1 y', YEAR]
 ];
 
+// --- R5 upgrade shop block -------------------------------------------------------------------
+// Returns best(budgetLog, clickRate) -> { id, ratio } | null: the affordable upgrade with the best
+// log10(Aether/s gained per Aether spent), in the same units as the generator greedy (generator
+// output before global multipliers). Click upgrades are valued at the current click rate
+// (clicks/s x combo), converted into those units by dividing by the global multiplier.
+function makeUpgradeShopBuyer(gs, bs, us) {
+  const lg = (x) => Math.log10(Math.abs(x.m)) + x.e;
+  return (budgetLog, clickRate) => {
+    let best = null, bestRatio = -Infinity;
+    let globalLog = null;
+    for (const u of us.definitions) {
+      if (u.cost.e > budgetLog + 1) continue;          // cheap pre-filter before the BigNum checks
+      const cost = lg(u.cost);
+      if (cost > budgetLog + 1e-9 || !us.isAvailable(u.id)) continue;
+      let gainLog;
+      if (u.kind === 'click') {
+        if (clickRate <= 0) continue;
+        if (globalLog === null) {
+          const base = bs.getTotalProduction();
+          globalLog = base.gt(0) ? lg(gs.getNetAetherPerSecond()) - lg(base) : 0;
+        }
+        gainLog = lg(gs.getClickBase()) + Math.log10(clickRate) - globalLog;
+      } else {
+        const gain = us.getProductionGain(u.id);
+        if (!gain.gt(0)) continue;
+        gainLog = lg(gain);
+      }
+      const ratio = gainLog - cost;
+      if (ratio > bestRatio) { bestRatio = ratio; best = u.id; }
+    }
+    return best ? { id: best, ratio: bestRatio } : null;
+  };
+}
+// --- end R5 block ------------------------------------------------------------------------------
+
 function run(profile) {
   const gs = new GameState();
   const bs = new BuildingSystem(gs);
   const ps = new PrestigeSystem(gs);
   const ach = new AchievementSystem(gs);
-  gs.buildingSystem = bs; gs.achievementSystem = ach;
+  const us = new UpgradeSystem(gs);
+  gs.buildingSystem = bs; gs.achievementSystem = ach; gs.upgradeSystem = us;
+  const bestUpgrade = makeUpgradeShopBuyer(gs, bs, us);
+  let clickRate = 0; // clicks/s x combo right now, for valuing click upgrades
   bs.buyAmount = 1;
 
   const presence = profile === 'casual' ? 600 : 0;
@@ -70,8 +111,13 @@ function run(profile) {
         const cost = lg(def.baseCost) + cnt * LOG_R + costMult;
         if (cost > budget + 1e-9) continue;
         const gain = (cnt + 1) * bs.getMilestoneMultiplier(cnt + 1) - cnt * bs.getMilestoneMultiplier(cnt);
-        const ratio = lg(def.baseCps) + Math.log10(gain) - cost;
+        const ratio = lg(def.baseCps) + Math.log10(gain) + Math.log10(gs.getTierUpgradeMult(def.id)) - cost;
         if (ratio > bestRatio) { bestRatio = ratio; best = def.id; }
+      }
+      const up = bestUpgrade(budget, clickRate);
+      if (up && up.ratio >= bestRatio) {
+        if (!us.buy(up.id)) return;
+        continue;
       }
       if (!best || !bs.buyBuilding(best)) return;
     }
@@ -96,6 +142,7 @@ function run(profile) {
   let t = 0, runStart = 0, ci = 0;
   const resets = [];
   const transcends = [];
+  const upgradesPerRun = []; // R5: upgrades bought by the end of each Ascension run
   const regainDays = [];   // days after each Transcend until CPS is back to its pre-Transcend level
   let regainFrom = null;
   const rows = [];
@@ -104,7 +151,8 @@ function run(profile) {
     const cps = gs.getNetAetherPerSecond();
     const present = t % 3600 < presence;
     const clicksPerSec = present ? 2 : (t - runStart < 180 ? 1 : 0);
-    const clickYield = gs.clickPower.add(cps.mul(0.03)).mul((present ? 5 : 1) * clicksPerSec * dt);
+    clickRate = (present ? 5 : 1) * clicksPerSec;
+    const clickYield = gs.getClickBase().add(cps.mul(0.03)).mul(clickRate * dt);
     const income = cps.mul(dt * activeMult(t)).add(clickYield);
     gs.aether = gs.aether.add(income);
     gs.totalAetherEarned = gs.totalAetherEarned.add(income);
@@ -116,6 +164,7 @@ function run(profile) {
     if (pending.gt(0)) {
       if (t - runStart >= 600 && pending.gte(gs.totalCosmicDust.max(10))) {
         resets.push(t);
+        upgradesPerRun.push(us.getBoughtCount());
         ps.ascend(true); // the sim enforces the 10-min minimum itself (virtual time, not Date.now)
         runStart = t;
       }
@@ -142,7 +191,8 @@ function run(profile) {
         asc: gs.ascensionCount,
         dust: gs.totalCosmicDust.format('scientific', 2),
         trans: gs.transcendenceCount,
-        tiers: bs.getUnlockedTierCount()
+        tiers: bs.getUnlockedTierCount(),
+        upgrades: us.getBoughtCount()
       });
       ci++;
     }
@@ -171,6 +221,7 @@ function run(profile) {
     transcendDays: transcends.map(x => x / DAY),
     regainDays,
     maxGapDays: maxGap / DAY,
+    upgradesPerRun,
     gapKeptUntilDay: keptUntil / DAY
   };
 }
@@ -181,11 +232,15 @@ const out = [];
 for (const profile of ['idle', 'casual']) {
   const r = run(profile);
   out.push(`\n### profile: ${profile}\n`);
-  out.push('| time | CPS | Ascensions | lifetime dust (this layer) | Transcends | tiers |');
-  out.push('|---|---|---|---|---|---|');
-  for (const row of r.rows) out.push(`| ${row.label} | ${row.cps} | ${row.asc} | ${row.dust} | ${row.trans} | ${row.tiers} |`);
+  out.push('| time | CPS | Ascensions | lifetime dust (this layer) | Transcends | tiers | upgrades (this run) |');
+  out.push('|---|---|---|---|---|---|---|');
+  for (const row of r.rows) out.push(`| ${row.label} | ${row.cps} | ${row.asc} | ${row.dust} | ${row.trans} | ${row.tiers} | ${row.upgrades} |`);
   out.push('');
   out.push(`- first Ascension: ${r.firstResetMin.toFixed(1)} min`);
+  if (r.upgradesPerRun.length) {
+    const u = [...r.upgradesPerRun].sort((a, b) => a - b);
+    out.push(`- upgrades bought per Ascension run: median ${u[u.length >> 1]}, max ${u.at(-1)} (first run ${r.upgradesPerRun[0]})`);
+  }
   out.push(`- resets (Ascensions + Transcends) on day 0: ${r.resetsDay0}; in the year: ${r.resetsYear}`);
   if (r.regainDays.length) {
     const sorted = [...r.regainDays].sort((a, b) => a - b);
