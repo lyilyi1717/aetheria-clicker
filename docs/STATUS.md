@@ -9,7 +9,6 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R25 #61 Reward toasts clear the buff bar.
 - R5 #7 Upgrade shop (PR #40), R9 #11 Talent economy (PR #39), R13 #15 Shard tree (PR #43),
   R14 #16 Codex 2.0 (PR #41).
 
@@ -116,6 +115,11 @@ UI: R22–R24 are done. R7 can go once R6 is in.
   Caravan Star (1/20) anomalies (constants at the top of `SpellSystem.js` / `ClickerSystem.js`).
   `sim/active-income.mjs` measures active:idle on the real classes (x20.7 before, x7.2 now) and
   feeds the sim. Upgrade shop retuned to x1.2 / +0.1% synergy: casual first Transcend day 4.2.
+
+- R25 #61 Reward toasts clear the buff bar: `js/buffBar.js` writes its measured height to
+  `--buff-bar-h` (token default 36px); `css/rewards.css` offsets the stack by it at 640px+ and caps
+  its height above the bottom bar under 640px. Tests in `test_r25_toasts.js`; screenshots in
+  `docs/ui/screenshots/r25/`.
 
 ## Notes for the next session
 
