@@ -63,6 +63,15 @@ export class BuffBar {
       const chip = e.target.closest('.bb-chip');
       if (chip?.dataset.tab) this.app.switchTab(chip.dataset.tab);
     });
+    // Reward toasts sit clear of the bar (css/rewards.css), so publish its real height
+    if (typeof ResizeObserver === 'function') {
+      new ResizeObserver(() => this.publishHeight()).observe(this.bar);
+    }
+  }
+
+  publishHeight() {
+    const h = this.bar.offsetHeight;
+    if (h > 0) document.documentElement.style.setProperty('--buff-bar-h', `${h}px`);
   }
 
   // Collect everything that should be on the bar this frame
@@ -178,6 +187,7 @@ export class BuffBar {
       this.visible = show;
       this.bar.hidden = !show;
       document.body.classList.toggle('has-buff-bar', show);
+      if (show) this.publishHeight();
     }
     const hasSpells = spells.length > 0;
     if (this.spellRow.hidden === hasSpells) this.spellRow.hidden = !hasSpells;

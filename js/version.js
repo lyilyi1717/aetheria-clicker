@@ -3,9 +3,18 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.1.0';
+export const VERSION = '4.1.1';
 
 export const CHANGELOG = [
+  {
+    version: '4.1.1',
+    date: '2026-10-06',
+    title: 'Notices no longer hide your buffs',
+    changes: [
+      'Reward notices now appear below the buff bar instead of on top of it, so you can always see your buff and spell timers. With no buffs running, notices sit where they did before.',
+      'On phones the notices stop above the buff bar at the bottom of the screen. On very short screens, a notice that does not fit fades out at the edge instead of covering the bar.'
+    ]
+  },
   {
     version: '4.1.0',
     date: '2026-10-06',

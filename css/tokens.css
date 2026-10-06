@@ -57,6 +57,7 @@
   --ease-pop: cubic-bezier(0.2, 1.4, 0.4, 1);
   /* Layout */
   --header-h: 56px; --nav-w: 220px; --rail-w: 64px; --bottom-nav-h: 60px; --tap: 44px;
+  --buff-bar-h: 36px; /* js/buffBar.js writes the measured height while the bar shows */
 }
 /* Reduced motion (§6): the device setting applies until js/ui/motion.js writes data-motion on
    <html>; after that the in-game "Reduce motion" setting decides ("full" opts out). */
