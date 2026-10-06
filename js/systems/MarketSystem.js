@@ -10,6 +10,29 @@ export const COMMODITIES = [
   { id: 'shard', name: 'Void Crystal', icon: '🔮', basePrice: 5000, minPrice: 1500, maxPrice: 15000 }
 ];
 
+// --- R16 tuning (see docs/redesign-proposal.md section 2.7) ---
+// Prices follow an Ornstein-Uhlenbeck-style walk in log space: each tick the log price moves
+// REVERSION of the way back to ln(basePrice) plus a uniform shock of +-SHOCK. Stationary spread
+// is about +-15%, so a price 20% under the mean is a real, learnable buy signal.
+export const PRICE_REVERSION = 0.2;
+export const PRICE_SHOCK = 0.12;
+// Round trip costs 10%: buy at 1.05x the quoted price, sell at 0.95x.
+export const BUY_MARKUP = 1.05;
+export const SELL_MARKDOWN = 0.95;
+// Speculative stock limit: you may hold at most floor(STOCK_CAP_VALUE / basePrice) units
+// bought from the market (Void Crystal and Solar Amber are Garden-supplied only). Without a
+// cap, trading volume scales with the gold hoard and out-earns core income.
+export const STOCK_CAP_VALUE = 300;
+// Caravan cargo: units are valued at the MEAN price x the tier multiplier (fixed at dispatch)
+// and a caravan carries at most CARGO_CAPACITY x its investment's worth (at mean prices).
+export const CARGO_CAPACITY = 2.5;
+export const CARGO_MULT = { small: 1.15, large: 1.3 };
+
+export function getStockCap(id) {
+  const c = COMMODITIES.find(x => x.id === id);
+  return c ? Math.floor(STOCK_CAP_VALUE / c.basePrice) : 0;
+}
+
 export class MarketSystem {
   // rng: injectable () => [0,1) so tests can seed price ticks (defaults to Math.random)
   constructor(gameState, rng = Math.random) {
@@ -38,7 +61,8 @@ export class MarketSystem {
           duration: 0,
           maxDuration: 0,
           investment: BigNum.zero(),
-          expectedProfit: 1.5
+          expectedProfit: 1.5,
+          cargo: null
         }
       };
     } else if (this.gameState.market.goldenSynergy === undefined) {
@@ -56,6 +80,35 @@ export class MarketSystem {
   getCommodityPrice(id) {
     const item = this.gameState.market.items[id];
     return this.getMarketIndex().mul(new BigNum(item.price));
+  }
+
+  getBuyPrice(id) { return this.getCommodityPrice(id).mul(new BigNum(BUY_MARKUP)); }
+  getSellPrice(id) { return this.getCommodityPrice(id).mul(new BigNum(SELL_MARKDOWN)); }
+
+  // Max units of `id` a caravan of this tier can carry.
+  getCargoCapacity(id, tier = 'small') {
+    const c = COMMODITIES.find(x => x.id === id);
+    if (!c) return 0;
+    const invest = tier === 'large' ? 2000 : 200;
+    return Math.floor((invest * CARGO_CAPACITY) / c.basePrice);
+  }
+
+  // Cargo value paid on return: units x mean price x tier multiplier x Market Index.
+  getCargoPayout(id, units, tier = 'small') {
+    const c = COMMODITIES.find(x => x.id === id);
+    if (!c || units <= 0) return BigNum.zero();
+    return this.getMarketIndex().mul(new BigNum(c.basePrice * units * (CARGO_MULT[tier] || 1)));
+  }
+
+  // Default cargo: the held commodity whose loadable units are worth the most.
+  pickCargo(tier = 'small') {
+    let best = null;
+    for (const c of COMMODITIES) {
+      const owned = this.gameState.market.items[c.id]?.owned || 0;
+      const units = Math.min(owned, this.getCargoCapacity(c.id, tier));
+      if (units > 0 && (!best || units * c.basePrice > best.units * best.base)) best = { id: c.id, units, base: c.basePrice };
+    }
+    return best ? { id: best.id, units: best.units } : null;
   }
 
   getCaravanTier(tier) {
@@ -116,7 +169,11 @@ export class MarketSystem {
     const item = this.gameState.market.items[id];
     if (!item) return false;
 
-    const totalCost = this.getCommodityPrice(id).mul(new BigNum(amount));
+    // Stock limit: buy what fits (a Buy 10 near the cap buys the remainder)
+    amount = Math.min(amount, getStockCap(id) - item.owned);
+    if (amount <= 0) return false;
+
+    const totalCost = this.getBuyPrice(id).mul(new BigNum(amount));
     if (this.gameState.gold.gte(totalCost)) {
       this.gameState.gold = this.gameState.gold.sub(totalCost);
       item.owned += amount;
@@ -131,7 +188,7 @@ export class MarketSystem {
     const item = this.gameState.market.items[id];
     if (!item || item.owned < amount) return false;
 
-    const payout = this.getCommodityPrice(id).mul(new BigNum(amount));
+    const payout = this.getSellPrice(id).mul(new BigNum(amount));
     item.owned -= amount;
     this.gameState.gold = this.gameState.gold.add(payout);
     sound.playGem();
@@ -146,13 +203,23 @@ export class MarketSystem {
   }
 
   // tier: 'small' (200*M gold, 10 min, 1.25x) or 'large' (2,000*M gold, 60 min, 1.5x).
-  // The payout is locked in at dispatch.
-  dispatchCaravan(tier = 'small') {
+  // The payout is locked in at dispatch. cargo: { id, units } taken from holdings, 'none' for
+  // an empty caravan, or omitted to auto-load the most valuable holding (capped by capacity).
+  // Cargo returns units x mean price x CARGO_MULT[tier], so ship goods you bought low.
+  dispatchCaravan(tier = 'small', cargo) {
     const caravan = this.gameState.market.caravan;
     if (caravan.active) return false;
 
     const { invest: cost, minutes, profit } = this.getCaravanTier(tier);
     if (this.gameState.gold.lt(cost) || cost.lte(0)) return false;
+
+    if (cargo === undefined) cargo = this.pickCargo(tier);
+    let load = null;
+    if (cargo && cargo !== 'none') {
+      const held = this.gameState.market.items[cargo.id]?.owned || 0;
+      const units = Math.floor(Math.min(cargo.units, held, this.getCargoCapacity(cargo.id, tier)));
+      if (units > 0) load = { id: cargo.id, units };
+    }
 
     this.gameState.gold = this.gameState.gold.sub(cost);
     caravan.active = true;
@@ -161,6 +228,12 @@ export class MarketSystem {
     caravan.investment = cost;
     caravan.expectedProfit = profit;
     caravan.payout = cost.mul(new BigNum(profit));
+    caravan.cargo = null;
+    if (load) {
+      this.gameState.market.items[load.id].owned -= load.units;
+      caravan.cargo = load;
+      caravan.payout = caravan.payout.add(this.getCargoPayout(load.id, load.units, tier));
+    }
 
     sound.playSpell();
     particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'CARAVAN EXPEDITION DISPATCHED!', '#fbbf24', true);
@@ -192,8 +265,9 @@ export class MarketSystem {
   updatePrices() {
     for (const c of COMMODITIES) {
       const item = this.gameState.market.items[c.id];
-      const deltaPercent = (Math.random() - 0.48) * 0.35; // Slight bias
-      let newPrice = Math.round(item.price * (1 + deltaPercent));
+      const logGap = Math.log(c.basePrice) - Math.log(item.price);
+      const shock = (this.rng() * 2 - 1) * PRICE_SHOCK;
+      let newPrice = Math.round(item.price * Math.exp(PRICE_REVERSION * logGap + shock) * 100) / 100;
       newPrice = Math.max(c.minPrice, Math.min(c.maxPrice, newPrice));
 
       if (newPrice > item.price * 1.12) item.trend = 'surge';

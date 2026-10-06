@@ -1543,7 +1543,7 @@ class AetheriaApp {
           </div>
           <div class="caravan-dispatch-box" id="caravan-dispatch">
             <h3>🐪 Dispatch Trade Caravan</h3>
-            <p>Send gold into distant trade routes for guaranteed profit! Caravan sizes scale with your deepest Void Tower floor.</p>
+            <p>Send gold into distant trade routes for guaranteed profit! Caravan sizes scale with your deepest Void Tower floor. Commodities you hold ride along as cargo and return at a premium over their average price.</p>
             <button id="btn-send-caravan-1" class="btn-action"></button>
             <button id="btn-send-caravan-2" class="btn-action"></button>
           </div>
