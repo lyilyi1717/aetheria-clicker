@@ -6,7 +6,7 @@ import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
 import { BuildingSystem } from './js/systems/BuildingSystem.js';
 import { PrestigeSystem } from './js/systems/PrestigeSystem.js';
-import { BountySystem, GUILD_CLAIM_BANK, GUILD_CLAIM_INTERVAL_MS } from './js/systems/BountySystem.js';
+import { BountySystem } from './js/systems/BountySystem.js';
 import { GardenSystem } from './js/systems/GardenSystem.js';
 import { migrateSave, SAVE_VERSION } from './js/engine/migrations.js';
 import {
@@ -133,20 +133,12 @@ console.log('--- S3: Guild Rank curve, rewards, API for R10 ---');
   assert.equal(gs.records.earned.guild, r.rank);
 }
 
-console.log('--- Bounties: no random talent roll; stand-in claim pacing ---');
+console.log('--- Bounties: no random talent roll; every claim counts toward Guild Rank ---');
 {
   const { gs } = make();
   const bs = new BountySystem(gs);
   for (let i = 0; i < 300; i++) assert.equal(bs.generateBounty().rewards.talentPoint, false);
-  // 6 banked claims count at once, then one per 30 minutes
-  let counted = 0;
-  const t0 = 1e12;
-  for (let i = 0; i < 10; i++) if (bs.consumeGuildClaim(t0)) counted++;
-  assert.equal(counted, GUILD_CLAIM_BANK);
-  assert.equal(bs.consumeGuildClaim(t0 + GUILD_CLAIM_INTERVAL_MS / 2), false);
-  assert.equal(bs.consumeGuildClaim(t0 + GUILD_CLAIM_INTERVAL_MS), true);
-  assert.equal(bs.consumeGuildClaim(t0 + GUILD_CLAIM_INTERVAL_MS), false);
-  assert.equal(bs.consumeGuildClaim(t0 - 5e6), false, 'a clock set backwards does not refill the bucket');
+  assert.equal(bs.consumeGuildClaim, undefined, 'the R9 stand-in is gone (the board paces claims, R10)');
   // A claim goes through claimBounty and counts
   const g2 = make().gs;
   const b2 = new BountySystem(g2);

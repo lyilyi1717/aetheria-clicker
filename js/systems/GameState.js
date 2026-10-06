@@ -106,7 +106,8 @@ export class GameState {
     this.alchemy = { catalysts: 0 };
     this.spells = {};
     this.talents = {};
-    this.bounties = [];
+    this.bounties = [];     // the contract board
+    this.contracts = null;  // board timer { nextAt, lastClickAt }, set up by BountySystem
     this.market = null;
     this.ascensionPerks = {};
     this.achievements = {};
@@ -372,6 +373,7 @@ export class GameState {
       spells: this.spells,
       talents: this.talents,
       bounties: this.bounties,
+      contracts: this.contracts ? { ...this.contracts } : null,
       quartermaster: this.quartermaster,
       market: this.market,
       ascensionPerks: this.ascensionPerks,
@@ -434,6 +436,8 @@ export class GameState {
       for (const b of this.bounties) {
         b.rewards.gold = BigNum.fromJSON(b.rewards.gold);
       }
+      // Saves from before R10 have no board timer: BountySystem starts one (and keeps their contracts)
+      this.contracts = data.contracts && typeof data.contracts === 'object' ? { ...data.contracts } : null;
       this.quartermaster = data.quartermaster || null;
       this.market = data.market || null;
       if (this.market?.caravan) {

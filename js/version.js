@@ -3,9 +3,20 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '3.1.0';
+export const VERSION = '3.5.0';
 
 export const CHANGELOG = [
+  {
+    version: '3.5.0',
+    date: '2026-10-06',
+    title: 'The Contract Board',
+    changes: [
+      'Bounties is now a board of up to 6 guild contracts that you pick from. A new contract is posted every 30 minutes, and the board keeps filling while you are away, so you always come back to a full board. Claiming a contract no longer replaces it at once: the empty slot refills on the timer. Fast Forward does not speed the timer up.',
+      'Every contract you claim counts toward Guild Rank (the old limit of one counted claim per 30 minutes is gone). A rank-up pays a Talent Point and 5 Guild Seals, up to about 48 contracts a day.',
+      'Each contract has one free reroll, and contracts only come from tabs you can play. Clicking contracts are only posted while you have clicked in the last 5 minutes, so an idle board no longer jams. Contracts grow 15% per Guild Rank (up to about ten minutes of play) and pay Gold equal to 250 x difficulty x your Market Index.',
+      'Contracts you already had keep working: they stay on the board and can be claimed as before (an old one that carried a Talent Point still pays it).'
+    ]
+  },
   {
     version: '3.1.0',
     date: '2026-10-06',
