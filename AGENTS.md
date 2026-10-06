@@ -43,9 +43,10 @@ If you were told "do issue #N", do that. If you were told "pick the next task":
    Don't fix unrelated things; note them in STATUS.md under "Noticed" instead.
 2. **Never break existing saves.** Players have saves in `localStorage` (`AETHERIA_CHRONICLES_SAVE_V1`).
    New state fields need defaults in `GameState`; `deserialize` must accept saves that lack them.
-   Saves carry `version` (see `GameState.serialize` / `deserialize`, e.g. `migrateV1toV2`). If you
-   change the meaning of a saved field, bump the version, add a migration step, and add a test that
-   loads an old-shaped save.
+   Saves carry `version`. If you change the meaning of a saved field, append a step
+   `{ to: n + 1, migrate(data) }` to `MIGRATIONS` in `js/engine/migrations.js` (the version bumps
+   with it; never edit a shipped step) and add a test that loads an old-shaped save (see
+   `test_saves.js`).
 3. **Tests must pass:** `npm test`. Add tests for new logic next to the existing `test_*.js`
    files and add them to the `test` script in `package.json`.
 4. **Economy changes need numbers.** If you touch production, costs, prestige, spells, or offline

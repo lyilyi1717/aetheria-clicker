@@ -12,7 +12,7 @@ _(none)_
 
 ## Next up
 
-**Wave 1** (independent, can run in parallel): R0 #2, R1 #3, R2 #4, R3 #5, R12 #14.
+**Wave 1** (independent, can run in parallel): R1 #3, R2 #4, R3 #5, R12 #14.
 
 ## Plan
 
@@ -45,13 +45,20 @@ _(none)_
 - Redesign proposal written (`docs/redesign-proposal.md`).
 - Project setup: `AGENTS.md`, `CLAUDE.md`, this file, `sim/core-pacing.mjs` (`npm run sim`),
   CI checks (`.github/workflows/checks.yml`), issues #2–#23.
+- R0 #2 Save versioning: `js/engine/migrations.js` holds the ordered `MIGRATIONS` chain;
+  `GameState.deserialize` (and so save import) runs `migrateSave`. Tests in `test_saves.js`.
 
 ## Notes for the next session
 
+- Save format changes: add a step to `MIGRATIONS` in `js/engine/migrations.js` and an old-shape
+  fixture to `test_saves.js`. Current `SAVE_VERSION` is 2.
 - Pacing baseline (today's game, casual profile): first Ascension 10 min, 12 Ascensions on day 0,
   16 in the whole year, longest stretch with no reset 139 days. `npm run sim:check` fails on
   purpose until R4; CI only reports it for now.
 
 ## Noticed (not yet an issue)
 
-_(add things you spotted but didn't fix)_
+- Save import merges into the running state: `deserialize` spreads `inventory`, `stats` and
+  `settings` over the current values, so keys the imported save lacks keep the old game's values.
+- Mining still runs its own schema-gated migration (`MiningSystem.migrateMiningGrid`,
+  `miningGrid.schema`) outside the `MIGRATIONS` chain. It works; folding it in is optional.

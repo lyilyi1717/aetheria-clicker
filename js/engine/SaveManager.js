@@ -56,6 +56,9 @@ export class SaveManager {
     try {
       const decoded = decodeURIComponent(atob(saveString.trim()));
       const data = JSON.parse(decoded);
+      // Valid JSON that isn't a save object would otherwise load as an empty game and be saved
+      if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+      // Same path as a normal load: deserialize runs the migration chain (migrations.js)
       this.gameState.deserialize(data);
       this.save();
       return true;
