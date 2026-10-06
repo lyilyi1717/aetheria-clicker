@@ -4,16 +4,9 @@ import { recordAscensionDust, checkMilestones } from './TalentSources.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
 import { isChallengeActive } from './ChronicleSystem.js';
 import { resetUpgradesOnAscend, resetAllUpgrades } from './UpgradeSystem.js';
+import { applyRunStart, getDustAmplifierMult, resetDustShop, DUST_SHOP_TIERS, DUST_SHOP_ITEMS } from './DustShopSystem.js';
 
-export const ASCENSION_PERKS = [
-  { id: 'genesis', name: 'Cosmic Genesis', desc: 'Start with 15 Tappers & 1,000 Gold on reset.', cost: 5, maxRank: 1 },
-  { id: 'eternal_resonance', name: 'Eternal Resonance', desc: '+50% All Aether Production per rank.', cost: 10, maxRank: 50 },
-  { id: 'hyper_click', name: 'Singularity Tap', desc: '+100% Click Yield per rank.', cost: 15, maxRank: 50 },
-  { id: 'auto_leylines', name: 'Automated Leylines', desc: 'Auto-casts spells when mana is full.', cost: 50, maxRank: 1 },
-  { id: 'chrono_vault', name: 'Chrono Reservoir', desc: 'Offline Sand bank cap increased by +720m.', cost: 25, maxRank: 10 },
-  { id: 'titan_legacy', name: "Titan's Legacy", desc: 'Hero starts with +100 HP and +25 Attack.', cost: 30, maxRank: 10 },
-  { id: 'astral_alchemist', name: 'Astral Crucible', desc: 'All potion durations doubled.', cost: 40, maxRank: 1 }
-];
+// The 7 Ascension perks are now the dust shop (R6, DustShopSystem.js; save step v5 converts them)
 
 // Dust gain = 150 * (runAether / 1e9)^DUST_EXPONENT (design doc 6.1: cube root, was 0.25)
 export const DUST_EXPONENT = 1 / 3;
@@ -52,18 +45,6 @@ export function getNectarOfferingMult(gameState) {
 export class PrestigeSystem {
   constructor(gameState) {
     this.gameState = gameState;
-    this.initPerks();
-  }
-
-  initPerks() {
-    if (!this.gameState.ascensionPerks) {
-      this.gameState.ascensionPerks = {};
-    }
-    for (const p of ASCENSION_PERKS) {
-      if (!this.gameState.ascensionPerks[p.id]) {
-        this.gameState.ascensionPerks[p.id] = { rank: 0 };
-      }
-    }
   }
 
   // Breakdown of the dust-gain multipliers shown on the Ascend button
@@ -75,17 +56,19 @@ export class PrestigeSystem {
       nectar: getNectarHeld(this.gameState),
       nectarMult: getNectarOfferingMult(this.gameState),
       shards,
-      shardMult: this.gameState.getShardDustMult(shards)
+      shardMult: this.gameState.getShardDustMult(shards),
+      amplifier: getDustAmplifierMult(this.gameState)   // dust shop Dust Amplifier
     };
   }
 
-  // Calculate pending Cosmic Dust upon Ascension (base x Geode Attunement x Nectar Offering x shards)
+  // Calculate pending Cosmic Dust upon Ascension
+  // (base x Geode Attunement x Nectar Offering x Dust Amplifier x shards)
   getPendingCosmicDust() {
     const base = this.getBaseCosmicDust();
     if (base.lte(0)) return base;
     const m = this.getDustMultipliers();
     // tiny epsilon so float noise (e.g. 150 x 1.2 = 179.999...) never floors a whole dust away
-    return base.mul(new BigNum(m.geode * m.nectarMult * (1 + 1e-12))).mul(m.shardMult).floor();
+    return base.mul(new BigNum(m.geode * m.nectarMult * m.amplifier * (1 + 1e-12))).mul(m.shardMult).floor();
   }
 
   // Base dust from run Aether only, before the dust-gain links
@@ -144,11 +127,8 @@ export class PrestigeSystem {
     // Upgrade shop resets too, except what a Blueprint Memory keep rule holds (R5/R6)
     resetUpgradesOnAscend(this.gameState);
 
-    // Apply Genesis perk if unlocked
-    if (this.gameState.ascensionPerks.genesis?.rank > 0) {
-      this.gameState.buildings['tapper'].count = 15;
-      this.gameState.gold = this.gameState.gold.add(new BigNum(1000));
-    }
+    // Dust shop: Cosmic Genesis, Resonant Start; Finger of Wasta's click count starts again
+    applyRunStart(this.gameState);
 
     // Talent points (R9): no flat grant. S2 pays Record Ascension stars, S1 the first Ascension and
     // (via transcend(), which calls this with force) the Transcend ladder.
@@ -157,22 +137,12 @@ export class PrestigeSystem {
 
     // Big tier ceremony (§5.1). Transcend calls ascend(true) and shows its own epic one instead.
     if (!force && !quiet) rewards.notify({ tier: 'big', kind: 'ascension', icon: '✨', color: '#06b6d4', title: 'Ascended!', batchTitle: '{n} Ascensions', amount: pending, fmt: (d) => d.format('standard', 0), unit: 'Cosmic Dust' });
-    return true;
-  }
-
-  buyPerk(perkId) {
-    const def = ASCENSION_PERKS.find(p => p.id === perkId);
-    if (!def) return false;
-
-    const perkState = this.gameState.ascensionPerks[perkId];
-    if (perkState.rank >= def.maxRank) return false;
-
-    const cost = new BigNum(def.cost * Math.pow(1.5, perkState.rank));
-    if (this.gameState.cosmicDust.lt(cost)) return false;
-
-    this.gameState.cosmicDust = this.gameState.cosmicDust.sub(cost);
-    perkState.rank++;
-    rewards.notify({ tier: 'medium', kind: `perk-${def.id}`, icon: '🌠', color: '#fbbf24', title: `Perk: ${def.name} rank ${perkState.rank}` });
+    // A new dust shop tier just opened (Ascension 1 / 3 / 5 / 10 / 20)
+    const opened = DUST_SHOP_TIERS.includes(this.gameState.ascensionCount) ? this.gameState.ascensionCount : 0;
+    if (opened) {
+      const n = DUST_SHOP_ITEMS.filter(d => d.tier === opened).length;
+      rewards.notify({ tier: 'medium', kind: 'dust-shop-tier', icon: '🛒', color: '#c084fc', title: `Dust Shop: ${n} new feature${n === 1 ? '' : 's'}`, detail: `Ascension ${opened} opened a new shop tier` });
+    }
     return true;
   }
 
@@ -201,7 +171,7 @@ export class PrestigeSystem {
   }
 
   // What Transcend trades, for the confirm dialog and the panel. Lifetime dust of this layer (and
-  // so the dust multiplier) goes back to 0; the run, dust and perks reset. In return: +2 shards
+  // so the dust multiplier) goes back to 0; the run, dust and the dust shop reset. In return: +2 shards
   // (x1.5 Aether and x1.5 dust gain each, permanent) and the next generator tier.
   // before/after compare the dust x shard Aether multipliers right before and right after.
   getTranscendPreview() {
@@ -247,10 +217,8 @@ export class PrestigeSystem {
     this.gameState.cosmicDust = BigNum.zero();
     this.gameState.totalCosmicDust = BigNum.zero();
     resetAllUpgrades(this.gameState); // Blueprint Memory is a dust-shop feature: gone with the dust
-    for (const p in this.gameState.ascensionPerks) {
-      this.gameState.ascensionPerks[p].rank = 0;
-    }
-    // Perk-raised caps just dropped. Re-fit now rather than on the next page load:
+    resetDustShop(this.gameState);
+    // Shop-raised caps just dropped. Re-fit now rather than on the next page load:
     // Chrono Sand to the base bank (Chrono Reservoir), buffs to the base duration cap
     // (Astral Crucible), hero HP to the max without Titan's Legacy.
     this.gameState.clampLoadedTimers();

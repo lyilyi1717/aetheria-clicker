@@ -1,0 +1,50 @@
+/* Dust shop (R6): js/ui/dustShop.js. Tokens and components from docs/ui-style-guide.md;
+   layout from docs/ui/mockups/dust-shop.html (.shop grid of .item cards). Linked from dustShop.js. */
+
+.ds-head { margin: var(--sp-5) 0 var(--sp-2); }
+.ds-head h2 { margin: 0; font-size: var(--fs-18); }
+.ds-sub { font-family: var(--font-ui); font-size: var(--fs-13); font-weight: 500; color: var(--text-3); margin-left: var(--sp-1); }
+.ds-intro { font-size: var(--fs-12); color: var(--text-2); margin: 0 0 var(--sp-3); max-width: 70ch; }
+.ds-legacy { font-size: var(--fs-12); color: var(--text-1); background: var(--dust-dim); border: 1px solid var(--dust); border-radius: var(--r-1); padding: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-3); }
+.ds-more { font-size: var(--fs-12); color: var(--text-3); margin: var(--sp-3) 0 0; }
+
+/* Tier filter chips: scroll inside their own row on phones, never the page */
+.ds-tiers { display: flex; gap: var(--sp-2); overflow-x: auto; padding-bottom: 2px; max-width: 100%; }
+.ds-tiers .chip { cursor: pointer; }
+.ds-tiers .chip[aria-pressed="true"] { border-color: var(--dust); color: var(--dust); background: var(--dust-dim); }
+.ds-tiers .chip:focus-visible { outline: 2px solid var(--dust); outline-offset: 2px; }
+
+.ds-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--sp-3); }
+.ds-item { display: grid; grid-template-columns: 44px 1fr; gap: var(--sp-3); padding: var(--sp-3); border-radius: var(--r-2); background: var(--bg-2); border: 1px solid var(--line-1); text-align: left; min-width: 0; }
+.ds-item[hidden] { display: none; }
+.ds-item.aff { border-color: var(--gold); }
+.ds-item.own { border-color: var(--line-brand); }
+.ds-item.lock { opacity: 0.72; }
+.ds-body { min-width: 0; }
+.ds-t { display: flex; justify-content: space-between; gap: var(--sp-2); align-items: baseline; }
+.ds-t h3 { font-size: var(--fs-14); margin: 0; color: var(--text-1); font-family: var(--font-ui); }
+.ds-d { font-size: var(--fs-12); color: var(--text-2); margin: 4px 0 8px; }
+.ds-f { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.ds-f .btn { min-width: 110px; }
+.ds-f .btn[hidden], .ds-see[hidden] { display: none; }
+.ds-rank { font-size: var(--fs-11); color: var(--text-3); }
+.ds-rank:empty { display: none; }
+.ds-see { font-size: var(--fs-11); color: var(--life); }
+
+/* Auto-Buy switch on the Falafel tab: the header row wraps so the chip never clips on phones */
+#tab-monolith .buildings-header { flex-wrap: wrap; gap: var(--sp-2); }
+.ds-autobuy { cursor: pointer; }
+.ds-autobuy[hidden] { display: none; }
+
+/* Hourglass of Al-Ula: two extra warp buttons beside the header's 30 s Fast Forward */
+.ds-hourglass { display: inline-flex; gap: var(--sp-2); }
+.ds-hourglass[hidden] { display: none; }
+.ds-warp { flex-direction: column; gap: 0; line-height: 1.15; }
+.ds-warp .ff-sub { font-size: var(--fs-11); font-weight: 500; opacity: 0.85; white-space: nowrap; }
+.ds-warp:disabled, .ds-warp.disabled { cursor: not-allowed; background: var(--bg-2); border-color: var(--line-1); color: var(--text-3); }
+
+@media (max-width: 639px) {
+  .ds-shop { grid-template-columns: 1fr; }
+  .ds-hourglass { flex: 1 1 100%; }
+  .ds-hourglass .ds-warp { flex: 1 1 0; }
+}

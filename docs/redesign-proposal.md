@@ -540,12 +540,37 @@ count (1 / 3 / 5 / 10 / 20) so the shop grows with the player.
 | Asc 5 | **Hourglass of Al-Ula** (Fast Forward 5 min and 1 h buttons) | 300 |
 | Asc 10 | Automated Leylines (auto-cast at full mana) — keep | 500 |
 | Asc 10 | **Blueprint Memory II** (keep all upgrades of tiers 1–7) | 1,000 |
-| Asc 20 | **Resonant Start** (start each run with 1 of every unlocked tier) | 5,000 |
+| Asc 20 | **Resonant Start** (start each run with 1 of each of generators 1–10; see R6 notes) | 5,000 |
 | any | **Dust Amplifier** (repeatable): +10% dust gain, additive, cost 100 × 2^n | — |
 
 Everything here is a *thing the player can see working* on the next run. Dust itself is the
 multiplier (`×(1 + 0.02 D_total)`), so nothing in the shop needs to be a percentage to feel
 worth it.
+
+*R6 implementation notes (`js/systems/DustShopSystem.js`, panel `js/ui/dustShop.js`).*
+- **Resonant Start covers generators 1–10, not every unlocked tier.** With every unlocked tier,
+  each run after a Transcend started with tiers 15–30 already producing, so recovering from a
+  Transcend took minutes: the casual sim reached tier 30 in week 1 and then went 34 days without a
+  reset (`sim:check` failed). With the 14 base tiers that passed (before R3/R20), but after the
+  Chronicle (ladder back to 14 tiers) it handed over the whole ladder and Transcends bunched up:
+  13 of 150 less than 6 h apart after the third and fourth Chronicles (R20's rule is none). With
+  generators 1–10: 0 of 125, casual longest gap 1.8 days to day 270, a reset at least every 14
+  days all year. Capping or steepening Dust Amplifier instead did not pass.
+- **Dust Amplifier** is as listed (+10% dust gain per rank, additive, price 100 × 2^n, no cap).
+  It replaces most of what Eternal Resonance (+50% Aether per rank, removed) gave the old sim:
+  without it the casual sim misses `sim:check` (a 37-day stretch with no reset).
+- **Old perks (save v5):** Cosmic Genesis, Chrono Reservoir, Titan's Legacy, Astral Crucible and
+  Automated Leylines become owned shop items at their rank, free, even where the shop now asks
+  more Ascensions. Eternal Resonance and Singularity Tap are refunded at their old prices
+  (cost × 1.5^r per rank) into spendable dust; lifetime dust is untouched. Saves that already own
+  Golems get Golem Covenant. The panel tells the player once what happened.
+- **Where the features live:** Auto-Buy is an on/off chip on the generator header (buys up to 25
+  single generators every 10 s, best Aether/s per Aether first, also in a background tab);
+  Hourglass adds 5 min (300 sand) and 1 h (3,600 sand) warps next to the 30 s Fast Forward, at a
+  flat price (1 h needs a sand bank of 3,600, Chrono Reservoir rank 3); Golem Covenant gates
+  buying Golems (owned ones keep working); Finger of Wasta counts clicks since the last Ascension.
+- **Transcend** empties the shop with the dust (the Auto-Buy switch is a preference and stays);
+  the Transcend panel's "You reset" list says so.
 
 ### 6.3 Shard tree (layer 2 spend)
 
@@ -702,7 +727,7 @@ include a Tower floor and 40% of the Codex, and no single subgame should lock a 
 away; 24 Transcends is ~day 90 casual, about when the calendar in §4.2 completes Seal set I).
 After the first Chronicle the Seal half counts as met.
 
-- **Resets:** run, shop upgrades, dust, lifetime dust, perks, Fracture Shards (both counters),
+- **Resets:** run, shop upgrades, dust, lifetime dust, the Dust Shop (R6), Fracture Shards (both counters),
   shard tree, Transcend count (ladder back to 14 tiers). **Keeps:** Pages, Page upgrades,
   stamps, challenge records, Ascension count, talents, records, Codex, subgames, gold, sand,
   Wardens and Garden breeding (as free unlocks). Lifetime Transcends

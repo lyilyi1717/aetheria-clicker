@@ -69,7 +69,7 @@ console.log('--- R12: processOfflineTime payout ---');
   near(credited(run(20 * H), rate), 14 * H * 1.25, '20 h with efficiency 1.25');
   gs.stats.offlineEfficiency = 1.0;
   // Chrono Reservoir rank 1 extends the full band to 12 h
-  gs.ascensionPerks = { chrono_vault: { rank: 1 } };
+  gs.dustShop.ranks = { chrono_vault: 1 };
   near(credited(run(12 * H), rate), 12 * H, '12 h at rank 1 all full-rate');
   near(credited(run(72 * H), rate), 12 * H + 16 * H * 0.5, '3 days at rank 1');
 }

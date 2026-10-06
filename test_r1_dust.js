@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
 import { BuildingSystem } from './js/systems/BuildingSystem.js';
-import { PrestigeSystem, ASCENSION_PERKS } from './js/systems/PrestigeSystem.js';
+import { PrestigeSystem } from './js/systems/PrestigeSystem.js';
+import { DUST_SHOP_ITEMS, buyShopItem } from './js/systems/DustShopSystem.js';
 
 globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
 
@@ -17,18 +18,19 @@ gs.totalCosmicDust = new BigNum(500);
 assert.equal(gs.getDustMultiplier(), 11);
 const cpsBefore = gs.getNetAetherPerSecond();
 
-// Buy every perk we can afford: Aether/s must never drop (perks only add)
+// Buy every dust shop item we can afford: Aether/s must never drop (the shop only adds)
+gs.ascensionCount = 20;
 let bought = 0;
-for (const p of ASCENSION_PERKS) {
+for (const p of DUST_SHOP_ITEMS) {
   const prev = gs.getNetAetherPerSecond();
   const dustBefore = gs.cosmicDust;
-  if (ps.buyPerk(p.id)) {
+  if (buyShopItem(gs, p.id)) {
     bought++;
-    assert.ok(gs.cosmicDust.lt(dustBefore), 'perk spent dust');
+    assert.ok(gs.cosmicDust.lt(dustBefore), 'shop item spent dust');
     assert.ok(gs.getNetAetherPerSecond().gte(prev), `buying ${p.id} lowered Aether/s`);
   }
 }
-assert.ok(bought > 0, 'at least one perk was bought');
+assert.ok(bought > 0, 'at least one shop item was bought');
 assert.ok(gs.cosmicDust.lt(500), 'some dust was spent');
 assert.equal(gs.totalCosmicDust.toNumber(), 500);
 assert.equal(gs.getDustMultiplier(), 11, 'multiplier unchanged by spending');

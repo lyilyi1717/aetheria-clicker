@@ -23,9 +23,11 @@
 @media (max-width: 639px) {
   body.has-buff-bar .reward-toasts {
     max-height: calc(100dvh - var(--header-h) - var(--bottom-nav-h) - var(--buff-bar-h)
-      - env(safe-area-inset-bottom) - 16px);
+      - env(safe-area-inset-bottom) - 28px);
     overflow: hidden;
-    /* Very short screens (landscape): a toast that doesn't fit fades out at the cut */
+    /* Very short screens (landscape): a toast that doesn't fit fades out at the cut. The fade
+       sits on this empty padding, so a stack that fits is never faded. */
+    padding-bottom: 12px;
     -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 12px), transparent);
     mask-image: linear-gradient(to bottom, black calc(100% - 12px), transparent);
   }

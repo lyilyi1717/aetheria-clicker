@@ -3,7 +3,7 @@
 // Three parts, all in this file so the rules live next to their data:
 //
 //   1. Chronicle reset and Pages. At 12 Transcends (plus Seal set I, see getSealGate) the player
-//      may begin a Chronicle: the run, dust, perks, Fracture Shards, the shard tree and the
+//      may begin a Chronicle: the run, dust, the dust shop, Fracture Shards, the shard tree and the
 //      Transcend count start again (tiers back to 14), and Chronicle Pages are paid. Pages are
 //      the layer-3 currency: every Page ever earned multiplies Aether and Cosmic Dust gain
 //      (spending never lowers it, same rule as dust and shards), and spent Pages buy permanent
@@ -25,6 +25,7 @@
 // No DOM or audio imports: GameState, the sim and node tests load this on its own. Toasts and
 // ceremonies are raised by js/ui/chronicle.js.
 import { BigNum } from '../engine/BigNum.js';
+import { resetDustShop } from './DustShopSystem.js';
 
 const DAY_MS = 86400 * 1000;
 const WEEK_MS = 7 * DAY_MS;
@@ -55,7 +56,7 @@ export const MARGIN_NOTES_PER_CLEAR = 0.25;
 // checks the reset does exactly this.
 export const CHRONICLE_RESETS = [
   'The run: Aether, generators and shop upgrades',
-  'Cosmic Dust, lifetime dust and all God Perks',
+  'Cosmic Dust, lifetime dust and every Dust Shop feature',
   'Fracture Shards (balance and earned) and the shard tree',
   'Transcends: the count starts again at 0, so the ladder is back to 14 generator tiers'
 ];
@@ -461,7 +462,7 @@ export class ChronicleSystem {
     // Layer 1
     gs.cosmicDust = BigNum.zero();
     gs.totalCosmicDust = BigNum.zero();
-    for (const p in gs.ascensionPerks || {}) gs.ascensionPerks[p].rank = 0;
+    resetDustShop(gs);   // the Auto-Buy on/off preference stays, as on Transcend
     // Upgrade shop: nothing kept (Blueprint Memory is a dust-shop feature, gone with the dust)
     gs.upgrades = {};
     // Layer 2

@@ -22,6 +22,10 @@ console.log('--- CSS: toast stack clears the buff bar ---');
   assert.match(narrow[1], /body\.has-buff-bar \.reward-toasts\s*\{[^}]*max-height:[^;]*var\(--bottom-nav-h\)[^;]*var\(--buff-bar-h\)/,
     'stack height capped above bottom nav + bar');
   assert.match(narrow[1], /overflow:\s*hidden/, 'overflowing toasts are clipped, not drawn over the bar');
+  // The fade must land on empty padding, or the last toast is faded even when the stack fits
+  const pad = narrow[1].match(/padding-bottom:\s*(\d+)px/);
+  const fade = narrow[1].match(/mask-image:[^;]*calc\(100% - (\d+)px\)/);
+  assert.ok(pad && fade && Number(pad[1]) >= Number(fade[1]), 'fade fits inside the bottom padding');
 
   // Without a bar the stack keeps its R23 place
   assert.equal((rewards.match(/top:\s*calc\(var\(--header-h\) \+ 8px\)/g) || []).length, 2, 'default top unchanged');

@@ -11,9 +11,16 @@
 // in steps of at most FF_SIM_STEP, so a warp takes ~0.3 s and never blocks a frame.
 // A new warp cannot be bought while one is still pending.
 //
+// Hourglass of Al-Ula (dust shop, R6) adds two long warps at a flat price: 5 min for 300 sand
+// and 1 h for 3,600 sand (progression doc §5.5: 30 / 300 / 3,600). They don't touch the 30 s
+// escalator, are bounded by the sand bank (1 h needs Chrono Reservoir rank 3), and run at
+// dt = FF_LONG_SIM_STEP (1 s) and FF_LONG_WARP_RATE, so a 1 h warp takes ~2 s and 3,600 ticks.
+//
 // Escalation state lives in gameState.fastForward and is saved. Time is read from the wall
 // clock through a high-water mark (clockMark): the cooldown only ever advances, so setting
 // the clock back (or back and forth again) can't reset the price.
+
+import { hasShopItem } from './DustShopSystem.js';
 
 export const FF_WARP_SECONDS = 30;          // sim time per use
 export const FF_BASE_COST = 30;             // sand for the first use of a cycle
@@ -22,13 +29,20 @@ export const FF_RESET_MINUTES = 30;         // idle time that resets the price
 export const FF_RESET_MS = FF_RESET_MINUTES * 60 * 1000;
 export const FF_SIM_STEP = 0.25;            // max sim step (combat timers stay accurate)
 export const FF_WARP_RATE = 100;            // sim seconds per real second while warping
+export const FF_LONG_WARPS = [
+  { id: '5m', seconds: 300, cost: 300, label: '5 min' },
+  { id: '1h', seconds: 3600, cost: 3600, label: '1 h' }
+];
+export const FF_LONG_SIM_STEP = 1.0;        // sim step for Hourglass warps (mining/combat accumulate)
+export const FF_LONG_WARP_RATE = 1800;      // sim seconds per real second for Hourglass warps
+export const FF_MAX_PENDING = 3600;         // longest warp a save can hold
 export const FF_MAX_USES = 20;              // sanity clamp for saves; far past anything affordable
 // A clock mark this far ahead of the real clock is treated as a fixed wrong clock, not a
 // rollback: the mark rebases to now and the cooldown restarts in full (never shortens).
 export const FF_CLOCK_REBASE_MS = 7 * 24 * 3600 * 1000;
 
 export function defaultFastForwardState() {
-  return { uses: 0, lastUseAt: 0, clockMark: 0, pending: 0 };
+  return { uses: 0, lastUseAt: 0, clockMark: 0, pending: 0, long: false };
 }
 
 export function getFastForwardCost(uses) {
@@ -43,8 +57,14 @@ export function sanitizeFastForwardState(raw, savedAt) {
   s.uses = Math.max(0, Math.min(FF_MAX_USES, Math.floor(num(raw.uses))));
   s.lastUseAt = Math.max(0, num(raw.lastUseAt));
   s.clockMark = Math.max(0, num(raw.clockMark), s.lastUseAt, num(savedAt));
-  s.pending = Math.max(0, Math.min(FF_WARP_SECONDS, num(raw.pending)));
+  s.long = raw.long === true;
+  s.pending = Math.max(0, Math.min(s.long ? FF_MAX_PENDING : FF_WARP_SECONDS, num(raw.pending)));
+  if (s.pending === 0) s.long = false;
   return s;
+}
+
+export function getLongWarp(id) {
+  return FF_LONG_WARPS.find(w => w.id === id) || null;
 }
 
 export class FastForwardSystem {
@@ -105,6 +125,26 @@ export class FastForwardSystem {
     s.uses += 1;
     s.lastUseAt = s.clockMark;
     s.pending = FF_WARP_SECONDS;
+    s.long = false;
+    return true;
+  }
+
+  // Hourglass of Al-Ula warps (5 min / 1 h): need the dust shop item, flat price
+  hasHourglass() {
+    return hasShopItem(this.gameState, 'hourglass');
+  }
+
+  canUseLong(id) {
+    const w = getLongWarp(id);
+    return !!w && this.hasHourglass() && !this.isWarping() && (this.gameState.chronoSand || 0) >= w.cost;
+  }
+
+  useLong(id) {
+    if (!this.canUseLong(id)) return false;
+    const w = getLongWarp(id);
+    this.gameState.chronoSand -= w.cost;
+    this.state.pending = w.seconds;
+    this.state.long = true;
     return true;
   }
 
@@ -113,16 +153,18 @@ export class FastForwardSystem {
   consume(realDt, simTick) {
     const s = this.state;
     if (!(s.pending > 0)) return 0;
-    let budget = Math.min(s.pending, Math.max(0, realDt) * FF_WARP_RATE);
+    const rate = s.long ? FF_LONG_WARP_RATE : FF_WARP_RATE;
+    const maxStep = s.long ? FF_LONG_SIM_STEP : FF_SIM_STEP;
+    let budget = Math.min(s.pending, Math.max(0, realDt) * rate);
     let done = 0;
     while (budget > 1e-9) {
-      const step = Math.min(FF_SIM_STEP, budget);
+      const step = Math.min(maxStep, budget);
       simTick(step);
       budget -= step;
       done += step;
     }
     s.pending = Math.max(0, s.pending - done);
-    if (s.pending < 1e-9) s.pending = 0;
+    if (s.pending < 1e-9) { s.pending = 0; s.long = false; }
     return done;
   }
 }

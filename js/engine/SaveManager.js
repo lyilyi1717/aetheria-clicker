@@ -1,12 +1,13 @@
 // SaveManager: LocalStorage, Auto-Save, Export/Import, and Offline Progression
 import { getOfflineBonusSeconds } from '../systems/ShardTreeSystem.js';
+import { getShopRank } from '../systems/DustShopSystem.js';
 
 const SAVE_KEY = 'AETHERIA_CHRONICLES_SAVE_V1';
 
 // Offline Aether is paid in two bands (docs/redesign-proposal.md section 8): 100% for the first
 // 8 h away, 50% from 8 h to 24 h, nothing beyond. Without a cap, moving the system clock forward
 // credited unbounded Aether, which also fed the Best Run Aether leaderboard stat.
-// Each Chrono Reservoir rank (ascension perk `chrono_vault`) adds 4 h to the full-rate band and
+// Each Chrono Reservoir rank (dust shop item `chrono_vault`) adds 4 h to the full-rate band and
 // moves the end of the cap out by the same 4 h, so the 50% band stays 16 h long.
 export const OFFLINE_FULL_BAND = 8 * 3600; // seconds at 100%
 export const OFFLINE_AETHER_CAP = 24 * 3600; // seconds; nothing is paid beyond this (base)
@@ -123,7 +124,7 @@ export class SaveManager {
     
     // Banded payout (100% then 50%); Chrono Reservoir extends the bands. Efficiency (talents,
     // Chronos Contract) multiplies whatever the bands pay.
-    const reservoirRank = this.gameState.ascensionPerks?.chrono_vault?.rank || 0;
+    const reservoirRank = getShopRank(this.gameState, 'chrono_vault');
     const bands = computeOfflineBands(elapsedSeconds, reservoirRank, getOfflineBonusSeconds(this.gameState));
     const effectiveSecs = bands.paidSecs * offlineEfficiency;
 
@@ -133,7 +134,7 @@ export class SaveManager {
 
     // Give Chrono Sand / Time Warps (1 Chrono Sand per minute offline, up to the sand bank cap)
     const minutes = Math.floor(elapsedSeconds / 60);
-    // Chrono Reservoir perk: +50% cap per rank. The same cap bounds the whole sand bank.
+    // Chrono Reservoir (dust shop): +50% cap per rank. The same cap bounds the whole sand bank.
     const sandCap = this.gameState.getChronoSandCap();
     const current = this.gameState.chronoSand || 0;
     const chronoEarned = Math.max(0, Math.min(minutes, sandCap - current));
