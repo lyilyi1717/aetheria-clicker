@@ -115,12 +115,39 @@ export class Leaderboard {
   }
 
   async ensureSession() {
+    // Signed in to a player account (R38, js/engine/CloudSave.js): the row is the account's,
+    // so it follows the player to every device. Signing out goes back to the guest player.
+    const acct = await this.app.cloudSave?.activeSession();
+    if (acct) {
+      if (this.session?.user_id !== acct.user_id) await this.retireGuestRow(acct.user_id);
+      this.session = { access_token: acct.access_token, user_id: acct.user_id, expires_at: acct.expires_at, account: true };
+      return;
+    }
+    if (this.session?.account) this.session = loadSession();
+    await this.ensureGuest();
+  }
+
+  async ensureGuest() {
     const s = this.session;
     if (s && s.access_token && Date.now() < s.expires_at - 60000) return;
     if (s && s.refresh_token) {
       try { await this.auth('token?grant_type=refresh_token', { refresh_token: s.refresh_token }); return; } catch { /* fall through to a fresh anonymous user */ }
     }
     await this.auth('signup', {});
+  }
+
+  // The guest row this browser posted before the player signed in would list them twice:
+  // delete it (current season only; Season 1 is a frozen record). Needs the delete policy in
+  // supabase/cloud_saves.sql; without it this is a no-op and the old row just stops updating.
+  async retireGuestRow(accountId) {
+    const guest = loadSession();
+    if (!this.name || !guest?.refresh_token || guest.user_id === accountId) return;
+    try {
+      this.session = guest;
+      if (Date.now() >= guest.expires_at - 60000) await this.auth('token?grant_type=refresh_token', { refresh_token: guest.refresh_token });
+      const s = SEASONS[CURRENT_SEASON];
+      await this.rest(`${s.table}?${s.filter}user_id=eq.${this.session.user_id}`, { method: 'DELETE', auth: true });
+    } catch { /* best effort */ }
   }
 
   // --- REST -------------------------------------------------------------------------
