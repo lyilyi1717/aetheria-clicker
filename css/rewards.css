@@ -14,6 +14,25 @@
   pointer-events: none;
 }
 
+/* Toasts never cover the buff bar (R25). 640px+: the bar sits under the header, so the stack
+   starts below it. Under 640px the bar is fixed above the bottom nav, so the stack keeps its
+   place and stops short of the bar instead. */
+@media (min-width: 640px) {
+  body.has-buff-bar .reward-toasts { top: calc(var(--header-h) + var(--buff-bar-h) + 8px); }
+}
+@media (max-width: 639px) {
+  body.has-buff-bar .reward-toasts {
+    max-height: calc(100dvh - var(--header-h) - var(--bottom-nav-h) - var(--buff-bar-h)
+      - env(safe-area-inset-bottom) - 28px);
+    overflow: hidden;
+    /* Very short screens (landscape): a toast that doesn't fit fades out at the cut. The fade
+       sits on this empty padding, so a stack that fits is never faded. */
+    padding-bottom: 12px;
+    -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 12px), transparent);
+    mask-image: linear-gradient(to bottom, black calc(100% - 12px), transparent);
+  }
+}
+
 .reward-toast {
   --toast-accent: var(--accent-cyan, #38bdf8);
   display: flex;
