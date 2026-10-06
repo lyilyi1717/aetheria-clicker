@@ -17,7 +17,7 @@ Ready now: R9 #11 (after R4 merges: both edit `PrestigeSystem.js` / `GameState.j
 After R4: R5 #7 (+ R3 #5, held per #23 default 5 to ship with R5), R6 #8, R13 #15.
 Then R10 #12 (needs R9), R14 #16 (needs R11), R7 #9 (needs R6), R15 #17 (needs R13),
 R20 #22 (needs R4, R13).
-UI: R23 #46 (responsive app shell) is ready now, then R24 #47. R7 waits for R23 (both change
+UI: R24 #47 is ready now. R7 can go once R6 and R21 are in (R23 is done). R7 waits for R23 (both change
 the nav).
 
 ## Plan
@@ -90,6 +90,12 @@ the nav).
   `.rarity`, `.gear`). Old `--accent-*` / `--text-*` / `--bg-*` names alias the tokens in
   `style.css`. Inter is the UI font. Generators, talents and gear use the components; gear
   rarity markup comes from `js/ui/rarity.js`.
+- R23 #46 Responsive app shell: one-row 56px header (hero currency per tab, then Aether/Gold/Dust;
+  Mana/Sand/Seals only where used; "next goal" chip), grouped 220px sidebar, 64px icon rail at
+  640–1023px, bottom bar + More sheet under 640px. `js/ui/shell.js` (helpers tested in
+  `test_r23_shell.js`); guides open once per tab (`settings.guidesSeen`; old saves get
+  `{ all: true }`). Art panels on Dig / Ascension / Bazaar removed; screenshots in
+  `docs/ui/screenshots/r23/`.
 
 ## Notes for the next session
 
@@ -113,6 +119,11 @@ the nav).
   on buttons with the `active` class. Restyling a button must keep toggling it, or clicks do
   nothing (talents broke this way after R22). `test_click_gates.js` guards it.
 
+- Shell (R23): new tabs need a `data-tab` button in all three navs in `index.html` (side nav
+  group, and the bottom bar or the More sheet) plus a `data-hint` on their guide banner;
+  `test_r23_shell.js` checks both. Per-tab header currencies live in `headerCurrencies()`.
+  R7 should hide locked tabs in all three navs.
+
 ## Noticed (not yet an issue)
 
 - Save import merges into the running state: `deserialize` spreads `inventory`, `stats` and
@@ -121,8 +132,6 @@ the nav).
   `miningGrid.schema`) outside the `MIGRATIONS` chain. It works; folding it in is optional.
 - Midas click gold (`ClickerSystem`) still scales 1.15^floor on the current floor, and bounty gold
   scales with the current floor; neither follows the R8 curves.
-- The app shell's fixed 220px sidebar doesn't collapse at phone width (~65px content column at
-  375px), so every tab is cramped on phones. Pre-existing; worth its own issue.
 - The Transcend shard payout still reads `totalCosmicDust / 1e4` (R4 replaces it).
 - The Chrono Reservoir perk text (`PrestigeSystem.js` perk list, `tabBonuses.js`) only mentions the
   Sand bank; since R12 it also extends offline Aether bands by 4 h per rank. Reword with R4/R6.

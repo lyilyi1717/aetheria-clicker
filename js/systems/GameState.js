@@ -107,7 +107,8 @@ export class GameState {
     this.market = null;
     this.ascensionPerks = {};
     this.achievements = {};
-    this.settings = { notation: 'scientific' };
+    // guidesSeen: tabs whose "How It Works" banner was shown expanded once (R23, js/ui/shell.js)
+    this.settings = { notation: 'scientific', guidesSeen: {} };
   }
 
   // Calculate global aether production per second from all buildings + buffs
@@ -438,6 +439,10 @@ export class GameState {
       this.achievements = data.achievements || {};
       this.activeBuffs = Array.isArray(data.activeBuffs) ? data.activeBuffs : [];
       this.settings = { ...this.settings, ...(data.settings || {}) };
+      // Saves from before R23 have played past the first visits: start every guide collapsed
+      if (!data.settings || typeof data.settings.guidesSeen !== 'object' || !data.settings.guidesSeen) {
+        this.settings.guidesSeen = { all: true };
+      }
       this.clampLoadedTimers();
     } catch (e) {
       console.error('Error during deserialize:', e);

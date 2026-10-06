@@ -3,7 +3,7 @@
 /* ---- Toasts: top-right stack, max 3, never catch input ---- */
 .reward-toasts {
   position: fixed;
-  top: 72px;
+  top: calc(var(--header-h) + 8px); /* below the header (R23) */
   right: 16px;
   z-index: 10001;
   display: flex;
@@ -151,7 +151,7 @@
 
 /* Phone width: toasts span the top, under the header */
 @media (max-width: 600px) {
-  .reward-toasts { top: 8px; right: 8px; left: 8px; width: auto; align-items: stretch; }
+  .reward-toasts { top: calc(var(--header-h) + 8px); right: 8px; left: 8px; width: auto; align-items: stretch; }
   .reward-toast { padding: 8px 10px; }
   .reward-ceremony-icon { font-size: 2.6rem; }
 }
