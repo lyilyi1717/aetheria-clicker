@@ -70,7 +70,10 @@ Allowed, with these limits:
    didn't work, better idea), update the doc in the same PR and say why.
 6. **Keep `js/main.js` edits small.** It's shared by every task. Put new UI in a new file under
    `js/ui/` (or the system's own file) and import it, rather than growing `main.js`.
-7. **Must work at phone width.** Any new UI: check at ~375px wide as well as desktop.
+7. **Follow the UI style guide and work at phone width.** New or changed UI uses the tokens and
+   components in `docs/ui-style-guide.md` and matches its mockup in `docs/ui/mockups/` when one
+   exists (open the `.html` in a browser; say in the PR if you deviate and why). Check it at
+   ~375px wide as well as desktop and run the checklist in the style guide's §8.
 8. **No dark patterns.** No punishing absence, no fake scarcity, no pay-to-skip.
 9. Don't put AI model names in commits, code, or docs.
 
