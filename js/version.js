@@ -18,6 +18,18 @@ export const CHANGELOG = [
     ]
   },
   {
+    version: '3.2.0',
+    date: '2026-10-06',
+    title: 'Codex 2.0',
+    changes: [
+      'The Codex tab now has three sections: Achievements, Collections and the Generator Codex, with an overall Codex percentage at the top.',
+      'Achievements grow from 24 to 88: every lifetime stat (clicks, Aether, play time, generators, Ascensions, Transcends, Tower floors, kills, bosses, depth, blocks, plants, potions, spells, contracts) now has a ladder of goals. Your 24 original achievements keep their +1.5% Aether each; each new rung gives +0.5%. Old saves unlock the rungs they already qualify for the next time the game runs, so expect a one-off bump and a single batched notice.',
+      'Collections fill from what you have already done: Warden Trophies, Strata Relics, the Golden Herbarium, Hybrid Herbarium and Hybrid Recipes. Each finished set gives +1% Aether (8% at most across all eight sets).',
+      'Generator Codex: all 30 generator tiers, shown as a silhouette until you build one. Own 100, 500 and 1000 of a tier to earn its stars and read its entry. Your best count is kept through Ascensions and Transcends.',
+      'Unlock notices are batched: a burst of unlocks becomes one toast such as "12 achievements unlocked".'
+    ]
+  },
+  {
     version: '3.1.0',
     date: '2026-10-06',
     title: 'Talent Points You Earn',

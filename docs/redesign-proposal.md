@@ -368,6 +368,16 @@ achievement ladder 24 → ~90). Add: **Generator Codex** (own 100 / 500 / 1000 o
 lifetime; each row unlocks a flavour text and a cosmetic skin for that card), **Anomaly Log**
 (each anomaly type clicked 10/100/1000), **Chapter stamps**.
 
+*Shipped in R14 (as built):* the ladder is 88 achievements (the 24 originals at +1.5% each, 64 new
+rungs at **+0.5%** each rather than the +1% above: 88 x 1% would be x1.88 on its own, and the
+smaller bonus keeps year-one pacing intact in the sim). Collections are built from state the game
+already saves: Warden Trophies, Strata Relics, Golden Herbarium, Hybrid Herbarium, Hybrid
+Recipes, plus the Generator Codex (30 tiers x 100 / 500 / 1000, as three sets). Each finished
+set is +1% Aether (8 sets, 8% at most). Not built, because the data does not exist yet: Bestiary,
+Gear Museum, Anomaly Log, Chapter stamps and the Generator Codex cosmetic skins (a row unlocks
+its flavour text only). `CollectionSystem.getCodexPercent()` is the figure for the R19
+leaderboard column. No save migration: `codex` is a new additive field.
+
 ---
 
 ## 6. Economy redesign
