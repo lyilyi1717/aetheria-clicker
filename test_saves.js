@@ -260,6 +260,37 @@ console.log('--- v3 -> v4: saves that Transcended under the old rules are refund
   assert.ok(near(gs2.totalCosmicDust.toNumber(), 235000), 'not refunded twice');
 }
 
+console.log('--- v4 -> v5: Ascension perks become the Dust shop (R6) ---');
+{
+  const V4_WITH_PERKS = {
+    version: 4,
+    savedAt: 1760000000000,
+    cosmicDust: { m: 5, e: 1 },
+    totalCosmicDust: { m: 1, e: 4 },
+    ascensionCount: 6,
+    ascensionPerks: {
+      genesis: { rank: 1 }, eternal_resonance: { rank: 2 }, hyper_click: { rank: 0 },
+      auto_leylines: { rank: 1 }, chrono_vault: { rank: 3 }, titan_legacy: { rank: 0 },
+      astral_alchemist: { rank: 0 }
+    },
+    buildings: { tapper: { count: 12 } }
+  };
+  const gs = new GameState();
+  gs.deserialize(clone(V4_WITH_PERKS));
+  assert.deepEqual(gs.dustShop.ranks, { genesis: 1, auto_leylines: 1, chrono_vault: 3 });
+  // Eternal Resonance x2 refunded at its old prices: 10 + 15 dust
+  assert.ok(Math.abs(gs.cosmicDust.toNumber() - (50 + 25)) < 1e-9);
+  assert.equal(gs.totalCosmicDust.toNumber(), 1e4, 'lifetime dust untouched');
+  assert.equal(gs.getChronoSandCap(), 1440 * 2.5, 'Chrono Reservoir III still raises the sand bank');
+  assert.equal(gs.buildings.tapper.count, 12);
+  const out = clone(gs.serialize());
+  assert.equal(out.version, SAVE_VERSION);
+  assert.equal(out.ascensionPerks, undefined, 'the old perk field is gone');
+  const gs2 = new GameState();
+  gs2.deserialize(clone(out));
+  assert.deepEqual(stable(gs2.serialize()), stable(out), 'a converted save round-trips unchanged');
+}
+
 console.log('--- Import goes through the same migration path ---');
 {
   const encode = d => btoa(encodeURIComponent(JSON.stringify(d)));
