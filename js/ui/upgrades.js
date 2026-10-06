@@ -105,8 +105,8 @@ export class UpgradeShopUI {
   getTiles() {
     const aether = this.gs.aether;
     const available = this.us.getAvailable();
-    const affordable = available.filter(u => aether.gte(u.cost));
-    const rest = available.filter(u => aether.lt(u.cost));
+    const affordable = available.filter(u => aether.gte(this.us.getCost(u.id)));
+    const rest = available.filter(u => aether.lt(this.us.getCost(u.id)));
     const upcoming = this.us.getUpcoming(UPCOMING_TILES);
     return { list: [...affordable, ...rest, ...upcoming], affordable: affordable.length, available: available.length };
   }
@@ -164,11 +164,11 @@ export class UpgradeShopUI {
   // 'aff' (requirement met, affordable), 'cost' (requirement met, short of Aether), 'lock' (requirement)
   stateOf(u) {
     if (!this.us.isAvailable(u.id)) return 'lock';
-    return this.gs.aether.gte(u.cost) ? 'aff' : 'cost';
+    return this.gs.aether.gte(this.us.getCost(u.id)) ? 'aff' : 'cost';
   }
 
   progress(u) {
-    const r = this.gs.aether.div(u.cost).toNumber();
+    const r = this.gs.aether.div(this.us.getCost(u.id)).toNumber();
     return Number.isFinite(r) ? Math.max(0, Math.min(1, r)) : 0;
   }
 
@@ -203,12 +203,14 @@ export class UpgradeShopUI {
   updateDetail(u, force) {
     if (!u) return;
     const state = this.stateOf(u);
+    const cost = this.us.getCost(u.id);
+    const discounted = cost.lt(u.cost);
     let action;
     if (state === 'aff') {
-      action = `<button type="button" class="btn btn-sm btn-primary num" data-upg-buy="${u.id}">Buy · ${fmt(u.cost)}</button>`;
+      action = `<button type="button" class="btn btn-sm btn-primary num" data-upg-buy="${u.id}">Buy · ${fmt(cost)}</button>`;
     } else if (state === 'cost') {
-      const missing = u.cost.sub(this.gs.aether);
-      action = `<button type="button" class="btn btn-sm is-locked num" aria-disabled="true" title="Costs ${fmt(u.cost)} Aether">need ${fmt(missing)}</button>`;
+      const missing = cost.sub(this.gs.aether);
+      action = `<button type="button" class="btn btn-sm is-locked num" aria-disabled="true" title="Costs ${fmt(cost)} Aether">need ${fmt(missing)}</button>`;
     } else {
       action = `<span class="upg-togo num">${this.toGo(u)}</span>`;
     }
@@ -216,7 +218,7 @@ export class UpgradeShopUI {
       <div class="icon-tile" aria-hidden="true">${u.icon}</div>
       <div class="upcard-text">
         <div class="n">${esc(u.name)}</div>
-        <div class="e">${esc(u.desc)} · <span class="num">${fmt(u.cost)}</span> Aether</div>
+        <div class="e">${esc(u.desc)} · <span class="num">${fmt(cost)}</span> Aether${discounted ? ' (Deep Blueprint ÷10)' : ''}</div>
         <div class="req">${esc(this.requirementLine(u))}</div>
       </div>
       ${action}`;

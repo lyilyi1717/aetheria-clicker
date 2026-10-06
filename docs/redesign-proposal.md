@@ -432,19 +432,24 @@ leaderboard column. No save migration: `codex` is a new additive field.
 *R5 implementation notes (upgrade shop, `js/systems/UpgradeSystem.js`).*
 - **Effects retuned on the real classes (§10 risk 5).** With the draft table (×2 per tier
   upgrade, so ×32 per tier, and +1% per synergy unit) the casual player's first Transcend moved
-  from day 7.4 to day 0.2 (8 Transcends on day 1, tier 22 by the end of day 1). The core is
+  from day 7.4 to day 0.2 (8 Transcends on day 1, tier 22 by the end of day 1; measured before
+  R13). The core is
   very sensitive in week 1: lifetime dust sits just under the 1e9 gate for days, so any
   constant production factor tips it over early (a flat ×1.2 already moves the first Transcend
   to day ~4). Shipped: **×1.25 per tier upgrade (×3.05 for all 5), synergy +0.3% per source
   owned** (needs 25 of the target and 50 of the source to appear), **click upgrades ×2**
   (`clickPower × 2^n + 3% CPS`, cost 10 × base cost of tier i; they don't move pacing).
-  Measured: casual first Transcend day 1.0 (idle 3.7), 32 Transcends in the year, a reset at
-  least every 14 days until day 229, median 62 upgrades per run (max 173 with 30 tiers).
+  Measured with R13 on main (sim buys Auto-Ascend, then each new tier's Deep Blueprint):
+  casual first Transcend day 1.5 (was 4.8; idle 3.4, was 10.2), 32 Transcends in the year
+  (was 31), a reset at least every 14 days until day 184 (unchanged), median 63 upgrades per
+  run (max 173 with 30 tiers).
   The early-Transcend shift is expected to come back with R3 (active ×8 → ×2 roughly halves
   casual income, #23 default 5); retune `TIER_UPGRADE_MULT` / `SYNERGY_PER_UNIT` then.
 - **Reset:** Ascend clears bought upgrades except those a keep rule accepts
   (`addAscendKeepRule((upgrade, gameState) => bool)`; upgrades carry `kind`, `tier`, `level`),
   which is the hook for Blueprint Memory I/II (R6). Transcend clears all.
+- **Deep Blueprints** (shard tree Foundry, R13) divide a tier's own 5 upgrade prices by 10
+  (`UpgradeSystem.getCost`); the list price stays in the table.
 - **UI:** a tile row on the Falafel tab above the generators (app-shell mockup), with the
   selected upgrade's full card under it and a "Buy all" button. Saved as an array of ids;
   saves without the field load with nothing bought.
@@ -505,6 +510,33 @@ Transcend (+Seal bonus), ~64 shards in a year at the simulated pace. Branches:
 - **Guild**: contract bank 6 → 8; 2 rerolls; contracts pay shards 1 in 50.
 - **Codex**: collection set bonuses ×1.5; "Hall of Fame" leaderboard column.
 
+*R13 implementation (first three branches, `js/systems/ShardTreeSystem.js`, panel
+`js/ui/shardTree.js`).* Shards are spent from `fractureShards`; `totalFractureShards` (the
+×1.5/×1.5) is never touched, so buying a node never lowers production. The tree is saved as
+`shardTree` and survives Transcend. Nodes and costs (the doc only fixed auto-Ascend at 2 and
+Foundry at 1; the rest follow the mockup `docs/ui/mockups/shard-tree.html`, each branch a chain):
+- **Foundry**: 16 Deep Blueprints for tiers 15–30 (the Transcend tiers), 1 shard each, open once
+  that tier is open. They multiply nothing by themselves: the upgrade shop (R5) divides a tier's
+  upgrade prices by `getDeepBlueprintDivisor(gs, tier)`. Until the shop is linked
+  (`gameState.upgradeSystem`) they are shown but not sold.
+- **Chronos**: Auto-Ascend (2) → Long Sleep (2, offline bands +8 h, stacking with Chrono
+  Reservoir) → Hourglass (3, a 6 h Fast Forward once per 24 h: 6 h of current Aether production
+  at 100% plus 6 h of Garden growth, paid instantly like offline time). Auto-Ascend rule "×m"
+  means the Ascension would multiply this layer's lifetime dust by at least m
+  (pending ≥ (m − 1) × lifetime); "timer" Ascends every 10 min / 30 min / 1 h / 4 h. Default ×2
+  (the sim's manual policy). It never Ascends before the 10-min minimum run, can be switched off,
+  and skips the big Ascension ceremony: each Auto-Ascension is one medium `auto-ascend` toast
+  through the reward system, which merges same-kind toasts (×N, dust summed) and holds them in
+  one batch while the tab is hidden (§10 risk 2). It runs while the game is open (also in a
+  background tab); a closed game Ascends at most once on return, not once per missed window.
+- **Tower**: Wardens (1) → Second Wind (2). Wardens moved from the first-Transcend stand-in to
+  this node; a save that Transcended before the tree keeps them free (`shardTree.granted`).
+  Second Wind: once per boss fight (Wardens included), a lost boss (timeout or death) refills the
+  hero's HP and the timer instead of retreating a floor; the boss keeps the damage taken. The
+  gear-rarity node is left for a later PR.
+- Oasis (Garden breeding) is not in these three branches, so breeding still opens at the first
+  Transcend (`GardenSystem.isBreedingUnlocked`).
+
 The Seals of Transcendence (roadmap §5.1) are **kept as the meta-goal that pays +1 shard per
 lit Seal at each Transcend** and as the second half of the Chronicle gate, not as the Transcend
 gate itself. Transcend must be a strictly good economic move at its gate (it is, with ×1.5/×1.5
@@ -550,8 +582,14 @@ Transcends in the year (8 by month 1, 22 by month 3, 29 by month 6), tier 30 at 
 1,274 Ascensions, CPS 1.8e81 at a year. A reset at least every 14 days until day 190; the last
 Transcends land at days 170, 209 and 312. `TARGETS.gapWindowEndDay` in `sim/core-pacing.mjs`
 is therefore 180 until the Chronicle (R20) restores 270. *After R5* (upgrade shop, before R3):
-first Transcend day 1.0, 32 Transcends, a reset at least every 14 days until day 229 (R5 notes
+first Transcend day 1.5, 32 Transcends, a reset at least every 14 days until day 184 (R5 notes
 in §6.1).
+
+*Measured after R13* (same sim, which now Ascends by hand only while the player is there, and
+around the clock once Auto-Ascend is bought with the first Transcend's shards): casual first
+Ascension 10 min, 9 Ascensions on day 0 (was 12), first Transcend day 4.8 (was 7.4: fewer,
+longer early runs pay more dust under the cube root), 31 Transcends, 1,267 Ascensions, a reset
+at least every 14 days until day 184 (was 189), CPS 2.2e81 at a year.
 
 **Current vs proposed, same profile:** today 16–17 Ascensions and ×200 CPS growth over the
 year; proposed ~2,800 Ascensions, 32 Transcends, 16 new generator tiers, ×1e63 growth, and a

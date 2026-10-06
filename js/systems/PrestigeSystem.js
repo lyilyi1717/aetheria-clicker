@@ -111,7 +111,8 @@ export class PrestigeSystem {
     return this.getPendingCosmicDust().gt(0) && this.getMinRunRemaining(now) <= 0;
   }
 
-  ascend(force = false) {
+  // quiet: skip the ceremony; auto-Ascend (shard tree, R13) announces its own batched toast
+  ascend(force = false, { quiet = false } = {}) {
     const pending = this.getPendingCosmicDust();
     if (!force && !this.canAscend()) return false;
 
@@ -153,7 +154,7 @@ export class PrestigeSystem {
     checkMilestones(this.gameState);
 
     // Big tier ceremony (§5.1). Transcend calls ascend(true) and shows its own epic one instead.
-    if (!force) rewards.notify({ tier: 'big', kind: 'ascension', icon: '✨', color: '#06b6d4', title: 'Ascended!', batchTitle: '{n} Ascensions', amount: pending, fmt: (d) => d.format('standard', 0), unit: 'Cosmic Dust' });
+    if (!force && !quiet) rewards.notify({ tier: 'big', kind: 'ascension', icon: '✨', color: '#06b6d4', title: 'Ascended!', batchTitle: '{n} Ascensions', amount: pending, fmt: (d) => d.format('standard', 0), unit: 'Cosmic Dust' });
     return true;
   }
 

@@ -320,9 +320,9 @@ This matches §3.1 within about 10%.
   `miningGrid.maxDepth`, `hero.maxFloor`, `alchemy.catalysts`, `records.harvested` (set in
   `GardenSystem.harvestPlot`) and `transcendenceCount`. The Codex-set star is not built (wave 2).
 - S2 runs inside `PrestigeSystem.ascend` (so Transcend's inner Ascend counts as a run).
-- S3: `recordContractClaim(gs, n)` is the API R10 calls. Until R10 paces the board, `BountySystem`
-  counts at most one claim per 30 min (bank of 6) toward Guild Rank, the §4.4 ceiling of 48 a day;
-  R10 should delete that stand-in (`consumeGuildClaim`).
+- S3: `recordContractClaim(gs, n)` is called once per claimed contract by `BountySystem.claimBounty`
+  (R10). The R9 stand-in (`consumeGuildClaim`, a 30-min token bucket) is gone: the board itself paces
+  claims to the §4.4 ceiling of 48 a day. `records.contractBucket` is unused and always `null`.
 - The rank table above uses `ceil(8 * r^1.4)`: r2 22, r3 38, r20 531, r40 1,400 (the first draft
   of the table was a few contracts low).
 - Old saves keep `talentPoints` and `spentTalentPoints` and get `records` seeded from what they
@@ -403,6 +403,25 @@ medium ones.
 | Types | any of 9 | only from unlocked tabs. `click` / `crit_click` only if the player clicked in the last 5 min. **One free reroll per contract** (closes old #15). |
 | Talent point | 20% random | removed; Guild Rank (S3). An in-flight contract with `talentPoint: true` still pays on claim. |
 | Gold | `250·d·floor/2` | `250·d·M` (Market Index), so it stays relevant at any floor |
+
+**As implemented (R10, `js/systems/BountySystem.js`, UI `js/ui/contracts.js`, state `gs.bounties` + `gs.contracts`):**
+- Board of 6 (`BOARD_SIZE`). `gs.contracts = { nextAt, lastClickAt }` (wall clock, `Date.now()`; Fast Forward
+  never touches it). `update()` runs every sim tick: while there is a free slot and `now >= nextAt` a contract
+  arrives and `nextAt += 30 min`, so the board fills while the player is away. **A full board holds the timer
+  at one interval from now**, so claiming from a full board never refills at once (the next one comes 30 min
+  later) and a long absence never banks more than the 6 slots. A clock set backwards clamps `nextAt` to
+  at most one interval ahead, so the timer is never frozen.
+- A save with no `contracts` (new game or pre-R10) keeps its bounties, is topped up to 4 starters and starts
+  the timer one interval out. No `MIGRATIONS` step: `bounties` keeps its meaning and `contracts` is additive.
+- Size is `reqBase x d x (1 + 0.15 x guildRank)`, capped per type (`cap` in `BOUNTY_TEMPLATES`, about 10 min
+  of normal play: click 600, crit 90, monsters 120, bosses 4, tiles 150, harvests 40, brews 12, casts 30,
+  buildings 80). Gold is `250 x d x Market Index`, Sand `15 x d`, Seals `d`.
+- Types: `click` / `crit_click` only roll if the last manual click was under 5 min before the contract arrived
+  (`lastClickAt`). Other types roll from tabs for which `gs.isTabUnlocked(tab)` is true; until R7 provides that
+  hook every tab counts as open.
+- One free reroll per contract (`rerolled` flag), only while it has no progress; it swaps the slot in place and
+  never changes the timer. Rerolls never hand back the same task type.
+- Not built: the "1 in 50 shard" chip from the mockup (belongs to the R13 Guild perk).
 
 ### 4.5 Ethics guardrails (no monetization; keep it that way)
 

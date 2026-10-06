@@ -1,0 +1,61 @@
+/* Shard tree panel (R13). Built by js/ui/shardTree.js inside #shard-tree-section.
+   Follows docs/ui/mockups/shard-tree.html; tokens from css/tokens.css, components from
+   css/components.css (.card, .btn, .seg, .chip, .bar). Pink --shard is for shards only. */
+.st-wrap { display: flex; flex-direction: column; gap: var(--sp-3); font-family: var(--font-ui); }
+.st-wrap [hidden] { display: none !important; }
+.st-head { display: grid; grid-template-columns: 1fr minmax(180px, 260px); gap: var(--sp-4); align-items: center;
+  border-color: rgba(244, 114, 182, 0.4); background: radial-gradient(circle at 15% 50%, var(--shard-dim), transparent 55%), var(--bg-2); }
+.st-big { font-size: var(--fs-32); font-weight: 800; color: var(--shard); line-height: 1; margin-top: var(--sp-1); }
+.st-sub { font-size: var(--fs-12); color: var(--text-3); margin-top: var(--sp-1); overflow-wrap: anywhere; }
+.st-head-r .bar-row { flex-wrap: wrap; }
+.st-head-r .bar-row > span:first-child { flex-basis: 100%; color: var(--text-3); }
+.st-intro { margin: 0; font-size: var(--fs-12); color: var(--text-3); }
+.st-filter { display: flex; gap: var(--sp-2); overflow-x: auto; padding-bottom: 2px; }
+.st-filter .chip { cursor: pointer; min-height: 36px; }
+.st-filter .chip[aria-pressed="true"] { border-color: var(--shard); color: var(--shard); background: var(--shard-dim); }
+.st-tree { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4); align-items: start; }
+.st-tree[data-filter-on="foundry"] .st-branch:not([data-branch="foundry"]),
+.st-tree[data-filter-on="chronos"] .st-branch:not([data-branch="chronos"]),
+.st-tree[data-filter-on="tower"] .st-branch:not([data-branch="tower"]) { display: none; }
+.st-branch { padding: var(--sp-3); min-width: 0; }
+.st-branch h3 { display: flex; flex-direction: column; gap: 2px; margin: 0 0 var(--sp-3); font-family: var(--font-display); font-size: var(--fs-16); color: var(--text-1); }
+.st-branch h3 small { font-family: var(--font-ui); font-size: var(--fs-12); color: var(--text-3); font-weight: 500; }
+.st-nodes { display: flex; flex-direction: column; }
+.st-node { display: grid; grid-template-columns: 40px 1fr auto; gap: var(--sp-3); align-items: center; padding: var(--sp-2) 0; position: relative; }
+.st-node + .st-node::before { content: ''; position: absolute; left: 19px; top: -10px; height: 12px; width: 2px; background: var(--line-2); }
+.st-orb { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-18); background: var(--bg-1); border: 2px solid var(--line-2); }
+.st-node.own .st-orb { border-color: var(--shard); background: var(--shard-dim); }
+.st-node.aff .st-orb { border-color: var(--gold); }
+.st-node.lock .st-orb { opacity: 0.5; filter: grayscale(1); }
+.st-node-text { min-width: 0; }
+.st-n { font-weight: 600; font-size: var(--fs-13); color: var(--text-1); }
+.st-e { font-size: var(--fs-12); color: var(--text-2); overflow-wrap: anywhere; }
+.st-req { font-size: var(--fs-11); color: var(--text-3); overflow-wrap: anywhere; }
+.st-act .btn { min-width: 64px; }
+.st-state { font-size: var(--fs-12); color: var(--shard); font-weight: 700; white-space: nowrap; }
+.st-foundry { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
+.st-tile { position: relative; aspect-ratio: 1; min-height: 34px; display: grid; place-items: center; border-radius: var(--r-1); background: var(--bg-1);
+  border: 1px solid var(--line-2); font: 700 var(--fs-12) var(--font-ui); color: var(--text-3); cursor: pointer; padding: 0; }
+.st-tile.own { border-color: var(--shard); color: var(--shard); background: var(--shard-dim); }
+.st-tile.own::after { content: '◆'; position: absolute; top: 1px; right: 3px; font-size: var(--fs-11); line-height: 1; }
+.st-tile.aff { border-color: var(--gold); color: var(--gold); }
+.st-tile.lock { opacity: 0.45; }
+.st-tile.sel { outline: 2px solid var(--aether); outline-offset: 1px; opacity: 1; }
+.st-tile:focus-visible { outline: 2px solid var(--aether); outline-offset: 1px; }
+.st-tile-detail { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-top: var(--sp-3);
+  padding-top: var(--sp-2); border-top: 1px solid var(--line-1); }
+.st-tile-text { min-width: 0; }
+.st-auto { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-2); padding-top: var(--sp-2); border-top: 1px solid var(--line-1); }
+.st-auto-row { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.st-lbl { font-size: var(--fs-12); color: var(--text-3); min-width: 88px; }
+.st-auto .seg { flex-wrap: wrap; }
+.st-auto .seg button { min-width: 48px; }
+.st-auto-status { font-size: var(--fs-12); color: var(--dust); overflow-wrap: anywhere; }
+.st-wrap .btn-sand { background: var(--sand-dim); border-color: var(--sand); color: var(--sand); }
+.st-warp { margin-top: var(--sp-3); width: 100%; }
+@media (max-width: 1023px) { .st-tree { grid-template-columns: 1fr; } }
+@media (max-width: 639px) {
+  .st-head { grid-template-columns: 1fr; }
+  .st-foundry { grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); }
+}
+@media (pointer: coarse) { .st-auto .seg button { min-height: 40px; } .st-tile { min-height: var(--tap); } }

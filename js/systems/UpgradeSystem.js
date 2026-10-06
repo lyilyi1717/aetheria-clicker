@@ -12,6 +12,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
+import { getDeepBlueprintDivisor } from './ShardTreeSystem.js';
 
 export const TIER_UPGRADE_THRESHOLDS = [1, 10, 50, 100, 200];
 // Tier upgrades are x1.25 each (x3.05 for all 5), not the doc's first-draft x2 (x32): simulated
@@ -205,7 +206,14 @@ export class UpgradeSystem {
 
   getBoughtCount() { return serializeUpgrades(this.gameState.upgrades).length; }
 
-  getCost(id) { return UPGRADE_BY_ID.get(id)?.cost ?? BigNum.zero(); }
+  // Price now: the table cost, divided for a tier's own upgrades by its Deep Blueprint
+  // (shard tree Foundry branch, x10 cheaper). u.cost stays the undiscounted list price.
+  getCost(id) {
+    const u = UPGRADE_BY_ID.get(id);
+    if (!u) return BigNum.zero();
+    const div = u.kind === 'tier' ? getDeepBlueprintDivisor(this.gameState, u.tier) : 1;
+    return div > 1 ? u.cost.div(div) : u.cost;
+  }
 
   // Visible tier: an upgrade tied to a locked generator tier is hidden
   isTierOpen(u) {
@@ -232,17 +240,23 @@ export class UpgradeSystem {
     return `Own ${SYNERGY_MIN_TARGET} ${DEF_BY_ID.get(u.building).name} and ${SYNERGY_MIN_SOURCE} ${DEF_BY_ID.get(u.source).name}`;
   }
 
-  // Available upgrades, cheapest first
+  // Available upgrades, cheapest first (at today's price)
   getAvailable() {
-    return UPGRADE_DEFINITIONS.filter(u => this.isAvailable(u.id))
-      .sort((a, b) => (a.cost.lt(b.cost) ? -1 : a.cost.gt(b.cost) ? 1 : 0));
+    return this.sortByCost(UPGRADE_DEFINITIONS.filter(u => this.isAvailable(u.id)));
+  }
+
+  sortByCost(list) {
+    const cost = new Map(list.map(u => [u.id, this.getCost(u.id)]));
+    return list.sort((a, b) => {
+      const x = cost.get(a.id), y = cost.get(b.id);
+      return x.lt(y) ? -1 : x.gt(y) ? 1 : 0;
+    });
   }
 
   // Not yet available, in an open tier, cheapest first (the UI shows a couple as "next up")
   getUpcoming(limit = 3) {
-    return UPGRADE_DEFINITIONS
-      .filter(u => !this.isBought(u.id) && this.isTierOpen(u) && !this.isAvailable(u.id))
-      .sort((a, b) => (a.cost.lt(b.cost) ? -1 : a.cost.gt(b.cost) ? 1 : 0))
+    return this.sortByCost(UPGRADE_DEFINITIONS
+      .filter(u => !this.isBought(u.id) && this.isTierOpen(u) && !this.isAvailable(u.id)))
       .slice(0, limit);
   }
 
@@ -262,7 +276,7 @@ export class UpgradeSystem {
   buyAllAffordable() {
     let n = 0;
     for (const u of this.getAvailable()) {
-      if (this.gameState.aether.lt(u.cost)) break;
+      if (this.gameState.aether.lt(this.getCost(u.id))) break;
       if (this.buy(u.id)) n++;
     }
     return n;

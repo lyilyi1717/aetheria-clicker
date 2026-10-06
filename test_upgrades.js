@@ -15,6 +15,7 @@ import {
   addAscendKeepRule, getKeptOnAscend, ASCEND_KEEP_RULES
 } from './js/systems/UpgradeSystem.js';
 import { particles } from './js/engine/ParticleEngine.js';
+import { buyNode, isFoundryOpen } from './js/systems/ShardTreeSystem.js';
 
 globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
 {
@@ -277,6 +278,25 @@ console.log('--- BigNum safety at tier 30: finite costs and production, no overf
   gs.totalFractureShards = new BigNum(500);
   const net = gs.getNetAetherPerSecond();
   assert.ok(Number.isFinite(net.m) && net.e > 400);
+}
+
+console.log('--- Deep Blueprint (shard tree Foundry): that tier\'s upgrades cost /10 ---');
+{
+  const { gs, us } = make();
+  gs.transcendenceCount = 1;                       // tier 15 open
+  const t15 = BUILDING_DEFINITIONS[14];
+  gs.buildings[t15.id].count = 10;
+  gs.fractureShards = new BigNum(5);
+  const full = us.getCost(`${t15.id}_u1`);
+  assert.ok(close(full.toNumber(), t15.baseCost.toNumber() * 10));
+  assert.equal(isFoundryOpen(gs), true, 'the shop being linked opens the Foundry');
+  assert.equal(buyNode(gs, `foundry_t${t15.tier}`), true);
+  assert.ok(close(us.getCost(`${t15.id}_u1`).toNumber(), full.toNumber() / 10));
+  assert.ok(close(us.getCost('tapper_u1').toNumber(), 150), 'other tiers keep their price');
+  assert.ok(close(us.getCost('click_15').toNumber(), getUpgradeDefinition('click_15').cost.toNumber()), 'click upgrades are not tier upgrades');
+  gs.aether = full.div(10);
+  assert.equal(us.buy(`${t15.id}_u1`), true, 'affordable at the discounted price');
+  assert.equal(gs.aether.toNumber(), 0);
 }
 
 console.log('All upgrade shop tests passed.');

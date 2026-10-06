@@ -2,6 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
+import { hasWardensNode, hasSecondWind } from './ShardTreeSystem.js';
 
 export const ZONES = [
   { name: 'Thumama Dunes', minFloor: 1, maxFloor: 50, color: '#f59e0b', icon: '🏜️' },
@@ -153,10 +154,23 @@ export class CombatSystem {
     return h.wardens;
   }
 
-  // Doc: a shard-tree node (§6.3 Tower branch). The tree (R13) doesn't exist yet, so Wardens
-  // unlock at the first Transcend; hero.wardensUnlocked is the hook for the tree node.
+  // Shard-tree node (§6.3 Tower branch, R13). Saves that Transcended before the tree existed get
+  // the node free on load (sanitizeShardTreeState). hero.wardensUnlocked still unlocks too.
   isWardensUnlocked() {
-    return this.gameState.hero?.wardensUnlocked === true || (this.gameState.transcendenceCount || 0) >= 1;
+    return this.gameState.hero?.wardensUnlocked === true || hasWardensNode(this.gameState);
+  }
+
+  // Second Wind (shard tree, R13): once per boss fight, a lost boss (timeout or defeat) refills
+  // the hero's HP and the timer instead of pushing him back. The boss keeps the damage taken.
+  trySecondWind() {
+    const m = this.monster;
+    if (!m?.isBoss || m.secondWindUsed || !hasSecondWind(this.gameState)) return false;
+    m.secondWindUsed = true;
+    m.timer = m.maxTimer;
+    m.attackCooldown = 1.2;
+    this.gameState.hero.hp = this.getTotalMaxHp();
+    rewards.notify({ tier: 'small', kind: 'second-wind', icon: '💨', color: '#38bdf8', title: 'Second Wind! The fight goes on' });
+    return true;
   }
 
   isWardenFloor(floor) {
@@ -624,6 +638,7 @@ export class CombatSystem {
       // A ceremony on screen pauses the boss timer it would otherwise waste (§5.1 big tier)
       if (!rewards.isCeremonyActive()) this.monster.timer -= dt;
       if (this.monster.timer <= 0) {
+        if (this.trySecondWind()) return;
         if (this.wardenChallenge) {
           // A lost challenge costs nothing: the hero returns to his climb floor
           this.notifySetback('The Warden holds! Back to the climb');
@@ -660,6 +675,7 @@ export class CombatSystem {
 
         if (h.hp <= 0) {
           h.hp = this.getTotalMaxHp();
+          if (this.trySecondWind()) return;
           if (this.wardenChallenge) {
             this.notifySetback('The Warden holds! Back to the climb');
             this.endWardenChallenge();
