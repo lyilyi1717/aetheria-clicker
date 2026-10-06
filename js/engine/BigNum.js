@@ -17,7 +17,9 @@ export class BigNum {
     }
 
     if (typeof mantissa === 'number') {
-      if (mantissa === 0 || !isFinite(mantissa)) {
+      // A non-finite part (overflowed Math.pow, JSON "1e999" -> Infinity, an edited save)
+      // collapses to zero rather than poisoning every later add/compare with Infinity/NaN.
+      if (mantissa === 0 || !isFinite(mantissa) || typeof exponent !== 'number' || !isFinite(exponent)) {
         this.m = 0;
         this.e = 0;
         return;
@@ -60,7 +62,7 @@ export class BigNum {
       const parts = clean.split('e');
       const m = parseFloat(parts[0]);
       const e = parseInt(parts[1], 10);
-      return new BigNum(m, e);
+      return new BigNum(m, Number.isFinite(e) ? e : 0);
     }
     const val = parseFloat(clean);
     return new BigNum(val);
@@ -238,6 +240,19 @@ export class BigNum {
   // choice"; 'suffix' forces the K/M/B suffix style regardless.
   static notation = 'scientific';
 
+  // Number.toLocaleString(undefined, options) builds a new Intl.NumberFormat on every call
+  // (format() runs hundreds of times per frame), so reuse one formatter per precision.
+  static LOCALE_FORMATTERS = [];
+  static localeFormatter(precision) {
+    let f = BigNum.LOCALE_FORMATTERS[precision];
+    if (!f) {
+      f = new Intl.NumberFormat(undefined, { maximumFractionDigits: precision });
+      BigNum.LOCALE_FORMATTERS[precision] = f;
+    }
+    return f;
+  }
+  static INT_FORMATTER = new Intl.NumberFormat();
+
   // Mantissa + exponent with trailing zeros trimmed: 1e9, 1.5e10, 2.35e12
   static expString(mantissa, exp, precision, step = 1) {
     let fixed = mantissa.toFixed(precision);
@@ -255,12 +270,12 @@ export class BigNum {
     if (this.m === 0) return '0';
     if (this.e < 3) {
       const val = this.toNumber();
-      return Math.abs(val) < 0.001 ? '0' : val.toLocaleString(undefined, { maximumFractionDigits: precision });
+      return Math.abs(val) < 0.001 ? '0' : BigNum.localeFormatter(precision).format(val);
     }
 
     // Scientific/engineering keep plain digits below a million (e.g. 45,210)
     if ((mode === 'scientific' || mode === 'engineering') && this.e < 6) {
-      return Math.round(this.toNumber()).toLocaleString();
+      return BigNum.INT_FORMATTER.format(Math.round(this.toNumber()));
     }
 
     if (mode === 'scientific' || (mode === 'suffix' && this.e >= BigNum.SUFFIXES.length * 3)) {
@@ -301,8 +316,13 @@ export class BigNum {
     return { m: this.m, e: this.e };
   }
 
+  // Saves are untrusted input: a missing, string, NaN or Infinity part (JSON.parse turns
+  // "1e999" into Infinity) must never produce a non-finite or non-numeric BigNum.
   static fromJSON(obj) {
-    if (!obj) return BigNum.zero();
-    return new BigNum(obj.m || 0, obj.e || 0);
+    if (!obj || typeof obj !== 'object') return BigNum.zero();
+    const m = Number(obj.m);
+    const e = Number(obj.e);
+    if (!Number.isFinite(m) || !Number.isFinite(e)) return BigNum.zero();
+    return new BigNum(m, e);
   }
 }

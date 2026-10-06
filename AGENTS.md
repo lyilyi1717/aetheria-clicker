@@ -21,6 +21,8 @@ something new for a full year.
 - **Tasks:** one GitHub issue per roadmap item, labelled `roadmap`, titled `R<n>: ...`. Each issue
   says the goal, spec section, files, dependencies, and "done when". The R-number is not the
   GitHub issue number; the table in `docs/STATUS.md` maps them.
+- **Line numbers** in the doc and issues were correct when written and drift as code changes.
+  Find the code by the function or constant name; don't trust the number.
 - **Owner decisions:** issue #23. If a question there has no answer, use its listed default.
 - **Progress log:** `docs/STATUS.md`. Read it at the start, append to it at the end.
 
@@ -41,7 +43,9 @@ If you were told "do issue #N", do that. If you were told "pick the next task":
    Don't fix unrelated things; note them in STATUS.md under "Noticed" instead.
 2. **Never break existing saves.** Players have saves in `localStorage` (`AETHERIA_CHRONICLES_SAVE_V1`).
    New state fields need defaults in `GameState`; `deserialize` must accept saves that lack them.
-   If you change the meaning of a saved field, add a migration and a test that loads an old-shaped save.
+   Saves carry `version` (see `GameState.serialize` / `deserialize`, e.g. `migrateV1toV2`). If you
+   change the meaning of a saved field, bump the version, add a migration step, and add a test that
+   loads an old-shaped save.
 3. **Tests must pass:** `npm test`. Add tests for new logic next to the existing `test_*.js`
    files and add them to the `test` script in `package.json`.
 4. **Economy changes need numbers.** If you touch production, costs, prestige, spells, or offline

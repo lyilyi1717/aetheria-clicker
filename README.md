@@ -9,7 +9,7 @@
 You can launch and play the game immediately using either of the following methods:
 
 ### Method 1: Instant Browser Launch
-- Open [`index.html`](file:///C:/Users/BigB/dev/clicker/index.html) directly in any modern web browser (Google Chrome, Edge, Firefox, Brave, Safari).
+- Open [`index.html`](index.html) directly in any modern web browser (Google Chrome, Edge, Firefox, Brave, Safari).
 
 ### Method 2: Local HTTP Server
 Run either command in your terminal:

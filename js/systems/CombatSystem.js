@@ -162,8 +162,9 @@ export class CombatSystem {
 
   getAetherForgeCost() {
     const level = this.gameState.hero.aetherForgeLevel || 0;
-    // Base cost 100k, scales x5 per level
-    return new BigNum(100000).mul(Math.pow(5, level));
+    // Base cost 100k, scales x5 per level. BigNum pow: Math.pow(5, 441+) is Infinity, which
+    // new BigNum() turns into 0, i.e. free Forge levels forever.
+    return new BigNum(5).pow(level).mul(100000);
   }
 
   upgradeAetherForge() {

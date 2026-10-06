@@ -22,6 +22,7 @@ export class ParticleEngine {
     if (!this.canvas) return;
     this.width = this.canvas.width = window.innerWidth;
     this.height = this.canvas.height = window.innerHeight;
+    this.dirty = true; // resizing resets the bitmap; clear on the next frame regardless
   }
 
   spawnClickSparks(x, y, count = 12, color = '#38bdf8') {
@@ -63,7 +64,12 @@ export class ParticleEngine {
     this.lastTime = currentTime;
 
     if (this.ctx && this.canvas) {
-      this.ctx.clearRect(0, 0, this.width, this.height);
+      // Idle most of the time: skip the full-screen clear once the canvas is already blank
+      const hasWork = this.particles.length > 0 || this.texts.length > 0;
+      if (hasWork || this.dirty) {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+      }
+      this.dirty = hasWork;
 
       // Render & update particles
       for (let i = this.particles.length - 1; i >= 0; i--) {

@@ -1,7 +1,7 @@
 import { BigNum } from './engine/BigNum.js';
 import { sound } from './engine/AudioEngine.js';
 import { particles } from './engine/ParticleEngine.js';
-import { SaveManager } from './engine/SaveManager.js';
+import { SaveManager, OFFLINE_AETHER_CAP } from './engine/SaveManager.js';
 import { GameLoop } from './engine/GameLoop.js';
 
 import { GameState } from './systems/GameState.js';
@@ -13,7 +13,7 @@ import { GardenSystem, SEED_TYPES, ESSENCE_NAMES, WATER_BOOST, MAX_GOLEMS } from
 import { AlchemySystem, RECIPES } from './systems/AlchemySystem.js';
 import { SpellSystem, SPELLS } from './systems/SpellSystem.js';
 import { TalentTreeSystem, TALENT_DEFINITIONS } from './systems/TalentTreeSystem.js';
-import { BountySystem } from './systems/BountySystem.js';
+import { BountySystem, QUARTERMASTER_UPGRADES } from './systems/BountySystem.js';
 import { MarketSystem, COMMODITIES } from './systems/MarketSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
@@ -26,6 +26,11 @@ import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 
 // Plain-number display in the player's notation (Settings tab); see BigNum.formatNumber
 const fmtNum = (n, precision = 2) => BigNum.formatNumber(n, precision);
+
+// Per-frame DOM writes: assigning an unchanged textContent/width still replaces the text node
+// and invalidates layout, so the render tick only writes when the value differs.
+const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
+const setWidth = (el, width) => { if (el && el.style.width !== width) el.style.width = width; };
 
 const INGREDIENT_NAMES = {
   ...ESSENCE_NAMES,
@@ -91,6 +96,20 @@ class AetheriaApp {
     this.tabNeedsFullRender = {};
     this.version = VERSION;
     this.leaderboard = new Leaderboard(this);
+    this.elCache = new Map();
+  }
+
+  // Cached document.getElementById for nodes that are normally created once
+  // (static markup and the build*Structure() lists). The render tick used to do hundreds
+  // of lookups per frame. Lists that are rebuilt (bounties, mining tiles) keep their own refs.
+  $(id) {
+    let el = this.elCache.get(id);
+    // Re-resolve if a structure was rebuilt after caching, so the UI never writes to a detached node.
+    if (el === undefined || !el.isConnected) {
+      el = document.getElementById(id);
+      if (el) this.elCache.set(id, el);
+    }
+    return el;
   }
 
   init() {
@@ -120,7 +139,8 @@ class AetheriaApp {
   // Red dot on nav tabs that have something ready to claim
   updateTabNotifications() {
     const bountyReady = this.gameState.bounties.some(b => b.completed && !b.claimed);
-    const bountyTab = document.querySelector('.nav-tab[data-tab="bounties"]');
+    if (this.bountyTabBtn === undefined) this.bountyTabBtn = document.querySelector('.nav-tab[data-tab="bounties"]');
+    const bountyTab = this.bountyTabBtn;
     if (bountyTab && bountyTab.classList.contains('has-notif') !== bountyReady) {
       bountyTab.classList.toggle('has-notif', bountyReady);
       bountyTab.title = bountyReady
@@ -169,6 +189,7 @@ class AetheriaApp {
       this.gameState.settings.notation = e.target.value;
       BigNum.notation = e.target.value;
       for (const t in this.tabNeedsFullRender) this.tabNeedsFullRender[t] = true;
+      this.bonusStripTimer = Infinity; // refresh the Active Bonuses strip on the next frame
       this.saveManager.save();
     });
     const rhythmCont = document.getElementById('settings-rhythm');
@@ -520,7 +541,8 @@ class AetheriaApp {
     const modal = document.getElementById('offline-modal');
     if (!modal) return;
     const hours = (res.elapsedSeconds / 3600).toFixed(1);
-    document.getElementById('offline-time-text').textContent = `${hours} hours`;
+    document.getElementById('offline-time-text').textContent = `${hours} hours`
+      + (res.capped ? ` (Aether capped at ${OFFLINE_AETHER_CAP / 3600} h)` : '');
     document.getElementById('offline-aether-text').textContent = res.gainedAether.format('standard', 2);
     document.getElementById('offline-chrono-text').textContent = `+${fmtNum(res.chronoEarned)} Chrono Sand`
       + (res.gardenHarvests ? ` · Garden Golems: +${fmtNum(res.gardenHarvests)} harvests` : '');
@@ -535,6 +557,7 @@ class AetheriaApp {
   // Build the initial DOM cards once (never destroyed every frame!)
   // One "Active Bonuses" strip per subgame tab, placed after its guide banner
   buildTabBonusStrips() {
+    this.quickCastBtns = {};
     for (const section of document.querySelectorAll('section.tab-view')) {
       const tab = section.id.replace('tab-', '');
       if (['settings', 'about', 'talents', 'leaderboard'].includes(tab)) continue;
@@ -557,6 +580,10 @@ class AetheriaApp {
           </button>`;
         }).join('');
         strip.after(bar);
+        // Button refs for the per-frame update (no querySelectorAll per frame)
+        this.quickCastBtns[tab] = Array.from(bar.querySelectorAll('.quick-cast-btn')).map(btn => ({
+          btn, stateEl: btn.querySelector('.qc-state'), spell: SPELLS.find(sp => sp.id === btn.dataset.spell)
+        }));
       }
     }
     document.getElementById('content-area')?.addEventListener('click', (e) => {
@@ -568,19 +595,17 @@ class AetheriaApp {
   }
 
   updateQuickCastBar() {
-    const bar = document.getElementById(`quick-cast-${this.currentTab}`);
-    if (!bar) return;
-    for (const btn of bar.querySelectorAll('.quick-cast-btn')) {
-      const id = btn.dataset.spell;
-      const s = SPELLS.find(sp => sp.id === id);
+    const buttons = this.quickCastBtns?.[this.currentTab];
+    if (!buttons) return;
+    for (const { btn, stateEl, spell: s } of buttons) {
+      const id = s.id;
       const cd = this.gameState.spells[id]?.cd || 0;
       const buff = this.gameState.activeBuffs.find(b => b.id === id);
       let state;
       if (buff) state = `active ${Math.ceil(buff.duration)}s`;
       else if (cd > 0) state = `${Math.ceil(cd)}s`;
       else state = `${s.manaCost} mana`;
-      const stateEl = btn.querySelector('.qc-state');
-      if (stateEl.textContent !== state) stateEl.textContent = state;
+      setText(stateEl, state);
       const castable = this.spellSystem.canCast(id);
       btn.classList.toggle('ready', castable);
       btn.classList.toggle('disabled', !castable);
@@ -589,17 +614,27 @@ class AetheriaApp {
   }
 
   updateTabBonusStrip(dt) {
+    // Refresh at most every 0.25 s, plus immediately after a tab switch. (This used to key on
+    // tabNeedsFullRender, which only the bounties/codex renders ever clear, so after the first
+    // tab switch the strip was being recomputed and its innerHTML re-serialized every frame.)
     this.bonusStripTimer = (this.bonusStripTimer || 0) + dt;
-    if (this.bonusStripTimer < 0.25 && !this.tabNeedsFullRender[this.currentTab]) return;
+    if (this.bonusStripTimer < 0.25 && this.bonusStripTab === this.currentTab) return;
     this.bonusStripTimer = 0;
-    const strip = document.getElementById(`tab-bonus-${this.currentTab}`);
+    this.bonusStripTab = this.currentTab;
+    const strip = this.$(`tab-bonus-${this.currentTab}`);
     if (!strip) return;
     const items = getTabBonuses(this.gameState, this.currentTab, TALENT_DEFINITIONS, ASCENSION_PERKS);
     const html = items.length === 0 ? '' :
       `<span class="tab-bonus-title">Active Bonuses</span>` +
       items.map(i => `<span class="tab-bonus-chip ${i.kind}">${i.icon} <strong>${i.name}</strong> ${i.detail}</span>`).join('');
-    if (strip.innerHTML !== html) strip.innerHTML = html;
-    strip.style.display = items.length ? '' : 'none';
+    // Compare against what we last wrote rather than reading innerHTML back (a DOM serialization)
+    if (!this.bonusStripHtml) this.bonusStripHtml = {};
+    if (this.bonusStripHtml[this.currentTab] !== html) {
+      this.bonusStripHtml[this.currentTab] = html;
+      strip.innerHTML = html;
+    }
+    const display = items.length ? '' : 'none';
+    if (strip.style.display !== display) strip.style.display = display;
   }
 
   buildStaticUI() {
@@ -671,25 +706,18 @@ class AetheriaApp {
       const canAfford = this.gameState.aether.gte(cost) && buyCount > 0;
       const currentCps = this.buildingSystem.getBuildingProduction(def.id);
 
-      const countEl = document.getElementById(`b-count-${def.id}`);
-      if (countEl) countEl.textContent = fmtNum(state.count);
+      setText(this.$(`b-count-${def.id}`), fmtNum(state.count));
+      setText(this.$(`b-stats-${def.id}`), `Yield: +${currentCps.format('standard', 1)}/s`);
+      setText(this.$(`buy-lbl-${def.id}`), `Buy +${fmtNum(buyCount)}`);
+      setText(this.$(`cost-lbl-${def.id}`), `💎 ${cost.format('standard', 1)}`);
 
-      const statsEl = document.getElementById(`b-stats-${def.id}`);
-      if (statsEl) statsEl.textContent = `Yield: +${currentCps.format('standard', 1)}/s`;
-
-      const buyLbl = document.getElementById(`buy-lbl-${def.id}`);
-      if (buyLbl) buyLbl.textContent = `Buy +${fmtNum(buyCount)}`;
-
-      const costLbl = document.getElementById(`cost-lbl-${def.id}`);
-      if (costLbl) costLbl.textContent = `💎 ${cost.format('standard', 1)}`;
-
-      const card = document.getElementById(`b-card-${def.id}`);
+      const card = this.$(`b-card-${def.id}`);
       if (card) {
         card.classList.toggle('affordable', canAfford);
         card.classList.toggle('unaffordable', !canAfford);
       }
 
-      const btn = document.getElementById(`btn-buy-${def.id}`);
+      const btn = this.$(`btn-buy-${def.id}`);
       if (btn) {
         btn.classList.toggle('active', canAfford);
         btn.classList.toggle('disabled', !canAfford);
@@ -715,30 +743,25 @@ class AetheriaApp {
     const m = this.combatSystem.monster;
     if (!h || !m) return;
 
-    const floorEl = document.getElementById('combat-floor-title');
+    const floorEl = this.$('combat-floor-title');
     if (floorEl) {
       const zone = this.combatSystem.getZone(h.floor);
-      floorEl.innerHTML = `<span style="color: ${zone.color}">${zone.icon} Floor ${h.floor}: ${zone.name}</span>`;
+      const title = `<span style="color: ${zone.color}">${zone.icon} Floor ${h.floor}: ${zone.name}</span>`;
+      if (this.lastCombatTitle !== title) {
+        this.lastCombatTitle = title;
+        floorEl.innerHTML = title;
+      }
     }
 
-    const heroHpEl = document.getElementById('hero-hp-text');
-    const heroHpBar = document.getElementById('hero-hp-fill');
     const maxHp = this.combatSystem.getTotalMaxHp();
-    if (heroHpEl) heroHpEl.textContent = `${this.combatSystem.fmt(Math.floor(h.hp))} / ${this.combatSystem.fmt(maxHp)} HP ${h.shield > 0 ? `(+${this.combatSystem.fmt(h.shield)} Shield)` : ''}`;
-    if (heroHpBar) heroHpBar.style.width = `${Math.min(100, (h.hp / maxHp) * 100)}%`;
+    setText(this.$('hero-hp-text'), `${this.combatSystem.fmt(Math.floor(h.hp))} / ${this.combatSystem.fmt(maxHp)} HP ${h.shield > 0 ? `(+${this.combatSystem.fmt(h.shield)} Shield)` : ''}`);
+    setWidth(this.$('hero-hp-fill'), `${Math.min(100, (h.hp / maxHp) * 100)}%`);
+    setText(this.$('hero-atk-text'), `Attack: ${this.combatSystem.fmt(this.combatSystem.getTotalAttack())} (Spd: ${h.attackSpeed}s)`);
+    setText(this.$('hero-lvl-text'), `Level ${h.level} (${this.combatSystem.fmt(h.xp)} / ${this.combatSystem.fmt(h.xpNeeded)} XP)`);
 
-    const heroAtkEl = document.getElementById('hero-atk-text');
-    if (heroAtkEl) heroAtkEl.textContent = `Attack: ${this.combatSystem.fmt(this.combatSystem.getTotalAttack())} (Spd: ${h.attackSpeed}s)`;
+    const bossTimerEl = this.$('boss-timer');
 
-    const heroLvlEl = document.getElementById('hero-lvl-text');
-    if (heroLvlEl) heroLvlEl.textContent = `Level ${h.level} (${this.combatSystem.fmt(h.xp)} / ${this.combatSystem.fmt(h.xpNeeded)} XP)`;
-
-    const monsterNameEl = document.getElementById('monster-name');
-    const monsterHpEl = document.getElementById('monster-hp-text');
-    const monsterHpBar = document.getElementById('monster-hp-fill');
-    const bossTimerEl = document.getElementById('boss-timer');
-
-    if (monsterNameEl && monsterNameEl.textContent !== m.name) monsterNameEl.textContent = m.name;
+    setText(this.$('monster-name'), m.name);
 
     // Portrait frame is static markup; MonsterPortrait only swaps its <img> src / fallback
     // icon when the monster changes (art lookup + naming contract: js/bossArt.js)
@@ -751,35 +774,30 @@ class AetheriaApp {
     }
     if (this.monsterPortrait) this.monsterPortrait.update(h.floor, m);
 
-    if (monsterHpEl) monsterHpEl.textContent = `${this.combatSystem.fmt(Math.max(0, m.hp))} / ${this.combatSystem.fmt(m.maxHp)} HP`;
-    if (monsterHpBar) monsterHpBar.style.width = `${Math.max(0, (m.hp / m.maxHp) * 100)}%`;
+    setText(this.$('monster-hp-text'), `${this.combatSystem.fmt(Math.max(0, m.hp))} / ${this.combatSystem.fmt(m.maxHp)} HP`);
+    setWidth(this.$('monster-hp-fill'), `${Math.max(0, (m.hp / m.maxHp) * 100)}%`);
 
     if (bossTimerEl) {
       // visibility (not display) so the portrait doesn't jump when a boss arrives
-      if (m.isBoss) {
-        bossTimerEl.style.visibility = 'visible';
-        bossTimerEl.textContent = `⏱️ Enrage: ${m.timer.toFixed(1)}s`;
-      } else {
-        bossTimerEl.style.visibility = 'hidden';
-      }
+      const vis = m.isBoss ? 'visible' : 'hidden';
+      if (bossTimerEl.style.visibility !== vis) bossTimerEl.style.visibility = vis;
+      if (m.isBoss) setText(bossTimerEl, `⏱️ Enrage: ${m.timer.toFixed(1)}s`);
     }
 
     // Update skill cooldowns
-    for (const [key, s] of Object.entries(h.skills)) {
-      const btn = document.getElementById(`btn-cskill-${key}`);
-      const cdEl = document.getElementById(`sk-cd-${key}`);
+    for (const key in h.skills) {
+      const s = h.skills[key];
+      const btn = this.$(`btn-cskill-${key}`);
       const onCd = s.cd > 0;
       if (btn) {
         btn.classList.toggle('cooldown', onCd);
         btn.classList.toggle('ready', !onCd);
       }
-      if (cdEl) {
-        cdEl.textContent = onCd ? `${s.cd.toFixed(1)}s` : 'READY';
-      }
+      setText(this.$(`sk-cd-${key}`), onCd ? `${s.cd.toFixed(1)}s` : 'READY');
     }
 
     // Gear
-    const gearCont = document.getElementById('hero-gear-container');
+    const gearCont = this.$('hero-gear-container');
     // Notation is part of the key so a Settings change re-renders the formatted stats
     const gearSig = BigNum.notation + JSON.stringify(h.gear);
     if (gearCont && this.lastGearSig !== gearSig) {
@@ -806,20 +824,19 @@ class AetheriaApp {
     }
 
     // Aether Forge
-    const forgeLevelEl = document.getElementById('forge-level');
-    const forgeCostEl = document.getElementById('forge-cost');
-    const btnForge = document.getElementById('btn-forge-awaken');
+    const forgeLevelEl = this.$('forge-level');
+    const forgeCostEl = this.$('forge-cost');
+    const btnForge = this.$('btn-forge-awaken');
     if (forgeLevelEl) {
       const fLevel = h.aetherForgeLevel || 0;
       const fCost = this.combatSystem.getAetherForgeCost();
-      forgeLevelEl.textContent = fLevel;
-      forgeCostEl.textContent = fCost.format('standard', 1);
-      if (this.gameState.aether.gte(fCost)) {
-        btnForge.disabled = false;
-        btnForge.style.opacity = 1.0;
-      } else {
-        btnForge.disabled = true;
-        btnForge.style.opacity = 0.5;
+      setText(forgeLevelEl, String(fLevel));
+      setText(forgeCostEl, fCost.format('standard', 1));
+      const affordable = this.gameState.aether.gte(fCost);
+      if (this.forgeAffordable !== affordable) {
+        this.forgeAffordable = affordable;
+        btnForge.disabled = !affordable;
+        btnForge.style.opacity = affordable ? 1.0 : 0.5;
       }
     }
   }
@@ -834,12 +851,9 @@ class AetheriaApp {
     if (!grid) return;
 
     const fmt = (n, precision = 0) => fmtNum(n, precision);
-    const setText = (id, text) => {
-      const el = document.getElementById(id);
-      if (el && el.textContent !== text) el.textContent = text;
-    };
+    const setTextById = (id, text) => setText(this.$(id), text);
 
-    const depthEl = document.getElementById('mining-depth-title');
+    const depthEl = this.$('mining-depth-title');
     const strata = this.miningSystem.getCurrentStrata();
     if (depthEl) {
       const record = grid.maxDepth > grid.depth ? ` · Record ${grid.maxDepth}` : '';
@@ -850,15 +864,15 @@ class AetheriaApp {
       }
     }
 
-    const pickaxeEl = document.getElementById('mining-pickaxe-info');
+    const pickaxeEl = this.$('mining-pickaxe-info');
     if (pickaxeEl) {
       // Build the shop once and update it in place: this runs every render frame, and
       // replacing the buttons' DOM between mousedown and mouseup swallows clicks.
       // Clicks are handled by delegation in setupEventListeners.
-      if (!document.getElementById('btn-buy-drill')) {
+      if (!this.$('btn-buy-drill')) {
         pickaxeEl.innerHTML = `
           <div style="display:flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-            <img src="cosmic_shovel.jpg" alt="Mining Tool" style="width: 64px; height: 64px; border-radius: 8px; border: 2px solid var(--accent-purple); box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);">
+            <img loading="lazy" decoding="async" src="cosmic_shovel.webp" alt="Mining Tool" style="width: 64px; height: 64px; border-radius: 8px; border: 2px solid var(--accent-purple); box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);">
             <div>
               <div>Pickaxe: <strong id="mining-pick-name"></strong> (Lv <span id="mining-pick-level"></span>, Power: <span id="mining-pick-power"></span>)</div>
               <div>Auto-Drills: <strong id="mining-drill-count"></strong> (<span id="mining-drill-rate"></span> hits/sec)</div>
@@ -876,25 +890,25 @@ class AetheriaApp {
       const stone = this.gameState.inventory.stone || 0;
       const level = grid.pickaxeTier || 0;
 
-      setText('mining-pick-name', getPickaxeName(level));
-      setText('mining-pick-level', String(level));
-      setText('mining-pick-power', fmt(this.miningSystem.getPickaxePower(), 1));
-      setText('mining-drill-count', fmtNum(grid.autoDrills));
-      setText('mining-drill-rate', this.miningSystem.getAutoDrillRate().toFixed(1));
-      setText('mining-tile-hp', fmt(strata.maxHp, 1));
-      setText('mining-stone-yield', fmt(this.miningSystem.getStoneYield(), 1));
+      setTextById('mining-pick-name', getPickaxeName(level));
+      setTextById('mining-pick-level', String(level));
+      setTextById('mining-pick-power', fmt(this.miningSystem.getPickaxePower(), 1));
+      setTextById('mining-drill-count', fmtNum(grid.autoDrills));
+      setTextById('mining-drill-rate', this.miningSystem.getAutoDrillRate().toFixed(1));
+      setTextById('mining-tile-hp', fmt(strata.maxHp, 1));
+      setTextById('mining-stone-yield', fmt(this.miningSystem.getStoneYield(), 1));
 
       const pickCost = this.miningSystem.getPickaxeCost();
-      setText('btn-upgrade-pick', `Upgrade to ${getPickaxeName(level + 1)} (${fmt(pickCost, 2)} Stone)`);
-      document.getElementById('btn-upgrade-pick').classList.toggle('disabled', stone < pickCost);
+      setTextById('btn-upgrade-pick', `Upgrade to ${getPickaxeName(level + 1)} (${fmt(pickCost, 2)} Stone)`);
+      this.$('btn-upgrade-pick').classList.toggle('disabled', stone < pickCost);
 
       const drillCost = this.miningSystem.getAutoDrillCost();
-      setText('btn-buy-drill', `Buy Auto-Drill (${fmt(drillCost, 2)} Stone)`);
-      document.getElementById('btn-buy-drill').classList.toggle('disabled', stone < drillCost);
+      setTextById('btn-buy-drill', `Buy Auto-Drill (${fmt(drillCost, 2)} Stone)`);
+      this.$('btn-buy-drill').classList.toggle('disabled', stone < drillCost);
 
       const cd = this.miningSystem.dynamiteCooldown;
-      setText('btn-mining-dynamite', `🧨 Blast 3x3 (${cd > 0 ? `${Math.ceil(cd)}s` : 'Ready'})`);
-      document.getElementById('btn-mining-dynamite').classList.toggle('disabled', cd > 0);
+      setTextById('btn-mining-dynamite', `🧨 Blast 3x3 (${cd > 0 ? `${Math.ceil(cd)}s` : 'Ready'})`);
+      this.$('btn-mining-dynamite').classList.toggle('disabled', cd > 0);
     }
 
     const tileContent = (b) => {
@@ -909,7 +923,7 @@ class AetheriaApp {
       return `<span class="m-icon">${icon}</span><span class="m-lbl">${label}</span>`;
     };
 
-    const container = document.getElementById('mining-grid-board');
+    const container = this.$('mining-grid-board');
     if (container) {
       // Key the rebuild on the blocks array itself: a new grid is generated 400ms after
       // the depth changes, so keying on depth left stale revealed tiles over the new grid.
@@ -923,39 +937,51 @@ class AetheriaApp {
             <span class="tile-hp-text" id="tile-text-${b.id}">${fmt(b.hp, 1)}</span>
           </div>
         `).join('');
+        // Tile refs for the per-frame update; rebuilt with the grid (these ids are not stable)
+        this.miningTileEls = new Map(grid.blocks.map(b => [b.id, {
+          tile: document.getElementById(`mine-tile-${b.id}`),
+          bar: document.getElementById(`tile-bar-${b.id}`),
+          txt: document.getElementById(`tile-text-${b.id}`)
+        }]));
       } else {
         // Fast update without wiping DOM
         for (const b of grid.blocks) {
-          const tile = document.getElementById(`mine-tile-${b.id}`);
+          const refs = this.miningTileEls.get(b.id);
+          const tile = refs?.tile;
           if (!tile) continue;
           if (b.revealed && !tile.classList.contains('revealed')) {
             tile.classList.remove('unrevealed');
             tile.classList.add('revealed');
             tile.innerHTML = tileContent(b);
           } else if (!b.revealed) {
-            const bar = document.getElementById(`tile-bar-${b.id}`);
-            const txt = document.getElementById(`tile-text-${b.id}`);
-            if (bar) bar.style.width = `${(b.hp / b.maxHp) * 100}%`;
-            if (txt) {
-              const hpText = fmt(b.hp, 1); // max HP is in the stats line; "a/b" overflowed small tiles
-              if (txt.textContent !== hpText) txt.textContent = hpText;
-            }
+            setWidth(refs.bar, `${(b.hp / b.maxHp) * 100}%`);
+            setText(refs.txt, fmt(b.hp, 1)); // max HP is in the stats line; "a/b" overflowed small tiles
           }
         }
       }
     }
 
-    const invEl = document.getElementById('minerals-inventory');
+    const invEl = this.$('minerals-inventory');
     if (invEl) {
+      // Badges are built once; only the counts are written (and only when they change)
+      if (!invEl.dataset.built) {
+        invEl.dataset.built = '1';
+        invEl.innerHTML = `
+          <span class="res-badge">Stone: <span id="min-inv-stone"></span></span>
+          <span class="res-badge" style="color:#ef4444">Fawanees: <span id="min-inv-rubies"></span></span>
+          <span class="res-badge" style="color:#3b82f6">Dallahs: <span id="min-inv-sapphires"></span></span>
+          <span class="res-badge" style="color:#10b981">Oud Wood: <span id="min-inv-emeralds"></span></span>
+          <span class="res-badge" style="color:#38bdf8">Misbaha: <span id="min-inv-diamonds"></span></span>
+          <span class="res-badge" style="color:#a855f7">Mabkhara: <span id="min-inv-voidAmethyst"></span></span>
+        `;
+      }
       const inv = this.gameState.inventory;
-      invEl.innerHTML = `
-        <span class="res-badge">Stone: ${fmt(inv.stone || 0, 2)}</span>
-        <span class="res-badge" style="color:#ef4444">Fawanees: ${fmtNum(inv.rubies || 0)}</span>
-        <span class="res-badge" style="color:#3b82f6">Dallahs: ${fmtNum(inv.sapphires || 0)}</span>
-        <span class="res-badge" style="color:#10b981">Oud Wood: ${fmtNum(inv.emeralds || 0)}</span>
-        <span class="res-badge" style="color:#38bdf8">Misbaha: ${fmtNum(inv.diamonds || 0)}</span>
-        <span class="res-badge" style="color:#a855f7">Mabkhara: ${fmtNum(inv.voidAmethyst || 0)}</span>
-      `;
+      setTextById('min-inv-stone', fmt(inv.stone || 0, 2));
+      setTextById('min-inv-rubies', fmtNum(inv.rubies || 0));
+      setTextById('min-inv-sapphires', fmtNum(inv.sapphires || 0));
+      setTextById('min-inv-emeralds', fmtNum(inv.emeralds || 0));
+      setTextById('min-inv-diamonds', fmtNum(inv.diamonds || 0));
+      setTextById('min-inv-voidAmethyst', fmtNum(inv.voidAmethyst || 0));
     }
   }
 
@@ -1062,18 +1088,18 @@ class AetheriaApp {
   }
 
   updateGardenUI() {
-    const waterBtn = document.getElementById('btn-water-garden');
+    const waterBtn = this.$('btn-water-garden');
     if (waterBtn) {
       const cd = this.gardenSystem.waterCooldown;
       const label = cd > 0 ? `💧 Water All (${Math.ceil(cd)}s)` : `💧 Water All (+${WATER_BOOST}s)`;
-      if (waterBtn.textContent !== label) waterBtn.textContent = label;
+      setText(waterBtn, label);
       waterBtn.classList.toggle('disabled', cd > 0);
     }
 
     const garden = this.gameState.garden;
     if (!garden) return;
 
-    const fertBtn = document.getElementById('btn-fertilize-garden');
+    const fertBtn = this.$('btn-fertilize-garden');
     if (fertBtn) {
       const canFert = (garden.essences.sporePowder || 0) >= 1 &&
         garden.plots.some(p => p.seed && !p.fertilized && p.progress < p.maxTime);
@@ -1082,55 +1108,49 @@ class AetheriaApp {
 
     // Golem panel
     const golems = garden.golems || 0;
-    const countEl = document.getElementById('golem-count');
-    if (countEl) {
-      const t = `${golems} / ${MAX_GOLEMS}`;
-      if (countEl.textContent !== t) countEl.textContent = t;
-    }
-    const buyGolemBtn = document.getElementById('btn-buy-golem');
+    setText(this.$('golem-count'), `${golems} / ${MAX_GOLEMS}`);
+    const buyGolemBtn = this.$('btn-buy-golem');
     if (buyGolemBtn) {
       const cost = this.gardenSystem.getNextGolemCost();
       const t = cost
         ? `🗿 Buy Golem (Row ${golems + 1}): ${new BigNum(cost.stone).format('standard', 0)} Stone + ${new BigNum(cost.manaSap).format('standard', 0)} Mana Sap`
         : '🗿 All rows automated';
-      if (buyGolemBtn.textContent !== t) buyGolemBtn.textContent = t;
+      setText(buyGolemBtn, t);
       buyGolemBtn.classList.toggle('disabled', !this.gardenSystem.canBuyGolem());
     }
     for (let r = 0; r < MAX_GOLEMS; r++) {
-      const rowEl = document.getElementById(`golem-row-${r}`);
+      const rowEl = this.$(`golem-row-${r}`);
       if (!rowEl) continue;
       const status = this.gardenSystem.getRowStatus(r);
       const cls = `golem-row ${status}`;
       if (rowEl.className !== cls) rowEl.className = cls;
-      const stEl = document.getElementById(`golem-row-status-${r}`);
       const st = status === 'locked' ? '🔒 Manual' : status === 'noseeds' ? '⚠️ No seeds' : '🗿 Automated';
-      if (stEl && stEl.textContent !== st) stEl.textContent = st;
-      const sel = document.getElementById(`golem-row-seed-${r}`);
+      setText(this.$(`golem-row-status-${r}`), st);
+      const sel = this.$(`golem-row-seed-${r}`);
       if (sel && document.activeElement !== sel) {
         const v = garden.rowSeed[r] || '';
         if (sel.value !== v) sel.value = v;
       }
     }
 
-    for (const [id, def] of Object.entries(SEED_TYPES)) {
-      const nmEl = document.getElementById(`seed-nm-${id}`);
-      if (nmEl) nmEl.textContent = `${def.name} (${fmtNum(garden.inventory[id] || 0)})`;
+    for (const id in SEED_TYPES) {
+      setText(this.$(`seed-nm-${id}`), `${SEED_TYPES[id].name} (${fmtNum(garden.inventory[id] || 0)})`);
     }
 
     for (const p of garden.plots) {
-      const plotEl = document.getElementById(`garden-plot-${p.id}`);
-      const icoEl = document.getElementById(`plot-ico-${p.id}`);
-      const statEl = document.getElementById(`plot-stat-${p.id}`);
-      const fillEl = document.getElementById(`plot-fill-${p.id}`);
+      const plotEl = this.$(`garden-plot-${p.id}`);
       if (!plotEl) continue;
+      const icoEl = this.$(`plot-ico-${p.id}`);
+      const statEl = this.$(`plot-stat-${p.id}`);
+      const fillEl = this.$(`plot-fill-${p.id}`);
       const golemCls = this.gardenSystem.isRowAutomated(this.gardenSystem.getRowOfPlot(p.id)) ? ' golem-tended' : '';
 
       if (!p.seed) {
         const cls = `garden-plot empty${golemCls}`;
         if (plotEl.className !== cls) plotEl.className = cls;
-        if (icoEl && icoEl.textContent !== '') icoEl.textContent = '';
-        if (statEl && statEl.textContent !== 'Empty') statEl.textContent = 'Empty';
-        if (fillEl) fillEl.style.width = '0%';
+        setText(icoEl, '');
+        setText(statEl, 'Empty');
+        setWidth(fillEl, '0%');
       } else {
         const def = SEED_TYPES[p.seed];
         const isMature = p.stage === 'mature' || p.progress >= p.maxTime;
@@ -1138,14 +1158,14 @@ class AetheriaApp {
 
         const cls = `garden-plot planted${isMature ? ' mature' : ''}${p.fertilized ? ' fertilized' : ''}${golemCls}`;
         if (plotEl.className !== cls) plotEl.className = cls;
-        if (icoEl && icoEl.textContent !== def.icon) icoEl.textContent = def.icon;
+        setText(icoEl, def.icon);
         const st = isMature ? '✨ READY TO HARVEST!' : `${def.name} (${this.formatGrowTime(p.maxTime - p.progress)})${p.fertilized ? ' 🧪' : ''}`;
-        if (statEl && statEl.textContent !== st) statEl.textContent = st;
-        if (fillEl) fillEl.style.width = `${progressPct}%`;
+        setText(statEl, st);
+        setWidth(fillEl, `${progressPct}%`);
       }
     }
 
-    const essEl = document.getElementById('garden-essences-list');
+    const essEl = this.$('garden-essences-list');
     if (essEl) {
       const ess = garden.essences;
       if (!essEl.dataset.built) {
@@ -1153,10 +1173,8 @@ class AetheriaApp {
         essEl.innerHTML = Object.entries(ESSENCE_NAMES).map(([k, name]) =>
           `<span class="res-badge">${name}: <span id="ess-count-${k}">0</span></span>`).join(' ');
       }
-      for (const k of Object.keys(ESSENCE_NAMES)) {
-        const el = document.getElementById(`ess-count-${k}`);
-        const v = fmtNum(ess[k] || 0);
-        if (el && el.textContent !== v) el.textContent = v;
+      for (const k in ESSENCE_NAMES) {
+        setText(this.$(`ess-count-${k}`), fmtNum(ess[k] || 0));
       }
     }
   }
@@ -1216,45 +1234,41 @@ class AetheriaApp {
     const inv = this.gameState.inventory;
     const ess = this.gameState.garden?.essences || {};
     for (const r of RECIPES) {
-      for (const [k, amount] of Object.entries(this.alchemySystem.getRecipeCost(r))) {
-        const el = document.getElementById(`alc-own-${r.id}-${k}`);
-        const v = `have ${fmtNum(inv[k] ?? ess[k] ?? 0)}`;
-        if (el && el.textContent !== v) el.textContent = v;
-        const costEl = document.getElementById(`alc-cost-${r.id}-${k}`);
-        const c = fmtNum(amount);
-        if (costEl && costEl.textContent !== c) costEl.textContent = c;
+      const cost = this.alchemySystem.getRecipeCost(r);
+      for (const k in cost) {
+        setText(this.$(`alc-own-${r.id}-${k}`), `have ${fmtNum(inv[k] ?? ess[k] ?? 0)}`);
+        setText(this.$(`alc-cost-${r.id}-${k}`), fmtNum(cost[k]));
       }
     }
-    const catEl = document.getElementById('alc-catalyst-status');
+    const catEl = this.$('alc-catalyst-status');
     if (catEl) {
       const n = this.alchemySystem.getCatalystCount();
-      const t = `Brewed: ${fmtNum(n)} (Aether x${this.gameState.getCatalystMult().toFixed(2)})`;
-      if (catEl.textContent !== t) catEl.textContent = t;
+      setText(catEl, `Brewed: ${fmtNum(n)} (Aether x${this.gameState.getCatalystMult().toFixed(2)})`);
     }
-    const chronoLbl = document.getElementById('chrono-transmute-lbl');
+    const chronoLbl = this.$('chrono-transmute-lbl');
     if (chronoLbl) {
       const cap = this.gameState.getChronoSandCap();
-      const t = `⏳ Gold ➔ Chrono Sand (${this.alchemySystem.getChronoBatchCost().format('standard', 2)} Gold = 30s, bank ${fmtNum(Math.floor(this.gameState.chronoSand || 0))}/${fmtNum(cap)}s):`;
-      if (chronoLbl.textContent !== t) chronoLbl.textContent = t;
+      setText(chronoLbl, `⏳ Gold ➔ Chrono Sand (${this.alchemySystem.getChronoBatchCost().format('standard', 2)} Gold = 30s, bank ${fmtNum(Math.floor(this.gameState.chronoSand || 0))}/${fmtNum(cap)}s):`);
     }
-    const tStone = document.getElementById('btn-transmute-stone');
+    const tStone = this.$('btn-transmute-stone');
     if (tStone) tStone.classList.toggle('disabled', (inv.stone || 0) < 50);
     const maxBatches = this.alchemySystem.getMaxChronoBatches();
-    document.querySelectorAll('#chrono-transmute-group button[data-batches]').forEach(btn => {
+    if (!this.chronoBatchBtns) this.chronoBatchBtns = Array.from(document.querySelectorAll('#chrono-transmute-group button[data-batches]'));
+    for (const btn of this.chronoBatchBtns) {
       const b = btn.dataset.batches;
       btn.classList.toggle('disabled', b === 'max' ? maxBatches < 1 : maxBatches < parseInt(b, 10));
-    });
-    const maxBtn = document.getElementById('btn-transmute-chrono-max');
+    }
+    const maxBtn = this.$('btn-transmute-chrono-max');
     if (maxBtn) {
       const room = Math.max(0, this.gameState.getChronoSandCap() - (this.gameState.chronoSand || 0));
       const fill = Math.min(room, Math.floor(maxBatches * 30 * this.gameState.getChronoSandGainMult()));
       const label = maxBatches >= 1 ? `Max (+${new BigNum(fill).format('standard', 2)}s)` : (room <= 0 ? 'Max (bank full)' : 'Max');
-      if (maxBtn.textContent !== label) maxBtn.textContent = label;
+      setText(maxBtn, label);
     }
     for (const r of RECIPES) {
       const can = this.alchemySystem.canBrew(r.id);
-      const card = document.getElementById(`alc-card-${r.id}`);
-      const btn = document.getElementById(`btn-brew-${r.id}`);
+      const card = this.$(`alc-card-${r.id}`);
+      const btn = this.$(`btn-brew-${r.id}`);
       if (card) {
         card.classList.toggle('can-brew', can);
         card.classList.toggle('cannot-brew', !can);
@@ -1293,16 +1307,15 @@ class AetheriaApp {
       const can = this.spellSystem.canCast(s.id);
       const onCd = state.cd > 0;
 
-      const card = document.getElementById(`spell-card-${s.id}`);
-      const btn = document.getElementById(`btn-spell-${s.id}`);
-      const txt = document.getElementById(`spell-text-${s.id}`);
+      const card = this.$(`spell-card-${s.id}`);
+      const btn = this.$(`btn-spell-${s.id}`);
 
       if (card) card.classList.toggle('ready', can);
       if (btn) {
         btn.classList.toggle('active', can);
         btn.classList.toggle('disabled', !can);
       }
-      if (txt) txt.textContent = onCd ? `${state.cd.toFixed(1)}s` : '✨ Cast';
+      setText(this.$(`spell-text-${s.id}`), onCd ? `${state.cd.toFixed(1)}s` : '✨ Cast');
     }
   }
 
@@ -1340,9 +1353,8 @@ class AetheriaApp {
   }
 
   updateTalentsUI() {
-    const tpCount = document.getElementById('tp-avail-count');
-    if (tpCount) tpCount.textContent = this.gameState.talentPoints;
-    const respecBtn = document.getElementById('btn-respec-talents');
+    setText(this.$('tp-avail-count'), String(this.gameState.talentPoints));
+    const respecBtn = this.$('btn-respec-talents');
     if (respecBtn) respecBtn.classList.toggle('disabled', this.gameState.spentTalentPoints <= 0);
 
     for (const t of TALENT_DEFINITIONS) {
@@ -1350,12 +1362,10 @@ class AetheriaApp {
       const isMax = state.rank >= t.maxRank;
       const canRank = !isMax && this.gameState.talentPoints > 0;
 
-      const rankEl = document.getElementById(`t-rank-${t.id}`);
-      const btn = document.getElementById(`btn-talent-${t.id}`);
-
-      if (rankEl) rankEl.textContent = `Rank ${state.rank} / ${t.maxRank}`;
+      setText(this.$(`t-rank-${t.id}`), `Rank ${state.rank} / ${t.maxRank}`);
+      const btn = this.$(`btn-talent-${t.id}`);
       if (btn) {
-        btn.textContent = isMax ? 'MAXED' : '+ Upgrade';
+        setText(btn, isMax ? 'MAXED' : '+ Upgrade');
         btn.classList.toggle('active', canRank);
         btn.classList.toggle('disabled', !canRank);
       }
@@ -1398,7 +1408,7 @@ class AetheriaApp {
     for (const b of this.gameState.bounties) {
       const fill = document.getElementById(`bounty-fill-${b.id}`);
       if (!fill) continue;
-      fill.style.width = `${Math.min(100, (b.current / b.required) * 100)}%`;
+      setWidth(fill, `${Math.min(100, (b.current / b.required) * 100)}%`);
       const count = document.getElementById(`bounty-count-${b.id}`);
       const countText = `${fmtNum(b.current)} / ${fmtNum(b.required)}`;
       if (count && count.textContent !== countText) count.textContent = countText;
@@ -1414,49 +1424,39 @@ class AetheriaApp {
   }
 
   updateQuartermasterUI() {
-    const sealsEl = document.getElementById('qm-seals-count');
-    if (sealsEl) sealsEl.textContent = fmtNum(this.gameState.guildSeals || 0);
+    setText(this.$('qm-seals-count'), fmtNum(this.gameState.guildSeals || 0));
 
-    const qmGrid = document.getElementById('quartermaster-upgrades-grid');
+    const qmGrid = this.$('quartermaster-upgrades-grid');
     if (!qmGrid) return;
-    
-    // Check if we need to build the inner HTML
+
+    // Built once; QUARTERMASTER_UPGRADES is imported statically (this used to issue a
+    // dynamic import() per frame and apply the values a microtask later)
     if (qmGrid.children.length === 0) {
-      import('./systems/BountySystem.js').then(module => {
-        const QUARTERMASTER_UPGRADES = module.QUARTERMASTER_UPGRADES;
-        qmGrid.innerHTML = QUARTERMASTER_UPGRADES.map(u => `
-          <div class="perk-card">
-            <div class="p-name">${u.icon} ${u.name}</div>
-            <div class="p-rank" id="qm-rank-${u.id}">Rank: 0 / ${u.maxRank}</div>
-            <div class="p-desc">${u.desc}</div>
-            <button class="btn-buy-qm-upgrade" id="btn-qm-${u.id}" data-id="${u.id}">
-              Buy
-            </button>
-          </div>
-        `).join('');
-        this.updateQuartermasterUI(); // Re-run to update values
-      });
-      return;
+      qmGrid.innerHTML = QUARTERMASTER_UPGRADES.map(u => `
+        <div class="perk-card">
+          <div class="p-name">${u.icon} ${u.name}</div>
+          <div class="p-rank" id="qm-rank-${u.id}">Rank: 0 / ${u.maxRank}</div>
+          <div class="p-desc">${u.desc}</div>
+          <button class="btn-buy-qm-upgrade" id="btn-qm-${u.id}" data-id="${u.id}">
+            Buy
+          </button>
+        </div>
+      `).join('');
     }
 
-    import('./systems/BountySystem.js').then(module => {
-      const QUARTERMASTER_UPGRADES = module.QUARTERMASTER_UPGRADES;
-      for (const u of QUARTERMASTER_UPGRADES) {
-        const rank = this.gameState.quartermaster[u.id]?.rank || 0;
-        const cost = u.baseCost + (rank * u.costInc);
-        const canBuy = (this.gameState.guildSeals || 0) >= cost && rank < u.maxRank;
+    for (const u of QUARTERMASTER_UPGRADES) {
+      const rank = this.gameState.quartermaster[u.id]?.rank || 0;
+      const cost = u.baseCost + (rank * u.costInc);
+      const canBuy = (this.gameState.guildSeals || 0) >= cost && rank < u.maxRank;
 
-        const rEl = document.getElementById(`qm-rank-${u.id}`);
-        const btn = document.getElementById(`btn-qm-${u.id}`);
-
-        if (rEl) rEl.textContent = `Rank: ${rank} / ${u.maxRank}`;
-        if (btn) {
-          btn.textContent = rank >= u.maxRank ? 'MAXED' : `Buy (${fmtNum(cost)} Seals)`;
-          btn.classList.toggle('active', canBuy);
-          btn.classList.toggle('disabled', !canBuy);
-        }
+      setText(this.$(`qm-rank-${u.id}`), `Rank: ${rank} / ${u.maxRank}`);
+      const btn = this.$(`btn-qm-${u.id}`);
+      if (btn) {
+        setText(btn, rank >= u.maxRank ? 'MAXED' : `Buy (${fmtNum(cost)} Seals)`);
+        btn.classList.toggle('active', canBuy);
+        btn.classList.toggle('disabled', !canBuy);
       }
-    });
+    }
   }
 
   // --- Market Structure ---
@@ -1488,35 +1488,44 @@ class AetheriaApp {
     const trendIcons = { surge: '🚀 SURGE', rising: '📈 RISING', stable: '⚖️ STABLE', falling: '📉 FALLING', crash: '💥 CRASH' };
     const trendColors = { surge: '#10b981', rising: '#4ade80', stable: '#94a3b8', falling: '#f87171', crash: '#ef4444' };
 
+    // Row element refs (built once in buildMarketStructure): no closest/querySelector per frame
+    if (!this.marketRowEls) {
+      this.marketRowEls = {};
+      for (const c of COMMODITIES) {
+        const pEl = document.getElementById(`price-${c.id}`);
+        const row = pEl?.closest('.commodity-row');
+        this.marketRowEls[c.id] = {
+          tEl: document.getElementById(`trend-${c.id}`), pEl, oEl: document.getElementById(`owned-${c.id}`),
+          buyBtn: row?.querySelector('.btn-market-buy'), buy10Btn: row?.querySelector('.btn-market-buy10')
+        };
+      }
+    }
+
     for (const c of COMMODITIES) {
       const item = this.gameState.market?.items[c.id];
       if (!item) continue;
 
-      const tEl = document.getElementById(`trend-${c.id}`);
-      const pEl = document.getElementById(`price-${c.id}`);
-      const oEl = document.getElementById(`owned-${c.id}`);
+      const { tEl, pEl, oEl, buyBtn, buy10Btn } = this.marketRowEls[c.id];
 
       if (tEl) {
-        tEl.textContent = trendIcons[item.trend] || '⚖️ STABLE';
-        tEl.style.color = trendColors[item.trend] || '#94a3b8';
+        setText(tEl, trendIcons[item.trend] || '⚖️ STABLE');
+        const color = trendColors[item.trend] || '#94a3b8';
+        if (tEl.dataset.trend !== item.trend) {
+          tEl.dataset.trend = item.trend;
+          tEl.style.color = color;
+        }
       }
       if (pEl) {
         const price = this.marketSystem.getCommodityPrice(c.id);
-        const priceText = price.format('standard', 2);
-        if (pEl.textContent !== priceText) pEl.textContent = priceText;
-        const row = pEl.closest('.commodity-row');
-        row?.querySelector('.btn-market-buy')?.classList.toggle('disabled', !this.gameState.gold.gte(price));
-        row?.querySelector('.btn-market-buy10')?.classList.toggle('disabled', !this.gameState.gold.gte(price.mul(new BigNum(10))));
+        setText(pEl, price.format('standard', 2));
+        buyBtn?.classList.toggle('disabled', !this.gameState.gold.gte(price));
+        buy10Btn?.classList.toggle('disabled', !this.gameState.gold.gte(price.mul(10)));
       }
-      if (oEl) oEl.textContent = fmtNum(item.owned);
+      setText(oEl, fmtNum(item.owned));
     }
-    const idxEl = document.getElementById('market-index-display');
-    if (idxEl) {
-      const idxText = `x${this.marketSystem.getMarketIndex().format('standard', 2)}`;
-      if (idxEl.textContent !== idxText) idxEl.textContent = idxText;
-    }
+    setText(this.$('market-index-display'), `x${this.marketSystem.getMarketIndex().format('standard', 2)}`);
 
-    const carCont = document.getElementById('market-caravan-panel');
+    const carCont = this.$('market-caravan-panel');
     if (carCont) {
       // Built once and updated in place: rebuilding every frame swallowed button clicks
       if (!carCont.dataset.built) {
@@ -1545,28 +1554,30 @@ class AetheriaApp {
       }
       const car = this.gameState.market?.caravan;
       const active = !!car?.active;
-      document.getElementById('caravan-active').style.display = active ? '' : 'none';
-      document.getElementById('caravan-dispatch').style.display = active ? 'none' : '';
+      if (this.caravanActiveShown !== active) {
+        this.caravanActiveShown = active;
+        this.$('caravan-active').style.display = active ? '' : 'none';
+        this.$('caravan-dispatch').style.display = active ? 'none' : '';
+      }
       if (active) {
-        document.getElementById('caravan-time').textContent = Math.ceil(car.duration);
-        document.getElementById('caravan-invest').textContent = car.investment.format('standard', 0);
-        document.getElementById('caravan-return').textContent = (car.payout ? new BigNum(car.payout) : car.investment.mul(car.expectedProfit)).format('standard', 2);
+        setText(this.$('caravan-time'), String(Math.ceil(car.duration)));
+        setText(this.$('caravan-invest'), car.investment.format('standard', 0));
+        setText(this.$('caravan-return'), (car.payout ? new BigNum(car.payout) : car.investment.mul(car.expectedProfit)).format('standard', 2));
       } else {
         for (const [btnId, tier] of [['btn-send-caravan-1', 'small'], ['btn-send-caravan-2', 'large']]) {
           const t = this.marketSystem.getCaravanTier(tier);
-          const btn = document.getElementById(btnId);
-          const label = `Send ${t.invest.format('standard', 2)} Gold (${t.minutes} Min - ${t.profit}x Return)`;
-          if (btn.textContent !== label) btn.textContent = label;
+          const btn = this.$(btnId);
+          setText(btn, `Send ${t.invest.format('standard', 2)} Gold (${t.minutes} Min - ${t.profit}x Return)`);
           btn.classList.toggle('disabled', !this.gameState.gold.gte(t.invest));
         }
       }
     }
 
-    const enchanterLevel = document.getElementById('enchanter-level');
-    const enchanterBonus = document.getElementById('enchanter-bonus');
-    const enchanterCost = document.getElementById('enchanter-cost');
-    const enchanterLabel = document.getElementById('enchanter-label');
-    const btnEnchanter = document.getElementById('btn-buy-enchanter');
+    const enchanterLevel = this.$('enchanter-level');
+    const enchanterBonus = this.$('enchanter-bonus');
+    const enchanterCost = this.$('enchanter-cost');
+    const enchanterLabel = this.$('enchanter-label');
+    const btnEnchanter = this.$('btn-buy-enchanter');
     if (enchanterLevel && enchanterCost && enchanterLabel && btnEnchanter && this.gameState.market) {
       const level = this.gameState.market.goldenSynergy || 0;
       const amt = this.enchanterBuyAmount || 1;
@@ -1624,7 +1635,7 @@ class AetheriaApp {
 
   // Masteries panel: rows built once, values updated in place (no buttons inside)
   updateMasteriesPanel() {
-    const panel = document.getElementById('masteries-panel');
+    const panel = this.$('masteries-panel');
     if (!panel) return;
     const list = getMasteries(this.gameState);
     const key = list.map(m => m.id).join(',');
@@ -1637,32 +1648,35 @@ class AetheriaApp {
           <span class="m-source"></span>
           <span class="m-value"></span>
         </div>`).join('');
+      this.masteryRowEls = {};
+      for (const row of panel.querySelectorAll('.mastery-row')) {
+        this.masteryRowEls[row.dataset.mastery] = { row, valEl: row.querySelector('.m-value'), srcEl: row.querySelector('.m-source') };
+      }
     }
     for (const m of list) {
-      const row = panel.querySelector(`[data-mastery="${m.id}"]`);
-      if (!row) continue;
-      const v = fmtMult(m.value);
-      const valEl = row.querySelector('.m-value');
-      const srcEl = row.querySelector('.m-source');
-      if (valEl.textContent !== v) valEl.textContent = v;
-      if (srcEl.textContent !== m.source) srcEl.textContent = m.source;
-      row.classList.toggle('active', m.value > 1);
+      const refs = this.masteryRowEls[m.id];
+      if (!refs) continue;
+      setText(refs.valEl, fmtMult(m.value));
+      setText(refs.srcEl, m.source);
+      refs.row.classList.toggle('active', m.value > 1);
     }
   }
 
   updatePrestigeUI() {
     const pending = this.prestigeSystem.getPendingCosmicDust();
-    const pendEl = document.getElementById('pending-dust-display');
-    const ascBtn = document.getElementById('btn-do-ascend');
+    const pendEl = this.$('pending-dust-display');
+    const ascBtn = this.$('btn-do-ascend');
 
-    if (pendEl) pendEl.textContent = `Pending Cosmic Dust: +${pending.format('standard', 0)}`;
-    if (ascBtn) ascBtn.disabled = pending.lte(0);
+    setText(pendEl, `Pending Cosmic Dust: +${pending.format('standard', 0)}`);
+    if (ascBtn) {
+      const disabled = pending.lte(0);
+      if (ascBtn.disabled !== disabled) ascBtn.disabled = disabled;
+    }
 
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
     const dm = this.prestigeSystem.getDustMultipliers();
     const breakdown = `${fmtMult(dm.geode)} from Depth ${dm.depth} · ${fmtMult(dm.nectarMult)} from ${fmtNum(dm.nectar)} Nectar (consumed)`;
-    const bdEl = document.getElementById('pending-dust-breakdown');
-    if (bdEl && bdEl.textContent !== breakdown) bdEl.textContent = breakdown;
+    setText(this.$('pending-dust-breakdown'), breakdown);
     if (ascBtn) {
       const tip = `Base ${this.prestigeSystem.getBaseCosmicDust().format('standard', 0)} Dust · ${breakdown}`;
       if (ascBtn.title !== tip) ascBtn.title = tip;
@@ -1675,18 +1689,16 @@ class AetheriaApp {
       const cost = new BigNum(p.cost * Math.pow(1.5, state.rank));
       const canBuy = this.gameState.cosmicDust.gte(cost) && state.rank < p.maxRank;
 
-      const rEl = document.getElementById(`perk-rank-${p.id}`);
-      const btn = document.getElementById(`btn-perk-${p.id}`);
-
-      if (rEl) rEl.textContent = `Rank: ${state.rank} / ${p.maxRank}`;
+      setText(this.$(`perk-rank-${p.id}`), `Rank: ${state.rank} / ${p.maxRank}`);
+      const btn = this.$(`btn-perk-${p.id}`);
       if (btn) {
-        btn.textContent = state.rank >= p.maxRank ? 'MAXED' : `Unlock (${cost.format('standard', 0)} Dust)`;
+        setText(btn, state.rank >= p.maxRank ? 'MAXED' : `Unlock (${cost.format('standard', 0)} Dust)`);
         btn.classList.toggle('active', canBuy);
         btn.classList.toggle('disabled', !canBuy);
       }
     }
 
-    const transCont = document.getElementById('transcendence-section');
+    const transCont = this.$('transcendence-section');
     if (transCont) {
       // Built once and updated in place: rebuilding every frame swallowed button clicks
       if (!transCont.dataset.built) {
@@ -1708,12 +1720,9 @@ class AetheriaApp {
         });
       }
       const canT = this.prestigeSystem.canTranscend();
-      const shardsEl = document.getElementById('fracture-shards-count');
-      const shardsText = this.gameState.fractureShards.format('standard', 0);
-      if (shardsEl.textContent !== shardsText) shardsEl.textContent = shardsText;
-      const tBtn = document.getElementById('btn-do-transcend');
-      const label = canT ? '✨ Transcend Reality!' : 'Locked (Needs 50K Cosmic Dust)';
-      if (tBtn.textContent !== label) tBtn.textContent = label;
+      setText(this.$('fracture-shards-count'), this.gameState.fractureShards.format('standard', 0));
+      const tBtn = this.$('btn-do-transcend');
+      setText(tBtn, canT ? '✨ Transcend Reality!' : 'Locked (Needs 50K Cosmic Dust)');
       tBtn.classList.toggle('active', canT);
       tBtn.classList.toggle('disabled', !canT);
     }
@@ -1803,7 +1812,7 @@ class AetheriaApp {
 
   // Header Fast Forward button: price, uses this cycle, time to price reset. Text-only updates.
   updateFastForwardButton() {
-    const btn = document.getElementById('btn-time-warp');
+    const btn = this.$('btn-time-warp');
     if (!btn) return;
     const ff = this.fastForwardSystem;
     const cost = ff.getCost();
@@ -1821,10 +1830,8 @@ class AetheriaApp {
       const s = Math.ceil(resetIn);
       infoText = `${uses} used · resets ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
     }
-    const costEl = document.getElementById('ff-cost');
-    const infoEl = document.getElementById('ff-info');
-    if (costEl && costEl.textContent !== costText) costEl.textContent = costText;
-    if (infoEl && infoEl.textContent !== infoText) infoEl.textContent = infoText;
+    setText(this.$('ff-cost'), costText);
+    setText(this.$('ff-info'), infoText);
 
     const disabled = warping || !affordable;
     if (btn.disabled !== disabled) {
@@ -1885,13 +1892,12 @@ class AetheriaApp {
   }
 
   updateHeaderStats() {
-    const aetherEl = document.getElementById('stat-aether');
-    if (aetherEl) aetherEl.textContent = this.gameState.aether.format('standard', 2);
+    setText(this.$('stat-aether'), this.gameState.aether.format('standard', 2));
 
-    const aetherRateEl = document.getElementById('stat-aether-rate');
+    const aetherRateEl = this.$('stat-aether-rate');
     if (aetherRateEl) {
       const rate = this.gameState.getNetAetherPerSecond();
-      aetherRateEl.textContent = `+${rate.format('standard', 2)} /s`;
+      setText(aetherRateEl, `+${rate.format('standard', 2)} /s`);
       // Mastery tooltip: refreshed every 30 frames (~0.5 s), only written when it changes
       this.aetherTipTimer = (this.aetherTipTimer ?? 29) + 1;
       if (this.aetherTipTimer >= 30) {
@@ -1901,69 +1907,66 @@ class AetheriaApp {
       }
     }
 
-    const goldEl = document.getElementById('stat-gold');
-    if (goldEl) goldEl.textContent = this.gameState.gold.format('standard', 0);
+    setText(this.$('stat-gold'), this.gameState.gold.format('standard', 0));
 
-    const manaEl = document.getElementById('stat-mana');
-    const manaBar = document.getElementById('bar-mana-fill');
-    if (manaEl) manaEl.textContent = `${fmtNum(Math.floor(this.gameState.mana))} / ${fmtNum(Math.floor(this.gameState.maxMana))}`;
-    if (manaBar) manaBar.style.width = `${(this.gameState.mana / this.gameState.maxMana) * 100}%`;
+    setText(this.$('stat-mana'), `${fmtNum(Math.floor(this.gameState.mana))} / ${fmtNum(Math.floor(this.gameState.maxMana))}`);
+    setWidth(this.$('bar-mana-fill'), `${(this.gameState.mana / this.gameState.maxMana) * 100}%`);
 
-    const chronoEl = document.getElementById('stat-chrono');
-    if (chronoEl) chronoEl.textContent = `${new BigNum(Math.floor(this.gameState.chronoSand)).format('standard', 2)}s`;
-
-    const sealsEl = document.getElementById('stat-guild-seals');
-    if (sealsEl) {
-      const seals = fmtNum(this.gameState.guildSeals || 0);
-      if (sealsEl.textContent !== seals) sealsEl.textContent = seals;
-    }
-
-    const dustEl = document.getElementById('stat-cosmic-dust');
-    if (dustEl) dustEl.textContent = this.gameState.cosmicDust.format('standard', 0);
+    setText(this.$('stat-chrono'), `${new BigNum(Math.floor(this.gameState.chronoSand)).format('standard', 2)}s`);
+    setText(this.$('stat-guild-seals'), fmtNum(this.gameState.guildSeals || 0));
+    setText(this.$('stat-cosmic-dust'), this.gameState.cosmicDust.format('standard', 0));
   }
 
   updateAnomalyUI() {
-    const el = document.getElementById('golden-anomaly');
+    const el = this.$('golden-anomaly');
     if (!el) return;
     if (this.clickerSystem.anomalyActive) {
-      el.style.display = 'flex';
-      el.style.left = `${this.clickerSystem.anomalyX}%`;
-      el.style.top = `${this.clickerSystem.anomalyY}%`;
-    } else {
+      if (el.style.display !== 'flex') el.style.display = 'flex';
+      const left = `${this.clickerSystem.anomalyX}%`;
+      const top = `${this.clickerSystem.anomalyY}%`;
+      if (el.style.left !== left) el.style.left = left;
+      if (el.style.top !== top) el.style.top = top;
+    } else if (el.style.display !== 'none') {
       el.style.display = 'none';
     }
   }
 
   renderMonolithOverview() {
-    const clickPowerEl = document.getElementById('monolith-click-power');
+    const clickPowerEl = this.$('monolith-click-power');
     if (clickPowerEl) {
       const clickVal = this.gameState.getClickYield();
-      clickPowerEl.textContent = `+${clickVal.format('standard', 1)} per Click`;
+      setText(clickPowerEl, `+${clickVal.format('standard', 1)} per Click`);
     }
 
-    const comboBar = document.getElementById('combo-bar-fill');
-    const comboText = document.getElementById('combo-text');
+    const comboBar = this.$('combo-bar-fill');
+    const comboText = this.$('combo-text');
     if (comboBar && comboText) {
       const combo = this.gameState.comboCount;
-      comboBar.style.width = `${Math.min(100, combo)}%`;
-      comboText.textContent = combo > 0 ? `${combo}x Combo! (${(1 + Math.min(50, combo) * 0.08).toFixed(1)}x boost)` : 'Combo Ready';
+      setWidth(comboBar, `${Math.min(100, combo)}%`);
+      setText(comboText, combo > 0 ? `${combo}x Combo! (${(1 + Math.min(50, combo) * 0.08).toFixed(1)}x boost)` : 'Combo Ready');
     }
 
-    const frenzyBadge = document.getElementById('frenzy-badge');
+    const frenzyBadge = this.$('frenzy-badge');
     if (frenzyBadge) {
       if (this.gameState.frenzyActive) {
-        frenzyBadge.style.display = 'block';
-        frenzyBadge.textContent = `🔥 FRENZY ACTIVE! (${this.gameState.frenzyTimer.toFixed(1)}s)`;
-      } else {
+        if (frenzyBadge.style.display !== 'block') frenzyBadge.style.display = 'block';
+        setText(frenzyBadge, `🔥 FRENZY ACTIVE! (${this.gameState.frenzyTimer.toFixed(1)}s)`);
+      } else if (frenzyBadge.style.display !== 'none') {
         frenzyBadge.style.display = 'none';
       }
     }
 
-    const buffsContainer = document.getElementById('active-buffs-list');
+    // Optional container (not in the current index.html); looked up once, rebuilt only when changed
+    if (this.activeBuffsList === undefined) this.activeBuffsList = document.getElementById('active-buffs-list');
+    const buffsContainer = this.activeBuffsList;
     if (buffsContainer) {
-      buffsContainer.innerHTML = this.gameState.activeBuffs.map(b =>
+      const html = this.gameState.activeBuffs.map(b =>
         `<span class="buff-chip">${b.name} (${Math.ceil(b.duration)}s)</span>`
       ).join('');
+      if (this.activeBuffsHtml !== html) {
+        this.activeBuffsHtml = html;
+        buffsContainer.innerHTML = html;
+      }
     }
   }
 }

@@ -72,10 +72,10 @@ export class PrestigeSystem {
 
     if (totalAether.lt(threshold)) return BigNum.zero();
 
-    // 150 * (Aether / 1e9)^0.25
-    const ratio = totalAether.div(threshold).toNumber();
-    const dust = Math.floor(150 * Math.pow(Math.max(1, ratio), 0.25));
-    return new BigNum(dust);
+    // 150 * (Aether / 1e9)^0.25, in BigNum: past 1e317 run Aether the ratio no longer fits
+    // a double, and Math.pow(Infinity) -> new BigNum(Infinity) -> 0 made Ascension impossible
+    // (same float epsilon as getPendingCosmicDust: 16e9 must give exactly 300, not 299)
+    return totalAether.div(threshold).max(1).pow(0.25).mul(150 * (1 + 1e-12)).floor();
   }
 
   canAscend() {
@@ -148,7 +148,8 @@ export class PrestigeSystem {
   transcend() {
     if (!this.canTranscend()) return false;
 
-    const shardsGained = new BigNum(Math.floor(this.gameState.totalCosmicDust.toNumber() / 10000));
+    // BigNum division: toNumber() is Infinity past 1e308 dust, which floored to 0 shards
+    const shardsGained = this.gameState.totalCosmicDust.div(10000).floor();
     this.gameState.fractureShards = this.gameState.fractureShards.add(shardsGained);
     this.gameState.transcendenceCount++;
 

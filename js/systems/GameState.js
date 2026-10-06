@@ -395,10 +395,12 @@ export class GameState {
       this.alchemy = { catalysts: 0, ...(data.alchemy || {}) };
       this.spells = data.spells || {};
       this.talents = data.talents || {};
-      this.bounties = data.bounties || [];
+      // A non-array or reward-less bounty (corrupted/edited save) would either throw here,
+      // leaving every later slice at defaults, or throw on claim; drop just those entries.
+      this.bounties = (Array.isArray(data.bounties) ? data.bounties : []).filter(b => b && b.rewards);
       // JSON turns BigNums into plain {m, e} objects; rehydrate the ones nested in sub-states
       for (const b of this.bounties) {
-        if (b.rewards) b.rewards.gold = BigNum.fromJSON(b.rewards.gold);
+        b.rewards.gold = BigNum.fromJSON(b.rewards.gold);
       }
       this.quartermaster = data.quartermaster || null;
       this.market = data.market || null;

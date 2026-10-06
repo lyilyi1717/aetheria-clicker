@@ -2,6 +2,11 @@
 
 const SAVE_KEY = 'AETHERIA_CHRONICLES_SAVE_V1';
 
+// Offline Aether stops accruing after 24 h, matching the default Chrono Sand bank (1440 min).
+// Without it, moving the system clock forward credited unbounded Aether, which also fed the
+// Best Run Aether leaderboard stat.
+export const OFFLINE_AETHER_CAP = 24 * 3600; // seconds
+
 export class SaveManager {
   constructor(gameState) {
     this.gameState = gameState;
@@ -81,7 +86,8 @@ export class SaveManager {
       offlineEfficiency += this.gameState.quartermaster['chronos_contract'].rank * 0.05;
     }
     
-    const effectiveSecs = elapsedSeconds * offlineEfficiency;
+    const capped = elapsedSeconds > OFFLINE_AETHER_CAP;
+    const effectiveSecs = Math.min(elapsedSeconds, OFFLINE_AETHER_CAP) * offlineEfficiency;
 
     const gainedAether = prodPerSec.mul(effectiveSecs);
     this.gameState.aether = this.gameState.aether.add(gainedAether);
@@ -100,6 +106,7 @@ export class SaveManager {
 
     return {
       elapsedSeconds,
+      capped,
       gainedAether,
       chronoEarned,
       gardenHarvests: garden.harvests
