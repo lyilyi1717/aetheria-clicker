@@ -24,6 +24,7 @@ import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } 
 import { VERSION, CHANGELOG } from './version.js';
 import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
+import { Shell } from './ui/shell.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
 import { gearCard } from './ui/rarity.js';
@@ -247,6 +248,7 @@ class AetheriaApp {
       view.classList.toggle('active', view.id === `tab-${tabName}`);
     });
     this.tabNeedsFullRender[tabName] = true;
+    this.shell?.onTabChange(tabName);
   }
 
   setupEventListeners() {
@@ -618,9 +620,13 @@ class AetheriaApp {
     const strip = this.$(`tab-bonus-${this.currentTab}`);
     if (!strip) return;
     const items = getTabBonuses(this.gameState, this.currentTab, TALENT_DEFINITIONS, ASCENSION_PERKS);
+    // One summary line that opens the chips on tap (R23; toggle in js/ui/shell.js)
     const html = items.length === 0 ? '' :
-      `<span class="tab-bonus-title">Active Bonuses</span>` +
-      items.map(i => `<span class="tab-bonus-chip ${i.kind}">${i.icon} <strong>${i.name}</strong> ${i.detail}</span>`).join('');
+      `<button class="tab-bonus-summary" type="button" aria-expanded="${strip.classList.contains('is-open')}">` +
+      `<span class="tab-bonus-title">✨ ${items.length} active bonus${items.length === 1 ? '' : 'es'}</span>` +
+      `<span class="tab-bonus-names">${items.map(i => i.name).join(' · ')}</span></button>` +
+      `<div class="tab-bonus-chips">` +
+      items.map(i => `<span class="tab-bonus-chip ${i.kind}">${i.icon} <strong>${i.name}</strong> ${i.detail}</span>`).join('') + `</div>`;
     // Compare against what we last wrote rather than reading innerHTML back (a DOM serialization)
     if (!this.bonusStripHtml) this.bonusStripHtml = {};
     if (this.bonusStripHtml[this.currentTab] !== html) {
@@ -636,6 +642,8 @@ class AetheriaApp {
     this.buildTabBonusStrips();
     this.buffBar = new BuffBar(this);
     this.buffBar.build();
+    this.shell = new Shell(this);
+    this.shell.build();
     this.buildBuildingsStructure();
     this.buildCombatStructure();
     this.buildMiningStructure();
@@ -1858,6 +1866,7 @@ class AetheriaApp {
     this.updateQuickCastBar();
     this.leaderboard.tick(this.currentTab === 'leaderboard', VERSION);
     this.buffBar.update();
+    this.shell?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
 
     // Fast, lightweight state updates without replacing DOM nodes

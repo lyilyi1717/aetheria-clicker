@@ -46,7 +46,7 @@ export class GardenBreedingUI {
       <div id="breeding-pairs" class="breeding-pairs"></div>
       <div id="breeding-herbarium" class="breeding-note"></div>
     `;
-    grid.parentNode.insertBefore(panel, grid);
+    grid.after(panel); // below the plots, so the plots stay above the fold (R23)
 
     document.getElementById('btn-breed-mode').addEventListener('click', () => {
       if (!this.garden.isBreedingUnlocked()) return;
