@@ -1690,8 +1690,11 @@ class AetheriaApp {
 
     setText(pendEl, `Pending Cosmic Dust: +${pending.format('standard', 0)}`);
     if (ascBtn) {
-      const disabled = pending.lte(0);
+      const wait = this.prestigeSystem.getMinRunRemaining();
+      const disabled = pending.lte(0) || wait > 0;
       if (ascBtn.disabled !== disabled) ascBtn.disabled = disabled;
+      const m = Math.ceil(wait);
+      setText(ascBtn, wait > 0 ? `✨ Ascend in ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')} (min. run)` : '✨ Ascend to the Stars');
     }
 
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
