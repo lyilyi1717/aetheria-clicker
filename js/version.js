@@ -3,9 +3,19 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.2.2';
+export const VERSION = '4.3.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.3.0',
+    date: '2026-10-06',
+    title: 'Friendlier big numbers',
+    changes: [
+      'New default number notation, Letters: 1.50K, 2.30M, 4.00B, 7.25T, then aa, ab, ac… after trillion (1.00aa is 1,000 T, 1.00ab is 1,000 aa, and so on). After zz comes aaa, so it never runs out.',
+      'If you were on Scientific (the old default), your game now uses Letters. Prefer 1.5e16? Switch back in Settings with one tap. Players who picked Standard or Engineering keep their choice.',
+      'The old Standard option (Qa, Qi, Sx…) is still in Settings, now called Named, along with Scientific and Engineering.'
+    ]
+  },
   {
     version: '4.2.2',
     date: '2026-10-06',

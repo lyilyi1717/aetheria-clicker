@@ -238,7 +238,25 @@ export class BigNum {
 
   // Player-selected notation (Settings tab). Callers pass 'standard' to mean "the player's
   // choice"; 'suffix' forces the K/M/B suffix style regardless.
-  static notation = 'scientific';
+  static notation = 'letters';
+
+  // 'letters' notation: K, M, B, T, then aa..zz, aaa..zzz, ... (each step x1000, never runs out)
+  static LETTER_TIERS = ['', 'K', 'M', 'B', 'T'];
+  static letterSuffix(tier) {
+    if (tier < BigNum.LETTER_TIERS.length) return BigNum.LETTER_TIERS[tier];
+    let idx = tier - BigNum.LETTER_TIERS.length;
+    let len = 2;
+    while (idx >= Math.pow(26, len)) {
+      idx -= Math.pow(26, len);
+      len++;
+    }
+    let out = '';
+    for (let i = 0; i < len; i++) {
+      out = String.fromCharCode(97 + (idx % 26)) + out;
+      idx = Math.floor(idx / 26);
+    }
+    return out;
+  }
 
   // Number.toLocaleString(undefined, options) builds a new Intl.NumberFormat on every call
   // (format() runs hundreds of times per frame), so reuse one formatter per precision.
@@ -286,6 +304,18 @@ export class BigNum {
       const engExp = Math.floor(this.e / 3) * 3;
       const engMantissa = this.m * Math.pow(10, this.e - engExp);
       return BigNum.expString(engMantissa, engExp, precision, 3);
+    }
+
+    if (mode === 'letters') {
+      let tier = Math.floor(this.e / 3);
+      let mant = this.m * Math.pow(10, this.e - tier * 3);
+      let fixed = mant.toFixed(precision);
+      if (Math.abs(parseFloat(fixed)) >= 1000) { // 999.999K rounds to 1.00M, not 1000.00K
+        tier++;
+        mant /= 1000;
+        fixed = mant.toFixed(precision);
+      }
+      return `${fixed}${BigNum.letterSuffix(tier)}`;
     }
 
     // Standard notation with suffix

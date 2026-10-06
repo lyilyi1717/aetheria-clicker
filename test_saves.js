@@ -153,7 +153,7 @@ console.log('--- v2 fixture loads and round-trips ---');
   assert.equal(gs.ascensionCount, 11);
   assert.equal(gs.alchemy.catalysts, 9, 'a current save keeps its catalysts');
   assert.equal(gs.inventory.rubies, 5);
-  assert.equal(gs.settings.notation, 'scientific');
+  assert.equal(gs.settings.notation, 'letters', 'the old default notation moves to letters (v7)');
 
   const out = clone(gs.serialize());
   const gs2 = new GameState();

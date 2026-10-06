@@ -480,6 +480,8 @@ button, input, select, textarea {
 .settings-sample {
   margin-left: auto;
   font-family: monospace;
+  direction: ltr; /* numbers read left to right inside RTL text */
+  unicode-bidi: isolate;
   color: var(--accent-cyan);
 }
 
