@@ -3,6 +3,7 @@ import { sound } from './engine/AudioEngine.js';
 import { particles } from './engine/ParticleEngine.js';
 import { SaveManager } from './engine/SaveManager.js';
 import { renderOfflineModal } from './ui/offlineModal.js';
+import { rewards } from './ui/rewards.js';
 import { GameLoop } from './engine/GameLoop.js';
 
 import { GameState } from './systems/GameState.js';
@@ -120,6 +121,7 @@ class AetheriaApp {
     // Canvas particles setup
     const canvas = document.getElementById('particle-canvas');
     if (canvas) particles.init(canvas);
+    rewards.init();
 
     // Setup DOM Listeners & Navigation
     this.setupEventListeners();
@@ -294,7 +296,7 @@ class AetheriaApp {
       warpBtn.addEventListener('click', () => {
         if (!this.fastForwardSystem.use()) return;
         sound.playSpell();
-        particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `⚡ ${FF_WARP_SECONDS}s TIME WARP!`, '#38bdf8', true);
+        rewards.notify({ tier: 'small', kind: 'time-warp', icon: '⚡', title: `${FF_WARP_SECONDS}s Time Warp`, color: '#38bdf8', source: warpBtn });
         this.updateFastForwardButton();
       });
     }
@@ -321,7 +323,7 @@ class AetheriaApp {
       saveBtn.addEventListener('click', () => {
         this.saveManager.save();
         sound.playBuy();
-        particles.spawnFloatingText(window.innerWidth / 2, 50, 'GAME SAVED!', '#4ade80', false);
+        rewards.notify({ tier: 'small', kind: 'game-saved', icon: '💾', title: 'Game saved', color: '#4ade80' });
       });
     }
 
@@ -1800,11 +1802,13 @@ class AetheriaApp {
     if (!this.fastForwardSystem.isWarping()) return;
     particles.suppressed = true;
     sound.quiet = true;
+    rewards.beginBatch(); // rewards earned inside the warp arrive as one toast per kind
     try {
       this.fastForwardSystem.consume(realDt, (step) => this.onSimTick(step));
     } finally {
       particles.suppressed = false;
       sound.quiet = false;
+      rewards.endBatch('During the time warp');
     }
   }
 

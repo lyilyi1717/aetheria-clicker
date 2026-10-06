@@ -1,6 +1,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
+import { rewards } from '../ui/rewards.js';
 
 // A new stratum every 25 depth (§5.1). Cosmetic plus drop table: each stratum adds
 // +1% Void Amethyst chance, taken from the plain-stone share.
@@ -135,11 +136,12 @@ export class MiningSystem {
     const relic = STRATA_RELICS[target];
     grid.relics[relic.id] = true;
     grid.relicPity = 0;
-    sound.playAchievement();
-    if (typeof window !== 'undefined') {
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 3,
-        `${relic.icon} STRATA RELIC: ${relic.name.toUpperCase()}! (+${Math.round(RELIC_PICK_BONUS * 100)}% pickaxe)`, '#fbbf24', true);
-    }
+    // Big tier (§5.1): ceremony + brass
+    rewards.notify({
+      tier: 'big', kind: 'strata-relic', icon: relic.icon, color: '#fbbf24',
+      title: `Strata Relic: ${relic.name}`, batchTitle: '{n} Strata Relics found',
+      detail: `+${Math.round(RELIC_PICK_BONUS * 100)}% pickaxe`
+    });
     return relic;
   }
 
@@ -399,9 +401,11 @@ export class MiningSystem {
         grid.maxDepth = grid.depth;
       }
       const stratum = this.getStratumIndex(grid.depth);
-      if (stratum > prevStratum && typeof window !== 'undefined') {
-        particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 3,
-          `${STRATA[stratum].icon} ENTERED ${STRATA[stratum].name.toUpperCase()} STRATA!`, STRATA[stratum].color, true);
+      if (stratum > prevStratum) {
+        rewards.notify({
+          tier: 'big', kind: 'stratum', icon: STRATA[stratum].icon, color: '#38bdf8',
+          title: `Entered the ${STRATA[stratum].name} strata`, detail: `Depth ${grid.depth}`
+        });
       }
       // The next grid arrives after DESCEND_DELAY sim seconds (update()). This used to be a
       // setTimeout, which a save + reload inside the window lost for good (stuck grid).
