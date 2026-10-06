@@ -103,6 +103,10 @@ UI: R22–R24 are done. R7 can go once R6 is in.
 
 ## Notes for the next session
 
+- **Changelog:** every player-visible PR bumps `VERSION` and adds a `CHANGELOG` entry in
+  `js/version.js` (AGENTS.md "Version and changelog"; CI `changelog` job enforces it). v3.0.0
+  backfilled R0-R22, which had shipped without entries. Current version: 3.0.0.
+
 - Save format changes: add a step to `MIGRATIONS` in `js/engine/migrations.js` and an old-shape
   fixture to `test_saves.js`. Current `SAVE_VERSION` is 3 (R8).
 - Pacing baseline (today's game, casual profile): first Ascension 10 min, 12 Ascensions on day 0,

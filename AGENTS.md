@@ -76,10 +76,33 @@ Allowed, with these limits:
    ~375px wide as well as desktop and run the checklist in the style guide's §8.
 8. **No dark patterns.** No punishing absence, no fake scarcity, no pay-to-skip.
 9. Don't put AI model names in commits, code, or docs.
+10. **Every player-visible change gets a changelog entry.** See "Version and changelog" below.
+
+## Version and changelog
+
+Players see the version in the header and the changelog on the **About** tab. Both come from
+`js/version.js` (`VERSION` and `CHANGELOG`); nothing else needs editing.
+
+- **When:** any PR that changes what players see or how the game plays (gameplay, balance, UI,
+  art, saves, fixes). Docs-, test- or tooling-only PRs skip it. CI fails a PR that touches
+  `js/`, `css/`, `index.html` or art without touching `js/version.js`; for an internal change
+  players can't notice, add the `no-changelog` label instead.
+- **How:** add one entry at the **top** of `CHANGELOG` and set `VERSION` to it:
+  `{ version, date: 'YYYY-MM-DD', title, changes: ['...', ...] }`.
+- **Which number** (`MAJOR.MINOR.PATCH`): PATCH for fixes and small tweaks; MINOR for a new
+  feature, system or rebalance (most roadmap items); MAJOR for a new prestige layer or a change
+  that reshapes existing saves. Take the next number after the current `VERSION` on `main`.
+- **Write for players**, not developers: what changed and what it means for them, with the
+  numbers they'll notice ("Bosses have 45 s, was 30 s"). Say plainly when something is a nerf
+  or when old saves are converted. No issue numbers, file names or R-numbers.
+- **Parallel PRs:** two branches may pick the same number. If `js/version.js` conflicts when
+  you merge `main`, keep both entries, put yours on top and renumber yours to the next version.
+- `test_version.js` checks that `VERSION` matches the top entry and versions only go down.
 
 ## Before you finish
 
 - [ ] `npm test` passes
+- [ ] `js/version.js`: `VERSION` bumped and a player-facing `CHANGELOG` entry on top (player-visible changes)
 - [ ] `npm run sim` before/after in the PR (economy changes only)
 - [ ] Old save still loads (if state changed)
 - [ ] UI checked in a browser, desktop + phone width (UI changes only): `npm start`, open http://localhost:8101
