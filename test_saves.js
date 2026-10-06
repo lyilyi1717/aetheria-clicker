@@ -328,4 +328,58 @@ console.log('--- Import goes through the same migration path ---');
   assert.equal(gs.ascensionCount, 42);
 }
 
+console.log('--- v5 -> v6: saves from before progressive unlocking keep the tabs they used (R7) ---');
+{
+  const load = (data) => { const gs = new GameState(); gs.deserialize(clone(data)); return gs; };
+  const base = { version: 5, savedAt: 1760000000000, aether: { m: 1, e: 3 }, totalAetherEarned: { m: 1, e: 4 } };
+  const open = (gs) => ['codex', 'combat', 'mining', 'spells', 'bounties', 'garden', 'alchemy', 'prestige',
+    'talents', 'leaderboard', 'calendar', 'market', 'chronicle'].filter(t => gs.isTabUnlocked(t));
+
+  // Any Ascension: every tab, all seen (no NEW tags, no reveal)
+  const asc = load({ ...base, ascensionCount: 1 });
+  assert.equal(open(asc).length, 13, 'an Ascended save keeps every tab');
+  assert.equal(asc.unlocks.market, base.savedAt, 'stamped with the save time');
+  assert.equal(asc.unlockSeen.chronicle, true);
+  assert.equal(load({ ...base, transcendenceCount: 2 }).isTabUnlocked('market'), true);
+  assert.equal(load({ ...base, chronicle: { count: 1 } }).isTabUnlocked('calendar'), true);
+
+  // A day-1 save: tabs it has used or earned, nothing else
+  const day1 = load({
+    ...base,
+    achievements: { click_1: { unlockedAt: 1 } },
+    buildings: { tapper: { count: 12 } },
+    hero: { floor: 33, maxFloor: 33 },
+    mining: { maxDepth: 4 },
+    stats: { totalSpellsCast: 0, totalPlantsHarvested: 3 }
+  });
+  assert.deepEqual(open(day1), ['codex', 'combat', 'mining', 'garden']);
+  assert.equal(day1.unlockSeen.mining, true);
+  assert.equal(day1.unlockSeen.spells, undefined);
+
+  // Each system's own evidence opens its tab
+  assert.equal(load({ ...base, mining: { maxDepth: 10 } }).isTabUnlocked('bounties'), true, 'depth 10');
+  assert.equal(load({ ...base, stats: { totalBountiesCompleted: 1 } }).isTabUnlocked('bounties'), true);
+  assert.equal(load({ ...base, mining: { maxDepth: 15 } }).isTabUnlocked('garden'), true, 'depth 15');
+  assert.equal(load({ ...base, garden: { plots: [{}, {}, {}, {}, { seed: 'mana_lily' }] } }).isTabUnlocked('garden'), true,
+    'something planted past the 4 starter plots');
+  assert.equal(load({ ...base, garden: { plots: [{ seed: 'spore' }] } }).isTabUnlocked('garden'), false,
+    'the starter plots alone are not use');
+  assert.equal(load({ ...base, stats: { totalPotionsBrewed: 2 } }).isTabUnlocked('alchemy'), true);
+  assert.equal(load({ ...base, alchemy: { catalysts: 1 } }).isTabUnlocked('alchemy'), true);
+  assert.equal(load({ ...base, stats: { totalSpellsCast: 4 } }).isTabUnlocked('spells'), true);
+  assert.equal(load({ ...base, hero: { floor: 41, maxFloor: 41 } }).isTabUnlocked('spells'), true);
+  assert.equal(load({ ...base, market: { items: { dates: { owned: 3 } } } }).isTabUnlocked('market'), true, 'Bazaar holdings');
+  assert.equal(load({ ...base, market: { items: {}, caravan: { active: true } } }).isTabUnlocked('market'), true);
+  assert.equal(load({ ...base, stats: { totalMonstersSlain: 5 } }).isTabUnlocked('combat'), true);
+
+  // A fresh pre-R7 save (nothing done yet) starts like a new game: Monolith only
+  assert.deepEqual(open(load(base)), []);
+  assert.deepEqual(open(load({ ...base, version: undefined })), [], 'a v1 save runs every step');
+
+  // Unlocks a v6 save already has are kept, and the step doesn't run again
+  const v6 = load({ ...base, version: 6, unlocks: { combat: 9 }, unlockSeen: {} });
+  assert.deepEqual(v6.unlocks, { combat: 9 });
+  assert.equal(v6.unlockSeen.combat, undefined);
+}
+
 console.log('All save versioning tests passed.');

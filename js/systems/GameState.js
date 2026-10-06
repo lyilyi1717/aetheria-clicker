@@ -9,6 +9,7 @@ import {
 import { defaultCalendarState, sanitizeCalendarState } from './CalendarSystem.js';
 import { getTierUpgradeMult, getClickUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
 import { defaultDustShopState, sanitizeDustShopState, getShopRank, hasShopItem, getFingerOfWastaMult } from './DustShopSystem.js';
+import { isTabUnlocked, sanitizeUnlocks, sanitizeUnlockSeen } from './UnlockSystem.js';
 
 // Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
 // PrestigeSystem imports audio/particles and GameState must stay loadable on its own.
@@ -136,6 +137,15 @@ export class GameState {
     // guidesSeen: tabs whose "How It Works" banner was shown expanded once (R23, js/ui/shell.js)
     // reduceMotion: 'auto' follows the device, 'on' / 'off' override it (R24, js/ui/motion.js)
     this.settings = { notation: 'scientific', guidesSeen: {}, reduceMotion: 'auto' };
+    // Progressive tab unlocking (R7, UnlockSystem.js): { [tabId]: unlockedAtMs } and the tabs
+    // visited since their reveal. Never cleared by Ascension, Transcend or Chronicle.
+    this.unlocks = {};
+    this.unlockSeen = {};
+  }
+
+  // Is this nav tab open yet? Monolith, Settings and About always are (R7)
+  isTabUnlocked(tabId) {
+    return isTabUnlocked(this, tabId);
   }
 
   // Calculate global aether production per second from all buildings + buffs
@@ -416,7 +426,9 @@ export class GameState {
       codex: this.codex,
       // Chrono Warp is excluded: the loop's timeScale isn't saved, so it would come back inert
       activeBuffs: this.activeBuffs.filter(b => b.type !== 'time_speed'),
-      settings: this.settings
+      settings: this.settings,
+      unlocks: { ...this.unlocks },
+      unlockSeen: { ...this.unlockSeen }
     };
   }
 
@@ -501,6 +513,9 @@ export class GameState {
       this.codex = data.codex && typeof data.codex === 'object' ? data.codex : {};
       this.activeBuffs = Array.isArray(data.activeBuffs) ? data.activeBuffs : [];
       this.settings = { ...this.settings, ...(data.settings || {}) };
+      // Saves from before R7 arrive with unlocks seeded from what they've used (migration v6)
+      this.unlocks = sanitizeUnlocks(data.unlocks);
+      this.unlockSeen = sanitizeUnlockSeen(data.unlockSeen);
       // Saves from before R9 have no records: seed them from what the save shows (no grants)
       this.records = data.records ? sanitizeRecords(data.records) : seedRecords(this);
       // Saves from before R23 have played past the first visits: start every guide collapsed

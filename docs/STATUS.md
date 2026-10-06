@@ -9,12 +9,11 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R7 #9 Progressive unlocking (branch `claude/r7-progressive-unlock`, draft PR).
 
 ## Next up
 
 After R9: R10 #12. Chapter 2 is one more `CHAPTERS` entry.
-UI: R22–R24 are done. R7 can go once R6 is in.
+UI: R22–R24 and R7 are done.
 
 ## Plan
 
@@ -122,6 +121,12 @@ UI: R22–R24 are done. R7 can go once R6 is in.
   Gate: 12 Transcends + Seal set I, or 24 Transcends for the first Chronicle without the Seals
   (`CalendarSystem.getSealSetProgress`). Sim (after R3): `gapWindowEndDay` 270, resets every <=14 days to
   day 365. Notes in doc §6.6. No save migration (additive `chronicle` field).
+- R7 #9 Progressive unlocking: table + checks in `js/systems/UnlockSystem.js` (`gs.unlocks`,
+  `gs.unlockSeen`, `gs.isTabUnlocked`), nav/teaser/reveal in `js/ui/unlocks.js` + `css/unlocks.css`;
+  `switchTab` refuses locked tabs, the Tower only ticks once open, Ledger goals carry a `tab`.
+  Save v6 seeds unlocks from use (any prestige opens all). Ascension opens on pending dust, not
+  floor 100 + depth 25 (sim target); deviations and unbuilt gifts listed in roadmap §2.2 "As built".
+  Tests in `test_unlocks.js`, `test_saves.js`; screenshots in `docs/ui/screenshots/r7/`.
 
 - R3 #5 Active income: Burst 45 s / cd 45 s, Celestial x2.5, Supernova 180 s, Mirage (1/12) and
   Caravan Star (1/20) anomalies (constants at the top of `SpellSystem.js` / `ClickerSystem.js`).
@@ -169,6 +174,9 @@ UI: R22–R24 are done. R7 can go once R6 is in.
 
 ## Noticed (not yet an issue)
 
+- R7 starter gifts not built: Rare weapon (Tower), half-filled first contract (Bounties), free
+  Cold Vimto brew (Alchemy), free caravan (Bazaar). Save export/import still sits in the Codex
+  (roadmap §2.1 rule 5 wants it in Settings). The header shows Mana before the Grimoire opens.
 - **Active income is x7.2, not the doc's ~x2** (R3, design doc §6.1 R3 notes). The specified
   spell/anomaly values were applied; the rest comes from Chrono Warp (~+1), Bursts cast inside
   Celestial, and Frenzy clicks. Owner decision: which of those to trim (each changes the

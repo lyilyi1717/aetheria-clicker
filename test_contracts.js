@@ -10,6 +10,7 @@ import {
 } from './js/systems/BountySystem.js';
 import { contractsForRank, guildRankFor } from './js/systems/TalentSources.js';
 import { particles } from './js/engine/ParticleEngine.js';
+import { UNLOCKS } from './js/systems/UnlockSystem.js';
 
 globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
 particles.suppressed = true;
@@ -19,6 +20,7 @@ const MIN = 60 * 1000;
 const rng = (seed = 1) => () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
 const make = (now = T0, seed = 7) => {
   const gs = new GameState();
+  gs.unlocks = Object.fromEntries(UNLOCKS.map(u => [u.tab, 1])); // every tab open (R7 gating tested below)
   gs.hero = { maxFloor: 1, floor: 1 };
   const bs = new BountySystem(gs);   // starts the board at the real clock; reset it to `now`
   bs.rng = rng(seed);

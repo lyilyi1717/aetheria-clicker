@@ -12,6 +12,7 @@ import {
   defaultCalendarState, sanitizeCalendarState, DALLAH_SAND, DALLAH_BANK_MAX, LEDGER_GOAL_SEALS
 } from './js/systems/CalendarSystem.js';
 import { particles } from './js/engine/ParticleEngine.js';
+import { UNLOCKS } from './js/systems/UnlockSystem.js';
 
 globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
 particles.suppressed = true;
@@ -25,6 +26,7 @@ const MON = at(10, 5);
 function setup(start = MON) {
   let now = start;
   const gs = new GameState();
+  gs.unlocks = Object.fromEntries(UNLOCKS.map(u => [u.tab, 1])); // the Dallah opens after Ascending (R7)
   gs.bountySystem = new BountySystem(gs);
   const cal = new CalendarSystem(gs, () => now);
   const notes = [];

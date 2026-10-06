@@ -189,16 +189,18 @@ unlock.
 | 5 | **Bounties** | reach Excavation depth 10 | ~13 min / ~7 min | first contract pre-filled to 50% |
 | 6 | **Garden** | reach depth 15 ("Hasawi seeds in the sand") | ~18 min / ~10 min | 2 extra Mint seeds |
 | 7 | **Alchemy** | first moment the player *can* brew any recipe (≥1 gem and ≥2 of its essence) | ~30 min / ~15 min | one free brew of Cold Vimto |
-| 8 | **Ascension** | **teaser** at maxFloor ≥ 50 with a 2-part progress bar. **Unlock** at maxFloor ≥ 100 **and** maxDepth ≥ 25 **and** pending dust > 0. Applies to the first Ascension only; later Ascensions are ungated. | ~45 min / ~15 min | — (the ceremony is the reward) |
+| 8 | **Ascension** | ~~teaser at maxFloor ≥ 50; unlock at maxFloor ≥ 100 and maxDepth ≥ 25 and pending dust > 0~~ **As built (R7):** teaser once the Tower is open, showing progress to 1e9 run Aether; **unlock** when pending dust > 0 (or ascensionCount ≥ 1). See note below. | ~10 min / ~6 min | — (the ceremony is the reward) |
 | 9 | **Constellations** | first Ascension | with #8 | the +2 first-Ascension star |
 | 10 | **Leaderboard** | first Ascension | with #8 | — |
 | 11 | **Bazaar** (Golden Enchanter included) | Ascension 2 **and** maxFloor ≥ 150 (zone 3) | ~3 h / ~30 min | one free small caravan |
+| 11b | **Dallah** (R15, added in R7) | first Ascension, as the day-2 return hook | with #8 | — |
 | 12 | **Quick Cast bar** | Ascension 3 | ~5 h / ~40 min | — |
 | 13 | **Garden Golems** | **Keystone talent "Golem Covenant"** (2 TP), needs 50 harvests | player's choice, typically day 1 | first Golem's Mana Sap cost waived |
 | 14 | **Fast Forward** | **Keystone talent "Hourglass of Al-Ula"** (2 TP), needs Ascension 2 | player's choice, typically day 1–2 | sand bank shown full: offline sand has been accruing all along |
 | 15 | **Ascension perk tiers** | Genesis + Eternal Resonance at Asc 1 · Singularity Tap + Titan's Legacy at Asc 3 · Chrono Reservoir + Astral Crucible at Asc 5 · Automated Leylines at Asc 10 | day 1 (casual Asc 10 ≈ day 2–3) | — |
 | 16 | **Transcend** | **all 7 Seals of Transcendence** lit (§5.1). The section shows from Ascension 1 as 7 dim lamps. | ~12–18 days / ~7–10 days | +3 TP on the first Transcend |
 | 17 | **Shard tree** (layer 2, wave 3) | first Transcend | — | — |
+| 18 | **Chronicle** (R20, added in R7) | first Transcend (the next layer shows one layer early, like Transcend from Ascension 1) | with #16 | — |
 
 **Why this order:**
 - Monolith → Tower → Excavation → Garden → Alchemy follows the production graph. Each new
@@ -214,6 +216,26 @@ unlock.
 - The two automation features cost talent points. That makes the first talent decision a
   real trade-off: automation versus raw power.
 
+**As built in R7** (deviations from the table above):
+- **Ascension gate.** The floor 100 + depth 25 gate would push a casual first Ascension to ~45
+  min, past the 30-min target (`TARGETS.firstAscensionMaxMin` in `sim/core-pacing.mjs`; the sim's
+  first Ascension is 10 min). The tab opens when Ascension pays dust (pending dust > 0, i.e. 1e9
+  Aether this run) or after any Ascension. Its teaser shows log progress to 1e9 Aether.
+- **Keystones** (Golem Covenant, Hourglass of Al-Ula) live in the Dust shop (R6), not in
+  Constellations; R7 has nothing to gate there. **Transcend** is not gated on the Seals (R4/R15).
+- **Quick Cast bar** opens with the Grimoire (it casts Grimoire spells), not at Ascension 3.
+- **Ascension perk tiers** (#15) are the Dust shop's own Ascension requirements (R6).
+- **The Tower climbs only once its tab is open** (the hero would otherwise auto-fight unseen).
+- **Starter gifts built:** 30 stone (Excavation), mana refill (Grimoire), 2 Mint seeds (Garden),
+  credited at the reveal and named in the toast. **Not built yet:** Rare weapon (Tower), half-filled
+  first contract (Bounties), free Cold Vimto brew (Alchemy), free caravan (Bazaar).
+- **Save export/import** still lives in the Codex; it unlocks at 3 achievements (~1 min) and
+  every pre-R7 save with an achievement keeps it, so no backup is trapped. Moving it is open.
+- **Ledger goals** (R15) carry a `tab` and only draw from open tabs; a week drawn early tops up
+  to 3 goals as tabs open.
+- **Old saves** (save v6 migration): any Ascension/Transcend/Chronicle opens every tab; otherwise
+  each tab whose trigger is met or whose system shows use, all marked seen (no reveal, no gift).
+
 **Contracts only roll types from unlocked tabs.** Today a `harvest_plant` contract can
 appear before the Garden is visible.
 
@@ -221,8 +243,8 @@ appear before the Garden is visible.
 
 | Phase | Spec |
 |---|---|
-| **Teaser (locked)** | The next locked tab shows in the nav as a dimmed silhouette: lock glyph, name "???", no click. The tooltip shows the trigger and live progress, e.g. "Defeat the floor-20 boss: floor 14/20". The tab after that stays hidden. The Ascension teaser is the exception: it shows its own progress bars. |
-| **Reveal moment** | The nav button fades in with a gold shimmer, plays `sound.playAscension()`, and pops a toast: "🏜️ NEW: Excavation — Grandpa's old shovel fell from the boss!" (Saudi-meme flavour line per tab). It is a toast, not a modal: never interrupt a click streak. The button carries a pulsing "NEW" pip until visited. |
+| **Teaser (locked)** | The next locked tab shows in the nav as a dimmed silhouette: lock glyph, name "???", no click. The tooltip shows the trigger and live progress, e.g. "Defeat the floor-20 boss: floor 14/20". The tab after that stays hidden. The Ascension teaser is the exception: it shows by name, with its progress bar, as a second teaser once the Tower is open. On phones the bottom bar keeps its slots: a locked slot is a dimmed "Soon" (or the teaser's short progress). |
+| **Reveal moment** | The nav button fades in with a gold shimmer, plays the big toast's sound (R7; was `sound.playAscension()`), and pops a toast: "🏜️ NEW: Excavation — Grandpa's old shovel fell from the boss!" (Saudi-meme flavour line per tab). It is a toast, not a modal: never interrupt a click streak. The button carries a pulsing "NEW" pip until visited. |
 | **First visit** | The existing `.tab-guide-banner` opens expanded with a 3-line "First time here" block: what this tab is, what it produces, the one thing to do first. A starter gift (table above) is credited with a float-text, so the first action succeeds. The "first thing to do" is highlighted with a one-shot glow. Later visits show the banner collapsed, as today. |
 | **Keystone features** | Shown inside the Constellations tab as larger star nodes with a "Unlocks: Fast Forward" label. The header Fast Forward button and the Golem panel show as greyed teasers with "Unlock in Constellations: Hourglass of Al-Ula (2 TP)". |
 

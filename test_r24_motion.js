@@ -103,7 +103,7 @@ console.log('--- CSS: nothing "ready" pulses forever; infinite loops are ambient
   // Ambient motion (orb ring, background dust, floating anomaly, ceremony burst) may loop; it
   // all stops under reduced motion. Everything else runs a fixed number of times.
   const AMBIENT = new Set(['spin', 'desertDust', 'floatWobble', 'floatSmooth', 'reward-spin']);
-  for (const file of ['animations', 'style', 'rewards', 'components', 'garden-breeding', 'wardens-relics']) {
+  for (const file of ['animations', 'style', 'rewards', 'components', 'garden-breeding', 'wardens-relics', 'unlocks']) {
     const css = read(`./css/${file}.css`);
     for (const m of css.matchAll(/animation:\s*([^;]+);/g)) {
       for (const part of m[1].split(',')) {

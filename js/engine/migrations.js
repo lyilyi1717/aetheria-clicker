@@ -133,6 +133,54 @@ export const MIGRATIONS = [
       delete data.ascensionPerks;
       return data;
     }
+  },
+  {
+    // v5 -> v6 (progressive tab unlocking, roadmap R7, docs/gamification-roadmap.md §2): new
+    // saves start with only the Monolith. Saves from before it keep every tab they have used or
+    // already earned, marked as seen (no NEW tags, no reveal toasts, no starter gifts):
+    //   - any Ascension, Transcend or Chronicle: every tab;
+    //   - otherwise each tab whose trigger is met or whose system shows use.
+    // Triggers the save can't show (Alchemy "can brew", pending dust) are caught live on load.
+    // Tab ids and thresholds are inlined on purpose (see step 3).
+    to: 6,
+    migrate(data) {
+      const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+      const stats = data.stats && typeof data.stats === 'object' ? data.stats : {};
+      const floor = num(data.hero?.maxFloor);
+      const depth = num(data.mining?.maxDepth);
+      const plots = Array.isArray(data.garden?.plots) ? data.garden.plots : [];
+      const items = data.market?.items && typeof data.market.items === 'object' ? Object.values(data.market.items) : [];
+      const prestiged = num(data.ascensionCount) >= 1 || num(data.transcendenceCount) >= 1 ||
+        num(data.chronicle?.count) >= 1;
+      const used = {
+        codex: Object.keys(data.achievements || {}).length > 0,
+        combat: num(data.buildings?.tapper?.count) >= 10 || floor > 1 || num(stats.totalMonstersSlain) > 0,
+        mining: floor > 20 || depth > 0 || num(stats.totalBlocksMined) > 0,
+        spells: floor > 40 || num(stats.totalSpellsCast) > 0,
+        bounties: depth >= 10 || num(stats.totalBountiesCompleted) > 0 || num(data.records?.guildRank) > 0,
+        garden: depth >= 15 || num(stats.totalPlantsHarvested) > 0 || num(data.garden?.golems) > 0 ||
+          plots.some((p, i) => i >= 4 && p && p.seed),
+        alchemy: num(stats.totalPotionsBrewed) > 0 || num(data.alchemy?.catalysts) > 0,
+        prestige: prestiged,
+        talents: prestiged,
+        leaderboard: prestiged,
+        calendar: prestiged,
+        market: (num(data.ascensionCount) >= 2 && floor >= 150) ||
+          items.some(it => num(it?.owned) > 0) || !!data.market?.caravan?.active || num(data.market?.goldenSynergy) > 0,
+        chronicle: num(data.transcendenceCount) >= 1 || num(data.chronicle?.count) >= 1
+      };
+      const at = num(data.savedAt) > 0 ? num(data.savedAt) : 1;
+      const unlocks = data.unlocks && typeof data.unlocks === 'object' ? { ...data.unlocks } : {};
+      const seen = data.unlockSeen && typeof data.unlockSeen === 'object' ? { ...data.unlockSeen } : {};
+      for (const [tab, ok] of Object.entries(used)) {
+        if (!(ok || prestiged)) continue;
+        if (!unlocks[tab]) unlocks[tab] = at;
+        seen[tab] = true;
+      }
+      data.unlocks = unlocks;
+      data.unlockSeen = seen;
+      return data;
+    }
   }
 ];
 
