@@ -19,8 +19,14 @@ import { BountySystem, QUARTERMASTER_UPGRADES } from './systems/BountySystem.js'
 import { MarketSystem, COMMODITIES, getStockCap } from './systems/MarketSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
+<<<<<<< HEAD
+import { AchievementSystem } from './systems/AchievementSystem.js';
+import { CollectionSystem } from './systems/CollectionSystem.js';
+import { CodexUI } from './ui/codex.js';
+=======
 import { TalentSourcesPanel } from './ui/talents.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
+>>>>>>> origin/main
 import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } from './systems/FastForwardSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
 import { getTabBonuses, BONUS_KIND_LABELS, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
@@ -76,6 +82,7 @@ class AetheriaApp {
     this.marketSystem = new MarketSystem(this.gameState);
     this.prestigeSystem = new PrestigeSystem(this.gameState);
     this.achievementSystem = new AchievementSystem(this.gameState);
+    this.collectionSystem = new CollectionSystem(this.gameState);
     this.fastForwardSystem = new FastForwardSystem(this.gameState);
 
     // Separate 1x/10x/MAX settings: Buildings use buildingSystem.buyAmount, the Enchanter this
@@ -88,6 +95,7 @@ class AetheriaApp {
     this.gameState.gardenSystem = this.gardenSystem;
     this.gameState.bountySystem = this.bountySystem;
     this.gameState.achievementSystem = this.achievementSystem;
+    this.gameState.collectionSystem = this.collectionSystem;
     this.gameState.marketSystem = this.marketSystem;
 
     // Game loop
@@ -1750,27 +1758,13 @@ class AetheriaApp {
 
   // --- Codex Structure ---
   buildCodexStructure() {
+    this.codexUI = new CodexUI(this);
+    this.codexUI.build();
     this.updateCodexUI();
   }
 
   updateCodexUI() {
-    const achList = document.getElementById('achievements-grid');
-    if (achList) {
-      const unlockedCount = this.achievementSystem.getUnlockedCount();
-      const countEl = document.getElementById('achievements-unlocked-title');
-      if (countEl) countEl.textContent = `Unlocked: ${unlockedCount} / ${ACHIEVEMENTS.length} (+${(unlockedCount * 1.5).toFixed(1)}% Global Bonus)`;
-
-      achList.innerHTML = ACHIEVEMENTS.map(a => {
-        const isUnlocked = !!this.gameState.achievements[a.id];
-        return `
-          <div class="ach-card ${isUnlocked ? 'unlocked' : 'locked'}">
-            <div class="a-icon">${isUnlocked ? a.icon : '🔒'}</div>
-            <div class="a-name">${isUnlocked ? a.name : '???'}</div>
-            <div class="a-desc">${isUnlocked ? a.desc : 'Milestone undiscovered'}</div>
-          </div>
-        `;
-      }).join('');
-    }
+    this.codexUI?.update();
 
     const statsCont = document.getElementById('game-stats-container');
     if (statsCont) {
@@ -1814,6 +1808,7 @@ class AetheriaApp {
 
     this.gameState.stats.totalPlayTimeSeconds += dt;
     this.achievementSystem.checkAchievements();
+    this.collectionSystem.update(dt);
   }
 
   // Pays out a booked Fast Forward over a few loop ticks (FF_WARP_RATE), in small sim steps.
