@@ -7,6 +7,7 @@
 //                        (BountySystem.claimBounty calls recordContractClaim once per claim)
 // Pure data and functions, no audio or particle imports, so GameState can import it.
 import { BigNum } from '../engine/BigNum.js';
+import { getLifetimeTranscends } from './ChronicleSystem.js';
 
 export const RECORD_DUST_OFFSET = 3;     // S2 calibration knob
 export const GUILD_EXPONENT = 1.4;       // S3 calibration knob (lower is faster)
@@ -117,7 +118,7 @@ export function checkMilestones(gs) {
     }
   }
   // Transcend ladder: first +3, then +1 each
-  const t = gs.transcendenceCount || 0;
+  const t = getLifetimeTranscends(gs);
   while (rec.transcendPaid < t) {
     rec.transcendPaid++;
     total += grantTalentPoints(gs, rec.transcendPaid === 1 ? TRANSCEND_FIRST_STAR : 1, 'stars',
@@ -206,7 +207,7 @@ export function seedRecords(gs) {
   for (const def of STAR_DEFS) {
     if (def.value(gs) >= def.goal) rec.stars[def.id] = true;
   }
-  rec.transcendPaid = gs.transcendenceCount || 0;
+  rec.transcendPaid = getLifetimeTranscends(gs);
   rec.bestRunDust = gs.totalCosmicDust instanceof BigNum ? gs.totalCosmicDust : BigNum.zero();
   rec.magnitudeStars = magnitudeStarsFor(rec.bestRunDust);
   rec.contractsClaimed = Math.max(0, Math.floor(gs.stats?.totalBountiesCompleted || 0));
@@ -236,7 +237,7 @@ export function getNextStars(gs, limit = 3, transcendGate = null) {
   if (seed) out.push({ id: `harvest_${seed.seed}`, source: 'stars', label: `First ${seed.name} harvest`, tp: 1, progress: 0, text: 'not yet' });
 
   if (transcendGate) {
-    const t = gs.transcendenceCount || 0;
+    const t = getLifetimeTranscends(gs);
     const p = clamp01(bigLog10(gs.totalCosmicDust) / Math.max(1, bigLog10(transcendGate)));
     out.push({ id: 'transcend_next', source: 'stars', label: t === 0 ? 'First Transcend' : `Transcend ${t + 1}`,
       tp: t === 0 ? TRANSCEND_FIRST_STAR : 1, progress: p, text: `${Math.round(p * 100)}%` });

@@ -3,6 +3,7 @@
 // (supabase/leaderboard.sql, supabase/leaderboard_season2.sql) only let each player write
 // their own row.
 import { getIndexFloor } from './systems/CombatSystem.js';
+import { getLifetimeTranscends } from './systems/ChronicleSystem.js';
 
 const SUPABASE_URL = 'https://hutjfgbjjagqdjjeszqj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_mxWGt9Ul4V2q4Wb0DEmV9Q_UhBH6T-f';
@@ -169,7 +170,7 @@ export class Leaderboard {
       // Post-R8 floor: legacy saves keep maxFloor (up to ~723k) only as their Season 1 record
       stats.season = season;
       stats.max_floor = getIndexFloor(gs.hero);
-      stats.transcends = gs.transcendenceCount || 0;
+      stats.transcends = getLifetimeTranscends(gs);   // every Chronicle's Transcends (R20)
     }
     return stats;
   }

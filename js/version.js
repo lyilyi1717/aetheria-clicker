@@ -3,9 +3,21 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '3.7.0';
+export const VERSION = '4.0.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.0.0',
+    date: '2026-10-06',
+    title: 'The Chronicle: a third prestige layer',
+    changes: [
+      'New Chronicle tab (Meta group). Once Transcends slow down, begin a Chronicle: at 12 Transcends with all seven Seals of Transcendence lit, or at 24 Transcends without them (after your first Chronicle, 12 is always enough). The panel lists exactly what starts again and what you keep before you confirm.',
+      'A Chronicle starts your run, shop upgrades, Cosmic Dust, God Perks, Fracture Shards, the Shard Tree and your Transcend count again (back to 14 generator tiers). You keep everything else: talents, records, the Codex, the Tower, Excavation, Garden, Alchemy, Guild, Bazaar, gold and sand. Wardens and Garden breeding stay unlocked, and your Transcend achievements and talent stars count every Chronicle.',
+      'Chronicle Pages: 3 for a Chronicle at 12 Transcends, +1 for every 2 Transcends past that. Every Page you have ever earned gives ×1.4 Aether for good; spending them never lowers it. Spend Pages on six permanent Page upgrades, such as Bookmark (keep Auto-Ascend through a Chronicle) and Ink of Memory (start each Chronicle with 2 Fracture Shards).',
+      'Chapter 1, Sand: your first Chronicle opens a ten-week season where Excavation digs ×3 but Aether is halved. Finishing it pays a stamp and 3 Pages.',
+      'Four challenges (Dry Well, Lights Out, Small Souq, Sandstorm): side runs with special rules and a goal that pay 3–5 Pages on the first clear. Starting one sets your current run aside; it comes back exactly as it was when you finish or abandon the challenge, even across a reload. Challenges stay open after the Chapter ends, so nothing can be missed.'
+    ]
+  },
   {
     version: '3.7.0',
     date: '2026-10-06',

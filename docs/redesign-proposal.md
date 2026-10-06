@@ -270,7 +270,8 @@ shard-tree branch becomes affordable. Month 1: Garden breeding opens. Month 2: T
 (every 250 floors). Month 3: Stratum 7 (Abyssal Heart) in sight. Month 4: Chronicle unlocks.
 
 **Every season (3 months).** A Chronicle **Chapter**: a 6–10-week rule set with its own small
-upgrade tree and a Page reward, e.g. "Chapter of Sand" (Excavation is ×3 but Aether is ÷10;
+upgrade tree and a Page reward, e.g. "Chapter of Sand" (Excavation is ×3 but Aether is ÷10,
+shipped as ÷2, see §6.6;
 new relics in every stratum), "Chapter of the Caravan" (Bazaar prices follow a real trend;
 caravans carry gems), "Chapter of the Dallah" (Garden ×2, essences also feed the Monolith).
 Chapters rotate; a missed Chapter comes back next year. Leaderboard seasons align with
@@ -648,7 +649,7 @@ Ascend at pending ≥ lifetime dust, Transcend at the gate): first Transcend day
 Transcends in the year (8 by month 1, 22 by month 3, 29 by month 6), tier 30 at day 55,
 1,274 Ascensions, CPS 1.8e81 at a year. A reset at least every 14 days until day 190; the last
 Transcends land at days 170, 209 and 312. `TARGETS.gapWindowEndDay` in `sim/core-pacing.mjs`
-is therefore 180 until the Chronicle (R20) restores 270. *After R5* (upgrade shop, before R3):
+was therefore 180 until the Chronicle (R20) restored 270 (§6.6). *After R5* (upgrade shop, before R3):
 first Transcend day 1.5, 32 Transcends, a reset at least every 14 days until day 184 (R5 notes
 in §6.1).
 
@@ -692,6 +693,49 @@ saves that were already deep when R18 shipped can still complete the set. Deeper
 player there. Aether Ore: 10% of plain stone tiles add 1 to the Bazaar's existing `ore` stock
 (sold at its price x the Market Index; no Bazaar code changed). Gem Polishing is in
 `AlchemySystem.polishGem`: 5 of a tier make 1 of the next (ruby to void amethyst).
+
+### 6.6 Chronicle (layer 3, R20; `js/systems/ChronicleSystem.js`)
+
+*As shipped.* Gate: 12 Transcends this Chronicle **and** Seal set I (all seven Seals, R15). A
+first Chronicle also opens at **24 Transcends** without the Seals (deviation, rule 5: the Seals
+include a Tower floor and 40% of the Codex, and no single subgame should lock a prestige layer
+away; 24 Transcends is ~day 90 casual, about when the calendar in §4.2 completes Seal set I).
+After the first Chronicle the Seal half counts as met.
+
+- **Resets:** run, shop upgrades, dust, lifetime dust, perks, Fracture Shards (both counters),
+  shard tree, Transcend count (ladder back to 14 tiers). **Keeps:** Pages, Page upgrades,
+  stamps, challenge records, Ascension count, talents, records, Codex, subgames, gold, sand,
+  Wardens and Garden breeding (as free unlocks). Lifetime Transcends
+  (`pastTranscends + transcendenceCount`) feed the talent ladder, achievements and leaderboard,
+  so nothing pays twice and no record goes backwards.
+- **Pages:** 3 + 1 per 2 Transcends past 12 per Chronicle. Every Page ever earned is **×1.4
+  Aether** (BigNum). Measured: ×1.5, or a dust-gain bonus per Page, bunched Transcends into
+  storms (several within hours) after the second Chronicle; ×1.4 keeps every Transcend at least
+  6 h apart in the sim.
+- **Page upgrades** (spendable Pages): Bookmark 3 (keep Auto-Ascend), Ink of Memory 4 (start with
+  2 shards), Second Reading 5 (first clears pay double), Margin Notes 6 (+25% Aether per cleared
+  challenge), Dog-Ear 5 (keep Long Sleep and Hourglass), Gilded Edges 8 (+1 Page per Chronicle).
+- **Challenge runner:** a challenge stashes the run (Aether, run Aether, generators, shop
+  upgrades, combo) in `chronicle.active` and starts a fresh one. Overrides are never written to
+  `GameState`: every hook reads `getActiveRules(gs)`, derived from the running challenge id or the
+  current Chapter. A save holds only ids and the stash; reload re-derives the rules; finishing or
+  abandoning restores the stash exactly. No Ascend, Transcend, Chronicle or Hourglass during one.
+- **Chapter 1, Sand** (10 weeks of real time from the first Chronicle): Excavation ×3, Aether
+  **÷2** (the §4.1 draft said ÷10). Both pass the sim (measured before R3); with ÷10 the first Transcend after
+  Chronicle I comes at +2.3 days instead of +1.6 and each later Chronicle lands ~7 days later.
+  A ten-week tax on the main currency right after the biggest reset of the game should read as
+  a twist, not a penalty, so the gentler ÷2 ships. Stamp pays 3 Pages. Challenges (layer
+  bonuses off; goal is run Aether): Dry Well (combo cap ×2, no Frenzy, 1e11, 3 Pages), Lights
+  Out (no spells, 1e11, 3), Small Souq (6 tiers, 1e10, 4, after 1 clear), Sandstorm (Aether ÷10,
+  1e10, 5, after 3). Past Chapters' challenges stay playable. A new Chapter is a new `CHAPTERS`
+  entry; `validateChapters` checks it.
+- **Measured** (`npm run sim` after R3, which begins a Chronicle once allowed and a week after
+  the last Transcend, buys Page upgrades, plays no challenges): casual Chronicles at days 105,
+  193, 276, 362; a reset at least every 14 days through day 365 (was day 206 without the
+  Chronicle); longest gap to day 270 2.4 days; 116 Transcends in the year, none within 6 h of
+  another. Idle: Chronicles at 122, 216, 306. CPS at a year is lower than without the layer
+  (~4e29 casual, just after Chronicle IV, vs 2e82): the layer restarts the climb rather than
+  inflating numbers.
 
 ---
 

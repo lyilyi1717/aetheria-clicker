@@ -377,6 +377,11 @@ export class CalendarSystem {
     return lit;
   }
 
+  // Seal set I is the seven Seals above; the Chronicle gate (R20) reads it. Later sets: null.
+  getSealSetProgress(set) {
+    return set === 1 ? { lit: this.getLitSealCount(), total: SEALS.length } : null;
+  }
+
   getSeals() {
     const gs = this.gameState;
     return SEALS.map(seal => {
