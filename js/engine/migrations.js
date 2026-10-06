@@ -5,6 +5,8 @@
 // into the shape of version `to`, and returns it. Never edit or reorder a shipped step: players
 // may hold saves at any older version. Add a test that loads an old-shaped save.
 
+import { BigNum } from './BigNum.js';
+
 // Old saves with more compounding Catalyst brews than this are trimmed on migration
 export const CATALYST_MIGRATION_CAP = 50;
 
@@ -53,6 +55,41 @@ export const MIGRATIONS = [
       const f = Number.isFinite(floor) && floor >= 1 ? Math.floor(floor) : 1;
       h.indexFloor = Number.isFinite(maxFloor) && maxFloor >= 1 ? Math.min(Math.floor(maxFloor), f) : f;
       h.pendingFloorRebase = true;
+      return data;
+    }
+  },
+  {
+    // v3 -> v4 (Transcend rework, roadmap R4, design doc 6.1). Old rules: gate 50k lifetime dust,
+    // floor(lifetime dust / 1e4) shards at +10% Aether each, and all dust lost. New rules: 2 shards
+    // per Transcend at x1.5 Aether and x1.5 dust gain each, plus one generator tier per Transcend.
+    // Refund for saves that already Transcended:
+    //   - every old Transcend is re-scored as a new one (keeps transcendenceCount, so the tiers
+    //     and the next gate match a new-rules player at the same count);
+    //   - shards = max(2 x Transcends, the fewest shards whose x1.5^n matches the old 1 + 0.1 x S),
+    //     so no save's shard multiplier goes down;
+    //   - the dust the old Transcends took is given back: the old payout was floor(dust / 1e4),
+    //     so S old shards stand for at least S x 1e4 dust, added to lifetime and spendable dust.
+    // Constants are inlined on purpose (see step 3).
+    to: 4,
+    migrate(data) {
+      const count = Math.floor(Number(data.transcendenceCount));
+      const T = Number.isFinite(count) && count > 0 ? count : 0;
+      const oldShards = BigNum.fromJSON(data.fractureShards).max(0).floor();
+      if (T === 0 && oldShards.lte(0)) {
+        data.totalFractureShards = data.fractureShards ?? { m: 0, e: 0 };
+        return data;
+      }
+      // log10(1 + 0.1 S): direct while S fits a double, else log10(S) - 1
+      const log10S = oldShards.m > 0 ? Math.log10(oldShards.m) + oldShards.e : -Infinity;
+      const log10Old = log10S > 15 ? log10S - 1 : Math.log10(1 + 0.1 * oldShards.toNumber());
+      const matchOld = Math.ceil(log10Old / Math.log10(1.5) - 1e-9);
+      const shards = Math.max(2 * T, Number.isFinite(matchOld) ? matchOld : 0);
+      const dust = oldShards.mul(1e4);
+      data.fractureShards = new BigNum(shards).toJSON();
+      data.totalFractureShards = new BigNum(shards).toJSON();
+      data.cosmicDust = BigNum.fromJSON(data.cosmicDust).add(dust).toJSON();
+      data.totalCosmicDust = BigNum.fromJSON(data.totalCosmicDust).add(dust).toJSON();
+      data.legacyTranscendRefund = { transcends: T, oldShards: oldShards.toJSON(), shards, dust: dust.toJSON() };
       return data;
     }
   }

@@ -10,6 +10,8 @@
 //   casual : present 10 min of every hour (2 clicks/s at full combo, spells on cooldown,
 //            anomalies clicked), approximated as an income multiplier from the spell/anomaly code
 // Ascend policy: when pending dust >= max(10, current dust) and the run is at least 10 min old.
+// Transcend policy: as soon as lifetime dust reaches the gate (R4). Each Transcend unlocks the
+// next generator tier and counts as a reset in the gap measurement.
 //
 // When an economy PR changes the core (new prestige layer, shop, formulas), update this script
 // so it still models what a real player would do, and paste the before/after report in the PR.
@@ -30,7 +32,7 @@ const YEAR = 365 * DAY;
 export const TARGETS = {
   firstAscensionMaxMin: 30,      // casual player's first Ascension within 30 min
   maxGapDaysAfterDay1: 14,       // never more than 14 days without a reset (days 1..270)
-  gapWindowEndDay: 270
+  gapWindowEndDay: 180            // was 270; R4 core holds it to ~day 190, R20 (Chronicle) restores 270
 };
 
 const CHECKPOINTS = [
@@ -50,22 +52,26 @@ function run(profile) {
   // Aether Burst +4x, Celestial +1x, Supernova anomaly +1.67x, clicks +0.3x while present.
   const activeMult = (t) => (t % 3600 < presence ? 7.97 : 1);
 
+  // Greedy: buy the generator with the best Aether/s gained per Aether spent, one at a time.
+  // Compared in log10 space (same ordering as the BigNum maths, ~20x faster with 30 tiers).
+  const lg = (x) => Math.log10(Math.abs(x.m)) + x.e;
+  const LOG_R = Math.log10(1.15);
   const greedyBuy = () => {
+    const unlocked = BUILDING_DEFINITIONS.slice(0, bs.getUnlockedTierCount());
+    const costMult = Math.log10(bs.getCostMultiplier());
     for (let k = 0; k < 50; k++) {
-      let best = null, bestRatio = 0;
-      for (const def of BUILDING_DEFINITIONS) {
-        const cost = bs.getBuildingCost(def.id, 1);
-        if (gs.aether.lt(cost)) continue;
+      if (gs.aether.m <= 0) return;
+      const budget = lg(gs.aether);
+      let best = null, bestRatio = -Infinity;
+      for (const def of unlocked) {
         const cnt = gs.buildings[def.id].count;
-        const before = bs.getBuildingProduction(def.id);
-        gs.buildings[def.id].count = cnt + 1;
-        const after = bs.getBuildingProduction(def.id);
-        gs.buildings[def.id].count = cnt;
-        const ratio = after.sub(before).div(cost).toNumber();
+        const cost = lg(def.baseCost) + cnt * LOG_R + costMult;
+        if (cost > budget + 1e-9) continue;
+        const gain = (cnt + 1) * bs.getMilestoneMultiplier(cnt + 1) - cnt * bs.getMilestoneMultiplier(cnt);
+        const ratio = lg(def.baseCps) + Math.log10(gain) - cost;
         if (ratio > bestRatio) { bestRatio = ratio; best = def.id; }
       }
-      if (!best) return;
-      bs.buyBuilding(best);
+      if (!best || !bs.buyBuilding(best)) return;
     }
   };
 
@@ -87,6 +93,9 @@ function run(profile) {
 
   let t = 0, runStart = 0, ci = 0;
   const resets = [];
+  const transcends = [];
+  const regainDays = [];   // days after each Transcend until CPS is back to its pre-Transcend level
+  let regainFrom = null;
   const rows = [];
   while (t < YEAR) {
     const dt = dtFor(t);
@@ -103,7 +112,7 @@ function run(profile) {
 
     const pending = ps.getPendingCosmicDust();
     if (pending.gt(0)) {
-      if (t - runStart >= 600 && pending.toNumber() >= Math.max(10, gs.totalCosmicDust.toNumber())) {
+      if (t - runStart >= 600 && pending.gte(gs.totalCosmicDust.max(10))) {
         resets.push(t);
         ps.ascend(true); // the sim enforces the 10-min minimum itself (virtual time, not Date.now)
         runStart = t;
@@ -111,12 +120,27 @@ function run(profile) {
       buyPerks();
     }
 
+    if (regainFrom && gs.getNetAetherPerSecond().gte(regainFrom.cps)) {
+      regainDays.push((t - regainFrom.t) / DAY);
+      regainFrom = null;
+    }
+    if (ps.canTranscend()) {
+      if (!regainFrom) regainFrom = { t, cps: gs.getNetAetherPerSecond() };
+      else regainFrom.cps = regainFrom.cps.max(gs.getNetAetherPerSecond());
+      transcends.push(t);
+      resets.push(t);
+      ps.transcend();
+      runStart = t;
+    }
+
     while (ci < CHECKPOINTS.length && t >= CHECKPOINTS[ci][1]) {
       rows.push({
         label: CHECKPOINTS[ci][0],
         cps: gs.getNetAetherPerSecond().format('scientific', 2),
         asc: gs.ascensionCount,
-        dust: gs.totalCosmicDust.format('scientific', 2)
+        dust: gs.totalCosmicDust.format('scientific', 2),
+        trans: gs.transcendenceCount,
+        tiers: bs.getUnlockedTierCount()
       });
       ci++;
     }
@@ -129,12 +153,23 @@ function run(profile) {
   }
   maxGap = Math.max(maxGap, TARGETS.gapWindowEndDay * DAY - prev);
 
+  // Last day up to which every stretch since day 1 stayed within the gap target
+  let keptUntil = YEAR;
+  prev = DAY;
+  for (const r of [...resets.filter(r => r > DAY), YEAR]) {
+    if (r - prev > TARGETS.maxGapDaysAfterDay1 * DAY) { keptUntil = prev; break; }
+    prev = r;
+  }
+
   return {
     rows,
     firstResetMin: resets.length ? resets[0] / 60 : Infinity,
     resetsDay0: resets.filter(r => r < DAY).length,
     resetsYear: resets.length,
-    maxGapDays: maxGap / DAY
+    transcendDays: transcends.map(x => x / DAY),
+    regainDays,
+    maxGapDays: maxGap / DAY,
+    gapKeptUntilDay: keptUntil / DAY
   };
 }
 
@@ -144,13 +179,19 @@ const out = [];
 for (const profile of ['idle', 'casual']) {
   const r = run(profile);
   out.push(`\n### profile: ${profile}\n`);
-  out.push('| time | CPS | Ascensions | lifetime dust |');
-  out.push('|---|---|---|---|');
-  for (const row of r.rows) out.push(`| ${row.label} | ${row.cps} | ${row.asc} | ${row.dust} |`);
+  out.push('| time | CPS | Ascensions | lifetime dust (this layer) | Transcends | tiers |');
+  out.push('|---|---|---|---|---|---|');
+  for (const row of r.rows) out.push(`| ${row.label} | ${row.cps} | ${row.asc} | ${row.dust} | ${row.trans} | ${row.tiers} |`);
   out.push('');
   out.push(`- first Ascension: ${r.firstResetMin.toFixed(1)} min`);
-  out.push(`- Ascensions on day 0: ${r.resetsDay0}; in the year: ${r.resetsYear}`);
+  out.push(`- resets (Ascensions + Transcends) on day 0: ${r.resetsDay0}; in the year: ${r.resetsYear}`);
+  if (r.regainDays.length) {
+    const sorted = [...r.regainDays].sort((a, b) => a - b);
+    out.push(`- CPS back to its pre-Transcend level after: median ${sorted[sorted.length >> 1].toFixed(1)} d, max ${sorted.at(-1).toFixed(1)} d (${sorted.length} of ${r.transcendDays.length} Transcends)`);
+  }
+  out.push(`- Transcends at day: ${r.transcendDays.length ? r.transcendDays.map(d => d.toFixed(1)).join(', ') : 'none'}`);
   out.push(`- longest stretch with no reset (day 1..${TARGETS.gapWindowEndDay}): ${r.maxGapDays.toFixed(1)} days`);
+  out.push(`- a reset at least every ${TARGETS.maxGapDaysAfterDay1} days until day ${r.gapKeptUntilDay.toFixed(0)}`);
   if (profile === 'casual') {
     if (r.firstResetMin > TARGETS.firstAscensionMaxMin) {
       failures.push(`first Ascension at ${r.firstResetMin.toFixed(1)} min > ${TARGETS.firstAscensionMaxMin} min`);
