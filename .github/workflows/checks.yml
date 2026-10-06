@@ -1,0 +1,29 @@
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Unit tests
+        run: npm test
+
+  pacing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Report only for now: today's game misses the year-one targets by design of the old core.
+      # Roadmap #4 (Transcend rework) switches this step to `npm run sim:check` so it becomes a gate.
+      - name: Core pacing report
+        run: npm run sim | tee -a "$GITHUB_STEP_SUMMARY"
