@@ -83,6 +83,8 @@ function absorb(entry, ev, now) {
   const t = normalizeTier(ev.tier);
   if (tierRank(t) > tierRank(entry.tier)) entry.tier = t;
   if (ev.title) entry.title = ev.title;           // latest name, e.g. the newest achievement
+  if (ev.batchTitle) entry.batchTitle = ev.batchTitle;
+  if (ev.icon) entry.icon = ev.icon;
   if (ev.detail) entry.detail = ev.detail;
   if (ev.color) entry.color = ev.color;
   entry.updatedAt = now;

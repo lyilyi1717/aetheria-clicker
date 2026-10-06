@@ -1,6 +1,6 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
-import { particles } from '../engine/ParticleEngine.js';
+import { rewards } from '../ui/rewards.js';
 
 export const BOUNTY_TEMPLATES = [
   { type: 'click', title: 'Energize the Monolith', reqBase: 50, icon: '👆', desc: 'Perform manual clicks' },
@@ -88,8 +88,10 @@ export class BountySystem {
         if (b.current >= b.required) {
           b.completed = true;
           anyCompleted = true;
-          sound.playAchievement();
-          particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `CONTRACT COMPLETE: ${b.title}!`, '#fbbf24', true);
+          rewards.notify({
+            tier: 'medium', kind: 'contract-complete', icon: '📜', color: '#fbbf24',
+            title: `Contract complete: ${b.title}`, batchTitle: '{n} contracts complete', detail: 'Claim it on the board'
+          });
         }
       }
     }
@@ -112,7 +114,10 @@ export class BountySystem {
 
     if (b.rewards.talentPoint) {
       this.gameState.talentPoints++;
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, '+1 TALENT POINT!', '#ec4899', true);
+      rewards.notify({
+        tier: 'medium', kind: 'talent-point', icon: '✨', color: '#ec4899',
+        title: 'Contract bonus', amount: 1, unit: 'Talent Point', fmt: (n) => String(n)
+      });
     }
 
     this.gameState.stats.totalBountiesCompleted++;
@@ -143,8 +148,10 @@ export class BountySystem {
     this.gameState.guildSeals -= cost;
     this.gameState.quartermaster[id].rank++;
     
-    sound.playBuy();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `GUILD CHARTER ACQUIRED!`, '#fbbf24', true);
+    rewards.notify({
+      tier: 'medium', kind: 'guild-charter', icon: '🏛️', color: '#fbbf24',
+      title: 'Guild charter acquired', batchTitle: '{n} guild charters acquired'
+    });
     return true;
   }
 }
