@@ -37,6 +37,19 @@ If you were told "do issue #N", do that. If you were told "pick the next task":
    PR** with `Closes #<issue>` right away. Other sessions work on other branches and can't see
    your STATUS.md edit; the open draft PR is how they know the item is taken.
 
+## Fanning out (one session running several sub-agents)
+
+Allowed, with these limits:
+
+- **Only "ready" items.** An item is ready when every issue in its "Depends on" line is *closed*
+  (its PR merged into `main`). An open PR doesn't count: don't build on unmerged code.
+- **One item per sub-agent, each in its own git worktree and branch**, each with its own draft PR
+  opened right away (that's the claim other sessions see). Sub-agents never share a checkout.
+- **No two sub-agents on items that touch the same files** (see each issue's "Files" line).
+  When in doubt, run them one after another.
+- The coordinating session reviews each sub-agent's PR against its issue before reporting done,
+  and is the only one that edits `docs/STATUS.md` (avoids conflicts in that file).
+
 ## Rules
 
 1. **One issue per PR.** Title: `R<n>: <short description>`. Body: `Closes #<GitHub issue number>`.
