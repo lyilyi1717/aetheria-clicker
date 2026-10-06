@@ -10,7 +10,7 @@ const T0 = Date.UTC(2026, 9, 6, 12, 0, 0);
 function setup(rank = 0) {
   let now = T0;
   const gs = new GameState();
-  gs.ascensionPerks.chrono_vault = { ...(gs.ascensionPerks.chrono_vault || {}), rank };
+  if (rank > 0) gs.dustShop.ranks.chrono_vault = rank;
   const ff = new FastForwardSystem(gs, () => now);
   return { gs, ff, setNow: (t) => { now = t; }, getNow: () => now };
 }
@@ -120,7 +120,7 @@ console.log('--- Fast Forward: escalation survives save/reload ---');
   // Old saves without the field get a clean state; junk is clamped
   const gs3 = new GameState();
   gs3.deserialize({ ...data, fastForward: undefined });
-  assert.deepEqual({ ...gs3.fastForward, clockMark: 0 }, { uses: 0, lastUseAt: 0, clockMark: 0, pending: 0 });
+  assert.deepEqual({ ...gs3.fastForward, clockMark: 0 }, { uses: 0, lastUseAt: 0, clockMark: 0, pending: 0, long: false });
   gs3.deserialize({ ...data, fastForward: { uses: 'x', pending: 1e9, lastUseAt: NaN } });
   assert.equal(gs3.fastForward.uses, 0);
   assert.equal(gs3.fastForward.pending, FF_WARP_SECONDS);

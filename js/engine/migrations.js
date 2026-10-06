@@ -92,6 +92,47 @@ export const MIGRATIONS = [
       data.legacyTranscendRefund = { transcends: T, oldShards: oldShards.toJSON(), shards, dust: dust.toJSON() };
       return data;
     }
+  },
+  {
+    // v4 -> v5 (Dust shop, roadmap R6, design doc 6.2): the 7 Ascension perks become the dust shop.
+    //   - Perks that are shop items now (Cosmic Genesis, Automated Leylines, Chrono Reservoir,
+    //     Titan's Legacy, Astral Crucible) keep their rank as owned shop items, free, even where
+    //     the shop now asks more Ascensions or more dust for them.
+    //   - Removed perks (Eternal Resonance, Singularity Tap) are refunded: every rank's price
+    //     (cost x 1.5^r) goes back to spendable dust. Lifetime dust is untouched (it never
+    //     dropped when the dust was spent).
+    //   - A save that already owns Garden Golems gets Golem Covenant (the gate on buying them).
+    // Constants are inlined on purpose (see step 3).
+    to: 5,
+    migrate(data) {
+      const OLD = {
+        genesis: [5, 1], eternal_resonance: [10, 50], hyper_click: [15, 50], auto_leylines: [50, 1],
+        chrono_vault: [25, 10], titan_legacy: [30, 10], astral_alchemist: [40, 1]
+      };
+      const KEPT = ['genesis', 'auto_leylines', 'chrono_vault', 'titan_legacy', 'astral_alchemist'];
+      const perks = data.ascensionPerks && typeof data.ascensionPerks === 'object' ? data.ascensionPerks : {};
+      const ranks = {};
+      const refunded = {};
+      let dust = BigNum.zero();
+      for (const [id, [cost, maxRank]] of Object.entries(OLD)) {
+        const raw = Math.floor(Number(perks[id]?.rank));
+        const rank = Number.isFinite(raw) ? Math.max(0, Math.min(maxRank, raw)) : 0;
+        if (rank <= 0) continue;
+        if (KEPT.includes(id)) { ranks[id] = rank; continue; }
+        for (let r = 0; r < rank; r++) dust = dust.add(new BigNum(cost * Math.pow(1.5, r)));
+        refunded[id] = rank;
+      }
+      const golems = Math.floor(Number(data.garden?.golems));
+      if (Number.isFinite(golems) && golems > 0) ranks.golem_covenant = 1;
+      const prev = data.dustShop && typeof data.dustShop === 'object' ? data.dustShop : {};
+      data.dustShop = { ...prev, ranks: { ...(prev.ranks || {}), ...ranks } };
+      if (dust.gt(0)) data.cosmicDust = BigNum.fromJSON(data.cosmicDust).add(dust).toJSON();
+      if (Object.keys(perks).some(id => (Number(perks[id]?.rank) || 0) > 0)) {
+        data.legacyPerkRefund = { kept: { ...ranks }, refunded, dust: dust.toJSON() };
+      }
+      delete data.ascensionPerks;
+      return data;
+    }
   }
 ];
 

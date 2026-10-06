@@ -2,6 +2,7 @@ import { recordHarvest } from './TalentSources.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
+import { hasShopItem } from './DustShopSystem.js';
 
 // Grow times are ×15 the v1.x values (§5.2): 5 min / 11 min / 19 min / 30 min / 1 h / 2 h.
 export const SEED_TYPES = {
@@ -212,9 +213,14 @@ export class GardenSystem {
     return k >= MAX_GOLEMS ? null : getGolemCost(k);
   }
 
+  // Golem Covenant (dust shop, Ascension 5) makes Golems purchasable; owned Golems always work
+  isGolemPurchaseUnlocked() {
+    return hasShopItem(this.gameState, 'golem_covenant');
+  }
+
   canBuyGolem() {
     const cost = this.getNextGolemCost();
-    if (!cost) return false;
+    if (!cost || !this.isGolemPurchaseUnlocked()) return false;
     return numOf(this.gameState.inventory?.stone) >= cost.stone &&
       (this.gameState.garden.essences.manaSap || 0) >= cost.manaSap;
   }

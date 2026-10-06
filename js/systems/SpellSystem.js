@@ -1,6 +1,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from '../ui/rewards.js';
+import { hasShopItem } from './DustShopSystem.js';
 
 export const SPELLS = [
   {
@@ -198,8 +199,8 @@ export class SpellSystem {
   }
 
   update(dt, realDt = dt) {
-    // Automated Leylines perk: when mana is full, auto-cast the next ready spell
-    if (this.gameState.ascensionPerks?.auto_leylines?.rank > 0 && this.gameState.mana >= this.gameState.maxMana) {
+    // Automated Leylines (dust shop): when mana is full, auto-cast the next ready spell
+    if (hasShopItem(this.gameState, 'auto_leylines') && this.gameState.mana >= this.gameState.maxMana) {
       const next = SPELLS.find(d => d.id !== 'astral_refresh' && this.canCast(d.id));
       if (next) this.castSpell(next.id);
     }

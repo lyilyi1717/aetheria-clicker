@@ -62,10 +62,10 @@ const newGs = new GameState();
 newGs.deserialize(serialized);
 console.assert(newGs.buildings['tapper'].count === 1, 'Deserialized building count mismatch');
 
-console.log('--- Testing Transcend re-fits perk-raised caps ---');
+console.log('--- Testing Transcend re-fits dust-shop-raised caps ---');
 globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
-gs.ascensionPerks.chrono_vault.rank = 2; // bank cap 2,880 s
-gs.ascensionPerks.titan_legacy.rank = 10; // +1,000 HP
+gs.dustShop.ranks.chrono_vault = 2; // bank cap 2,880 s
+gs.dustShop.ranks.titan_legacy = 10; // +1,000 HP
 gs.chronoSand = 2880;
 gs.hero.hp = cs.getTotalMaxHp();
 gs.frenzyActive = true;
