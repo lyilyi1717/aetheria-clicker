@@ -14,6 +14,8 @@ export const ASCENSION_PERKS = [
 
 // Dust gain = 150 * (runAether / 1e9)^DUST_EXPONENT (design doc 6.1: cube root, was 0.25)
 export const DUST_EXPONENT = 1 / 3;
+// Shortest run that may Ascend (design doc 2.1 / 6.1)
+export const MIN_RUN_SECONDS = 600;
 
 // Dust-gain links (design doc §5.3). Each is its own multiplicative category on pending dust.
 // Geode Attunement (Excavation -> Dust): x(1 + 0.10 * floor(maxDepth / 10))
@@ -81,17 +83,25 @@ export class PrestigeSystem {
     return totalAether.div(threshold).max(1).pow(DUST_EXPONENT).mul(150 * (1 + 1e-12)).floor();
   }
 
-  canAscend() {
-    return this.getPendingCosmicDust().gt(0);
+  // Seconds left until the current run is long enough to Ascend (0 = met). Wall-clock, so
+  // offline time counts. Clamped so a clock set backwards can't lock the button.
+  getMinRunRemaining(now = Date.now()) {
+    const elapsed = (now - (this.gameState.runStartedAt || 0)) / 1000;
+    return Math.min(MIN_RUN_SECONDS, Math.max(0, MIN_RUN_SECONDS - elapsed));
+  }
+
+  canAscend(now = Date.now()) {
+    return this.getPendingCosmicDust().gt(0) && this.getMinRunRemaining(now) <= 0;
   }
 
   ascend(force = false) {
     const pending = this.getPendingCosmicDust();
-    if (pending.lte(0) && !force) return false;
+    if (!force && !this.canAscend()) return false;
 
     this.gameState.cosmicDust = this.gameState.cosmicDust.add(pending);
     this.gameState.totalCosmicDust = this.gameState.totalCosmicDust.add(pending);
     this.gameState.ascensionCount++;
+    this.gameState.runStartedAt = Date.now();
 
     // Nectar Offering: all Celestial Nectar is consumed by the Ascension
     if (this.gameState.garden?.essences) {
