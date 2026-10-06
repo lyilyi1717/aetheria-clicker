@@ -292,7 +292,7 @@ term is log10.
 
 ```
 guildRank(C) = floor((C / 8)^(1/1.4))        C = lifetime contracts claimed
-contracts needed for rank r = ceil(8 · r^1.4): r1 8 · r2 21 · r3 37 · r5 77 · r10 201 · r20 529 · r40 1,392
+contracts needed for rank r = ceil(8 · r^1.4): r1 8 · r2 22 · r3 38 · r5 77 · r10 201 · r20 531 · r40 1,400
 ```
 
 - Each rank-up gives +1 TP and +5 Guild Seals, plus a title in the Bounties header.
@@ -314,6 +314,20 @@ This matches §3.1 within about 10%.
 - the S3 exponent 1.4 (lower is faster)
 - the S2 offset 3
 - the contract interval of 30 min
+
+**As implemented (R9, `js/systems/TalentSources.js`, state in `gs.records`):**
+- S1 stars are polled once a second (`checkMilestones`) from existing state: `ascensionCount`,
+  `miningGrid.maxDepth`, `hero.maxFloor`, `alchemy.catalysts`, `records.harvested` (set in
+  `GardenSystem.harvestPlot`) and `transcendenceCount`. The Codex-set star is not built (wave 2).
+- S2 runs inside `PrestigeSystem.ascend` (so Transcend's inner Ascend counts as a run).
+- S3: `recordContractClaim(gs, n)` is the API R10 calls. Until R10 paces the board, `BountySystem`
+  counts at most one claim per 30 min (bank of 6) toward Guild Rank, the §4.4 ceiling of 48 a day;
+  R10 should delete that stand-in (`consumeGuildClaim`).
+- The rank table above uses `ceil(8 * r^1.4)`: r2 22, r3 38, r20 531, r40 1,400 (the first draft
+  of the table was a few contracts low).
+- Old saves keep `talentPoints` and `spentTalentPoints` and get `records` seeded from what they
+  show (stars already met, best run dust = lifetime dust, contracts = bounties completed), so
+  nothing is re-awarded. No `MIGRATIONS` step: no existing field changed meaning.
 
 ### 3.3 Decision: gate the +3 per Ascension
 

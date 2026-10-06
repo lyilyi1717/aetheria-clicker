@@ -19,6 +19,7 @@ import { BountySystem, QUARTERMASTER_UPGRADES } from './systems/BountySystem.js'
 import { MarketSystem, COMMODITIES, getStockCap } from './systems/MarketSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from './systems/PrestigeSystem.js';
 import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
+import { TalentSourcesPanel } from './ui/talents.js';
 import { AchievementSystem, ACHIEVEMENTS } from './systems/AchievementSystem.js';
 import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } from './systems/FastForwardSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
@@ -1670,6 +1671,8 @@ class AetheriaApp {
 
     this.transcendUI = new TranscendPanel(this);
     this.transcendUI.build();
+    this.talentSourcesUI = new TalentSourcesPanel(this);
+    this.talentSourcesUI.build();
     this.updatePrestigeUI();
   }
 
@@ -1874,6 +1877,7 @@ class AetheriaApp {
     this.buffBar.update();
     this.shell?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
+    this.talentSourcesUI?.update(dt, this.currentTab);
 
     // Fast, lightweight state updates without replacing DOM nodes
     if (this.currentTab === 'monolith') {
