@@ -145,6 +145,24 @@ export class PrestigeSystem {
     return this.gameState.totalCosmicDust.gte(new BigNum(50000));
   }
 
+  // What Transcend trades, for the confirm dialog: lifetime dust (and so the dust multiplier)
+  // resets to 0, shards add +10% each. Reports the dust x shard Aether multiplier before and after.
+  getTranscendPreview() {
+    const gs = this.gameState;
+    const shards = gs.totalCosmicDust.div(10000).floor();
+    const shardMult = (n) => 1 + n.toNumber() * 0.1;
+    const dustBefore = gs.getDustMultiplier();
+    const dustAfter = gs.getDustMultiplier(BigNum.zero());
+    const shardBefore = shardMult(gs.fractureShards);
+    const shardAfter = shardMult(gs.fractureShards.add(shards));
+    return {
+      shardsGained: shards,
+      dustBefore, dustAfter, shardBefore, shardAfter,
+      before: dustBefore * shardBefore,
+      after: dustAfter * shardAfter
+    };
+  }
+
   transcend() {
     if (!this.canTranscend()) return false;
 

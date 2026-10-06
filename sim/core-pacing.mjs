@@ -77,9 +77,7 @@ function run(profile) {
       const cost = def.cost * Math.pow(1.5, st.rank);
       const D = gs.cosmicDust.toNumber();
       if (D < cost) break;
-      const before = (1 + 0.02 * D) * (1 + 0.5 * st.rank);
-      const after = (1 + 0.02 * (D - cost)) * (1 + 0.5 * (st.rank + 1));
-      if (after <= before) break;
+      // The dust multiplier reads lifetime dust, so spending never lowers it: a rank is a pure gain.
       ps.buyPerk('eternal_resonance');
     }
     if (gs.ascensionPerks.genesis?.rank === 0 && gs.cosmicDust.toNumber() >= 15) ps.buyPerk('genesis');
@@ -105,7 +103,7 @@ function run(profile) {
 
     const pending = ps.getPendingCosmicDust();
     if (pending.gt(0)) {
-      if (t - runStart >= 600 && pending.toNumber() >= Math.max(10, gs.cosmicDust.toNumber())) {
+      if (t - runStart >= 600 && pending.toNumber() >= Math.max(10, gs.totalCosmicDust.toNumber())) {
         resets.push(t);
         ps.ascend();
         runStart = t;
