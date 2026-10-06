@@ -43,10 +43,37 @@ export const ESSENCE_NAMES = {
   starNectar: 'Sidr Honey'
 };
 
+// --- Breeding, golden mutation, hybrids (R17, §2.4) ---
+// Golden mutation: 1% of harvests; that harvest yields x3 essence and is logged in the Herbarium.
+export const GOLDEN_CHANCE = 0.01;
+export const GOLDEN_ESSENCE_MULT = 3;
+
+// Cross-breeding two adjacent mature plants of the right pair may yield a hybrid essence.
+// Neighbouring tiers cross at 30%; the Mint x Sidr long cross is rarer at 15%. A cross harvests
+// both plants exactly as a normal harvest would, so a miss costs nothing.
+export const HYBRIDS = {
+  limonana: { id: 'limonana', name: 'Limonana', icon: '🍹', parents: ['spore', 'mana_lily'], chance: 0.30 },
+  truffleZest: { id: 'truffleZest', name: 'Lemon Truffle Zest', icon: '🍋', parents: ['mana_lily', 'solar_fern'], chance: 0.30 },
+  roseTruffle: { id: 'roseTruffle', name: 'Rose Truffle Jam', icon: '🥘', parents: ['solar_fern', 'frost_petal'], chance: 0.30 },
+  roseDate: { id: 'roseDate', name: 'Rose Date Syrup', icon: '🍯', parents: ['frost_petal', 'void_orchid'], chance: 0.30 },
+  honeyDate: { id: 'honeyDate', name: 'Honeyed Dates', icon: '🌴', parents: ['void_orchid', 'star_lotus'], chance: 0.30 },
+  mintHoney: { id: 'mintHoney', name: 'Mint Honey Tea', icon: '🍵', parents: ['spore', 'star_lotus'], chance: 0.15 }
+};
+
+export const HYBRID_ESSENCE_NAMES = Object.fromEntries(Object.values(HYBRIDS).map(h => [h.id, h.name]));
+
+export function getHybridForPair(seedA, seedB) {
+  for (const h of Object.values(HYBRIDS)) {
+    if ((h.parents[0] === seedA && h.parents[1] === seedB) || (h.parents[0] === seedB && h.parents[1] === seedA)) return h;
+  }
+  return null;
+}
+
 export class GardenSystem {
   constructor(gameState) {
     this.gameState = gameState;
     this.selectedSeed = 'spore';
+    this.rng = Math.random; // injectable for tests
     this.initGarden();
   }
 
@@ -107,8 +134,66 @@ export class GardenSystem {
       if (!SEED_TYPES[garden.rowSeed[r]]) garden.rowSeed[r] = null;
     }
     garden.rowSeed.length = MAX_GOLEMS;
+    // R17 fields: hybrid essences, Herbarium (golden finds) and the breeding unlock all default
+    // for saves that predate them.
+    if (!garden.essences || typeof garden.essences !== 'object') garden.essences = {};
+    for (const id in HYBRIDS) {
+      const n = Number(garden.essences[id]);
+      garden.essences[id] = Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+    }
+    if (!garden.herbarium || typeof garden.herbarium !== 'object') garden.herbarium = {};
+    for (const key of ['golden', 'hybrids']) {
+      if (!garden.herbarium[key] || typeof garden.herbarium[key] !== 'object') garden.herbarium[key] = {};
+    }
+    garden.breedingUnlocked = garden.breedingUnlocked === true;
     const cd = Number(garden.waterCooldown);
     garden.waterCooldown = Number.isFinite(cd) ? Math.max(0, Math.min(WATER_COOLDOWN, cd)) : 0;
+  }
+
+  // --- Breeding (R17) ---
+  // Breeding is a Transcend-tier feature (shard tree "Oasis" branch, §6.3). Until the shard tree
+  // ships, the first Transcend unlocks it; `garden.breedingUnlocked` lets the tree set it later.
+  isBreedingUnlocked() {
+    return this.gameState.garden.breedingUnlocked === true || (this.gameState.transcendenceCount || 0) >= 1;
+  }
+
+  arePlotsAdjacent(a, b) {
+    if (!Number.isInteger(a) || !Number.isInteger(b) || a === b) return false;
+    const dr = Math.abs(Math.floor(a / PLOTS_PER_ROW) - Math.floor(b / PLOTS_PER_ROW));
+    const dc = Math.abs((a % PLOTS_PER_ROW) - (b % PLOTS_PER_ROW));
+    return dr + dc === 1;
+  }
+
+  isPlotMature(plot) {
+    return !!plot && !!plot.seed && plot.maxTime > 0 && plot.progress >= plot.maxTime;
+  }
+
+  // Which hybrid two plots could cross into, or null if they cannot breed right now.
+  getBreedingOutcome(a, b) {
+    const plots = this.gameState.garden.plots;
+    if (!this.isBreedingUnlocked() || !this.arePlotsAdjacent(a, b)) return null;
+    const pa = plots[a], pb = plots[b];
+    if (!this.isPlotMature(pa) || !this.isPlotMature(pb)) return null;
+    return getHybridForPair(pa.seed, pb.seed);
+  }
+
+  // Cross two adjacent mature plots. Both are harvested as normal; the cross then rolls for a
+  // hybrid essence (1-2 units). Returns { ok, hybrid, amount, chance }.
+  breedPlots(a, b, clientX, clientY) {
+    const hybrid = this.getBreedingOutcome(a, b);
+    if (!hybrid) return { ok: false };
+    this.harvestPlot(a, clientX, clientY, true);
+    this.harvestPlot(b, clientX, clientY, true);
+    const garden = this.gameState.garden;
+    let amount = 0;
+    if (this.rng() < hybrid.chance) {
+      amount = 1 + Math.floor(this.rng() * 2);
+      garden.essences[hybrid.id] = (garden.essences[hybrid.id] || 0) + amount;
+      garden.herbarium.hybrids[hybrid.id] = (garden.herbarium.hybrids[hybrid.id] || 0) + amount;
+      if (clientX && clientY) particles.spawnFloatingText(clientX, clientY - 45, `HYBRID: +${amount} ${hybrid.name}!`, '#f472b6', true);
+      sound.playAchievement();
+    }
+    return { ok: true, hybrid: hybrid.id, amount, chance: hybrid.chance };
   }
 
   // --- Garden Golems (§5.6) ---
@@ -299,12 +384,21 @@ export class GardenSystem {
 
     const seedId = plot.seed;
     const isFertilized = plot.fertilized;
-    const mult = isFertilized ? 2 : 1;
+    const fertMult = isFertilized ? 2 : 1;
+    // Golden mutation: 1% of harvests, x3 essence, logged in the Herbarium.
+    const golden = this.rng() < GOLDEN_CHANCE;
+    const mult = fertMult * (golden ? GOLDEN_ESSENCE_MULT : 1);
+    if (golden) {
+      const hb = this.gameState.garden.herbarium?.golden;
+      if (hb) hb[seedId] = (hb[seedId] || 0) + 1;
+      if (clientX && clientY) particles.spawnFloatingText(clientX, clientY - 75, `✨ GOLDEN ${SEED_TYPES[seedId].name.toUpperCase()}! (x${GOLDEN_ESSENCE_MULT})`, '#facc15', true);
+      if (!silent) sound.playAchievement();
+    }
 
     // Yield Essences
     const essKey = ESSENCE_BY_SEED[seedId];
     if (essKey) {
-      const amount = (1 + Math.floor(Math.random() * 2)) * mult;
+      const amount = (1 + Math.floor(this.rng() * 2)) * mult;
       this.gameState.garden.essences[essKey] = (this.gameState.garden.essences[essKey] || 0) + amount;
       if (clientX && clientY) {
         particles.spawnFloatingText(clientX, clientY, `+${amount} ${ESSENCE_NAMES[essKey] || essKey}`, '#4ade80', true);
@@ -313,14 +407,14 @@ export class GardenSystem {
 
     // Mana Lily restores mana on harvest
     if (seedId === 'mana_lily') {
-      const restore = 15 * mult;
+      const restore = 15 * fertMult;
       this.gameState.mana = Math.min(this.gameState.maxMana, (this.gameState.mana || 0) + restore);
       if (clientX && clientY) particles.spawnFloatingText(clientX, clientY - 15, `+${restore} MANA`, '#818cf8', true);
     }
 
     // Seed drop back + chance of higher seed mutation!
     this.gameState.garden.inventory[seedId] = (this.gameState.garden.inventory[seedId] || 0) + 1;
-    if (Math.random() < 0.25) {
+    if (this.rng() < 0.25) {
       const seeds = Object.keys(SEED_TYPES);
       const nextIdx = Math.min(seeds.length - 1, seeds.indexOf(seedId) + 1);
       const mutatedSeed = seeds[nextIdx];
@@ -338,7 +432,7 @@ export class GardenSystem {
       else if (seedId === 'solar_fern') { commodity = 'amber'; cName = 'SOLAR AMBER'; }
       else if (seedId === 'void_orchid') { commodity = 'shard'; cName = 'VOID CRYSTAL'; }
 
-      if (commodity && Math.random() < 0.5 && this.gameState.market.items?.[commodity]) { // 50% chance to drop commodity
+      if (commodity && this.rng() < 0.5 && this.gameState.market.items?.[commodity]) { // 50% chance to drop commodity
         this.gameState.market.items[commodity].owned += 1;
         if (clientX && clientY) {
           setTimeout(() => {

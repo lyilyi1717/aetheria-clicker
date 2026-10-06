@@ -21,6 +21,7 @@ import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } 
 import { VERSION, CHANGELOG } from './version.js';
 import { getTabBonuses, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
+import { GardenBreedingUI } from './ui/garden.js';
 import { Leaderboard } from './leaderboard.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 
@@ -647,6 +648,8 @@ class AetheriaApp {
     this.buildMiningStructure();
     this.buildGardenStructure();
     this.buildAlchemyStructure();
+    this.breedingUI = new GardenBreedingUI(this, fmtNum);
+    this.breedingUI.build();
     this.buildSpellsStructure();
     this.buildTalentsStructure();
     this.buildBountiesStructure();
@@ -1088,6 +1091,7 @@ class AetheriaApp {
   }
 
   updateGardenUI() {
+    this.breedingUI?.updateGardenPanel();
     const waterBtn = this.$('btn-water-garden');
     if (waterBtn) {
       const cd = this.gardenSystem.waterCooldown;
@@ -1231,6 +1235,7 @@ class AetheriaApp {
   }
 
   updateAlchemyUI() {
+    this.breedingUI?.updateAlchemySection();
     const inv = this.gameState.inventory;
     const ess = this.gameState.garden?.essences || {};
     for (const r of RECIPES) {

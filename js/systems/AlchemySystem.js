@@ -68,9 +68,84 @@ export const RECIPES = [
   }
 ];
 
+// Hybrid recipes (R17). Each needs a hybrid essence from Garden cross-breeding plus a gem, and
+// stays hidden until the player first holds both ingredients (recipe discovery). All are timed
+// buffs sized below the 7 base elixirs so they widen choice rather than raise Aether income.
+export const HYBRID_RECIPES = [
+  {
+    id: 'limonana_spritz', name: 'Limonana Spritz', type: 'buff', buffType: 'click_mult', buffValue: 2.5, duration: 90,
+    desc: '+150% Click Yield for 90s', cost: { limonana: 2, rubies: 2 }, hybrid: true
+  },
+  {
+    id: 'truffle_tonic', name: 'Lemon Truffle Tonic', type: 'buff', buffType: 'hero_atk', buffValue: 2.0, duration: 120,
+    desc: '+100% Combat Attack Power for 120s', cost: { truffleZest: 2, sapphires: 2 }, hybrid: true
+  },
+  {
+    id: 'rose_truffle_jam', name: 'Rose Truffle Jam', type: 'buff', buffType: 'gold_mult', buffValue: 2.5, duration: 90,
+    desc: '+150% Gold Generation for 90s', cost: { roseTruffle: 2, diamonds: 1 }, hybrid: true
+  },
+  {
+    id: 'rose_date_syrup', name: 'Rose Date Syrup', type: 'buff', buffType: 'aether_mult', buffValue: 1.5, duration: 180,
+    desc: '+50% Global Aether Production for 180s', cost: { roseDate: 2, emeralds: 2 }, hybrid: true
+  },
+  {
+    id: 'honeyed_dates', name: 'Honeyed Dates', type: 'buff', buffType: 'aether_mult', buffValue: 1.75, duration: 120,
+    desc: '+75% Global Aether Production for 120s', cost: { honeyDate: 2, diamonds: 2 }, hybrid: true
+  },
+  {
+    id: 'mint_honey_tea', name: 'Mint Honey Tea', type: 'buff', buffType: 'click_mult', buffValue: 2.0, duration: 300,
+    desc: '+100% Click Yield for 5 min', cost: { mintHoney: 2, rubies: 3 }, hybrid: true
+  }
+];
+
+const ALL_RECIPES = [...RECIPES, ...HYBRID_RECIPES];
+
 export class AlchemySystem {
   constructor(gameState) {
     this.gameState = gameState;
+    this._discoverTimer = 0;
+    this.ensureState();
+    this.checkDiscoveries(true);
+  }
+
+  // Saves from before R17 have no `discovered` map.
+  ensureState() {
+    const gs = this.gameState;
+    if (!gs.alchemy || typeof gs.alchemy !== 'object') gs.alchemy = { catalysts: 0 };
+    const d = gs.alchemy.discovered;
+    if (!d || typeof d !== 'object' || Array.isArray(d)) gs.alchemy.discovered = {};
+    return gs.alchemy;
+  }
+
+  isDiscovered(recipeId) {
+    const r = HYBRID_RECIPES.find(x => x.id === recipeId);
+    if (!r) return true; // base recipes are always visible
+    return this.ensureState().discovered[recipeId] === true;
+  }
+
+  getVisibleHybridRecipes() {
+    return HYBRID_RECIPES.filter(r => this.isDiscovered(r.id));
+  }
+
+  // A hybrid recipe appears the first time the player holds at least one of each ingredient.
+  // Returns the newly discovered recipes. Discovery is permanent.
+  checkDiscoveries(silent = false) {
+    const state = this.ensureState();
+    const inv = this.gameState.inventory || {};
+    const ess = this.gameState.garden?.essences || {};
+    const found = [];
+    for (const r of HYBRID_RECIPES) {
+      if (state.discovered[r.id]) continue;
+      if (Object.keys(r.cost).every(m => (inv[m] ?? ess[m] ?? 0) >= 1)) {
+        state.discovered[r.id] = true;
+        found.push(r);
+        if (!silent) {
+          sound.playAchievement();
+          particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `RECIPE DISCOVERED: ${r.name}!`, '#f472b6', true);
+        }
+      }
+    }
+    return found;
   }
 
   getCatalystCount() {
@@ -79,7 +154,7 @@ export class AlchemySystem {
 
   // Current cost of a recipe. The Catalyst costs ceil(1.08^n) Nectar and Void Amethyst.
   getRecipeCost(recipeOrId) {
-    const r = typeof recipeOrId === 'string' ? RECIPES.find(item => item.id === recipeOrId) : recipeOrId;
+    const r = typeof recipeOrId === 'string' ? ALL_RECIPES.find(item => item.id === recipeOrId) : recipeOrId;
     if (!r) return {};
     if (r.id === 'philosophers_catalyst') {
       const c = Math.ceil(Math.pow(1.08, this.getCatalystCount()));
@@ -89,8 +164,8 @@ export class AlchemySystem {
   }
 
   canBrew(recipeId) {
-    const r = RECIPES.find(item => item.id === recipeId);
-    if (!r) return false;
+    const r = ALL_RECIPES.find(item => item.id === recipeId);
+    if (!r || !this.isDiscovered(r.id)) return false;
 
     const inv = this.gameState.inventory;
     const ess = this.gameState.garden?.essences || {};
@@ -105,7 +180,7 @@ export class AlchemySystem {
   brew(recipeId) {
     if (!this.canBrew(recipeId)) return false;
 
-    const r = RECIPES.find(item => item.id === recipeId);
+    const r = ALL_RECIPES.find(item => item.id === recipeId);
     const inv = this.gameState.inventory;
     const ess = this.gameState.garden?.essences || {};
 
@@ -203,6 +278,11 @@ export class AlchemySystem {
   }
 
   update(dt, realDt = dt) {
+    this._discoverTimer += realDt;
+    if (this._discoverTimer >= 1) {
+      this._discoverTimer = 0;
+      this.checkDiscoveries();
+    }
     // Buff durations run on real time so Chrono Warp doesn't burn them (or itself) 5x faster
     for (let i = this.gameState.activeBuffs.length - 1; i >= 0; i--) {
       const buff = this.gameState.activeBuffs[i];

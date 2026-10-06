@@ -396,6 +396,13 @@ Transcend (+Seal bonus), ~64 shards in a year at the simulated pace. Branches:
   rarity higher on roll; "Second Wind" (one free boss retry per boss).
 - **Oasis**: Garden breeding (two adjacent mature plants may cross into a hybrid with a
   chance table; hybrids are new essences for 6 new recipes); golden mutation 1%; 5th Golem.
+  *R17 implementation:* the shard tree does not exist yet, so breeding unlocks at the first
+  Transcend (`garden.breedingUnlocked` is the hook for the tree node). Crossing two adjacent
+  (same row or column) mature plants harvests both as normal and rolls 30% (neighbouring
+  tiers) or 15% (Mint x Sidr) for 1-2 hybrid essence; a miss costs nothing. Golden mutation is
+  1% per harvest: x3 essence, logged in the Herbarium. The 6 hybrid recipes are timed buffs
+  sized below the base elixirs and stay hidden until the player first holds one of each
+  ingredient (`alchemy.discovered`).
 - **Guild**: contract bank 6 → 8; 2 rerolls; contracts pay shards 1 in 50.
 - **Codex**: collection set bonuses ×1.5; "Hall of Fame" leaderboard column.
 
