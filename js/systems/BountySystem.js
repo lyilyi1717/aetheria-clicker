@@ -223,6 +223,22 @@ export class BountySystem {
     return true;
   }
 
+  // Daily Dallah gift (R15): one extra contract, already finished, paying like a size-2 contract.
+  // It joins the board (a slot until claimed) and counts toward Guild Rank like any claim; being
+  // ready-made, it cannot be rerolled. Returns the contract.
+  grantBonusContract() {
+    const gs = this.gameState;
+    const b = {
+      id: `bounty_dallah_${Date.now()}_${++this.seq}_${Math.floor(this.rng() * 1e6).toString(36)}`,
+      type: 'dallah', title: 'Dallah Writ', icon: '☕', tab: 'monolith', d: 2,
+      desc: 'A gift from the Dallah, ready to claim',
+      current: 1, required: 1, completed: true, claimed: false, rerolled: true, bonus: true,
+      rewards: { gold: gs.getMarketIndex().mul(500), seals: 2, chrono: 30, talentPoint: false }
+    };
+    gs.bounties.push(b);
+    return b;
+  }
+
   getQuartermasterCost(id) {
     const upg = QUARTERMASTER_UPGRADES.find(u => u.id === id);
     if (!upg) return 0;
