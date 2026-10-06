@@ -10,6 +10,7 @@ import { GardenSystem, WATER_COOLDOWN } from './js/systems/GardenSystem.js';
 import { ClickerSystem } from './js/systems/ClickerSystem.js';
 import { BountySystem, QUARTERMASTER_UPGRADES } from './js/systems/BountySystem.js';
 import { PrestigeSystem } from './js/systems/PrestigeSystem.js';
+import { SaveManager, OFFLINE_AETHER_CAP } from './js/engine/SaveManager.js';
 
 globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
 
@@ -182,6 +183,30 @@ console.log('--- Cooldowns: Water All and Dynamite survive a save/reload ---');
   gs3.deserialize({ version: 2 });
   assert.equal(new GardenSystem(gs3).waterCooldown, 0);
   assert.equal(new MiningSystem(gs3).dynamiteCooldown, 0);
+}
+
+console.log('--- Offline Aether is capped (clock-forward exploit) ---');
+{
+  const gs = new GameState();
+  gs.aether = new BigNum(1e6);
+  gs.buildingSystem = new BuildingSystem(gs);
+  gs.buildingSystem.buyBuilding('tapper');
+  gs.aether = BigNum.zero();
+  gs.totalAetherEarned = BigNum.zero();
+  const rate = gs.getNetAetherPerSecond();
+  assert.ok(rate.gt(BigNum.zero()), 'test needs a positive production rate');
+  const sm = new SaveManager(gs);
+  // A year of "offline" time (or a clock moved forward a year) only credits the cap
+  const res = sm.processOfflineTime(Date.now() - 365 * 24 * 3600 * 1000);
+  assert.equal(OFFLINE_AETHER_CAP, 24 * 3600);
+  assert.ok(res.capped, 'result reports that the cap applied');
+  assert.ok(Math.abs(res.gainedAether.div(rate).toNumber() - OFFLINE_AETHER_CAP) < 1, 'credits exactly the cap');
+  assert.ok(res.elapsedSeconds > OFFLINE_AETHER_CAP, 'real elapsed time is still reported');
+  // Under the cap nothing changes
+  gs.aether = BigNum.zero();
+  const short = sm.processOfflineTime(Date.now() - 3600 * 1000);
+  assert.ok(!short.capped);
+  assert.ok(Math.abs(short.gainedAether.div(rate).toNumber() - 3600) < 1);
 }
 
 console.log('✅ ALL CORRECTNESS TESTS PASSED SUCCESSFULLY!');

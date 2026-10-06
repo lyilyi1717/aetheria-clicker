@@ -114,10 +114,12 @@ Forward" (`index.html:320`).
     gold in Alchemy.
   - Every player who tries an advertised feature is called a cheater.
 - **What it does not stop:**
-  - `SaveManager.processOfflineTime` (`SaveManager.js:70-84`) credits Aether for the full
-    wall-clock gap with **no cap**. Moving the system clock forward gives unbounded
-    Aether, and that also feeds `totalAetherEarned`, the Best Run Aether leaderboard stat
-    (`leaderboard.js:96-100`). The Garden's own offline cap is 12 h.
+  - ~~`SaveManager.processOfflineTime` credits Aether for the full wall-clock gap with
+    **no cap**.~~ **Fixed:** offline Aether is now capped at 24 h (`OFFLINE_AETHER_CAP`),
+    matching the default Chrono Sand bank, and the offline modal says when the cap applied.
+    Moving the clock forward still credits at most 24 h. The leaderboard table also clamps
+    each stat to a ceiling for the account's age (`supabase/leaderboard.sql`). The Garden's
+    own offline cap is 12 h.
   - The Codex save import accepts an edited save.
 
 ### Open questions (updated)
