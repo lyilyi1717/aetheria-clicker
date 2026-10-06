@@ -1,0 +1,164 @@
+/* Reward feedback (R11, redesign §5.1): toasts and ceremonies. Drawn by js/ui/rewards.js. */
+
+/* ---- Toasts: top-right stack, max 3, never catch input ---- */
+.reward-toasts {
+  position: fixed;
+  top: 72px;
+  right: 16px;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  width: min(340px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.reward-toast {
+  --toast-accent: var(--accent-cyan, #38bdf8);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  background: rgba(8, 16, 12, 0.94);
+  border: 1px solid color-mix(in srgb, var(--toast-accent) 55%, transparent);
+  border-left: 4px solid var(--toast-accent);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), 0 0 14px color-mix(in srgb, var(--toast-accent) 25%, transparent);
+  color: var(--text-main, #fff);
+  font-family: var(--font-sans, sans-serif);
+  pointer-events: none;
+  animation: reward-toast-in 0.28s ease-out both;
+}
+
+.reward-toast.tier-small { padding: 7px 12px; opacity: 0.92; }
+.reward-toast.tier-big {
+  border-width: 2px;
+  border-left-width: 5px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--toast-accent) 18%, rgba(8, 16, 12, 0.96)), rgba(8, 16, 12, 0.96));
+}
+
+.reward-toast-icon { font-size: 1.4rem; line-height: 1; flex: 0 0 auto; }
+.reward-toast-icon:empty { display: none; }
+.reward-toast-body { display: flex; flex-direction: column; min-width: 0; }
+.reward-toast-title {
+  font-family: var(--font-display, serif);
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--toast-accent);
+  overflow-wrap: anywhere;
+}
+.reward-toast.tier-small .reward-toast-title { font-size: 0.82rem; }
+.reward-toast-value { font-weight: 700; font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+.reward-toast-detail { font-size: 0.75rem; color: var(--text-dim, #94a3b8); }
+.reward-toast-value:empty, .reward-toast-detail:empty { display: none; }
+
+.reward-toast.is-bumped { animation: reward-toast-bump 0.3s ease-out; }
+.reward-toast.is-leaving { animation: reward-toast-out 0.26s ease-in forwards; }
+
+@keyframes reward-toast-in {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes reward-toast-out {
+  to { opacity: 0; transform: translateX(40px); }
+}
+@keyframes reward-toast-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Source element pulses gold once */
+.reward-pulse { animation: reward-pulse 0.9s ease-out; }
+@keyframes reward-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.85); }
+  100% { box-shadow: 0 0 0 14px rgba(251, 191, 36, 0); }
+}
+
+/* ---- Ceremony: full-screen dim + radial burst + count-up; click or Esc skips ---- */
+.reward-ceremony {
+  --ceremony-accent: var(--accent-gold, #fbbf24);
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  cursor: pointer;
+  overflow: hidden;
+}
+.reward-ceremony.is-open { display: flex; animation: reward-dim-in 0.3s ease-out both; }
+.reward-ceremony.tier-epic { background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--ceremony-accent) 30%, rgba(0, 0, 0, 0.8)), rgba(0, 0, 0, 0.9) 70%); }
+
+.reward-ceremony-burst {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 160vmax;
+  height: 160vmax;
+  margin: -80vmax 0 0 -80vmax;
+  background: repeating-conic-gradient(from 0deg,
+    color-mix(in srgb, var(--ceremony-accent) 28%, transparent) 0deg 6deg,
+    transparent 6deg 18deg);
+  mask-image: radial-gradient(circle, #000 0, transparent 45%);
+  -webkit-mask-image: radial-gradient(circle, #000 0, transparent 45%);
+  animation: reward-burst 1.2s ease-out both, reward-spin 12s linear infinite;
+  pointer-events: none;
+}
+
+.reward-ceremony-card {
+  position: relative;
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 24px 28px;
+  text-align: center;
+  color: var(--text-main, #fff);
+  animation: reward-card-in 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.reward-ceremony-icon { font-size: 3.4rem; line-height: 1; margin-bottom: 10px; filter: drop-shadow(0 0 16px var(--ceremony-accent)); }
+.reward-ceremony-title {
+  font-family: var(--font-display, serif);
+  font-weight: 900;
+  font-size: clamp(1.5rem, 6vw, 2.4rem);
+  color: var(--ceremony-accent);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--ceremony-accent) 60%, transparent);
+  overflow-wrap: anywhere;
+}
+.reward-ceremony-value {
+  margin-top: 8px;
+  font-size: clamp(1.2rem, 5vw, 1.8rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.reward-ceremony-detail { margin-top: 6px; color: var(--text-muted, #e2e8f0); font-size: 0.95rem; }
+.reward-ceremony-value:empty, .reward-ceremony-detail:empty { display: none; }
+.reward-ceremony-hint { margin-top: 18px; font-size: 0.75rem; color: var(--text-dim, #94a3b8); letter-spacing: 0.05em; }
+
+@keyframes reward-dim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes reward-burst {
+  from { transform: scale(0.1); opacity: 0; }
+  30% { opacity: 1; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes reward-spin { to { rotate: 360deg; } }
+@keyframes reward-card-in {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+/* Phone width: toasts span the top, under the header */
+@media (max-width: 600px) {
+  .reward-toasts { top: 8px; right: 8px; left: 8px; width: auto; align-items: stretch; }
+  .reward-toast { padding: 8px 10px; }
+  .reward-ceremony-icon { font-size: 2.6rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reward-toast, .reward-toast.is-bumped, .reward-toast.is-leaving,
+  .reward-ceremony.is-open, .reward-ceremony-card, .reward-pulse { animation: none; }
+  .reward-toast.is-leaving { opacity: 0; }
+  .reward-ceremony-burst { animation: none; opacity: 0.5; }
+}

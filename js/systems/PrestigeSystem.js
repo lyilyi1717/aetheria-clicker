@@ -1,6 +1,5 @@
 import { BigNum } from '../engine/BigNum.js';
-import { sound } from '../engine/AudioEngine.js';
-import { particles } from '../engine/ParticleEngine.js';
+import { rewards } from '../ui/rewards.js';
 import { recordAscensionDust, checkMilestones } from './TalentSources.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
 
@@ -150,8 +149,8 @@ export class PrestigeSystem {
     recordAscensionDust(this.gameState, pending);
     checkMilestones(this.gameState);
 
-    sound.playAscension();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `ASCENDED! +${pending.format('standard', 0)} COSMIC DUST!`, '#06b6d4', true);
+    // Big tier ceremony (§5.1). Transcend calls ascend(true) and shows its own epic one instead.
+    if (!force) rewards.notify({ tier: 'big', kind: 'ascension', icon: '✨', color: '#06b6d4', title: 'Ascended!', batchTitle: '{n} Ascensions', amount: pending, fmt: (d) => d.format('standard', 0), unit: 'Cosmic Dust' });
     return true;
   }
 
@@ -167,8 +166,7 @@ export class PrestigeSystem {
 
     this.gameState.cosmicDust = this.gameState.cosmicDust.sub(cost);
     perkState.rank++;
-    sound.playBuy();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `PERK UNLOCKED: ${def.name}!`, '#fbbf24', true);
+    rewards.notify({ tier: 'medium', kind: `perk-${def.id}`, icon: '🌠', color: '#fbbf24', title: `Perk: ${def.name} rank ${perkState.rank}` });
     return true;
   }
 
@@ -240,8 +238,7 @@ export class PrestigeSystem {
       hero.hp = Math.min(hero.hp, this.gameState.combatSystem.getTotalMaxHp());
     }
 
-    sound.playAscension();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `TRANSCENDED REALITY! +${TRANSCEND_SHARDS} FRACTURE SHARDS!`, '#ec4899', true);
+    rewards.notify({ tier: 'epic', kind: 'transcend', icon: '🌌', color: '#ec4899', title: 'Transcended Reality', batchTitle: '{n} Transcends', amount: TRANSCEND_SHARDS, fmt: (n) => String(n), unit: 'Fracture Shards' });
     return true;
   }
 }

@@ -1,8 +1,7 @@
 // Constellations header (roadmap R9): where talent points come from and what is closest.
 // Built once into #talent-sources (created under #talent-points-header), updated in place.
 // Also polls S1 milestone stars once a second and pings the nav button when points are unspent.
-import { particles } from '../engine/ParticleEngine.js';
-import { sound } from '../engine/AudioEngine.js';
+import { rewards } from './rewards.js';
 import {
   checkMilestones, getNextStars, guildTitle, onTalentGrant, ensureRecords, SOURCE_LABELS
 } from '../systems/TalentSources.js';
@@ -29,11 +28,13 @@ export class TalentSourcesPanel {
     this.acc = 0;
     this.built = false;
     this.rows = [];
+    // Medium-tier toast (R11 reward grammar); same-kind grants in one moment coalesce
     onTalentGrant(({ amount, reason }) => {
-      sound.playAchievement?.();
-      if (typeof window !== 'undefined' && window.innerWidth) {
-        particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+${amount} TALENT POINT${amount > 1 ? 'S' : ''}: ${reason}`, '#ec4899', true);
-      }
+      rewards.notify({
+        tier: 'medium', kind: 'talent-point', icon: '✨', color: '#ec4899',
+        title: reason || 'Talent Point', amount, unit: amount > 1 ? 'Talent Points' : 'Talent Point',
+        fmt: (n) => String(n), source: 'tp-avail-count'
+      });
     });
   }
 

@@ -1,7 +1,9 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
-import { particles } from '../engine/ParticleEngine.js';
+import { rewards } from '../ui/rewards.js';
 import { MONSTER_FLOOR_BASE, getIndexFloor } from './CombatSystem.js';
+
+const fmtGold = (g) => new BigNum(g).format('standard', 0);
 
 export const COMMODITIES = [
   { id: 'ore', name: 'Aether Ore', icon: '🪨', basePrice: 50, minPrice: 15, maxPrice: 120 },
@@ -158,8 +160,10 @@ export class MarketSystem {
 
     if (levelsToBuy > 0) {
       this.gameState.market.goldenSynergy += levelsToBuy;
-      sound.playAscension();
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+${levelsToBuy} GOLDEN SYNERGY!`, '#fbbf24', true);
+      rewards.notify({
+        tier: 'medium', kind: 'golden-synergy', icon: '✨', color: '#fbbf24',
+        title: 'Golden Synergy', amount: levelsToBuy, fmt: (n) => String(n), unit: levelsToBuy === 1 ? 'level' : 'levels'
+      });
       return true;
     }
     return false;
@@ -178,7 +182,10 @@ export class MarketSystem {
       this.gameState.gold = this.gameState.gold.sub(totalCost);
       item.owned += amount;
       sound.playBuy();
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `BOUGHT ${amount}x ${id.toUpperCase()}`, '#38bdf8', false);
+      rewards.notify({
+        tier: 'small', kind: `market-buy-${id}`, icon: COMMODITIES.find(c => c.id === id)?.icon || '🛒', color: '#38bdf8',
+        title: `Bought ${COMMODITIES.find(c => c.id === id)?.name || id}`, amount, fmt: (n) => String(n), unit: 'units'
+      });
       return true;
     }
     return false;
@@ -192,7 +199,10 @@ export class MarketSystem {
     item.owned -= amount;
     this.gameState.gold = this.gameState.gold.add(payout);
     sound.playGem();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+${payout.format('standard', 0)} GOLD!`, '#eab308', true);
+    rewards.notify({
+      tier: 'small', kind: 'market-sell', icon: '🪙', color: '#eab308',
+      title: 'Sold at the Bazaar', amount: payout, fmt: fmtGold, unit: 'gold'
+    });
     return true;
   }
 
@@ -236,7 +246,7 @@ export class MarketSystem {
     }
 
     sound.playSpell();
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, 'CARAVAN EXPEDITION DISPATCHED!', '#fbbf24', true);
+    rewards.notify({ tier: 'small', kind: 'caravan-out', icon: '🐪', color: '#fbbf24', title: 'Caravan dispatched' });
     return true;
   }
 
@@ -256,8 +266,10 @@ export class MarketSystem {
         caravan.active = false;
         const returnPayout = caravan.payout ? new BigNum(caravan.payout) : caravan.investment.mul(caravan.expectedProfit);
         this.gameState.gold = this.gameState.gold.add(returnPayout);
-        sound.playAchievement();
-        particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `CARAVAN RETURNED! +${returnPayout.format('standard', 0)} GOLD`, '#4ade80', true);
+        rewards.notify({
+          tier: 'medium', kind: 'caravan-back', icon: '🐪', color: '#4ade80',
+          title: 'Caravan returned', batchTitle: '{n} caravans returned', amount: returnPayout, fmt: fmtGold, unit: 'gold'
+        });
       }
     }
   }

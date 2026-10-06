@@ -1,6 +1,7 @@
 import { recordHarvest } from './TalentSources.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
+import { rewards } from '../ui/rewards.js';
 
 // Grow times are ×15 the v1.x values (§5.2): 5 min / 11 min / 19 min / 30 min / 1 h / 2 h.
 export const SEED_TYPES = {
@@ -353,7 +354,7 @@ export class GardenSystem {
         plot.progress = Math.min(plot.maxTime, plot.progress + WATER_BOOST);
       }
     }
-    particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `💧 GARDEN WATERED (+${WATER_BOOST}s Growth)`, '#38bdf8', true);
+    rewards.notify({ tier: 'small', kind: 'garden-water', icon: '💧', color: '#38bdf8', title: 'Garden watered', detail: `+${WATER_BOOST}s growth` });
     return true;
   }
 
@@ -371,7 +372,10 @@ export class GardenSystem {
     }
     if (count > 0) {
       sound.playSpell();
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `🧪 ${count} PLOTS FERTILIZED (×2 next harvest)`, '#a3e635', true);
+      rewards.notify({
+        tier: 'small', kind: 'garden-fertilize', icon: '🧪', color: '#a3e635',
+        title: 'Plots fertilized', amount: count, fmt: (n) => String(n), unit: count === 1 ? 'plot' : 'plots', detail: '×2 next harvest'
+      });
     }
     return count;
   }
