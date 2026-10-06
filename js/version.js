@@ -3,9 +3,17 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '3.2.0';
+export const VERSION = '3.2.1';
 
 export const CHANGELOG = [
+  {
+    version: '3.2.1',
+    date: '2026-10-06',
+    title: 'Hotfix: the game loads again',
+    changes: [
+      'Fixed a broken update that stopped the game from loading after the Codex 2.0 release. Your save was not affected.'
+    ]
+  },
   {
     version: '3.2.0',
     date: '2026-10-06',
