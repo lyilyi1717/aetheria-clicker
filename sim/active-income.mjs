@@ -34,12 +34,13 @@ export function seededRng(seed = 1) {
 const ROTATION = ['celestial_alignment', 'chrono_warp', 'aether_burst'];
 
 // Returns { ratio, parts } where parts splits the Aether earned by source (in idle-seconds).
-// play: which parts the player does ({ clicks, spells, anomalies }, all true by default; the
-// switches are for breaking the ratio down).
+// play: which parts the player does ({ clicks, spells, warp, anomalies }, all true by default;
+// the switches are for breaking the ratio down; warp: false leaves Chrono Warp out of the rotation).
 export function measureActiveIncome({
   seconds = 3600 * 6, rng = seededRng(7), baseCps = 1e9, dt = 0.1, play = {}
 } = {}) {
-  const { clicks = true, spells: cast = true, anomalies = true } = play;
+  const { clicks = true, spells: cast = true, warp = true, anomalies = true } = play;
+  const rotation = warp ? ROTATION : ROTATION.filter(id => id !== 'chrono_warp');
   const realRandom = Math.random;
   Math.random = rng; // crits and Frenzy auto-click rolls inside ClickerSystem.handleClick
   try {
@@ -66,7 +67,7 @@ export function measureActiveIncome({
         clickAcc += 2 * dt;
         while (clickAcc >= 1) { clicker.handleClick(0, 0, false); clickAcc -= 1; }
       }
-      if (cast) for (const id of ROTATION) if (spells.canCast(id)) spells.castSpell(id);
+      if (cast) for (const id of rotation) if (spells.canCast(id)) spells.castSpell(id);
       if (anomalies && clicker.anomalyActive) clicker.clickAnomaly(0, 0);
 
       clicker.update(gameDt);

@@ -13,11 +13,10 @@ export const SUPERNOVA_CPS_SECONDS = 180;   // was 600
 export const SUPERNOVA_MIN_CLICKS = 500;
 export const MIRAGE_MULT = 2;               // x2 Aether production and gold
 export const MIRAGE_DURATION = 60;
-// Caravan Star: a free large caravan (the Bazaar's 60-min tier, 1.5x its list price, no cargo).
-// If a caravan is already on the road, its payout is paid at once instead.
-export const CARAVAN_STAR_PROFIT = 1.5;
-export const CARAVAN_STAR_MINUTES = 60;
-export const CARAVAN_STAR_INVEST = 2000;    // x Market Index, same as the large caravan
+// Caravan Star: a free large caravan (MarketSystem.getCaravanTier('large'): 60 min, pays 1.5x
+// its 2,000 x Market Index list price, no cargo). If a caravan is already on the road, the
+// free one's payout is paid at once instead.
+const LARGE_CARAVAN = { invest: 2000, minutes: 60, profit: 1.5 }; // fallback without a Bazaar
 
 // Pick an anomaly type for a roll r in [0, 1)
 export function pickAnomalyType(r) {
@@ -185,7 +184,7 @@ export class ClickerSystem {
       const res = this.applyCaravanStar();
       rewards.notify({
         ...note, kind: 'anomaly-caravan', icon: '🐪', color: '#fbbf24', title: 'Caravan Star!',
-        detail: res.dispatched ? `A free large caravan sets out (back in ${CARAVAN_STAR_MINUTES} min)` : 'A free caravan arrives at once',
+        detail: res.dispatched ? `A free large caravan sets out (back in ${res.minutes} min)` : 'A free caravan arrives at once',
         ...(res.dispatched ? {} : { amount: res.payout, fmt: (a) => a.format('standard', 0), unit: 'gold' })
       });
     } else {
@@ -212,21 +211,18 @@ export class ClickerSystem {
   // Returns { dispatched, payout }.
   applyCaravanStar() {
     const gs = this.gameState;
-    const index = gs.getMarketIndex();
-    const invest = index.mul(CARAVAN_STAR_INVEST);
-    const payout = invest.mul(CARAVAN_STAR_PROFIT);
+    const { invest, minutes, profit } = gs.marketSystem?.getCaravanTier('large')
+      ?? { ...LARGE_CARAVAN, invest: gs.getMarketIndex().mul(LARGE_CARAVAN.invest) };
+    const payout = invest.mul(profit);
     const caravan = gs.market?.caravan;
     if (caravan && !caravan.active) {
-      caravan.active = true;
-      caravan.duration = CARAVAN_STAR_MINUTES * 60;
-      caravan.maxDuration = CARAVAN_STAR_MINUTES * 60;
-      caravan.investment = invest;
-      caravan.expectedProfit = CARAVAN_STAR_PROFIT;
-      caravan.payout = payout;
-      caravan.cargo = null;
-      return { dispatched: true, payout };
+      Object.assign(caravan, {
+        active: true, duration: minutes * 60, maxDuration: minutes * 60,
+        investment: invest, expectedProfit: profit, payout, cargo: null
+      });
+      return { dispatched: true, payout, minutes };
     }
     gs.gold = gs.gold.add(payout);
-    return { dispatched: false, payout };
+    return { dispatched: false, payout, minutes };
   }
 }

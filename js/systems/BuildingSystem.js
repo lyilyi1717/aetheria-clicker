@@ -327,7 +327,7 @@ export class BuildingSystem {
     const milestoneMult = this.getMilestoneMultiplier(count);
     prod = prod.mul(milestoneMult);
 
-    // Upgrade shop (R5): x1.25 per tier upgrade bought, synergies (UpgradeSystem.getTierUpgradeMult)
+    // Upgrade shop (R5): x1.2 per tier upgrade bought, synergies (UpgradeSystem.getTierUpgradeMult)
     const upgradeMult = this.gameState.getTierUpgradeMult?.(id) ?? 1;
     if (upgradeMult !== 1) prod = prod.mul(upgradeMult);
 
