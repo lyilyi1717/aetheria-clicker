@@ -10,7 +10,6 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 ## In progress
 
 - R4 #6 Transcend rework (PR #35).
-- R21 #42 UI/UX review, style guide and mockups.
 
 ## Next up
 
@@ -18,6 +17,8 @@ Ready now: R9 #11 (after R4 merges: both edit `PrestigeSystem.js` / `GameState.j
 After R4: R5 #7 (+ R3 #5, held per #23 default 5 to ship with R5), R6 #8, R13 #15.
 Then R10 #12 (needs R9), R14 #16 (needs R11), R7 #9 (needs R6), R15 #17 (needs R13),
 R20 #22 (needs R4, R13).
+UI: UI-1 (responsive app shell) and UI-2 (tokens + components) are proposed in
+`docs/ui-review.md`; once filed as issues they should land before the other UI-heavy items.
 
 ## Plan
 
@@ -77,6 +78,10 @@ R20 #22 (needs R4, R13).
   `npm test -- tower` runs a subset).
 - R17 #19 Garden breeding (`GardenSystem.breedPlots`, `HYBRIDS`), golden mutation 1%, 6
   `HYBRID_RECIPES` with discovery in `AlchemySystem`; UI in `js/ui/garden.js`.
+- R21 #42 UI review (`docs/ui-review.md`, 17 ranked findings + follow-ups UI-1..UI-3 ready to
+  file), style guide (`docs/ui-style-guide.md`, paste-ready tokens), mockups in
+  `docs/ui/mockups/` (shell, components, R6, R7, R10, R13, R15, R20) and screenshots of every tab
+  in `docs/ui/screenshots/`. AGENTS.md rule 7 now points UI work at both.
 
 ## Notes for the next session
 
@@ -109,3 +114,6 @@ R20 #22 (needs R4, R13).
   Sand bank; since R12 it also extends offline Aether bands by 4 h per rank. Reword with R4/R6.
 - A brand-new account carrying a rebased legacy save shows floor <= 1,000 + 1,000/h on Season 2
   for its first hours (R19 guard ceiling); old anonymous accounts can still post forged floors.
+- Combat floating damage text and particles still render over other tabs (seen on Excavation
+  and over the Tower quick-cast chips; `docs/ui-review.md` finding 6). `1ae4d47` fixed it for
+  auto-attacks only.
