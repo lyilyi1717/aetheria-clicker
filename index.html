@@ -559,15 +559,20 @@
   <!-- Offline Progress Modal -->
   <div id="offline-modal" class="modal-overlay">
     <div class="modal-box">
-      <h2 style="font-family: var(--font-display); color: var(--accent-cyan); margin-bottom: 0.75rem;">WELCOME BACK, TRAVELER!</h2>
-      <p style="color: var(--text-muted);">While you were away across the astral plane for <strong id="offline-time-text">0 hours</strong>, your autonomous empire continued working:</p>
-      
-      <div style="margin: 1.5rem 0; padding: 1rem; background: rgba(56, 189, 248, 0.1); border-radius: 8px;">
-        <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-cyan);">+<span id="offline-aether-text">0</span> Aether</div>
-        <div id="offline-chrono-text" style="font-size: 1rem; color: var(--accent-gold); margin-top: 0.35rem;">+0 Chrono Sand</div>
+      <h2 class="offline-title">WELCOME BACK, TRAVELER!</h2>
+      <p class="offline-intro">You were away for <strong id="offline-time-text">0 hours</strong>. Your empire kept working:</p>
+
+      <div class="offline-totals">
+        <div class="offline-aether">+<span id="offline-aether-text">0</span> Aether</div>
+        <div id="offline-chrono-text" class="offline-chrono">+0 Chrono Sand</div>
       </div>
 
-      <button id="offline-modal-close" class="btn-action" style="width: 100%; padding: 0.6rem;">Claim & Continue</button>
+      <table class="offline-breakdown" id="offline-breakdown" aria-label="How offline Aether was paid">
+        <tbody></tbody>
+      </table>
+      <p class="offline-note" id="offline-note"></p>
+
+      <button id="offline-modal-close" class="btn-action offline-close">Claim & Continue</button>
     </div>
   </div>
 

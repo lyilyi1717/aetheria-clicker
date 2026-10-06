@@ -509,7 +509,9 @@ reset of some kind every 2–14 days for nine months.
 ## 8. Retention without dark patterns
 
 - **Offline.** 100% for 8 h, 50% to 24 h, 0 after; the modal shows the cap and what finished
-  (Golem harvests, caravan, contracts arrived). Chrono Reservoir buys more cap. No clock
+  (Golem harvests, caravan, contracts arrived). Chrono Reservoir buys more cap: each rank
+  adds 4 h to the 100% band and moves the end of the cap out by 4 h (the 50% band stays 16 h);
+  built in R12 (`computeOfflineBands`). Efficiency multipliers apply to the banded total. No clock
   tricks pay more than the cap.
 - **Daily Dallah** (roadmap §5.4): first visit of a calendar day; banks 3 days; no streak,
   "days visited" is a lifetime count.
