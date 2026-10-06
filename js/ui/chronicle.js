@@ -9,7 +9,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from './rewards.js';
 import {
-  ChronicleSystem, CHAPTERS, PAGE_UPGRADES, PAGE_AETHER_MULT, CHRONICLE_TRANSCEND_GATE,
+  ChronicleSystem, CHAPTERS, PAGE_UPGRADES, PAGE_AETHER_MULT, CHRONICLE_TRANSCEND_GATE, SEAL_STANDIN_TRANSCENDS,
   getChallenge, describeRules, getSealGate, getChronicleTranscendsNeeded
 } from '../systems/ChronicleSystem.js';
 
@@ -399,9 +399,11 @@ export class ChronicleUI {
     if (el.gateFill.style.width !== gp) el.gateFill.style.width = gp;
     setText(el.gateVal, `${Math.min(t, need)}/${need}`);
     const seal = getSealGate(gs);
-    setText(el.sealNote, seal.source === 'standin'
-      ? `Needs ${CHRONICLE_TRANSCEND_GATE} Transcends. Until the Seals of Transcendence arrive, your first Chronicle asks for ${need} instead; after it, ${CHRONICLE_TRANSCEND_GATE} is enough.`
-      : seal.source === 'seals' ? `Needs ${CHRONICLE_TRANSCEND_GATE} Transcends and ${seal.text}.` : `Needs ${CHRONICLE_TRANSCEND_GATE} Transcends this Chronicle.`);
+    let note = `Needs ${CHRONICLE_TRANSCEND_GATE} Transcends this Chronicle.`;
+    if (seal.source === 'seals' && seal.sealsMet) note = `All ${seal.total} Seals of Transcendence are lit: ${CHRONICLE_TRANSCEND_GATE} Transcends open your first Chronicle.`;
+    else if (seal.source === 'seals') note = `Needs ${CHRONICLE_TRANSCEND_GATE} Transcends and all ${seal.total} Seals of Transcendence (${seal.lit} lit), or ${SEAL_STANDIN_TRANSCENDS} Transcends without them. After the first Chronicle, ${CHRONICLE_TRANSCEND_GATE} is enough.`;
+    else if (seal.source === 'standin') note = `Your first Chronicle needs ${need} Transcends; after it, ${CHRONICLE_TRANSCEND_GATE} is enough.`;
+    setText(el.sealNote, note);
     const reason = sys.getBlockReason();
     const pages = sys.getPreview().pages;
     const can = reason === null;

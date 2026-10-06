@@ -13,8 +13,10 @@
   <link rel="stylesheet" href="css/garden-breeding.css">
   <link rel="stylesheet" href="css/rewards.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/upgrades.css">
   <link rel="stylesheet" href="css/shard-tree.css">
   <link rel="stylesheet" href="css/chronicle.css">
+  <link rel="stylesheet" href="css/calendar.css">
 </head>
 <body>
   <!-- Canvas for dynamic floating damage numbers & particle sparks -->
@@ -119,7 +121,7 @@
           <span class="nav-icon">🦅</span>
           <span class="nav-lbl">Grimoire</span>
         </button>
-        <button class="nav-tab" data-tab="bounties" title="Bounties: Endless procedural guild contracts with instant rewards.">
+        <button class="nav-tab" data-tab="bounties" title="Bounties: a board of guild contracts, one new contract every 30 minutes.">
           <span class="nav-icon">📜</span>
           <span class="nav-lbl">Bounties</span>
         </button>
@@ -139,6 +141,9 @@
         <button class="nav-tab" data-tab="chronicle" title="Chronicle: the third prestige layer. Pages, Chapters and challenges.">
           <span class="nav-icon">📖</span>
           <span class="nav-lbl">Chronicle</span>
+        <button class="nav-tab" data-tab="calendar" title="Dallah: daily gift, weekly goals, Seals and the weekly Souq modifier.">
+          <span class="nav-icon">☕</span>
+          <span class="nav-lbl">Dallah</span>
         </button>
         <div class="nav-group">Records</div>
         <button class="nav-tab" data-tab="codex" title="Codex: Achievements (+1.5% boost each), lifetime stats, and save backups.">
@@ -178,6 +183,7 @@
           <button class="nav-tab" data-tab="market"><span class="nav-icon">🐪</span><span class="nav-lbl">Bazaar</span></button>
           <button class="nav-tab" data-tab="talents"><span class="nav-icon">🌙</span><span class="nav-lbl">Constellations</span></button>
           <button class="nav-tab" data-tab="chronicle"><span class="nav-icon">📖</span><span class="nav-lbl">Chronicle</span></button>
+          <button class="nav-tab" data-tab="calendar"><span class="nav-icon">☕</span><span class="nav-lbl">Dallah</span></button>
           <button class="nav-tab" data-tab="codex"><span class="nav-icon">🏆</span><span class="nav-lbl">Codex</span></button>
           <button class="nav-tab" data-tab="leaderboard"><span class="nav-icon">🏅</span><span class="nav-lbl">Leaderboard</span></button>
           <button class="nav-tab" data-tab="settings"><span class="nav-icon">⚙️</span><span class="nav-lbl">Settings</span></button>
@@ -221,7 +227,9 @@
               </div>
             </div>
 
-            <!-- Right: Generators List -->
+            <!-- Right: Upgrade shop (js/ui/upgrades.js) above the Generators List -->
+            <div class="monolith-right-col">
+            <div id="upgrade-shop" class="glass-card upgrade-shop"></div>
             <div class="glass-card">
               <div class="buildings-header">
                 <h3>Aether Generators</h3>
@@ -234,6 +242,7 @@
                 </div>
               </div>
               <div id="building-list" class="building-list"></div>
+            </div>
             </div>
           </div>
         </section>
@@ -413,7 +422,7 @@
           <div class="tab-guide-banner" data-hint="Complete contracts anywhere in the game, then claim them here for Gold, Sand and Seals.">
             <span class="guide-icon">💡</span>
             <div class="guide-text">
-              <strong>How It Works:</strong> The Adventurer's Guild issues continuous, infinite procedural contracts. Perform actions across clicking, combat, mining, gardening, and alchemy to complete them. Claiming a completed contract immediately awards Gold, Chrono Sand and Guild Seals, counts toward your Guild Rank (each rank pays a Talent Point), and instantly spawns a brand new bounty!
+              <strong>How It Works:</strong> The Adventurer's Guild posts a new contract every 30 minutes, up to 6 on the board (it keeps filling while you are away). Pick the ones you want and play: clicking, combat, mining, gardening, alchemy and spells all count. Claiming a completed contract awards Gold, Chrono Sand and Guild Seals and counts toward your Guild Rank (each rank pays a Talent Point). Each contract has one free reroll.
               <div class="guide-flow"><span><strong>Produces:</strong> Gold, Chrono Sand, Guild Seals, Guild Rank (Talent Points)</span><span><strong>Used in:</strong> Guild Seals buy Quartermaster upgrades (Aether, Hero Attack, Combat Gold, Offline Efficiency). Talent Points go to Constellations.</span></div>
             </div>
           </div>
@@ -421,7 +430,7 @@
           <div class="glass-card">
             <h2>Adventurer's Guild Contracts</h2>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-              Complete continuous infinite procedural tasks for Gold, Chrono Sand, Guild Seals, and Guild Rank!
+              Choose contracts from the board for Gold, Chrono Sand, Guild Seals and Guild Rank. A new one is posted every 30 minutes.
             </p>
             <div id="bounties-list-container" class="bounties-list"></div>
 
@@ -528,6 +537,16 @@
             </div>
           </div>
           <div id="chronicle-section"></div>
+        <!-- TAB: Dallah (R15): daily gift, weekly Ledger, Souq Rotation, Seals -->
+        <section id="tab-calendar" class="tab-view">
+          <div class="tab-guide-banner" data-hint="A daily gift, three weekly goals, a weekly market modifier and the Seals that add shards. Nothing here is ever lost by staying away.">
+            <span class="guide-icon">💡</span>
+            <div class="guide-text">
+              <strong>How It Works:</strong> The <strong>Dallah</strong> pours a gift on your first visit each day; missed days wait for you (up to 3) and there is no streak to lose. The <strong>Ledger</strong> sets 3 goals every Monday for Guild Seals and a stamp. Each lit <strong>Seal</strong> adds +1 Fracture Shard to spend at every Transcend (up to +3) and never goes dark.
+              <div class="guide-flow"><span><strong>Produces:</strong> Chrono Sand, contracts, Guild Seals, Shards</span><span><strong>Used in:</strong> Fast Forward, Quartermaster charters, Transcend.</span></div>
+            </div>
+          </div>
+          <div id="calendar-root"></div>
         </section>
 
         <!-- TAB 11: Codex & Settings -->

@@ -3,9 +3,54 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '3.3.0';
+export const VERSION = '4.0.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.0.0',
+    date: '2026-10-06',
+    title: 'The Chronicle: a third prestige layer',
+    changes: [
+      'New Chronicle tab (Meta group). Once Transcends slow down, begin a Chronicle: at 12 Transcends with all seven Seals of Transcendence lit, or at 24 Transcends without them (after your first Chronicle, 12 is always enough). The panel lists exactly what starts again and what you keep before you confirm.',
+      'A Chronicle starts your run, shop upgrades, Cosmic Dust, God Perks, Fracture Shards, the Shard Tree and your Transcend count again (back to 14 generator tiers). You keep everything else: talents, records, the Codex, the Tower, Excavation, Garden, Alchemy, Guild, Bazaar, gold and sand. Wardens and Garden breeding stay unlocked, and your Transcend achievements and talent stars count every Chronicle.',
+      'Chronicle Pages: 3 for a Chronicle at 12 Transcends, +1 for every 2 Transcends past that. Every Page you have ever earned gives ×1.4 Aether for good; spending them never lowers it. Spend Pages on six permanent Page upgrades, such as Bookmark (keep Auto-Ascend through a Chronicle) and Ink of Memory (start each Chronicle with 2 Fracture Shards).',
+      'Chapter 1, Sand: your first Chronicle opens a ten-week season where Excavation digs ×3 but Aether is halved. Finishing it pays a stamp and 3 Pages.',
+      'Four challenges (Dry Well, Lights Out, Small Souq, Sandstorm): side runs with special rules and a goal that pay 3–5 Pages on the first clear. Starting one sets your current run aside; it comes back exactly as it was when you finish or abandon the challenge, even across a reload. Challenges stay open after the Chapter ends, so nothing can be missed.'
+    ]
+  },
+  {
+    version: '3.6.0',
+    date: '2026-10-06',
+    title: 'The Dallah: something new every day and week',
+    changes: [
+      'New Dallah tab (Meta group). The Daily Dallah pours a gift on your first visit of each day: +60 Chrono Sand, a ready-to-claim bonus contract and an hour of +25% Aether. Days you miss wait for you, up to 3, and claiming them pays every banked day. There is no streak: the number on the card is just how many days you have visited, and nothing is ever lost by staying away.',
+      'Weekly Ledger: every Monday it sets 3 goals from things you can already do (bosses, depths, harvests, brewing, contracts and more). Each goal pays 6 Guild Seals, and finishing all three adds a stamp for the week. Progress counts from the start of the week. A week you skip costs you nothing.',
+      'Souq Rotation: one friendly modifier each week, always positive and always coming back: Truffle Season (Desert Truffle grows ×1.5), Falcon Week (Tower boss gold ×1.5), Hourglass Week (Chrono Sand gained ×1.5) and Rosewater Week (every plant grows ×1.25).',
+      'Seals of Transcendence: seven lamps that light for good once you reach depth 100, Tower floor 501, 25 Catalysts, 15 Ascensions, Guild Rank 7, a 1e8 Cosmic Dust Ascension and 40% of the Codex. Each lit Seal adds +1 Fracture Shard to spend in the Shard Tree at every Transcend, up to +3 (so up to 3 extra shards to spend on top of the 2 you already get). These extra shards do not raise your ×1.5 shard bonus. Seals are a bonus, not a requirement to Transcend. If you already meet a Seal, it lights the next time you open the game.'
+    ]
+  },
+  {
+    version: '3.5.0',
+    date: '2026-10-06',
+    title: 'The Upgrade Shop',
+    changes: [
+      'New on the Falafel tab: an Upgrades row above your generators. Each generator has 5 upgrades that appear at 1, 10, 50, 100 and 200 owned; each one makes that generator produce x1.25 (x3 with all five).',
+      '15 click upgrades, each doubling your base click (clicks are worth your base click plus 3% of your Aether per second, times combo), and 8 synergies such as "Dallah per Shawarma": +0.3% Giant Dallah output for every Shawarma Stall you own.',
+      'Tap an upgrade to see what it does, what it costs and how much Aether you are still missing. "Buy all" buys everything you can afford, cheapest first.',
+      'Upgrades last for one run: Ascending (and Transcending) clears them, so every run starts the climb again. Saves from before this update start with no upgrades bought.'
+    ]
+  },
+  {
+    version: '3.4.0',
+    date: '2026-10-06',
+    title: 'The Contract Board',
+    changes: [
+      'Bounties is now a board of up to 6 guild contracts that you pick from. A new contract is posted every 30 minutes, and the board keeps filling while you are away, so you always come back to a full board. Claiming a contract no longer replaces it at once: the empty slot refills on the timer. Fast Forward does not speed the timer up.',
+      'Every contract you claim counts toward Guild Rank (the old limit of one counted claim per 30 minutes is gone). A rank-up pays a Talent Point and 5 Guild Seals, up to about 48 contracts a day.',
+      'Each contract has one free reroll, and contracts only come from tabs you can play. Clicking contracts are only posted while you have clicked in the last 5 minutes, so an idle board no longer jams. Contracts grow 15% per Guild Rank (up to about ten minutes of play) and pay Gold equal to 250 x difficulty x your Market Index.',
+      'Contracts you already had keep working: they stay on the board and can be claimed as before (an old one that carried a Talent Point still pays it).'
+    ]
+  },
   {
     version: '3.3.0',
     date: '2026-10-06',

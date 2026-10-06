@@ -11,7 +11,7 @@
 //      CHRONICLE_KEEPS and shown before the confirm.
 //
 //   2. Challenge runner. A challenge is a side run with rule overrides. Starting one stashes the
-//      current run (Aether, run Aether, generators, combo) inside the challenge record and starts
+//      current run (Aether, run Aether, generators, shop upgrades, combo) inside the challenge record and starts
 //      a fresh run; finishing or abandoning it puts the stashed run back exactly. The overrides
 //      themselves are never written into GameState fields: every hook reads getActiveRules(gs),
 //      which derives them from two saved ids (the running challenge and the current Chapter). So
@@ -33,9 +33,10 @@ const WEEK_MS = 7 * DAY_MS;
 
 // Transcends (this Chronicle) needed to begin a Chronicle
 export const CHRONICLE_TRANSCEND_GATE = 12;
-// The doc's gate also needs Seal set I (R15). Until the Seals ship, the first Chronicle asks for
-// this many Transcends instead (about the same day in the sim: ~day 96 casual vs Seal set I at
-// ~day 90 in the doc's calendar). After the first Chronicle the Seal half counts as met for good.
+// The doc's gate also needs Seal set I (R15). A first Chronicle also opens without the Seals at
+// this many Transcends, so a Seal the player can't reach (a Tower floor, the Codex) never locks
+// the layer away; the sim, which doesn't model Seals, takes this path (~day 90 casual, about when
+// the doc's calendar completes Seal set I). After the first Chronicle the Seal half is met for good.
 export const SEAL_STANDIN_TRANSCENDS = 24;
 // Pages paid by a Chronicle: base + 1 per PAGES_STEP Transcends past the gate
 export const CHRONICLE_BASE_PAGES = 3;
@@ -53,7 +54,7 @@ export const MARGIN_NOTES_PER_CLEAR = 0.25;
 // What a Chronicle resets and keeps. The preview and the confirm print these; test_chronicle.js
 // checks the reset does exactly this.
 export const CHRONICLE_RESETS = [
-  'The run: Aether and generators',
+  'The run: Aether, generators and shop upgrades',
   'Cosmic Dust, lifetime dust and all God Perks',
   'Fracture Shards (balance and earned) and the shard tree',
   'Transcends: the count starts again at 0, so the ladder is back to 14 generator tiers'
@@ -236,6 +237,8 @@ function sanitizeStash(raw) {
     totalAetherEarned: { m: Number(raw.totalAetherEarned.m), e: Number(raw.totalAetherEarned.e) },
     clickPower: isBigJson(raw.clickPower) ? { m: Number(raw.clickPower.m), e: Number(raw.clickPower.e) } : { m: 1, e: 0 },
     buildings,
+    // Upgrade shop ids (R5); stashes from before the shop have none
+    upgrades: Array.isArray(raw.upgrades) ? raw.upgrades.filter(id => typeof id === 'string') : [],
     comboCount: nonNegInt(raw.comboCount),
     runStartedAt: posTime(raw.runStartedAt)
   };
@@ -352,27 +355,29 @@ export function getPageAetherMult(gs) {
 
 // ---- Gate ---------------------------------------------------------------------------------------
 
-// Seal set I half of the gate. Uses the Seals when the calendar system (R15) provides
-// getSealSetProgress(1) -> { lit, total }; until then the first Chronicle asks for
-// SEAL_STANDIN_TRANSCENDS Transcends instead. Met for good after the first Chronicle.
+// Seal set I half of the gate, from the calendar system's getSealSetProgress(1) -> { lit, total }
+// (R15). Without it (sim, tests) only the Transcend path counts. Either way SEAL_STANDIN_TRANSCENDS
+// Transcends also meet it. Met for good after the first Chronicle.
 export function getSealGate(gs) {
   const c = gs?.chronicle;
   if (c && c.count > 0) return { source: 'done', met: true, text: 'Seal set I' };
+  const t = nonNegInt(gs?.transcendenceCount);
+  const byTranscends = t >= SEAL_STANDIN_TRANSCENDS;
   const cal = gs?.calendarSystem;
   if (cal && typeof cal.getSealSetProgress === 'function') {
     const p = cal.getSealSetProgress(1) || {};
     const lit = nonNegInt(p.lit), total = Math.max(1, nonNegInt(p.total));
-    return { source: 'seals', met: lit >= total, lit, total, text: `Seal set I (${lit}/${total})` };
+    return { source: 'seals', met: lit >= total || byTranscends, sealsMet: lit >= total, lit, total, need: SEAL_STANDIN_TRANSCENDS,
+      text: `Seal set I (${lit}/${total} lit) or ${SEAL_STANDIN_TRANSCENDS} Transcends` };
   }
-  const t = nonNegInt(gs?.transcendenceCount);
-  return { source: 'standin', met: t >= SEAL_STANDIN_TRANSCENDS, need: SEAL_STANDIN_TRANSCENDS,
+  return { source: 'standin', met: byTranscends, sealsMet: false, need: SEAL_STANDIN_TRANSCENDS,
     text: `${SEAL_STANDIN_TRANSCENDS} Transcends for the first Chronicle (stands in for Seal set I)` };
 }
 
-// Transcends needed for the next Chronicle (the stand-in raises the first one)
+// Transcends needed for the next Chronicle (without Seal set I the first one needs more)
 export function getChronicleTranscendsNeeded(gs) {
   const seal = getSealGate(gs);
-  return seal.source === 'standin' ? Math.max(CHRONICLE_TRANSCEND_GATE, SEAL_STANDIN_TRANSCENDS) : CHRONICLE_TRANSCEND_GATE;
+  return seal.source === 'done' || seal.sealsMet ? CHRONICLE_TRANSCEND_GATE : Math.max(CHRONICLE_TRANSCEND_GATE, SEAL_STANDIN_TRANSCENDS);
 }
 
 export function getPendingPages(gs, transcends = gs?.transcendenceCount || 0) {
@@ -389,7 +394,7 @@ export function getChronicleBlockReason(gs) {
   if (t < CHRONICLE_TRANSCEND_GATE) return `needs ${CHRONICLE_TRANSCEND_GATE} Transcends (you: ${t})`;
   const seal = getSealGate(gs);
   if (!seal.met) {
-    return seal.source === 'seals' ? `needs ${seal.text}` : `the first Chronicle needs ${SEAL_STANDIN_TRANSCENDS} Transcends (you: ${t})`;
+    return seal.source === 'seals' ? `needs ${seal.text} (you: ${t})` : `the first Chronicle needs ${SEAL_STANDIN_TRANSCENDS} Transcends (you: ${t})`;
   }
   return null;
 }
@@ -457,6 +462,8 @@ export class ChronicleSystem {
     gs.cosmicDust = BigNum.zero();
     gs.totalCosmicDust = BigNum.zero();
     for (const p in gs.ascensionPerks || {}) gs.ascensionPerks[p].rank = 0;
+    // Upgrade shop: nothing kept (Blueprint Memory is a dust-shop feature, gone with the dust)
+    gs.upgrades = {};
     // Layer 2
     const startShards = new BigNum(hasPageUpgrade(gs, 'ink') ? INK_SHARDS : 0);
     gs.fractureShards = startShards;
@@ -574,6 +581,7 @@ export class ChronicleSystem {
       totalAetherEarned: gs.totalAetherEarned.toJSON(),
       clickPower: gs.clickPower.toJSON(),
       buildings,
+      upgrades: Object.keys(gs.upgrades || {}).filter(k => gs.upgrades[k] === true),
       comboCount: nonNegInt(gs.comboCount),
       runStartedAt: posTime(gs.runStartedAt)
     };
@@ -636,6 +644,7 @@ function resetRun(gs, now) {
   gs.frenzyActive = false;
   gs.frenzyTimer = 0;
   for (const b of Object.values(gs.buildings || {})) if (b) b.count = 0;
+  gs.upgrades = {};
   gs.runStartedAt = now;
 }
 
@@ -651,6 +660,8 @@ export function restoreStash(gs) {
   gs.totalAetherEarned = BigNum.fromJSON(s.totalAetherEarned);
   gs.clickPower = BigNum.fromJSON(s.clickPower);
   for (const [id, b] of Object.entries(gs.buildings || {})) if (b) b.count = s.buildings?.[id] || 0;
+  gs.upgrades = {};
+  for (const id of s.upgrades || []) gs.upgrades[id] = true;
   gs.comboCount = s.comboCount || 0;
   gs.comboTimer = 0;
   gs.frenzyActive = false;

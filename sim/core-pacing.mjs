@@ -15,17 +15,20 @@
 // (R13; see the shard-tree block below).
 // Transcend policy: as soon as lifetime dust reaches the gate (R4). Each Transcend unlocks the
 // next generator tier and counts as a reset in the gap measurement.
+// Upgrade shop (R5): upgrades compete with generators in the same greedy loop, by Aether/s gained
+// per Aether spent (see makeUpgradeShopBuyer below).
 // Chronicle policy (R20, layer 3): see the Chronicle block below.
 //
 // When an economy PR changes the core (new prestige layer, shop, formulas), update this script
 // so it still models what a real player would do, and paste the before/after report in the PR.
 import { BigNum } from '../js/engine/BigNum.js';
 import { GameState } from '../js/systems/GameState.js';
-import { BuildingSystem, BUILDING_DEFINITIONS } from '../js/systems/BuildingSystem.js';
+import { BuildingSystem, BUILDING_DEFINITIONS, MAX_TIER_COUNT } from '../js/systems/BuildingSystem.js';
 import { PrestigeSystem, ASCENSION_PERKS } from '../js/systems/PrestigeSystem.js';
 import { AchievementSystem } from '../js/systems/AchievementSystem.js';
+import { UpgradeSystem, TIER_UPGRADE_MULT, SYNERGY_PER_UNIT, UPGRADE_DEFINITIONS, getUpgradeDefinition } from '../js/systems/UpgradeSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
-import { ShardTreeSystem, autoAscendRuleMet } from '../js/systems/ShardTreeSystem.js';
+import { ShardTreeSystem, autoAscendRuleMet, getDeepBlueprintDivisor, canBuyNode } from '../js/systems/ShardTreeSystem.js';
 import { ChronicleSystem, chronicleClock, PAGE_UPGRADES } from '../js/systems/ChronicleSystem.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
@@ -48,16 +51,105 @@ const CHECKPOINTS = [
   ['1 mo', 30 * DAY], ['3 mo', 90 * DAY], ['6 mo', 180 * DAY], ['1 y', YEAR]
 ];
 
+// --- R5 upgrade shop block -------------------------------------------------------------------
+// The sim buys upgrades in the same greedy loop as generators, by log10(Aether/s gained per
+// Aether spent) in the generator greedy's units (generator output before global multipliers).
+// Click upgrades are valued at the current click rate (clicks/s x combo), converted into those
+// units by dividing by the global multiplier.
+//   shop.refresh()           at the start of each greedy pass: collect available upgrades
+//   shop.onBuilding(id)      after a generator purchase: its upgrades/synergies may have opened
+//   shop.best(budget, rate)  -> { id, ratio } | null, the best affordable available upgrade
+//   shop.buy(id)             buys it and updates the candidate list
+// Only the available ones are scored, so a pass costs a handful of checks, not 173.
+function makeUpgradeShopBuyer(gs, bs, us) {
+  const lg = (x) => Math.log10(Math.abs(x.m)) + x.e;
+  const costLog = new Map(us.definitions.map(u => [u.id, lg(u.cost)]));
+  const baseCpsLog = new Map(BUILDING_DEFINITIONS.map(d => [d.id, lg(d.baseCps)]));
+  const byBuilding = new Map();   // building id -> upgrades whose availability depends on its count
+  for (const u of us.definitions) {
+    for (const id of [u.building, u.source]) {
+      if (!id) continue;
+      if (!byBuilding.has(id)) byBuilding.set(id, []);
+      byBuilding.get(id).push(u.id);
+    }
+  }
+  // log10 of one tier's output, same terms as BuildingSystem.getBuildingProduction (the sim
+  // has no talents), without allocating BigNums
+  const prodLog = (id) => {
+    const cnt = gs.buildings[id].count;
+    if (cnt <= 0) return -Infinity;
+    return baseCpsLog.get(id) + Math.log10(cnt * bs.getMilestoneMultiplier(cnt) * gs.getTierUpgradeMult(id));
+  };
+  const tierGainLog = Math.log10(TIER_UPGRADE_MULT - 1);
+  const candidates = new Set();
+  return {
+    refresh() {
+      candidates.clear();
+      for (const u of us.definitions) if (us.isAvailable(u.id)) candidates.add(u.id);
+    },
+    onBuilding(id) {
+      for (const uid of byBuilding.get(id) || []) if (!candidates.has(uid) && us.isAvailable(uid)) candidates.add(uid);
+    },
+    buy(id) {
+      if (!us.buy(id)) return false;
+      candidates.delete(id);
+      const u = us.definitions.find(d => d.id === id);
+      if (u.kind === 'click' && us.isAvailable(`click_${u.level + 1}`)) candidates.add(`click_${u.level + 1}`);
+      return true;
+    },
+    best(budgetLog, clickRate) {
+      let best = null, bestRatio = -Infinity, globalLog = null;
+      for (const id of candidates) {
+        const u = getUpgradeDefinition(id);
+        // Deep Blueprints (shard tree Foundry, R13) divide a tier's own upgrade prices
+        const c = costLog.get(id) - (u.kind === 'tier' ? Math.log10(getDeepBlueprintDivisor(gs, u.tier)) : 0);
+        if (c > budgetLog + 1e-9) continue;
+        let gainLog;
+        if (u.kind === 'click') {
+          if (clickRate <= 0) continue;
+          if (globalLog === null) {
+            const base = bs.getTotalProduction();
+            globalLog = base.gt(0) ? lg(gs.getNetAetherPerSecond()) - lg(base) : 0;
+          }
+          gainLog = lg(gs.getClickBase()) + Math.log10(clickRate) - globalLog;
+        } else if (u.kind === 'tier') {
+          gainLog = prodLog(u.building) + tierGainLog;
+        } else {
+          gainLog = prodLog(u.building) + Math.log10(SYNERGY_PER_UNIT * gs.buildings[u.source].count);
+        }
+        const ratio = gainLog - c;
+        if (ratio > bestRatio) { bestRatio = ratio; best = id; }
+      }
+      return best ? { id: best, ratio: bestRatio } : null;
+    }
+  };
+}
+// --- end R5 block ------------------------------------------------------------------------------
+
+// synergy source building -> target buildings (a source purchase changes the target's multiplier)
+const SYNERGY_TARGETS_OF = new Map();
+for (const u of UPGRADE_DEFINITIONS) {
+  if (u.kind !== 'synergy') continue;
+  if (!SYNERGY_TARGETS_OF.has(u.source)) SYNERGY_TARGETS_OF.set(u.source, []);
+  SYNERGY_TARGETS_OF.get(u.source).push(u.building);
+}
+
 // ---- Shard tree (R13) ---------------------------------------------------------------------
 // The player buys Auto-Ascend (2 shards) as soon as the first Transcend pays for it and keeps the
-// default rule (x2 lifetime dust, the same threshold the manual policy uses). Nothing else on the
-// tree changes this model: Foundry needs the upgrade shop, the sim has no offline gap for Long
+// default rule (x2 lifetime dust, the same threshold the manual policy uses). With the shards left
+// it buys the Deep Blueprint (Foundry, 1 shard: that tier's upgrades /10) of each newly opened
+// tier (R5). Nothing else on the tree changes this model: the sim has no offline gap for Long
 // Sleep or Hourglass to fill, and Tower nodes don't touch the core economy.
 function makeShardTreeModel(gs, ps) {
   const tree = new ShardTreeSystem(gs, ps);
   return {
     buyNodes() {
       if (!tree.has('chronos_auto_ascend')) tree.buy('chronos_auto_ascend');
+      if (!tree.has('chronos_auto_ascend')) return;   // saving for Auto-Ascend first
+      for (let tier = 15; tier <= MAX_TIER_COUNT; tier++) {
+        const id = `foundry_t${tier}`;
+        if (!tree.has(id) && canBuyNode(gs, id)) tree.buy(id);
+      }
     },
     // Auto-Ascend decision in sim time (the real system reads Date.now; same rule and minimum)
     autoAscendDue(pending, runSeconds) {
@@ -105,6 +197,11 @@ function run(profile) {
   const bs = new BuildingSystem(gs);
   const ps = new PrestigeSystem(gs);
   const ach = new AchievementSystem(gs);
+  const us = new UpgradeSystem(gs);
+  gs.buildingSystem = bs; gs.achievementSystem = ach; gs.upgradeSystem = us;
+  const shop = makeUpgradeShopBuyer(gs, bs, us);
+  let clickRate = 0; // clicks/s x combo right now, for valuing click upgrades
+
   gs.buildingSystem = bs; gs.achievementSystem = ach;
   const shardTree = makeShardTreeModel(gs, ps);
   let t = 0;
@@ -121,22 +218,39 @@ function run(profile) {
   // Compared in log10 space (same ordering as the BigNum maths, ~20x faster with 30 tiers).
   const lg = (x) => Math.log10(Math.abs(x.m)) + x.e;
   const LOG_R = Math.log10(1.15);
+  const DEF_LOGS = BUILDING_DEFINITIONS.map(d => ({ def: d, costLog: lg(d.baseCost), cpsLog: lg(d.baseCps) }));
   const greedyBuy = () => {
-    const unlocked = BUILDING_DEFINITIONS.slice(0, bs.getUnlockedTierCount());
+    const unlocked = DEF_LOGS.slice(0, bs.getUnlockedTierCount());
     const costMult = Math.log10(bs.getCostMultiplier());
+    // Upgrade multiplier per tier (log10), recomputed only after an upgrade or a synergy source changes
+    const multLog = new Map();
+    const tierMultLog = (id) => {
+      let v = multLog.get(id);
+      if (v === undefined) { v = Math.log10(gs.getTierUpgradeMult(id)); multLog.set(id, v); }
+      return v;
+    };
+    shop.refresh();
     for (let k = 0; k < 50; k++) {
       if (gs.aether.m <= 0) return;
       const budget = lg(gs.aether);
       let best = null, bestRatio = -Infinity;
-      for (const def of unlocked) {
+      for (const { def, costLog, cpsLog } of unlocked) {
         const cnt = gs.buildings[def.id].count;
-        const cost = lg(def.baseCost) + cnt * LOG_R + costMult;
+        const cost = costLog + cnt * LOG_R + costMult;
         if (cost > budget + 1e-9) continue;
         const gain = (cnt + 1) * bs.getMilestoneMultiplier(cnt + 1) - cnt * bs.getMilestoneMultiplier(cnt);
-        const ratio = lg(def.baseCps) + Math.log10(gain) - cost;
+        const ratio = cpsLog + Math.log10(gain) + tierMultLog(def.id) - cost;
         if (ratio > bestRatio) { bestRatio = ratio; best = def.id; }
       }
+      const up = shop.best(budget, clickRate);
+      if (up && up.ratio >= bestRatio) {
+        if (!shop.buy(up.id)) return;
+        multLog.clear();
+        continue;
+      }
       if (!best || !bs.buyBuilding(best)) return;
+      shop.onBuilding(best);
+      for (const target of SYNERGY_TARGETS_OF.get(best) || []) multLog.delete(target);
     }
   };
 
@@ -159,6 +273,7 @@ function run(profile) {
   let runStart = 0, ci = 0;
   const resets = [];
   const transcends = [];
+  const upgradesPerRun = []; // R5: upgrades bought by the end of each Ascension run
   const regainDays = [];   // days after each Transcend until CPS is back to its pre-Transcend level
   let regainFrom = null;
   const rows = [];
@@ -167,7 +282,8 @@ function run(profile) {
     const cps = gs.getNetAetherPerSecond();
     const present = t % 3600 < presence;
     const clicksPerSec = present ? 2 : (t - runStart < 180 ? 1 : 0);
-    const clickYield = gs.clickPower.add(cps.mul(0.03)).mul((present ? 5 : 1) * clicksPerSec * dt);
+    clickRate = (present ? 5 : 1) * clicksPerSec;
+    const clickYield = gs.getClickBase().add(cps.mul(0.03)).mul(clickRate * dt);
     const income = cps.mul(dt * activeMult(t)).add(clickYield);
     gs.aether = gs.aether.add(income);
     gs.totalAetherEarned = gs.totalAetherEarned.add(income);
@@ -183,6 +299,7 @@ function run(profile) {
       const manual = here && t - runStart >= 600 && pending.gte(gs.totalCosmicDust.max(10));
       if (manual || shardTree.autoAscendDue(pending, t - runStart)) {
         resets.push(t);
+        upgradesPerRun.push(us.getBoughtCount());
         ps.ascend(true); // the sim enforces the 10-min minimum itself (virtual time, not Date.now)
         runStart = t;
       }
@@ -219,7 +336,8 @@ function run(profile) {
         trans: gs.transcendenceCount,
         tiers: bs.getUnlockedTierCount(),
         chron: gs.chronicle.count,
-        pages: gs.chronicle.totalPages
+        pages: gs.chronicle.totalPages,
+        upgrades: us.getBoughtCount()
       });
       ci++;
     }
@@ -248,6 +366,7 @@ function run(profile) {
     transcendDays: transcends.map(x => x / DAY),
     regainDays,
     maxGapDays: maxGap / DAY,
+    upgradesPerRun,
     autoAscendDay,
     chronicles: chronicle.log,
     gapKeptUntilDay: keptUntil / DAY
@@ -260,11 +379,15 @@ const out = [];
 for (const profile of ['idle', 'casual']) {
   const r = run(profile);
   out.push(`\n### profile: ${profile}\n`);
-  out.push('| time | CPS | Ascensions | lifetime dust (this layer) | Transcends (this Chronicle) | tiers | Chronicles | Pages earned |');
-  out.push('|---|---|---|---|---|---|---|---|');
-  for (const row of r.rows) out.push(`| ${row.label} | ${row.cps} | ${row.asc} | ${row.dust} | ${row.trans} | ${row.tiers} | ${row.chron} | ${row.pages} |`);
+  out.push('| time | CPS | Ascensions | lifetime dust (this layer) | Transcends (this Chronicle) | tiers | upgrades (this run) | Chronicles | Pages earned |');
+  out.push('|---|---|---|---|---|---|---|---|---|');
+  for (const row of r.rows) out.push(`| ${row.label} | ${row.cps} | ${row.asc} | ${row.dust} | ${row.trans} | ${row.tiers} | ${row.upgrades} | ${row.chron} | ${row.pages} |`);
   out.push('');
   out.push(`- first Ascension: ${r.firstResetMin.toFixed(1)} min`);
+  if (r.upgradesPerRun.length) {
+    const u = [...r.upgradesPerRun].sort((a, b) => a - b);
+    out.push(`- upgrades bought per Ascension run: median ${u[u.length >> 1]}, max ${u.at(-1)} (first run ${r.upgradesPerRun[0]})`);
+  }
   out.push(`- resets (Ascensions + Transcends) on day 0: ${r.resetsDay0}; in the year: ${r.resetsYear}`);
   if (r.regainDays.length) {
     const sorted = [...r.regainDays].sort((a, b) => a - b);

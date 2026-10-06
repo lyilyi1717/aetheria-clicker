@@ -6,6 +6,8 @@ import { defaultShardTreeState, sanitizeShardTreeState } from './ShardTreeSystem
 import {
   defaultChronicleState, sanitizeChronicleState, restoreStash, getActiveRules, getPageAetherMult
 } from './ChronicleSystem.js';
+import { defaultCalendarState, sanitizeCalendarState } from './CalendarSystem.js';
+import { getTierUpgradeMult, getClickUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
 
 // Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
 // PrestigeSystem imports audio/particles and GameState must stay loadable on its own.
@@ -55,6 +57,9 @@ export class GameState {
     // challenge (id + stashed run). Rule overrides are derived from it, never stored elsewhere.
     this.chronicle = defaultChronicleState();
 
+    // Daily Dallah, Weekly Ledger, Seals (R15, CalendarSystem.js); nothing in it is ever taken away
+    this.calendar = defaultCalendarState();
+
     // Active Clicker Stats
     this.clickPower = new BigNum(1);
     this.critChance = 0.05; // 5%
@@ -64,6 +69,9 @@ export class GameState {
     this.frenzyActive = false;
     this.frenzyTimer = 0;
     this.totalClicks = 0;
+
+    // Upgrade shop (R5, UpgradeSystem.js): { [id]: true } for upgrades bought this run
+    this.upgrades = {};
 
     // Materials / Inventory
     this.inventory = {
@@ -115,7 +123,8 @@ export class GameState {
     this.alchemy = { catalysts: 0 };
     this.spells = {};
     this.talents = {};
-    this.bounties = [];
+    this.bounties = [];     // the contract board
+    this.contracts = null;  // board timer { nextAt, lastClickAt }, set up by BountySystem
     this.market = null;
     this.ascensionPerks = {};
     this.achievements = {};
@@ -184,15 +193,25 @@ export class GameState {
     mult *= rules.aetherMult;
 
     // Cosmic Dust bonus (+2% per lifetime dust this layer), Fracture Shards (x1.5 each) and
-    // Chronicle Pages (x2 each) are BigNum: they grow without bound across a year and must not
+    // Chronicle Pages (x1.4 each) are BigNum: they grow without bound across a year and must not
     // overflow a double. Challenges that turn the layer bonuses off count them as x1.
     if (rules.layerBonusesOff) return base.mul(mult);
     return base.mul(mult).mul(this.getDustMultiplierBig()).mul(this.getShardAetherMult()).mul(getPageAetherMult(this));
   }
 
+  // Upgrade shop: output multiplier for one generator tier (BuildingSystem.getBuildingProduction)
+  getTierUpgradeMult(buildingId) {
+    return getTierUpgradeMult(this, buildingId);
+  }
+
+  // Base click before the CPS share: clickPower x 2^(click upgrades bought) (design doc 6.1)
+  getClickBase() {
+    return this.clickPower.mul(getClickUpgradeMult(this));
+  }
+
   // Calculate current click damage/yield
   getClickYield() {
-    let base = this.clickPower;
+    let base = this.getClickBase();
 
     // Add % of passive CPS to click
     const cps = this.getNetAetherPerSecond();
@@ -340,7 +359,8 @@ export class GameState {
 
   // Temporal Siphon talent: +50% Chrono Sand per rank
   getChronoSandGainMult() {
-    return 1 + (this.talents?.chrono_mastery?.rank || 0) * 0.5;
+    // Hourglass Week (Souq Rotation, R15) multiplies it
+    return (1 + (this.talents?.chrono_mastery?.rank || 0) * 0.5) * (this.calendarSystem?.getSandGainMult?.() || 1);
   }
 
   // Adds sand up to the bank cap; returns what was actually banked
@@ -373,10 +393,12 @@ export class GameState {
       legacyTranscendRefund: this.legacyTranscendRefund,
       shardTree: this.shardTree,
       chronicle: this.chronicle,
+      calendar: this.calendar,
       clickPower: this.clickPower.toJSON(),
       critChance: this.critChance,
       critMultiplier: this.critMultiplier,
       totalClicks: this.totalClicks,
+      upgrades: serializeUpgrades(this.upgrades),
       inventory: { ...this.inventory },
       stats: { ...this.stats },
       guildSeals: this.guildSeals,
@@ -391,6 +413,7 @@ export class GameState {
       spells: this.spells,
       talents: this.talents,
       bounties: this.bounties,
+      contracts: this.contracts ? { ...this.contracts } : null,
       quartermaster: this.quartermaster,
       market: this.market,
       ascensionPerks: this.ascensionPerks,
@@ -420,8 +443,13 @@ export class GameState {
       // Saves from before R2 have no run clock: their run is old enough, so no wait
       this.runStartedAt = Number.isFinite(data.runStartedAt) ? data.runStartedAt : 0;
       this.fractureShards = BigNum.fromJSON(data.fractureShards);
-      // Lifetime shards can never be below the balance (the v4 migration sets both)
-      this.totalFractureShards = BigNum.fromJSON(data.totalFractureShards).max(this.fractureShards);
+      // Not clamped to the balance: Seal shards (R15) are spendable only, so the balance can pass
+      // the lifetime count (which is what the multipliers read)
+      // A save missing the field entirely (hand-edited / partial) falls back to the balance so it
+      // keeps its bonus; saves from the v4 migration on always carry it
+      this.totalFractureShards = data.totalFractureShards == null
+        ? this.fractureShards
+        : BigNum.fromJSON(data.totalFractureShards);
       const tc = Math.floor(Number(data.transcendenceCount));
       this.transcendenceCount = Number.isFinite(tc) && tc > 0 ? tc : 0;
       this.legacyTranscendRefund = data.legacyTranscendRefund && typeof data.legacyTranscendRefund === 'object'
@@ -430,10 +458,14 @@ export class GameState {
       this.shardTree = sanitizeShardTreeState(data.shardTree, { transcendenceCount: this.transcendenceCount });
       // Saves from before R20 have no Chronicle: a fresh one (nothing to convert)
       this.chronicle = sanitizeChronicleState(data.chronicle);
+      // Saves from before R15 have no calendar: it starts empty and fills on the first visit
+      this.calendar = sanitizeCalendarState(data.calendar);
       this.clickPower = BigNum.fromJSON(data.clickPower);
       this.critChance = data.critChance ?? 0.05;
       this.critMultiplier = data.critMultiplier ?? 3.0;
       this.totalClicks = data.totalClicks ?? 0;
+      // Saves before R5 have no upgrades: nothing bought
+      this.upgrades = sanitizeUpgrades(data.upgrades);
       this.inventory = { ...this.inventory, ...(data.inventory || {}) };
       // Mining used to store rubies under 'rubys'; fold them into the real key
       if (this.inventory.rubys) {
@@ -458,6 +490,8 @@ export class GameState {
       for (const b of this.bounties) {
         b.rewards.gold = BigNum.fromJSON(b.rewards.gold);
       }
+      // Saves from before R10 have no board timer: BountySystem starts one (and keeps their contracts)
+      this.contracts = data.contracts && typeof data.contracts === 'object' ? { ...data.contracts } : null;
       this.quartermaster = data.quartermaster || null;
       this.market = data.market || null;
       if (this.market?.caravan) {
@@ -489,6 +523,7 @@ export class GameState {
   clampLoadedTimers() {
     const cap = this.getBuffDurationCap();
     for (const b of this.activeBuffs) {
+      if (b.fixed) continue; // Dallah coffee: fixed 1 h, outside the 10-min cap
       b.duration = Math.min(cap, Number(b.duration) || 0);
       b.maxDuration = Math.min(cap, Math.max(b.duration, Number(b.maxDuration) || 0));
     }

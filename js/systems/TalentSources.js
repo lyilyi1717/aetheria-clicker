@@ -3,8 +3,8 @@
 // nor Transcend resets it):
 //   S1 Milestone Stars   one-off, finite, log-paced (STAR_DEFS + the Transcend ladder)
 //   S2 Record Ascension  magnitudeStars = max(0, floor(log10(bestRunDust)) - 3), grant the difference
-//   S3 Guild Rank        rank = floor((C / 8)^(1/1.4)), C = lifetime contracts claimed (R10 calls
-//                        recordContractClaim; BountySystem has a stand-in until the board is paced)
+//   S3 Guild Rank        rank = floor((C / 8)^(1/1.4)), C = lifetime contracts claimed
+//                        (BountySystem.claimBounty calls recordContractClaim once per claim)
 // Pure data and functions, no audio or particle imports, so GameState can import it.
 import { BigNum } from '../engine/BigNum.js';
 import { getLifetimeTranscends } from './ChronicleSystem.js';
@@ -51,7 +51,7 @@ export function defaultRecords() {
     harvested: {},                // seed ids harvested at least once
     contractsClaimed: 0,          // lifetime contracts that counted toward Guild Rank (S3)
     guildRank: 0,
-    contractBucket: null,         // BountySystem stand-in pacing, see there
+    contractBucket: null,         // unused since R10 (the board paces claims); kept so saves round-trip
     earned: { stars: 0, record: 0, guild: 0 } // points granted per source (header)
   };
 }
@@ -144,7 +144,7 @@ export function recordAscensionDust(gs, pendingDust) {
   return grantTalentPoints(gs, gained, 'record', `Record Ascension 1e${stars + RECORD_DUST_OFFSET}`);
 }
 
-// S3 (API for R10): call once per claimed contract that should count toward Guild Rank.
+// S3: BountySystem.claimBounty calls this once per claimed contract that should count toward Guild Rank.
 // Each rank-up pays +1 talent point and +5 Guild Seals. Returns { rank, ranksGained, points }.
 export function recordContractClaim(gs, count = 1) {
   const rec = ensureRecords(gs);

@@ -12,13 +12,15 @@ import { ClickerSystem } from './js/systems/ClickerSystem.js';
 import { SpellSystem } from './js/systems/SpellSystem.js';
 import { ShardTreeSystem } from './js/systems/ShardTreeSystem.js';
 import { checkMilestones } from './js/systems/TalentSources.js';
+import { UPGRADE_DEFINITIONS } from './js/systems/UpgradeSystem.js';
+import { CalendarSystem, SEALS } from './js/systems/CalendarSystem.js';
 import {
   ChronicleSystem, CHAPTERS, PAGE_UPGRADES, NO_RULES, RULE_KEYS, chronicleClock,
   CHRONICLE_TRANSCEND_GATE, SEAL_STANDIN_TRANSCENDS, CHRONICLE_BASE_PAGES, PAGE_AETHER_MULT, INK_SHARDS,
   GILDED_EXTRA_PAGES, MARGIN_NOTES_PER_CLEAR, CHRONICLE_RESETS, CHRONICLE_KEEPS,
   getActiveRules, getPendingPages, getSealGate, getChronicleBlockReason, getLifetimeTranscends,
   getPageAetherMult, getChapterStatus, validateChapters, sanitizeChronicleState, defaultChronicleState,
-  getChallenge, describeRules, isChallengeActive
+  getChallenge, describeRules, isChallengeActive, getChronicleTranscendsNeeded
 } from './js/systems/ChronicleSystem.js';
 import { particles } from './js/engine/ParticleEngine.js';
 
@@ -110,11 +112,25 @@ console.log('--- Gate: 12 Transcends, and 24 for the first Chronicle until the S
   let lit = 6;
   s.gs.calendarSystem = { getSealSetProgress: (set) => (set === 1 ? { lit, total: 7 } : null) };
   assert.equal(getSealGate(s.gs).source, 'seals');
-  assert.match(getChronicleBlockReason(s.gs), /Seal set I \(6\/7\)/);
+  assert.match(getChronicleBlockReason(s.gs), /Seal set I \(6\/7 lit\) or 24 Transcends \(you: 12\)/);
+  assert.equal(getChronicleTranscendsNeeded(s.gs), SEAL_STANDIN_TRANSCENDS);
+  // ... the Transcend path still opens it without the Seals (no Seal can lock the layer away)
+  s.gs.transcendenceCount = SEAL_STANDIN_TRANSCENDS;
+  assert.equal(s.cs.canChronicle(), true);
+  s.gs.transcendenceCount = CHRONICLE_TRANSCEND_GATE;
   lit = 7;
+  assert.equal(getChronicleTranscendsNeeded(s.gs), CHRONICLE_TRANSCEND_GATE);
   assert.equal(s.cs.canChronicle(), true);
   s.gs.transcendenceCount = 11;
   assert.match(getChronicleBlockReason(s.gs), /needs 12 Transcends \(you: 11\)/);
+
+  // The real calendar system reports Seal set I (all seven Seals)
+  const r = climbed(CHRONICLE_TRANSCEND_GATE);
+  r.gs.calendarSystem = new CalendarSystem(r.gs, () => now);
+  assert.deepEqual(r.gs.calendarSystem.getSealSetProgress(1), { lit: r.gs.calendarSystem.getLitSealCount(), total: SEALS.length });
+  for (const seal of SEALS) r.gs.calendar.seals[seal.id] = true;
+  assert.equal(getSealGate(r.gs).sealsMet, true);
+  assert.equal(r.cs.canChronicle(), true, '12 Transcends + Seal set I');
 
   // After the first Chronicle the Seal half is met for good: Chronicle II needs 12 Transcends
   const { gs: g2, cs: c2 } = climbed(SEAL_STANDIN_TRANSCENDS);
@@ -145,6 +161,7 @@ console.log('--- Chronicle reset: exactly what the preview lists resets, the res
 {
   const { gs, cs, ps } = climbed(26);
   gs.runStartedAt = 0;
+  gs.upgrades = { [UPGRADE_DEFINITIONS[0].id]: true, [UPGRADE_DEFINITIONS[1].id]: true };
   const before = clone(gs.serialize());
   const pv = cs.getPreview();
   assert.equal(pv.number, 1);
@@ -159,6 +176,7 @@ console.log('--- Chronicle reset: exactly what the preview lists resets, the res
   assert.deepEqual({ pages: res.pages, number: res.number }, { pages: 10, number: 1 });
   // Resets
   assert.ok(gs.aether.eq(0) && gs.totalAetherEarned.eq(0), 'run Aether');
+  assert.deepEqual(gs.upgrades, {}, 'upgrade shop');
   // generators (Cosmic Genesis, owned at the moment of the reset, starts the run with 15 Stalls, as on Transcend)
   for (const [id, b] of Object.entries(gs.buildings)) assert.equal(b.count, id === 'tapper' ? 15 : 0, `generator ${id}`);
   assert.ok(gs.cosmicDust.eq(0) && gs.totalCosmicDust.eq(0), 'dust and lifetime dust');
@@ -273,6 +291,7 @@ console.log('--- Challenge runner: rules apply, the run is stashed, everything r
   gs.buildings.tapper.count = 123;
   gs.buildings[Object.keys(gs.buildings)[3]].count = 45;
   gs.comboCount = 40;
+  gs.upgrades = { [UPGRADE_DEFINITIONS[0].id]: true, [UPGRADE_DEFINITIONS[2].id]: true };
   gs.runStartedAt = T0 - 3600e3;
   gs.chronicle.challenges.sand_dry_well = { done: true, best: 999, clears: 1 };
   const mainRun = clone(gs.serialize());
@@ -287,6 +306,8 @@ console.log('--- Challenge runner: rules apply, the run is stashed, everything r
   // Fresh run under the challenge's rules (the Chapter's world rules are replaced)
   assert.ok(gs.aether.eq(0) && gs.totalAetherEarned.eq(0));
   assert.equal(gs.buildings.tapper.count, 0);
+  assert.deepEqual(gs.upgrades, {}, 'the challenge run starts with no shop upgrades');
+  gs.upgrades[UPGRADE_DEFINITIONS[4].id] = true;  // bought during the challenge: gone after it
   const r = getActiveRules(gs, now);
   assert.equal(r.maxTiers, 6);
   assert.equal(r.layerBonusesOff, true);
