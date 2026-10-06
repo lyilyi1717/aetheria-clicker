@@ -6,7 +6,7 @@
 import { rewards } from './rewards.js';
 import { sound } from '../engine/AudioEngine.js';
 import {
-  CalendarSystem, SEALS, SEAL_SHARD_BONUS_MAX, DALLAH_BANK_MAX, DALLAH_SAND
+  CalendarSystem, SEALS, SEAL_SHARD_BONUS_MAX, DALLAH_BANK_MAX, DALLAH_SAND, LEDGER_WEEK_DAYS
 } from '../systems/CalendarSystem.js';
 
 const TICK_SECONDS = 1;
@@ -222,7 +222,7 @@ export class CalendarUI {
       const chip = row.querySelector('[data-chip]');
       chip.classList.toggle('life', g.done);
     }
-    setText(e.ledgerNote, `All 3 → a Ledger stamp for the week (cosmetic). Missing a week loses nothing.`);
+    setText(e.ledgerNote, `Sized to about ${LEDGER_WEEK_DAYS} of your usual days, so it takes a few visits. All 3 → a Ledger stamp (cosmetic). Missing a week loses nothing.`);
     setText(e.stampTag, l.stamped ? 'Stamped' : `${l.goals.filter(g => g.done).length} / ${l.goals.length} done`);
     const first = Math.max(1, l.number - STAMP_CHIPS + 1);
     let chips = '';

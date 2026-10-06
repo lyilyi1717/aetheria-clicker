@@ -44,6 +44,7 @@ import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
 import { Leaderboard } from './leaderboard.js';
+import { AccountUI } from './ui/account.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
 
@@ -155,6 +156,9 @@ class AetheriaApp {
     // Setup DOM Listeners & Navigation
     this.setupEventListeners();
     this.setupTabs();
+    // Account & cloud save (R38): optional; signed out, the game saves locally as before
+    this.accountUI = new AccountUI(this);
+    this.accountUI.init();
 
     // Check offline time
     if (this.saveManager.lastSaveTime) {

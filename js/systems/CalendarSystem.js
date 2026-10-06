@@ -45,27 +45,59 @@ export const DALLAH_COFFEE_SECONDS = 3600;    // "fresh coffee" buff length
 export const DALLAH_COFFEE_MULT = 1.25;       // +25% Aether (additive with other Aether buffs)
 export const COFFEE_BUFF_ID = 'dallah_coffee';
 export const LEDGER_GOAL_COUNT = 3;
-export const LEDGER_GOAL_SEALS = 6;           // Guild Seals per Ledger goal
+export const LEDGER_GOAL_SEALS = 10;          // Guild Seals per Ledger goal (R33; was 6)
+export const LEDGER_LEGACY_SEALS = 6;         // what a goal drawn before R33 still pays
+// R33: a weekly goal asks for about this many of the player's own typical days of progress, so a
+// week takes several sessions but leaves 2-3 days of slack (no punishing absence)
+export const LEDGER_WEEK_DAYS = 4.5;
+export const RATE_HISTORY_DAYS = 7;           // days of progress remembered per goal stat
+export const RATE_MIN_SAMPLES = 3;            // fewer than this: use the goal's starting target
 export const SEAL_SHARD_BONUS_MAX = 3;        // +1 shard per lit Seal at each Transcend, up to +3
 
 // Ledger goals: progress is "how much the lifetime counter has grown since the week began", so
 // nothing here needs a hook in the system that owns the counter. `ok(gs)` keeps a goal out of the
 // draw until the player has met the system it asks about, and `tab` keeps it out until that tab
 // is unlocked (R7, "goals drawn from unlocked tabs").
+// Targets (R33): each goal is drawn with LEDGER_WEEK_DAYS x the player's own typical day for that
+// stat (the median of the last RATE_HISTORY_DAYS days seen), never below `legacy` (the flat
+// target from before R33, which a week drawn then keeps until the Ledger rotates) and never above
+// `max`. With fewer than RATE_MIN_SAMPLES days seen it asks for `start`.
 const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 export const LEDGER_GOALS = [
-  { id: 'bosses', tab: 'combat', icon: '💀', label: 'Defeat 2 Tower bosses', target: 2, stat: gs => n(gs.stats?.totalBossesSlain), ok: gs => n(gs.hero?.maxFloor) >= 10 },
-  { id: 'fiends', tab: 'combat', icon: '⚔️', label: 'Slay 60 Tower fiends', target: 60, stat: gs => n(gs.stats?.totalMonstersSlain), ok: gs => true },
-  { id: 'depths', tab: 'mining', icon: '⛏️', label: 'Descend 3 depths', target: 3, stat: gs => n(gs.miningGrid?.maxDepth), ok: gs => n(gs.miningGrid?.maxDepth) >= 1 && n(gs.miningGrid?.maxDepth) < 150 },
-  { id: 'blocks', tab: 'mining', icon: '🧱', label: 'Excavate 150 blocks', target: 150, stat: gs => n(gs.stats?.totalBlocksMined), ok: gs => !!gs.miningGrid },
-  { id: 'harvest', tab: 'garden', icon: '🌱', label: 'Harvest 12 plants', target: 12, stat: gs => n(gs.stats?.totalPlantsHarvested), ok: gs => !!gs.garden },
-  { id: 'brew', tab: 'alchemy', icon: '🧪', label: 'Brew 5 potions or Catalysts', target: 5, stat: gs => n(gs.stats?.totalPotionsBrewed), ok: gs => !!gs.alchemy },
-  { id: 'spells', tab: 'spells', icon: '✨', label: 'Cast 15 spells', target: 15, stat: gs => n(gs.stats?.totalSpellsCast), ok: gs => n(gs.stats?.totalSpellsCast) > 0 || n(gs.ascensionCount) > 0 },
-  { id: 'contracts', tab: 'bounties', icon: '📜', label: 'Complete 5 contracts', target: 5, stat: gs => n(gs.stats?.totalBountiesCompleted), ok: gs => true },
-  { id: 'ascend', tab: 'prestige', icon: '🚀', label: 'Ascend 3 times', target: 3, stat: gs => n(gs.ascensionCount), ok: gs => n(gs.ascensionCount) >= 1 },
-  { id: 'clicks', tab: 'monolith', icon: '🧆', label: 'Click the Monolith 300 times', target: 300, stat: gs => n(gs.totalClicks), ok: gs => true }
+  { id: 'bosses', tab: 'combat', icon: '💀', label: t => `Defeat ${t} Tower bosses`, legacy: 2, start: 5, stat: gs => n(gs.stats?.totalBossesSlain), ok: gs => n(gs.hero?.maxFloor) >= 10 },
+  { id: 'fiends', tab: 'combat', icon: '⚔️', label: t => `Slay ${t} Tower fiends`, legacy: 60, start: 200, stat: gs => n(gs.stats?.totalMonstersSlain), ok: gs => true },
+  { id: 'depths', tab: 'mining', icon: '⛏️', label: t => `Descend ${t} depths`, legacy: 3, start: 6, max: 25, stat: gs => n(gs.miningGrid?.maxDepth), ok: gs => n(gs.miningGrid?.maxDepth) >= 1 && n(gs.miningGrid?.maxDepth) < 150 },
+  { id: 'blocks', tab: 'mining', icon: '🧱', label: t => `Excavate ${t} blocks`, legacy: 150, start: 400, stat: gs => n(gs.stats?.totalBlocksMined), ok: gs => !!gs.miningGrid },
+  { id: 'harvest', tab: 'garden', icon: '🌱', label: t => `Harvest ${t} plants`, legacy: 12, start: 24, stat: gs => n(gs.stats?.totalPlantsHarvested), ok: gs => !!gs.garden },
+  { id: 'brew', tab: 'alchemy', icon: '🧪', label: t => `Brew ${t} potions or Catalysts`, legacy: 5, start: 10, stat: gs => n(gs.stats?.totalPotionsBrewed), ok: gs => !!gs.alchemy },
+  { id: 'spells', tab: 'spells', icon: '✨', label: t => `Cast ${t} spells`, legacy: 15, start: 40, stat: gs => n(gs.stats?.totalSpellsCast), ok: gs => n(gs.stats?.totalSpellsCast) > 0 || n(gs.ascensionCount) > 0 },
+  { id: 'contracts', tab: 'bounties', icon: '📜', label: t => `Complete ${t} contracts`, legacy: 5, start: 12, stat: gs => n(gs.stats?.totalBountiesCompleted), ok: gs => true },
+  { id: 'ascend', tab: 'prestige', icon: '🚀', label: t => `Ascend ${t} times`, legacy: 3, start: 6, stat: gs => n(gs.ascensionCount), ok: gs => n(gs.ascensionCount) >= 1 },
+  { id: 'clicks', tab: 'monolith', icon: '🧆', label: t => `Click the Monolith ${t} times`, legacy: 300, start: 1200, stat: gs => n(gs.totalClicks), ok: gs => true }
 ];
 const GOAL_BY_ID = new Map(LEDGER_GOALS.map(g => [g.id, g]));
+const fmtTarget = (t) => t.toLocaleString('en-US');
+
+// Rounded to 2 significant figures (at most ~5% either way), so targets read as round numbers
+export function roundTarget(x) {
+  if (!(x > 0)) return 0;
+  const step = 10 ** Math.max(0, Math.floor(Math.log10(x)) - 1);
+  return Math.round(x / step) * step;
+}
+
+function median(xs) {
+  const a = [...xs].sort((p, q) => p - q);
+  const mid = a.length >> 1;
+  return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
+}
+
+// The weekly target for a goal given the stat's recent per-day growth (newest last)
+export function ledgerTargetFor(def, history = []) {
+  let t = history.length >= RATE_MIN_SAMPLES ? roundTarget(LEDGER_WEEK_DAYS * median(history)) : def.start;
+  t = Math.max(def.legacy, t);
+  if (def.max) t = Math.min(def.max, t);
+  return Math.max(1, Math.round(t));
+}
 
 // Seals of Transcendence (roadmap §5.1, tier I). Lifetime flags: a lit Seal never goes dark.
 // `value` is the player's progress, `goal` the bar; `pct` for the progress bar is value / goal.
@@ -93,6 +125,8 @@ export function defaultCalendarState() {
   return {
     daily: { lastDay: null, bank: 0, visits: 0, claimedDays: 0 },
     weekly: { week: null, firstWeek: null, goals: [], stamps: [] },
+    // R33: per-goal-stat growth on each of the last few days seen (sizes the weekly targets)
+    rates: { day: null, snap: {}, hist: {} },
     seals: {}                                  // id -> true once lit
   };
 }
@@ -117,7 +151,22 @@ export function sanitizeCalendarState(raw) {
   if (Array.isArray(w.goals)) {
     for (const g of w.goals.slice(0, LEDGER_GOAL_COUNT)) {
       if (!g || !GOAL_BY_ID.has(g.id)) continue;
-      s.weekly.goals.push({ id: g.id, base: n(g.base), done: g.done === true });
+      // Goals drawn before R33 have no target or seals: they keep the old flat ones until rollover
+      const def = GOAL_BY_ID.get(g.id);
+      s.weekly.goals.push({
+        id: g.id, base: n(g.base), done: g.done === true,
+        target: int(g.target, 1) ?? def.legacy, seals: int(g.seals) ?? LEDGER_LEGACY_SEALS
+      });
+    }
+  }
+  const r = raw.rates;
+  if (r && typeof r === 'object' && !Array.isArray(r)) {
+    s.rates.day = int(r.day, -1e9);
+    for (const def of LEDGER_GOALS) {
+      if (r.snap && Number.isFinite(Number(r.snap[def.id])) && r.snap[def.id] !== null) s.rates.snap[def.id] = Number(r.snap[def.id]);
+      const h = Array.isArray(r.hist?.[def.id]) ? r.hist[def.id] : [];
+      const clean = h.map(Number).filter(x => Number.isFinite(x) && x >= 0).slice(-RATE_HISTORY_DAYS);
+      if (clean.length) s.rates.hist[def.id] = clean;
     }
   }
   if (Array.isArray(w.stamps)) {
@@ -183,6 +232,7 @@ export class CalendarSystem {
   // Run about once a second: new day, new week, Seals, Ledger progress
   tick() {
     this.updateDaily();
+    this.updateRates();
     this.updateWeekly();
     this.updateSeals();
     this.updateLedger();
@@ -262,7 +312,42 @@ export class CalendarSystem {
     }
     if (w.firstWeek === null) w.firstWeek = week;
     w.week = week;
-    w.goals = this.drawGoals(week).map(def => ({ id: def.id, base: def.stat(this.gameState), done: false }));
+    w.goals = this.drawGoals(week).map(def => this.newGoal(def));
+    return true;
+  }
+
+  newGoal(def) {
+    return { id: def.id, base: def.stat(this.gameState), done: false, target: this.getGoalTarget(def.id), seals: LEDGER_GOAL_SEALS };
+  }
+
+  // What a goal drawn now would ask for (R33: about 4.5 of the player's own typical days)
+  getGoalTarget(id) {
+    const def = GOAL_BY_ID.get(id);
+    return ledgerTargetFor(def, this.state.rates?.hist?.[id] || []);
+  }
+
+  // R33: once per new day seen, record how much each goal stat grew since the last day seen. That
+  // growth is the play of the previous session day(s) plus capped offline gains. Days the game is
+  // not opened add no sample, so a break never lowers or raises the next week's targets.
+  updateRates() {
+    const st = this.state;
+    if (!st.rates || typeof st.rates !== 'object') st.rates = defaultCalendarState().rates;
+    const r = st.rates;
+    r.snap ||= {}; r.hist ||= {};
+    const day = this.getToday();
+    if (r.day !== null && day <= r.day) return false;
+    const first = r.day === null;
+    r.day = day;
+    for (const def of LEDGER_GOALS) {
+      let cur;
+      try { cur = def.stat(this.gameState); } catch { continue; }
+      const prev = r.snap[def.id];
+      r.snap[def.id] = cur;
+      if (first || prev === undefined || cur < prev) continue;   // no baseline yet, or a counter reset
+      const h = r.hist[def.id] || (r.hist[def.id] = []);
+      h.push(cur - prev);
+      if (h.length > RATE_HISTORY_DAYS) h.splice(0, h.length - RATE_HISTORY_DAYS);
+    }
     return true;
   }
 
@@ -287,11 +372,11 @@ export class CalendarSystem {
     if (w.week === null || w.goals.length >= LEDGER_GOAL_COUNT) return;
     const skip = new Set(w.goals.map(g => g.id));
     for (const def of this.drawGoals(w.week + w.goals.length, LEDGER_GOAL_COUNT - w.goals.length, skip)) {
-      w.goals.push({ id: def.id, base: def.stat(this.gameState), done: false });
+      w.goals.push(this.newGoal(def));
     }
   }
 
-  // Credits finished goals (6 Guild Seals each) and the week's stamp when all are done
+  // Credits finished goals (10 Guild Seals each; 6 for one drawn before R33) and the week's stamp
   updateLedger() {
     const w = this.state.weekly;
     const gs = this.gameState;
@@ -300,12 +385,14 @@ export class CalendarSystem {
       const def = GOAL_BY_ID.get(g.id);
       const cur = def.stat(gs);
       if (cur < g.base) g.base = cur;                    // a counter that was reset: start over from here
-      if (g.done || cur - g.base < def.target) continue;
+      const target = g.target ?? def.legacy;
+      if (g.done || cur - g.base < target) continue;
       g.done = true;
-      gs.guildSeals = (gs.guildSeals || 0) + LEDGER_GOAL_SEALS;
+      const seals = g.seals ?? LEDGER_LEGACY_SEALS;
+      gs.guildSeals = (gs.guildSeals || 0) + seals;
       this.notify({
         tier: 'medium', kind: 'ledger-goal', icon: def.icon, color: '#fbbf24',
-        title: 'Ledger goal done', batchTitle: '{n} Ledger goals done', detail: `${def.label} · +${LEDGER_GOAL_SEALS} Guild Seals`
+        title: 'Ledger goal done', batchTitle: '{n} Ledger goals done', detail: `${def.label(fmtTarget(target))} · +${seals} Guild Seals`
       });
     }
     const number = this.getWeekNumber();
@@ -329,8 +416,12 @@ export class CalendarSystem {
     const gs = this.gameState;
     const goals = w.goals.map(g => {
       const def = GOAL_BY_ID.get(g.id);
-      const have = Math.max(0, Math.min(def.target, def.stat(gs) - g.base));
-      return { id: g.id, icon: def.icon, label: def.label, target: def.target, have: g.done ? def.target : have, done: g.done, seals: LEDGER_GOAL_SEALS };
+      const target = g.target ?? def.legacy;
+      const have = Math.max(0, Math.min(target, def.stat(gs) - g.base));
+      return {
+        id: g.id, icon: def.icon, label: def.label(fmtTarget(target)), target,
+        have: g.done ? target : have, done: g.done, seals: g.seals ?? LEDGER_LEGACY_SEALS
+      };
     });
     const number = this.getWeekNumber();
     return {

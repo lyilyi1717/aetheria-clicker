@@ -260,7 +260,8 @@ stratum or zone every 1–3 days in week 1. One dust-shop feature. From day 6, a
 2–4 days that hands you a new generator tier and shards to spend. Golem rows and caravans
 finished overnight. A Codex row filled.
 
-**Every week.** Weekly Ledger: 3 goals drawn from unlocked tabs, Seals + a Codex stamp.
+**Every week.** Weekly Ledger: 3 goals drawn from unlocked tabs, sized to about 4.5 days of
+the player's own typical play (R33), Seals + a Codex stamp.
 Souq Rotation: one gentle world modifier that returns later (Truffle Season, Falcon Week).
 A Seal of Transcendence lights roughly weekly through month 2 (depth 100, floor 501, 25
 Catalysts, Guild Rank 7, bestRunDust 1e8, 40% Codex, 15 Ascensions).
@@ -533,7 +534,21 @@ leaderboard column. No save migration: `codex` is a new additive field.
 - **Weekly Ledger:** weeks run Monday to Sunday. 3 distinct goals from a pool of ten, drawn from
   those whose system the player has already met, seeded by the week number (same on every
   device). Progress is how far a lifetime counter has grown since the week began. Each goal pays
-  6 Guild Seals once; all 3 add a stamp (cosmetic, kept forever).
+  10 Guild Seals once (6 before R33); all 3 add a stamp (cosmetic, kept forever).
+- **Weekly targets (R33).** Flat targets (2 bosses, 300 clicks...) were finishable in one sitting,
+  so weeklies felt like dailies. Each goal now asks for `LEDGER_WEEK_DAYS` = 4.5 x the player's
+  typical day for that stat: on each new day seen, the growth of every goal stat since the last
+  day seen is recorded (`calendar.rates`, last 7 samples), and the target is 4.5 x the median,
+  rounded to 2 significant figures, never below the old flat target (and depth capped at 25).
+  With fewer than 3 samples a goal asks for a fixed `start` (about 2.5x the old target). Days
+  not opened add no sample, so a break never moves targets; the median shrugs off one binge or
+  one idle day. Result (`test_r33_weekly.js`, a mid-game player at 30 min/day): no goal is done
+  after a 1 h or even a 2 h session, all three are done after 5 days, leaving 2-3 days of slack
+  in the week. Someone who plays 1 h a day gets twice the targets, still ~4.5 of their days.
+  A week drawn before R33 keeps its flat targets and 6-Seal reward until it rotates (goals
+  without a stored `target` are read as legacy). Multi-system goals were considered and left
+  out: pace-relative targets already stop an AFK stat from finishing a week in one sitting.
+  `npm run sim` does not model the Ledger (subgames off), so its report is unchanged.
 - **Souq Rotation:** a four-week cycle, so each returns: Truffle Season (Desert Truffle grows
   x1.5), Falcon Week (Tower boss gold x1.5), Hourglass Week (Chrono Sand gained x1.5), Rosewater
   Week (every plant grows x1.25).
@@ -820,8 +835,9 @@ After the first Chronicle the Seal half counts as met.
   tricks pay more than the cap.
 - **Daily Dallah** (roadmap §5.4): first visit of a calendar day; banks 3 days; no streak,
   "days visited" is a lifetime count.
-- **Weekly Ledger**: 3 goals from unlocked tabs; Seals + stamp; rotates Monday; missing one
-  loses nothing.
+- **Weekly Ledger**: 3 goals from unlocked tabs, each sized to ~4.5 days of the player's own
+  typical day (R33), so a week takes several sessions but leaves 2–3 days of slack; Seals +
+  stamp; rotates Monday; missing one loses nothing.
 - **Souq Rotation**: one modifier per week, always positive, always returns.
 - **Seasons = Chapters** (3 months): new rules, new collection, new leaderboard; a Chapter
   missed is a Chapter next year. No exclusive items ever.

@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.4.1';
+export const VERSION = '4.6.1';
 
 export const CHANGELOG = [
   {
-    version: '4.4.1',
+    version: '4.6.1',
     date: '2026-10-06',
     title: 'Names cleanup',
     changes: [
@@ -15,6 +15,30 @@ export const CHANGELOG = [
       'The "Gem Hoarder" achievement now reads "Possess at least 1 Fanoos, Dallah, and Oud Wood". It checks the same items as before.',
       'The Nectar Offering on the Ascend screen is now the Honey Offering and counts your Sidr Honey. Same bonus, same rules.',
       'The "Mutawa" Void Tower boss is gone; that boss is now the Saher Camera. Nothing else about the fight changes.'
+    ]
+  },
+  {
+    version: '4.6.0',
+    date: '2026-10-06',
+    title: 'Accounts and cloud save',
+    changes: [
+      'New in Settings: Account & Cloud Save. Sign in with Google or with an email and password to keep your progress in the cloud and continue on another device or browser. Forgot your password? A reset link comes by email.',
+      'Accounts are optional. Without one the game saves in this browser exactly as before.',
+      'While signed in, your game saves to the cloud every 3 minutes, when you press Save Game and when you leave the page. Signing in on a new device loads your cloud save.',
+      'Your progress is never overwritten without asking: if this device and the cloud have different progress, you choose "Keep this device" or "Keep cloud", with each save\'s time, Ascensions, Transcends, floor and depth side by side.',
+      'Your leaderboard entry now belongs to your account, so it follows you to every device. Your old guest entry for this season is replaced by it, so you are only listed once.'
+    ]
+  },
+  {
+    version: '4.5.0',
+    date: '2026-10-06',
+    title: 'Weekly Ledger goals are a real week',
+    changes: [
+      'Weekly Ledger goals are harder now: they could often be finished in one sitting, which made them feel like dailies. Each goal now asks for about 4.5 of your usual days of progress, so a week takes a few visits but still leaves 2 to 3 days of slack.',
+      'Goals are sized to your own pace: the game remembers how much you did of each thing (bosses, blocks, harvests, clicks...) on your last 7 days played and uses a typical day, so the Ledger keeps up as you grow. A single big or idle day barely moves it, and days you do not play are not counted.',
+      'Until it has seen 3 of your days, a goal uses a starting target (for example Slay 200 Tower fiends, was 60). No goal is ever easier than before.',
+      'Each Ledger goal now pays 10 Guild Seals (was 6), 30 for the full week.',
+      'This week\'s goals keep their old targets and old 6-Seal reward until the Ledger rotates on Monday. Missing a week still loses nothing.'
     ]
   },
   {
