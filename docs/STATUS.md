@@ -9,11 +9,11 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R7 #9 Progressive unlocking (next; R6 is in).
+- R7 #9 Progressive unlocking (branch `claude/r7-progressive-unlock`, draft PR).
 
 ## Next up
 
-After R9: R10 #12. After R6: R7 #9. Chapter 2 is one more `CHAPTERS` entry.
+After R9: R10 #12. Chapter 2 is one more `CHAPTERS` entry.
 UI: R22–R24 are done. R7 can go once R6 is in.
 
 ## Plan
