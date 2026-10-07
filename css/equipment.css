@@ -1,0 +1,17 @@
+/* Gear Levels panel (R34). Linked from js/ui/equipment.js; uses the shared .card/.card-row/.btn-buy */
+.gl-panel { margin-top: var(--sp-3); padding: var(--sp-3); }
+.gl-panel .card-head { margin-bottom: var(--sp-2); }
+.gl-title { font-size: var(--fs-14); }
+.gl-note { font-size: var(--fs-12); color: var(--text-3); margin: 0 0 var(--sp-3); line-height: var(--lh-body); }
+.gl-list { display: flex; flex-direction: column; gap: var(--sp-2); }
+.gl-row { padding: var(--sp-2) var(--sp-3); }
+.gl-main { flex: 1 1 auto; min-width: 0; }
+.gl-name { font-size: var(--fs-13); color: var(--text-1); overflow-wrap: anywhere; }
+.gl-slot { color: var(--text-2); }
+.gl-name strong { color: var(--gold); }
+.gl-stat { font-size: var(--fs-12); color: var(--text-3); overflow-wrap: anywhere; }
+.gl-row .btn-buy { flex: 0 0 auto; min-width: 112px; }
+
+@media (max-width: 480px) {
+  .gl-row .btn-buy { min-width: 96px; }
+}
