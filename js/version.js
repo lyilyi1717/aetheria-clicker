@@ -3,9 +3,19 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.9.0';
+export const VERSION = '4.10.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.10.0',
+    date: '2026-10-07',
+    title: 'Excavation: deeper digging and Auto-Blast',
+    changes: [
+      'Pickaxe upgrades are much cheaper the further you go: each level now costs ×1.6 the last (was ×2.5). The first upgrade is 160 stone (was 125), level 5 is about 1,000 (was about 4,900) and level 10 about 11,000 (was 4.8 million). Digging no longer stalls in the Voidstone strata: a player with two sessions a day reaches about depth 100 in the first week and the last stratum, Abyssal Heart, in about five to six weeks (it used to take months).',
+      'Existing saves keep their depth and pickaxe; only the next upgrades get cheaper, so you will speed up right away.',
+      'New Shard Tree node, Auto-Blast (Chronos, 1 shard): Excavation throws its dynamite for you whenever it is ready. Switch it on or off under the Excavation shop. It works while the game is open (also in a background tab and during Fast Forward), like the drills; Excavation does not dig while the game is closed.'
+    ]
+  },
   {
     version: '4.9.0',
     date: '2026-10-07',

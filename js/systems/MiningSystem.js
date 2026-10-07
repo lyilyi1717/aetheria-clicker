@@ -4,6 +4,7 @@ import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from '../data/names.js';
+import { isAutoBlastOn } from './ShardTreeSystem.js';
 
 // A new stratum every 25 depth (§5.1). Cosmetic plus drop table: each stratum adds
 // +1% Void Amethyst chance, taken from the plain-stone share.
@@ -53,6 +54,11 @@ export const PICKAXE_NAMES = [
 // 2: v2 curves + depth compression. 3: rebase saves stranded at an undiggable depth.
 export const MINING_SCHEMA = 3;
 export const DRILL_HITS_PER_SEC = 0.5;
+// Pickaxe level L costs PICKAXE_COST_BASE * PICKAXE_COST_GROWTH^L stone and doubles power. Each
+// level buys log2(1.15) = 5 depths of tile HP, so its cost grows 1.6^0.2 = x1.099 per depth
+// against stone x1.07 per depth: a slow, steady slowdown instead of a wall (R32, §6.5).
+export const PICKAXE_COST_BASE = 100;
+export const PICKAXE_COST_GROWTH = 1.6;
 const MAX_DRILL_HITS_PER_TICK = 200;
 // Pause between finding the stairs and the next grid, in sim seconds. It runs in update(),
 // so it works under Time Warp and in background tabs, and it is never saved.
@@ -494,9 +500,10 @@ export class MiningSystem {
     }
   }
 
-  // Cost of reaching pickaxe level L: 50 * 2.5^L stone
+  // Cost of reaching pickaxe level L: 100 * 1.6^L stone (R32; was 50 * 2.5^L, which outgrew the
+  // stone a tile pays so fast that digging stalled in the 4th stratum)
   getPickaxeCost(level = (this.gameState.miningGrid.pickaxeTier || 0) + 1) {
-    return Math.ceil(50 * Math.pow(2.5, level));
+    return Math.ceil(PICKAXE_COST_BASE * Math.pow(PICKAXE_COST_GROWTH, level));
   }
 
   upgradePickaxe() {
@@ -532,13 +539,14 @@ export class MiningSystem {
     return false;
   }
 
-  useDynamite() {
+  // auto: thrown by Auto-Blast (no sound; it fires every cooldown, also under Time Warp)
+  useDynamite({ auto = false } = {}) {
     if (this.dynamiteCooldown > 0 || this.descending) return false;
     const blocks = this.gameState.miningGrid.blocks;
     const unrevealed = blocks.filter(b => !b.revealed);
     if (unrevealed.length === 0) return false;
     this.dynamiteCooldown = DYNAMITE_COOLDOWN;
-    sound.playHit();
+    if (!auto) sound.playHit();
 
     // Blast a 3x3 area centred on a random unrevealed block (clipped at the grid edges).
     // Effects used to spawn at the middle of the window, which looked like a miss.
@@ -576,6 +584,12 @@ export class MiningSystem {
 
     if (this.dynamiteCooldown > 0) {
       this.dynamiteCooldown = Math.max(0, this.dynamiteCooldown - dt);
+    }
+    // Auto-Blast (shard tree, R32): throws the dynamite as soon as it is ready. It runs here, so
+    // only while the game runs (also in a background tab and under Time Warp / Hourglass), like
+    // the drills; a closed game digs nothing, so there is nothing to blast offline.
+    if (this.dynamiteCooldown <= 0 && !this.descending && isAutoBlastOn(this.gameState)) {
+      this.useDynamite({ auto: true });
     }
 
     // Leyline Overflow: drills run x1.25 while mana is full

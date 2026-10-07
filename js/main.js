@@ -38,6 +38,7 @@ import { EquipmentUI } from './ui/equipment.js';
 import { UpgradeSystem } from './systems/UpgradeSystem.js';
 import { UpgradeShopUI } from './ui/upgrades.js';
 import { ShardTreeUI } from './ui/shardTree.js';
+import { AutoBlastUI } from './ui/autoBlast.js';
 import { ChronicleUI } from './ui/chronicle.js';
 import { CalendarUI } from './ui/calendar.js';
 import { gearCard } from './ui/rarity.js';
@@ -671,6 +672,8 @@ class AetheriaApp {
     this.buildBuildingsStructure();
     this.buildCombatStructure();
     this.buildMiningStructure();
+    this.autoBlastUI = new AutoBlastUI(this);
+    this.autoBlastUI.init();
     this.buildGardenStructure();
     this.buildAlchemyStructure();
     this.breedingUI = new GardenBreedingUI(this, fmtNum);
@@ -1840,6 +1843,7 @@ class AetheriaApp {
       this.updateCombatUI();
     } else if (this.currentTab === 'mining') {
       this.updateMiningUI(false);
+      this.autoBlastUI?.update('mining');
     } else if (this.currentTab === 'garden') {
       this.updateGardenUI();
     } else if (this.currentTab === 'alchemy') {

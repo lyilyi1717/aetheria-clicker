@@ -9,7 +9,8 @@
 //   Foundry  16 "Deep Blueprint" nodes (1 shard each), one per Transcend tier (15-30): that tier's 5 shop
 //            upgrades cost /10. Read by the upgrade shop through getDeepBlueprintDivisor().
 //   Chronos  Auto-Ascend (2; rule: x1.2 / x1.5 / x2 lifetime dust, or a timer) -> Long Sleep
-//            (2; offline cap +8 h) -> Hourglass (3; a 6 h Fast Forward once per day).
+//            (2; offline cap +8 h) -> Hourglass (3; a 6 h Fast Forward once per day). Auto-Blast (1)
+//            stands alone: Excavation dynamite fires itself whenever it is off cooldown (R32).
 //   Tower    Wardens (1; every 250th floor) -> Second Wind (2; one free retry per boss fight).
 //
 // This module has no audio/DOM imports so GameState (and node tests) can load it on its own.
@@ -38,7 +39,7 @@ export const AUTO_ASCEND_CHECK_MS = 1000;
 
 export const SHARD_TREE_BRANCHES = [
   { id: 'foundry', name: 'Foundry', icon: '🏭', desc: 'Deep Blueprints: one per Transcend tier. That tier\'s 5 upgrades cost ÷10.' },
-  { id: 'chronos', name: 'Chronos', icon: '⏳', desc: 'Time works for you: Auto-Ascend, a longer offline cap, a daily 6 h Fast Forward.' },
+  { id: 'chronos', name: 'Chronos', icon: '⏳', desc: 'Time works for you: Auto-Ascend, a longer offline cap, a daily 6 h Fast Forward, Auto-Blast.' },
   { id: 'tower', name: 'Tower', icon: '🗼', desc: 'The Void Tower: Wardens every 250 floors, and a Second Wind against bosses.' }
 ];
 
@@ -87,6 +88,11 @@ export const SHARD_TREE_NODES = [
     requires: ['chronos_offline']
   },
   {
+    id: 'chronos_auto_blast', branch: 'chronos', cost: 1, icon: '🧨', name: 'Auto-Blast',
+    desc: 'Excavation throws its dynamite for you whenever it is ready, while the game is open. Switch it on or off in Excavation.',
+    requires: []
+  },
+  {
     id: 'tower_wardens', branch: 'tower', cost: 1, icon: '🛡️', name: 'Wardens',
     desc: 'A named Warden every 250 floors (×3 boss HP, 60 s, ×3 spoils); each first kill is a trophy, +2% Tower gold.',
     requires: []
@@ -106,6 +112,7 @@ export function defaultShardTreeState() {
     owned: {},          // node id -> true
     granted: {},        // node id -> true: given free to a save from before the tree (not spent)
     autoAscend: { enabled: true, rule: AUTO_ASCEND_DEFAULT_RULE, timerMin: AUTO_ASCEND_DEFAULT_TIMER },
+    autoBlast: { enabled: true },   // on/off for the Auto-Blast node (R32)
     longWarpAt: 0       // wall-clock ms of the last 6 h Fast Forward
   };
 }
@@ -135,6 +142,8 @@ export function sanitizeShardTreeState(raw, { transcendenceCount = 0 } = {}) {
     if (AUTO_ASCEND_RULES.some(r => r.id === a.rule)) s.autoAscend.rule = a.rule;
     if (AUTO_ASCEND_TIMER_OPTIONS.includes(a.timerMin)) s.autoAscend.timerMin = a.timerMin;
   }
+  const b = raw.autoBlast;
+  if (b && typeof b === 'object') s.autoBlast.enabled = b.enabled !== false;
   const w = Number(raw.longWarpAt);
   s.longWarpAt = Number.isFinite(w) && w > 0 ? w : 0;
   return s;
@@ -223,6 +232,21 @@ export function hasWardensNode(gameState) {
 
 export function hasSecondWind(gameState) {
   return hasNode(gameState, 'tower_second_wind');
+}
+
+// Auto-Blast (R32): owned and switched on. A tree without the autoBlast slice (a Chronicle's
+// fresh tree, an older save before sanitizing) counts as on, the default.
+export function hasAutoBlast(gameState) {
+  return hasNode(gameState, 'chronos_auto_blast');
+}
+
+export function isAutoBlastOn(gameState) {
+  return hasAutoBlast(gameState) && gameState.shardTree.autoBlast?.enabled !== false;
+}
+
+export function setAutoBlastEnabled(gameState, on) {
+  const t = treeState(gameState);
+  t.autoBlast = { ...(t.autoBlast || {}), enabled: !!on };
 }
 
 // --- Auto-Ascend rule (pure) ---
