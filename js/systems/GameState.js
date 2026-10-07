@@ -1,3 +1,4 @@
+import { getLang, normalizeLang } from '../i18n/lang.js';
 import { BigNum } from '../engine/BigNum.js';
 import { comboMultiplier, FRENZY_MULT } from './combo.js';
 import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
@@ -138,7 +139,8 @@ export class GameState {
     // guidesSeen: tabs whose "How It Works" banner was shown expanded once (R23, js/ui/shell.js)
     // reduceMotion: 'auto' follows the device, 'on' / 'off' override it (R24, js/ui/motion.js)
     // theme: 'night' / 'sand' / 'dusk' colour theme (R35, js/ui/theme.js)
-    this.settings = { notation: 'letters', guidesSeen: {}, reduceMotion: 'auto', theme: 'night' };
+    // language: 'en' / 'ar' (R37, js/i18n/); a new game takes the language the page loaded in
+    this.settings = { notation: 'letters', guidesSeen: {}, reduceMotion: 'auto', theme: 'night', language: getLang() };
     // Progressive tab unlocking (R7, UnlockSystem.js): { [tabId]: unlockedAtMs } and the tabs
     // visited since their reveal. Never cleared by Ascension, Transcend or Chronicle.
     this.unlocks = {};
@@ -534,6 +536,8 @@ export class GameState {
       if (!['auto', 'on', 'off'].includes(this.settings.reduceMotion)) this.settings.reduceMotion = 'auto';
       // Saves from before R35 (or with an unknown theme) get the default Night theme
       if (!['night', 'sand', 'dusk'].includes(this.settings.theme)) this.settings.theme = 'night';
+      // Saves from before R37 (or with an unknown language) keep the language the page loaded in
+      if (!normalizeLang(this.settings.language)) this.settings.language = getLang();
       // A challenge whose data no longer exists can't run: put the stashed run back
       if (this.chronicle.active && !this.chronicle.active.id) restoreStash(this);
       this.clampLoadedTimers();

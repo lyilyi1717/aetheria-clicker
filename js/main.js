@@ -51,6 +51,7 @@ import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
+import { t, applyLanguageToDocument, syncLanguageSetting, renderLanguageSettings } from './i18n/index.js';
 
 // Plain-number display in the player's notation (Settings tab); see BigNum.formatNumber
 const fmtNum = (n, precision = 2) => BigNum.formatNumber(n, precision);
@@ -75,6 +76,8 @@ class AetheriaApp {
     BigNum.notation = this.gameState.settings.notation;
     applyMotionSetting(this.gameState.settings);
     applyThemeSetting(this.gameState.settings);
+    // A cloud save opened in a browser with no language choice yet asks for its own language
+    this.languageReload = syncLanguageSetting(this.gameState.settings);
     if (typeof sound !== 'undefined' && this.gameState.settings.rhythmScale) { sound.rhythmScale = this.gameState.settings.rhythmScale; }
 
     // Attach systems
@@ -266,6 +269,7 @@ class AetheriaApp {
     }
     renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, () => this.saveManager.save());
     renderThemeSettings(document.getElementById('settings-theme'), this.gameState.settings, () => this.saveManager.save());
+    renderLanguageSettings(document.getElementById('settings-language'), this.gameState.settings, () => this.saveManager.save());
   }
 
   setupTabs() {
@@ -1952,6 +1956,8 @@ class AetheriaApp {
 
 // Instantiate on window load
 window.addEventListener('DOMContentLoaded', () => {
+  applyLanguageToDocument();
   window.gameApp = new AetheriaApp();
+  if (window.gameApp.languageReload) { window.gameApp.saveManager.save(); location.reload(); return; }
   window.gameApp.init();
 });

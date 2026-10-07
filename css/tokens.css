@@ -156,3 +156,16 @@
 :root[data-motion="reduced"] { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
 :root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before,
 :root[data-motion="reduced"] *::after { animation: none !important; transition: none !important; }
+
+/* Arabic (R37): an Arabic UI font with a size bump (Arabic glyphs read smaller at the same size).
+   Cinzel has no Arabic, so display text uses Noto Kufi Arabic. Letter spacing breaks Arabic
+   joining, so it is off everywhere in Arabic. */
+:root[lang="ar"] {
+  --font-display: 'Noto Kufi Arabic', 'Cairo', Tahoma, sans-serif;
+  --font-ui: 'Cairo', 'Noto Kufi Arabic', Tahoma, system-ui, sans-serif;
+  --fs-root: clamp(18px, 17px + 0.25vw, 20px);
+  --lh-body: 1.6;
+}
+:root[lang="ar"] body, :root[lang="ar"] body * { letter-spacing: normal !important; }
+/* Numbers and notations (1.5M, 2.0e12, +12%, x3) keep their left-to-right order */
+:root[dir="rtl"] .num, :root[dir="rtl"] bdi { unicode-bidi: isolate; }

@@ -6,8 +6,10 @@
   <title>Aetheria: Saudi Edition</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=Cairo:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;700;800&display=swap" rel="stylesheet">
   <!-- Theme (R35, js/ui/theme.js): set before the CSS paints so a light theme doesn't flash dark -->
+  <!-- Language (R37, js/i18n/lang.js): Arabic pages paint right to left from the first frame -->
+  <script>try { var l = localStorage.getItem('AETHERIA_LANG'); if (!l) { var n = [].concat(navigator.languages || [], navigator.language || []); l = n.some(function (x) { return /^ar/i.test(x); }) ? 'ar' : 'en'; } if (l === 'ar') { document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl'; } } catch (e) {}</script>
   <script>try { var t = localStorage.getItem('AETHERIA_THEME'); if (t === 'sand' || t === 'dusk') document.documentElement.dataset.theme = t; } catch (e) {}</script>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/style.css">
@@ -611,7 +613,11 @@
         <section id="tab-settings" class="tab-view">
           <div class="glass-card">
             <h2>Settings</h2>
-            <h3 style="margin-top: 1rem;">Theme</h3>
+            <h3 style="margin-top: 1rem;" data-i18n="settings.language">Language</h3>
+            <p class="about-intro" data-i18n="settings.language.intro">The language of the whole game. Arabic reads right to left.</p>
+            <div id="settings-language" class="settings-group"></div>
+
+            <h3 style="margin-top: 2rem;">Theme</h3>
             <p class="about-intro">Colours for the whole game. Night is the original; Sand is a light, warm theme; Desert Dusk is dark plum and orange.</p>
             <div id="settings-theme" class="settings-group"></div>
 
