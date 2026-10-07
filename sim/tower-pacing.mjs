@@ -16,14 +16,17 @@
 //   - Aether Forge: the highest level whose cost (1e5 x 5^L) fits one hour of casual income,
 //     with income interpolated (log-linear) from the `npm run sim` casual CPS checkpoints
 //   - Gladiator Vigour talent rank and Quartermaster Hunter's Edge rank: see POWER below
+// Gear levels (R34): once a minute the hero spends Monster Bones on the cheapest level-up
+// (ties: weapon, armor, amulet, relic). `--no-gear-levels` turns that off (the pre-R34 game).
 // Hero level, gear and floor come from the real CombatSystem (loot RNG is seeded).
 import { GameState } from '../js/systems/GameState.js';
-import { CombatSystem } from '../js/systems/CombatSystem.js';
+import { CombatSystem, GEAR_SLOTS } from '../js/systems/CombatSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
 
+const GEAR_LEVELS = !process.argv.includes('--no-gear-levels');
 const H = 3600;
 const DAY = 24 * H;
 
@@ -75,6 +78,11 @@ function run(profile, endT) {
     h.aetherForgeLevel = forgeLevel(t);
     gs.talents.warlord_might = { rank: Math.round(lerp(POWER, t, 1)) };
     gs.quartermaster = { hunters_edge: { rank: Math.round(lerp(POWER, t, 2)) } };
+    if (!GEAR_LEVELS) return;
+    for (;;) {
+      const next = GEAR_SLOTS.map(s => cs.getGearLevelInfo(s)).filter(i => !i.blocked).sort((a, b) => a.cost - b.cost)[0];
+      if (!next || !cs.levelUpGear(next.slot)) break;
+    }
   };
   applyPower();
 
@@ -112,6 +120,7 @@ function run(profile, endT) {
         towerH: towerSecs / H,
         forge: h.aetherForgeLevel,
         level: h.level,
+        gearLv: GEAR_SLOTS.map(s => h.gear[s]?.level || 0).join('/'),
         gold: gs.gold.format('scientific', 2),
         bosses, timeouts, deaths
       });
@@ -123,14 +132,14 @@ function run(profile, endT) {
 }
 
 const fmt = n => Math.round(n).toLocaleString('en-US');
-const out = ['## Void Tower pacing report (sim/tower-pacing.mjs)'];
+const out = [`## Void Tower pacing report (sim/tower-pacing.mjs)${GEAR_LEVELS ? '' : ', gear levels off'}`];
 for (const [profile, endT] of [['open', 30 * DAY], ['casual', 30 * DAY]]) {
   const rows = run(profile, endT);
   out.push(`\n### profile: ${profile}\n`);
-  out.push('| time | Tower hours | best floor | floors/hour (since last row) | Forge | hero lvl | gold | bosses beaten | boss timeouts | deaths |');
-  out.push('|---|---|---|---|---|---|---|---|---|---|');
+  out.push('| time | Tower hours | best floor | floors/hour (since last row) | Forge | hero lvl | gear lvl (W/A/Am/R) | gold | bosses beaten | boss timeouts | deaths |');
+  out.push('|---|---|---|---|---|---|---|---|---|---|---|');
   for (const r of rows) {
-    out.push(`| ${r.label} | ${r.towerH.toFixed(1)} | ${fmt(r.floor)} | ${fmt(r.perHour)} | ${r.forge} | ${r.level} | ${r.gold} | ${fmt(r.bosses)} | ${fmt(r.timeouts)} | ${fmt(r.deaths)} |`);
+    out.push(`| ${r.label} | ${r.towerH.toFixed(1)} | ${fmt(r.floor)} | ${fmt(r.perHour)} | ${r.forge} | ${r.level} | ${r.gearLv} | ${r.gold} | ${fmt(r.bosses)} | ${fmt(r.timeouts)} | ${fmt(r.deaths)} |`);
   }
 }
 console.log(out.join('\n'));

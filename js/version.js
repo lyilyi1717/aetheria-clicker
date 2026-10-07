@@ -3,9 +3,21 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.8.0';
+export const VERSION = '4.9.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.9.0',
+    date: '2026-10-07',
+    title: 'Gear levels',
+    changes: [
+      'Your Void Tower gear can now be levelled up. Under Hero Equipment, spend Monster Bones to raise each item from +0 up to +30. Every level adds +4% to that item\'s main stat (Attack, HP, Crit or Drain), so +30 is +120%.',
+      'A level costs 10 Monster Bones at +0, then 10 more for each step (20, 30, ...). Getting one item to +30 takes 4,650 bones.',
+      'Levels stay with the slot: when a better drop replaces your weapon, the new one keeps your +level. Nothing is ever lost by upgrading.',
+      'Crit (50%) and Drain (30%) keep their caps. An item already at the cap can\'t be levelled, so bones are never wasted.',
+      'Old saves start every item at +0, and Monster Bones you have saved up can be spent right away.'
+    ]
+  },
   {
     version: '4.8.0',
     date: '2026-10-07',

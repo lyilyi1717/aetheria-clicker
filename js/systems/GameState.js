@@ -486,6 +486,12 @@ export class GameState {
       this.spentTalentPoints = data.spentTalentPoints ?? 0;
       this.buildings = data.buildings || {};
       this.hero = data.hero || null;
+      // Gear levels (R34): saves from before them (or with a junk value) start every item at +0
+      for (const item of Object.values(this.hero?.gear || {})) {
+        if (!item || typeof item !== 'object') continue;
+        const lv = Math.floor(Number(item.level));
+        item.level = Number.isFinite(lv) && lv > 0 ? lv : 0;
+      }
       this.miningGrid = data.mining || null;
       this.garden = data.garden || null;
       this.alchemy = { catalysts: 0, ...(data.alchemy || {}) };
