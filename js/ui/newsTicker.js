@@ -11,30 +11,32 @@
 // decision. The pure helpers at the top are exported for tests (test_r39_news.js).
 
 import { isReducedMotion } from './motion.js';
+import { t, localizeList } from '../i18n/index.js';
+import { getLang } from '../i18n/lang.js';
 
 export const NEWS_MAX_CHARS = 120;
 export const NEWS_MAX_ENTRIES = 20;
 export const SPEED_PX_PER_S = 70;      // scrolling speed; a 120-char entry crosses a phone in ~15 s
 export const STATIC_SWAP_MS = 6000;    // Reduced Motion: one item every 6 s, no movement
 
-// Every player-visible string, in one place so it can move to t() keys later
+// Every player-visible string, in one place (keys news.* in js/i18n/en.js and ar.js)
 export const NEWS_STRINGS = {
-  stripLabel: 'News',
-  pausedHint: 'Paused. Tap to resume.',
-  newInVersion: (v, title) => `New in v${v}: ${title}`,
-  yours: 'Your news',
-  addLabel: 'Add a news entry',
-  addPlaceholder: 'Write a headline (up to 120 characters)',
-  addButton: 'Add',
-  deleteButton: 'Delete',
-  deleteAria: (text) => `Delete "${text}"`,
-  showStrip: 'Show the news strip',
-  empty: 'No entries yet. Yours show up in the strip between the built-in news.',
-  counter: (n, max) => `${n} / ${max}`,
-  errEmpty: 'Write something first.',
-  errFull: (max) => `You can keep up to ${max} entries. Delete one to add another.`,
-  errDuplicate: 'That entry is already in your list.',
-  localOnly: 'Entries stay in this browser; other players don\'t see them.'
+  stripLabel: t('news.strip_label'),
+  pausedHint: t('news.paused_hint'),
+  newInVersion: (v, title) => t('news.new_in_version', { v, title }),
+  yours: (n, max) => t('news.yours', { n, max }),
+  addLabel: t('news.add_label'),
+  addPlaceholder: t('news.add_placeholder', { max: NEWS_MAX_CHARS }),
+  addButton: t('news.add'),
+  deleteButton: t('news.delete'),
+  deleteAria: (text) => t('news.delete_aria', { text }),
+  showStrip: t('news.show_strip'),
+  empty: t('news.empty'),
+  counter: (n, max) => t('news.counter', { n, max }),
+  errEmpty: t('news.err_empty'),
+  errFull: (max) => t('news.err_full', { max }),
+  errDuplicate: t('news.err_duplicate'),
+  localOnly: t('news.local_only')
 };
 
 export const BUILT_IN_TIPS = [
@@ -44,6 +46,7 @@ export const BUILT_IN_TIPS = [
   'Tip: Chrono Sand builds up while you are away. Spend it on Fast Forward.',
   'Tip: open Settings to change the theme, number notation or motion.'
 ];
+localizeList(BUILT_IN_TIPS, 'news.tip');
 
 export const BUILT_IN_FLAVOUR = [
   'Refinery workers report the pumps are humming louder than usual.',
@@ -52,6 +55,7 @@ export const BUILT_IN_FLAVOUR = [
   'The Dallah is hot and the qahwa is fresh.',
   'Scholars debate whether the Chronicle writes itself.'
 ];
+localizeList(BUILT_IN_FLAVOUR, 'news.flavour');
 
 // Arabic script blocks (Arabic, Supplement, Extended-A, Presentation Forms A and B)
 const ARABIC = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/;
@@ -120,7 +124,9 @@ export function removeNewsEntry(news, id) {
 export function builtInItems(changelog = []) {
   const items = [];
   const top = changelog[0];
-  if (top?.version && top?.title) items.push({ text: NEWS_STRINGS.newInVersion(top.version, top.title), kind: 'new' });
+  // Changelog entries may carry an Arabic title (`ar.title`), like on the About tab
+  const title = (getLang() === 'ar' && top?.ar?.title) || top?.title;
+  if (top?.version && title) items.push({ text: NEWS_STRINGS.newInVersion(top.version, title), kind: 'new' });
   const n = Math.max(BUILT_IN_TIPS.length, BUILT_IN_FLAVOUR.length);
   for (let i = 0; i < n; i++) {
     if (BUILT_IN_TIPS[i]) items.push({ text: BUILT_IN_TIPS[i], kind: 'tip' });
@@ -319,7 +325,7 @@ export function renderNewsSettings(container, settings, onChange) {
   const renderList = () => {
     list.replaceChildren();
     const entries = settings.news.entries;
-    head.textContent = `${NEWS_STRINGS.yours} (${entries.length} / ${NEWS_MAX_ENTRIES})`;
+    head.textContent = NEWS_STRINGS.yours(entries.length, NEWS_MAX_ENTRIES);
     if (!entries.length) {
       const li = document.createElement('li');
       li.className = 'news-empty';

@@ -52,6 +52,7 @@ import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
+import { t, tOr, getLang, buffName, bidi, isolateSigns, applyLanguageToDocument, syncLanguageSetting, renderLanguageSettings } from './i18n/index.js';
 
 // Plain-number display in the player's notation (Settings tab); see BigNum.formatNumber
 const fmtNum = (n, precision = 2) => BigNum.formatNumber(n, precision);
@@ -76,6 +77,8 @@ class AetheriaApp {
     BigNum.notation = this.gameState.settings.notation;
     applyMotionSetting(this.gameState.settings);
     applyThemeSetting(this.gameState.settings);
+    // A cloud save opened in a browser with no language choice yet asks for its own language
+    this.languageReload = syncLanguageSetting(this.gameState.settings);
     if (typeof sound !== 'undefined' && this.gameState.settings.rhythmScale) { sound.rhythmScale = this.gameState.settings.rhythmScale; }
 
     // Attach systems
@@ -191,8 +194,8 @@ class AetheriaApp {
     if (bountyTab && bountyTab.classList.contains('has-notif') !== bountyReady) {
       bountyTab.classList.toggle('has-notif', bountyReady);
       bountyTab.title = bountyReady
-        ? 'Bounties: a contract is complete and ready to claim!'
-        : 'Bounties: a board of guild contracts, one new contract every 30 minutes.';
+        ? t('nav.bounties.ready')
+        : t('nav.title.bounties_a_board_of');
     }
   }
 
@@ -206,12 +209,17 @@ class AetheriaApp {
     if (verEl) verEl.textContent = `v${VERSION}`;
     const logEl = document.getElementById('about-changelog');
     if (logEl) {
-      logEl.innerHTML = CHANGELOG.map(entry => `
-        <div class="changelog-entry">
-          <div class="changelog-head"><strong>v${entry.version}</strong> &mdash; ${entry.title} <span class="changelog-date">${entry.date}</span></div>
-          <ul>${entry.changes.map(c => `<li>${c}</li>`).join('')}</ul>
+      // Entries may carry an Arabic version (`ar: { title, changes }`); older ones stay English
+      logEl.innerHTML = CHANGELOG.map(entry => {
+        const loc = (getLang() === 'ar' && entry.ar) || entry;
+        const dir = loc === entry && getLang() === 'ar' ? ' dir="ltr" lang="en"' : '';
+        return `
+        <div class="changelog-entry"${dir}>
+          <div class="changelog-head"><strong>v${entry.version}</strong> &mdash; ${loc.title} <span class="changelog-date">${entry.date}</span></div>
+          <ul>${loc.changes.map(c => `<li>${loc === entry ? c : isolateSigns(c)}</li>`).join('')}</ul>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
   }
 
@@ -220,16 +228,16 @@ class AetheriaApp {
     if (!cont) return;
     const sample = new BigNum(1.5, 16);
     const options = [
-      { id: 'letters', label: 'Letters (K, M, B, T, aa, ab…)' },
-      { id: 'scientific', label: 'Scientific' },
-      { id: 'suffix', label: 'Named (K, M, B, Qa, Qi…)' },
-      { id: 'engineering', label: 'Engineering' }
+      { id: 'letters', label: t('settings.notation.letters') },
+      { id: 'scientific', label: t('settings.notation.scientific') },
+      { id: 'suffix', label: t('settings.notation.suffix') },
+      { id: 'engineering', label: t('settings.notation.engineering') }
     ];
     cont.innerHTML = options.map(o => `
       <label class="settings-option">
         <input type="radio" name="notation" value="${o.id}" ${this.gameState.settings.notation === o.id ? 'checked' : ''}>
         <span>${o.label}</span>
-        <span class="settings-sample">${sample.format(o.id, 2)}</span>
+        <span class="settings-sample num">${sample.format(o.id, 2)}</span>
       </label>
     `).join('');
     cont.addEventListener('change', (e) => {
@@ -243,11 +251,11 @@ class AetheriaApp {
     const rhythmCont = document.getElementById('settings-rhythm');
     if (rhythmCont) {
       const rhythmOptions = [
-        { id: 'pentatonic', label: 'Pentatonic (C Major)' },
-        { id: 'hijaz', label: 'Hijaz (Desert)' },
-        { id: 'mystic', label: 'Mystic (Byzantine)' },
-        { id: 'lofi', label: 'Lofi (A Minor)' },
-        { id: 'boss', label: 'Boss (Deep/Dark)' }
+        { id: 'pentatonic', label: t('settings.rhythm.pentatonic') },
+        { id: 'hijaz', label: t('settings.rhythm.hijaz') },
+        { id: 'mystic', label: t('settings.rhythm.mystic') },
+        { id: 'lofi', label: t('settings.rhythm.lofi') },
+        { id: 'boss', label: t('settings.rhythm.boss') }
       ];
       if (!this.gameState.settings.rhythmScale) {
         this.gameState.settings.rhythmScale = 'hijaz';
@@ -271,6 +279,7 @@ class AetheriaApp {
     renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, newsChanged);
     renderNewsSettings(document.getElementById('settings-news'), this.gameState.settings, newsChanged);
     renderThemeSettings(document.getElementById('settings-theme'), this.gameState.settings, () => this.saveManager.save());
+    renderLanguageSettings(document.getElementById('settings-language'), this.gameState.settings, () => this.saveManager.save());
   }
 
   setupTabs() {
@@ -347,7 +356,7 @@ class AetheriaApp {
       warpBtn.addEventListener('click', () => {
         if (!this.fastForwardSystem.use()) return;
         sound.playSpell();
-        rewards.notify({ tier: 'small', kind: 'time-warp', icon: '⚡', title: `${FF_WARP_SECONDS}s Time Warp`, color: '#38bdf8', source: warpBtn });
+        rewards.notify({ tier: 'small', kind: 'time-warp', icon: '⚡', title: t('ff.toast', { s: FF_WARP_SECONDS }), color: '#38bdf8', source: warpBtn });
         this.updateFastForwardButton();
       });
     }
@@ -357,7 +366,7 @@ class AetheriaApp {
     if (muteBtn) {
       muteBtn.addEventListener('click', () => {
         sound.setMuted(!sound.muted);
-        muteBtn.textContent = sound.muted ? '🔇 Muted' : '🔊 Sound On';
+        muteBtn.textContent = sound.muted ? t('hdr.muted') : t('hdr.sound_on');
       });
     }
 
@@ -374,7 +383,7 @@ class AetheriaApp {
       saveBtn.addEventListener('click', () => {
         this.saveManager.save();
         sound.playBuy();
-        rewards.notify({ tier: 'small', kind: 'game-saved', icon: '💾', title: 'Game saved', color: '#4ade80' });
+        rewards.notify({ tier: 'small', kind: 'game-saved', icon: '💾', title: t('save.saved'), color: '#4ade80' });
       });
     }
 
@@ -383,20 +392,20 @@ class AetheriaApp {
       exportBtn.addEventListener('click', () => {
         const str = this.saveManager.exportSaveString();
         navigator.clipboard?.writeText(str);
-        alert('Save code copied to clipboard!\n\n' + str.substring(0, 50) + '...');
+        alert(t('save.copied') + '\n\n' + str.substring(0, 50) + '...');
       });
     }
 
     const importBtn = document.getElementById('btn-import-save');
     if (importBtn) {
       importBtn.addEventListener('click', () => {
-        const input = prompt('Paste your exported save code here:');
+        const input = prompt(t('save.paste'));
         if (input) {
           if (this.saveManager.importSaveString(input)) {
-            alert('Save loaded successfully!');
+            alert(t('save.loaded'));
             window.location.reload();
           } else {
-            alert('Invalid save code!');
+            alert(t('save.invalid'));
           }
         }
       });
@@ -405,7 +414,7 @@ class AetheriaApp {
     const resetBtn = document.getElementById('btn-hard-reset');
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to HARD RESET? All 365 days of progress will be erased!')) {
+        if (confirm(t('save.wipe_confirm'))) {
           this.saveManager.hardReset();
         }
       });
@@ -600,7 +609,7 @@ class AetheriaApp {
         const bar = document.createElement('div');
         bar.className = 'quick-cast-bar';
         bar.id = `quick-cast-${tab}`;
-        bar.innerHTML = `<span class="tab-bonus-title">Quick Cast</span>` + spellIds.map(id => {
+        bar.innerHTML = `<span class="tab-bonus-title">${t('quickcast.title')}</span>` + spellIds.map(id => {
           const s = SPELLS.find(sp => sp.id === id);
           return `<button class="quick-cast-btn" data-spell="${id}" title="${s.desc}">
             <span class="qc-name">${s.icon} ${s.name}</span><span class="qc-state" data-qc-state="${id}"></span>
@@ -629,9 +638,9 @@ class AetheriaApp {
       const cd = this.gameState.spells[id]?.cd || 0;
       const buff = this.gameState.activeBuffs.find(b => b.id === id);
       let state;
-      if (buff) state = `active ${Math.ceil(buff.duration)}s`;
-      else if (cd > 0) state = `${Math.ceil(cd)}s`;
-      else state = `${s.manaCost} mana`;
+      if (buff) state = t('quickcast.active', { s: Math.ceil(buff.duration) });
+      else if (cd > 0) state = t('u.sec', { n: Math.ceil(cd) });
+      else state = t('quickcast.mana', { n: s.manaCost });
       setText(stateEl, state);
       const castable = this.spellSystem.canCast(id);
       btn.classList.toggle('ready', castable);
@@ -654,7 +663,7 @@ class AetheriaApp {
     // One summary line that opens the chips on tap (R23; toggle in js/ui/shell.js)
     const html = items.length === 0 ? '' :
       `<button class="tab-bonus-summary" type="button" aria-expanded="${strip.classList.contains('is-open')}">` +
-      `<span class="tab-bonus-title">✨ ${items.length} active bonus${items.length === 1 ? '' : 'es'}</span>` +
+      `<span class="tab-bonus-title">✨ ${t(items.length === 1 ? 'bonus.count1' : 'bonus.count', { n: items.length })}</span>` +
       `<span class="tab-bonus-names">${items.map(i => i.name).join(' · ')}</span></button>` +
       `<div class="tab-bonus-chips">` +
       items.map(i => `<span class="tab-bonus-chip ${i.kind}" ${tipAttr(tipHtml(i.name, BONUS_KIND_LABELS[i.kind], i.detail))}>${i.icon} <strong>${i.name}</strong> ${i.detail}</span>`).join('') + `</div>`;
@@ -714,10 +723,10 @@ class AetheriaApp {
             <span class="b-count num" id="b-count-${def.id}">0</span>
           </div>
           <div class="b-desc">${def.desc}</div>
-          <div class="b-stats num" id="b-stats-${def.id}">Yield: +0/s</div>
+          <div class="b-stats num" id="b-stats-${def.id}"></div>
         </div>
         <button class="btn-buy-building btn btn-buy" id="btn-buy-${def.id}" data-id="${def.id}">
-          <span class="lbl" id="buy-lbl-${def.id}">Buy +1</span>
+          <span class="lbl" id="buy-lbl-${def.id}"></span>
           <span class="cost num" id="cost-lbl-${def.id}">💎 0</span>
         </button>
       </div>
@@ -758,12 +767,12 @@ class AetheriaApp {
       const currentCps = this.buildingSystem.getBuildingProduction(def.id);
 
       setText(this.$(`b-count-${def.id}`), fmtNum(state.count));
-      setText(this.$(`b-stats-${def.id}`), `Yield: +${currentCps.format('standard', 1)}/s`);
-      setText(this.$(`buy-lbl-${def.id}`), `Buy +${fmtNum(buyCount)}`);
+      setText(this.$(`b-stats-${def.id}`), t('bld.yield', { n: currentCps.format('standard', 1) }));
+      setText(this.$(`buy-lbl-${def.id}`), t('bld.buy', { n: fmtNum(buyCount) }));
       // Affordable shows the price on a gold button; otherwise say how much Aether is missing
       setText(this.$(`cost-lbl-${def.id}`), canAfford
         ? `💎 ${cost.format('standard', 1)}`
-        : `need 💎 ${cost.sub(this.gameState.aether).format('standard', 1)}`);
+        : t('bld.need', { n: cost.sub(this.gameState.aether).format('standard', 1) }));
 
       const card = this.$(`b-card-${def.id}`);
       if (card) card.classList.toggle('is-affordable', canAfford);
@@ -783,8 +792,8 @@ class AetheriaApp {
     if (skillsCont && this.gameState.hero) {
       skillsCont.innerHTML = Object.entries(this.gameState.hero.skills).map(([key, s]) => `
         <button class="combat-skill-btn ready" id="btn-cskill-${key}" data-skill="${key}">
-          <div class="sk-name">${s.name}</div>
-          <div class="sk-cd" id="sk-cd-${key}">READY</div>
+          <div class="sk-name">${tOr(`skill.${key}`, s.name)}</div>
+          <div class="sk-cd" id="sk-cd-${key}">${t('combat.ready')}</div>
         </button>
       `).join('');
     }
@@ -798,7 +807,7 @@ class AetheriaApp {
     const floorEl = this.$('combat-floor-title');
     if (floorEl) {
       const zone = this.combatSystem.getZone(h.floor);
-      const title = `<span style="color: ${themeVar(zone.color)}">${zone.icon} Floor ${h.floor}: ${zone.name}</span>`;
+      const title = `<span style="color: ${themeVar(zone.color)}">${zone.icon} ${t('combat.floor_title', { n: h.floor, zone: zone.name })}</span>`;
       if (this.lastCombatTitle !== title) {
         this.lastCombatTitle = title;
         floorEl.innerHTML = title;
@@ -806,10 +815,10 @@ class AetheriaApp {
     }
 
     const maxHp = this.combatSystem.getTotalMaxHp();
-    setText(this.$('hero-hp-text'), `${this.combatSystem.fmt(Math.floor(h.hp))} / ${this.combatSystem.fmt(maxHp)} HP ${h.shield > 0 ? `(+${this.combatSystem.fmt(h.shield)} Shield)` : ''}`);
+    setText(this.$('hero-hp-text'), t('combat.hp', { hp: this.combatSystem.fmt(Math.floor(h.hp)), max: this.combatSystem.fmt(maxHp) }) + (h.shield > 0 ? ' ' + t('combat.shield', { n: this.combatSystem.fmt(h.shield) }) : ''));
     setWidth(this.$('hero-hp-fill'), `${Math.min(100, (h.hp / maxHp) * 100)}%`);
-    setText(this.$('hero-atk-text'), `Attack: ${this.combatSystem.fmt(this.combatSystem.getTotalAttack())} (Spd: ${h.attackSpeed}s)`);
-    setText(this.$('hero-lvl-text'), `Level ${h.level} (${this.combatSystem.fmt(h.xp)} / ${this.combatSystem.fmt(h.xpNeeded)} XP)`);
+    setText(this.$('hero-atk-text'), t('combat.attack', { n: this.combatSystem.fmt(this.combatSystem.getTotalAttack()), s: h.attackSpeed }));
+    setText(this.$('hero-lvl-text'), t('combat.level', { n: h.level, xp: this.combatSystem.fmt(h.xp), need: this.combatSystem.fmt(h.xpNeeded) }));
 
     const bossTimerEl = this.$('boss-timer');
 
@@ -826,14 +835,14 @@ class AetheriaApp {
     }
     if (this.monsterPortrait) this.monsterPortrait.update(h.floor, m);
 
-    setText(this.$('monster-hp-text'), `${this.combatSystem.fmt(Math.max(0, m.hp))} / ${this.combatSystem.fmt(m.maxHp)} HP`);
+    setText(this.$('monster-hp-text'), t('combat.hp', { hp: this.combatSystem.fmt(Math.max(0, m.hp)), max: this.combatSystem.fmt(m.maxHp) }));
     setWidth(this.$('monster-hp-fill'), `${Math.max(0, (m.hp / m.maxHp) * 100)}%`);
 
     if (bossTimerEl) {
       // visibility (not display) so the portrait doesn't jump when a boss arrives
       const vis = m.isBoss ? 'visible' : 'hidden';
       if (bossTimerEl.style.visibility !== vis) bossTimerEl.style.visibility = vis;
-      if (m.isBoss) setText(bossTimerEl, `⏱️ Enrage: ${m.timer.toFixed(1)}s`);
+      if (m.isBoss) setText(bossTimerEl, t('combat.enrage', { s: m.timer.toFixed(1) }));
     }
 
     // Update skill cooldowns
@@ -845,7 +854,7 @@ class AetheriaApp {
         btn.classList.toggle('cooldown', onCd);
         btn.classList.toggle('ready', !onCd);
       }
-      setText(this.$(`sk-cd-${key}`), onCd ? `${s.cd.toFixed(1)}s` : 'READY');
+      setText(this.$(`sk-cd-${key}`), onCd ? t('u.sec', { n: s.cd.toFixed(1) }) : t('combat.ready'));
     }
 
     // Gear
@@ -857,12 +866,12 @@ class AetheriaApp {
       const g = h.gear;
       const fmt = (v) => this.combatSystem.fmt(v);
       // Stats include gear levels (R34); the level shows after the stat
-      const lv = (item) => getGearLevel(item) > 0 ? ` · Lv +${getGearLevel(item)}` : '';
+      const lv = (item) => getGearLevel(item) > 0 ? ' · ' + t('gear.lv', { n: getGearLevel(item) }) : '';
       gearCont.innerHTML =
-        gearCard('Weapon', g.weapon, `+${fmt(gearStat('weapon', g.weapon))} Atk${lv(g.weapon)}`) +
-        gearCard('Armor', g.armor, `+${fmt(gearStat('armor', g.armor))} HP${lv(g.armor)}`) +
-        gearCard('Amulet', g.amulet, `+${(gearStat('amulet', g.amulet) * 100).toFixed(0)}% Crit${lv(g.amulet)}`) +
-        gearCard('Relic', g.relic, `+${(gearStat('relic', g.relic) * 100).toFixed(0)}% Drain${lv(g.relic)}`);
+        gearCard(t('gear.slot.weapon'), g.weapon, t('gear.stat.atk', { n: fmt(gearStat('weapon', g.weapon)) }) + lv(g.weapon)) +
+        gearCard(t('gear.slot.armor'), g.armor, t('gear.stat.hp', { n: fmt(gearStat('armor', g.armor)) }) + lv(g.armor)) +
+        gearCard(t('gear.slot.amulet'), g.amulet, t('gear.stat.crit', { n: (gearStat('amulet', g.amulet) * 100).toFixed(0) }) + lv(g.amulet)) +
+        gearCard(t('gear.slot.relic'), g.relic, t('gear.stat.drain', { n: (gearStat('relic', g.relic) * 100).toFixed(0) }) + lv(g.relic));
     }
 
     // Aether Forge
@@ -898,8 +907,8 @@ class AetheriaApp {
     const depthEl = this.$('mining-depth-title');
     const strata = this.miningSystem.getCurrentStrata();
     if (depthEl) {
-      const record = grid.maxDepth > grid.depth ? ` · Record ${grid.maxDepth}` : '';
-      const title = `<span style="color: ${themeVar(strata.color)}">${strata.icon} Depth ${grid.depth} - ${strata.name} Strata${record}</span>`;
+      const record = grid.maxDepth > grid.depth ? ' · ' + t('mine.record', { n: grid.maxDepth }) : '';
+      const title = `<span style="color: ${themeVar(strata.color)}">${strata.icon} ${t('mine.depth_title', { n: grid.depth, strata: strata.name })}${record}</span>`;
       if (this.lastMiningTitle !== title) {
         this.lastMiningTitle = title;
         depthEl.innerHTML = title;
@@ -914,11 +923,11 @@ class AetheriaApp {
       if (!this.$('btn-buy-drill')) {
         pickaxeEl.innerHTML = `
           <div style="display:flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-            <img loading="lazy" decoding="async" src="cosmic_shovel.webp" alt="Mining Tool" style="width: 64px; height: 64px; border-radius: 8px; border: 2px solid var(--accent-purple); box-shadow: 0 0 10px color-mix(in srgb, var(--dust) 50%, transparent);">
+            <img loading="lazy" decoding="async" src="cosmic_shovel.webp" alt="${t('mine.tool_alt')}" style="width: 64px; height: 64px; border-radius: 8px; border: 2px solid var(--accent-purple); box-shadow: 0 0 10px color-mix(in srgb, var(--dust) 50%, transparent);">
             <div>
-              <div>Pickaxe: <strong id="mining-pick-name"></strong> (Lv <span id="mining-pick-level"></span>, Power: <span id="mining-pick-power"></span>)</div>
-              <div>Auto-Drills: <strong id="mining-drill-count"></strong> (<span id="mining-drill-rate"></span> hits/sec)</div>
-              <div class="mining-stats-line">Tile HP: <span id="mining-tile-hp"></span> · Stone per tile: <span id="mining-stone-yield"></span></div>
+              <div>${t('mine.pickaxe_line')}</div>
+              <div>${t('mine.drills_line')}</div>
+              <div class="mining-stats-line">${t('mine.stats_line')}</div>
             </div>
           </div>
           <div class="mining-btn-group">
@@ -941,22 +950,22 @@ class AetheriaApp {
       setTextById('mining-stone-yield', fmt(this.miningSystem.getStoneYield(), 1));
 
       const pickCost = this.miningSystem.getPickaxeCost();
-      setTextById('btn-upgrade-pick', `Upgrade to ${getPickaxeName(level + 1)} (${fmt(pickCost, 2)} Stone)`);
+      setTextById('btn-upgrade-pick', t('mine.upgrade_pick', { name: getPickaxeName(level + 1), n: fmt(pickCost, 2) }));
       this.$('btn-upgrade-pick').classList.toggle('disabled', stone < pickCost);
 
       const drillCost = this.miningSystem.getAutoDrillCost();
-      setTextById('btn-buy-drill', `Buy Auto-Drill (${fmt(drillCost, 2)} Stone)`);
+      setTextById('btn-buy-drill', t('mine.buy_drill', { n: fmt(drillCost, 2) }));
       this.$('btn-buy-drill').classList.toggle('disabled', stone < drillCost);
 
       const cd = this.miningSystem.dynamiteCooldown;
-      setTextById('btn-mining-dynamite', `🧨 Blast 3x3 (${cd > 0 ? `${Math.ceil(cd)}s` : 'Ready'})`);
+      setTextById('btn-mining-dynamite', t('mine.dynamite', { state: cd > 0 ? t('u.sec', { n: Math.ceil(cd) }) : t('mine.ready') }));
       this.$('btn-mining-dynamite').classList.toggle('disabled', cd > 0);
     }
 
     const tileContent = (b) => {
-      let icon = '⛏️'; let label = 'Stone';
-      if (b.content === 'stairs') { icon = '🪜'; label = 'STAIRS'; }
-      else if (b.content === 'gold_cache') { icon = '💰'; label = 'Gold'; }
+      let icon = '⛏️'; let label = itemName('stone');
+      if (b.content === 'stairs') { icon = '🪜'; label = t('mine.tile.stairs'); }
+      else if (b.content === 'gold_cache') { icon = '💰'; label = t('res.gold'); }
       else if (TILE_ITEM_KEY[b.content]) { const e = ITEM_NAMES[TILE_ITEM_KEY[b.content]]; icon = e.icon; label = e.name; }
       return `<span class="m-icon">${icon}</span><span class="m-lbl">${label}</span>`;
     };
@@ -1005,7 +1014,7 @@ class AetheriaApp {
       if (!invEl.dataset.built) {
         invEl.dataset.built = '1';
         invEl.innerHTML = `
-          <span class="res-badge">Stone: <span id="min-inv-stone"></span></span>
+          <span class="res-badge">${itemName('stone')}: <span id="min-inv-stone"></span></span>
           ${GEM_LADDER.map(k => `<span class="res-badge" style="color:${ITEM_NAMES[k].color}">${ITEM_NAMES[k].plural}: <span id="min-inv-${k}"></span></span>`).join(' ')}
         `;
       }
@@ -1026,7 +1035,7 @@ class AetheriaApp {
       seedBar.innerHTML = Object.entries(SEED_TYPES).map(([id, def]) => `
         <button class="seed-select-btn ${this.gardenSystem.selectedSeed === id ? 'active' : ''}" id="seed-btn-${id}" data-seed="${id}">
           <span class="seed-ico">${def.icon}</span>
-          <span class="seed-nm" id="seed-nm-${id}">${def.name} (0)</span>
+          <span class="seed-nm" id="seed-nm-${id}">${def.name}</span>
         </button>
       `).join('');
 
@@ -1042,10 +1051,10 @@ class AetheriaApp {
     const actionEl = document.getElementById('garden-actions');
     if (actionEl) {
       actionEl.innerHTML = `
-        <button id="btn-water-garden" class="btn-action">💧 Water All (+${WATER_BOOST}s)</button>
-        <button id="btn-fertilize-garden" class="btn-action" title="Costs 1 ${itemName('sporePowder')} per growing plot. That plot's next harvest yields ×2 essence.">🧪 Fertilize All (1 ${itemName('sporePowder')} each)</button>
-        <button id="btn-harvest-all-garden" class="btn-action">🌾 Harvest All Mature</button>
-        <button id="btn-plant-all-garden" class="btn-action">🌱 Plant All Empty</button>
+        <button id="btn-water-garden" class="btn-action">${t('garden.water', { state: '+' + t('u.sec', { n: WATER_BOOST }) })}</button>
+        <button id="btn-fertilize-garden" class="btn-action" title="${t('garden.fert_tip', { item: itemName('sporePowder') })}">${t('garden.fert', { item: itemName('sporePowder') })}</button>
+        <button id="btn-harvest-all-garden" class="btn-action">${t('garden.harvest_all')}</button>
+        <button id="btn-plant-all-garden" class="btn-action">${t('garden.plant_all')}</button>
       `;
       const waterBtn = document.getElementById('btn-water-garden');
       if (waterBtn) waterBtn.onclick = () => { this.gardenSystem.waterAll(); this.updateGardenUI(); };
@@ -1062,7 +1071,7 @@ class AetheriaApp {
       gridCont.innerHTML = this.gameState.garden.plots.map(p => `
         <div class="garden-plot empty" id="garden-plot-${p.id}" data-index="${p.id}">
           <div class="p-icon" id="plot-ico-${p.id}"></div>
-          <div class="p-status" id="plot-stat-${p.id}">Empty</div>
+          <div class="p-status" id="plot-stat-${p.id}">${t('garden.empty')}</div>
           <div class="plot-progress-bar"><div class="fill" id="plot-fill-${p.id}" style="width: 0%"></div></div>
         </div>
       `).join('');
@@ -1071,22 +1080,22 @@ class AetheriaApp {
     // Garden Golems panel: built once; text/classes updated in place, clicks/changes delegated.
     const golemCont = document.getElementById('garden-golems');
     if (golemCont) {
-      const seedOptions = `<option value="">Auto (highest owned)</option>` +
+      const seedOptions = `<option value="">${t('golem.auto_seed')}</option>` +
         Object.entries(SEED_TYPES).map(([id, def]) => `<option value="${id}">${def.icon} ${def.name}</option>`).join('');
       golemCont.innerHTML = `
         <div class="golem-header">
           <div>
-            <strong>🗿 Garden Golems</strong> <span id="golem-count" class="res-badge">0 / ${MAX_GOLEMS}</span>
-            <div class="golem-sub">Each Golem automates one row: harvests the moment a plot matures, then replants the same seed (or the row's fallback seed). Works offline at 50% speed for up to 12 h. Golems never water or fertilize.</div>
+            <strong>${t('golem.title')}</strong> <span id="golem-count" class="res-badge num">0 / ${MAX_GOLEMS}</span>
+            <div class="golem-sub">${t('golem.sub')}</div>
           </div>
-          <button id="btn-buy-golem" class="btn-action" data-action="buy-golem">Buy Golem</button>
+          <button id="btn-buy-golem" class="btn-action" data-action="buy-golem"></button>
         </div>
         <div class="golem-rows">
           ${Array.from({ length: MAX_GOLEMS }, (_, r) => `
             <div class="golem-row locked" id="golem-row-${r}">
-              <span class="golem-row-label">Row ${r + 1}</span>
-              <span class="golem-row-status" id="golem-row-status-${r}">🔒 Manual</span>
-              <label class="golem-row-seed">Fallback seed
+              <span class="golem-row-label">${t('golem.row', { n: r + 1 })}</span>
+              <span class="golem-row-status" id="golem-row-status-${r}">${t('golem.manual')}</span>
+              <label class="golem-row-seed">${t('golem.fallback')}
                 <select id="golem-row-seed-${r}" data-row="${r}">${seedOptions}</select>
               </label>
             </div>`).join('')}
@@ -1096,7 +1105,7 @@ class AetheriaApp {
         const btn = e.target.closest('[data-action="buy-golem"]');
         if (!btn) return;
         if (this.gardenSystem.buyGolem()) {
-          particles.spawnFloatingText(e.clientX, e.clientY, `🗿 ROW ${this.gameState.garden.golems} AUTOMATED`, '#4ade80', true);
+          particles.spawnFloatingText(e.clientX, e.clientY, t('golem.row_automated', { n: this.gameState.garden.golems }), '#4ade80', true);
         }
         this.updateGardenUI();
       };
@@ -1113,11 +1122,11 @@ class AetheriaApp {
 
   formatGrowTime(secs) {
     const s = Math.max(0, Math.ceil(secs));
-    if (s < 60) return `${s}s`;
+    if (s < 60) return t('u.sec', { n: s });
     const h = Math.floor(s / 3600);
     const m = Math.floor((s % 3600) / 60);
     const r = s % 60;
-    if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`;
+    if (h > 0) return t('u.hm', { h, m: String(m).padStart(2, '0') });
     return `${m}:${String(r).padStart(2, '0')}`;
   }
 
@@ -1126,7 +1135,7 @@ class AetheriaApp {
     const waterBtn = this.$('btn-water-garden');
     if (waterBtn) {
       const cd = this.gardenSystem.waterCooldown;
-      const label = cd > 0 ? `💧 Water All (${Math.ceil(cd)}s)` : `💧 Water All (+${WATER_BOOST}s)`;
+      const label = t('garden.water', { state: cd > 0 ? t('u.sec', { n: Math.ceil(cd) }) : '+' + t('u.sec', { n: WATER_BOOST }) });
       setText(waterBtn, label);
       waterBtn.classList.toggle('disabled', cd > 0);
     }
@@ -1147,10 +1156,10 @@ class AetheriaApp {
     const buyGolemBtn = this.$('btn-buy-golem');
     if (buyGolemBtn) {
       const cost = this.gardenSystem.getNextGolemCost();
-      const t = !cost ? '🗿 All rows automated'
-        : !this.gardenSystem.isGolemPurchaseUnlocked() ? '🔒 Golems: buy Golem Covenant in the Reserve Shop (New Well 5)'
-        : `🗿 Buy Golem (Row ${golems + 1}): ${new BigNum(cost.stone).format('standard', 0)} Stone + ${new BigNum(cost.manaSap).format('standard', 0)} ${itemName('manaSap')}`;
-      setText(buyGolemBtn, t);
+      const label = !cost ? t('golem.all_rows')
+        : !this.gardenSystem.isGolemPurchaseUnlocked() ? t('golem.locked')
+        : t('golem.buy', { row: golems + 1, stone: new BigNum(cost.stone).format('standard', 0), sap: new BigNum(cost.manaSap).format('standard', 0), item: itemName('manaSap') });
+      setText(buyGolemBtn, label);
       buyGolemBtn.classList.toggle('disabled', !this.gardenSystem.canBuyGolem());
     }
     for (let r = 0; r < MAX_GOLEMS; r++) {
@@ -1159,7 +1168,7 @@ class AetheriaApp {
       const status = this.gardenSystem.getRowStatus(r);
       const cls = `golem-row ${status}`;
       if (rowEl.className !== cls) rowEl.className = cls;
-      const st = status === 'locked' ? '🔒 Manual' : status === 'noseeds' ? '⚠️ No seeds' : '🗿 Automated';
+      const st = status === 'locked' ? t('golem.manual') : status === 'noseeds' ? t('golem.noseeds') : t('golem.automated');
       setText(this.$(`golem-row-status-${r}`), st);
       const sel = this.$(`golem-row-seed-${r}`);
       if (sel && document.activeElement !== sel) {
@@ -1184,7 +1193,7 @@ class AetheriaApp {
         const cls = `garden-plot empty${golemCls}`;
         if (plotEl.className !== cls) plotEl.className = cls;
         setText(icoEl, '');
-        setText(statEl, 'Empty');
+        setText(statEl, t('garden.empty'));
         setWidth(fillEl, '0%');
       } else {
         const def = SEED_TYPES[p.seed];
@@ -1194,7 +1203,7 @@ class AetheriaApp {
         const cls = `garden-plot planted${isMature ? ' mature' : ''}${p.fertilized ? ' fertilized' : ''}${golemCls}`;
         if (plotEl.className !== cls) plotEl.className = cls;
         setText(icoEl, def.icon);
-        const st = isMature ? '✨ READY TO HARVEST!' : `${def.name} (${this.formatGrowTime(p.maxTime - p.progress)})${p.fertilized ? ' 🧪' : ''}`;
+        const st = isMature ? t('garden.ready') : `${def.name} (${this.formatGrowTime(p.maxTime - p.progress)})${p.fertilized ? ' 🧪' : ''}`;
         setText(statEl, st);
         setWidth(fillEl, `${progressPct}%`);
       }
@@ -1220,17 +1229,17 @@ class AetheriaApp {
     if (listCont) {
       listCont.innerHTML = RECIPES.map(r => {
         const costStr = Object.entries(this.alchemySystem.getRecipeCost(r)).map(([k, v]) =>
-          `<span id="alc-cost-${r.id}-${k}">${fmtNum(v)}</span>x ${itemName(k)} (<span id="alc-own-${r.id}-${k}">0</span>)`).join(', ');
+          `<bdi><span id="alc-cost-${r.id}-${k}">${fmtNum(v)}</span>x</bdi> ${itemName(k)} (<span id="alc-own-${r.id}-${k}">0</span>)`).join(t('list.sep'));
         return `
           <div class="alchemy-card" id="alc-card-${r.id}">
             <div class="alc-info">
               <div class="alc-name">${r.name}</div>
               <div class="alc-desc">${r.desc}</div>
               ${r.id === 'philosophers_catalyst' ? '<div class="alc-desc" id="alc-catalyst-status"></div>' : ''}
-              <div class="alc-cost">Cost: ${costStr}</div>
+              <div class="alc-cost">${t('alc.cost')} ${costStr}</div>
             </div>
             <button class="btn-brew" id="btn-brew-${r.id}" data-recipe="${r.id}">
-              🧪 Brew
+              ${t('alc.brew')}
             </button>
           </div>
         `;
@@ -1240,14 +1249,14 @@ class AetheriaApp {
     const transCont = document.getElementById('transmutation-actions');
     if (transCont) {
       transCont.innerHTML = `
-        <button id="btn-transmute-stone" class="btn-action">🪙 Transmute 50 Stone ➔ Gold</button>
+        <button id="btn-transmute-stone" class="btn-action">${t('alc.transmute_stone')}</button>
         <div class="chrono-transmute-group" id="chrono-transmute-group">
-          <span class="chrono-transmute-lbl" id="chrono-transmute-lbl">⏳ Gold ➔ Chrono Sand:</span>
+          <span class="chrono-transmute-lbl" id="chrono-transmute-lbl"></span>
           <button class="btn-action" data-batches="1">x1</button>
           <button class="btn-action" data-batches="10">x10</button>
           <button class="btn-action" data-batches="100">x100</button>
           <button class="btn-action" data-batches="1000">x1K</button>
-          <button class="btn-action" data-batches="max" id="btn-transmute-chrono-max">Max</button>
+          <button class="btn-action" data-batches="max" id="btn-transmute-chrono-max">${t('alc.max')}</button>
         </div>
       `;
       const tStone = document.getElementById('btn-transmute-stone');
@@ -1272,19 +1281,19 @@ class AetheriaApp {
     for (const r of RECIPES) {
       const cost = this.alchemySystem.getRecipeCost(r);
       for (const k in cost) {
-        setText(this.$(`alc-own-${r.id}-${k}`), `have ${fmtNum(inv[k] ?? ess[k] ?? 0)}`);
+        setText(this.$(`alc-own-${r.id}-${k}`), t('alc.have', { n: fmtNum(inv[k] ?? ess[k] ?? 0) }));
         setText(this.$(`alc-cost-${r.id}-${k}`), fmtNum(cost[k]));
       }
     }
     const catEl = this.$('alc-catalyst-status');
     if (catEl) {
       const n = this.alchemySystem.getCatalystCount();
-      setText(catEl, `Brewed: ${fmtNum(n)} (Oil x${this.gameState.getCatalystMult().toFixed(2)})`);
+      setText(catEl, t('alc.brewed', { n: fmtNum(n), mult: this.gameState.getCatalystMult().toFixed(2) }));
     }
     const chronoLbl = this.$('chrono-transmute-lbl');
     if (chronoLbl) {
       const cap = this.gameState.getChronoSandCap();
-      setText(chronoLbl, `⏳ Gold ➔ Chrono Sand (${this.alchemySystem.getChronoBatchCost().format('standard', 2)} Gold = 30s, bank ${fmtNum(Math.floor(this.gameState.chronoSand || 0))}/${fmtNum(cap)}s):`);
+      setText(chronoLbl, t('alc.chrono_label', { cost: this.alchemySystem.getChronoBatchCost().format('standard', 2), bank: fmtNum(Math.floor(this.gameState.chronoSand || 0)), cap: fmtNum(cap) }));
     }
     const tStone = this.$('btn-transmute-stone');
     if (tStone) tStone.classList.toggle('disabled', (inv.stone || 0) < 50);
@@ -1298,7 +1307,7 @@ class AetheriaApp {
     if (maxBtn) {
       const room = Math.max(0, this.gameState.getChronoSandCap() - (this.gameState.chronoSand || 0));
       const fill = Math.min(room, Math.floor(maxBatches * 30 * this.gameState.getChronoSandGainMult()));
-      const label = maxBatches >= 1 ? `Max (+${new BigNum(fill).format('standard', 2)}s)` : (room <= 0 ? 'Max (bank full)' : 'Max');
+      const label = maxBatches >= 1 ? t('alc.max_fill', { n: new BigNum(fill).format('standard', 2) }) : (room <= 0 ? t('alc.max_full') : t('alc.max'));
       setText(maxBtn, label);
     }
     for (const r of RECIPES) {
@@ -1326,10 +1335,10 @@ class AetheriaApp {
           <div class="sp-details">
             <div class="sp-name">${s.name}</div>
             <div class="sp-desc">${s.desc}</div>
-            <div class="sp-meta">Cost: ${s.manaCost} Mana | CD: ${s.cooldown}s</div>
+            <div class="sp-meta">${t('spell.meta', { mana: s.manaCost, cd: s.cooldown })}</div>
           </div>
           <button class="btn-cast-spell" id="btn-spell-${s.id}" data-id="${s.id}">
-            <span id="spell-text-${s.id}">✨ Cast</span>
+            <span id="spell-text-${s.id}">${t('spell.cast')}</span>
           </button>
         </div>
       `).join('');
@@ -1351,7 +1360,7 @@ class AetheriaApp {
         btn.classList.toggle('active', can);
         btn.classList.toggle('disabled', !can);
       }
-      setText(this.$(`spell-text-${s.id}`), onCd ? `${state.cd.toFixed(1)}s` : '✨ Cast');
+      setText(this.$(`spell-text-${s.id}`), onCd ? t('u.sec', { n: state.cd.toFixed(1) }) : t('spell.cast'));
     }
   }
 
@@ -1360,13 +1369,13 @@ class AetheriaApp {
     const ptsEl = document.getElementById('talent-points-header');
     if (ptsEl) {
       ptsEl.innerHTML = `
-        <span>Talent Points Available: <strong id="tp-avail-count" class="num">0</strong></span>
-        <button id="btn-respec-talents" class="btn btn-sm btn-ghost" style="margin-left: 1rem">🔄 Respec All</button>
+        <span>${t('talent.available')} <strong id="tp-avail-count" class="num">0</strong></span>
+        <button id="btn-respec-talents" class="btn btn-sm btn-ghost" style="margin-inline-start: 1rem">${t('talent.respec')}</button>
       `;
       const respecBtn = document.getElementById('btn-respec-talents');
       if (respecBtn) respecBtn.onclick = () => {
         if (this.gameState.spentTalentPoints <= 0) return;
-        if (!confirm('Refund all spent talent points?')) return;
+        if (!confirm(t('talent.respec_confirm'))) return;
         this.talentSystem.respecTalents();
         this.updateTalentsUI();
       };
@@ -1374,16 +1383,16 @@ class AetheriaApp {
 
     const grid = document.getElementById('talents-tree-grid');
     if (grid) {
-      grid.innerHTML = TALENT_DEFINITIONS.map(t => `
-        <div class="talent-card card branch-${t.branch}">
-          <div class="t-name">${t.name}</div>
+      grid.innerHTML = TALENT_DEFINITIONS.map(td => `
+        <div class="talent-card card branch-${td.branch}">
+          <div class="t-name">${td.name}</div>
           <div class="bar-row t-rank">
-            <div class="segs dust" id="t-segs-${t.id}">${'<i></i>'.repeat(t.maxRank)}</div>
-            <span class="val num" id="t-rank-${t.id}">0 / ${t.maxRank}</span>
+            <div class="segs dust" id="t-segs-${td.id}">${'<i></i>'.repeat(td.maxRank)}</div>
+            <span class="val num" id="t-rank-${td.id}">0 / ${td.maxRank}</span>
           </div>
-          <div class="t-desc">${t.desc}</div>
-          <button class="btn-rank-talent btn btn-sm btn-dust" id="btn-talent-${t.id}" data-id="${t.id}">
-            + Upgrade
+          <div class="t-desc">${td.desc}</div>
+          <button class="btn-rank-talent btn btn-sm btn-dust" id="btn-talent-${td.id}" data-id="${td.id}">
+            ${t('talent.upgrade')}
           </button>
         </div>
       `).join('');
@@ -1400,20 +1409,20 @@ class AetheriaApp {
       respecBtn.setAttribute('aria-disabled', String(noneSpent));
     }
 
-    for (const t of TALENT_DEFINITIONS) {
-      const state = this.gameState.talents[t.id] || { rank: 0 };
-      const isMax = state.rank >= t.maxRank;
+    for (const td of TALENT_DEFINITIONS) {
+      const state = this.gameState.talents[td.id] || { rank: 0 };
+      const isMax = state.rank >= td.maxRank;
       const canRank = !isMax && this.gameState.talentPoints > 0;
 
-      setText(this.$(`t-rank-${t.id}`), `${state.rank} / ${t.maxRank}`);
-      const segs = this.$(`t-segs-${t.id}`);
+      setText(this.$(`t-rank-${td.id}`), `${state.rank} / ${td.maxRank}`);
+      const segs = this.$(`t-segs-${td.id}`);
       if (segs) {
         for (let i = 0; i < segs.children.length; i++) segs.children[i].classList.toggle('on', i < state.rank);
       }
-      const btn = this.$(`btn-talent-${t.id}`);
+      const btn = this.$(`btn-talent-${td.id}`);
       if (btn) {
         // Locked buttons say what's missing rather than just greying out
-        setText(btn, isMax ? 'Maxed' : canRank ? '+ Upgrade' : 'Need 1 point');
+        setText(btn, isMax ? t('talent.maxed') : canRank ? t('talent.upgrade') : t('talent.need_point'));
         btn.classList.toggle('btn-dust', canRank);
         btn.classList.toggle('active', canRank); // the click handler requires it
         btn.classList.toggle('is-locked', !canRank);
@@ -1445,11 +1454,9 @@ class AetheriaApp {
       qmGrid.innerHTML = QUARTERMASTER_UPGRADES.map(u => `
         <div class="perk-card">
           <div class="p-name">${u.icon} ${u.name}</div>
-          <div class="p-rank" id="qm-rank-${u.id}">Rank: 0 / ${u.maxRank}</div>
+          <div class="p-rank" id="qm-rank-${u.id}"></div>
           <div class="p-desc">${u.desc}</div>
-          <button class="btn-buy-qm-upgrade" id="btn-qm-${u.id}" data-id="${u.id}">
-            Buy
-          </button>
+          <button class="btn-buy-qm-upgrade" id="btn-qm-${u.id}" data-id="${u.id}"></button>
         </div>
       `).join('');
     }
@@ -1459,10 +1466,10 @@ class AetheriaApp {
       const cost = u.baseCost + (rank * u.costInc);
       const canBuy = (this.gameState.guildSeals || 0) >= cost && rank < u.maxRank;
 
-      setText(this.$(`qm-rank-${u.id}`), `Rank: ${rank} / ${u.maxRank}`);
+      setText(this.$(`qm-rank-${u.id}`), t('qm.rank', { n: rank, max: u.maxRank }));
       const btn = this.$(`btn-qm-${u.id}`);
       if (btn) {
-        setText(btn, rank >= u.maxRank ? 'MAXED' : `Buy (${fmtNum(cost)} Seals)`);
+        setText(btn, rank >= u.maxRank ? t('qm.maxed') : t('qm.buy', { n: fmtNum(cost) }));
         btn.classList.toggle('active', canBuy);
         btn.classList.toggle('disabled', !canBuy);
       }
@@ -1478,15 +1485,15 @@ class AetheriaApp {
           <div class="c-info">
             <span class="c-icon">${c.icon}</span>
             <span class="c-name">${c.name}</span>
-            <span class="c-trend" id="trend-${c.id}">⚖️ STABLE</span>
+            <span class="c-trend" id="trend-${c.id}">${t('market.trend.stable')}</span>
           </div>
-          <div class="c-price"><strong id="price-${c.id}">${c.basePrice}</strong> Gold</div>
-          <div class="c-owned">Owned: <strong id="owned-${c.id}">0</strong></div>
+          <div class="c-price">${t('market.price', { n: `<strong id="price-${c.id}">${c.basePrice}</strong>` })}</div>
+          <div class="c-owned">${t('market.owned')} <strong id="owned-${c.id}">0</strong></div>
           <div class="c-actions">
-            <button class="btn-market-buy" data-id="${c.id}">Buy 1</button>
-            <button class="btn-market-buy10" data-id="${c.id}">Buy 10</button>
-            <button class="btn-market-sell" data-id="${c.id}">Sell 1</button>
-            <button class="btn-market-sellall" data-id="${c.id}">Sell All</button>
+            <button class="btn-market-buy" data-id="${c.id}">${t('market.buy', { n: 1 })}</button>
+            <button class="btn-market-buy10" data-id="${c.id}">${t('market.buy', { n: 10 })}</button>
+            <button class="btn-market-sell" data-id="${c.id}">${t('market.sell1')}</button>
+            <button class="btn-market-sellall" data-id="${c.id}">${t('market.sellall')}</button>
           </div>
         </div>
       `).join('');
@@ -1495,7 +1502,10 @@ class AetheriaApp {
   }
 
   updateMarketUI() {
-    const trendIcons = { surge: '🚀 SURGE', rising: '📈 RISING', stable: '⚖️ STABLE', falling: '📉 FALLING', crash: '💥 CRASH' };
+    const trendIcons = this.marketTrendLabels || (this.marketTrendLabels = {
+      surge: t('market.trend.surge'), rising: t('market.trend.rising'), stable: t('market.trend.stable'),
+      falling: t('market.trend.falling'), crash: t('market.trend.crash')
+    });
     const trendColors = { surge: 'var(--life)', rising: 'var(--life)', stable: 'var(--text-3)', falling: 'var(--danger)', crash: 'var(--danger)' };
 
     // Row element refs (built once in buildMarketStructure): no closest/querySelector per frame
@@ -1518,7 +1528,7 @@ class AetheriaApp {
       const { tEl, pEl, oEl, buyBtn, buy10Btn } = this.marketRowEls[c.id];
 
       if (tEl) {
-        setText(tEl, trendIcons[item.trend] || '⚖️ STABLE');
+        setText(tEl, trendIcons[item.trend] || trendIcons.stable);
         const color = trendColors[item.trend] || 'var(--text-3)';
         if (tEl.dataset.trend !== item.trend) {
           tEl.dataset.trend = item.trend;
@@ -1533,12 +1543,12 @@ class AetheriaApp {
         const room = Math.max(0, cap - item.owned);
         buyBtn?.classList.toggle('disabled', room < 1 || !this.gameState.gold.gte(buyPrice));
         buy10Btn?.classList.toggle('disabled', room < 1 || !this.gameState.gold.gte(buyPrice.mul(Math.min(10, room))));
-        const tip = cap === 0 ? 'Garden-only: cannot be bought here' : `Buy at +5% (holding limit ${cap} bought units)`;
+        const tip = cap === 0 ? t('market.garden_only') : t('market.buy_tip', { n: cap });
         if (buyBtn && buyBtn.title !== tip) { buyBtn.title = tip; if (buy10Btn) buy10Btn.title = tip; }
       }
       setText(oEl, fmtNum(item.owned));
     }
-    setText(this.$('market-index-display'), `x${this.marketSystem.getMarketIndex().format('standard', 2)}`);
+    setText(this.$('market-index-display'), bidi(`x${this.marketSystem.getMarketIndex().format('standard', 2)}`));
 
     const carCont = this.$('market-caravan-panel');
     if (carCont) {
@@ -1547,14 +1557,14 @@ class AetheriaApp {
         carCont.dataset.built = '1';
         carCont.innerHTML = `
           <div class="caravan-active-card" id="caravan-active">
-            <h3>🐪 Caravan In Transit</h3>
-            <p>Time remaining: <span id="caravan-time"></span>s</p>
-            <p>Investment: <span id="caravan-invest"></span> Gold | Returns: <span id="caravan-return"></span> Gold</p>
+            <h3>${t('caravan.transit')}</h3>
+            <p>${t('caravan.time')}</p>
+            <p>${t('caravan.invest')}</p>
           </div>
           <div class="caravan-dispatch-box" id="caravan-dispatch">
-            <h3>🐪 Dispatch Trade Caravan</h3>
-            <p>Send gold into distant trade routes for guaranteed profit! Caravan sizes scale with your deepest Void Tower floor.</p>
-            <label class="caravan-cargo-opt"><input type="checkbox" id="caravan-load-cargo"> Load cargo: <span id="caravan-cargo-preview"></span></label>
+            <h3>${t('caravan.dispatch')}</h3>
+            <p>${t('caravan.dispatch_desc')}</p>
+            <label class="caravan-cargo-opt"><input type="checkbox" id="caravan-load-cargo"> ${t('caravan.load')} <span id="caravan-cargo-preview"></span></label>
             <button id="btn-send-caravan-1" class="btn-action"></button>
             <button id="btn-send-caravan-2" class="btn-action"></button>
           </div>
@@ -1583,19 +1593,19 @@ class AetheriaApp {
         setText(this.$('caravan-return'), (car.payout ? new BigNum(car.payout) : car.investment.mul(car.expectedProfit)).format('standard', 2));
       } else {
         for (const [btnId, tier] of [['btn-send-caravan-1', 'small'], ['btn-send-caravan-2', 'large']]) {
-          const t = this.marketSystem.getCaravanTier(tier);
+          const ti = this.marketSystem.getCaravanTier(tier);
           const btn = this.$(btnId);
-          setText(btn, `Send ${t.invest.format('standard', 2)} Gold (${t.minutes} Min - ${t.profit}x Return)`);
-          btn.classList.toggle('disabled', !this.gameState.gold.gte(t.invest));
+          setText(btn, t('caravan.send', { n: ti.invest.format('standard', 2), min: ti.minutes, x: ti.profit }));
+          btn.classList.toggle('disabled', !this.gameState.gold.gte(ti.invest));
         }
         // What ticking "Load cargo" would ship (small / large caravan), at mean price x premium
         const preview = ['small', 'large'].map(tier => {
           const pick = this.marketSystem.pickCargo(tier);
           if (!pick) return null;
           const name = COMMODITIES.find(x => x.id === pick.id)?.name || pick.id;
-          return `${tier} ${pick.units} ${name} (+${this.marketSystem.getCargoPayout(pick.id, pick.units, tier).format('standard', 2)})`;
+          return t(`caravan.cargo.${tier}`, { n: pick.units, name, gold: this.marketSystem.getCargoPayout(pick.id, pick.units, tier).format('standard', 2) });
         }).filter(Boolean);
-        setText(this.$('caravan-cargo-preview'), preview.length ? preview.join(' · ') : 'no commodities held');
+        setText(this.$('caravan-cargo-preview'), preview.length ? preview.join(' · ') : t('caravan.no_cargo'));
       }
     }
 
@@ -1612,9 +1622,9 @@ class AetheriaApp {
       // The button's spans are static markup; only their text changes (no per-frame innerHTML)
       const levelText = String(level);
       if (enchanterLevel.textContent !== levelText) enchanterLevel.textContent = levelText;
-      const bonusText = `+${level * 5}% Global Oil`;
+      const bonusText = t('enchanter.bonus', { n: level * 5 });
       if (enchanterBonus.textContent !== bonusText) enchanterBonus.textContent = bonusText;
-      const btnText = amt === 'max' ? 'Weave Max' : `Weave Spell x${amt}`;
+      const btnText = amt === 'max' ? t('enchanter.weave_max') : t('enchanter.weave', { n: amt });
       if (enchanterLabel.textContent !== btnText) enchanterLabel.textContent = btnText;
       const costText = cost.format('standard', 1);
       if (enchanterCost.textContent !== costText) enchanterCost.textContent = costText;
@@ -1637,8 +1647,8 @@ class AetheriaApp {
     if (ascBtn) {
       ascBtn.onclick = () => {
         const dm = this.prestigeSystem.getDustMultipliers();
-        const nectarNote = `\n\nHoney Offering: all ${fmtNum(dm.nectar)} ${itemName('starNectar')} will be consumed (${fmtMult(dm.nectarMult)} Reserves).`;
-        if (confirm(`Drill a New Well now? This resets Oil and Buildings to grant Crude Reserves to spend in the Reserve Shop!${nectarNote}`)) {
+        const nectarNote = '\n\n' + t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtMult(dm.nectarMult) });
+        if (confirm(t('prestige.confirm') + nectarNote)) {
           this.prestigeSystem.ascend();
           this.updateBuildingsUI();
           this.updatePrestigeUI();
@@ -1687,24 +1697,25 @@ class AetheriaApp {
     const pendEl = this.$('pending-dust-display');
     const ascBtn = this.$('btn-do-ascend');
 
-    setText(pendEl, `Pending Crude Reserves: +${pending.format('standard', 0)}`);
+    setText(pendEl, t('prestige.pending', { n: pending.format('standard', 0) }));
     if (ascBtn) {
       const wait = this.prestigeSystem.getMinRunRemaining();
       const inChallenge = !!this.gameState.chronicle?.active;   // R20: no Ascending mid-challenge
       const disabled = pending.lte(0) || wait > 0 || inChallenge;
       if (ascBtn.disabled !== disabled) ascBtn.disabled = disabled;
       const m = Math.ceil(wait);
-      setText(ascBtn, inChallenge ? '🛢️ Drill a New Well after your Chronicle challenge' : wait > 0 ? `🛢️ Drill a New Well in ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')} (min. run)` : '🛢️ Drill a New Well');
+      setText(ascBtn, inChallenge ? t('prestige.btn_challenge') : wait > 0 ? t('prestige.btn_wait', { time: `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}` }) : t('tab.prestige.drill_button'));
     }
 
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
     const dm = this.prestigeSystem.getDustMultipliers();
-    const breakdown = `${fmtMult(dm.geode)} from Depth ${dm.depth} · ${fmtMult(dm.nectarMult)} from ${fmtNum(dm.nectar)} ${itemName('starNectar')} (consumed)` +
-      (dm.amplifier > 1 ? ` · ${fmtMult(dm.amplifier)} from Reserve Amplifier` : '') +
-      (dm.shards > 0 ? ` · ${fmtBigMult(dm.shardMult)} from ${dm.shards} Field Shares` : '');
+    const breakdown = t('prestige.bd.depth', { x: fmtMult(dm.geode), n: dm.depth }) + ' · ' +
+      t('prestige.bd.nectar', { x: fmtMult(dm.nectarMult), n: fmtNum(dm.nectar), item: itemName('starNectar') }) +
+      (dm.amplifier > 1 ? ' · ' + t('prestige.bd.amp', { x: fmtMult(dm.amplifier) }) : '') +
+      (dm.shards > 0 ? ' · ' + t('prestige.bd.shares', { x: fmtBigMult(dm.shardMult), n: dm.shards }) : '');
     setText(this.$('pending-dust-breakdown'), breakdown);
     if (ascBtn) {
-      const tip = `Base ${this.prestigeSystem.getBaseCosmicDust().format('standard', 0)} Reserves · ${breakdown}`;
+      const tip = t('prestige.base_tip', { n: this.prestigeSystem.getBaseCosmicDust().format('standard', 0) }) + ' · ' + breakdown;
       if (ascBtn.title !== tip) ascBtn.title = tip;
     }
 
@@ -1732,17 +1743,17 @@ class AetheriaApp {
       const hours = (s.totalPlayTimeSeconds / 3600).toFixed(1);
 
       statsCont.innerHTML = `
-        <div class="stat-line"><span>Playtime:</span><strong>${days} Days (${hours} Hours)</strong></div>
-        <div class="stat-line"><span>Total Clicks:</span><strong>${fmtNum(this.gameState.totalClicks)}</strong></div>
-        <div class="stat-line"><span>Total Oil Gathered:</span><strong>${this.gameState.totalAetherEarned.format('standard', 2)}</strong></div>
-        <div class="stat-line"><span>Monsters Vanquished:</span><strong>${fmtNum(s.totalMonstersSlain)}</strong></div>
-        <div class="stat-line"><span>Bosses Vanquished:</span><strong>${fmtNum(s.totalBossesSlain)}</strong></div>
-        <div class="stat-line"><span>Blocks Excavated:</span><strong>${fmtNum(s.totalBlocksMined)}</strong></div>
-        <div class="stat-line"><span>Plants Harvested:</span><strong>${fmtNum(s.totalPlantsHarvested)}</strong></div>
-        <div class="stat-line"><span>Potions Brewed:</span><strong>${fmtNum(s.totalPotionsBrewed)}</strong></div>
-        <div class="stat-line"><span>Spells Cast:</span><strong>${fmtNum(s.totalSpellsCast)}</strong></div>
-        <div class="stat-line"><span>Guild Contracts Fulfilled:</span><strong>${fmtNum(s.totalBountiesCompleted)}</strong></div>
-        <div class="stat-line"><span>New Wells:</span><strong>${fmtNum(this.gameState.ascensionCount)}</strong></div>
+        <div class="stat-line"><span>${t('stats.playtime')}</span><strong>${t('stats.playtime_val', { d: days, h: hours })}</strong></div>
+        <div class="stat-line"><span>${t('stats.clicks')}</span><strong class="num">${fmtNum(this.gameState.totalClicks)}</strong></div>
+        <div class="stat-line"><span>${t('stats.oil')}</span><strong class="num">${this.gameState.totalAetherEarned.format('standard', 2)}</strong></div>
+        <div class="stat-line"><span>${t('stats.monsters')}</span><strong class="num">${fmtNum(s.totalMonstersSlain)}</strong></div>
+        <div class="stat-line"><span>${t('stats.bosses')}</span><strong class="num">${fmtNum(s.totalBossesSlain)}</strong></div>
+        <div class="stat-line"><span>${t('stats.blocks')}</span><strong class="num">${fmtNum(s.totalBlocksMined)}</strong></div>
+        <div class="stat-line"><span>${t('stats.plants')}</span><strong class="num">${fmtNum(s.totalPlantsHarvested)}</strong></div>
+        <div class="stat-line"><span>${t('stats.potions')}</span><strong class="num">${fmtNum(s.totalPotionsBrewed)}</strong></div>
+        <div class="stat-line"><span>${t('stats.spells')}</span><strong class="num">${fmtNum(s.totalSpellsCast)}</strong></div>
+        <div class="stat-line"><span>${t('stats.contracts')}</span><strong class="num">${fmtNum(s.totalBountiesCompleted)}</strong></div>
+        <div class="stat-line"><span>${t('stats.wells')}</span><strong class="num">${fmtNum(this.gameState.ascensionCount)}</strong></div>
       `;
     }
   }
@@ -1784,7 +1795,7 @@ class AetheriaApp {
     } finally {
       particles.suppressed = false;
       sound.quiet = false;
-      rewards.endBatch('During the time warp');
+      rewards.endBatch(t('ff.batch'));
     }
   }
 
@@ -1800,13 +1811,13 @@ class AetheriaApp {
     const sand = Math.floor(this.gameState.chronoSand || 0);
     const affordable = sand >= cost;
 
-    const costText = `${new BigNum(cost).format('standard', 0)} sand`;
+    const costText = t('ff.cost', { n: new BigNum(cost).format('standard', 0) });
     let infoText;
-    if (warping) infoText = 'warping…';
-    else if (uses === 0) infoText = 'base price';
+    if (warping) infoText = t('ff.warping');
+    else if (uses === 0) infoText = t('ff.base_price');
     else {
       const s = Math.ceil(resetIn);
-      infoText = `${uses} used · resets ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+      infoText = t('ff.used', { n: uses, time: `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` });
     }
     setText(this.$('ff-cost'), costText);
     setText(this.$('ff-info'), infoText);
@@ -1816,8 +1827,8 @@ class AetheriaApp {
       btn.disabled = disabled;
       btn.classList.toggle('disabled', disabled);
     }
-    const title = `Warp ${FF_WARP_SECONDS}s ahead for ${costText}${affordable ? '' : ` (you have ${fmtNum(sand)})`}. ` +
-      `Each use this cycle costs x${FF_COST_GROWTH} more; the price resets after ${FF_RESET_MINUTES} min without a use.`;
+    const title = t('ff.title', { s: FF_WARP_SECONDS, cost: costText }) + (affordable ? '' : ' ' + t('ff.you_have', { n: fmtNum(sand) })) + '. ' +
+      t('ff.title2', { x: FF_COST_GROWTH, min: FF_RESET_MINUTES });
     if (btn.title !== title) btn.title = title;
   }
 
@@ -1887,7 +1898,7 @@ class AetheriaApp {
     const aetherRateEl = this.$('stat-aether-rate');
     if (aetherRateEl) {
       const rate = this.gameState.getNetAetherPerSecond();
-      setText(aetherRateEl, `+${rate.format('standard', 2)} /s`);
+      setText(aetherRateEl, t('hdr.rate', { n: rate.format('standard', 2) }));
       // Mastery tooltip: refreshed every 30 frames (~0.5 s), only written when it changes
       this.aetherTipTimer = (this.aetherTipTimer ?? 29) + 1;
       if (this.aetherTipTimer >= 30) {
@@ -1902,7 +1913,7 @@ class AetheriaApp {
     setText(this.$('stat-mana'), `${fmtNum(Math.floor(this.gameState.mana))} / ${fmtNum(Math.floor(this.gameState.maxMana))}`);
     setWidth(this.$('bar-mana-fill'), `${(this.gameState.mana / this.gameState.maxMana) * 100}%`);
 
-    setText(this.$('stat-chrono'), `${new BigNum(Math.floor(this.gameState.chronoSand)).format('standard', 2)}s`);
+    setText(this.$('stat-chrono'), t('u.sec', { n: new BigNum(Math.floor(this.gameState.chronoSand)).format('standard', 2) }));
     setText(this.$('stat-guild-seals'), fmtNum(this.gameState.guildSeals || 0));
     setText(this.$('stat-cosmic-dust'), this.gameState.cosmicDust.format('standard', 0));
   }
@@ -1925,7 +1936,7 @@ class AetheriaApp {
     const clickPowerEl = this.$('monolith-click-power');
     if (clickPowerEl) {
       const clickVal = this.gameState.getClickYield();
-      setText(clickPowerEl, `+${clickVal.format('standard', 1)} per Click`);
+      setText(clickPowerEl, t('clicker.per_click', { n: clickVal.format('standard', 1) }));
     }
 
     renderCombo(this.$('combo-bar-fill'), this.$('combo-text'), this.gameState, this.clickerSystem);
@@ -1934,7 +1945,7 @@ class AetheriaApp {
     if (frenzyBadge) {
       if (this.gameState.frenzyActive) {
         if (frenzyBadge.style.display !== 'block') frenzyBadge.style.display = 'block';
-        setText(frenzyBadge, `🔥 FRENZY ACTIVE! (${this.gameState.frenzyTimer.toFixed(1)}s)`);
+        setText(frenzyBadge, t('clicker.frenzy', { s: this.gameState.frenzyTimer.toFixed(1) }));
       } else if (frenzyBadge.style.display !== 'none') {
         frenzyBadge.style.display = 'none';
       }
@@ -1945,7 +1956,7 @@ class AetheriaApp {
     const buffsContainer = this.activeBuffsList;
     if (buffsContainer) {
       const html = this.gameState.activeBuffs.map(b =>
-        `<span class="buff-chip">${b.name} (${Math.ceil(b.duration)}s)</span>`
+        `<span class="buff-chip">${buffName(b)} (${t('u.sec', { n: Math.ceil(b.duration) })})</span>`
       ).join('');
       if (this.activeBuffsHtml !== html) {
         this.activeBuffsHtml = html;
@@ -1957,6 +1968,8 @@ class AetheriaApp {
 
 // Instantiate on window load
 window.addEventListener('DOMContentLoaded', () => {
+  applyLanguageToDocument();
   window.gameApp = new AetheriaApp();
+  if (window.gameApp.languageReload) { window.gameApp.saveManager.save(); location.reload(); return; }
   window.gameApp.init();
 });

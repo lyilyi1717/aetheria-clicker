@@ -66,7 +66,7 @@
   will-change: auto;
   transform: none;
 }
-.news-ticker.is-static[data-dir="rtl"] .news-item { text-align: right; }
+.news-ticker.is-static .news-item { text-align: start; }
 
 @media (max-width: 639px) {
   .news-ticker { height: 26px; font-size: var(--fs-12); }
@@ -95,7 +95,7 @@
 .news-row .btn { min-height: var(--tap); }
 .news-meta { display: flex; justify-content: space-between; gap: var(--sp-2); font-size: var(--fs-12); min-height: 1.2em; }
 .news-msg { color: var(--danger); }
-.news-count { color: var(--text-3); margin-left: auto; }
+.news-count { color: var(--text-3); margin-inline-start: auto; }
 
 .news-list-head { margin-top: var(--sp-3); font-size: var(--fs-13); font-weight: 600; color: var(--text-2); }
 .news-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }

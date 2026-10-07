@@ -7,6 +7,7 @@
 import { FRENZY_MULT } from './systems/combo.js';
 import { SPELLS } from './systems/SpellSystem.js';
 import { tipHtml } from './ui/tooltip.js';
+import { t, buffName, bidi } from './i18n/index.js';
 
 // Icon per buff id (recipe/spell), falling back to the buff type
 const BUFF_ICONS = {
@@ -22,13 +23,13 @@ const BUFF_ICONS = {
 
 // Buff type -> target tag + tab to jump to (null tab = global, no jump)
 const BUFF_TARGETS = {
-  aether_mult: { tag: 'Monolith', tab: 'monolith', affects: 'all Oil' },
-  click_mult: { tag: 'Monolith', tab: 'monolith', affects: 'clicks only' },
-  click_gold: { tag: 'Monolith', tab: 'monolith', affects: 'clicks mint gold' },
-  hero_atk: { tag: 'Void Tower', tab: 'combat', affects: 'hero attack' },
-  gold_mult: { tag: 'Gold', tab: 'combat', affects: 'Tower kills, Excavation caches, Midas clicks' },
-  time_speed: { tag: 'All', tab: null, affects: 'game speed' },
-  frenzy: { tag: 'Monolith', tab: 'monolith', affects: 'clicks only' }
+  aether_mult: { tag: t('nav.refinery'), tab: 'monolith', affects: t('bb.all_oil') },
+  click_mult: { tag: t('nav.refinery'), tab: 'monolith', affects: t('bb.clicks_only') },
+  click_gold: { tag: t('nav.refinery'), tab: 'monolith', affects: t('bb.clicks_gold') },
+  hero_atk: { tag: t('nav.void_tower'), tab: 'combat', affects: t('bb.hero_attack') },
+  gold_mult: { tag: t('hdr.gold'), tab: 'combat', affects: t('bb.gold_sources') },
+  time_speed: { tag: t('bb.all'), tab: null, affects: t('bb.game_speed') },
+  frenzy: { tag: t('nav.refinery'), tab: 'monolith', affects: t('bb.clicks_only') }
 };
 
 export function formatClock(sec) {
@@ -38,10 +39,10 @@ export function formatClock(sec) {
 }
 
 function stackText(b) {
-  if (b.type === 'click_gold') return 'gold clicks';
-  if (b.type === 'time_speed') return `${b.value}x speed`;
-  if (b.type === 'frenzy') return `x${FRENZY_MULT} clicks`;
-  if (typeof b.value === 'number') return `+${Math.round((b.value - 1) * 100)}%`;
+  if (b.type === 'click_gold') return t('bb.gold_clicks');
+  if (b.type === 'time_speed') return t('bb.speed', { x: b.value });
+  if (b.type === 'frenzy') return t('bb.frenzy_clicks', { x: FRENZY_MULT });
+  if (typeof b.value === 'number') return bidi(`+${Math.round((b.value - 1) * 100)}%`);
   return '';
 }
 
@@ -81,11 +82,11 @@ export class BuffBar {
     const buffs = [];
     for (const b of gs.activeBuffs || []) {
       if (!b || !(b.duration > 0)) continue;
-      buffs.push({ key: `buff:${b.id}`, id: b.id, name: b.name, type: b.type, value: b.value,
+      buffs.push({ key: `buff:${b.id}`, id: b.id, name: buffName(b), type: b.type, value: b.value,
         duration: b.duration, maxDuration: b.maxDuration });
     }
     if (gs.frenzyActive && gs.frenzyTimer > 0) {
-      buffs.push({ key: 'buff:frenzy', id: 'frenzy', name: 'Frenzy', type: 'frenzy',
+      buffs.push({ key: 'buff:frenzy', id: 'frenzy', name: t('bb.frenzy'), type: 'frenzy',
         duration: gs.frenzyTimer, maxDuration: 0 });
     }
     const spells = [];
@@ -113,12 +114,12 @@ export class BuffBar {
     el.dataset.type = b.type;
     const stack = stackText(b);
     el.dataset.tip = tipHtml(`${b.name}${stack ? ` (${stack})` : ''}`,
-      `→ ${target.tag}${target.affects ? `: ${target.affects}` : ''}`);
+      `${t('bb.arrow')} ${target.tag}${target.affects ? `: ${target.affects}` : ''}`);
     el.innerHTML = `<span class="bb-icon">${BUFF_ICONS[b.id] || '✨'}</span>`
       + `<span class="bb-name">${b.name}</span>`
       + (stack ? `<span class="bb-stack">${stack}</span>` : '')
       + `<span class="bb-time"></span>`
-      + (target.tag ? `<span class="bb-tag">→ ${target.tag}</span>` : '')
+      + (target.tag ? `<span class="bb-tag">${t('bb.arrow')} ${target.tag}</span>` : '')
       + `<span class="bb-progress"><span class="bb-fill"></span></span>`;
     return { el, timeEl: el.querySelector('.bb-time'), fillEl: el.querySelector('.bb-fill'), last: {} };
   }
@@ -129,8 +130,8 @@ export class BuffBar {
     el.className = 'bb-chip bb-spell' + (s.id === 'astral_refresh' ? ' bb-spell-long' : '');
     el.dataset.key = `cd:${s.id}`;
     el.dataset.tab = 'spells';
-    el.dataset.goLabel = 'Grimoire';
-    el.dataset.tip = tipHtml(s.name, 'Cooling down → Grimoire');
+    el.dataset.goLabel = t('nav.grimoire');
+    el.dataset.tip = tipHtml(s.name, t('bb.cooling'));
     el.innerHTML = `<span class="bb-icon">${s.icon}</span><span class="bb-time"></span>`;
     return { el, timeEl: el.querySelector('.bb-time'), fillEl: null, last: {} };
   }

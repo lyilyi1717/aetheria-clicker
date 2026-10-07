@@ -12,6 +12,7 @@ import {
   ChronicleSystem, CHAPTERS, PAGE_UPGRADES, PAGE_AETHER_MULT, CHRONICLE_TRANSCEND_GATE, SEAL_STANDIN_TRANSCENDS,
   getChallenge, describeRules, getSealGate, getChronicleTranscendsNeeded
 } from '../systems/ChronicleSystem.js';
+import { t, bidi } from '../i18n/index.js';
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 const setAttr = (el, k, v) => { if (el && el.getAttribute(k) !== v) el.setAttribute(k, v); };
@@ -23,9 +24,9 @@ const SAND = '#e7c38a';   // --sand, for the reward toasts (they take a colour v
 function fmtMult(b) {
   if (b.lt(1e6)) {
     const n = b.toNumber();
-    return `×${n >= 10 ? n.toLocaleString(undefined, { maximumFractionDigits: 1 }) : n.toFixed(2)}`;
+    return bidi(`×${n >= 10 ? n.toLocaleString('en-US', { maximumFractionDigits: 1 }) : n.toFixed(2)}`);
   }
-  return `×${b.format('scientific', 2)}`;
+  return bidi(`×${b.format('scientific', 2)}`);
 }
 
 export function roman(n) {
@@ -38,19 +39,19 @@ export function roman(n) {
 
 export function fmtDuration(seconds) {
   const s = Math.max(0, Math.round(seconds));
-  if (s < 60) return `${s} s`;
+  if (s < 60) return t('dur.s', { n: s });
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m} min`;
+  if (m < 60) return t('dur.min', { n: m });
   const h = Math.floor(m / 60);
-  if (h < 48) return `${h} h ${String(m % 60).padStart(2, '0')} min`;
-  return `${Math.floor(h / 24)} d ${h % 24} h`;
+  if (h < 48) return t('dur.h_min', { h, m: String(m % 60).padStart(2, '0') });
+  return t('dur.d_h', { d: Math.floor(h / 24), h: h % 24 });
 }
 
 function weeksLeft(ms) {
   const d = ms / 86400000;
-  if (d >= 7) return `${Math.ceil(d / 7)} w left`;
-  if (d >= 1) return `${Math.ceil(d)} d left`;
-  return `${Math.max(1, Math.ceil(ms / 3600000))} h left`;
+  if (d >= 7) return t('chr.left.w', { n: Math.ceil(d / 7) });
+  if (d >= 1) return t('chr.left.d', { n: Math.ceil(d) });
+  return t('chr.left.h', { n: Math.max(1, Math.ceil(ms / 3600000)) });
 }
 
 const chipHtml = (r) => `<span class="chip ${r.good ? 'sand' : 'danger'}">${esc(r.text)}</span>`;
@@ -80,16 +81,16 @@ export class ChronicleUI {
   tick() {
     const { stamps, cleared } = this.sys.tick();
     for (const ch of stamps) {
-      rewards.notify({ tier: 'big', kind: 'chapter-stamp', icon: ch.icon, color: SAND, title: `${ch.name}: stamped`,
-        amount: ch.stampPages, fmt: (n) => String(n), unit: 'Pages', detail: 'The Chapter is over; its challenges stay open.' });
+      rewards.notify({ tier: 'big', kind: 'chapter-stamp', icon: ch.icon, color: SAND, title: t('chr.stamped_toast', { name: ch.name }),
+        amount: ch.stampPages, fmt: (n) => String(n), unit: t('hdr.pages'), detail: t('chr.stamped_detail') });
     }
     if (cleared) {
       const c = cleared.challenge;
       rewards.notify({
         tier: cleared.first ? 'big' : 'medium', kind: `challenge-${c.id}`, icon: c.icon, color: SAND,
-        title: cleared.first ? `Challenge cleared: ${c.name}` : `${c.name}: ${cleared.best ? 'new best' : 'cleared again'}`,
-        amount: cleared.pages || undefined, fmt: (n) => String(n), unit: cleared.pages ? 'Pages' : undefined,
-        detail: `${fmtDuration(cleared.seconds)}. Your run is back.`
+        title: cleared.first ? t('chr.cleared', { name: c.name }) : `${c.name}: ${cleared.best ? t('chr.new_best') : t('chr.cleared_again')}`,
+        amount: cleared.pages || undefined, fmt: (n) => String(n), unit: cleared.pages ? t('hdr.pages') : undefined,
+        detail: t('chr.cleared_detail', { time: fmtDuration(cleared.seconds) })
       });
       this.app.updateBuildingsUI?.();
     }
@@ -100,16 +101,16 @@ export class ChronicleUI {
       <div class="chr-ch" data-ch="${c.id}">
         <div class="icon-tile" aria-hidden="true">${c.icon}</div>
         <div>
-          <div class="n">${esc(c.name)} <span class="tag run" data-run hidden>running</span></div>
-          <div class="r">${esc(c.desc)} Reach ${fmtBig(c.goal.runAether)} Oil in the challenge run.</div>
+          <div class="n">${esc(c.name)} <span class="tag run" data-run hidden>${t('chron.block.running')}</span></div>
+          <div class="r">${esc(c.desc)} ${t('chr.goal', { n: fmtBig(c.goal.runAether) })}</div>
           <div class="chr-ch-rules">${describeRules(c.rules).map(chipHtml).join('')}</div>
           <div class="bar sand" data-bar hidden><i></i></div>
           <div class="best num" data-best></div>
         </div>
         <div class="chr-ch-act">
-          <span class="chip life" data-done hidden>✓ Done</span>
-          <button class="btn btn-sm" data-start="${c.id}">Start</button>
-          <button class="btn btn-sm btn-danger" data-abandon hidden>Abandon</button>
+          <span class="chip life" data-done hidden>✓ ${t('codex.done')}</span>
+          <button class="btn btn-sm" data-start="${c.id}">${t('chr.start')}</button>
+          <button class="btn btn-sm btn-danger" data-abandon hidden>${t('chr.abandon')}</button>
         </div>
       </div>`;
   }
@@ -135,21 +136,21 @@ export class ChronicleUI {
         </section>
         <div class="chr-row">
           <section class="card">
-            <div class="card-head"><h2>Challenges</h2><span class="chr-hint">Side runs with their own rules · Pages on the first clear</span></div>
+            <div class="card-head"><h2>${t('chr.challenges')}</h2><span class="chr-hint">${t('chr.challenges_hint')}</span></div>
             <p class="chr-note" data-c="chNote" style="margin:0 0 var(--sp-2)"></p>
             <div class="chr-stack">${challenges.map(c => this.challengeHtml(c)).join('')}</div>
           </section>
           <section class="card">
-            <div class="card-head"><h2>Pages</h2><span class="chr-hint num" data-c="pagesHint"></span></div>
+            <div class="card-head"><h2>${t('hdr.pages')}</h2><span class="chr-hint num" data-c="pagesHint"></span></div>
             <div class="chr-ptree">
               ${PAGE_UPGRADES.map(u => `<button type="button" class="chr-pnode" data-up="${u.id}"><b>${u.icon} ${esc(u.name)}</b>${esc(u.desc)}<span class="c num" data-cost></span></button>`).join('')}
-              <div class="chr-pnode future" aria-hidden="true"><b>???</b>More Page upgrades arrive with Chapter 2<span class="c">—</span></div>
+              <div class="chr-pnode future" aria-hidden="true"><b>???</b>${t('chr.future')}<span class="c">—</span></div>
             </div>
             <div class="card card-flat chr-reset">
-              <h3>A Chronicle reset</h3>
+              <h3>${t('chr.reset_title')}</h3>
               <div class="chr-keep">
-                <div><span class="c-life h">Keeps</span><ul data-c="keeps"></ul></div>
-                <div><span class="c-danger h">Resets</span><ul data-c="resets"></ul></div>
+                <div><span class="c-life h">${t('chr.keeps')}</span><ul data-c="keeps"></ul></div>
+                <div><span class="c-danger h">${t('chr.resets')}</span><ul data-c="resets"></ul></div>
               </div>
               <div class="bar-row chr-gate"><span data-c="gateLabel"></span><span class="bar sand"><i data-c="gateFill"></i></span><span class="val num" data-c="gateVal"></span></div>
               <div class="chr-note" data-c="sealNote"></div>
@@ -179,13 +180,13 @@ export class ChronicleUI {
     this.el.rules.innerHTML = describeRules(chapter.rules).map(chipHtml).join('');
 
     cont.addEventListener('click', (e) => {
-      const t = e.target;
-      const up = t.closest('[data-up]');
+      const tgt = e.target;
+      const up = tgt.closest('[data-up]');
       if (up) return this.buyUpgrade(up.dataset.up);
-      const st = t.closest('[data-start]');
+      const st = tgt.closest('[data-start]');
       if (st) return this.startChallenge(st.dataset.start);
-      if (t.closest('[data-abandon]')) return this.abandonChallenge();
-      if (t.closest('[data-c="begin"]')) return this.openConfirm();
+      if (tgt.closest('[data-abandon]')) return this.abandonChallenge();
+      if (tgt.closest('[data-c="begin"]')) return this.openConfirm();
     });
     this.buildModal();
     this.update('chronicle');
@@ -195,7 +196,7 @@ export class ChronicleUI {
     const key = items.join('\n');
     if (!ul || ul.dataset.key === key) return;
     ul.dataset.key = key;
-    ul.replaceChildren(...items.map(t => { const li = document.createElement('li'); li.textContent = t; return li; }));
+    ul.replaceChildren(...items.map(text => { const li = document.createElement('li'); li.textContent = text; return li; }));
   }
 
   // --- actions ---
@@ -204,7 +205,7 @@ export class ChronicleUI {
     if (!this.sys.buyUpgrade(id)) return;
     const u = PAGE_UPGRADES.find(x => x.id === id);
     sound.playBuy();
-    rewards.notify({ tier: 'medium', kind: 'page-upgrade', icon: u.icon, color: SAND, title: `Page upgrade: ${u.name}`, batchTitle: '{n} Page upgrades' });
+    rewards.notify({ tier: 'medium', kind: 'page-upgrade', icon: u.icon, color: SAND, title: t('chr.page_toast', { name: u.name }), batchTitle: t('chr.page_batch') });
     this.update('chronicle');
   }
 
@@ -212,13 +213,12 @@ export class ChronicleUI {
     const reason = this.sys.getChallengeBlockReason(id);
     if (reason) return;
     const c = getChallenge(id);
-    const msg = `Start "${c.name}"?\n\n${c.desc}\nGoal: ${fmtBig(c.goal.runAether)} Oil in a fresh run, with Reserves, Share and Page bonuses off.\n\n` +
-      'Your current run (Oil and generators) is set aside and comes back exactly as it is when the challenge ends or you abandon it. ' +
-      'New Wells, New Fields and the 6 h Fast Forward wait until then. Everything else keeps running.';
+    const msg = t('chr.start_q', { name: c.name }) + `\n\n${c.desc}\n` + t('chr.start_goal', { n: fmtBig(c.goal.runAether) }) + '\n\n' +
+      t('chr.start_body');
     if (!confirm(msg)) return;
     if (!this.sys.startChallenge(id)) return;
     sound.playBuy();
-    rewards.notify({ tier: 'medium', kind: 'challenge-start', icon: c.icon, color: SAND, title: `Challenge: ${c.name}`, detail: `Reach ${fmtBig(c.goal.runAether)} Oil` });
+    rewards.notify({ tier: 'medium', kind: 'challenge-start', icon: c.icon, color: SAND, title: t('chr.challenge_toast', { name: c.name }), detail: t('chr.reach', { n: fmtBig(c.goal.runAether) }) });
     this.app.updateBuildingsUI?.();
     this.update('chronicle');
   }
@@ -226,7 +226,7 @@ export class ChronicleUI {
   abandonChallenge() {
     const c = getChallenge(this.gs.chronicle.active?.id);
     if (!c) return;
-    if (!confirm(`Abandon "${c.name}"? The challenge run ends and your main run comes back exactly as you left it.`)) return;
+    if (!confirm(t('chr.abandon_q', { name: c.name }))) return;
     this.sys.abandonChallenge();
     this.app.updateBuildingsUI?.();
     this.update('chronicle');
@@ -243,12 +243,12 @@ export class ChronicleUI {
     scrim.innerHTML = `
       <div class="chr-modal" role="dialog" aria-modal="true" aria-labelledby="chr-confirm-title">
         <h2 id="chr-confirm-title"></h2>
-        <p>This is the rare one. Read both columns.</p>
+        <p>${t('chr.modal_intro')}</p>
         <div class="chr-keep">
-          <div><span class="c-life h">You keep</span><ul data-m="keep"></ul></div>
-          <div><span class="c-danger h">You reset</span><ul data-m="lose"></ul></div>
+          <div><span class="c-life h">${t('chr.you_keep')}</span><ul data-m="keep"></ul></div>
+          <div><span class="c-danger h">${t('tr.lose')}</span><ul data-m="lose"></ul></div>
         </div>
-        <div class="actions"><button type="button" class="btn" data-m="no">Not yet</button><button type="button" class="btn btn-primary" data-m="yes"></button></div>
+        <div class="actions"><button type="button" class="btn" data-m="no">${t('chr.not_yet')}</button><button type="button" class="btn btn-primary" data-m="yes"></button></div>
       </div>`;
     document.body.appendChild(scrim);
     this.modal = { scrim, title: scrim.querySelector('#chr-confirm-title') };
@@ -264,23 +264,23 @@ export class ChronicleUI {
     if (!this.sys.canChronicle()) return;
     const p = this.sys.getPreview();
     const gs = this.gs;
-    const name = `Chronicle ${roman(p.number)}`;
-    setText(this.modal.title, `Begin ${name}?`);
-    setText(this.modal.yes, `Begin ${name}`);
+    const name = t('chr.name', { n: roman(p.number) });
+    setText(this.modal.title, t('chr.begin_q', { name }));
+    setText(this.modal.yes, t('chr.begin', { name }));
     const features = Object.values(gs.dustShop?.ranks || {}).filter(r => r > 0).length;
     const keep = [
-      `${p.pagesBefore} Pages earned + ${p.pages} new (Oil ${fmtMult(p.aetherMultBefore)} → ${fmtMult(p.aetherMultAfter)})`,
-      `${gs.ascensionCount.toLocaleString()} New Wells, talents, Codex and achievements`,
-      `Floor ${(gs.hero?.maxFloor || 1).toLocaleString()}, depth ${(gs.miningGrid?.maxDepth || 0).toLocaleString()}, Garden, Guild, Bazaar`,
-      'Wardens and Garden breeding stay unlocked'
+      t('chr.k.pages', { a: p.pagesBefore, b: p.pages, x: fmtMult(p.aetherMultBefore), y: fmtMult(p.aetherMultAfter) }),
+      t('chr.k.wells', { n: gs.ascensionCount.toLocaleString('en-US') }),
+      t('chr.k.places', { f: (gs.hero?.maxFloor || 1).toLocaleString('en-US'), d: (gs.miningGrid?.maxDepth || 0).toLocaleString('en-US') }),
+      t('chron.keeps.5')
     ];
-    if (p.keepsAutoAscend) keep.push('Auto-Well (Bookmark)');
-    if (p.startsChapter) keep.push(`Chapter 1 begins: ${p.startsChapter.name}`);
+    if (p.keepsAutoAscend) keep.push(t('chr.k.bookmark'));
+    if (p.startsChapter) keep.push(t('chr.k.chapter', { name: p.startsChapter.name }));
     const lose = [
-      `${fmtBig(p.dust)} lifetime Reserves, ${features} Reserve Shop feature${features === 1 ? '' : 's'}`,
-      `${p.shards} Shares${p.shardsAfter ? ` (you start with ${p.shardsAfter})` : ''}, ${p.treeNodes} Share Tree node${p.treeNodes === 1 ? '' : 's'}`,
-      `${p.transcends} New Fields: back to 14 generator tiers`,
-      'The current run'
+      t('chr.l.reserves', { n: fmtBig(p.dust), f: features }),
+      t('chr.l.shares', { n: p.shards, t: p.treeNodes }) + (p.shardsAfter ? ' ' + t('chr.l.start_with', { n: p.shardsAfter }) : ''),
+      t('chr.l.fields', { n: p.transcends }),
+      t('chr.l.run')
     ];
     this.setList(this.modal.keep, keep);
     this.setList(this.modal.lose, lose);
@@ -300,9 +300,9 @@ export class ChronicleUI {
     const res = this.sys.chronicle();
     if (!res) return;
     rewards.notify({
-      tier: 'epic', kind: 'chronicle', icon: '📖', color: SAND, title: `Chronicle ${roman(res.number)}`,
-      amount: res.pages, fmt: (n) => String(n), unit: 'Chronicle Pages',
-      detail: res.startedChapter ? `${res.startedChapter.name} begins` : 'The ladder starts again'
+      tier: 'epic', kind: 'chronicle', icon: '📖', color: SAND, title: t('chr.name', { n: roman(res.number) }),
+      amount: res.pages, fmt: (n) => String(n), unit: t('chr.pages_unit'),
+      detail: res.startedChapter ? t('chr.chapter_begins', { name: res.startedChapter.name }) : t('chr.ladder_again')
     });
     this.app.updateBuildingsUI?.();
     this.app.updatePrestigeUI?.();
@@ -323,26 +323,26 @@ export class ChronicleUI {
     // Chapter poster
     const st = sys.getChapterStatus();
     const ch = st ? st.chapter : CHAPTERS[0];
-    setText(el.eyebrow, `Chapter ${ch.number} of ${Math.max(4, CHAPTERS.length)} · Season`);
+    setText(el.eyebrow, t('chr.eyebrow', { a: ch.number, b: Math.max(4, CHAPTERS.length) }));
     setText(el.title, ch.name);
     setText(el.blurb, ch.blurb);
     let week, left, pct;
-    if (!st) { week = 'Begins with your first Chronicle'; left = `${ch.weeks} w`; pct = 0; }
-    else if (st.running) { week = `Week ${st.week} of ${ch.weeks}`; left = weeksLeft(st.msLeft); pct = st.pct; }
-    else { week = 'Chapter complete · stamped'; left = 'Next Chapter soon'; pct = 1; }
+    if (!st) { week = t('chr.begins_first'); left = t('chr.weeks', { n: ch.weeks }); pct = 0; }
+    else if (st.running) { week = t('chr.week_of', { a: st.week, b: ch.weeks }); left = weeksLeft(st.msLeft); pct = st.pct; }
+    else { week = t('chr.chapter_done'); left = t('chr.next_soon'); pct = 1; }
     setText(el.week, week);
     setText(el.left, left);
     const w = `${(pct * 100).toFixed(1)}%`;
     if (el.weekFill.style.width !== w) el.weekFill.style.width = w;
-    setText(el.pagesChip, `📜 Pages ${c.pages}`);
-    setText(el.multChip, `${fmtMult(new BigNum(PAGE_AETHER_MULT).pow(c.totalPages))} Oil from ${c.totalPages} Pages`);
+    setText(el.pagesChip, t('chr.pages_chip', { n: c.pages }));
+    setText(el.multChip, t('chr.mult_chip', { x: fmtMult(new BigNum(PAGE_AETHER_MULT).pow(c.totalPages)), n: c.totalPages }));
     el.rules.classList.toggle('is-off', !!st && !st.running);
 
     // Challenges
     const active = c.active?.id || null;
     const opened = sys.getAvailableChapters().length > 0;
-    setText(el.chNote, !opened ? `Challenges open with ${CHAPTERS[0].name}, at your first Chronicle.`
-      : active ? 'A challenge is running: New Wells and New Fields wait until it ends. Your main run is safe.' : '');
+    setText(el.chNote, !opened ? t('chr.ch_closed', { name: CHAPTERS[0].name })
+      : active ? t('chr.ch_running') : '');
     setHidden(el.chNote, opened && !active);
     const prog = sys.getChallengeProgress();
     for (const [id, refs] of this.chEls) {
@@ -353,7 +353,7 @@ export class ChronicleUI {
       const done = !!rec?.done;
       refs.row.classList.toggle('run', running);
       refs.row.classList.toggle('done', done && !running);
-      refs.row.classList.toggle('lock', !running && !!reason && !done && reason !== 'another challenge is running');
+      refs.row.classList.toggle('lock', !running && !!reason && !done && reason !== t('chron.block.other_running'));
       setHidden(refs.run, !running);
       setHidden(refs.bar, !running);
       setHidden(refs.abandon, !running);
@@ -362,47 +362,47 @@ export class ChronicleUI {
       const canStart = reason === null;
       refs.start.classList.toggle('is-locked', !canStart);
       setAttr(refs.start, 'aria-disabled', String(!canStart));
-      setText(refs.start, done ? 'Replay' : 'Start');
-      setAttr(refs.start, 'title', canStart ? `Start ${def.name}` : (reason || ''));
+      setText(refs.start, done ? t('chr.replay') : t('chr.start'));
+      setAttr(refs.start, 'title', canStart ? t('chr.start_name', { name: def.name }) : (reason || ''));
       let best;
       if (running && prog) {
         const f = `${(prog.pct * 100).toFixed(1)}%`;
         if (refs.fill.style.width !== f) refs.fill.style.width = f;
-        best = `${fmtBig(prog.have)} / ${fmtBig(prog.goal)} Oil · ${fmtDuration((Date.now() - c.active.startedAt) / 1000)}`;
+        best = t('chr.prog', { a: fmtBig(prog.have), b: fmtBig(prog.goal), time: fmtDuration((Date.now() - c.active.startedAt) / 1000) });
       } else if (done) {
-        best = `Best ${fmtDuration(rec.best)} · +${def.pages} Pages ✓`;
-      } else if (reason && reason.startsWith('opens')) {
-        best = `${reason[0].toUpperCase()}${reason.slice(1)} · +${def.pages} Pages`;
+        best = t('chr.best', { time: fmtDuration(rec.best), n: def.pages });
+      } else if (reason && reason !== t('chron.block.running') && reason !== t('chron.block.other_running')) {
+        best = `${reason[0].toUpperCase()}${reason.slice(1)} · ${t('chr.plus_pages', { n: def.pages })}`;
       } else {
-        best = `Not cleared · +${def.pages} Pages`;
+        best = t('chr.not_cleared', { n: def.pages });
       }
       setText(refs.best, best);
     }
 
     // Pages tree
-    setText(el.pagesHint, `Permanent · ${c.pages} Page${c.pages === 1 ? '' : 's'} to spend`);
+    setText(el.pagesHint, t(c.pages === 1 ? 'chr.pages_hint1' : 'chr.pages_hint', { n: c.pages }));
     for (const [id, refs] of this.upEls) {
       const u = PAGE_UPGRADES.find(x => x.id === id);
       const reason = sys.getUpgradeBlockReason(id);
       const state = reason === 'owned' ? 'own' : reason === null ? 'aff' : 'lock';
       for (const k of ['own', 'aff', 'lock']) refs.el.classList.toggle(k, k === state);
-      setText(refs.cost, state === 'own' ? 'Owned' : state === 'aff' ? `Buy · ${u.cost} 📜` : `${u.cost} 📜${reason && !reason.startsWith('needs ' + u.cost) ? ` · ${reason}` : ''}`);
+      setText(refs.cost, state === 'own' ? t('st.owned') : state === 'aff' ? t('chr.buy_pages', { n: u.cost }) : `${u.cost} 📜${reason && reason !== t('chron.block.pages', { n: u.cost }) ? ` · ${reason}` : ''}`);
       setAttr(refs.el, 'aria-disabled', String(state !== 'aff'));
-      setAttr(refs.el, 'aria-label', `${u.name}: ${u.desc} ${state === 'own' ? 'Owned' : state === 'aff' ? `Buy for ${u.cost} Pages` : reason}`);
+      setAttr(refs.el, 'aria-label', `${u.name}: ${u.desc} ${state === 'own' ? t('st.owned') : state === 'aff' ? t('chr.buy_for_pages', { n: u.cost }) : reason}`);
     }
 
     // Gate and Begin
     const need = getChronicleTranscendsNeeded(gs);
-    const t = gs.transcendenceCount || 0;
-    setText(el.gateLabel, `Chronicle ${roman(c.count + 1)}`);
-    const gp = `${Math.min(100, (100 * t) / need).toFixed(1)}%`;
+    const fields = gs.transcendenceCount || 0;
+    setText(el.gateLabel, t('chr.name', { n: roman(c.count + 1) }));
+    const gp = `${Math.min(100, (100 * fields) / need).toFixed(1)}%`;
     if (el.gateFill.style.width !== gp) el.gateFill.style.width = gp;
-    setText(el.gateVal, `${Math.min(t, need)}/${need}`);
+    setText(el.gateVal, `${Math.min(fields, need)}/${need}`);
     const seal = getSealGate(gs);
-    let note = `Needs ${CHRONICLE_TRANSCEND_GATE} New Fields this Chronicle.`;
-    if (seal.source === 'seals' && seal.sealsMet) note = `All ${seal.total} Field Seals are lit: ${CHRONICLE_TRANSCEND_GATE} New Fields open your first Chronicle.`;
-    else if (seal.source === 'seals') note = `Needs ${CHRONICLE_TRANSCEND_GATE} New Fields and all ${seal.total} Field Seals (${seal.lit} lit), or ${SEAL_STANDIN_TRANSCENDS} New Fields without them. After the first Chronicle, ${CHRONICLE_TRANSCEND_GATE} is enough.`;
-    else if (seal.source === 'standin') note = `Your first Chronicle needs ${need} New Fields; after it, ${CHRONICLE_TRANSCEND_GATE} is enough.`;
+    let note = t('chr.gate.needs', { n: CHRONICLE_TRANSCEND_GATE });
+    if (seal.source === 'seals' && seal.sealsMet) note = t('chr.gate.lit', { total: seal.total, n: CHRONICLE_TRANSCEND_GATE });
+    else if (seal.source === 'seals') note = t('chr.gate.seals', { n: CHRONICLE_TRANSCEND_GATE, total: seal.total, lit: seal.lit, alt: SEAL_STANDIN_TRANSCENDS });
+    else if (seal.source === 'standin') note = t('chr.gate.standin', { need, n: CHRONICLE_TRANSCEND_GATE });
     setText(el.sealNote, note);
     const reason = sys.getBlockReason();
     const pages = sys.getPreview().pages;
@@ -411,8 +411,8 @@ export class ChronicleUI {
     el.begin.classList.toggle('is-locked', !can);
     setAttr(el.begin, 'aria-disabled', String(!can));
     setText(el.begin, can
-      ? `📖 Begin Chronicle ${roman(c.count + 1)} · +${pages} Pages`
-      : `📖 Begin Chronicle ${roman(c.count + 1)} · ${reason}`);
+      ? `📖 ${t('chr.begin', { name: t('chr.name', { n: roman(c.count + 1) }) })} · ${t('chr.plus_pages', { n: pages })}`
+      : `📖 ${t('chr.begin', { name: t('chr.name', { n: roman(c.count + 1) }) })} · ${reason}`);
   }
 }
 

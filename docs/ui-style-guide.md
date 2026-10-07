@@ -355,6 +355,27 @@ stays available but never pushes the action below the fold again.
 - **No horizontal page scroll at 375px.** Wide content (tables, trees) either reflows or
   scrolls inside its own container with a visible edge fade.
 
+### 7.1 Arabic and right to left (R37)
+
+The game runs in English or Arabic (Settings → Language). Arabic sets `<html lang="ar" dir="rtl">`
+and the whole layout mirrors, so:
+
+- **Text:** every player-facing string goes through `t('key', params)` (`js/i18n/`). English lives
+  in `en.js`, Arabic in `ar.js`; data tables (generators, spells, achievements…) keep their
+  English where they are defined and call `localize(rows, prefix, fields)`, with the Arabic in
+  `ar.js` as `<prefix>.<id>.<field>`. `test_r37_i18n.js` fails on a key with no Arabic.
+  Static markup in `index.html` uses `data-i18n="key"` (or `data-i18n-html`, `-title`,
+  `-aria-label`, `-hint`).
+- **CSS:** logical properties only: `margin-inline-start`, `padding-inline-end`,
+  `border-inline-start`, `inset-inline-start`, `text-align: start/end`. No `left`/`right`
+  except for centring (`left: 50%`). A slide-in animation multiplies its x offset by `var(--dir)`.
+- **Numbers:** Western digits, read left to right. `t()` wraps numeric params (with their sign
+  and `%`) in an isolate; for a number built outside `t()` use `bidi(text)` or `<bdi>`, and give
+  number cells `.num` (in Arabic it takes its direction from its first letter). Never format
+  with `toLocaleString()` without `'en-US'`.
+- **Type:** Arabic uses Cairo (UI) and Noto Kufi Arabic (display) with a larger `--fs-root`;
+  letter spacing and uppercase are off. Check Arabic at 375px too: words run longer than English.
+
 ---
 
 ## 8. Checklist for a UI PR
@@ -371,3 +392,5 @@ stays available but never pushes the action below the fold again.
 - [ ] Works with reduced motion
 - [ ] Screenshots at desktop and 375px in the PR
 - [ ] Matches the mockup in `docs/ui/mockups/` if there is one, or says why not
+- [ ] New text goes through `t()` with Arabic in `js/i18n/ar.js`, and the tab reads right in
+      Arabic (logical CSS properties, numbers left to right; §7.1)

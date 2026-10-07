@@ -156,3 +156,27 @@
 :root[data-motion="reduced"] { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
 :root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before,
 :root[data-motion="reduced"] *::after { animation: none !important; transition: none !important; }
+
+/* Arabic (R37): an Arabic UI font with a size bump (Arabic glyphs read smaller at the same size).
+   Cinzel has no Arabic, so display text uses Noto Kufi Arabic. Letter spacing breaks Arabic
+   joining, so it is off everywhere in Arabic. */
+:root[lang="ar"] {
+  --font-display: 'Noto Kufi Arabic', 'Cairo', Tahoma, sans-serif;
+  --font-ui: 'Cairo', 'Noto Kufi Arabic', Tahoma, system-ui, sans-serif;
+  --fs-root: clamp(18px, 17px + 0.25vw, 20px);
+  --lh-body: 1.6;
+  --header-h: 64px;
+  /* Monospace fonts have no Arabic; Arabic words next to numbers ("25 مانا") use Cairo */
+  --font-mono: 'Cairo', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+:root[lang="ar"] body, :root[lang="ar"] body * { letter-spacing: normal !important; }
+/* Numbers and notations (1.5M, 2.0e12, +12%, x3) keep their left-to-right order */
+:root[dir="rtl"] bdi { unicode-bidi: isolate; }
+/* A .num cell takes its direction from its own first letter: "+3", "1.5M / 2M" read left to right,
+   a cell that starts with an Arabic word stays right to left */
+:root[dir="rtl"] .num { unicode-bidi: plaintext; }
+/* Settings samples are left to right for number notations only; text samples follow their words */
+:root[dir="rtl"] .settings-sample { direction: inherit; unicode-bidi: plaintext; }
+/* Cairo has tall ascenders: the header grows a little so the currency labels are not clipped */
+:root[lang="ar"] .res { line-height: 1.1; }
+:root[lang="ar"] .res .k { line-height: 1.5; }

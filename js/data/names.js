@@ -1,6 +1,10 @@
 // Player-facing item names (R27). The one place every view reads an item's name, plural, icon
 // and colour from. Keys are the save keys (inventory, garden essences, hybrid essences) and
-// never change; only the text here does. A re-theme or translation edits this file only.
+// never change; only the text here does. A re-theme edits this file; the Arabic names are
+// AR_ITEMS in js/i18n/ar.js (R37), merged in below when the game runs in Arabic.
+
+import { getLang } from '../i18n/lang.js';
+import { AR_ITEMS } from '../i18n/ar.js';
 
 export const ITEM_NAMES = {
   // Excavation: stone and strata stone
@@ -34,6 +38,10 @@ export const ITEM_NAMES = {
   honeyDate: { name: 'Honeyed Dates', plural: 'Honeyed Dates', icon: '🌴', color: '#fbbf24' },
   mintHoney: { name: 'Mint Honey Tea', plural: 'Mint Honey Tea', icon: '🍵', color: '#86efac' }
 };
+
+if (getLang() === 'ar') {
+  for (const [k, v] of Object.entries(AR_ITEMS)) if (ITEM_NAMES[k]) Object.assign(ITEM_NAMES[k], v);
+}
 
 // Excavation grid tiles name their treasure in the singular; this maps a tile's content to its
 // inventory key.

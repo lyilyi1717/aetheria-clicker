@@ -1,6 +1,8 @@
 // High-precision BigNumber class supporting numbers up to 10^(9e15)
 // Stores number as mantissa * 10^exponent where 1 <= |mantissa| < 10
 
+import { getLang } from '../i18n/lang.js';
+
 export class BigNum {
   constructor(mantissa = 0, exponent = 0) {
     if (mantissa instanceof BigNum) {
@@ -260,16 +262,18 @@ export class BigNum {
 
   // Number.toLocaleString(undefined, options) builds a new Intl.NumberFormat on every call
   // (format() runs hundreds of times per frame), so reuse one formatter per precision.
+  // In Arabic the digits stay Western (an ar-* locale would print ٤٥٬٢١٠), R37
+  static NUMBER_LOCALE = getLang() === 'ar' ? 'en-US' : undefined;
   static LOCALE_FORMATTERS = [];
   static localeFormatter(precision) {
     let f = BigNum.LOCALE_FORMATTERS[precision];
     if (!f) {
-      f = new Intl.NumberFormat(undefined, { maximumFractionDigits: precision });
+      f = new Intl.NumberFormat(BigNum.NUMBER_LOCALE, { maximumFractionDigits: precision });
       BigNum.LOCALE_FORMATTERS[precision] = f;
     }
     return f;
   }
-  static INT_FORMATTER = new Intl.NumberFormat();
+  static INT_FORMATTER = new Intl.NumberFormat(BigNum.NUMBER_LOCALE);
 
   // Mantissa + exponent with trailing zeros trimmed: 1e9, 1.5e10, 2.35e12
   static expString(mantissa, exp, precision, step = 1) {

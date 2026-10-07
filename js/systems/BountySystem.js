@@ -2,6 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { grantTalentPoints, recordContractClaim } from './TalentSources.js';
+import { t, localize } from '../i18n/index.js';
 
 // Contract board (roadmap 4.4, R10). The board holds up to BOARD_SIZE contracts. One new contract
 // arrives every CONTRACT_INTERVAL_MS of wall-clock time (never sped up by Fast Forward) while there
@@ -17,17 +18,20 @@ export const SIZE_PER_RANK = 0.15;            // required = reqBase * d * (1 + 0
 // `tab` is the tab the contract is played in (a contract only rolls once that tab is open to the
 // player), `task(n)` the one-line task, `cap` the largest target (about 10 minutes of normal play).
 export const BOUNTY_TEMPLATES = [
-  { type: 'click', title: 'Energize the Monolith', reqBase: 50, cap: 600, icon: '👆', tab: 'monolith', desc: 'Perform manual clicks', task: n => `Click ${n} times` },
-  { type: 'crit_click', title: 'Critical Resonance', reqBase: 12, cap: 90, icon: '🎯', tab: 'monolith', desc: 'Land critical clicks', task: n => `Land ${n} critical clicks` },
-  { type: 'slay_monster', title: 'Purge the Catacombs', reqBase: 6, cap: 120, icon: '⚔️', tab: 'combat', desc: 'Slay dungeon monsters', task: n => `Slay ${n} dungeon monsters` },
-  { type: 'slay_boss', title: 'Boss Execution', reqBase: 1, cap: 4, icon: '👑', tab: 'combat', desc: 'Slay dungeon floor bosses', task: n => `Slay ${n} floor boss${n === 1 ? '' : 'es'}` },
-  { type: 'mine_block', title: 'Subterranean Excavation', reqBase: 10, cap: 150, icon: '⛏️', tab: 'mining', desc: 'Mine underground tiles', task: n => `Mine ${n} tiles` },
-  { type: 'harvest_plant', title: 'Botanical Gathering', reqBase: 4, cap: 40, icon: '🌱', tab: 'garden', desc: 'Harvest mature plants', task: n => `Harvest ${n} plants` },
-  { type: 'brew_potion', title: 'Alchemist Calling', reqBase: 2, cap: 12, icon: '🧪', tab: 'alchemy', desc: 'Brew potions or catalysts', task: n => `Brew ${n} potions` },
-  { type: 'cast_spell', title: 'Arcane Mastery', reqBase: 3, cap: 30, icon: '✨', tab: 'spells', desc: 'Cast active spells', task: n => `Cast ${n} spells` },
-  { type: 'buy_building', title: 'Expanding Empire', reqBase: 10, cap: 80, icon: '🏛️', tab: 'monolith', desc: 'Construct generators', task: n => `Build ${n} generators` }
+  { type: 'click', title: 'Energize the Monolith', reqBase: 50, cap: 600, icon: '👆', tab: 'monolith', desc: 'Perform manual clicks', task: n => t('contract.task.click', { n }) },
+  { type: 'crit_click', title: 'Critical Resonance', reqBase: 12, cap: 90, icon: '🎯', tab: 'monolith', desc: 'Land critical clicks', task: n => t('contract.task.crit_click', { n }) },
+  { type: 'slay_monster', title: 'Purge the Catacombs', reqBase: 6, cap: 120, icon: '⚔️', tab: 'combat', desc: 'Slay dungeon monsters', task: n => t('contract.task.slay_monster', { n }) },
+  { type: 'slay_boss', title: 'Boss Execution', reqBase: 1, cap: 4, icon: '👑', tab: 'combat', desc: 'Slay dungeon floor bosses', task: n => t(n === 1 ? 'contract.task.slay_boss1' : 'contract.task.slay_boss', { n }) },
+  { type: 'mine_block', title: 'Subterranean Excavation', reqBase: 10, cap: 150, icon: '⛏️', tab: 'mining', desc: 'Mine underground tiles', task: n => t('contract.task.mine_block', { n }) },
+  { type: 'harvest_plant', title: 'Botanical Gathering', reqBase: 4, cap: 40, icon: '🌱', tab: 'garden', desc: 'Harvest mature plants', task: n => t('contract.task.harvest_plant', { n }) },
+  { type: 'brew_potion', title: 'Alchemist Calling', reqBase: 2, cap: 12, icon: '🧪', tab: 'alchemy', desc: 'Brew potions or catalysts', task: n => t('contract.task.brew_potion', { n }) },
+  { type: 'cast_spell', title: 'Arcane Mastery', reqBase: 3, cap: 30, icon: '✨', tab: 'spells', desc: 'Cast active spells', task: n => t('contract.task.cast_spell', { n }) },
+  { type: 'buy_building', title: 'Expanding Empire', reqBase: 10, cap: 80, icon: '🏛️', tab: 'monolith', desc: 'Construct generators', task: n => t('contract.task.buy_building', { n }) }
 ];
-export const TAB_NAMES = { monolith: 'Refinery', combat: 'Tower', mining: 'Dig', garden: 'Garden', alchemy: 'Alchemy', spells: 'Grimoire' };
+localize(BOUNTY_TEMPLATES, 'contract', ['title', 'desc']);
+export const TAB_NAMES = {
+  monolith: t('nav.refinery'), combat: t('nav.tower'), mining: t('nav.dig'), garden: t('nav.garden'), alchemy: t('nav.alchemy'), spells: t('nav.grimoire')
+};
 const CLICK_TYPES = ['click', 'crit_click'];
 
 export const QUARTERMASTER_UPGRADES = [
@@ -36,6 +40,7 @@ export const QUARTERMASTER_UPGRADES = [
   { id: 'golden_req', name: 'Golden Requisition', icon: '💰', desc: '+25% Combat Gold Drops per rank', baseCost: 5, costInc: 3, maxRank: 50 },
   { id: 'chronos_contract', name: 'Chronos Contract', icon: '⏳', desc: '+5% Offline Efficiency per rank', baseCost: 10, costInc: 5, maxRank: 10 }
 ];
+localize(QUARTERMASTER_UPGRADES, 'qm', ['name', 'desc']);
 
 export class BountySystem {
   constructor(gameState) {
@@ -167,7 +172,7 @@ export class BountySystem {
           b.completed = true;
           rewards.notify({
             tier: 'medium', kind: 'contract', icon: '📜', color: '#fbbf24',
-            title: `Contract complete: ${b.title}`, batchTitle: '{n} contracts complete', detail: 'Claim it on the board'
+            title: t('contract.complete', { name: contractTitle(b) }), batchTitle: t('contract.complete_batch'), detail: t('contract.claim_on_board')
           });
         }
       }
@@ -213,7 +218,7 @@ export class BountySystem {
 
     // A contract generated before R9 may still carry a talent point; honour it
     if (b.rewards.talentPoint) {
-      grantTalentPoints(gs, 1, 'guild', 'Contract'); // toast comes from the grant hook
+      grantTalentPoints(gs, 1, 'guild', t('contract.word')); // toast comes from the grant hook
     }
 
     gs.stats.totalBountiesCompleted++;
@@ -261,10 +266,23 @@ export class BountySystem {
     
     rewards.notify({
       tier: 'medium', kind: 'guild-charter', icon: '🏛️', color: '#fbbf24',
-      title: 'Guild charter acquired', batchTitle: '{n} guild charters acquired'
+      title: t('qm.acquired'), batchTitle: t('qm.acquired_batch')
     });
     return true;
   }
+}
+
+// A contract's title and task line in the player's language. Saves keep the English text a
+// contract was generated with, so the board reads them from the template by type instead.
+export function contractTitle(b) {
+  if (b?.type === 'dallah') return t('contract.dallah.title');
+  return BOUNTY_TEMPLATES.find(tm => tm.type === b?.type)?.title || b?.title || t('contract.generic');
+}
+
+export function contractTask(b) {
+  if (b?.type === 'dallah') return t('contract.dallah.desc');
+  const tmpl = BOUNTY_TEMPLATES.find(tm => tm.type === b?.type);
+  return tmpl ? tmpl.task(b.required) : (b?.desc || '');
 }
 
 // Fills what a legacy or hand-edited contract may lack so the board code can rely on it

@@ -22,6 +22,7 @@ import { themeVar } from './theme.js';
 import {
   ToastQueue, CeremonyScheduler, RewardBatch, rewardTitle, rewardValue, normalizeTier
 } from './rewardQueue.js';
+import { t } from '../i18n/index.js';
 
 const hasDom = () => typeof document !== 'undefined' && !!document.body;
 const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
@@ -93,7 +94,7 @@ class RewardFeedback {
       if (document.hidden) {
         if (!this.awayBatch.active) this.awayBatch.begin();
       } else if (this.awayBatch.active) {
-        this.flush(this.awayBatch.end('While you were away'));
+        this.flush(this.awayBatch.end(t('rewards.away')));
       }
     });
     if (document.hidden) this.awayBatch.begin();

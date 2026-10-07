@@ -13,6 +13,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
 import { getDeepBlueprintDivisor } from './ShardTreeSystem.js';
+import { t, localizeList } from '../i18n/index.js';
 
 export const TIER_UPGRADE_THRESHOLDS = [1, 10, 50, 100, 200];
 // Tier upgrades are x1.2 each (x2.49 for all 5), not the doc's first-draft x2 (x32): simulated
@@ -27,7 +28,7 @@ export const SYNERGY_MIN_TARGET = 25;          // own 25 of tier A ...
 export const SYNERGY_MIN_SOURCE = 50;          // ... and 50 of tier B to see the synergy
 export const SYNERGY_COST_EXP = 4;             // cost: baseCost(A) x 10^4
 
-const TIER_LEVEL_NAMES = ['Polished', 'Gilded', 'Blessed', 'Legendary', 'Eternal'];
+const TIER_LEVEL_NAMES = [1, 2, 3, 4, 5].map(k => t(`upg.level.${k}`));
 
 const CLICK_UPGRADE_NAMES = [
   ['Sesame Fingertips', '👆'], ['Tahini Grip', '✊'], ['Valve Flick', '🔧'],
@@ -36,6 +37,7 @@ const CLICK_UPGRADE_NAMES = [
   ['Camel Kick', '🐪'], ['Falcon Strike', '🦅'], ['Sandstorm Slap', '🌪️'],
   ['Mirage Palm', '🏜️'], ['Star of Najd Touch', '⭐'], ['Hand of Eternity', '✋']
 ];
+localizeList(CLICK_UPGRADE_NAMES.map(c => c[0]), 'clickup').forEach((name, i) => { CLICK_UPGRADE_NAMES[i][0] = name; });
 
 // [target A, source B, name]: A gets +1% output per B owned
 const SYNERGIES = [
@@ -48,6 +50,7 @@ const SYNERGIES = [
   ['matrix', 'loom', 'Giga-Project Pipeline'],
   ['loom', 'obelisk', 'Dallahs on The Line']
 ];
+localizeList(SYNERGIES.map(s => s[2]), 'synergy').forEach((name, i) => { SYNERGIES[i][2] = name; });
 
 const DEF_BY_ID = new Map(BUILDING_DEFINITIONS.map(d => [d.id, d]));
 
@@ -62,9 +65,9 @@ function buildUpgradeDefinitions() {
         tier: b.tier,
         level: k + 1,
         requires: need,
-        name: `${TIER_LEVEL_NAMES[k]} ${b.name}`,
+        name: t('upg.tier_name', { level: TIER_LEVEL_NAMES[k], name: b.name }),
         icon: b.icon,
-        desc: `${b.name} output ×${TIER_UPGRADE_MULT}`,
+        desc: t('upg.tier_desc', { name: b.name, x: TIER_UPGRADE_MULT }),
         cost: b.baseCost.mul(new BigNum(10).pow(k + 1))
       });
     });
@@ -76,7 +79,7 @@ function buildUpgradeDefinitions() {
       level: i + 1,
       tier: 0,
       name, icon,
-      desc: `Base click ×${CLICK_UPGRADE_MULT}`,
+      desc: t('upg.click_desc', { x: CLICK_UPGRADE_MULT }),
       cost: BUILDING_DEFINITIONS[i].baseCost.mul(CLICK_UPGRADE_COST_FACTOR)
     });
   });
@@ -90,7 +93,7 @@ function buildUpgradeDefinitions() {
       source,
       tier: Math.max(a.tier, b.tier),
       name, icon: a.icon,
-      desc: `${a.name} +${+(SYNERGY_PER_UNIT * 100).toFixed(2)}% per ${b.name} owned`,
+      desc: t('upg.syn_desc', { a: a.name, pct: +(SYNERGY_PER_UNIT * 100).toFixed(2), b: b.name }),
       cost: a.baseCost.mul(new BigNum(10).pow(SYNERGY_COST_EXP))
     });
   }
@@ -235,9 +238,9 @@ export class UpgradeSystem {
   getRequirementText(id) {
     const u = UPGRADE_BY_ID.get(id);
     if (!u) return '';
-    if (u.kind === 'tier') return `Own ${u.requires} ${DEF_BY_ID.get(u.building).name}`;
-    if (u.kind === 'click') return `Buy ${CLICK_UPGRADE_NAMES[u.level - 2]?.[0] ?? ''}`;
-    return `Own ${SYNERGY_MIN_TARGET} ${DEF_BY_ID.get(u.building).name} and ${SYNERGY_MIN_SOURCE} ${DEF_BY_ID.get(u.source).name}`;
+    if (u.kind === 'tier') return t('upg.req.tier', { n: u.requires, name: DEF_BY_ID.get(u.building).name });
+    if (u.kind === 'click') return t('upg.req.click', { name: CLICK_UPGRADE_NAMES[u.level - 2]?.[0] ?? '' });
+    return t('upg.req.syn', { a: SYNERGY_MIN_TARGET, an: DEF_BY_ID.get(u.building).name, b: SYNERGY_MIN_SOURCE, bn: DEF_BY_ID.get(u.source).name });
   }
 
   // Available upgrades, cheapest first (at today's price)

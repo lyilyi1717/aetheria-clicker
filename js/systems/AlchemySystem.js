@@ -2,6 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
+import { t, localize } from '../i18n/index.js';
 
 export const RECIPES = [
   // Timed Elixirs
@@ -99,6 +100,8 @@ export const HYBRID_RECIPES = [
   }
 ];
 
+localize(RECIPES, 'recipe', ['name', 'desc']);
+localize(HYBRID_RECIPES, 'recipe', ['name', 'desc']);
 const ALL_RECIPES = [...RECIPES, ...HYBRID_RECIPES];
 
 // Gem Polishing (R18; progression doc §5.4): 5 of a gem -> 1 of the next tier. Surplus low
@@ -150,7 +153,7 @@ export class AlchemySystem {
           // Big tier (§5.1 'unlock'): ceremony + brass
           rewards.notify({
             tier: 'big', kind: 'recipe-discovered', icon: '📖', color: '#f472b6',
-            title: `Recipe discovered: ${r.name}`, batchTitle: '{n} recipes discovered', detail: 'New brew in the Grimoire'
+            title: t('alc.discovered', { name: r.name }), batchTitle: t('alc.discovered_batch'), detail: t('alc.discovered_detail')
           });
         }
       }
@@ -188,7 +191,7 @@ export class AlchemySystem {
     sound.playGem();
     rewards.notify({
       tier: 'small', kind: 'gem-polish', icon: '💎', color: '#38bdf8',
-      title: 'Gems polished', amount: n, fmt: (v) => String(v), unit: n === 1 ? 'gem' : 'gems'
+      title: t('alc.polished'), amount: n, fmt: (v) => String(v), unit: t(n === 1 ? 'unit.gem' : 'unit.gems')
     });
     return n;
   }
@@ -258,7 +261,7 @@ export class AlchemySystem {
           maxDuration: dur
         });
       }
-      rewards.notify({ tier: 'small', kind: `brew-${r.id}`, icon: '⚗️', color: '#a855f7', title: `Brewed: ${r.name}` });
+      rewards.notify({ tier: 'small', kind: `brew-${r.id}`, icon: '⚗️', color: '#a855f7', title: t('alc.brewed_toast', { name: r.name }) });
     } else if (r.type === 'permanent') {
       if (r.id === 'perm_might') {
         this.gameState.hero.baseAttack += 15;
@@ -269,7 +272,7 @@ export class AlchemySystem {
         if (!this.gameState.alchemy) this.gameState.alchemy = { catalysts: 0 };
         this.gameState.alchemy.catalysts = this.getCatalystCount() + 1;
       }
-      rewards.notify({ tier: 'medium', kind: `perm-${r.id}`, icon: '⚗️', color: '#fbbf24', title: `Permanent boost: ${r.name}` });
+      rewards.notify({ tier: 'medium', kind: `perm-${r.id}`, icon: '⚗️', color: '#fbbf24', title: t('alc.perm_toast', { name: r.name }) });
     }
 
     if (this.gameState.bountySystem) {
@@ -287,7 +290,7 @@ export class AlchemySystem {
     sound.playBuy();
     rewards.notify({
       tier: 'small', kind: 'transmute-gold', icon: '🪙', color: '#eab308',
-      title: 'Stone transmuted', amount: goldGained, fmt: (g) => g.format('standard', 0), unit: 'gold'
+      title: t('alc.stone_toast'), amount: goldGained, fmt: (g) => g.format('standard', 0), unit: t('unit.gold')
     });
     return true;
   }
@@ -322,7 +325,7 @@ export class AlchemySystem {
     sound.playSpell();
     rewards.notify({
       tier: 'small', kind: 'chrono-sand', icon: '⏳', color: '#38bdf8',
-      title: 'Chrono Sand bought', amount: gained, fmt: (v) => new BigNum(v).format('standard', 2), unit: 'Chrono Sand'
+      title: t('alc.sand_toast'), amount: gained, fmt: (v) => new BigNum(v).format('standard', 2), unit: t('unit.sand')
     });
     return true;
   }

@@ -10,6 +10,7 @@
 // the one this device last synced). When the cloud changed elsewhere, decideSync() returns
 // 'conflict' and the UI asks "Keep this device / Keep cloud".
 import { BigNum } from './BigNum.js';
+import { t } from '../i18n/index.js';
 
 // Same project as the leaderboard. The publishable key is public by design.
 export const SUPABASE_URL = 'https://hutjfgbjjagqdjjeszqj.supabase.co';
@@ -102,16 +103,16 @@ export function cleanCallbackUrl(href) {
 }
 
 const AUTH_MESSAGES = {
-  invalid_credentials: 'Wrong email or password.',
-  email_not_confirmed: 'Please confirm your email first: open the link we sent you.',
-  user_already_exists: 'That email already has an account. Log in instead.',
-  email_exists: 'That email already has an account. Log in instead.',
-  weak_password: 'Please choose a longer password (at least 6 characters).',
-  over_email_send_rate_limit: 'Too many emails sent. Please wait a minute and try again.',
-  over_request_rate_limit: 'Too many attempts. Please wait a minute and try again.',
-  validation_failed: 'Please check the email address.',
-  signup_disabled: 'New accounts are switched off right now.',
-  provider_disabled: 'Google sign-in is not switched on yet. Use email and password for now.'
+  invalid_credentials: t('cloud.invalid_credentials'),
+  email_not_confirmed: t('cloud.email_not_confirmed'),
+  user_already_exists: t('cloud.email_exists'),
+  email_exists: t('cloud.email_exists'),
+  weak_password: t('cloud.weak_password'),
+  over_email_send_rate_limit: t('cloud.email_rate'),
+  over_request_rate_limit: t('cloud.request_rate'),
+  validation_failed: t('cloud.check_email'),
+  signup_disabled: t('cloud.signup_disabled'),
+  provider_disabled: t('acct.google_off')
 };
 
 // Player-readable text for a Supabase Auth error body
@@ -121,7 +122,7 @@ export function authErrorMessage(body, status) {
   const msg = body?.msg || body?.error_description || body?.message || body?.error;
   if (typeof msg === 'string' && /provider is not enabled/i.test(msg)) return AUTH_MESSAGES.provider_disabled;
   if (typeof msg === 'string' && msg) return msg;
-  return `Sign-in failed (${status || 'network'}).`;
+  return t('cloud.signin_failed', { s: status || 'network' });
 }
 
 function base64url(bytes) {
@@ -190,7 +191,7 @@ export class CloudSave {
     try {
       res = await this.fetch(`${this.url}/auth/v1/${path}`, { method, headers, body: body == null ? undefined : JSON.stringify(body) });
     } catch {
-      throw new AuthError('Could not reach the server. Check your connection.');
+      throw new AuthError(t('cloud.unreachable'));
     }
     let data = null;
     try { data = await res.json(); } catch { /* empty body */ }
@@ -260,7 +261,7 @@ export class CloudSave {
 
   async setNewPassword(password) {
     const s = await this.activeSession();
-    if (!s) throw new AuthError('Your reset link expired. Ask for a new one.');
+    if (!s) throw new AuthError(t('cloud.reset_expired'));
     await this.authFetch('user', { method: 'PUT', token: s.access_token, body: { password } });
     this.needsNewPassword = false;
     this.emit();
@@ -313,7 +314,7 @@ export class CloudSave {
     } catch (e) {
       if (e.status >= 400 && e.status < 500) {   // refresh token revoked or expired: signed out
         this.clearSession();
-        this.setStatus('error', 'You were signed out. Sign in again to keep saving to the cloud.');
+        this.setStatus('error', t('cloud.signed_out'));
         return null;
       }
       throw e;
@@ -339,7 +340,7 @@ export class CloudSave {
     if (res.status === 404) {
       let code = '';
       try { code = (await res.clone().json())?.code; } catch { /* no body */ }
-      if (!code || code === 'PGRST205' || code === '42P01') throw new Error('Cloud saves are not switched on yet. Your progress is safe on this device.');
+      if (!code || code === 'PGRST205' || code === '42P01') throw new Error(t('cloud.not_on'));
     }
     return res;
   }
@@ -347,7 +348,7 @@ export class CloudSave {
   async fetchCloud() {
     const uid = this.session.user_id;
     const res = await this.rest(`saves?select=data,version,saved_at&user_id=eq.${uid}`);
-    if (!res.ok) throw new Error(`Cloud load failed (${res.status}).`);
+    if (!res.ok) throw new Error(t('cloud.load_failed', { s: res.status }));
     const rows = await res.json();
     if (!rows.length) return null;
     const r = rows[0];
@@ -370,7 +371,7 @@ export class CloudSave {
     const res = await this.rest(`saves?user_id=eq.${this.session.user_id}&saved_at=eq.${at}&select=saved_at`, {
       method: 'PATCH', body, prefer: 'return=representation', keepalive: keepalive && body.length < KEEPALIVE_MAX_BYTES
     });
-    if (!res.ok) throw new Error(`Cloud save failed (${res.status}).`);
+    if (!res.ok) throw new Error(t('cloud.save_failed', { s: res.status }));
     return (await res.json()).length > 0;
   }
 
@@ -379,7 +380,7 @@ export class CloudSave {
     const res = await this.rest('saves?on_conflict=user_id', {
       method: 'POST', body: JSON.stringify(this.rowFor(local)), prefer: 'resolution=merge-duplicates,return=minimal'
     });
-    if (!res.ok) throw new Error(`Cloud save failed (${res.status}).`);
+    if (!res.ok) throw new Error(t('cloud.save_failed', { s: res.status }));
   }
 
   // On page hide, upload only what is already saved: saving here would undo Wipe Progress
@@ -400,7 +401,7 @@ export class CloudSave {
   }
 
   async runSync(reason) {
-    if (reason !== 'hide') this.setStatus('syncing', reason === 'login' ? 'Checking your cloud save…' : 'Saving to the cloud…');
+    if (reason !== 'hide') this.setStatus('syncing', reason === 'login' ? t('cloud.checking') : t('cloud.saving'));
     try {
       const local = this.localSave(reason);
       if (!local) return null;
@@ -425,13 +426,13 @@ export class CloudSave {
         this.applyCloud(cloud);
       } else {
         this.conflict = { local, cloud };
-        this.setStatus('conflict', 'Your cloud save and this device differ. Choose which one to keep.');
+        this.setStatus('conflict', t('cloud.conflict'));
         return decision;
       }
       this.setStatus('ok');
       return decision;
     } catch (e) {
-      this.setStatus('error', e.message || 'Cloud save failed. Retrying shortly.');
+      this.setStatus('error', e.message || t('cloud.retrying'));
       return null;
     }
   }
@@ -439,8 +440,8 @@ export class CloudSave {
   // Replace this device's progress with the cloud copy (through deserialize + migrations).
   // The caller reloads the page afterwards, as Import does.
   applyCloud(cloud) {
-    if (!cloud?.data || typeof cloud.data !== 'object' || Array.isArray(cloud.data)) throw new Error('The cloud save is damaged.');
-    if (!this.saveManager.applySaveData(cloud.data)) throw new Error('The cloud save could not be loaded.');
+    if (!cloud?.data || typeof cloud.data !== 'object' || Array.isArray(cloud.data)) throw new Error(t('cloud.damaged'));
+    if (!this.saveManager.applySaveData(cloud.data)) throw new Error(t('cloud.not_loaded'));
     this.setSyncRecord(cloud.savedAt);
     this.downloaded = true;
   }
@@ -449,7 +450,7 @@ export class CloudSave {
   async resolve(choice) {
     const c = this.conflict;
     if (!c) return false;
-    if (choice === 'later') { this.conflict = null; this.paused = true; this.setStatus('error', 'Cloud saving is paused until you choose which save to keep.'); return false; }
+    if (choice === 'later') { this.conflict = null; this.paused = true; this.setStatus('error', t('cloud.paused')); return false; }
     try {
       if (choice === 'cloud') this.applyCloud(c.cloud);
       else { const local = this.localSave(); await this.forceUpload(local); this.setSyncRecord(Number(local.savedAt)); }

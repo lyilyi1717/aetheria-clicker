@@ -2,6 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { MONSTER_FLOOR_BASE, getIndexFloor } from './CombatSystem.js';
+import { t, localize } from '../i18n/index.js';
 
 const fmtGold = (g) => new BigNum(g).format('standard', 0);
 
@@ -11,6 +12,7 @@ export const COMMODITIES = [
   { id: 'amber', name: 'Solar Amber', icon: '🏺', basePrice: 1000, minPrice: 350, maxPrice: 2800 },
   { id: 'shard', name: 'Void Crystal', icon: '🔮', basePrice: 5000, minPrice: 1500, maxPrice: 15000 }
 ];
+localize(COMMODITIES, 'commodity', ['name']);
 
 // --- R16 tuning (see docs/redesign-proposal.md section 2.7) ---
 // Prices follow an Ornstein-Uhlenbeck-style walk in log space: each tick the log price moves
@@ -162,7 +164,7 @@ export class MarketSystem {
       this.gameState.market.goldenSynergy += levelsToBuy;
       rewards.notify({
         tier: 'medium', kind: 'golden-synergy', icon: '✨', color: '#fbbf24',
-        title: 'Golden Synergy', amount: levelsToBuy, fmt: (n) => String(n), unit: levelsToBuy === 1 ? 'level' : 'levels'
+        title: t('market.synergy_toast'), amount: levelsToBuy, fmt: (n) => String(n), unit: t(levelsToBuy === 1 ? 'unit.level' : 'unit.levels')
       });
       return true;
     }
@@ -184,7 +186,7 @@ export class MarketSystem {
       sound.playBuy();
       rewards.notify({
         tier: 'small', kind: `market-buy-${id}`, icon: COMMODITIES.find(c => c.id === id)?.icon || '🛒', color: '#38bdf8',
-        title: `Bought ${COMMODITIES.find(c => c.id === id)?.name || id}`, amount, fmt: (n) => String(n), unit: 'units'
+        title: t('market.bought', { name: COMMODITIES.find(c => c.id === id)?.name || id }), amount, fmt: (n) => String(n), unit: t('unit.units')
       });
       return true;
     }
@@ -201,7 +203,7 @@ export class MarketSystem {
     sound.playGem();
     rewards.notify({
       tier: 'small', kind: 'market-sell', icon: '🪙', color: '#eab308',
-      title: 'Sold at the Bazaar', amount: payout, fmt: fmtGold, unit: 'gold'
+      title: t('market.sold'), amount: payout, fmt: fmtGold, unit: t('unit.gold')
     });
     return true;
   }
@@ -246,7 +248,7 @@ export class MarketSystem {
     }
 
     sound.playSpell();
-    rewards.notify({ tier: 'small', kind: 'caravan-out', icon: '🐪', color: '#fbbf24', title: 'Caravan dispatched' });
+    rewards.notify({ tier: 'small', kind: 'caravan-out', icon: '🐪', color: '#fbbf24', title: t('caravan.dispatched') });
     return true;
   }
 
@@ -268,7 +270,7 @@ export class MarketSystem {
         this.gameState.gold = this.gameState.gold.add(returnPayout);
         rewards.notify({
           tier: 'medium', kind: 'caravan-back', icon: '🐪', color: '#4ade80',
-          title: 'Caravan returned', batchTitle: '{n} caravans returned', amount: returnPayout, fmt: fmtGold, unit: 'gold'
+          title: t('caravan.returned'), batchTitle: t('caravan.returned_batch'), amount: returnPayout, fmt: fmtGold, unit: t('unit.gold')
         });
       }
     }

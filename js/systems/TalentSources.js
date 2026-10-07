@@ -8,6 +8,7 @@
 // Pure data and functions, no audio or particle imports, so GameState can import it.
 import { BigNum } from '../engine/BigNum.js';
 import { getLifetimeTranscends } from './ChronicleSystem.js';
+import { t, tOr } from '../i18n/index.js';
 
 export const RECORD_DUST_OFFSET = 3;     // S2 calibration knob
 export const GUILD_EXPONENT = 1.4;       // S3 calibration knob (lower is faster)
@@ -20,27 +21,27 @@ const STRATUM_DEPTHS = [26, 51, 76, 101, 126, 151];
 const TOWER_ZONE_FLOORS = [51, 151, 301, 501, 751, 1001];
 const CATALYST_MARKS = [10, 25, 50];
 const HARVEST_STARS = [
-  { seed: 'frost_petal', name: 'Rose of Taif' },
-  { seed: 'void_orchid', name: 'Date Palm' },
-  { seed: 'star_lotus', name: 'Sidr Tree' }
+  { seed: 'frost_petal', name: tOr('seed.frost_petal.name', 'Rose of Taif') },
+  { seed: 'void_orchid', name: tOr('seed.void_orchid.name', 'Date Palm') },
+  { seed: 'star_lotus', name: tOr('seed.star_lotus.name', 'Sidr Tree') }
 ];
 
 // One-off S1 stars. `value(gs)` is the player's current progress, `goal` the threshold; a star is
 // earned when value >= goal. Codex sets (wave 2, roadmap 5.3) add more entries when they exist.
 export const STAR_DEFS = [
-  { id: 'first_ascension', group: 'New Well', label: 'First New Well', tp: FIRST_ASCENSION_STARS, goal: 1,
+  { id: 'first_ascension', group: 'New Well', label: t('stars.first_well'), tp: FIRST_ASCENSION_STARS, goal: 1,
     value: gs => gs.ascensionCount || 0 },
-  ...STRATUM_DEPTHS.map(d => ({ id: `depth_${d}`, group: 'Excavation', label: `Depth ${d}`, tp: 1, goal: d,
+  ...STRATUM_DEPTHS.map(d => ({ id: `depth_${d}`, group: 'Excavation', label: t('mine.depth', { n: d }), tp: 1, goal: d,
     value: gs => gs.miningGrid?.maxDepth || 0 })),
-  ...TOWER_ZONE_FLOORS.map(f => ({ id: `floor_${f}`, group: 'Tower', label: `Tower floor ${f}`, tp: 1, goal: f,
+  ...TOWER_ZONE_FLOORS.map(f => ({ id: `floor_${f}`, group: 'Tower', label: t('stars.floor', { n: f }), tp: 1, goal: f,
     value: gs => gs.hero?.maxFloor || 0 })),
-  ...HARVEST_STARS.map(h => ({ id: `harvest_${h.seed}`, group: 'Garden', label: `First ${h.name} harvest`, tp: 1, goal: 1,
+  ...HARVEST_STARS.map(h => ({ id: `harvest_${h.seed}`, group: 'Garden', label: t('stars.first_harvest', { name: h.name }), tp: 1, goal: 1,
     value: gs => (gs.records?.harvested?.[h.seed] ? 1 : 0) })),
-  ...CATALYST_MARKS.map(c => ({ id: `catalysts_${c}`, group: 'Alchemy', label: `${c} Catalysts`, tp: 1, goal: c,
+  ...CATALYST_MARKS.map(c => ({ id: `catalysts_${c}`, group: 'Alchemy', label: t('stars.catalysts', { n: c }), tp: 1, goal: c,
     value: gs => gs.alchemy?.catalysts || 0 }))
 ];
 
-export const SOURCE_LABELS = { stars: 'Milestone Stars', record: 'Record New Well', guild: 'Guild Rank' };
+export const SOURCE_LABELS = { stars: t('stars.src.stars'), record: t('stars.src.record'), guild: t('stars.src.guild') };
 
 export function defaultRecords() {
   return {
@@ -75,11 +76,11 @@ export function contractsForRank(rank) {
   return Math.ceil(GUILD_BASE * Math.pow(rank, GUILD_EXPONENT) - 1e-9);
 }
 export function guildTitle(rank) {
-  const titles = [[0, 'Unranked'], [1, 'Errand Runner'], [3, 'Courier'], [6, 'Journeyman'], [10, 'Contractor'],
-    [15, 'Veteran'], [20, 'Warden of the Guild'], [30, 'Master Contractor'], [40, 'Guildmaster']];
-  let t = titles[0][1];
-  for (const [r, name] of titles) if (rank >= r) t = name;
-  return t;
+  const titles = [[0, 'unranked'], [1, 'errand'], [3, 'courier'], [6, 'journeyman'], [10, 'contractor'],
+    [15, 'veteran'], [20, 'warden'], [30, 'master'], [40, 'guildmaster']];
+  let key = titles[0][1];
+  for (const [r, name] of titles) if (rank >= r) key = name;
+  return t(`guild.title.${key}`);
 }
 
 // ---- grants -------------------------------------------------------------------------------
@@ -118,11 +119,11 @@ export function checkMilestones(gs) {
     }
   }
   // Transcend ladder: first +3, then +1 each
-  const t = getLifetimeTranscends(gs);
-  while (rec.transcendPaid < t) {
+  const tc = getLifetimeTranscends(gs);
+  while (rec.transcendPaid < tc) {
     rec.transcendPaid++;
     total += grantTalentPoints(gs, rec.transcendPaid === 1 ? TRANSCEND_FIRST_STAR : 1, 'stars',
-      rec.transcendPaid === 1 ? 'First New Field' : `New Field ${rec.transcendPaid}`);
+      rec.transcendPaid === 1 ? t('stars.first_field') : t('stars.field', { n: rec.transcendPaid }));
   }
   return total;
 }
@@ -141,7 +142,7 @@ export function recordAscensionDust(gs, pendingDust) {
   if (stars <= rec.magnitudeStars) return 0;
   const gained = stars - rec.magnitudeStars;
   rec.magnitudeStars = stars;
-  return grantTalentPoints(gs, gained, 'record', `Record New Well 1e${stars + RECORD_DUST_OFFSET}`);
+  return grantTalentPoints(gs, gained, 'record', t('stars.record', { e: stars + RECORD_DUST_OFFSET }));
 }
 
 // S3: BountySystem.claimBounty calls this once per claimed contract that should count toward Guild Rank.
@@ -154,7 +155,7 @@ export function recordContractClaim(gs, count = 1) {
   if (gained > 0) {
     rec.guildRank = rank;
     gs.guildSeals = (gs.guildSeals || 0) + GUILD_SEALS_PER_RANK * gained;
-    grantTalentPoints(gs, gained, 'guild', `Guild Rank ${rank}`);
+    grantTalentPoints(gs, gained, 'guild', t('stars.guild', { n: rank }));
   }
   return { rank: rec.guildRank, ranksGained: gained, points: gained };
 }
@@ -231,30 +232,30 @@ export function getNextStars(gs, limit = 3, transcendGate = null) {
     if (!d) continue;
     const v = Math.min(d.goal, d.value(gs));
     out.push({ id: d.id, source: 'stars', label: d.label, tp: d.tp, progress: v / d.goal,
-      text: group === 'New Well' ? 'not yet' : `${Math.floor(v)}/${d.goal}` });
+      text: group === 'New Well' ? t('stars.not_yet') : `${Math.floor(v)}/${d.goal}` });
   }
   const seed = HARVEST_STARS.find(h => !rec.harvested[h.seed] && !rec.stars[`harvest_${h.seed}`]);
-  if (seed) out.push({ id: `harvest_${seed.seed}`, source: 'stars', label: `First ${seed.name} harvest`, tp: 1, progress: 0, text: 'not yet' });
+  if (seed) out.push({ id: `harvest_${seed.seed}`, source: 'stars', label: t('stars.first_harvest', { name: seed.name }), tp: 1, progress: 0, text: t('stars.not_yet') });
 
   if (transcendGate) {
-    const t = getLifetimeTranscends(gs);
+    const tc = getLifetimeTranscends(gs);
     const p = clamp01(bigLog10(gs.totalCosmicDust) / Math.max(1, bigLog10(transcendGate)));
-    out.push({ id: 'transcend_next', source: 'stars', label: t === 0 ? 'First New Field' : `New Field ${t + 1}`,
-      tp: t === 0 ? TRANSCEND_FIRST_STAR : 1, progress: p, text: `${Math.round(p * 100)}%` });
+    out.push({ id: 'transcend_next', source: 'stars', label: tc === 0 ? t('stars.first_field') : t('stars.field', { n: tc + 1 }),
+      tp: tc === 0 ? TRANSCEND_FIRST_STAR : 1, progress: p, text: `${Math.round(p * 100)}%` });
   }
 
   // S2: progress through the next order of magnitude of the best run
   const nextExp = rec.magnitudeStars + RECORD_DUST_OFFSET + 1;
   const best = bigLog10(rec.bestRunDust);
   const p2 = clamp01(best - (nextExp - 1));
-  out.push({ id: 'record', source: 'record', label: `Record New Well 1e${nextExp}`, tp: 1,
+  out.push({ id: 'record', source: 'record', label: t('stars.record', { e: nextExp }), tp: 1,
     progress: p2, text: `${Math.round(p2 * 100)}%` });
 
   // S3
   const nextRank = rec.guildRank + 1;
   const need = contractsForRank(nextRank);
   const prev = contractsForRank(rec.guildRank);
-  out.push({ id: 'guild', source: 'guild', label: `Guild Rank ${nextRank}`, tp: 1,
+  out.push({ id: 'guild', source: 'guild', label: t('stars.guild', { n: nextRank }), tp: 1,
     progress: clamp01((rec.contractsClaimed - prev) / Math.max(1, need - prev)), text: `${rec.contractsClaimed}/${need}` });
 
   return out.sort((a, b) => b.progress - a.progress).slice(0, limit);
