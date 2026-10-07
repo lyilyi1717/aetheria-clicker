@@ -3,6 +3,7 @@ import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { hasShopItem } from './DustShopSystem.js';
+import { t, localize } from '../i18n/index.js';
 
 // --- R3 active income (docs/redesign-proposal.md §5.2, §6.1) ---
 // Active play should earn about 2-3x idle, not ~8x: Burst pays 45 s of CPS on a 45 s cooldown
@@ -63,6 +64,11 @@ export const SPELLS = [
     desc: 'Resets cooldowns of all spells and hero abilities instantly.'
   }
 ];
+localize(SPELLS, 'spells', ['name', 'desc'], {
+  aether_burst: { s: BURST_CPS_SECONDS },
+  celestial_alignment: { pct: Math.round((CELESTIAL_MULT - 1) * 100), s: CELESTIAL_DURATION }
+});
+const spellName = (id) => SPELLS.find(s => s.id === id)?.name || id;
 
 export class SpellSystem {
   constructor(gameState, gameLoop) {
@@ -118,7 +124,7 @@ export class SpellSystem {
       const payout = cps.mul(BURST_CPS_SECONDS).max(this.gameState.getClickYield().mul(BURST_MIN_CLICKS));
       this.gameState.aether = this.gameState.aether.add(payout);
       this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(payout);
-      this.notifySpell('🔮', 'Oil Burst', '#38bdf8', { amount: payout, fmt: (a) => a.format('standard', 2), unit: 'Oil' });
+      this.notifySpell('🔮', spellName('aether_burst'), '#38bdf8', { amount: payout, fmt: (a) => a.format('standard', 2), unit: t('unit.oil') });
     } else if (spellId === 'chrono_warp') {
       this.removeBuff('chrono_warp');
       this.gameState.activeBuffs.push({
@@ -130,7 +136,7 @@ export class SpellSystem {
         maxDuration: 15
       });
       if (this.gameLoop) this.gameLoop.timeScale = 5.0;
-      this.notifySpell('⏳', 'Chrono Warp', '#f59e0b', { detail: 'Time ×5 for 15s' });
+      this.notifySpell('⏳', spellName('chrono_warp'), '#f59e0b', { detail: t('spellfx.chrono_warp') });
     } else if (spellId === 'midas_touch') {
       this.removeBuff('midas_touch');
       this.gameState.activeBuffs.push({
@@ -141,7 +147,7 @@ export class SpellSystem {
         duration: 25,
         maxDuration: 25
       });
-      this.notifySpell('🪙', "Midas' Blessing", '#eab308', { detail: 'Clicks give gold for 25s' });
+      this.notifySpell('🪙', spellName('midas_touch'), '#eab308', { detail: t('spellfx.midas') });
     } else if (spellId === 'celestial_alignment') {
       this.removeBuff('celestial_alignment');
       this.gameState.activeBuffs.push({
@@ -152,7 +158,7 @@ export class SpellSystem {
         duration: CELESTIAL_DURATION,
         maxDuration: CELESTIAL_DURATION
       });
-      this.notifySpell('🌟', 'Celestial Alignment', '#ec4899', { detail: `+${Math.round((CELESTIAL_MULT - 1) * 100)}% Oil for ${CELESTIAL_DURATION}s` });
+      this.notifySpell('🌟', spellName('celestial_alignment'), '#ec4899', { detail: t('spellfx.celestial', { pct: Math.round((CELESTIAL_MULT - 1) * 100), s: CELESTIAL_DURATION }) });
     } else if (spellId === 'void_strike') {
       if (this.gameState.combatSystem && this.gameState.combatSystem.monster) {
         const m = this.gameState.combatSystem.monster;
@@ -171,7 +177,7 @@ export class SpellSystem {
         }
         ms.blastBlocks(picks, x, y);
       }
-      this.notifySpell('☄️', 'Void Cataclysm', '#a855f7');
+      this.notifySpell('☄️', spellName('void_strike'), '#a855f7');
     } else if (spellId === 'astral_refresh') {
       for (const key in this.gameState.spells) {
         if (key !== 'astral_refresh') {
@@ -183,7 +189,7 @@ export class SpellSystem {
           this.gameState.hero.skills[k].cd = 0;
         }
       }
-      this.notifySpell('🌀', 'Astral Refresh', '#06b6d4', { detail: 'All cooldowns reset' });
+      this.notifySpell('🌀', spellName('astral_refresh'), '#06b6d4', { detail: t('spellfx.refresh') });
     }
 
     if (this.gameState.bountySystem) {

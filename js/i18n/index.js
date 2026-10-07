@@ -12,13 +12,14 @@
 // `data-i18n-hint` (the attribute of that name); `applyI18n()` fills them on load.
 
 import EN from './en.js';
-import AR from './ar.js';
+import AR, { AR_TERMS } from './ar.js';
 import { getLang, isRtl, LANGS, LANG_STORAGE_KEY, normalizeLang, storedLang, DEFAULT_LANG } from './lang.js';
-import { TERMS } from '../data/strings.js';
+import { TERMS_EN } from '../data/strings.js';
 
 export { getLang, isRtl, LANGS, LANG_STORAGE_KEY, normalizeLang, DEFAULT_LANG };
 
 const TABLES = { en: EN, ar: AR };
+const TERM_TABLES = { en: TERMS_EN, ar: { ...TERMS_EN, ...AR_TERMS } };
 const FSI = '⁨';
 const PDI = '⁩';
 const HAS_DIGIT = /\d/;
@@ -27,8 +28,9 @@ const HAS_TAG = /[<>]/;
 function fill(str, params) {
   if (str.indexOf('{') < 0) return str;
   const rtl = isRtl();
+  const terms = TERM_TABLES[getLang()] || TERMS_EN;
   return str.replace(/\{(\w+)\}/g, (m, name) => {
-    let v = params && Object.prototype.hasOwnProperty.call(params, name) ? params[name] : TERMS[name];
+    let v = params && Object.prototype.hasOwnProperty.call(params, name) ? params[name] : terms[name];
     if (v === undefined || v === null) return m;
     v = String(v);
     if (rtl && HAS_DIGIT.test(v) && !HAS_TAG.test(v)) v = FSI + v + PDI;
@@ -58,6 +60,40 @@ export function tOr(key, fallback, params) {
 export function bidi(text) {
   const s = String(text);
   return isRtl() ? FSI + s + PDI : s;
+}
+
+// Data tables (generators, spells, talents, achievements …) keep their English text where it is
+// defined; `localize(rows, prefix, fields)` swaps in the active language's text for each row from
+// keys `<prefix>.<id>.<field>` (e.g. `building.shawarma.name` in ar.js). Every table is
+// registered, so test_r37_i18n.js can check that ar.js has a key for each row and field.
+const REGISTRY = [];
+
+export function localize(rows, prefix, fields, params = {}) {
+  const entries = Array.isArray(rows) ? rows.map(r => [r.id, r]) : Object.entries(rows).map(([k, r]) => [r?.id ?? k, r]);
+  REGISTRY.push({ prefix, fields, entries, params });
+  const table = TABLES[getLang()];
+  if (!table || table === EN) return rows;
+  for (const [id, row] of entries) {
+    for (const f of fields) {
+      if (typeof row?.[f] !== 'string') continue;
+      const v = table[`${prefix}.${id}.${f}`];
+      if (v !== undefined) row[f] = fill(v, params[id]);
+    }
+  }
+  return rows;
+}
+
+/** Every data-table key registered so far: { key: { text, params } } (tests). */
+export function localizedKeys() {
+  const out = {};
+  for (const { prefix, fields, entries, params } of REGISTRY) {
+    for (const [id, row] of entries) {
+      for (const f of fields) {
+        if (typeof row?.[f] === 'string') out[`${prefix}.${id}.${f}`] = { text: row[f], params: params[id] || {} };
+      }
+    }
+  }
+  return out;
 }
 
 const ATTRS = ['title', 'aria-label', 'alt', 'placeholder'];
