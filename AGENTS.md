@@ -108,6 +108,8 @@ Allowed, with these limits:
    components in `docs/ui-style-guide.md` and matches its mockup in `docs/ui/mockups/` when one
    exists (open the `.html` in a browser; say in the PR if you deviate and why). Check it at
    ~375px wide as well as desktop and run the checklist in the style guide's §8.
+   Actions, rewards and ceremonies also follow `docs/game-feel-guide.md` (feedback tiers and
+   its §7 checklist): the moment should feel good before the player reads the number.
 8. **No dark patterns.** No punishing absence, no fake scarcity, no pay-to-skip.
 9. Don't put AI model names in commits, code, or docs (agent config under `.claude/` is the
    one exception).
