@@ -56,6 +56,15 @@ export function tOr(key, fallback, params) {
   return hasKey(key) ? t(key, params) : fallback;
 }
 
+/**
+ * Display name of a timed buff. Saves keep the English name a buff was created with, so the
+ * name is looked up by id (spell, recipe or one of the `buff.*` keys) before falling back to it.
+ */
+export function buffName(b) {
+  if (!b) return '';
+  return tOr(`buff.${b.id}`, tOr(`recipe.${b.id}.name`, tOr(`spells.${b.id}.name`, b.name || b.id)));
+}
+
 /** Wrap a number (or notation like "1.5e12") so it stays left to right in Arabic text. */
 export function bidi(text) {
   const s = String(text);

@@ -51,7 +51,7 @@ import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
-import { t, tOr, getLang, applyLanguageToDocument, syncLanguageSetting, renderLanguageSettings } from './i18n/index.js';
+import { t, tOr, getLang, buffName, applyLanguageToDocument, syncLanguageSetting, renderLanguageSettings } from './i18n/index.js';
 
 // Plain-number display in the player's notation (Settings tab); see BigNum.formatNumber
 const fmtNum = (n, precision = 2) => BigNum.formatNumber(n, precision);
@@ -1951,7 +1951,7 @@ class AetheriaApp {
     const buffsContainer = this.activeBuffsList;
     if (buffsContainer) {
       const html = this.gameState.activeBuffs.map(b =>
-        `<span class="buff-chip">${b.name} (${t('u.sec', { n: Math.ceil(b.duration) })})</span>`
+        `<span class="buff-chip">${buffName(b)} (${t('u.sec', { n: Math.ceil(b.duration) })})</span>`
       ).join('');
       if (this.activeBuffsHtml !== html) {
         this.activeBuffsHtml = html;
