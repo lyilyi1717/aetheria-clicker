@@ -26,7 +26,7 @@ const LEGACY_ACHIEVEMENTS = [
   { id: 'mine_depth5', name: 'Bedrock Pioneer', desc: 'Reach Mining Depth 5.', icon: '⛏️', check: gs => gs.miningGrid?.depth >= 5 },
   { id: 'mine_depth20', name: 'Deep Mantle', desc: 'Reach Mining Depth 20.', icon: '🌋', check: gs => gs.miningGrid?.depth >= 20 },
   { id: 'mine_100_blocks', name: 'Quarry Master', desc: 'Excavate 100 underground blocks.', icon: '🧱', check: gs => gs.stats.totalBlocksMined >= 100 },
-  { id: 'gem_hoarder', name: 'Gem Hoarder', desc: 'Possess at least 1 Ruby, Sapphire, and Emerald.', icon: '💍', check: gs => (gs.inventory.rubies > 0 && gs.inventory.sapphires > 0 && gs.inventory.emeralds > 0) },
+  { id: 'gem_hoarder', name: 'Gem Hoarder', desc: 'Possess at least 1 Fanoos, Dallah, and Oud Wood.', icon: '💍', check: gs => (gs.inventory.rubies > 0 && gs.inventory.sapphires > 0 && gs.inventory.emeralds > 0) },
 
   // Garden
   { id: 'harvest_10', name: 'Green Thumb', desc: 'Harvest 10 botanical plants.', icon: '🌱', check: gs => gs.stats.totalPlantsHarvested >= 10 },

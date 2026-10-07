@@ -22,7 +22,7 @@
 .nav-tab.is-new.is-revealed { border-color: var(--gold); background: var(--gold-dim); box-shadow: var(--glow-gold); animation: unlock-reveal 0.9s var(--ease-pop) both; }
 .nav-new {
   margin-left: auto; padding: 1px 6px; border-radius: 4px;
-  font-size: 10px; font-weight: 800; letter-spacing: 0.04em; line-height: 1.4;
+  font-size: var(--fs-11); font-weight: 800; letter-spacing: 0.04em; line-height: 1.4;
   background: var(--gold); color: var(--text-on-accent);
   animation: unlock-new-pulse 1.6s ease-in-out 3; /* pulses 3 times, then stays */
 }
@@ -34,7 +34,7 @@
   .side-nav .nav-tab.is-teaser { min-height: 44px; padding-top: 0; padding-bottom: 0; }
   .side-nav .nav-tab.is-teaser .nav-lbl { display: none; }
   .side-nav .nav-lock-bar { left: 8px; right: 8px; }
-  .side-nav .nav-new { position: absolute; top: 2px; right: 2px; margin: 0; padding: 0 3px; font-size: 8px; }
+  .side-nav .nav-new { position: absolute; top: 2px; right: 2px; margin: 0; padding: 0 3px; font-size: var(--fs-11); line-height: 1.2; }
 }
 
 /* Phone: bottom bar keeps its 5 slots (locked = dimmed "Soon"); sheet tiles carry the tag */
@@ -42,7 +42,7 @@
   .bottom-nav .nav-tab.is-soon { opacity: 0.45; }
   .bottom-nav .nav-tab.is-teaser { opacity: 0.7; }
   .bottom-nav .nav-lock-bar, .more-grid .nav-lock-bar { left: 25%; right: 25%; bottom: 6px; }
-  .bottom-nav .nav-new, .more-grid .nav-new { position: absolute; top: 4px; right: 6px; margin: 0; padding: 0 4px; font-size: 9px; }
+  .bottom-nav .nav-new, .more-grid .nav-new { position: absolute; top: 4px; right: 6px; margin: 0; padding: 0 4px; font-size: var(--fs-11); line-height: 1.2; }
   .more-grid .nav-tab.is-teaser { opacity: 0.6; }
   .bottom-nav .nav-tab.is-new.is-revealed { box-shadow: none; background: transparent; border: 0; }
 }

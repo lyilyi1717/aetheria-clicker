@@ -5,15 +5,9 @@
 import { WARDEN_TROPHY_GOLD, WARDEN_HP_MULT, WARDEN_TIMER_SECONDS, WARDEN_INTERVAL, getWardenName } from '../systems/CombatSystem.js';
 import { STRATA, STRATA_RELICS, RELIC_CHANCE, RELIC_PITY, RELIC_PICK_BONUS, AETHER_ORE_CHANCE } from '../systems/MiningSystem.js';
 import { GEM_LADDER, POLISH_RATIO } from '../systems/AlchemySystem.js';
+import { ITEM_NAMES } from '../data/names.js';
 
-// Same names the Excavation inventory uses
-const GEM_NAMES = {
-  rubies: ['Fanoos', 'Fawanees', '#ef4444'],
-  sapphires: ['Dallah', 'Dallahs', '#3b82f6'],
-  emeralds: ['Oud Wood', 'Oud Wood', '#10b981'],
-  diamonds: ['Misbaha', 'Misbaha', '#38bdf8'],
-  voidAmethyst: ['Mabkhara', 'Mabkhara', '#a855f7']
-};
+const GEM_NAMES = Object.fromEntries(GEM_LADDER.map(k => [k, [ITEM_NAMES[k].name, ITEM_NAMES[k].plural, ITEM_NAMES[k].color]]));
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 const pct = (n) => `${Math.round(n * 100)}%`;
@@ -216,7 +210,7 @@ export class WardensRelicsUI {
         <strong>💎 Gem Polishing</strong>
         <span class="wr-summary" id="polish-summary"></span>
       </div>
-      <div class="wr-note">Polish ${POLISH_RATIO} of a gem into 1 of the next tier. A poor rate on purpose (${Math.pow(POLISH_RATIO, 4)} Fawanees = 1 Mabkhara), but surplus low gems now reach the Catalyst.</div>
+      <div class="wr-note">Polish ${POLISH_RATIO} of a gem into 1 of the next tier. A poor rate on purpose (${Math.pow(POLISH_RATIO, 4)} ${ITEM_NAMES.rubies.plural} = 1 ${ITEM_NAMES.voidAmethyst.name}), but surplus low gems now reach the Catalyst.</div>
       ${rows}
     `;
     anchor.parentNode.insertBefore(panel, anchor.nextSibling);

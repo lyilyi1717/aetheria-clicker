@@ -12,7 +12,7 @@ import { BuildingSystem, BUILDING_DEFINITIONS } from './systems/BuildingSystem.j
 import { CombatSystem } from './systems/CombatSystem.js';
 import { MiningSystem, getPickaxeName } from './systems/MiningSystem.js';
 import { GardenSystem, SEED_TYPES, ESSENCE_NAMES, WATER_BOOST, MAX_GOLEMS } from './systems/GardenSystem.js';
-import { AlchemySystem, RECIPES } from './systems/AlchemySystem.js';
+import { AlchemySystem, RECIPES, GEM_LADDER } from './systems/AlchemySystem.js';
 import { SpellSystem, SPELLS } from './systems/SpellSystem.js';
 import { TalentTreeSystem, TALENT_DEFINITIONS } from './systems/TalentTreeSystem.js';
 import { BountySystem, QUARTERMASTER_UPGRADES } from './systems/BountySystem.js';
@@ -47,6 +47,7 @@ import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
+import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
 
 // Plain-number display in the player's notation (Settings tab); see BigNum.formatNumber
 const fmtNum = (n, precision = 2) => BigNum.formatNumber(n, precision);
@@ -55,12 +56,6 @@ const fmtNum = (n, precision = 2) => BigNum.formatNumber(n, precision);
 // and invalidates layout, so the render tick only writes when the value differs.
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 const setWidth = (el, width) => { if (el && el.style.width !== width) el.style.width = width; };
-
-const INGREDIENT_NAMES = {
-  ...ESSENCE_NAMES,
-  rubies: 'Ruby', sapphires: 'Sapphire', emeralds: 'Emerald', diamonds: 'Diamond',
-  voidAmethyst: 'Void Amethyst', monsterBones: 'Monster Bone', voidCores: 'Void Core', bossTokens: 'Boss Token'
-};
 
 // Application Orchestrator
 class AetheriaApp {
@@ -946,11 +941,7 @@ class AetheriaApp {
       let icon = '⛏️'; let label = 'Stone';
       if (b.content === 'stairs') { icon = '🪜'; label = 'STAIRS'; }
       else if (b.content === 'gold_cache') { icon = '💰'; label = 'Gold'; }
-      else if (b.content === 'ruby') { icon = '🔴'; label = 'Ruby'; }
-      else if (b.content === 'sapphire') { icon = '🔵'; label = 'Sapphire'; }
-      else if (b.content === 'emerald') { icon = '🟢'; label = 'Emerald'; }
-      else if (b.content === 'diamond') { icon = '💎'; label = 'Diamond'; }
-      else if (b.content === 'voidAmethyst') { icon = '🟣'; label = 'Void Amethyst'; }
+      else if (TILE_ITEM_KEY[b.content]) { const e = ITEM_NAMES[TILE_ITEM_KEY[b.content]]; icon = e.icon; label = e.name; }
       return `<span class="m-icon">${icon}</span><span class="m-lbl">${label}</span>`;
     };
 
@@ -999,11 +990,7 @@ class AetheriaApp {
         invEl.dataset.built = '1';
         invEl.innerHTML = `
           <span class="res-badge">Stone: <span id="min-inv-stone"></span></span>
-          <span class="res-badge" style="color:#ef4444">Fawanees: <span id="min-inv-rubies"></span></span>
-          <span class="res-badge" style="color:#3b82f6">Dallahs: <span id="min-inv-sapphires"></span></span>
-          <span class="res-badge" style="color:#10b981">Oud Wood: <span id="min-inv-emeralds"></span></span>
-          <span class="res-badge" style="color:#38bdf8">Misbaha: <span id="min-inv-diamonds"></span></span>
-          <span class="res-badge" style="color:#a855f7">Mabkhara: <span id="min-inv-voidAmethyst"></span></span>
+          ${GEM_LADDER.map(k => `<span class="res-badge" style="color:${ITEM_NAMES[k].color}">${ITEM_NAMES[k].plural}: <span id="min-inv-${k}"></span></span>`).join(' ')}
         `;
       }
       const inv = this.gameState.inventory;
@@ -1040,7 +1027,7 @@ class AetheriaApp {
     if (actionEl) {
       actionEl.innerHTML = `
         <button id="btn-water-garden" class="btn-action">💧 Water All (+${WATER_BOOST}s)</button>
-        <button id="btn-fertilize-garden" class="btn-action" title="Costs 1 Spore Powder per growing plot. That plot's next harvest yields ×2 essence.">🧪 Fertilize All (1 Spore Powder each)</button>
+        <button id="btn-fertilize-garden" class="btn-action" title="Costs 1 ${itemName('sporePowder')} per growing plot. That plot's next harvest yields ×2 essence.">🧪 Fertilize All (1 ${itemName('sporePowder')} each)</button>
         <button id="btn-harvest-all-garden" class="btn-action">🌾 Harvest All Mature</button>
         <button id="btn-plant-all-garden" class="btn-action">🌱 Plant All Empty</button>
       `;
@@ -1146,7 +1133,7 @@ class AetheriaApp {
       const cost = this.gardenSystem.getNextGolemCost();
       const t = !cost ? '🗿 All rows automated'
         : !this.gardenSystem.isGolemPurchaseUnlocked() ? '🔒 Golems: buy Golem Covenant in the Dust Shop (Ascension 5)'
-        : `🗿 Buy Golem (Row ${golems + 1}): ${new BigNum(cost.stone).format('standard', 0)} Stone + ${new BigNum(cost.manaSap).format('standard', 0)} Mana Sap`;
+        : `🗿 Buy Golem (Row ${golems + 1}): ${new BigNum(cost.stone).format('standard', 0)} Stone + ${new BigNum(cost.manaSap).format('standard', 0)} ${itemName('manaSap')}`;
       setText(buyGolemBtn, t);
       buyGolemBtn.classList.toggle('disabled', !this.gardenSystem.canBuyGolem());
     }
@@ -1217,7 +1204,7 @@ class AetheriaApp {
     if (listCont) {
       listCont.innerHTML = RECIPES.map(r => {
         const costStr = Object.entries(this.alchemySystem.getRecipeCost(r)).map(([k, v]) =>
-          `<span id="alc-cost-${r.id}-${k}">${fmtNum(v)}</span>x ${INGREDIENT_NAMES[k] || k} (<span id="alc-own-${r.id}-${k}">0</span>)`).join(', ');
+          `<span id="alc-cost-${r.id}-${k}">${fmtNum(v)}</span>x ${itemName(k)} (<span id="alc-own-${r.id}-${k}">0</span>)`).join(', ');
         return `
           <div class="alchemy-card" id="alc-card-${r.id}">
             <div class="alc-info">
@@ -1634,7 +1621,7 @@ class AetheriaApp {
     if (ascBtn) {
       ascBtn.onclick = () => {
         const dm = this.prestigeSystem.getDustMultipliers();
-        const nectarNote = `\n\nNectar Offering: all ${fmtNum(dm.nectar)} Celestial Nectar will be consumed (${fmtMult(dm.nectarMult)} dust).`;
+        const nectarNote = `\n\nHoney Offering: all ${fmtNum(dm.nectar)} ${itemName('starNectar')} will be consumed (${fmtMult(dm.nectarMult)} dust).`;
         if (confirm(`Ascend now? This resets Aether and Buildings to grant Cosmic Dust to spend in the Dust Shop!${nectarNote}`)) {
           this.prestigeSystem.ascend();
           this.updateBuildingsUI();
@@ -1696,7 +1683,7 @@ class AetheriaApp {
 
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
     const dm = this.prestigeSystem.getDustMultipliers();
-    const breakdown = `${fmtMult(dm.geode)} from Depth ${dm.depth} · ${fmtMult(dm.nectarMult)} from ${fmtNum(dm.nectar)} Nectar (consumed)` +
+    const breakdown = `${fmtMult(dm.geode)} from Depth ${dm.depth} · ${fmtMult(dm.nectarMult)} from ${fmtNum(dm.nectar)} ${itemName('starNectar')} (consumed)` +
       (dm.amplifier > 1 ? ` · ${fmtMult(dm.amplifier)} from Dust Amplifier` : '') +
       (dm.shards > 0 ? ` · ${fmtBigMult(dm.shardMult)} from ${dm.shards} Fracture Shards` : '');
     setText(this.$('pending-dust-breakdown'), breakdown);

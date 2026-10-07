@@ -69,7 +69,7 @@ export const UNLOCKS = [
     tab: 'spells', icon: '🦅', name: 'Grimoire',
     trigger: bossTrigger(40),
     label: (p) => `Defeat the floor-40 boss · floor ${p.have}/40`,
-    flavour: 'The Mutawa dropped a dusty grimoire.',
+    flavour: 'The floor-40 boss dropped a dusty grimoire.',
     gift: (gs) => { gs.mana = Math.max(n(gs.mana), n(gs.maxMana)); return 'Mana refilled'; }
   },
   {

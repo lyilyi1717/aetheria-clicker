@@ -2,11 +2,8 @@
 // Kept out of main.js: main builds this once and calls update from its Garden/Alchemy refresh.
 import { SEED_TYPES, HYBRIDS, GOLDEN_CHANCE, GOLDEN_ESSENCE_MULT } from '../systems/GardenSystem.js';
 import { HYBRID_RECIPES } from '../systems/AlchemySystem.js';
+import { itemName } from '../data/names.js';
 
-const ING_NAMES = {
-  rubies: 'Ruby', sapphires: 'Sapphire', emeralds: 'Emerald', diamonds: 'Diamond',
-  ...Object.fromEntries(Object.values(HYBRIDS).map(h => [h.id, h.name]))
-};
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 const pct = (n) => `${Math.round(n * 100)}%`;
@@ -111,7 +108,7 @@ export class GardenBreedingUI {
 
   costStr(r) {
     return Object.entries(this.alchemy.getRecipeCost(r)).map(([k, v]) =>
-      `${v}x ${ING_NAMES[k] || k} (<span id="hyb-own-${r.id}-${k}">0</span>)`).join(', ');
+      `${v}x ${itemName(k)} (<span id="hyb-own-${r.id}-${k}">0</span>)`).join(', ');
   }
 
   have(k) {

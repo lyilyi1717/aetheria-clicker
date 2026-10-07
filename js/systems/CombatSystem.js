@@ -17,7 +17,7 @@ export const ZONES = [
 
 export const MONSTER_NAMES = [
   'Desert Dhabb', 'Abu Sarwal Wa Fanila', 'Karak Addict', 'Drifting Camry',
-  'Iftar Samosa', 'Giant Kabsa Monster', 'Snapchat Celebrity', 'Mutawa',
+  'Iftar Samosa', 'Giant Kabsa Monster', 'Snapchat Celebrity', 'Saher Camera',
   'Angry Shayeb', 'Rukbah Soda', 'Dallah of Doom', 'Al-Modir'
 ];
 

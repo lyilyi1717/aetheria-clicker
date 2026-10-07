@@ -3,6 +3,7 @@ import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
+import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from '../data/names.js';
 
 // A new stratum every 25 depth (§5.1). Cosmetic plus drop table: each stratum adds
 // +1% Void Amethyst chance, taken from the plain-stone share.
@@ -473,15 +474,12 @@ export class MiningSystem {
       return;
     }
 
-    if (['ruby', 'sapphire', 'emerald', 'diamond', 'voidAmethyst'].includes(block.content)) {
+    if (TILE_ITEM_KEY[block.content]) {
       sound.playGem();
-      const GEM_KEYS = { ruby: 'rubies', sapphire: 'sapphires', emerald: 'emeralds', diamond: 'diamonds', voidAmethyst: 'voidAmethyst' };
-      const gemKey = GEM_KEYS[block.content];
+      const gemKey = TILE_ITEM_KEY[block.content];
       this.gameState.inventory[gemKey] = (this.gameState.inventory[gemKey] || 0) + 1;
-      const colors = { ruby: '#ef4444', sapphire: '#3b82f6', emerald: '#10b981', diamond: '#38bdf8', voidAmethyst: '#a855f7' };
       if (x && y) {
-        const displayNames = { ruby: 'FANOOS', sapphire: 'DALLAH', emerald: 'OUD WOOD', diamond: 'MISBAHA', voidAmethyst: 'MABKHARA' };
-        particles.spawnFloatingText(x, y, `+1 ${displayNames[block.content]}!`, colors[block.content] || '#f59e0b', true);
+        particles.spawnFloatingText(x, y, `+1 ${itemName(gemKey).toUpperCase()}!`, ITEM_NAMES[gemKey].color, true);
       }
       return;
     }

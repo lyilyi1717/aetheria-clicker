@@ -73,7 +73,7 @@ export const SHARD_TREE_NODES = [
   ...foundryNodes(),
   {
     id: 'chronos_auto_ascend', branch: 'chronos', cost: 2, icon: '♾️', name: 'Auto-Ascend',
-    desc: 'Ascends for you by your rule (dust ×1.2 / ×1.5 / ×2, or a timer), never before the 10-min minimum run. Uses held Nectar like a manual Ascend.',
+    desc: 'Ascends for you by your rule (dust ×1.2 / ×1.5 / ×2, or a timer), never before the 10-min minimum run. Uses held Sidr Honey like a manual Ascend.',
     requires: []
   },
   {

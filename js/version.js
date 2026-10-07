@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.7.0';
+export const VERSION = '4.8.0';
 
 export const CHANGELOG = [
   {
-    version: '4.7.0',
+    version: '4.8.0',
     date: '2026-10-07',
     title: 'Community: bugs and ideas',
     changes: [
@@ -15,6 +15,28 @@ export const CHANGELOG = [
       'Bugs are always fixed first, most 👍 first; after that, the ideas with the most 👍 are built next. The Done list shows what has shipped and in which version.',
       'Report a bug or suggest an idea right from the game: fill in a title and a few words, and GitHub opens with everything filled in, including your game version (and your browser, for bugs). Posting and voting with 👍 need a free GitHub account.',
       'The tab is open from the start, and the game only contacts GitHub when you open it (the list refreshes at most every 10 minutes).'
+    ]
+  },
+  {
+    version: '4.7.0',
+    date: '2026-10-06',
+    title: 'Bigger text, a Falafel that fits your screen',
+    changes: [
+      'Text is bigger everywhere: about 6% on phones and up to 15% on laptop and desktop screens. Numbers, buttons and labels all grew together, and the tiniest badges (8 to 10 px before) are now about 12 px.',
+      'The Cosmic Falafel now grows with your window, up to almost twice its old size on a big monitor, and stays in view while you scroll the generator list.',
+      'Tabs use more of a wide screen (up to 1440 px, was 1100 px), so there are no big empty bands at the sides. On very wide screens the generators sit in two columns.',
+      'Bazaar on phones: the Buy and Sell buttons now sit in one full-width row under each good instead of a squashed column, and are easier to tap.'
+    ]
+  },
+  {
+    version: '4.6.1',
+    date: '2026-10-06',
+    title: 'Names cleanup',
+    changes: [
+      'Every tab now uses the same item names. Old names that were still showing are gone: Excavation tiles, Alchemy and hybrid recipe costs, the Garden guide and the Ancient Vein reward now say Fanoos, Dallah, Oud Wood, Misbaha and Mabkhara, and Golems cost Stone + Lemon Drops (the same item that used to say "Mana Sap").',
+      'The "Gem Hoarder" achievement now reads "Possess at least 1 Fanoos, Dallah, and Oud Wood". It checks the same items as before.',
+      'The Nectar Offering on the Ascend screen is now the Honey Offering and counts your Sidr Honey. Same bonus, same rules.',
+      'The "Mutawa" Void Tower boss is gone; that boss is now the Saher Camera. Nothing else about the fight changes.'
     ]
   },
   {
