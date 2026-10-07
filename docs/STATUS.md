@@ -78,6 +78,7 @@ R0–R30 and R32–R40 are done (R39: local ticker only).
 | 8 | R47 First-time unlocks and rare events | #119 | R41 (best after R46) |
 | 8 | R48 Honest Bazaar sale, no silent taps | #120 | R41 (best after R46) |
 | 8 | R49 Reduced-motion colour cues | #121 | R41 |
+| 8 | R50 Game-feel polish (skills, digs, Dallah, Seals, Frenzy end) | #122 | R41 (best after R46) |
 
 ## Done
 
@@ -248,6 +249,9 @@ R0–R30 and R32–R40 are done (R39: local ticker only).
 - **Game feel:** `docs/game-feel-guide.md` sets feedback tiers (T0 tap to T3 peak) and a
   checklist for any action, reward or ceremony (linked from AGENTS.md rule 7). An audit of
   where the game falls short goes in `docs/game-feel-opportunities.md`.
+- **Game-feel audit:** `docs/game-feel-opportunities.md` scores every action/reward moment, ranks
+  13 improvements and sketches a shared `js/ui/feedback.js` tier helper; its items are filed as
+  R41–R50 (#113–#122, start with R41). Its §6 owner questions are on #23.
 
 - **Changelog:** every player-visible PR bumps `VERSION` and adds a `CHANGELOG` entry in
   `js/version.js` (AGENTS.md "Version and changelog"; CI `changelog` job enforces it). v3.0.0
