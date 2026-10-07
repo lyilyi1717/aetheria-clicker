@@ -82,7 +82,7 @@
 .bar.xl > b { position: absolute; inset: 0; display: grid; place-items: center; font-size: var(--fs-11); font-weight: 700; color: var(--text-1); text-shadow: 0 1px 2px color-mix(in srgb, var(--bg-0) 80%, transparent); }
 .bar-row { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-12); color: var(--text-2); }
 .bar-row .bar, .bar-row .segs { flex: 1; }
-.bar-row .val { font-variant-numeric: tabular-nums; color: var(--text-1); font-weight: 600; min-width: 3.5em; text-align: right; }
+.bar-row .val { font-variant-numeric: tabular-nums; color: var(--text-1); font-weight: 600; min-width: 3.5em; text-align: end; }
 .segs { display: flex; gap: 3px; }
 .segs i { flex: 1; height: 8px; border-radius: 2px; background: color-mix(in srgb, var(--tint) 8%, transparent); }
 .segs i.on { background: var(--gold); }
@@ -93,11 +93,11 @@
 .rarity::before { content: attr(data-glyph); font-size: var(--fs-11); letter-spacing: -1px; }
 .rarity.common { color: var(--rarity-common); } .rarity.rare { color: var(--rarity-rare); } .rarity.epic { color: var(--rarity-epic); }
 .rarity.legendary { color: var(--rarity-legendary); } .rarity.cosmic { color: var(--rarity-cosmic); }
-.gear { position: relative; min-width: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-1); border-left-width: 4px; }
-.gear.common { border-left-color: var(--rarity-common); } .gear.rare { border-left-color: var(--rarity-rare); }
-.gear.epic { border-left-color: var(--rarity-epic); } .gear.legendary { border-left-color: var(--rarity-legendary); }
+.gear { position: relative; min-width: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-1); border-inline-start-width: 4px; }
+.gear.common { border-inline-start-color: var(--rarity-common); } .gear.rare { border-inline-start-color: var(--rarity-rare); }
+.gear.epic { border-inline-start-color: var(--rarity-epic); } .gear.legendary { border-inline-start-color: var(--rarity-legendary); }
 /* Only Cosmic may glow */
-.gear.cosmic { border-left-color: var(--rarity-cosmic); box-shadow: 0 0 14px color-mix(in srgb, var(--rarity-cosmic) 25%, transparent); }
+.gear.cosmic { border-inline-start-color: var(--rarity-cosmic); box-shadow: 0 0 14px color-mix(in srgb, var(--rarity-cosmic) 25%, transparent); }
 .gear .slot { font-size: var(--fs-11); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
 .gear .name { font-weight: 600; font-size: var(--fs-13); overflow-wrap: anywhere; }
 .gear .stat { font-size: var(--fs-12); color: var(--text-2); }

@@ -4,7 +4,7 @@
 .reward-toasts {
   position: fixed;
   top: calc(var(--header-h) + 8px); /* below the header (R23) */
-  right: 16px;
+  inset-inline-end: 16px;
   z-index: 10001;
   display: flex;
   flex-direction: column;
@@ -43,7 +43,7 @@
   padding: 10px 14px;
   background: color-mix(in srgb, var(--bg-1) 94%, transparent);
   border: 1px solid color-mix(in srgb, var(--toast-accent) 55%, transparent);
-  border-left: 4px solid var(--toast-accent);
+  border-inline-start: 4px solid var(--toast-accent);
   border-radius: 8px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), 0 0 14px color-mix(in srgb, var(--toast-accent) 25%, transparent);
   color: var(--text-main);
@@ -55,7 +55,7 @@
 .reward-toast.tier-small { padding: 7px 12px; opacity: 0.92; }
 .reward-toast.tier-big {
   border-width: 2px;
-  border-left-width: 5px;
+  border-inline-start-width: 5px;
   background: linear-gradient(90deg, color-mix(in srgb, var(--toast-accent) 18%, color-mix(in srgb, var(--bg-1) 96%, transparent)), color-mix(in srgb, var(--bg-1) 96%, transparent));
 }
 
@@ -78,11 +78,11 @@
 .reward-toast.is-leaving { animation: reward-toast-out 0.26s ease-in forwards; }
 
 @keyframes reward-toast-in {
-  from { opacity: 0; transform: translateX(40px); }
+  from { opacity: 0; transform: translateX(calc(40px * var(--dir, 1))); }
   to { opacity: 1; transform: none; }
 }
 @keyframes reward-toast-out {
-  to { opacity: 0; transform: translateX(40px); }
+  to { opacity: 0; transform: translateX(calc(40px * var(--dir, 1))); }
 }
 @keyframes reward-toast-bump {
   0% { transform: scale(1); }
@@ -170,7 +170,7 @@
 
 /* Phone width: toasts span the top, under the header */
 @media (max-width: 600px) {
-  .reward-toasts { top: calc(var(--header-h) + 8px); right: 8px; left: 8px; width: auto; align-items: stretch; }
+  .reward-toasts { top: calc(var(--header-h) + 8px); inset-inline-end: 8px; inset-inline-start: 8px; width: auto; align-items: stretch; }
   .reward-toast { padding: 8px 10px; }
   .reward-ceremony-icon { font-size: 2.6rem; }
 }
