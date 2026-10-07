@@ -142,6 +142,13 @@ pickaxe `50 · 2.5^L` stone (`:327`), drills `30 · 1.6^n` stone at 0.5 hits/s (
 feel, not math: a 6×6 grid of identical grey tiles, the stairs hunt is pure luck with no
 information, and gems pile up with a single sink (7 recipes).
 
+*R32 measurement (`npm run sim:mining`):* the pacing above is for a game left **open 24/7**
+(drills dig only while it runs). A casual player who closes the game between two 45-min sessions
+reached depth 70 at a week and 99 at day 60: 0.76 depth per hour of play in week 2, 0.22 in
+month 2, and the 4th stratum alone took 13+ h of play. Cause: a pickaxe level (×2 power) buys
+log₂ of 1.15 ≈ 5 depths of HP, so its `50 · 2.5^L` cost grew ×1.20 per depth against stone
+×1.07 per depth, a wall. R32 retunes the pickaxe cost (§6.5).
+
 ### 2.4 Garden
 
 Grow times 5 min to 2 h (`GardenSystem.js:6-11`), 25% mutation to the next tier on harvest
@@ -663,6 +670,7 @@ Foundry at 1; the rest follow the mockup `docs/ui/mockups/shard-tree.html`, each
   Second Wind: once per boss fight (Wardens included), a lost boss (timeout or death) refills the
   hero's HP and the timer instead of retreating a floor; the boss keeps the damage taken. The
   gear-rarity node is left for a later PR.
+- **Auto-Blast** (R32, Chronos, 1, no prerequisite): Excavation dynamite throws itself; see §6.5.
 - Oasis (Garden breeding) is not in these three branches, so breeding still opens at the first
   Transcend (`GardenSystem.isBreedingUnlocked`).
 
@@ -737,7 +745,7 @@ reset of some kind every 2–14 days for nine months.
 | Tower | gear rolls at `1.11^(f-1)` (`CombatSystem.js:323`), monsters/gold/Market Index stay 1.12; legacy hero rebase + `indexFloor` | roadmap §0.2, §8 — agree |
 | Tower | boss timer 30 s → **45 s**, boss HP 250× → 400× base; Wardens every 250 floors (60 s, ×3) | bosses should be the Tower's medium beat, not a speed bump |
 | Tower | gold per kill `× M` already; add **Forge accepts gold** at `1e3 · 5^lvl · M` | progression doc §5.5 — agree |
-| Excavation | keep all v2 curves; add Strata Relics (1/200 per tile, pity 400), Aether Ore (10% of stone tiles → Bazaar), Gem Polishing 5:1 | progression doc §5.4, roadmap §5.3 — agree |
+| Excavation | keep the v2 curves except the pickaxe cost (`100 · 1.6^L`, R32, below); add Strata Relics (1/200 per tile, pity 400), Aether Ore (10% of stone tiles → Bazaar), Gem Polishing 5:1 | progression doc §5.4, roadmap §5.3 — agree |
 | Garden | keep curves; breeding via shard tree (month 1); golden mutation 1% | new |
 | Alchemy | 7 → 13 recipes (6 hybrid essences); recipe **discovery** (a recipe appears when you first hold both ingredients) | new |
 | Bounties | 30-min wall-clock refill, bank 6, unlocked-only types, no stale click types, reroll, Guild Rank replaces the 20% TP roll | roadmap §4.4, §3.2 — agree |
@@ -745,6 +753,35 @@ reset of some kind every 2–14 days for nine months.
 | Talents | remove +3/Ascension and the 20% roll; S1 stars + S2 Record stars + S3 Guild Rank; keystones move to the dust shop (§6.2) | roadmap §3 — agree, with the keystone move |
 | Achievements | 24 → ~90 ladder, +1% each (was 1.5%; 90 × 1.5% = ×2.35 is fine, but 1% keeps the category flat) | roadmap §5.3 |
 | Fast Forward | keep the 30 s escalator; dust-shop Hourglass adds 5 min / 1 h buttons at `dt = 1.0` | progression doc §5.5 |
+
+*R32 Excavation pacing.* Pickaxe level L costs **`100 · 1.6^L`** stone (was `50 · 2.5^L`); HP,
+stone yield, drills and dynamite are unchanged (stone also buys Golems, so its yield stays). The
+cost now grows ×1.099 per depth against stone ×1.07: digging still slows with depth, but
+gradually. Targets (casual, two 45-min sessions a day, measured in hours of play):
+- first stratum in under 30 min; strata 2–4 each in one to a few sessions (≤ 6 h of play);
+- depth ~100 (Aetherite) within the first week; the last stratum (Abyssal Heart, 151) in about
+  five to six weeks, so all 7 strata and relics land in the first two months;
+- after that the depth is an endless leaderboard climb at well under 1 depth per hour of play.
+
+| casual, active play only | depth d1 / d7 / d14 / d30 / d60 | depth per h of play: first 2 h / week 2 / month 2 | h of play per stratum |
+|---|---|---|---|
+| before (`50 · 2.5^L`) | 48 / 70 / 78 / 89 / 99 | 24.5 / 0.76 / 0.22 | 0.2, 1.8, 13.0, >45 |
+| after (`100 · 1.6^L`) | 54 / 104 / 123 / 145 / 166 | 29.5 / 1.81 / 0.47 | 0.3, 1.0, 2.3, 5.9, 13.6, 31.5 |
+
+Left open 24/7 (one session, then drills only) the game now reaches depth 167 at a week and
+229 at day 60 (was 94 and 120). Tiles per minute stay low deep down (0.6 in week 2, 0.1 in
+month 2 while clicking): each tile is one big HP bar, which is the trade for a bounded number of
+tiles per depth.
+
+**Auto-Blast** (shard tree, Chronos, 1 shard, no prerequisite; `chronos_auto_blast`): throws the
+dynamite whenever it is off cooldown, using the R26 blast area. It runs in
+`MiningSystem.update`, so exactly when the drills run: while the game is open, in a background
+tab and during Time Warp / Hourglass warps. **Offline: no** — a closed game digs nothing, so
+there is nothing to blast; this keeps Excavation an "open game" subgame and adds no offline
+income. On/off switch under the Excavation shop, saved as `shardTree.autoBlast.enabled`
+(default on; older saves load with the default, no migration). A Chronicle resets the node like
+the rest of the tree but keeps the switch. Measured idle (open 24/7): +2 depth at a week,
++8 at day 60, about +30% depth per hour deep down; it saves an active player the clicks.
 
 *R18 implementation (Excavation and Alchemy rows):* every broken tile (stairs included) rolls
 1/200 for a Strata Relic, with a pity of 400 tiles since the last relic (`miningGrid.relics`,
