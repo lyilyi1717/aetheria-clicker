@@ -4,6 +4,7 @@ import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { hasShopItem } from './DustShopSystem.js';
 import { ITEM_NAMES } from '../data/names.js';
+import { t, tOr, localize } from '../i18n/index.js';
 
 // Grow times are ×15 the v1.x values (§5.2): 5 min / 11 min / 19 min / 30 min / 1 h / 2 h.
 export const SEED_TYPES = {
@@ -37,6 +38,9 @@ const ESSENCE_BY_SEED = {
   void_orchid: 'voidPollen',
   star_lotus: 'starNectar'
 };
+
+localize(SEED_TYPES, 'seed', ['name', 'desc'], Object.fromEntries(
+  Object.entries(ESSENCE_BY_SEED).map(([seed, k]) => [seed, { item: ITEM_NAMES[k].name }])));
 
 export const ESSENCE_NAMES = Object.fromEntries(
   Object.values(ESSENCE_BY_SEED).map(k => [k, ITEM_NAMES[k].name])
@@ -189,7 +193,7 @@ export class GardenSystem {
       amount = 1 + Math.floor(this.rng() * 2);
       garden.essences[hybrid.id] = (garden.essences[hybrid.id] || 0) + amount;
       garden.herbarium.hybrids[hybrid.id] = (garden.herbarium.hybrids[hybrid.id] || 0) + amount;
-      if (clientX && clientY) particles.spawnFloatingText(clientX, clientY - 45, `HYBRID: +${amount} ${hybrid.name}!`, '#f472b6', true);
+      if (clientX && clientY) particles.spawnFloatingText(clientX, clientY - 45, t('garden.fx.hybrid', { n: amount, name: hybrid.name }), '#f472b6', true);
       sound.playAchievement();
     }
     return { ok: true, hybrid: hybrid.id, amount, chance: hybrid.chance };
@@ -356,7 +360,7 @@ export class GardenSystem {
         plot.progress = Math.min(plot.maxTime, plot.progress + WATER_BOOST);
       }
     }
-    rewards.notify({ tier: 'small', kind: 'garden-water', icon: '💧', color: '#38bdf8', title: 'Garden watered', detail: `+${WATER_BOOST}s growth` });
+    rewards.notify({ tier: 'small', kind: 'garden-water', icon: '💧', color: '#38bdf8', title: t('garden.watered'), detail: t('garden.watered_detail', { s: WATER_BOOST }) });
     return true;
   }
 
@@ -376,7 +380,7 @@ export class GardenSystem {
       sound.playSpell();
       rewards.notify({
         tier: 'small', kind: 'garden-fertilize', icon: '🧪', color: '#a3e635',
-        title: 'Plots fertilized', amount: count, fmt: (n) => String(n), unit: count === 1 ? 'plot' : 'plots', detail: '×2 next harvest'
+        title: t('garden.fertilized'), amount: count, fmt: (n) => String(n), unit: t(count === 1 ? 'unit.plot' : 'unit.plots'), detail: t('garden.fertilized_detail')
       });
     }
     return count;
@@ -399,7 +403,7 @@ export class GardenSystem {
     if (golden) {
       const hb = this.gameState.garden.herbarium?.golden;
       if (hb) hb[seedId] = (hb[seedId] || 0) + 1;
-      if (clientX && clientY) particles.spawnFloatingText(clientX, clientY - 75, `✨ GOLDEN ${SEED_TYPES[seedId].name.toUpperCase()}! (x${GOLDEN_ESSENCE_MULT})`, '#facc15', true);
+      if (clientX && clientY) particles.spawnFloatingText(clientX, clientY - 75, t('garden.fx.golden', { name: SEED_TYPES[seedId].name.toUpperCase(), x: GOLDEN_ESSENCE_MULT }), '#facc15', true);
       if (!silent) sound.playAchievement();
     }
 
@@ -417,7 +421,7 @@ export class GardenSystem {
     if (seedId === 'mana_lily') {
       const restore = 15 * fertMult;
       this.gameState.mana = Math.min(this.gameState.maxMana, (this.gameState.mana || 0) + restore);
-      if (clientX && clientY) particles.spawnFloatingText(clientX, clientY - 15, `+${restore} MANA`, '#818cf8', true);
+      if (clientX && clientY) particles.spawnFloatingText(clientX, clientY - 15, t('fx.mana', { n: restore }), '#818cf8', true);
     }
 
     // Seed drop back + chance of higher seed mutation!
@@ -428,7 +432,7 @@ export class GardenSystem {
       const mutatedSeed = seeds[nextIdx];
       this.gameState.garden.inventory[mutatedSeed] = (this.gameState.garden.inventory[mutatedSeed] || 0) + 1;
       if (clientX && clientY) {
-        particles.spawnFloatingText(clientX, clientY - 30, `MUTANT SEED: ${SEED_TYPES[mutatedSeed].name}!`, '#fbbf24', true);
+        particles.spawnFloatingText(clientX, clientY - 30, t('garden.fx.mutant', { name: SEED_TYPES[mutatedSeed].name }), '#fbbf24', true);
       }
     }
 
@@ -436,15 +440,15 @@ export class GardenSystem {
     if (this.gameState.market) {
       let commodity = null;
       let cName = '';
-      if (seedId === 'mana_lily') { commodity = 'silk'; cName = 'MANA SILK'; }
-      else if (seedId === 'solar_fern') { commodity = 'amber'; cName = 'SOLAR AMBER'; }
-      else if (seedId === 'void_orchid') { commodity = 'shard'; cName = 'VOID CRYSTAL'; }
+      if (seedId === 'mana_lily') { commodity = 'silk'; cName = tOr('commodity.silk.name', 'Mana Silk').toUpperCase(); }
+      else if (seedId === 'solar_fern') { commodity = 'amber'; cName = tOr('commodity.amber.name', 'Solar Amber').toUpperCase(); }
+      else if (seedId === 'void_orchid') { commodity = 'shard'; cName = tOr('commodity.shard.name', 'Void Crystal').toUpperCase(); }
 
       if (commodity && this.rng() < 0.5 && this.gameState.market.items?.[commodity]) { // 50% chance to drop commodity
         this.gameState.market.items[commodity].owned += 1;
         if (clientX && clientY) {
           setTimeout(() => {
-            particles.spawnFloatingText(clientX, clientY - 60, `+1 ${cName} (Bazaar)`, '#a855f7', true);
+            particles.spawnFloatingText(clientX, clientY - 60, t('garden.fx.commodity', { name: cName }), '#a855f7', true);
           }, 300);
         }
       }

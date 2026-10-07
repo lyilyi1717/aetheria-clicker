@@ -46,9 +46,9 @@ export function t(key, params) {
   return fill(str, params);
 }
 
-/** True when the key exists in the English table (used by optional lookups such as data ids). */
+/** True when the active language (or English) has the key (optional lookups such as data ids). */
 export function hasKey(key) {
-  return EN[key] !== undefined;
+  return (TABLES[getLang()] || EN)[key] !== undefined || EN[key] !== undefined;
 }
 
 /** `t(key)` when the key exists, else `fallback` (data tables whose ids grow over time). */
@@ -69,7 +69,7 @@ export function bidi(text) {
 const REGISTRY = [];
 
 export function localize(rows, prefix, fields, params = {}) {
-  const entries = Array.isArray(rows) ? rows.map(r => [r.id, r]) : Object.entries(rows).map(([k, r]) => [r?.id ?? k, r]);
+  const entries = Array.isArray(rows) ? rows.map(r => [r.id ?? r.type, r]) : Object.entries(rows).map(([k, r]) => [r?.id ?? k, r]);
   REGISTRY.push({ prefix, fields, entries, params });
   const table = TABLES[getLang()];
   if (!table || table === EN) return rows;
