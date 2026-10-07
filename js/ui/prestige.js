@@ -4,7 +4,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { MAX_TIER_COUNT } from '../systems/BuildingSystem.js';
 import { TERMS as T } from '../data/strings.js';
-import { t } from '../i18n/index.js';
+import { t, bidi } from '../i18n/index.js';
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 
@@ -13,9 +13,9 @@ export function fmtBigMult(v) {
   const b = v instanceof BigNum ? v : new BigNum(v);
   if (b.lt(1e6)) {
     const n = b.toNumber();
-    return `×${n >= 10 ? n.toLocaleString('en-US', { maximumFractionDigits: 1 }) : n.toFixed(2)}`;
+    return bidi(`×${n >= 10 ? n.toLocaleString('en-US', { maximumFractionDigits: 1 }) : n.toFixed(2)}`);
   }
-  return `×${b.format('scientific', 2)}`;
+  return bidi(`×${b.format('scientific', 2)}`);
 }
 
 const STYLE = `

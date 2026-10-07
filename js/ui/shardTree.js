@@ -16,7 +16,7 @@ import {
   ShardTreeSystem, SHARD_TREE_BRANCHES, SHARD_TREE_NODES, AUTO_ASCEND_RULES, AUTO_ASCEND_TIMER_OPTIONS,
   LONG_WARP_SECONDS, getShardBalance, getSpentShards, getNode, autoAscendRuleMet
 } from '../systems/ShardTreeSystem.js';
-import { t } from '../i18n/index.js';
+import { t, bidi } from '../i18n/index.js';
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 const setAttr = (el, k, v) => { if (el && el.getAttribute(k) !== v) el.setAttribute(k, v); };
@@ -35,9 +35,9 @@ function fmtClock(seconds) {
 function fmtMult(b) {
   if (b.lt(1e6)) {
     const n = b.toNumber();
-    return `×${n >= 10 ? n.toLocaleString('en-US', { maximumFractionDigits: 1 }) : n.toFixed(2)}`;
+    return bidi(`×${n >= 10 ? n.toLocaleString('en-US', { maximumFractionDigits: 1 }) : n.toFixed(2)}`);
   }
-  return `×${b.format('scientific', 2)}`;
+  return bidi(`×${b.format('scientific', 2)}`);
 }
 
 export class ShardTreeUI {

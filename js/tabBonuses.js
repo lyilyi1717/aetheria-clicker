@@ -4,7 +4,7 @@
 import { getGeodeAttunementMult, getNectarOfferingMult, getNectarHeld } from './systems/PrestigeSystem.js';
 import { getRunClicks, getFingerOfWastaMult } from './systems/DustShopSystem.js';
 import { itemName } from './data/names.js';
-import { t, buffName } from './i18n/index.js';
+import { t, buffName, bidi } from './i18n/index.js';
 
 const pct = (v) => `${Math.round(v)}%`;
 
@@ -69,7 +69,7 @@ export const SPELL_TABS = {
 // (getNetAetherPerSecond), CombatSystem, MiningSystem and SpellSystem, using the
 // design-doc §5.3 linearized versions. Keep in sync if those formulas change.
 
-export const fmtMult = (v) => `×${v >= 10 ? v.toFixed(1) : v.toFixed(2)}`;
+export const fmtMult = (v) => bidi(`×${v >= 10 ? v.toFixed(1) : v.toFixed(2)}`);
 
 function totalBuildings(gs) {
   let n = 0;

@@ -155,7 +155,7 @@ button, input, select, textarea {
 .lb-row.me { border-color: var(--accent-cyan); background: color-mix(in srgb, var(--aether) 10%, transparent); }
 .lb-rank { font-weight: 700; color: var(--accent-gold); text-align: center; }
 .lb-name { color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lb-value { font-family: monospace; color: var(--accent-cyan); }
+.lb-value { font-family: var(--font-mono); color: var(--accent-cyan); }
 .lb-empty { padding: 1rem; text-align: center; color: var(--text-muted); }
 
 .lb-dot {
@@ -193,7 +193,7 @@ button, input, select, textarea {
 }
 
 .quick-cast-btn .qc-state {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--text-muted);
 }
@@ -357,7 +357,7 @@ button, input, select, textarea {
 .bb-icon { font-size: 0.95rem; line-height: 1; }
 .bb-name { color: var(--text-main); font-weight: 600; }
 .bb-stack { color: var(--accent-green); font-weight: 600; }
-.bb-time { font-family: monospace; color: var(--accent-cyan); }
+.bb-time { font-family: var(--font-mono); color: var(--accent-cyan); }
 
 .bb-tag {
   padding: 0 0.35rem;
@@ -484,7 +484,7 @@ button, input, select, textarea {
 
 .settings-sample {
   margin-inline-start: auto;
-  font-family: monospace;
+  font-family: var(--font-mono);
   direction: ltr; /* numbers read left to right inside RTL text */
   unicode-bidi: isolate;
   color: var(--accent-cyan);

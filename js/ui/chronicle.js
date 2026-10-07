@@ -12,7 +12,7 @@ import {
   ChronicleSystem, CHAPTERS, PAGE_UPGRADES, PAGE_AETHER_MULT, CHRONICLE_TRANSCEND_GATE, SEAL_STANDIN_TRANSCENDS,
   getChallenge, describeRules, getSealGate, getChronicleTranscendsNeeded
 } from '../systems/ChronicleSystem.js';
-import { t } from '../i18n/index.js';
+import { t, bidi } from '../i18n/index.js';
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 const setAttr = (el, k, v) => { if (el && el.getAttribute(k) !== v) el.setAttribute(k, v); };
@@ -24,9 +24,9 @@ const SAND = '#e7c38a';   // --sand, for the reward toasts (they take a colour v
 function fmtMult(b) {
   if (b.lt(1e6)) {
     const n = b.toNumber();
-    return `×${n >= 10 ? n.toLocaleString('en-US', { maximumFractionDigits: 1 }) : n.toFixed(2)}`;
+    return bidi(`×${n >= 10 ? n.toLocaleString('en-US', { maximumFractionDigits: 1 }) : n.toFixed(2)}`);
   }
-  return `×${b.format('scientific', 2)}`;
+  return bidi(`×${b.format('scientific', 2)}`);
 }
 
 export function roman(n) {

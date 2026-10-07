@@ -165,7 +165,12 @@
   --font-ui: 'Cairo', 'Noto Kufi Arabic', Tahoma, system-ui, sans-serif;
   --fs-root: clamp(18px, 17px + 0.25vw, 20px);
   --lh-body: 1.6;
+  /* Monospace fonts have no Arabic; Arabic words next to numbers ("25 مانا") use Cairo */
+  --font-mono: 'Cairo', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
 :root[lang="ar"] body, :root[lang="ar"] body * { letter-spacing: normal !important; }
 /* Numbers and notations (1.5M, 2.0e12, +12%, x3) keep their left-to-right order */
-:root[dir="rtl"] .num, :root[dir="rtl"] bdi { unicode-bidi: isolate; }
+:root[dir="rtl"] bdi { unicode-bidi: isolate; }
+/* A .num cell takes its direction from its own first letter: "+3", "1.5M / 2M" read left to right,
+   a cell that starts with an Arabic word stays right to left */
+:root[dir="rtl"] .num { unicode-bidi: plaintext; }

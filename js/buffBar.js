@@ -7,7 +7,7 @@
 import { FRENZY_MULT } from './systems/combo.js';
 import { SPELLS } from './systems/SpellSystem.js';
 import { tipHtml } from './ui/tooltip.js';
-import { t, buffName } from './i18n/index.js';
+import { t, buffName, bidi } from './i18n/index.js';
 
 // Icon per buff id (recipe/spell), falling back to the buff type
 const BUFF_ICONS = {
@@ -42,7 +42,7 @@ function stackText(b) {
   if (b.type === 'click_gold') return t('bb.gold_clicks');
   if (b.type === 'time_speed') return t('bb.speed', { x: b.value });
   if (b.type === 'frenzy') return t('bb.frenzy_clicks', { x: FRENZY_MULT });
-  if (typeof b.value === 'number') return `+${Math.round((b.value - 1) * 100)}%`;
+  if (typeof b.value === 'number') return bidi(`+${Math.round((b.value - 1) * 100)}%`);
   return '';
 }
 

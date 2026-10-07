@@ -27,15 +27,27 @@ const HAS_TAG = /[<>]/;
 
 function fill(str, params) {
   if (str.indexOf('{') < 0) return str;
-  const rtl = isRtl();
   const terms = TERM_TABLES[getLang()] || TERMS_EN;
-  return str.replace(/\{(\w+)\}/g, (m, name) => {
-    let v = params && Object.prototype.hasOwnProperty.call(params, name) ? params[name] : terms[name];
-    if (v === undefined || v === null) return m;
-    v = String(v);
-    if (rtl && HAS_DIGIT.test(v) && !HAS_TAG.test(v)) v = FSI + v + PDI;
-    return v;
+  const value = (name) => {
+    const v = params && Object.prototype.hasOwnProperty.call(params, name) ? params[name] : terms[name];
+    return v === undefined || v === null ? null : String(v);
+  };
+  if (!isRtl()) return str.replace(/\{(\w+)\}/g, (m, name) => value(name) ?? m);
+  // Right to left: a number keeps its sign and unit with it ("+12%", "×3", "-4%") inside one
+  // left-to-right isolate, so it reads "+12%" and not "%12+".
+  return str.replace(/([+\-−×]?)\{(\w+)\}(%?)/g, (m, sign, name, pct) => {
+    const v = value(name);
+    if (v === null) return m;
+    if (!HAS_DIGIT.test(v) || HAS_TAG.test(v)) return sign + v + pct;
+    return FSI + sign + v + pct + PDI;
   });
+}
+
+// Right to left: a literal signed number in the text ("+25%", "×1.5", "-4%") is isolated too, so
+// its sign stays on its left. Only after a space, a bracket, '>' or the start (never inside ids).
+const SIGNED = /(^|[\s(>،])([+\-−×]\d[\d.,]*(?:%|[KMBT]\b|e\d+)?)/g;
+function isolateSigns(str) {
+  return str.replace(SIGNED, (m, pre, num) => pre + FSI + num + PDI);
 }
 
 /** The text for `key` in the active language. */
@@ -43,7 +55,8 @@ export function t(key, params) {
   const table = TABLES[getLang()] || EN;
   const str = table[key] ?? EN[key];
   if (str === undefined) return key;
-  return fill(str, params);
+  const out = fill(str, params);
+  return isRtl() ? isolateSigns(out) : out;
 }
 
 /** True when the active language (or English) has the key (optional lookups such as data ids). */
@@ -86,7 +99,7 @@ export function localize(rows, prefix, fields, params = {}) {
     for (const f of fields) {
       if (typeof row?.[f] !== 'string') continue;
       const v = table[`${prefix}.${id}.${f}`];
-      if (v !== undefined) row[f] = fill(v, params[id]);
+      if (v !== undefined) row[f] = isRtl() ? isolateSigns(fill(v, params[id])) : fill(v, params[id]);
     }
   }
   return rows;

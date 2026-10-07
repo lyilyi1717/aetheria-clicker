@@ -51,7 +51,7 @@ import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
-import { t, tOr, getLang, buffName, applyLanguageToDocument, syncLanguageSetting, renderLanguageSettings } from './i18n/index.js';
+import { t, tOr, getLang, buffName, bidi, applyLanguageToDocument, syncLanguageSetting, renderLanguageSettings } from './i18n/index.js';
 
 // Plain-number display in the player's notation (Settings tab); see BigNum.formatNumber
 const fmtNum = (n, precision = 2) => BigNum.formatNumber(n, precision);
@@ -1543,7 +1543,7 @@ class AetheriaApp {
       }
       setText(oEl, fmtNum(item.owned));
     }
-    setText(this.$('market-index-display'), `x${this.marketSystem.getMarketIndex().format('standard', 2)}`);
+    setText(this.$('market-index-display'), bidi(`x${this.marketSystem.getMarketIndex().format('standard', 2)}`));
 
     const carCont = this.$('market-caravan-panel');
     if (carCont) {
