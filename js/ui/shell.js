@@ -8,6 +8,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { BUILDING_DEFINITIONS } from '../systems/BuildingSystem.js';
 import { MIN_RUN_SECONDS } from '../systems/PrestigeSystem.js';
 import { SPELL_TABS } from '../tabBonuses.js';
+import { t } from '../i18n/index.js';
 
 export const PHONE_QUERY = '(max-width: 639px)';
 const ASCEND_GATE = 1e9; // lifetime run Aether before Ascension pays dust (PrestigeSystem)
@@ -58,20 +59,20 @@ function fmtClock(s) {
 export function getNextGoal(gs, buildings, prestige, now = Date.now()) {
   if (prestige.canAscend(now)) {
     const dust = prestige.getPendingCosmicDust();
-    return { icon: '🚀', text: `Drill a New Well for +${dust.format('standard', 0)} Reserves`, pct: 1, tab: 'prestige' };
+    return { icon: '🚀', text: t('goal.drill', { n: dust.format('standard', 0) }), pct: 1, tab: 'prestige' };
   }
   const def = BUILDING_DEFINITIONS.find(d => buildings.isTierUnlocked(d.id) && !(gs.buildings[d.id]?.count > 0));
   if (def) {
     const cost = buildings.getBuildingCost(def.id, 1);
-    return { icon: def.icon, text: `${def.name}: ${cost.format('standard', 2)} Oil`, pct: ratio(gs.aether, cost), tab: 'monolith' };
+    return { icon: def.icon, text: t('goal.building', { name: def.name, n: cost.format('standard', 2) }), pct: ratio(gs.aether, cost), tab: 'monolith' };
   }
   if (prestige.getPendingCosmicDust().lte(0)) {
     const gate = new BigNum(ASCEND_GATE);
     const pct = Math.max(0, Math.min(1, log10(gs.totalAetherEarned) / log10(gate)));
-    return { icon: '🚀', text: `New Well at ${gate.format('standard', 0)} Oil`, pct, tab: 'prestige' };
+    return { icon: '🚀', text: t('goal.gate', { n: gate.format('standard', 0) }), pct, tab: 'prestige' };
   }
   const left = prestige.getMinRunRemaining(now);
-  return { icon: '⏳', text: `New Well in ${fmtClock(left)}`, pct: 1 - left / MIN_RUN_SECONDS, tab: 'prestige' };
+  return { icon: '⏳', text: t('goal.wait', { time: fmtClock(left) }), pct: 1 - left / MIN_RUN_SECONDS, tab: 'prestige' };
 }
 
 export class Shell {
@@ -134,7 +135,7 @@ export class Shell {
     if (!open) banner.classList.remove('first');
     const toggle = banner.querySelector('.guide-more');
     if (toggle) {
-      toggle.textContent = open ? 'Less ▴' : 'More ▾';
+      toggle.textContent = open ? t('guide.less') : t('guide.more');
       toggle.setAttribute('aria-expanded', String(open));
     }
   }
