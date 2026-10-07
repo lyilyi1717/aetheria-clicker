@@ -474,6 +474,7 @@ export class ChronicleSystem {
     const fresh = {
       owned: {}, granted: {},
       autoAscend: { ...(tree.autoAscend || { enabled: true, rule: 'x2', timerMin: 30 }) },
+      autoBlast: { ...(tree.autoBlast || { enabled: true }) },
       longWarpAt: tree.longWarpAt || 0
     };
     // Tower content stays: Wardens come back as a free node (Second Wind is bought again)

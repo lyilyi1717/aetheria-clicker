@@ -8,7 +8,8 @@
     "test": "node run_tests.mjs",
     "sim": "node sim/core-pacing.mjs",
     "sim:check": "node sim/core-pacing.mjs --assert",
-    "sim:tower": "node sim/tower-pacing.mjs"
+    "sim:tower": "node sim/tower-pacing.mjs",
+    "sim:mining": "node sim/mining-pacing.mjs"
   },
   "keywords": ["clicker", "incremental", "idle-game", "rpg", "prestige"],
   "author": "Antigravity",

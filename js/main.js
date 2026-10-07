@@ -9,7 +9,7 @@ import { GameLoop } from './engine/GameLoop.js';
 import { GameState } from './systems/GameState.js';
 import { ClickerSystem } from './systems/ClickerSystem.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from './systems/BuildingSystem.js';
-import { CombatSystem } from './systems/CombatSystem.js';
+import { CombatSystem, gearStat, getGearLevel } from './systems/CombatSystem.js';
 import { MiningSystem, getPickaxeName } from './systems/MiningSystem.js';
 import { GardenSystem, SEED_TYPES, ESSENCE_NAMES, WATER_BOOST, MAX_GOLEMS } from './systems/GardenSystem.js';
 import { AlchemySystem, RECIPES, GEM_LADDER } from './systems/AlchemySystem.js';
@@ -34,9 +34,11 @@ import { Shell } from './ui/shell.js';
 import { UnlocksUI } from './ui/unlocks.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
+import { EquipmentUI } from './ui/equipment.js';
 import { UpgradeSystem } from './systems/UpgradeSystem.js';
 import { UpgradeShopUI } from './ui/upgrades.js';
 import { ShardTreeUI } from './ui/shardTree.js';
+import { AutoBlastUI } from './ui/autoBlast.js';
 import { ChronicleUI } from './ui/chronicle.js';
 import { CalendarUI } from './ui/calendar.js';
 import { gearCard } from './ui/rarity.js';
@@ -673,12 +675,16 @@ class AetheriaApp {
     this.buildBuildingsStructure();
     this.buildCombatStructure();
     this.buildMiningStructure();
+    this.autoBlastUI = new AutoBlastUI(this);
+    this.autoBlastUI.init();
     this.buildGardenStructure();
     this.buildAlchemyStructure();
     this.breedingUI = new GardenBreedingUI(this, fmtNum);
     this.breedingUI.build();
     this.wardensRelicsUI = new WardensRelicsUI(this, fmtNum);
     this.wardensRelicsUI.build();
+    this.equipmentUI = new EquipmentUI(this, fmtNum);
+    this.equipmentUI.build();
     this.upgradeShopUI = new UpgradeShopUI(this);
     this.upgradeShopUI.build();
     this.buildSpellsStructure();
@@ -845,11 +851,13 @@ class AetheriaApp {
       this.lastGearSig = gearSig;
       const g = h.gear;
       const fmt = (v) => this.combatSystem.fmt(v);
+      // Stats include gear levels (R34); the level shows after the stat
+      const lv = (item) => getGearLevel(item) > 0 ? ` · Lv +${getGearLevel(item)}` : '';
       gearCont.innerHTML =
-        gearCard('Weapon', g.weapon, `+${fmt(g.weapon?.attack || 0)} Atk`) +
-        gearCard('Armor', g.armor, `+${fmt(g.armor?.hp || 0)} HP`) +
-        gearCard('Amulet', g.amulet, `+${((g.amulet?.crit || 0) * 100).toFixed(0)}% Crit`) +
-        gearCard('Relic', g.relic, `+${((g.relic?.lifesteal || 0) * 100).toFixed(0)}% Drain`);
+        gearCard('Weapon', g.weapon, `+${fmt(gearStat('weapon', g.weapon))} Atk${lv(g.weapon)}`) +
+        gearCard('Armor', g.armor, `+${fmt(gearStat('armor', g.armor))} HP${lv(g.armor)}`) +
+        gearCard('Amulet', g.amulet, `+${(gearStat('amulet', g.amulet) * 100).toFixed(0)}% Crit${lv(g.amulet)}`) +
+        gearCard('Relic', g.relic, `+${(gearStat('relic', g.relic) * 100).toFixed(0)}% Drain${lv(g.relic)}`);
     }
 
     // Aether Forge
@@ -1821,6 +1829,7 @@ class AetheriaApp {
     this.shell?.update(dt);
     this.unlocksUI?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
+    this.equipmentUI?.update(this.currentTab);
     this.shardTreeUI?.update(this.currentTab);
     this.dustShopUI?.update();
     this.chronicleUI?.update(this.currentTab);
@@ -1837,6 +1846,7 @@ class AetheriaApp {
       this.updateCombatUI();
     } else if (this.currentTab === 'mining') {
       this.updateMiningUI(false);
+      this.autoBlastUI?.update('mining');
     } else if (this.currentTab === 'garden') {
       this.updateGardenUI();
     } else if (this.currentTab === 'alchemy') {
