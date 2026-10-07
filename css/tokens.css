@@ -179,3 +179,4 @@
 :root[dir="rtl"] .settings-sample { direction: inherit; unicode-bidi: plaintext; }
 /* Cairo has tall ascenders: the header grows a little so the currency labels are not clipped */
 :root[lang="ar"] .res { line-height: 1.1; }
+:root[lang="ar"] .res .k { line-height: 1.5; }

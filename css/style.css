@@ -1689,6 +1689,11 @@ button, input, select, textarea {
     -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
     mask-image: linear-gradient(90deg, #000 85%, transparent);
   }
+  /* Right to left the strip overflows to the left, so the fade sits there */
+  :root[dir="rtl"] .res-strip {
+    -webkit-mask-image: linear-gradient(270deg, #000 85%, transparent);
+    mask-image: linear-gradient(270deg, #000 85%, transparent);
+  }
   .res .v { font-size: var(--fs-14); }
   .res.hero .v { font-size: var(--fs-18); }
   .res .k { font-size: var(--fs-11); }
