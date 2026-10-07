@@ -9,7 +9,8 @@
 //            tile the drills are on 5/s and throws dynamite whenever it is off cooldown
 //   idle   : plays the first 45-min session like active, then leaves the game open 24/7 and only
 //            buys upgrades; the drills dig alone, plus Auto-Blast once it is bought
-//            (AUTO_BLAST_DAY, the casual core sim's second Transcend) if the game has it
+//            (AUTO_BLAST_DAY, the casual core sim's second Transcend)
+//   idle-no-blast : idle without Auto-Blast (what an idle player had before it)
 // Both buy a pickaxe level or an Auto-Drill as soon as one is affordable, whichever adds more
 // digging speed per stone. Outside boosts (Excavation talent, Tower bosses, Chapter of Sand) are
 // left out so the report isolates Excavation's own curves; Strata Relics are real.
@@ -67,7 +68,7 @@ function run(profile, endDay = 60) {
   ms.random = Math.random;
   gs.miningSystem = ms;
   const grid = gs.miningGrid;
-  const active = profile === 'active';
+  const active = profile === 'active';  // 'idle-no-blast' is idle without Auto-Blast
   const inSession = t => (t % DAY) < SESSION || ((t % DAY) >= 12 * H && (t % DAY) < 12 * H + SESSION);
   const isOpen = t => !active || inSession(t);
   const isPlaying = t => (active ? inSession(t) : t < SESSION);
@@ -76,15 +77,16 @@ function run(profile, endDay = 60) {
   const marks = [];        // samples every 10 min of open time (first 2 h), then hourly
   const strataAt = [0];    // open seconds when each stratum was entered
   const at = {};           // day -> { depth, open, tiles }
-  const autoBlastOn = () => !active && t >= AUTO_BLAST_DAY * DAY;
-  const hasAuto = typeof ms.autoBlastTick === 'function';
-  if (hasAuto) ms.autoBlastOwned = autoBlastOn;
+  // Auto-Blast is a shard node; the idle player owns it from AUTO_BLAST_DAY (MiningSystem.update
+  // fires it). The active player throws by hand on cooldown anyway, so it changes nothing there.
+  const buyAutoBlastAt = profile === 'idle' ? AUTO_BLAST_DAY * DAY : Infinity;
   let ci = 0;
   const endT = endDay * DAY;
   while (t < endT) {
+    if (t >= buyAutoBlastAt) gs.shardTree.owned.chronos_auto_blast = true;
     if (isOpen(t)) {
       if (isPlaying(t)) {
-        if (ms.useDynamite(true)) blasts++;
+        if (ms.useDynamite()) blasts++;
         clickAcc += CLICKS_PER_SEC * dt;
         while (clickAcc >= 1) {
           clickAcc -= 1;
@@ -127,7 +129,7 @@ function fmt(n, d = 1) {
 }
 
 const out = ['## Excavation pacing (`npm run sim:mining`)', ''];
-for (const profile of ['active', 'idle']) {
+for (const profile of ['active', 'idle', 'idle-no-blast']) {
   const r = run(profile);
   out.push(`### profile: ${profile}`, '');
   out.push('| day | depth | pickaxe lv | drills | tiles broken | hours open |', '|---|---|---|---|---|---|');

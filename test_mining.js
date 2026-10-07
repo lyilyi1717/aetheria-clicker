@@ -22,7 +22,8 @@ assert.equal(Math.round(ms.getGoldCacheValue(25).toNumber()), 543);
 const deep = ms.getGoldCacheValue(20000);
 assert.ok(deep.e > 500 && deep.m > 0, `deep cache should be huge, got ${deep}`);
 assert.ok(Number.isFinite(ms.getTileHp(1e6)));
-assert.equal(ms.getPickaxeCost(1), 125);
+assert.equal(ms.getPickaxeCost(1), 160);
+assert.equal(ms.getPickaxeCost(10), 10996);
 assert.equal(ms.getAutoDrillCost(), 30);
 assert.equal(getPickaxeName(0), 'Rusty Pickaxe');
 assert.equal(getPickaxeName(7), 'Celestial Void Pick +2');
@@ -48,7 +49,7 @@ assert.equal(gs.inventory.stone, 170);
 assert.equal(ms.getAutoDrillCost(), 48);
 assert.equal(ms.upgradePickaxe(), true);
 assert.equal(gs.miningGrid.pickaxeTier, 1);
-assert.equal(gs.inventory.stone, 45);
+assert.equal(gs.inventory.stone, 10);
 assert.equal(ms.upgradePickaxe(), false);
 
 console.log('--- Testing drill timer carry-over (B2) ---');
