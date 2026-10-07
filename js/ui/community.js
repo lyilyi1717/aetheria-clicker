@@ -10,6 +10,7 @@
 // The pure helpers at the top are exported for tests (test_r40_community.js).
 
 import { VERSION } from '../version.js';
+import { t } from '../i18n/index.js';
 
 export const REPO = 'lyilyi1717/aetheria-clicker';
 export const API = `https://api.github.com/repos/${REPO}`;
@@ -204,9 +205,9 @@ export async function loadCommunity({ fetchFn = globalThis.fetch, storage = glob
 
 function agoText(ms, now = Date.now()) {
   const m = Math.floor((now - ms) / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m} min ago`;
-  return `${Math.floor(m / 60)} h ago`;
+  if (m < 1) return t('cm.just_now');
+  if (m < 60) return t('cm.min_ago', { n: m });
+  return t('cm.h_ago', { n: Math.floor(m / 60) });
 }
 
 // --- DOM -------------------------------------------------------------------------------------
@@ -268,13 +269,13 @@ export class CommunityUI {
   buildForm() {
     const card = el('form', 'card cm-form');
     card.noValidate = true;
-    card.append(el('h3', 'cm-h', 'Report a bug or suggest an idea'));
-    card.append(el('p', 'cm-lead', 'Posting and 👍 happen on GitHub, so you need a free GitHub account. Bugs are fixed first; then ideas with the most 👍 are built next. When one ships, it moves to Done with its version.'));
+    card.append(el('h3', 'cm-h', t('cm.form_title')));
+    card.append(el('p', 'cm-lead', t('cm.lead')));
 
     const seg = el('div', 'seg cm-type');
     seg.setAttribute('role', 'group');
-    seg.setAttribute('aria-label', 'Type');
-    for (const [type, label] of [['bug', '🐞 Bug'], ['feature', '💡 Idea']]) {
+    seg.setAttribute('aria-label', t('cm.type'));
+    for (const [type, label] of [['bug', t('cm.bug')], ['feature', t('cm.idea')]]) {
       const b = el('button', '', label);
       b.type = 'button';
       b.dataset.type = type;
@@ -285,8 +286,9 @@ export class CommunityUI {
     this.segBtns = [...seg.querySelectorAll('button')];
 
     const titleField = el('label', 'cm-field');
-    titleField.append(el('span', '', 'Title'));
+    titleField.append(el('span', '', t('cm.title')));
     this.titleInput = el('input');
+    this.titleInput.dir = 'auto';
     this.titleInput.maxLength = TITLE_MAX;
     this.titleInput.required = true;
     titleField.append(this.titleInput);
@@ -295,6 +297,7 @@ export class CommunityUI {
     this.descLabel = el('span');
     descField.append(this.descLabel);
     this.descInput = el('textarea');
+    this.descInput.dir = 'auto';
     this.descInput.rows = 4;
     this.descInput.maxLength = BODY_MAX;
     descField.append(this.descInput);
@@ -302,7 +305,7 @@ export class CommunityUI {
     this.attached = el('p', 'cm-attached');
     this.formNote = el('p', 'cm-note');
     this.formNote.setAttribute('aria-live', 'polite');
-    const submit = el('button', 'btn btn-primary cm-submit', 'Open on GitHub ↗');
+    const submit = el('button', 'btn btn-primary cm-submit', t('cm.open'));
     submit.type = 'submit';
 
     card.append(seg, titleField, descField, this.attached, this.formNote, submit);
@@ -315,20 +318,20 @@ export class CommunityUI {
     this.type = type;
     for (const b of this.segBtns) b.setAttribute('aria-pressed', String(b.dataset.type === type));
     const bug = type === 'bug';
-    this.titleInput.placeholder = bug ? 'e.g. Boss timer keeps running while paused' : 'e.g. A button to buy all garden seeds';
-    this.descLabel.textContent = bug ? 'What happened? How can we make it happen?' : 'Your idea, and why it would be fun';
+    this.titleInput.placeholder = bug ? t('cm.ph_bug') : t('cm.ph_idea');
+    this.descLabel.textContent = bug ? t('cm.desc_bug') : t('cm.desc_idea');
     const browser = describeBrowser(globalThis.navigator?.userAgent);
-    this.attached.textContent = bug ? `Attached: v${VERSION} · ${browser}` : `Attached: v${VERSION}`;
+    this.attached.textContent = t('cm.attached', { what: bug ? `v${VERSION} · ${browser}` : `v${VERSION}` });
   }
 
   submit() {
     const title = this.titleInput.value.trim();
     if (title.length < 4) {
-      this.formNote.textContent = 'Give it a short title first (at least 4 letters).';
+      this.formNote.textContent = t('cm.short_title');
       this.titleInput.focus();
       return;
     }
-    this.formNote.textContent = 'GitHub opens in a new tab: check the text and press "Create".';
+    this.formNote.textContent = t('cm.opens');
     const url = buildNewIssueUrl({
       type: this.type, title, description: this.descInput.value,
       browser: describeBrowser(globalThis.navigator?.userAgent)
@@ -340,26 +343,26 @@ export class CommunityUI {
     if (!this.root) return;
     const d = this.data;
     this.status.replaceChildren();
-    if (this.loading && !d) this.status.textContent = 'Loading from GitHub…';
-    else if (d?.error && !d.issues.length) this.status.textContent = 'Couldn\'t reach GitHub right now. Try again in a few minutes.';
+    if (this.loading && !d) this.status.textContent = t('cm.loading');
+    else if (d?.error && !d.issues.length) this.status.textContent = t('cm.unreachable');
     else if (d) {
-      const parts = d.error ? 'Showing saved list (GitHub unreachable)' : `Updated ${agoText(d.at)}`;
+      const parts = d.error ? t('cm.saved_list') : t('cm.updated', { ago: agoText(d.at) });
       this.status.append(el('span', '', `${parts} · `));
     }
     if (d || !this.loading) {
-      const btn = el('button', 'btn btn-ghost btn-sm cm-refresh', this.loading ? 'Refreshing…' : 'Refresh');
+      const btn = el('button', 'btn btn-ghost btn-sm cm-refresh', this.loading ? t('cm.refreshing') : t('cm.refresh'));
       btn.type = 'button';
       btn.disabled = this.loading;
       btn.addEventListener('click', () => this.refresh(true));
-      this.status.append(btn, ' ', extLink(`https://github.com/${REPO}/issues?q=is%3Aissue+label%3Acommunity`, 'cm-all', 'All on GitHub ↗'));
+      this.status.append(btn, ' ', extLink(`https://github.com/${REPO}/issues?q=is%3Aissue+label%3Acommunity`, 'cm-all', t('cm.all')));
     }
 
     this.lists.replaceChildren();
     if (!d) return;
     const { bugs, features } = groupOpen(d.issues);
     this.lists.append(
-      this.section('🐞 Bugs', 'Fixed first, most 👍 first.', bugs, 'No open bugs reported. Spotted one? Tell us above.'),
-      this.section('💡 Ideas', 'Built next, most 👍 first.', features, 'No ideas yet. Be the first!'),
+      this.section(t('cm.bugs'), t('cm.bugs_sub'), bugs, t('cm.bugs_empty')),
+      this.section(t('cm.ideas'), t('cm.ideas_sub'), features, t('cm.ideas_empty')),
       this.doneSection(doneList(d.issues), d.shipped || {})
     );
   }
@@ -377,11 +380,13 @@ export class CommunityUI {
       const row = el('li', 'card-row cm-row');
       row.append(el('span', 'cm-rank num', `${idx + 1}`));
       const text = el('div', 'cm-text');
-      text.append(extLink(issue.url, 'cm-title', issue.title), el('span', 'cm-meta', `#${issue.number}`));
+      const titleLink = extLink(issue.url, 'cm-title', issue.title);
+      titleLink.dir = 'auto';
+      text.append(titleLink, el('span', 'cm-meta num', `#${issue.number}`));
       const like = extLink(issue.url, 'btn btn-sm cm-like', '');
       like.append(el('span', 'num', `👍 ${issue.likes}`));
-      like.setAttribute('aria-label', `${issue.likes} likes. Open on GitHub to add yours`);
-      like.title = 'Open on GitHub and press 👍 to vote';
+      like.setAttribute('aria-label', t('cm.likes_aria', { n: issue.likes }));
+      like.title = t('cm.like_tip');
       row.append(text, like);
       list.append(row);
     });
@@ -392,16 +397,18 @@ export class CommunityUI {
   doneSection(items, shipped) {
     const card = el('section', 'card cm-section');
     const head = el('div', 'card-head');
-    head.append(el('h3', 'cm-h', '✅ Done'), el('span', 'cm-sub', 'Recently shipped. Thank you!'));
+    head.append(el('h3', 'cm-h', t('cm.done')), el('span', 'cm-sub', t('cm.done_sub')));
     card.append(head);
-    if (!items.length) { card.append(el('p', 'cm-empty', 'Nothing shipped from the community list yet.')); return card; }
+    if (!items.length) { card.append(el('p', 'cm-empty', t('cm.done_empty'))); return card; }
     const list = el('ul', 'cm-list');
     for (const issue of items) {
       const row = el('li', 'card-row cm-row is-owned');
       const text = el('div', 'cm-text');
-      text.append(extLink(issue.url, 'cm-title', issue.title), el('span', 'cm-meta', `#${issue.number} · ${isBug(issue) ? 'Bug' : 'Idea'}`));
+      const titleLink = extLink(issue.url, 'cm-title', issue.title);
+      titleLink.dir = 'auto';
+      text.append(titleLink, el('span', 'cm-meta', `#${issue.number} · ${isBug(issue) ? t('cm.bug_word') : t('cm.idea_word')}`));
       const v = shipped[issue.number]?.v;
-      row.append(text, el('span', 'chip life num', v ? `v${v}` : 'Shipped'));
+      row.append(text, el('span', 'chip life num', v ? `v${v}` : t('cm.shipped')));
       list.append(row);
     }
     card.append(list);

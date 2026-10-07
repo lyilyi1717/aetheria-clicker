@@ -62,7 +62,8 @@ assert.deepEqual(stale, [], `ar.js keys no longer used:\n  ${stale.join('\n  ')}
 
 console.log('--- Arabic text has no English words left (outside markup and placeholders) ---');
 // Number notation letters, units and brand names that stay Latin on purpose
-const LATIN_OK = /^(K|M|B|T|Qa|Qi|aa|ab|ac|ad|e|x|XP|HP|CPS|GitHub|Google|Discord|v|ID|Supabase|Lv)$/;
+// "Create" is the label of GitHub's own button (GitHub has no Arabic interface)
+const LATIN_OK = /^(K|M|B|T|Qa|Qi|aa|ab|ac|ad|e|x|XP|HP|CPS|GitHub|Google|Discord|v|ID|Supabase|Lv|Create)$/;
 for (const [k, ar] of Object.entries(AR)) {
   const text = ar.replace(/<[^>]*>/g, ' ').replace(/\{\w+\}/g, ' ').replace(/&\w+;/g, ' ');
   for (const w of text.match(/[A-Za-z]{2,}/g) || []) ok(LATIN_OK.test(w), `ar.js ${k} has an English word "${w}": ${ar.slice(0, 80)}`);
