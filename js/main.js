@@ -41,6 +41,7 @@ import { ChronicleUI } from './ui/chronicle.js';
 import { CalendarUI } from './ui/calendar.js';
 import { gearCard } from './ui/rarity.js';
 import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
+import { applyThemeSetting, renderThemeSettings } from './ui/theme.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
 import { Leaderboard } from './leaderboard.js';
@@ -71,6 +72,7 @@ class AetheriaApp {
     }
     BigNum.notation = this.gameState.settings.notation;
     applyMotionSetting(this.gameState.settings);
+    applyThemeSetting(this.gameState.settings);
     if (typeof sound !== 'undefined' && this.gameState.settings.rhythmScale) { sound.rhythmScale = this.gameState.settings.rhythmScale; }
 
     // Attach systems
@@ -261,6 +263,7 @@ class AetheriaApp {
       });
     }
     renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, () => this.saveManager.save());
+    renderThemeSettings(document.getElementById('settings-theme'), this.gameState.settings, () => this.saveManager.save());
   }
 
   setupTabs() {
