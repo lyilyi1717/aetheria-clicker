@@ -71,6 +71,15 @@ R0–R30 and R32–R35, R38, R40 are done.
 | 6 | R38 Player accounts and cloud save | #74 | – (owner enables Google) |
 | 7 | R39 News ticker | #75 | R37, R38 (shared part only) |
 | 6 | R40 Community Bugs & Features tab | #76 | – (owner picks submit path) |
+| 8 | R41 Feedback-tier helper and effect budget | #113 | – (game-feel docs merged) |
+| 8 | R42 Boss and Warden kills feel like a win | #114 | R41 |
+| 8 | R43 Welcome-back celebration | #115 | R41 |
+| 8 | R44 Monolith combo climb and Frenzy moment | #116 | R41 |
+| 8 | R45 New Well / New Field ceremonies | #117 | R41 |
+| 8 | R46 Sound families by meaning | #118 | R41 |
+| 8 | R47 First-time unlocks and rare events | #119 | R41 (best after R46) |
+| 8 | R48 Honest Bazaar sale, no silent taps | #120 | R41 (best after R46) |
+| 8 | R49 Reduced-motion colour cues | #121 | R41 |
 
 ## Done
 
