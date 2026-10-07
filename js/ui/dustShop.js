@@ -14,6 +14,7 @@ import {
   isShopItemMaxed, canBuyShopItem, buyShopItem, getNextShopTier, runAutoBuy, hasShopItem
 } from '../systems/DustShopSystem.js';
 import { FF_LONG_WARPS } from '../systems/FastForwardSystem.js';
+import { t } from '../i18n/index.js';
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 const setAttr = (el, k, v) => {
@@ -24,7 +25,7 @@ const setAttr = (el, k, v) => {
 const toggle = (el, cls, on) => { if (el && el.classList.contains(cls) !== on) el.classList.toggle(cls, on); };
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (d) => (d instanceof BigNum ? d : new BigNum(d)).format('standard', 0);
-const tierLabel = (t) => (t === 0 ? 'Any' : `Well ${t}`);
+const tierLabel = (n) => (n === 0 ? t('ds.any') : t('ds.well', { n }));
 
 // Items the player can see: every open tier, the next tier (locked, to aim at) and "any" items.
 // Tiers after the next stay hidden until the next one opens (mockup note).
@@ -80,17 +81,15 @@ export class DustShopUI {
     const cont = document.getElementById('dust-shop-section');
     if (!cont || cont.dataset.built) return;
     cont.dataset.built = '1';
-    const chips = [['all', 'All'], ...DUST_SHOP_TIERS.map(t => [String(t), `Well ${t}`])];
+    const chips = [['all', t('bb.all')], ...DUST_SHOP_TIERS.map(n => [String(n), t('ds.well', { n })])];
     cont.innerHTML = `
       <div class="card-head ds-head">
-        <h2>Reserve Shop <span class="ds-sub">Balance <b class="c-dust num" data-ds="balance"></b> · <span class="num" data-ds="affordable"></span></span></h2>
-        <div class="ds-tiers" role="group" aria-label="Show shop tier">
-          ${chips.map(([v, l]) => `<button type="button" class="chip" data-filter="${v}" aria-pressed="${v === 'all'}">${l}<b data-you="${v}" hidden> · you</b></button>`).join('')}
+        <h2>${t('ds.title')} <span class="ds-sub">${t('ds.balance')} <b class="c-dust num" data-ds="balance"></b> · <span class="num" data-ds="affordable"></span></span></h2>
+        <div class="ds-tiers" role="group" aria-label="${t('ds.tier_aria')}">
+          ${chips.map(([v, l]) => `<button type="button" class="chip" data-filter="${v}" aria-pressed="${v === 'all'}">${l}<b data-you="${v}" hidden> · ${t('ds.you')}</b></button>`).join('')}
         </div>
       </div>
-      <p class="ds-intro">Features for every run, bought with Crude Reserves. New tiers open at New Well 1, 3, 5, 10 and 20.
-        Spending Reserves never lowers production: the Reserves bonus counts every Reserve you have <em>earned</em>.
-        A New Field resets the shop along with your Reserves.</p>
+      <p class="ds-intro">${t('ds.intro')}</p>
       <div class="ds-legacy" data-ds="legacy" hidden></div>
       <div class="ds-shop">${DUST_SHOP_ITEMS.map(d => this.cardHtml(d)).join('')}</div>
       <p class="ds-more" data-ds="more" hidden></p>`;
@@ -119,14 +118,14 @@ export class DustShopUI {
     if (!el || !r) return;
     const name = (id) => DUST_SHOP_ITEMS.find(d => d.id === id)?.name || id;
     const kept = Object.keys(r.kept || {}).map(name);
-    const removed = { eternal_resonance: 'Eternal Resonance', hyper_click: 'Singularity Tap' };
+    const removed = { eternal_resonance: t('ds.removed.eternal'), hyper_click: t('ds.removed.hyper') };
     const refunded = Object.keys(r.refunded || {}).map(id => removed[id] || id);
     const dust = BigNum.fromJSON(r.dust);
     const parts = [];
-    if (kept.length) parts.push(`You keep ${kept.join(', ')} as owned shop features.`);
-    if (refunded.length) parts.push(`${refunded.join(' and ')} ${refunded.length > 1 ? 'were' : 'was'} removed; the ${fmt(dust)} Reserves you spent on ${refunded.length > 1 ? 'them' : 'it'} is back in your balance.`);
+    if (kept.length) parts.push(t('ds.legacy.kept', { list: kept.join(t('list.sep')) }));
+    if (refunded.length) parts.push(t(refunded.length > 1 ? 'ds.legacy.removed_many' : 'ds.legacy.removed_one', { list: refunded.join(t('ds.and')), n: fmt(dust) }));
     if (!parts.length) return;
-    el.textContent = `New Well perks are now the Reserve Shop. ${parts.join(' ')}`;
+    el.textContent = `${t('ds.legacy.head')} ${parts.join(' ')}`;
     el.hidden = false;
   }
 
@@ -137,9 +136,9 @@ export class DustShopUI {
     if (!rank) return;
     sound.playBuy();
     if (d.maxRank === 1) {
-      rewards.notify({ tier: 'big', kind: `shop-${id}`, icon: d.icon, color: '#c084fc', title: `New feature: ${d.name}`, detail: d.desc, source });
+      rewards.notify({ tier: 'big', kind: `shop-${id}`, icon: d.icon, color: '#c084fc', title: t('ds.toast.new', { name: d.name }), detail: d.desc, source });
     } else {
-      rewards.notify({ tier: 'medium', kind: `shop-${id}`, icon: d.icon, color: '#c084fc', title: `${d.name} rank ${rank}`, batchTitle: `${d.name} ×{n}`, source });
+      rewards.notify({ tier: 'medium', kind: `shop-${id}`, icon: d.icon, color: '#c084fc', title: t('ds.toast.rank', { name: d.name, r: rank }), batchTitle: `${d.name} ×{n}`, source });
     }
     // Things the purchase changes elsewhere: Chrono Reservoir's sand cap, Titan's HP, Auto-Buy
     this.app.updatePrestigeUI?.();
@@ -155,7 +154,7 @@ export class DustShopUI {
     btn.id = 'btn-auto-buy';
     btn.className = 'chip ds-autobuy';
     btn.hidden = true;
-    btn.title = `Reserve Shop Auto-Buy: buys the best-value generator every ${AUTO_BUY_INTERVAL} s`;
+    btn.title = t('ds.autobuy_tip', { s: AUTO_BUY_INTERVAL });
     btn.addEventListener('click', () => {
       this.gs.dustShop.autoBuy = !this.gs.dustShop.autoBuy;
       this.updateAutoBuySwitch();
@@ -172,7 +171,7 @@ export class DustShopUI {
     if (btn.hidden === owned) btn.hidden = !owned;
     if (!owned) return;
     const on = this.gs.dustShop.autoBuy !== false;
-    setText(btn, `🤖 Auto-Buy: ${on ? 'On' : 'Off'}`);
+    setText(btn, t('ds.autobuy', { s: on ? t('ab.on') : t('ab.off') }));
     setAttr(btn, 'aria-pressed', String(on));
     toggle(btn, 'aether', on);
   }
@@ -193,7 +192,7 @@ export class DustShopUI {
     wrap.className = 'ds-hourglass';
     wrap.hidden = true;
     wrap.innerHTML = FF_LONG_WARPS.map(w =>
-      `<button type="button" class="btn btn-sm btn-aether ds-warp" data-warp="${w.id}">⌛ ${w.label}<span class="ff-sub num">${fmt(w.cost)} sand</span></button>`).join('');
+      `<button type="button" class="btn btn-sm btn-aether ds-warp" data-warp="${w.id}">⌛ ${w.label}<span class="ff-sub num">${t('ff.cost', { n: fmt(w.cost) })}</span></button>`).join('');
     warp.after(wrap);
     wrap.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-warp]');
@@ -202,7 +201,7 @@ export class DustShopUI {
       const ff = this.app.fastForwardSystem;
       if (!w || !ff?.useLong(w.id)) return;
       sound.playSpell();
-      rewards.notify({ tier: 'small', kind: 'time-warp', icon: '⌛', title: `${w.label} Time Warp`, color: '#38bdf8', source: btn });
+      rewards.notify({ tier: 'small', kind: 'time-warp', icon: '⌛', title: t('ds.warp_toast', { label: w.label }), color: '#38bdf8', source: btn });
       this.updateHourglass();
     });
     this.el.hourglass = wrap;
@@ -223,10 +222,10 @@ export class DustShopUI {
       const ok = ff.canUseLong(w.id);
       if (btn.disabled === ok) btn.disabled = !ok;
       toggle(btn, 'disabled', !ok);
-      const why = ff.isWarping() ? 'a warp is running'
-        : w.cost > cap ? `needs a ${fmt(w.cost)} sand bank (Chrono Reservoir rank ${Math.ceil((w.cost / 1440 - 1) / 0.5)})`
-          : sand < w.cost ? `you have ${fmt(sand)}` : 'ready';
-      const tip = `Hourglass of Al-Ula: warp ${w.label} ahead for ${fmt(w.cost)} Chrono Sand (${why}). Flat price; does not raise the 30 s warp's price.`;
+      const why = ff.isWarping() ? t('ds.why.running')
+        : w.cost > cap ? t('ds.why.bank', { n: fmt(w.cost), r: Math.ceil((w.cost / 1440 - 1) / 0.5) })
+          : sand < w.cost ? t('ds.why.have', { n: fmt(sand) }) : t('ds.why.ready');
+      const tip = t('ds.hourglass_tip', { label: w.label, n: fmt(w.cost), why });
       if (btn.title !== tip) btn.title = tip;
     }
   }
@@ -253,10 +252,10 @@ export class DustShopUI {
       const rank = getShopRank(gs, d.id);
       const cost = getNextShopCost(gs, d.id);
       let rankText;
-      if (state === 'lock') rankText = `Unlocks at New Well ${d.tier} (you: ${gs.ascensionCount})`;
-      else if (d.maxRank === 1) rankText = state === 'own' ? 'Bought' : '';
-      else if (d.maxRank === Infinity) rankText = `Rank ${rank}`;
-      else rankText = `Rank ${rank} / ${d.maxRank}`;
+      if (state === 'lock') rankText = t('ds.unlocks_at', { n: d.tier, you: gs.ascensionCount });
+      else if (d.maxRank === 1) rankText = state === 'own' ? t('ds.bought') : '';
+      else if (d.maxRank === Infinity) rankText = t('ds.rank', { n: rank });
+      else rankText = t('qm.rank', { n: rank, max: d.maxRank });
       setText(c.rank, rankText);
       const owned = rank > 0;
       if (c.see.hidden === owned) c.see.hidden = !owned;
@@ -271,13 +270,13 @@ export class DustShopUI {
       toggle(btn, 'is-locked', locked);
       setAttr(btn, 'aria-disabled', locked ? 'true' : null);
       let label;
-      if (state === 'lock') label = `🔒 Well ${d.tier} · ${fmt(cost)} Reserves`;
-      else if (state === 'open') label = `Need ${fmt(cost.sub(gs.cosmicDust))} more Reserves`;
-      else label = `Buy · ${fmt(cost)} Reserves`;
+      if (state === 'lock') label = t('ds.btn.lock', { n: d.tier, c: fmt(cost) });
+      else if (state === 'open') label = t('ds.btn.need', { n: fmt(cost.sub(gs.cosmicDust)) });
+      else label = t('ds.btn.buy', { n: fmt(cost) });
       setText(btn, label);
     }
     setText(this.el.balance, fmt(gs.cosmicDust));
-    setText(this.el.affordable, `${affordable} affordable`);
+    setText(this.el.affordable, t('ds.affordable', { n: affordable }));
     const you = [...DUST_SHOP_TIERS].reverse().find(t => gs.ascensionCount >= t);
     for (const m of this.youMarks) {
       const on = m.dataset.you === String(you);
@@ -290,7 +289,7 @@ export class DustShopUI {
       if (chip.hidden !== hide) chip.hidden = hide;
     }
     const later = next === null ? [] : DUST_SHOP_TIERS.filter(t => t > next);
-    const more = later.length ? `More features open at New Well ${later.join(', ')}.` : '';
+    const more = later.length ? t('ds.more', { list: later.join(t('list.sep')) }) : '';
     setText(this.el.more, more);
     if (this.el.more.hidden !== !more) this.el.more.hidden = !more;
   }

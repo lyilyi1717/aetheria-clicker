@@ -1,6 +1,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
+import { localize } from '../i18n/index.js';
 
 export const BUILDING_DEFINITIONS = [
   {
@@ -172,6 +173,7 @@ const GENERATED_TIERS = [
   });
   BUILDING_DEFINITIONS.forEach((def, i) => { def.tier = i + 1; });
 }
+localize(BUILDING_DEFINITIONS, 'building', ['name', 'desc']);
 
 // Tiers open to the player: the 14 base tiers plus one per Transcend, capped at 30
 export function getUnlockedTierCount(gameState) {

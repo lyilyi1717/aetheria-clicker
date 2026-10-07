@@ -1,9 +1,13 @@
 // Player-facing game terms (R36). The one place the names of the main currency, the clicker and
 // the two prestige layers live, next to the item names in names.js. Internal keys (`aether`,
 // `cosmicDust`, `ascend()`, save fields, CSS tokens) keep their old names so saves never break;
-// only the text here changes. A re-theme or translation (Arabic) edits this file only.
+// only the text here changes. A re-theme edits this file; the Arabic terms are AR_TERMS in
+// js/i18n/ar.js (R37), and TERMS below holds whichever matches the active language.
 
-export const TERMS = {
+import { getLang } from '../i18n/lang.js';
+import { AR_TERMS } from '../i18n/ar.js';
+
+export const TERMS_EN = {
   // Main currency (internal key: aether)
   currency: 'Oil',
   currencyIcon: '🛢️',
@@ -32,3 +36,5 @@ export const TERMS = {
   shareTree: 'Share Tree', // spends reset2Currency (internal: shard tree)
   shareBonus: 'Share bonus'
 };
+
+export const TERMS = getLang() === 'ar' ? { ...TERMS_EN, ...AR_TERMS } : TERMS_EN;

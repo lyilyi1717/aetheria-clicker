@@ -10,20 +10,18 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-A coordinating session runs these in separate sessions (one branch and PR each):
-
-- R31 #67 Slower number growth (`claude/r31-slower-growth`; economy rescale, save step v8, 5.0.0)
+- R31 #67 Slower number growth (PR #102, draft): paused for an owner decision between option 1
+  (full economy redesign, its own item) and option 2 (prestige discount: identical pacing, about
+  1e16-1e19 at day 60). Details in the #67 comment.
 
 ## Next up
 
-R0–R30 and R32–R35, R38, R40 are done.
+R0–R30 and R32–R40 are done (R39: local ticker only).
 
-- After R31: R36 Oil re-theme (shares `BuildingSystem.js` with R31; owner names in #72, else
-  the issue's first set), then R37 Arabic (after R36), then R39 news ticker (local part can ship
-  any time; shared part needs R37 and R38).
+- R39 shared part (Supabase `news` table, rate limit, report/hide): waits for the owner to want it.
 - Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
   enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
-  `accepted`, `wontfix`, `duplicate` (PR #97).
+  `accepted`, `wontfix`, `duplicate` (PR #97). Game title after the oil re-theme (question in #23).
 - Chapter 2 of the Chronicle is one more `CHAPTERS` entry (no issue yet).
 
 ## Plan
@@ -228,6 +226,17 @@ R0–R30 and R32–R35, R38, R40 are done.
   in `css/tokens.css`; picker `js/ui/theme.js` (`settings.theme`, mirrored to localStorage
   `AETHERIA_THEME` for the pre-paint script). `test_r35_themes.js` checks contrast and fails on any
   colour literal in `css/*.css`: new CSS must use tokens.
+- R36 #72 Oil re-theme (PR #103, 4.12.0): display strings only (Aether → Oil, Refinery, New Well /
+  Crude Reserves, New Field / Field Shares, Share Tree, Field Seals); `js/data/strings.js` `TERMS`;
+  internal keys unchanged. `test_r36_terms.js` fails on old player-visible names.
+- R39 #75 News ticker, local part (PR #110, 4.13.0): `js/ui/newsTicker.js` + `css/news.css`, entries
+  in `settings.news` (20 x 120 chars), per-entry direction by script, Reduced Motion = static
+  rotation. Shared posting not built; #75 stays open.
+- R37 #73 Arabic (PR #104, 4.14.0): `js/i18n/` (`t()`, `localize()`), `en.js`/`ar.js`, Settings →
+  Language, full RTL with logical CSS, numbers isolated LTR. `test_r37_i18n.js` fails on missing
+  Arabic. AGENTS.md rule 11: new text goes through `t()` with Arabic. Merged on the owner's word;
+  the list of uncertain Arabic terms is in the PR body.
+
 
 - R25 #61 Reward toasts clear the buff bar: `js/buffBar.js` writes its measured height to
   `--buff-bar-h` (token default 36px); `css/rewards.css` offsets the stack by it at 640px+ and caps

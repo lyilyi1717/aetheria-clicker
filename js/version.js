@@ -3,9 +3,41 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.12.0';
+export const VERSION = '4.14.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.14.0',
+    date: '2026-10-07',
+    title: 'Arabic version',
+    changes: [
+      'The game can now be played in Arabic. Pick English or العربية under Language at the top of Settings; the game saves and reloads once in the new language.',
+      'In Arabic the whole layout reads right to left, with an Arabic font a little larger than the English one. Numbers stay in the usual digits and read left to right (1.5M, x3, +12%).',
+      'On your first visit the game starts in Arabic if your browser asks for Arabic, and in English otherwise. Your choice is saved with your settings; existing saves keep English.',
+      'Older changelog entries on this tab stay in English.'
+    ],
+    ar: {
+      title: 'النسخة العربية',
+      changes: [
+        'يمكنك الآن اللعب بالعربية. اختر English أو العربية من «اللغة» أعلى الإعدادات؛ تُحفظ اللعبة وتُعاد مرة واحدة باللغة الجديدة.',
+        'بالعربية تُقرأ الواجهة كلها من اليمين إلى اليسار، بخط عربي أكبر قليلًا من الإنجليزي. وتبقى الأرقام بالأرقام المعتادة وتُقرأ من اليسار إلى اليمين (1.5M و×3 و+12%).',
+        'في أول زيارة تبدأ اللعبة بالعربية إذا كان متصفحك يطلب العربية، وبالإنجليزية فيما عدا ذلك. ويُحفظ اختيارك مع إعداداتك؛ والحفظ القديم يبقى بالإنجليزية.',
+        'إدخالات سجل التحديثات الأقدم في هذا التبويب تبقى بالإنجليزية.'
+      ]
+    }
+  },
+  {
+    version: '4.13.0',
+    date: '2026-10-07',
+    title: 'News strip',
+    changes: [
+      'A thin news strip now runs under the header: game tips, flavour headlines from the realm and what is new in this version.',
+      'Write your own headlines in Settings → News (up to 120 characters, up to 20 entries) and delete them there any time. They show up in the strip between the built-in news. For now they stay in your browser; other players do not see them.',
+      'English headlines scroll right to left; Arabic headlines scroll left to right, so each reads naturally.',
+      'Hover over the strip or tap it to pause it. With Reduce Motion on, the strip stands still and shows the next headline every 6 seconds.',
+      'Don\'t want it? Untick "Show the news strip" in Settings → News.'
+    ]
+  },
   {
     version: '4.12.0',
     date: '2026-10-07',

@@ -5,6 +5,7 @@ import { rewards } from './rewards.js';
 import {
   checkMilestones, getNextStars, guildTitle, onTalentGrant, ensureRecords, SOURCE_LABELS
 } from '../systems/TalentSources.js';
+import { t } from '../i18n/index.js';
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 
@@ -27,7 +28,7 @@ export class TalentSourcesPanel {
     onTalentGrant(({ amount, reason }) => {
       rewards.notify({
         tier: 'medium', kind: 'talent-point', icon: '✨', color: '#ec4899',
-        title: reason || 'Talent Point', amount, unit: amount > 1 ? 'Talent Points' : 'Talent Point',
+        title: reason || t('tp.one'), amount, unit: amount > 1 ? t('tp.many') : t('tp.one'),
         fmt: (n) => String(n), source: 'tp-avail-count'
       });
     });
@@ -50,11 +51,11 @@ export class TalentSourcesPanel {
     box.className = 'card card-flat';
     box.style.margin = 'var(--sp-3) 0 var(--sp-4)';
     box.innerHTML = `
-      <div class="eyebrow">Where points come from</div>
+      <div class="eyebrow">${t('tp.where')}</div>
       <div class="ts-earned"><span class="chip dust num" id="ts-e-stars"></span><span class="chip dust num" id="ts-e-record"></span><span class="chip dust num" id="ts-e-guild"></span></div>
-      <div class="eyebrow" style="margin-bottom: var(--sp-2)">Next stars</div>
+      <div class="eyebrow" style="margin-bottom: var(--sp-2)">${t('tp.next')}</div>
       <div id="ts-next"></div>
-      <div class="ts-note">Points come from Milestone Stars (first New Well, depth, Tower zones, first harvests, Catalysts, New Field), Record New Well (each 10x of your best single-run Reserves) and Guild Rank (contracts claimed). Drilling a New Well alone pays nothing.</div>`;
+      <div class="ts-note">${t('tp.note')}</div>`;
     header.insertAdjacentElement('afterend', box);
     this.el = {
       stars: box.querySelector('#ts-e-stars'), record: box.querySelector('#ts-e-record'),
@@ -75,15 +76,15 @@ export class TalentSourcesPanel {
     const gs = this.gs;
     const rec = ensureRecords(gs);
     const e = rec.earned;
-    setText(this.el.stars, `${SOURCE_LABELS.stars}: ${e.stars} TP`);
-    setText(this.el.record, `${SOURCE_LABELS.record}: ${e.record} TP`);
-    setText(this.el.guild, `${SOURCE_LABELS.guild} ${rec.guildRank} (${guildTitle(rec.guildRank)}): ${e.guild} TP`);
+    setText(this.el.stars, t('tp.earned', { src: SOURCE_LABELS.stars, n: e.stars }));
+    setText(this.el.record, t('tp.earned', { src: SOURCE_LABELS.record, n: e.record }));
+    setText(this.el.guild, t('tp.earned', { src: `${SOURCE_LABELS.guild} ${rec.guildRank} (${guildTitle(rec.guildRank)})`, n: e.guild }));
     const next = getNextStars(gs, 3, this.app.prestigeSystem?.getTranscendGate?.());
     this.rows.forEach((r, i) => {
       const n = next[i];
       r.row.style.display = n ? '' : 'none';
       if (!n) return;
-      setText(r.l, `${n.label} (+${n.tp} TP)`);
+      setText(r.l, t('tp.row', { label: n.label, n: n.tp }));
       setText(r.t, n.text);
       const w = `${(n.progress * 100).toFixed(1)}%`;
       if (r.f.style.width !== w) r.f.style.width = w;

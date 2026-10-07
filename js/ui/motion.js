@@ -3,6 +3,7 @@
 // data-motion="reduced" or data-motion="full"; CSS (tokens.css, animations.css, style.css,
 // rewards.css) and the particle engine read that attribute, so nothing else needs the setting.
 
+import { t } from '../i18n/index.js';
 export const MOTION_MODES = ['auto', 'on', 'off'];
 export const DEFAULT_MOTION_MODE = 'auto';
 const OS_QUERY = '(prefers-reduced-motion: reduce)';
@@ -54,9 +55,9 @@ export function applyMotionSetting(settings) {
 }
 
 const MODE_LABELS = {
-  auto: 'Match my device',
-  on: 'On: less motion',
-  off: 'Off: full motion'
+  auto: t('motion.auto'),
+  on: t('motion.on'),
+  off: t('motion.off')
 };
 
 /** Settings radio group (one .settings-option per mode). `onChange` runs after the attribute updates. */
@@ -68,7 +69,7 @@ export function renderMotionSettings(container, settings, onChange) {
     <label class="settings-option">
       <input type="radio" name="reduceMotion" value="${m}" ${mode === m ? 'checked' : ''}>
       <span>${MODE_LABELS[m]}</span>
-      ${m === 'auto' ? `<span class="settings-sample">device: ${device}</span>` : ''}
+      ${m === 'auto' ? `<span class="settings-sample">${t('motion.device', { v: t(`motion.device.${device}`) })}</span>` : ''}
     </label>
   `).join('');
   container.addEventListener('change', (e) => {

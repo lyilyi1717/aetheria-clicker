@@ -114,6 +114,10 @@ Allowed, with these limits:
 9. Don't put AI model names in commits, code, or docs (agent config under `.claude/` is the
    one exception).
 10. **Every player-visible change gets a changelog entry.** See "Version and changelog" below.
+11. **Text goes through `t()` and has Arabic.** The game also runs in Arabic, right to left. New
+    player-facing text is a key in `js/i18n/en.js` with its Arabic in `js/i18n/ar.js` (ask in the
+    PR for the owner to review new Arabic); use logical CSS properties. See
+    `docs/ui-style-guide.md` §7.1. `test_r37_i18n.js` fails on missing Arabic.
 
 ## Version and changelog
 

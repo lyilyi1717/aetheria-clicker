@@ -5,10 +5,11 @@
 // It is also mirrored to its own localStorage key so the inline script in index.html can set
 // data-theme before the CSS paints (no flash of the dark theme on a Sand reload).
 
+import { t } from '../i18n/index.js';
 export const THEMES = [
-  { id: 'night', name: 'Night', desc: 'The emerald night: dark, neon currencies.', swatch: ['#050a07', '#0f1d16', '#34d399', '#fbbf24'] },
-  { id: 'sand', name: 'Sand', desc: 'Light and warm: parchment, deep brown text, gold.', swatch: ['#efe4cf', '#f8f0e0', '#2d1f12', '#8a5a00'] },
-  { id: 'dusk', name: 'Desert Dusk', desc: 'Plum sky after sunset, orange glow.', swatch: ['#150d1f', '#22162f', '#fb923c', '#fbbf24'] }
+  { id: 'night', name: t('theme.night'), desc: t('theme.night.desc'), swatch: ['#050a07', '#0f1d16', '#34d399', '#fbbf24'] },
+  { id: 'sand', name: t('theme.sand'), desc: t('theme.sand.desc'), swatch: ['#efe4cf', '#f8f0e0', '#2d1f12', '#8a5a00'] },
+  { id: 'dusk', name: t('theme.dusk'), desc: t('theme.dusk.desc'), swatch: ['#150d1f', '#22162f', '#fb923c', '#fbbf24'] }
 ];
 export const THEME_IDS = THEMES.map(t => t.id);
 export const DEFAULT_THEME = 'night';

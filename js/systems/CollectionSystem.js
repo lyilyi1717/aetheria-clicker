@@ -16,11 +16,12 @@ import { STRATA_RELICS } from './MiningSystem.js';
 import { SEED_TYPES, HYBRIDS } from './GardenSystem.js';
 import { HYBRID_RECIPES } from './AlchemySystem.js';
 import { ACHIEVEMENTS } from './AchievementSystem.js';
+import { t } from '../i18n/index.js';
 
 export const SET_BONUS = 0.01;
 export const GENERATOR_MILESTONES = [100, 500, 1000];
 
-const FLAVOUR_LOCKED = 'Own 100 to read its entry.';
+const FLAVOUR_LOCKED = t('coll.flavour_locked');
 
 function flag(obj, key) {
   return !!obj && typeof obj === 'object' && !!obj[key];
@@ -29,50 +30,50 @@ function flag(obj, key) {
 // Collections built from saved state. entries(gs) -> [{ id, name, icon, have, hint }]
 export const COLLECTIONS = [
   {
-    id: 'wardens', name: 'Warden Trophies', icon: '🏆', where: 'Void Tower',
-    blurb: 'Defeat each Tower Warden (every 250 floors).',
+    id: 'wardens', name: t('coll.wardens'), icon: '🏆', where: t('nav.void_tower'),
+    blurb: t('coll.wardens_blurb'),
     entries: gs => WARDEN_NAMES.map((name, i) => ({
-      id: `warden_${i + 1}`, name, icon: '🏆', hint: `Floor ${(i + 1) * WARDEN_INTERVAL}`,
+      id: `warden_${i + 1}`, name, icon: '🏆', hint: t('coll.floor', { n: (i + 1) * WARDEN_INTERVAL }),
       have: flag(gs.hero?.wardens?.defeated, (i + 1) * WARDEN_INTERVAL)
     }))
   },
   {
-    id: 'relics', name: 'Strata Relics', icon: '🏺', where: 'Excavation',
-    blurb: 'One relic hides in each stratum of the dig.',
+    id: 'relics', name: t('coll.relics'), icon: '🏺', where: t('nav.excavation'),
+    blurb: t('coll.relics_blurb'),
     entries: gs => STRATA_RELICS.map((r, i) => ({
-      id: `relic_${r.id}`, name: r.name, icon: r.icon, hint: `Stratum ${i + 1}`,
+      id: `relic_${r.id}`, name: r.name, icon: r.icon, hint: t('coll.stratum', { n: i + 1 }),
       have: flag(gs.miningGrid?.relics, r.id)
     }))
   },
   {
-    id: 'golden', name: 'Golden Herbarium', icon: '🌼', where: 'Garden',
-    blurb: 'A golden mutation of every seed (1% of harvests).',
+    id: 'golden', name: t('coll.golden'), icon: '🌼', where: t('nav.garden'),
+    blurb: t('coll.golden_blurb'),
     entries: gs => Object.values(SEED_TYPES).map(s => ({
-      id: `golden_${s.id}`, name: `Golden ${s.name}`, icon: s.icon, hint: 'Harvest it golden',
+      id: `golden_${s.id}`, name: t('coll.golden_name', { name: s.name }), icon: s.icon, hint: t('coll.golden_hint'),
       have: (Number(gs.garden?.herbarium?.golden?.[s.id]) || 0) > 0
     }))
   },
   {
-    id: 'hybrids', name: 'Hybrid Herbarium', icon: '🧬', where: 'Garden',
-    blurb: 'Cross-breed every hybrid essence.',
+    id: 'hybrids', name: t('coll.hybrids'), icon: '🧬', where: t('nav.garden'),
+    blurb: t('coll.hybrids_blurb'),
     entries: gs => Object.values(HYBRIDS).map(h => ({
-      id: `hybrid_${h.id}`, name: h.name, icon: h.icon, hint: 'Cross two adjacent plants',
+      id: `hybrid_${h.id}`, name: h.name, icon: h.icon, hint: t('coll.hybrids_hint'),
       have: (Number(gs.garden?.herbarium?.hybrids?.[h.id]) || 0) > 0
     }))
   },
   {
-    id: 'recipes', name: 'Hybrid Recipes', icon: '📖', where: 'Alchemy',
-    blurb: 'Discover every hybrid recipe in the Grimoire.',
+    id: 'recipes', name: t('coll.recipes'), icon: '📖', where: t('nav.alchemy'),
+    blurb: t('coll.recipes_blurb'),
     entries: gs => HYBRID_RECIPES.map(r => ({
-      id: `recipe_${r.id}`, name: r.name, icon: '🧪', hint: 'Hold its ingredients once',
+      id: `recipe_${r.id}`, name: r.name, icon: '🧪', hint: t('coll.recipes_hint'),
       have: flag(gs.alchemy?.discovered, r.id)
     }))
   },
   ...GENERATOR_MILESTONES.map(n => ({
-    id: `generators_${n}`, name: `Generators x${n}`, icon: '🏭', where: 'Generator Codex',
-    blurb: `Own ${n.toLocaleString('en-US')} of every generator tier at once (best, kept through resets).`,
+    id: `generators_${n}`, name: t('coll.gens', { n }), icon: '🏭', where: t('coll.gens_where'),
+    blurb: t('coll.gens_blurb', { n: n.toLocaleString('en-US') }),
     entries: gs => BUILDING_DEFINITIONS.map(d => ({
-      id: `gen_${d.id}_${n}`, name: d.name, icon: d.icon, hint: `Tier ${d.tier}`,
+      id: `gen_${d.id}_${n}`, name: d.name, icon: d.icon, hint: t('coll.tier', { n: d.tier }),
       have: (Number(gs.codex?.genBest?.[d.id]) || 0) >= n, generator: d.id, milestone: n
     }))
   }))
@@ -199,14 +200,14 @@ export class CollectionSystem {
     for (const e of announce) {
       rewards.notify({
         tier: 'small', kind: 'codex-generator', icon: e.icon, color: '#a78bfa',
-        title: `Codex: ${e.name} x${e.milestone}`, batchTitle: '{n} Generator Codex entries'
+        title: t('coll.codex_toast', { name: e.name, n: e.milestone }), batchTitle: t('coll.codex_batch')
       });
     }
     for (const c of sets) {
       rewards.notify({
         tier: 'big', kind: 'codex-set', icon: c.icon, color: '#fbbf24',
-        title: `Collection complete: ${c.name}`, batchTitle: '{n} collections complete',
-        detail: `+${SET_BONUS * 100}% Oil`
+        title: t('coll.complete', { name: c.name }), batchTitle: t('coll.complete_batch'),
+        detail: t('coll.complete_detail', { n: SET_BONUS * 100 })
       });
     }
   }

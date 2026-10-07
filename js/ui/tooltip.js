@@ -4,6 +4,7 @@
 // Tip text is trusted game markup (a <strong> name and plain text), read from data-tip first,
 // then from title (moved to data-original-title on hover so the browser's own tip stays away).
 
+import { t } from '../i18n/index.js';
 /** Elements that open their tooltip as a bottom sheet on tap. */
 export const TAP_TIP_SELECTOR = '.tab-bonus-chip, .gear, .bb-chip';
 
@@ -108,11 +109,11 @@ function buildSheet() {
   panel.className = 'tip-sheet';
   panel.setAttribute('role', 'dialog');
   panel.setAttribute('aria-modal', 'true');
-  panel.setAttribute('aria-label', 'Details');
+  panel.setAttribute('aria-label', t('tip.details'));
   panel.hidden = true;
   panel.innerHTML = '<div class="handle" aria-hidden="true"></div><div class="tip-sheet-body"></div>'
     + '<div class="tip-sheet-actions"><button type="button" class="btn btn-primary tip-sheet-go" hidden></button>'
-    + '<button type="button" class="btn tip-sheet-close">Close</button></div>';
+    + `<button type="button" class="btn tip-sheet-close">${t('tip.close')}</button></div>`;
   document.body.append(scrim, panel);
   scrim.addEventListener('click', closeTipSheet);
   panel.querySelector('.tip-sheet-close').addEventListener('click', closeTipSheet);
@@ -133,7 +134,7 @@ export function openTipSheet(html, go = null) {
   sheet.go.hidden = !showGo;
   if (showGo) {
     sheet.go.dataset.tab = go.tab;
-    sheet.go.textContent = `Go to ${go.label || 'tab'}`;
+    sheet.go.textContent = t('tip.go', { label: go.label || t('tip.tab') });
   }
   sheet.scrim.hidden = false;
   sheet.panel.hidden = false;

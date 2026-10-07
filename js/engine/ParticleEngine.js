@@ -119,7 +119,7 @@ export class ParticleEngine {
         this.ctx.save();
         this.ctx.globalAlpha = Math.max(0, t.alpha);
         this.ctx.fillStyle = t.color;
-        this.ctx.font = t.isCrit ? `bold ${t.size}px 'Cinzel', 'Segoe UI', sans-serif` : `${t.size}px 'Segoe UI', sans-serif`;
+        this.ctx.font = t.isCrit ? `bold ${t.size}px 'Cinzel', 'Noto Kufi Arabic', 'Segoe UI', sans-serif` : `${t.size}px 'Segoe UI', 'Cairo', sans-serif`;
         this.ctx.textAlign = 'center';
         this.ctx.shadowColor = themeColor(t.isCrit ? '#f59e0b' : '#38bdf8');
         this.ctx.shadowBlur = t.isCrit ? 12 : 6;

@@ -10,6 +10,7 @@
 // This module has no audio/DOM imports so GameState (and node tests) can load it on its own.
 // Notices go out through `system.notify`, which js/ui/calendar.js points at rewards.notify.
 import { bigLog10 } from './TalentSources.js';
+import { t, localize } from '../i18n/index.js';
 
 const DAY_MS = 86400000;
 
@@ -64,16 +65,16 @@ export const SEAL_SHARD_BONUS_MAX = 3;        // +1 shard per lit Seal at each T
 // `max`. With fewer than RATE_MIN_SAMPLES days seen it asks for `start`.
 const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 export const LEDGER_GOALS = [
-  { id: 'bosses', tab: 'combat', icon: '💀', label: t => `Defeat ${t} Tower bosses`, legacy: 2, start: 5, stat: gs => n(gs.stats?.totalBossesSlain), ok: gs => n(gs.hero?.maxFloor) >= 10 },
-  { id: 'fiends', tab: 'combat', icon: '⚔️', label: t => `Slay ${t} Tower fiends`, legacy: 60, start: 200, stat: gs => n(gs.stats?.totalMonstersSlain), ok: gs => true },
-  { id: 'depths', tab: 'mining', icon: '⛏️', label: t => `Descend ${t} depths`, legacy: 3, start: 6, max: 25, stat: gs => n(gs.miningGrid?.maxDepth), ok: gs => n(gs.miningGrid?.maxDepth) >= 1 && n(gs.miningGrid?.maxDepth) < 150 },
-  { id: 'blocks', tab: 'mining', icon: '🧱', label: t => `Excavate ${t} blocks`, legacy: 150, start: 400, stat: gs => n(gs.stats?.totalBlocksMined), ok: gs => !!gs.miningGrid },
-  { id: 'harvest', tab: 'garden', icon: '🌱', label: t => `Harvest ${t} plants`, legacy: 12, start: 24, stat: gs => n(gs.stats?.totalPlantsHarvested), ok: gs => !!gs.garden },
-  { id: 'brew', tab: 'alchemy', icon: '🧪', label: t => `Brew ${t} potions or Catalysts`, legacy: 5, start: 10, stat: gs => n(gs.stats?.totalPotionsBrewed), ok: gs => !!gs.alchemy },
-  { id: 'spells', tab: 'spells', icon: '✨', label: t => `Cast ${t} spells`, legacy: 15, start: 40, stat: gs => n(gs.stats?.totalSpellsCast), ok: gs => n(gs.stats?.totalSpellsCast) > 0 || n(gs.ascensionCount) > 0 },
-  { id: 'contracts', tab: 'bounties', icon: '📜', label: t => `Complete ${t} contracts`, legacy: 5, start: 12, stat: gs => n(gs.stats?.totalBountiesCompleted), ok: gs => true },
-  { id: 'ascend', tab: 'prestige', icon: '🚀', label: t => `Drill a New Well ${t} times`, legacy: 3, start: 6, stat: gs => n(gs.ascensionCount), ok: gs => n(gs.ascensionCount) >= 1 },
-  { id: 'clicks', tab: 'monolith', icon: '🏭', label: t => `Tap the Refinery ${t} times`, legacy: 300, start: 1200, stat: gs => n(gs.totalClicks), ok: gs => true }
+  { id: 'bosses', tab: 'combat', icon: '💀', label: v => t('ledger.goal.bosses', { n: v }), legacy: 2, start: 5, stat: gs => n(gs.stats?.totalBossesSlain), ok: gs => n(gs.hero?.maxFloor) >= 10 },
+  { id: 'fiends', tab: 'combat', icon: '⚔️', label: v => t('ledger.goal.fiends', { n: v }), legacy: 60, start: 200, stat: gs => n(gs.stats?.totalMonstersSlain), ok: gs => true },
+  { id: 'depths', tab: 'mining', icon: '⛏️', label: v => t('ledger.goal.depths', { n: v }), legacy: 3, start: 6, max: 25, stat: gs => n(gs.miningGrid?.maxDepth), ok: gs => n(gs.miningGrid?.maxDepth) >= 1 && n(gs.miningGrid?.maxDepth) < 150 },
+  { id: 'blocks', tab: 'mining', icon: '🧱', label: v => t('ledger.goal.blocks', { n: v }), legacy: 150, start: 400, stat: gs => n(gs.stats?.totalBlocksMined), ok: gs => !!gs.miningGrid },
+  { id: 'harvest', tab: 'garden', icon: '🌱', label: v => t('ledger.goal.harvest', { n: v }), legacy: 12, start: 24, stat: gs => n(gs.stats?.totalPlantsHarvested), ok: gs => !!gs.garden },
+  { id: 'brew', tab: 'alchemy', icon: '🧪', label: v => t('ledger.goal.brew', { n: v }), legacy: 5, start: 10, stat: gs => n(gs.stats?.totalPotionsBrewed), ok: gs => !!gs.alchemy },
+  { id: 'spells', tab: 'spells', icon: '✨', label: v => t('ledger.goal.spells', { n: v }), legacy: 15, start: 40, stat: gs => n(gs.stats?.totalSpellsCast), ok: gs => n(gs.stats?.totalSpellsCast) > 0 || n(gs.ascensionCount) > 0 },
+  { id: 'contracts', tab: 'bounties', icon: '📜', label: v => t('ledger.goal.contracts', { n: v }), legacy: 5, start: 12, stat: gs => n(gs.stats?.totalBountiesCompleted), ok: gs => true },
+  { id: 'ascend', tab: 'prestige', icon: '🚀', label: v => t('ledger.goal.ascend', { n: v }), legacy: 3, start: 6, stat: gs => n(gs.ascensionCount), ok: gs => n(gs.ascensionCount) >= 1 },
+  { id: 'clicks', tab: 'monolith', icon: '🏭', label: v => t('ledger.goal.clicks', { n: v }), legacy: 300, start: 1200, stat: gs => n(gs.totalClicks), ok: gs => true }
 ];
 const GOAL_BY_ID = new Map(LEDGER_GOALS.map(g => [g.id, g]));
 const fmtTarget = (t) => t.toLocaleString('en-US');
@@ -110,6 +111,7 @@ export const SEALS = [
   { id: 'stars', icon: '✨', name: 'Stars', short: '1e8 Reserves', desc: 'Pay 1e8 Crude Reserves in one New Well', goal: 8, value: gs => bigLog10(gs.records?.bestRunDust) },
   { id: 'memory', icon: '📖', name: 'Memory', short: '40% codex', desc: 'Fill 40% of the Codex', goal: 40, value: gs => n(gs.collectionSystem?.getCodexPercent?.()) }
 ];
+localize(SEALS, 'seal', ['name', 'short', 'desc']);
 
 // Souq Rotation: one gentle modifier a week, always positive, cycling so each one returns
 export const SOUQ_ROTATION = [
@@ -118,6 +120,7 @@ export const SOUQ_ROTATION = [
   { id: 'hourglass', icon: '⏳', name: 'Hourglass Week', desc: 'Chrono Sand gained ×1.5.' },
   { id: 'rosewater', icon: '🌹', name: 'Rosewater Week', desc: 'Every Garden plant grows ×1.25.' }
 ];
+localize(SOUQ_ROTATION, 'souq', ['name', 'desc']);
 
 // ---- saved state (additive; saves without it get defaults) ------------------------------------
 
@@ -278,8 +281,8 @@ export class CalendarSystem {
     this.giveCoffee();
     this.notify({
       tier: 'medium', kind: 'dallah', icon: '☕', color: '#e7c38a',
-      title: days > 1 ? `Dallah poured: ${days} days` : 'Dallah poured',
-      detail: `+${sand} Chrono Sand${contracts ? ` · +${contracts} contract${contracts > 1 ? 's' : ''}` : ''} · +25% Oil for 1 h`
+      title: days > 1 ? t('dallah.poured_days', { n: days }) : t('dallah.poured'),
+      detail: t('dallah.poured_sand', { n: sand }) + (contracts ? ' · ' + t(contracts > 1 ? 'dallah.poured_contracts' : 'dallah.poured_contract', { n: contracts }) : '') + ' · ' + t('dallah.poured_coffee')
     });
     return { days, sand, contracts };
   }
@@ -294,7 +297,7 @@ export class CalendarSystem {
       return existing;
     }
     const buff = {
-      id: COFFEE_BUFF_ID, name: 'Fresh Coffee', type: 'aether_mult', value: DALLAH_COFFEE_MULT,
+      id: COFFEE_BUFF_ID, name: t('dallah.coffee'), type: 'aether_mult', value: DALLAH_COFFEE_MULT,
       duration: DALLAH_COFFEE_SECONDS, maxDuration: DALLAH_COFFEE_SECONDS, fixed: true
     };
     buffs.push(buff);
@@ -392,7 +395,7 @@ export class CalendarSystem {
       gs.guildSeals = (gs.guildSeals || 0) + seals;
       this.notify({
         tier: 'medium', kind: 'ledger-goal', icon: def.icon, color: '#fbbf24',
-        title: 'Ledger goal done', batchTitle: '{n} Ledger goals done', detail: `${def.label(fmtTarget(target))} · +${seals} Guild Seals`
+        title: t('ledger.goal_done'), batchTitle: t('ledger.goal_done_batch'), detail: `${def.label(fmtTarget(target))} · ${t('ledger.seals', { n: seals })}`
       });
     }
     const number = this.getWeekNumber();
@@ -400,7 +403,7 @@ export class CalendarSystem {
       w.stamps.push(number);
       this.notify({
         tier: 'medium', kind: 'ledger-stamp', icon: '🖋️', color: '#fbbf24',
-        title: `Ledger stamp: Week ${number}`, detail: 'All three goals done'
+        title: t('ledger.stamp', { n: number }), detail: t('ledger.stamp_detail')
       });
     }
   }
@@ -478,8 +481,8 @@ export class CalendarSystem {
         const bonus = this.getSealShardBonus();
         this.notify({
           tier: 'medium', kind: 'seal-lit', icon: seal.icon, color: '#fbbf24',
-          title: `Seal of the ${seal.name} lit`, batchTitle: '{n} Seals lit',
-          detail: `${count} / ${SEALS.length} lit · +${bonus} Share${bonus === 1 ? '' : 's'} at each New Field`
+          title: t('seal.lit', { name: seal.name }), batchTitle: t('seal.lit_batch'),
+          detail: t(bonus === 1 ? 'seal.lit_detail1' : 'seal.lit_detail', { count, total: SEALS.length, n: bonus })
         });
       }
     }

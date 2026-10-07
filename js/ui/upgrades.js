@@ -10,6 +10,7 @@ import {
   SYNERGY_MIN_SOURCE, getUpgradeDefinition, getClickUpgradeMult
 } from '../systems/UpgradeSystem.js';
 import { BUILDING_DEFINITIONS } from '../systems/BuildingSystem.js';
+import { t, bidi } from '../i18n/index.js';
 
 const MAX_TILES = 8;      // style guide 5.2: never more than ~8 equal-weight items without "N more"
 const UPCOMING_TILES = 3; // locked-by-requirement tiles shown after the available ones
@@ -39,12 +40,12 @@ export class UpgradeShopUI {
     this.root = root;
     root.innerHTML = `
       <div class="card-head upg-head">
-        <h3>Upgrades <span class="upg-sub num" id="upg-sub"></span></h3>
-        <button type="button" class="btn btn-sm" id="upg-buy-all">Buy all</button>
+        <h3>${t('upgui.title')} <span class="upg-sub num" id="upg-sub"></span></h3>
+        <button type="button" class="btn btn-sm" id="upg-buy-all">${t('upgui.buy_all')}</button>
       </div>
-      <div class="upg-row" id="upg-row" role="list" aria-label="Upgrades"></div>
+      <div class="upg-row" id="upg-row" role="list" aria-label="${t('upgui.title')}"></div>
       <div class="upcard" id="upg-detail" aria-live="polite"></div>
-      <div class="upg-empty" id="upg-empty" hidden>Buy a generator to see its first upgrade.</div>
+      <div class="upg-empty" id="upg-empty" hidden>${t('upgui.empty')}</div>
     `;
     this.row = root.querySelector('#upg-row');
     this.detail = root.querySelector('#upg-detail');
@@ -79,7 +80,7 @@ export class UpgradeShopUI {
     if (!u || !this.us.buy(id)) return;
     rewards.notify({
       tier: 'small', kind: 'upgrade', icon: u.icon,
-      title: `Upgrade: ${u.name}`, batchTitle: 'Upgrades bought ×{n}',
+      title: t('upgui.toast', { name: u.name }), batchTitle: t('upgui.toast_batch'),
       detail: u.desc, source: u.building ? `b-card-${u.building}` : 'monolith-click-power'
     });
     this.afterBuy();
@@ -90,7 +91,7 @@ export class UpgradeShopUI {
     if (n <= 0) return;
     rewards.notify({
       tier: 'small', kind: 'upgrade-all', icon: '⬆️',
-      title: n === 1 ? '1 upgrade bought' : `${n} upgrades bought`
+      title: t(n === 1 ? 'upgui.bought1' : 'upgui.bought', { n })
     });
     this.afterBuy();
   }
@@ -117,8 +118,8 @@ export class UpgradeShopUI {
     const shown = this.showAll ? list : list.slice(0, MAX_TILES);
     const more = list.length - shown.length;
 
-    setText(this.sub, `${affordable} affordable · ${this.us.getBoughtCount()} owned`);
-    const buyAllLabel = affordable > 0 ? `Buy all (${affordable})` : 'Buy all';
+    setText(this.sub, t('upgui.sub', { a: affordable, b: this.us.getBoughtCount() }));
+    const buyAllLabel = affordable > 0 ? t('upgui.buy_all_n', { n: affordable }) : t('upgui.buy_all');
     setText(this.buyAllBtn, buyAllLabel);
     const disabled = affordable === 0;
     if (this.buyAllBtn.classList.contains('is-locked') !== disabled) {
@@ -137,7 +138,7 @@ export class UpgradeShopUI {
           <span class="upg-ic" aria-hidden="true">${u.icon}</span><span class="p"></span><span class="upg-mark" aria-hidden="true"></span>
         </button>`).join('') +
         (more > 0 || this.showAll && list.length > MAX_TILES
-          ? `<button type="button" class="upg upg-more" data-upg-more="1">${this.showAll ? 'Less' : `+${more}`}</button>`
+          ? `<button type="button" class="upg upg-more" data-upg-more="1">${this.showAll ? t('upgui.less') : bidi(`+${more}`)}</button>`
           : '');
     }
 
@@ -148,7 +149,7 @@ export class UpgradeShopUI {
       tile.classList.toggle('lock', state === 'lock');
       tile.classList.toggle('is-selected', u.id === this.selected);
       tile.setAttribute('aria-pressed', String(u.id === this.selected));
-      const label = `${u.name}, ${state === 'aff' ? 'affordable' : state === 'lock' ? 'locked' : 'not enough Oil'}`;
+      const label = `${u.name}${t('list.sep')}${state === 'aff' ? t('upgui.aff') : state === 'lock' ? t('upgui.locked') : t('upgui.not_enough')}`;
       if (tile.getAttribute('aria-label') !== label) tile.setAttribute('aria-label', label);
       const p = tile.querySelector('.p');
       const w = state === 'cost' ? `${Math.floor(this.progress(u) * 100)}%` : state === 'aff' ? '100%' : '0%';
@@ -176,13 +177,13 @@ export class UpgradeShopUI {
     const owned = (id) => this.gs.buildings?.[id]?.count || 0;
     if (u.kind === 'tier') {
       const name = BUILDING_NAME.get(u.building);
-      return `Tier upgrade ${u.level}/${TIER_UPGRADE_THRESHOLDS.length} · needs ${u.requires} ${name} (have ${owned(u.building)}) · now ×${this.fmtMult(this.gs.getTierUpgradeMult(u.building))}`;
+      return t('upgui.req.tier', { a: u.level, b: TIER_UPGRADE_THRESHOLDS.length, n: u.requires, name, have: owned(u.building), x: this.fmtMult(this.gs.getTierUpgradeMult(u.building)) });
     }
     if (u.kind === 'click') {
-      return `Click upgrade ${u.level}/${CLICK_UPGRADE_COUNT} · base click now ×${getClickUpgradeMult(this.gs)}`;
+      return t('upgui.req.click', { a: u.level, b: CLICK_UPGRADE_COUNT, x: getClickUpgradeMult(this.gs) });
     }
     const n = SYNERGY_IDS.indexOf(u.id) + 1;
-    return `Synergy ${n}/${SYNERGY_IDS.length} · needs ${SYNERGY_MIN_TARGET} ${BUILDING_NAME.get(u.building)} (have ${owned(u.building)}) and ${SYNERGY_MIN_SOURCE} ${BUILDING_NAME.get(u.source)} (have ${owned(u.source)})`;
+    return t('upgui.req.syn', { a: n, b: SYNERGY_IDS.length, n1: SYNERGY_MIN_TARGET, name1: BUILDING_NAME.get(u.building), h1: owned(u.building), n2: SYNERGY_MIN_SOURCE, name2: BUILDING_NAME.get(u.source), h2: owned(u.source) });
   }
 
   fmtMult(m) {
@@ -192,12 +193,12 @@ export class UpgradeShopUI {
   // What is still missing before a locked upgrade appears, e.g. "12 to go"
   toGo(u) {
     const owned = (id) => this.gs.buildings?.[id]?.count || 0;
-    if (u.kind === 'tier') return `${Math.max(0, u.requires - owned(u.building))} to go`;
+    if (u.kind === 'tier') return t('upgui.to_go', { n: Math.max(0, u.requires - owned(u.building)) });
     if (u.kind === 'synergy') {
       const n = Math.max(0, SYNERGY_MIN_TARGET - owned(u.building)) + Math.max(0, SYNERGY_MIN_SOURCE - owned(u.source));
-      return `${n} to go`;
+      return t('upgui.to_go', { n });
     }
-    return 'buy the previous one';
+    return t('upgui.prev');
   }
 
   updateDetail(u, force) {
@@ -207,10 +208,10 @@ export class UpgradeShopUI {
     const discounted = cost.lt(u.cost);
     let action;
     if (state === 'aff') {
-      action = `<button type="button" class="btn btn-sm btn-primary num" data-upg-buy="${u.id}">Buy · ${fmt(cost)}</button>`;
+      action = `<button type="button" class="btn btn-sm btn-primary num" data-upg-buy="${u.id}">${t('upgui.buy', { n: fmt(cost) })}</button>`;
     } else if (state === 'cost') {
       const missing = cost.sub(this.gs.aether);
-      action = `<button type="button" class="btn btn-sm is-locked num" aria-disabled="true" title="Costs ${fmt(cost)} Oil">need ${fmt(missing)}</button>`;
+      action = `<button type="button" class="btn btn-sm is-locked num" aria-disabled="true" title="${t('upgui.costs', { n: fmt(cost) })}">${t('upgui.need', { n: fmt(missing) })}</button>`;
     } else {
       action = `<span class="upg-togo num">${this.toGo(u)}</span>`;
     }
@@ -218,7 +219,7 @@ export class UpgradeShopUI {
       <div class="icon-tile" aria-hidden="true">${u.icon}</div>
       <div class="upcard-text">
         <div class="n">${esc(u.name)}</div>
-        <div class="e">${esc(u.desc)} · <span class="num">${fmt(cost)}</span> Oil${discounted ? ' (Deep Blueprint ÷10)' : ''}</div>
+        <div class="e">${esc(u.desc)} · ${t('upgui.cost_line', { n: `<span class="num">${fmt(cost)}</span>` })}${discounted ? ' ' + t('upgui.discount') : ''}</div>
         <div class="req">${esc(this.requirementLine(u))}</div>
       </div>
       ${action}`;

@@ -8,6 +8,7 @@ import { sound } from '../engine/AudioEngine.js';
 import {
   CalendarSystem, SEALS, SEAL_SHARD_BONUS_MAX, DALLAH_BANK_MAX, DALLAH_SAND, LEDGER_WEEK_DAYS
 } from '../systems/CalendarSystem.js';
+import { t } from '../i18n/index.js';
 
 const TICK_SECONDS = 1;
 const STAMP_CHIPS = 8;     // most recent weeks shown as stamps
@@ -20,8 +21,8 @@ export function fmtRotation(ms) {
   const d = Math.floor(s / 86400);
   const h = Math.floor((s % 86400) / 3600);
   const m = Math.floor((s % 3600) / 60);
-  if (d > 0) return `${d} d ${h} h`;
-  return h > 0 ? `${h} h ${m} min` : `${m} min`;
+  if (d > 0) return t('dur.d_h', { d, h });
+  return h > 0 ? t('dur.h_min', { h, m }) : t('dur.min', { n: m });
 }
 
 export class CalendarUI {
@@ -55,7 +56,7 @@ export class CalendarUI {
             <div class="cal-dallah-top">
               <div class="cal-cup" aria-hidden="true">☕</div>
               <div>
-                <div class="eyebrow">Daily Dallah</div>
+                <div class="eyebrow">${t('cal.daily')}</div>
                 <h2 id="cal-dallah-h" data-c="dallahTitle"></h2>
                 <div class="cal-dim" data-c="visits"></div>
               </div>
@@ -66,17 +67,17 @@ export class CalendarUI {
               <button type="button" class="btn btn-primary" data-c="claim"></button>
             </div>
           </section>
-          <section class="card cal-souq" aria-label="Souq Rotation">
+          <section class="card cal-souq" aria-label="${t('cal.souq')}">
             <div class="icon-tile" data-c="souqIcon" aria-hidden="true"></div>
             <div>
-              <div class="eyebrow">Souq Rotation · this week</div>
+              <div class="eyebrow">${t('cal.souq_week')}</div>
               <div class="cal-souq-name" data-c="souqName"></div>
               <div class="cal-dim" data-c="souqDesc"></div>
             </div>
-            <span class="chip life">✓ Active</span>
+            <span class="chip life">${t('cal.active')}</span>
           </section>
           <section class="card" aria-labelledby="cal-seals-h">
-            <div class="card-head"><h3 id="cal-seals-h">Field Seals</h3><span class="cal-dim" data-c="sealSummary"></span></div>
+            <div class="card-head"><h3 id="cal-seals-h">${t('cal.seals')}</h3><span class="cal-dim" data-c="sealSummary"></span></div>
             <div class="cal-seals" data-c="seals">
               ${SEALS.map(s => `
                 <div class="cal-seal" data-seal="${s.id}" title="${esc(s.desc)}">
@@ -86,12 +87,12 @@ export class CalendarUI {
                   <div class="bar gold" data-bar><i></i></div>
                 </div>`).join('')}
             </div>
-            <p class="cal-note">A lit Seal never goes dark. Each lit Seal adds +1 Field Share to spend at every New Field, up to +${SEAL_SHARD_BONUS_MAX} (they do not raise the Share bonus).</p>
+            <p class="cal-note">${t('cal.seals_note', { n: SEAL_SHARD_BONUS_MAX })}</p>
           </section>
         </div>
         <section class="card cal-ledger" aria-labelledby="cal-ledger-h">
           <div class="card-head">
-            <div><div class="eyebrow">Weekly Ledger</div><h2 id="cal-ledger-h" data-c="week"></h2></div>
+            <div><div class="eyebrow">${t('cal.ledger')}</div><h2 id="cal-ledger-h" data-c="week"></h2></div>
             <span class="chip" data-c="rotation"></span>
           </div>
           <div data-c="goals"></div>
@@ -100,7 +101,7 @@ export class CalendarUI {
             <span class="tag" data-c="stampTag"></span>
           </div>
           <div class="cal-stamps">
-            <div class="eyebrow">Stamps</div>
+            <div class="eyebrow">${t('cal.stamps')}</div>
             <div class="cal-stamp-row" data-c="stamps"></div>
           </div>
         </section>
@@ -139,26 +140,26 @@ export class CalendarUI {
     this.pipOn = on;
     this.tabBtn?.classList.toggle('has-notif', on);
     if (this.tabBtn) {
-      this.tabBtn.title = on ? 'Dallah: a cup is poured and ready to claim.' : 'Dallah: daily gift, weekly goals, Seals and the weekly Souq modifier.';
+      this.tabBtn.title = on ? t('cal.tab_ready') : t('nav.title.dallah_daily_gift_weekly');
     }
   }
 
   renderDallah() {
     const d = this.sys.getDaily();
     const e = this.el;
-    setText(e.dallahTitle, d.canClaim ? 'Fresh coffee is poured' : 'Today\'s cup is claimed');
-    setText(e.visits, `Day ${d.visits} of visits · no streaks, nothing to lose`);
+    setText(e.dallahTitle, d.canClaim ? t('cal.poured') : t('cal.claimed_today'));
+    setText(e.visits, t('cal.visits', { n: d.visits }));
     const days = Math.max(1, d.bank);
     const sand = DALLAH_SAND * days;
-    const gift = `<span class="chip sand">+${sand} Chrono Sand</span>` +
-      `<span class="chip gold">+${days} bonus contract${days > 1 ? 's' : ''}</span>` +
-      `<span class="chip life">+25% Oil · 1 h</span>`;
+    const gift = `<span class="chip sand">${t('dallah.poured_sand', { n: sand })}</span>` +
+      `<span class="chip gold">${t(days > 1 ? 'cal.bonus_contracts' : 'cal.bonus_contract', { n: days })}</span>` +
+      `<span class="chip life">${t('cal.coffee_chip')}</span>`;
     if (e.gift.dataset.key !== gift) { e.gift.dataset.key = gift; e.gift.innerHTML = gift; }
     const dots = Array.from({ length: DALLAH_BANK_MAX }, (_, i) => `<i class="${i < d.bank ? 'on' : ''}">${i < d.bank ? '✓' : ''}</i>`).join('');
-    const bank = `Banked ${dots} <span>${d.bank > 0 ? `· ${d.bank} unclaimed day${d.bank > 1 ? 's' : ''}` : '· a new cup is poured at midnight'}</span>`;
+    const bank = `${t('cal.banked')} ${dots} <span>· ${d.bank > 0 ? t(d.bank > 1 ? 'cal.unclaimed' : 'cal.unclaimed1', { n: d.bank }) : t('cal.midnight')}</span>`;
     if (e.bank.dataset.key !== bank) { e.bank.dataset.key = bank; e.bank.innerHTML = bank; }
-    setAttr(e.bank, 'aria-label', `Banked days: ${d.bank} of ${DALLAH_BANK_MAX}`);
-    setText(e.claim, d.canClaim ? `Claim ${d.bank} day${d.bank > 1 ? 's' : ''}` : 'Claimed');
+    setAttr(e.bank, 'aria-label', t('cal.bank_aria', { a: d.bank, b: DALLAH_BANK_MAX }));
+    setText(e.claim, d.canClaim ? t(d.bank > 1 ? 'cal.claim_days' : 'cal.claim_day', { n: d.bank }) : t('cal.claimed'));
     setAttr(e.claim, 'aria-disabled', String(!d.canClaim));
     e.claim.disabled = !d.canClaim;
     e.claim.classList.toggle('btn-primary', d.canClaim);
@@ -169,31 +170,31 @@ export class CalendarUI {
     const e = this.el;
     setText(e.souqIcon, m.icon);
     setText(e.souqName, m.name);
-    setText(e.souqDesc, `${m.desc} Ends Monday; comes back later in the year.`);
+    setText(e.souqDesc, `${m.desc} ${t('cal.souq_ends')}`);
   }
 
   renderSeals() {
     const seals = this.sys.getSeals();
     const lit = seals.filter(s => s.lit).length;
-    setText(this.el.sealSummary, `${lit} / ${SEALS.length} lit · +${Math.min(SEAL_SHARD_BONUS_MAX, lit)} ◆ to spend at each New Field`);
+    setText(this.el.sealSummary, t('cal.seal_summary', { a: lit, b: SEALS.length, n: Math.min(SEAL_SHARD_BONUS_MAX, lit) }));
     for (const s of seals) {
       const el = this.sealEls.get(s.id);
       if (!el) continue;
       el.classList.toggle('lit', s.lit);
-      setText(el.querySelector('[data-state]'), s.lit ? '✓ Lit' : `${Math.floor(s.pct * 100)}%`);
+      setText(el.querySelector('[data-state]'), s.lit ? t('cal.lit') : `${Math.floor(s.pct * 100)}%`);
       el.querySelector('[data-bar]').hidden = s.lit;
       const fill = el.querySelector('[data-bar] > i');
       const w = `${Math.round(s.pct * 100)}%`;
       if (fill && fill.style.width !== w) fill.style.width = w;
-      setAttr(el, 'aria-label', `Seal of the ${s.name}: ${s.lit ? 'lit' : `${Math.floor(s.pct * 100)}% of the way`}. ${s.desc}`);
+      setAttr(el, 'aria-label', `${t('cal.seal_aria', { name: s.name, state: s.lit ? t('cal.lit_word') : t('cal.of_way', { n: Math.floor(s.pct * 100) }) })} ${s.desc}`);
     }
   }
 
   renderLedger() {
     const l = this.sys.getLedger();
     const e = this.el;
-    setText(e.week, `Week ${l.number}`);
-    setText(e.rotation, `Rotates Mon · ${fmtRotation(l.msToRotation)}`);
+    setText(e.week, t('cal.week', { n: l.number }));
+    setText(e.rotation, t('cal.rotates', { time: fmtRotation(l.msToRotation) }));
     const key = l.goals.map(g => g.id).join(',');
     if (key !== this.goalKey) {
       this.goalKey = key;
@@ -205,7 +206,7 @@ export class CalendarUI {
             <div class="bar gold" data-bar><i></i></div>
             <div class="cal-goal-s num" data-s></div>
           </div>
-          <span class="chip" data-chip>+${g.seals} Guild Seals</span>
+          <span class="chip" data-chip>${t('ledger.seals', { n: g.seals })}</span>
         </div>`).join('');
     }
     for (const g of l.goals) {
@@ -213,7 +214,7 @@ export class CalendarUI {
       if (!row) continue;
       row.classList.toggle('done', g.done);
       setText(row.querySelector('[data-g]'), g.done ? `${g.label} ✓` : g.label);
-      setText(row.querySelector('[data-s]'), g.done ? 'Done' : `${g.have.toLocaleString()} / ${g.target.toLocaleString()}`);
+      setText(row.querySelector('[data-s]'), g.done ? t('codex.done') : `${g.have.toLocaleString('en-US')} / ${g.target.toLocaleString('en-US')}`);
       const bar = row.querySelector('[data-bar]');
       bar.hidden = g.done;
       const fill = bar.firstElementChild;
@@ -222,15 +223,15 @@ export class CalendarUI {
       const chip = row.querySelector('[data-chip]');
       chip.classList.toggle('life', g.done);
     }
-    setText(e.ledgerNote, `Sized to about ${LEDGER_WEEK_DAYS} of your usual days, so it takes a few visits. All 3 → a Ledger stamp (cosmetic). Missing a week loses nothing.`);
-    setText(e.stampTag, l.stamped ? 'Stamped' : `${l.goals.filter(g => g.done).length} / ${l.goals.length} done`);
+    setText(e.ledgerNote, t('cal.ledger_note', { n: LEDGER_WEEK_DAYS }));
+    setText(e.stampTag, l.stamped ? t('cal.stamped') : t('cal.done_count', { a: l.goals.filter(g => g.done).length, b: l.goals.length }));
     const first = Math.max(1, l.number - STAMP_CHIPS + 1);
     let chips = '';
     for (let n = first; n <= l.number; n++) {
       const has = l.stamps.includes(n);
-      chips += `<span class="chip${has ? ' gold' : ''}${has || n === l.number ? '' : ' cal-dimchip'}" aria-label="Week ${n}: ${has ? 'stamped' : (n === l.number ? 'in progress' : 'no stamp')}">W${n}${has ? ' ✓' : ''}</span>`;
+      chips += `<span class="chip${has ? ' gold' : ''}${has || n === l.number ? '' : ' cal-dimchip'}" aria-label="${t('cal.week', { n })}: ${has ? t('cal.stamped') : (n === l.number ? t('cal.in_progress') : t('cal.no_stamp'))}">${t('cal.w', { n })}${has ? ' ✓' : ''}</span>`;
     }
-    if (first > 1) chips = `<span class="cal-dim">${l.stamps.filter(n => n < first).length} earlier</span>` + chips;
+    if (first > 1) chips = `<span class="cal-dim">${t('cal.earlier', { n: l.stamps.filter(n => n < first).length })}</span>` + chips;
     if (e.stamps.dataset.key !== chips) { e.stamps.dataset.key = chips; e.stamps.innerHTML = chips; }
   }
 }

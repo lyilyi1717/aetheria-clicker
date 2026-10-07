@@ -6,6 +6,7 @@ import { WARDEN_TROPHY_GOLD, WARDEN_HP_MULT, WARDEN_TIMER_SECONDS, WARDEN_INTERV
 import { STRATA, STRATA_RELICS, RELIC_CHANCE, RELIC_PITY, RELIC_PICK_BONUS, AETHER_ORE_CHANCE } from '../systems/MiningSystem.js';
 import { GEM_LADDER, POLISH_RATIO } from '../systems/AlchemySystem.js';
 import { ITEM_NAMES } from '../data/names.js';
+import { t, tOr } from '../i18n/index.js';
 
 const GEM_NAMES = Object.fromEntries(GEM_LADDER.map(k => [k, [ITEM_NAMES[k].name, ITEM_NAMES[k].plural, ITEM_NAMES[k].color]]));
 
@@ -58,7 +59,7 @@ export class WardensRelicsUI {
     panel.className = 'glass-card wr-panel';
     panel.innerHTML = `
       <div class="wr-head">
-        <strong>🛡️ Tower Wardens</strong>
+        <strong>${t('wr.title')}</strong>
         <span id="warden-summary" class="wr-summary"></span>
       </div>
       <div id="warden-note" class="wr-note"></div>
@@ -84,18 +85,16 @@ export class WardensRelicsUI {
     const challenge = cs.wardenChallenge;
 
     setText(document.getElementById('warden-summary'), unlocked
-      ? `Trophies: ${trophies} · +${pct(WARDEN_TROPHY_GOLD * trophies)} Tower gold`
-      : '🔒 Locked');
+      ? t('wr.summary', { n: trophies, p: pct(WARDEN_TROPHY_GOLD * trophies) })
+      : t('wr.locked'));
 
     let note;
     if (!unlocked) {
-      note = `Every ${WARDEN_INTERVAL}th floor a named Warden guards the Tower: ${WARDEN_TIMER_SECONDS} s to beat ×${WARDEN_HP_MULT} boss HP. ` +
-        'Each first kill wins a trophy (+2% Tower gold). Unlocks at your first New Field.';
+      note = t('wr.note_locked', { n: WARDEN_INTERVAL, s: WARDEN_TIMER_SECONDS, x: WARDEN_HP_MULT });
     } else if (challenge) {
-      note = `Challenging ${getWardenName(challenge.floor)} (floor ${challenge.floor}). Win or lose, you return to floor ${h.floor}; losing costs nothing.`;
+      note = t('wr.note_challenge', { name: getWardenName(challenge.floor), f: challenge.floor, back: h.floor });
     } else {
-      note = `A Warden guards every ${WARDEN_INTERVAL}th floor: ${WARDEN_TIMER_SECONDS} s, ×${WARDEN_HP_MULT} boss HP, triple boss spoils. ` +
-        'First kill = trophy (+2% Tower gold). Wardens you passed can be challenged from here without leaving your floor.';
+      note = t('wr.note', { n: WARDEN_INTERVAL, s: WARDEN_TIMER_SECONDS, x: WARDEN_HP_MULT });
     }
     setText(document.getElementById('warden-note'), note);
 
@@ -115,15 +114,15 @@ export class WardensRelicsUI {
     this.wardenSig = sig;
     list.innerHTML = rows.map(({ f, status }) => {
       let right;
-      if (status === 'trophy') right = '<span class="wr-tag wr-tag-done">🏆 Trophy</span>';
+      if (status === 'trophy') right = `<span class="wr-tag wr-tag-done">${t('wr.trophy')}</span>`;
       else if (status === 'fighting') right = challenge?.floor === f
-        ? '<button class="btn-action" data-warden-action="retreat">Give up</button>'
-        : '<span class="wr-tag wr-tag-live">⚔️ Fighting now</span>';
-      else if (status === 'challenge') right = `<button class="btn-action" data-warden-action="challenge" data-floor="${f}">Challenge</button>`;
-      else if (status === 'busy') right = '<span class="wr-tag">Waiting</span>';
-      else right = '<span class="wr-tag">Ahead</span>';
+        ? `<button class="btn-action" data-warden-action="retreat">${t('wr.give_up')}</button>`
+        : `<span class="wr-tag wr-tag-live">${t('wr.fighting')}</span>`;
+      else if (status === 'challenge') right = `<button class="btn-action" data-warden-action="challenge" data-floor="${f}">${t('wr.challenge')}</button>`;
+      else if (status === 'busy') right = `<span class="wr-tag">${t('wr.waiting')}</span>`;
+      else right = `<span class="wr-tag">${t('wr.ahead')}</span>`;
       return `<div class="wr-row ${status === 'trophy' ? 'is-done' : ''}">
-        <div class="wr-row-main"><strong>${esc(getWardenName(f))}</strong><span class="wr-sub">Floor ${this.fmtNum(f, 0)}</span></div>
+        <div class="wr-row-main"><strong>${esc(getWardenName(f))}</strong><span class="wr-sub">${t('coll.floor', { n: this.fmtNum(f, 0) })}</span></div>
         ${right}
       </div>`;
     }).join('');
@@ -139,12 +138,12 @@ export class WardensRelicsUI {
     panel.className = 'wr-panel wr-inset';
     panel.innerHTML = `
       <div class="wr-head">
-        <strong>🏺 Strata Relics</strong>
+        <strong>🏺 ${t('coll.relics')}</strong>
         <span id="relic-summary" class="wr-summary"></span>
       </div>
       <div class="relic-grid">
         ${STRATA_RELICS.map((r, i) => `
-          <div class="relic-slot" id="relic-slot-${i}" title="${esc(STRATA[i].name)} stratum">
+          <div class="relic-slot" id="relic-slot-${i}" title="${esc(t('wr.stratum', { name: STRATA[i].name }))}">
             <span class="relic-icon">${r.icon}</span>
             <span class="relic-name" id="relic-name-${i}"></span>
           </div>`).join('')}
@@ -161,27 +160,26 @@ export class WardensRelicsUI {
     if (!ms || !grid || !document.getElementById('relic-panel')) return;
     const count = ms.getRelicCount();
     const target = ms.getRelicTarget();
-    setText(document.getElementById('relic-summary'), `${count}/${STRATA_RELICS.length} · +${pct(RELIC_PICK_BONUS * count)} pickaxe`);
+    setText(document.getElementById('relic-summary'), `${count}/${STRATA_RELICS.length} · ${t('mine.relic_detail', { n: Math.round(RELIC_PICK_BONUS * count * 100) })}`);
     STRATA_RELICS.forEach((r, i) => {
       const slot = document.getElementById(`relic-slot-${i}`);
       const have = ms.hasRelic(i);
       slot.classList.toggle('found', have);
       slot.classList.toggle('seeking', i === target);
-      setText(document.getElementById(`relic-name-${i}`), have ? r.name : (i === target ? `Seeking (${STRATA[i].name})` : STRATA[i].name));
+      setText(document.getElementById(`relic-name-${i}`), have ? r.name : (i === target ? t('wr.seeking', { name: STRATA[i].name }) : STRATA[i].name));
     });
     let note;
     if (target >= 0) {
-      note = `Each tile you break has a 1 in ${Math.round(1 / RELIC_CHANCE)} chance to unearth the ${STRATA_RELICS[target].name}; ` +
-        `it is guaranteed within ${RELIC_PITY} tiles (${this.fmtNum(grid.relicPity || 0, 0)}/${RELIC_PITY}). Each relic: +${pct(RELIC_PICK_BONUS)} pickaxe power.`;
+      note = t('wr.relic_note', { n: Math.round(1 / RELIC_CHANCE), name: STRATA_RELICS[target].name, pity: RELIC_PITY, have: this.fmtNum(grid.relicPity || 0, 0), p: pct(RELIC_PICK_BONUS) });
     } else if (count < STRATA_RELICS.length) {
-      note = `Every relic reachable from here is found. The next one lies in the ${STRATA[ms.getStratumIndex() + 1]?.name || 'deeper'} stratum.`;
+      note = t('wr.relic_next', { name: STRATA[ms.getStratumIndex() + 1]?.name || t('wr.deeper') });
     } else {
-      note = 'All seven Strata Relics found.';
+      note = t('wr.relic_all');
     }
     setText(document.getElementById('relic-note'), note);
     const owned = this.gs.market?.items?.ore?.owned ?? 0;
     setText(document.getElementById('ore-note'),
-      `🪨 Oil Shale: ${pct(AETHER_ORE_CHANCE)} of stone tiles drop 1. Found ${this.fmtNum(grid.oreFound || 0, 0)} · ${this.fmtNum(owned + (this.gs.inventory.aetherOre || 0), 0)} in stock to sell in the Bazaar.`);
+      t('wr.ore', { name: tOr('commodity.ore.name', 'Oil Shale'), p: pct(AETHER_ORE_CHANCE), a: this.fmtNum(grid.oreFound || 0, 0), b: this.fmtNum(owned + (this.gs.inventory.aetherOre || 0), 0) }));
   }
 
   // --- Gem Polishing ---
@@ -196,21 +194,21 @@ export class WardensRelicsUI {
       const to = GEM_LADDER[i + 1];
       return `<div class="wr-row polish-row">
         <div class="wr-row-main">
-          <span><span style="color:${GEM_NAMES[from][2]}">${POLISH_RATIO} ${GEM_NAMES[from][1]}</span> ➔ <span style="color:${GEM_NAMES[to][2]}">1 ${GEM_NAMES[to][0]}</span></span>
+          <span><span style="color:${GEM_NAMES[from][2]}">${POLISH_RATIO} ${GEM_NAMES[from][1]}</span> ${t('ui.flow')} <span style="color:${GEM_NAMES[to][2]}">1 ${GEM_NAMES[to][0]}</span></span>
           <span class="wr-sub" id="polish-have-${from}"></span>
         </div>
         <div class="polish-btns">
-          <button class="btn-action" data-polish="${from}" data-times="1">Polish</button>
-          <button class="btn-action" data-polish="${from}" data-times="max" id="polish-max-${from}">Max</button>
+          <button class="btn-action" data-polish="${from}" data-times="1">${t('wr.polish')}</button>
+          <button class="btn-action" data-polish="${from}" data-times="max" id="polish-max-${from}">${t('alc.max')}</button>
         </div>
       </div>`;
     }).join('');
     panel.innerHTML = `
       <div class="wr-head">
-        <strong>💎 Gem Polishing</strong>
+        <strong>${t('wr.polish_title')}</strong>
         <span class="wr-summary" id="polish-summary"></span>
       </div>
-      <div class="wr-note">Polish ${POLISH_RATIO} of a gem into 1 of the next tier. A poor rate on purpose (${Math.pow(POLISH_RATIO, 4)} ${ITEM_NAMES.rubies.plural} = 1 ${ITEM_NAMES.voidAmethyst.name}), but surplus low gems now reach the Catalyst.</div>
+      <div class="wr-note">${t('wr.polish_note', { n: POLISH_RATIO, m: Math.pow(POLISH_RATIO, 4), low: ITEM_NAMES.rubies.plural, top: ITEM_NAMES.voidAmethyst.name })}</div>
       ${rows}
     `;
     anchor.parentNode.insertBefore(panel, anchor.nextSibling);
@@ -230,12 +228,12 @@ export class WardensRelicsUI {
     const inv = this.gs.inventory;
     for (const from of GEM_LADDER.slice(0, -1)) {
       const max = al.getMaxPolish(from);
-      setText(document.getElementById(`polish-have-${from}`), `have ${this.fmtNum(inv[from] || 0, 0)}`);
-      setText(document.getElementById(`polish-max-${from}`), max > 0 ? `Max (${this.fmtNum(max, 0)})` : 'Max');
+      setText(document.getElementById(`polish-have-${from}`), t('alc.have', { n: this.fmtNum(inv[from] || 0, 0) }));
+      setText(document.getElementById(`polish-max-${from}`), max > 0 ? t('wr.max_n', { n: this.fmtNum(max, 0) }) : t('alc.max'));
       for (const btn of document.querySelectorAll(`#polish-panel button[data-polish="${from}"]`)) {
         btn.classList.toggle('disabled', max < 1);
       }
     }
-    setText(document.getElementById('polish-summary'), `Polished: ${this.fmtNum(this.gs.alchemy?.gemsPolished || 0, 0)}`);
+    setText(document.getElementById('polish-summary'), t('wr.polished', { n: this.fmtNum(this.gs.alchemy?.gemsPolished || 0, 0) }));
   }
 }
