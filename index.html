@@ -225,7 +225,7 @@
               <div class="monolith-orb-wrapper">
                 <div class="orb-ring"></div>
                 <div id="monolith-orb" class="monolith-orb" title="Click to extract Aether!">
-                  <img src="falafel.webp" alt="Cosmic Falafel" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; mix-blend-mode: screen;">
+                  <img src="falafel.webp" alt="Cosmic Falafel" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; mix-blend-mode: var(--art-blend);">
                 </div>
               </div>
 
@@ -294,7 +294,7 @@
                 <div id="hero-gear-container" class="gear-grid"></div>
                 
                 <!-- The Aether Forge -->
-                <div class="glass-card" style="margin-top: 1.5rem; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2);">
+                <div class="glass-card" style="margin-top: 1.5rem; background: color-mix(in srgb, var(--aether) 5%, transparent); border: 1px solid color-mix(in srgb, var(--aether) 20%, transparent);">
                   <h4 style="margin-top: 0; font-size: 0.85rem; text-transform: uppercase; color: var(--accent-cyan);">The Aether Forge</h4>
                   <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">Infuse massive Aether to Awaken your gear: +25% Base Attack and Max HP per level.</p>
                   <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -306,7 +306,7 @@
 
               <!-- Monster Arena -->
               <div id="monster-arena-box" class="monster-arena-box" title="Click directly on the monster to attack rapidly!">
-                <div id="boss-timer" style="color: #ef4444; font-weight: bold; visibility: hidden;">⏱️ Enrage: 45s</div>
+                <div id="boss-timer" style="color: var(--danger); font-weight: bold; visibility: hidden;">⏱️ Enrage: 45s</div>
                 <div class="monster-avatar" data-avatar="none">
                   <span class="monster-avatar-fallback" aria-hidden="true">👾</span>
                   <img loading="lazy" class="monster-avatar-img" alt="" draggable="false" decoding="async">
@@ -489,10 +489,10 @@
               The High Enchanter weaves immense quantities of Gold into Golden Synergy threads, permanently multiplying your global Aether production.
             </p>
 
-            <div id="market-enchanter-panel" style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+            <div id="market-enchanter-panel" style="display: flex; justify-content: space-between; align-items: center; background: color-mix(in srgb, var(--shade) 30%, transparent); padding: 1rem; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);">
               <div>
                 <strong style="color: var(--accent-gold); font-size: 1.1rem;">Golden Synergy Lv. <span id="enchanter-level">0</span></strong>
-                <div style="font-size: 0.9rem; color: #a8a29e; margin-top: 0.2rem;">Current Bonus: <span id="enchanter-bonus" style="color: #4ade80">+0% Global Aether</span></div>
+                <div style="font-size: 0.9rem; color: var(--text-3); margin-top: 0.2rem;">Current Bonus: <span id="enchanter-bonus" style="color: var(--life)">+0% Global Aether</span></div>
               </div>
               <button class="btn btn-outline" id="btn-buy-enchanter" style="min-width: 150px; font-weight: bold; border-color: var(--accent-gold); color: var(--accent-gold);">
                 <span id="enchanter-label">Weave Spell x1</span> (<span id="enchanter-cost">1.00M</span> Gold)
@@ -585,7 +585,7 @@
               <button id="btn-manual-save" class="btn-action">💾 Save Game</button>
               <button id="btn-export-save" class="btn-action">📋 Export Save</button>
               <button id="btn-import-save" class="btn-action">📥 Import Save</button>
-              <button id="btn-hard-reset" class="btn-action" style="border-color: #ef4444; color: #ef4444;">⚠️ Wipe Progress</button>
+              <button id="btn-hard-reset" class="btn-action" style="border-color: var(--danger); color: var(--danger);">⚠️ Wipe Progress</button>
             </div>
           </div>
         </section>

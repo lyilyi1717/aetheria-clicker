@@ -47,3 +47,46 @@ export function renderThemeSettings(container, settings, onChange) {
     onChange?.();
   });
 }
+
+// JS-side colours. Toasts, floating text and canvas sparks are called with Night hex values
+// (some from files this module doesn't own). Under Night they pass through unchanged; under
+// another theme a known accent becomes that theme's token, so it stays readable on its background.
+export const HEX_TOKEN = {
+  '#38bdf8': 'aether', '#67e8f9': 'aether', '#06b6d4': 'aether',
+  '#fbbf24': 'gold', '#f59e0b': 'gold', '#eab308': 'gold', '#fde047': 'gold', '#facc15': 'gold',
+  '#c084fc': 'dust', '#a855f7': 'dust',
+  '#f472b6': 'shard', '#ec4899': 'shard',
+  '#34d399': 'life', '#4ade80': 'life', '#10b981': 'life', '#a3e635': 'life',
+  '#60a5fa': 'mana', '#818cf8': 'mana', '#3b82f6': 'mana',
+  '#e7c38a': 'sand',
+  '#f87171': 'danger', '#ef4444': 'danger',
+  '#94a3b8': 'text-3', '#64748b': 'text-3',
+  '#9aa5b1': 'rarity-common', '#56b4e9': 'rarity-rare', '#b388ff': 'rarity-epic',
+  '#ef8a3c': 'rarity-legendary', '#ffd84d': 'rarity-cosmic'
+};
+
+function activeTheme() {
+  return typeof document === 'undefined' ? DEFAULT_THEME : normalizeTheme(document.documentElement.dataset.theme);
+}
+
+/** For CSS (inline styles, custom properties): a known Night hex becomes var(--token). */
+export function themeVar(color) {
+  if (typeof color !== 'string' || activeTheme() === DEFAULT_THEME) return color;
+  const tok = HEX_TOKEN[color.toLowerCase()];
+  return tok ? `var(--${tok})` : color;
+}
+
+const computedCache = new Map();
+/** For canvas drawing, which can't read var(): the token's current computed value. */
+export function themeColor(color) {
+  if (typeof color !== 'string') return color;
+  const theme = activeTheme();
+  if (theme === DEFAULT_THEME) return color;
+  const tok = HEX_TOKEN[color.toLowerCase()];
+  if (!tok || typeof getComputedStyle !== 'function') return color;
+  const key = `${theme}:${tok}`;
+  if (!computedCache.has(key)) {
+    computedCache.set(key, getComputedStyle(document.documentElement).getPropertyValue(`--${tok}`).trim() || color);
+  }
+  return computedCache.get(key);
+}

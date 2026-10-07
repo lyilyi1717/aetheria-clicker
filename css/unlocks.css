@@ -13,7 +13,7 @@
 .nav-sub { display: block; font-size: var(--fs-11); font-weight: 500; line-height: 1.3; color: var(--text-3); }
 .nav-lock-bar {
   position: absolute; left: 12px; right: 12px; bottom: 4px; height: 3px; overflow: hidden;
-  border-radius: var(--r-pill); background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--r-pill); background: color-mix(in srgb, var(--tint) 8%, transparent);
 }
 .nav-lock-bar > i { display: block; height: 100%; border-radius: inherit; background: var(--gold); transition: width var(--dur-3) var(--ease-out); }
 

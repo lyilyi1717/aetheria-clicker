@@ -18,6 +18,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { isReducedMotion } from './motion.js';
+import { themeVar } from './theme.js';
 import {
   ToastQueue, CeremonyScheduler, RewardBatch, rewardTitle, rewardValue, normalizeTier
 } from './rewardQueue.js';
@@ -194,7 +195,7 @@ class RewardFeedback {
         if (!e._pulsed) { e._pulsed = true; this.pulse(e.source); }
       }
       el.className = `reward-toast tier-${e.tier}`;
-      if (e.color) el.style.setProperty('--toast-accent', e.color);
+      if (e.color) el.style.setProperty('--toast-accent', themeVar(e.color));
       el.querySelector('.reward-toast-icon').textContent = e.icon || '';
       el.querySelector('.reward-toast-title').textContent = rewardTitle(e);
       el.querySelector('.reward-toast-value').textContent = rewardValue({ ...e, fmt: e.fmt || defaultFmt });
@@ -222,7 +223,7 @@ class RewardFeedback {
   openCeremony(entry) {
     const ov = this.overlay;
     ov.className = `reward-ceremony tier-${entry.tier} is-open`;
-    if (entry.color) ov.style.setProperty('--ceremony-accent', entry.color);
+    if (entry.color) ov.style.setProperty('--ceremony-accent', themeVar(entry.color));
     else ov.style.removeProperty('--ceremony-accent');
     ov.setAttribute('aria-hidden', 'false');
     this.fillCeremony(entry, true);

@@ -11,7 +11,7 @@
 .cal h2 { margin: 0; font-size: var(--fs-20); font-weight: 700; line-height: var(--lh-tight); color: var(--text-1); }
 
 /* Daily Dallah */
-.cal-dallah { border-color: rgba(231, 195, 138, 0.45); background: radial-gradient(circle at 85% 20%, var(--sand-dim), transparent 50%), var(--bg-2); }
+.cal-dallah { border-color: color-mix(in srgb, var(--sand) 45%, transparent); background: radial-gradient(circle at 85% 20%, var(--sand-dim), transparent 50%), var(--bg-2); }
 .cal-dallah-top { display: grid; grid-template-columns: 64px 1fr; gap: var(--sp-3); align-items: center; }
 .cal-cup { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 2rem; background: var(--sand-dim); border: 2px solid var(--sand); }
 .cal-gift { display: flex; gap: 6px; flex-wrap: wrap; margin: var(--sp-3) 0; }
@@ -29,7 +29,7 @@
 .cal-seals { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--sp-2); }
 .cal-seal { text-align: center; padding: var(--sp-2) 2px; border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-1); min-width: 0; }
 .cal-seal-lamp { width: 36px; height: 36px; margin: 0 auto 4px; border-radius: 50%; display: grid; place-items: center; font-size: 1.1rem; background: var(--bg-2); border: 2px solid var(--line-2); filter: grayscale(1); opacity: 0.5; }
-.cal-seal.lit .cal-seal-lamp { filter: none; opacity: 1; border-color: var(--gold); background: var(--gold-dim); box-shadow: 0 0 12px rgba(251, 191, 36, 0.4); }
+.cal-seal.lit .cal-seal-lamp { filter: none; opacity: 1; border-color: var(--gold); background: var(--gold-dim); box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 40%, transparent); }
 .cal-seal-n { font-size: var(--fs-11); color: var(--text-3); line-height: 1.2; overflow-wrap: anywhere; }
 .cal-seal.lit .cal-seal-n { color: var(--text-1); }
 .cal-seal-state { font-size: var(--fs-11); font-weight: 700; color: var(--text-3); margin-top: 2px; }
