@@ -349,8 +349,8 @@ tiers), then one PR per area from §3. Each PR runs the guide's §7 checklist.
 
 ## 5. Roadmap issues
 
-Filed as R41–R49 (issues #113–#121, rows in the `docs/STATUS.md` Plan table). R41 comes first;
-the rest depend on it. Order follows §3.
+Filed as R41–R50 (issues #113–#122, rows in the `docs/STATUS.md` Plan table). R41 comes first;
+the rest depend on it. Order follows §3. §3 item 13 (smaller polish) is R50 #122.
 
 | Item | Title | Done when |
 |---|---|---|
@@ -368,7 +368,7 @@ the rest depend on it. Order follows §3.
 
 ## 6. Questions for the owner
 
-These need a decision before the matching issue starts. Until there is an answer, the
+These need a decision before the matching issue starts (posted on issue #23). Until there is an answer, the
 implementer should use the default in brackets (AGENTS.md: owner decisions go in issue #23).
 
 1. **Screen shake at all?** The guide allows it "if motion is on". Should T2 shake the whole
