@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.14.0';
+export const VERSION = '4.15.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.15.0',
+    date: '2026-10-07',
+    title: 'Community news',
+    changes: [
+      'The news strip now carries headlines from other players: the newest ones from the past week, marked 📣 and signed with the player\'s name. You see them without an account.',
+      'Signed in? Share any of your own headlines with every player from Settings → News (the new Share button). You can share up to 3 headlines a day, and pick the name shown with them; it does not put you on the leaderboard.',
+      'Delete your shared headlines any time. See one that breaks the rules? Tap Report: you won\'t see it again, and a headline reported by 3 players is hidden for everyone until it is reviewed.',
+      'Don\'t want other players\' headlines? Untick "Show headlines from other players" in Settings → News. Your own entries stay in your browser until you share them.'
+    ],
+    ar: {
+      title: 'أخبار المجتمع',
+      changes: [
+        'شريط الأخبار يحمل الآن أخبار اللاعبين الآخرين: أحدثها خلال الأسبوع الماضي، بعلامة 📣 واسم صاحبها. تراها دون حساب.',
+        'سجّلت الدخول؟ شارك أيًّا من أخبارك مع كل اللاعبين من الإعدادات ← الأخبار (زر «شارك» الجديد). يمكنك مشاركة 3 أخبار في اليوم، واختيار الاسم الظاهر معها؛ ولا يضعك ذلك في لوحة المتصدرين.',
+        'احذف أخبارك المشتركة متى شئت. رأيت خبرًا مخالفًا؟ اضغط «أبلغ»: لن تراه مجددًا، والخبر الذي يبلّغ عنه 3 لاعبين يُخفى عن الجميع حتى يُراجَع.',
+        'لا تريد أخبار اللاعبين الآخرين؟ ألغِ «أظهر أخبار اللاعبين الآخرين» في الإعدادات ← الأخبار. وتبقى أخبارك في متصفحك حتى تشاركها.'
+      ]
+    }
+  },
   {
     version: '4.14.0',
     date: '2026-10-07',

@@ -10,8 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R39 #75 shared part: news posted by signed-in players is shared with everyone (Supabase
-  `news_posts`, 3/day rate limit, word filter, report, owner hide). Owner asked for it.
+- R39 #75 shared part (PR #123, 4.15.0): shared news is built; waits for review and for the owner
+  to run `supabase/news.sql`. Notes below under Done once merged.
 - R31 #67 Slower number growth (PR #102, draft): paused for an owner decision between option 1
   (full economy redesign, its own item) and option 2 (prestige discount: identical pacing, about
   1e16-1e19 at day 60). Details in the #67 comment.
@@ -20,7 +20,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 R0–R30 and R32–R40 are done (R39: local ticker only).
 
-- R39 shared part (Supabase `news` table, rate limit, report/hide): waits for the owner to want it.
+- R39 shared part: PR #123. Owner action after merge: run `supabase/news.sql` (until then the
+  strip shows local news only and Settings says shared news is not switched on yet).
 - Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
   enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
   `accepted`, `wontfix`, `duplicate` (PR #97). Game title after the oil re-theme (question in #23).

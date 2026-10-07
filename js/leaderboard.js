@@ -47,7 +47,7 @@ export async function isMissingTable(res) {
   try { const b = await res.clone().json(); return ['PGRST205', '42P01'].includes(b?.code); } catch { return false; }
 }
 
-const BLOCKED_WORDS = ['fuck', 'shit', 'cunt', 'nigg', 'fag', 'bitch', 'rape', 'nazi', 'hitler', 'whore', 'slut', 'retard'];
+export const BLOCKED_WORDS = ['fuck', 'shit', 'cunt', 'nigg', 'fag', 'bitch', 'rape', 'nazi', 'hitler', 'whore', 'slut', 'retard'];
 
 export function validateName(name) {
   const n = (name || '').trim();
