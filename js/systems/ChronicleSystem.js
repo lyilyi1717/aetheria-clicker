@@ -26,6 +26,7 @@
 // ceremonies are raised by js/ui/chronicle.js.
 import { BigNum } from '../engine/BigNum.js';
 import { resetDustShop } from './DustShopSystem.js';
+import { t, localize } from '../i18n/index.js';
 
 const DAY_MS = 86400 * 1000;
 const WEEK_MS = 7 * DAY_MS;
@@ -54,20 +55,8 @@ export const MARGIN_NOTES_PER_CLEAR = 0.25;
 
 // What a Chronicle resets and keeps. The preview and the confirm print these; test_chronicle.js
 // checks the reset does exactly this.
-export const CHRONICLE_RESETS = [
-  'The run: Oil, generators and shop upgrades',
-  'Crude Reserves, lifetime Reserves and every Reserve Shop feature',
-  'Field Shares (balance and earned) and the Share Tree',
-  'New Fields: the count starts again at 0, so the ladder is back to 14 generator tiers'
-];
-export const CHRONICLE_KEEPS = [
-  'Pages, Page upgrades, Chapter stamps and challenge records',
-  'New Well count, talents and talent points, records',
-  'Codex, collections and achievements',
-  'Tower (floors, gear, Warden trophies), Excavation, Garden, Alchemy, Guild and Bazaar',
-  'Wardens and Garden breeding stay unlocked',
-  'Gold, Mana, Chrono Sand and settings'
-];
+export const CHRONICLE_RESETS = [1, 2, 3, 4].map(i => t(`chron.resets.${i}`));
+export const CHRONICLE_KEEPS = [1, 2, 3, 4, 5, 6].map(i => t(`chron.keeps.${i}`));
 
 // ---- Page upgrades (permanent, bought with spendable Pages) -----------------------------------
 
@@ -85,6 +74,9 @@ export const PAGE_UPGRADES = [
   { id: 'gilded_edges', name: 'Gilded Edges', icon: '✨', cost: 8,
     desc: `+${GILDED_EXTRA_PAGES} Page from every Chronicle.` }
 ];
+localize(PAGE_UPGRADES, 'pageup', ['name', 'desc'], {
+  ink: { n: INK_SHARDS }, margin_notes: { pct: Math.round(MARGIN_NOTES_PER_CLEAR * 100) }, gilded_edges: { n: GILDED_EXTRA_PAGES }
+});
 const UPGRADE_BY_ID = new Map(PAGE_UPGRADES.map(u => [u.id, u]));
 export function getPageUpgrade(id) { return UPGRADE_BY_ID.get(id) || null; }
 
@@ -110,13 +102,13 @@ export const NO_RULES = Object.freeze({
 export function describeRules(rules) {
   const out = [];
   for (const [k, v] of Object.entries(rules || {})) {
-    if (k === 'aetherMult') out.push({ text: v >= 1 ? `🏭 Oil ×${v}` : `🏭 Oil ÷${Math.round(1 / v)}`, good: v >= 1 });
-    else if (k === 'excavationMult') out.push({ text: `⛏ Excavation ×${v}`, good: v >= 1 });
-    else if (k === 'layerBonusesOff' && v) out.push({ text: '🌌 Reserves, Share and Page bonuses off', good: false });
-    else if (k === 'comboCap') out.push({ text: `🔥 Combo caps at ×${v}`, good: false });
-    else if (k === 'noFrenzy' && v) out.push({ text: '🧯 No Frenzy', good: false });
-    else if (k === 'noSpells' && v) out.push({ text: '🌑 No spells', good: false });
-    else if (k === 'maxTiers') out.push({ text: `🏪 Only ${v} generator tiers`, good: false });
+    if (k === 'aetherMult') out.push({ text: v >= 1 ? t('rule.oil_mult', { x: v }) : t('rule.oil_div', { x: Math.round(1 / v) }), good: v >= 1 });
+    else if (k === 'excavationMult') out.push({ text: t('rule.dig_mult', { x: v }), good: v >= 1 });
+    else if (k === 'layerBonusesOff' && v) out.push({ text: t('rule.bonuses_off'), good: false });
+    else if (k === 'comboCap') out.push({ text: t('rule.combo_cap', { x: v }), good: false });
+    else if (k === 'noFrenzy' && v) out.push({ text: t('rule.no_frenzy'), good: false });
+    else if (k === 'noSpells' && v) out.push({ text: t('rule.no_spells'), good: false });
+    else if (k === 'maxTiers') out.push({ text: t('rule.max_tiers', { n: v }), good: false });
   }
   return out;
 }
@@ -146,6 +138,11 @@ export const CHAPTERS = [
     ]
   }
 ];
+
+for (const ch of CHAPTERS) {
+  localize([ch], 'chapter', ['name', 'blurb']);
+  localize(ch.challenges, 'challenge', ['name', 'desc']);
+}
 
 // Merged rule sets, built once (getActiveRules runs on every production call)
 function buildRuleSet(rules) {
@@ -361,18 +358,18 @@ export function getPageAetherMult(gs) {
 // Transcends also meet it. Met for good after the first Chronicle.
 export function getSealGate(gs) {
   const c = gs?.chronicle;
-  if (c && c.count > 0) return { source: 'done', met: true, text: 'Seal set I' };
-  const t = nonNegInt(gs?.transcendenceCount);
-  const byTranscends = t >= SEAL_STANDIN_TRANSCENDS;
+  if (c && c.count > 0) return { source: 'done', met: true, text: t('chron.sealset') };
+  const fields = nonNegInt(gs?.transcendenceCount);
+  const byTranscends = fields >= SEAL_STANDIN_TRANSCENDS;
   const cal = gs?.calendarSystem;
   if (cal && typeof cal.getSealSetProgress === 'function') {
     const p = cal.getSealSetProgress(1) || {};
     const lit = nonNegInt(p.lit), total = Math.max(1, nonNegInt(p.total));
     return { source: 'seals', met: lit >= total || byTranscends, sealsMet: lit >= total, lit, total, need: SEAL_STANDIN_TRANSCENDS,
-      text: `Seal set I (${lit}/${total} lit) or ${SEAL_STANDIN_TRANSCENDS} New Fields` };
+      text: t('chron.sealgate', { lit, total, n: SEAL_STANDIN_TRANSCENDS }) };
   }
   return { source: 'standin', met: byTranscends, sealsMet: false, need: SEAL_STANDIN_TRANSCENDS,
-    text: `${SEAL_STANDIN_TRANSCENDS} New Fields for the first Chronicle (stands in for Seal set I)` };
+    text: t('chron.sealstandin', { n: SEAL_STANDIN_TRANSCENDS }) };
 }
 
 // Transcends needed for the next Chronicle (without Seal set I the first one needs more)
@@ -390,12 +387,12 @@ export function getPendingPages(gs, transcends = gs?.transcendenceCount || 0) {
 
 // Why a Chronicle can't begin now (null = it can)
 export function getChronicleBlockReason(gs) {
-  if (isChallengeActive(gs)) return 'finish or abandon the running challenge first';
-  const t = nonNegInt(gs?.transcendenceCount);
-  if (t < CHRONICLE_TRANSCEND_GATE) return `needs ${CHRONICLE_TRANSCEND_GATE} New Fields (you: ${t})`;
+  if (isChallengeActive(gs)) return t('chron.block.challenge');
+  const have = nonNegInt(gs?.transcendenceCount);
+  if (have < CHRONICLE_TRANSCEND_GATE) return t('chron.block.fields', { n: CHRONICLE_TRANSCEND_GATE, you: have });
   const seal = getSealGate(gs);
   if (!seal.met) {
-    return seal.source === 'seals' ? `needs ${seal.text} (you: ${t})` : `the first Chronicle needs ${SEAL_STANDIN_TRANSCENDS} New Fields (you: ${t})`;
+    return seal.source === 'seals' ? t('chron.block.seals', { what: seal.text, you: have }) : t('chron.block.first', { n: SEAL_STANDIN_TRANSCENDS, you: have });
   }
   return null;
 }
@@ -511,10 +508,10 @@ export class ChronicleSystem {
 
   getUpgradeBlockReason(id) {
     const u = getPageUpgrade(id);
-    if (!u) return 'unknown upgrade';
+    if (!u) return t('chron.block.unknown');
     if (hasPageUpgrade(this.gameState, id)) return 'owned';
-    for (const req of u.requires || []) if (!hasPageUpgrade(this.gameState, req)) return `needs ${getPageUpgrade(req).name}`;
-    if (this.state.pages < u.cost) return `needs ${u.cost} Pages`;
+    for (const req of u.requires || []) if (!hasPageUpgrade(this.gameState, req)) return t('chron.block.needs', { what: getPageUpgrade(req).name });
+    if (this.state.pages < u.cost) return t('chron.block.pages', { n: u.cost });
     return null;
   }
 
@@ -563,12 +560,12 @@ export class ChronicleSystem {
 
   getChallengeBlockReason(id) {
     const ch = getChallenge(id);
-    if (!ch) return 'unknown challenge';
-    if (!this.getAvailableChapters().some(x => x.id === ch.chapter)) return 'opens with its Chapter';
-    if (isChallengeActive(this.gameState)) return this.state.active.id === id ? 'running' : 'another challenge is running';
+    if (!ch) return t('chron.block.unknown');
+    if (!this.getAvailableChapters().some(x => x.id === ch.chapter)) return t('chron.block.chapter');
+    if (isChallengeActive(this.gameState)) return this.state.active.id === id ? t('chron.block.running') : t('chron.block.other_running');
     const chapter = getChapter(ch.chapter);
     const cleared = chapter.challenges.filter(x => this.state.challenges[x.id]?.done).length;
-    if (cleared < ch.requires) return `opens after ${ch.requires} challenge${ch.requires === 1 ? '' : 's'} of this Chapter`;
+    if (cleared < ch.requires) return t(ch.requires === 1 ? 'chron.block.after1' : 'chron.block.after', { n: ch.requires });
     return null;
   }
 
