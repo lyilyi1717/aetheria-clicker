@@ -1,0 +1,39 @@
+/* Community tab (R40, js/ui/community.js). Tokens and components only (css/tokens.css, css/components.css). */
+#community-root { display: flex; flex-direction: column; gap: var(--sp-3); max-width: 760px; font-family: var(--font-ui); }
+.cm-h { margin: 0; font-size: var(--fs-16); color: var(--text-1); }
+.cm-lead, .cm-sub, .cm-empty, .cm-note, .cm-attached { margin: 0; color: var(--text-2); font-size: var(--fs-13); line-height: var(--lh-body); }
+.cm-sub, .cm-attached { color: var(--text-3); font-size: var(--fs-12); }
+.cm-note:empty { display: none; }
+.cm-count { margin-left: var(--sp-1); padding: 0 var(--sp-2); border-radius: var(--r-pill); background: var(--bg-4); color: var(--text-2); font-size: var(--fs-12); }
+
+.cm-form { display: flex; flex-direction: column; gap: var(--sp-3); }
+.cm-type { align-self: flex-start; }
+.cm-field { display: flex; flex-direction: column; gap: var(--sp-1); font-size: var(--fs-12); color: var(--text-2); font-weight: 600; }
+.cm-field input, .cm-field textarea {
+  padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); border: 1px solid var(--line-2);
+  background: var(--bg-1); color: var(--text-1); font-family: var(--font-ui); font-size: var(--fs-16); /* 16px: no zoom on iOS */
+  font-weight: 400; line-height: var(--lh-body);
+}
+.cm-field input { min-height: 40px; }
+.cm-field textarea { resize: vertical; min-height: 88px; }
+.cm-field input:focus-visible, .cm-field textarea:focus-visible { outline: 2px solid var(--aether); outline-offset: 1px; border-color: transparent; }
+.cm-submit { align-self: flex-start; }
+
+.cm-status { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1); color: var(--text-3); font-size: var(--fs-12); }
+.cm-all { color: var(--aether); }
+.cm-lists { display: flex; flex-direction: column; gap: var(--sp-3); }
+.cm-section .card-head { align-items: baseline; }
+.cm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.cm-row { padding: var(--sp-2) var(--sp-3); }
+.cm-rank { flex: 0 0 auto; min-width: 20px; text-align: right; color: var(--text-3); font-size: var(--fs-12); font-weight: 700; }
+.cm-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cm-title { color: var(--text-1); font-size: var(--fs-14); text-decoration: none; overflow-wrap: anywhere; }
+.cm-title:hover, .cm-title:focus-visible { color: var(--aether); text-decoration: underline; }
+.cm-meta { color: var(--text-3); font-size: var(--fs-12); }
+.cm-like { flex: 0 0 auto; text-decoration: none; white-space: nowrap; }
+
+@media (max-width: 639px) {
+  #community-root { max-width: none; }
+  .cm-submit { align-self: stretch; }
+}
+@media (pointer: coarse) { #community-root .btn, .cm-field input { min-height: var(--tap); } }

@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/dust-shop.css">
   <link rel="stylesheet" href="css/chronicle.css">
   <link rel="stylesheet" href="css/calendar.css">
+  <link rel="stylesheet" href="css/community.css">
   <link rel="stylesheet" href="css/unlocks.css">
   <link rel="stylesheet" href="css/account.css">
 </head>
@@ -158,6 +159,10 @@
           <span class="nav-icon">🏅</span>
           <span class="nav-lbl">Leaderboard</span>
         </button>
+        <button class="nav-tab" data-tab="community" title="Community: report bugs, suggest ideas and vote for what gets built next.">
+          <span class="nav-icon">🗳️</span>
+          <span class="nav-lbl">Community</span>
+        </button>
         <button class="nav-tab" data-tab="settings" title="Settings: number notation and display options.">
           <span class="nav-icon">⚙️</span>
           <span class="nav-lbl">Settings</span>
@@ -190,6 +195,7 @@
           <button class="nav-tab" data-tab="calendar"><span class="nav-icon">☕</span><span class="nav-lbl">Dallah</span></button>
           <button class="nav-tab" data-tab="codex"><span class="nav-icon">🏆</span><span class="nav-lbl">Codex</span></button>
           <button class="nav-tab" data-tab="leaderboard"><span class="nav-icon">🏅</span><span class="nav-lbl">Leaderboard</span></button>
+          <button class="nav-tab" data-tab="community"><span class="nav-icon">🗳️</span><span class="nav-lbl">Community</span></button>
           <button class="nav-tab" data-tab="settings"><span class="nav-icon">⚙️</span><span class="nav-lbl">Settings</span></button>
           <button class="nav-tab" data-tab="about"><span class="nav-icon">ℹ️</span><span class="nav-lbl">About</span></button>
         </div>
@@ -588,6 +594,14 @@
             <h2>Leaderboard</h2>
             <p class="about-intro">Top 50 players on each board. A green dot means they played in the last 2 minutes.</p>
             <div id="leaderboard-root"></div>
+          </div>
+        </section>
+
+        <!-- TAB: Community (R40): bugs and ideas from GitHub issues, js/ui/community.js -->
+        <section id="tab-community" class="tab-view">
+          <div class="glass-card">
+            <h2>Bugs &amp; Ideas</h2>
+            <div id="community-root"></div>
           </div>
         </section>
 

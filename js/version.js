@@ -3,9 +3,20 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.6.0';
+export const VERSION = '4.7.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.7.0',
+    date: '2026-10-07',
+    title: 'Community: bugs and ideas',
+    changes: [
+      'New tab: Community (in the Records group, or under More on phones). See the bugs players have reported and the ideas they have suggested, with how many 👍 each has.',
+      'Bugs are always fixed first, most 👍 first; after that, the ideas with the most 👍 are built next. The Done list shows what has shipped and in which version.',
+      'Report a bug or suggest an idea right from the game: fill in a title and a few words, and GitHub opens with everything filled in, including your game version (and your browser, for bugs). Posting and voting with 👍 need a free GitHub account.',
+      'The tab is open from the start, and the game only contacts GitHub when you open it (the list refreshes at most every 10 minutes).'
+    ]
+  },
   {
     version: '4.6.0',
     date: '2026-10-06',

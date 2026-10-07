@@ -7,8 +7,8 @@
 import { BigNum } from '../engine/BigNum.js';
 import { RECIPES, HYBRID_RECIPES } from './AlchemySystem.js';
 
-// Always open, never stored
-export const ALWAYS_UNLOCKED = ['monolith', 'settings', 'about'];
+// Always open, never stored. Community (R40) too: a new player can hit a bug on day one.
+export const ALWAYS_UNLOCKED = ['monolith', 'settings', 'about', 'community'];
 
 // Run Aether at which Ascension starts paying dust (PrestigeSystem's 1e9 gate)
 export const ASCEND_AETHER_GATE = 1e9;

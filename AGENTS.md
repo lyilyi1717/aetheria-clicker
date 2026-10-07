@@ -33,11 +33,29 @@ something new for a full year.
 If you were told "do issue #N", do that. If you were told "pick the next task":
 
 1. Read `docs/STATUS.md` (what's in progress, what's next).
-2. Take the lowest-numbered open `roadmap` item whose dependencies are closed and that nobody
-   is working on (no open PR linked to it, not listed under "In progress" in STATUS.md).
+2. Take the first item from the **Community queue** below; if it's empty, take the
+   lowest-numbered open `roadmap` item whose dependencies are closed. Either way, only items
+   nobody is working on (no open PR linked to it, not listed under "In progress" in STATUS.md).
 3. Add it under "In progress" in `docs/STATUS.md` in your first commit, push, and open a **draft
    PR** with `Closes #<issue>` right away. Other sessions work on other branches and can't see
    your STATUS.md edit; the open draft PR is how they know the item is taken.
+
+### Community queue
+
+Players file bugs and ideas from the in-game Community tab (`js/ui/community.js`) as issues
+labelled `community` plus `bug` or `feature` (templates in `.github/ISSUE_TEMPLATE/`).
+
+- **Order:** open `community` + `bug` issues first, most 👍 first (ties: lowest number); then
+  open `community` features, most 👍 first. Skip issues labelled `wontfix`, `duplicate` or
+  `decision` (a `decision` one waits for the owner; ask in the issue, not here).
+- **Triage:** if a report can't be reproduced or an idea breaks rule 8 or the spec, say why in a
+  comment and label it `wontfix` (or `duplicate`, linking the original); the tab hides those.
+  A feature that needs more than a small change gets an owner decision first.
+- **Same flow as any item:** one PR per issue (title `C#<issue>: <short description>`, body
+  `Closes #<issue>`), tests, review, merge. The changelog entry ends with "(suggested by
+  players)" for a feature or "(reported by players)" for a bug.
+- **After merge:** comment `Shipped in vX.Y.Z` on the issue (the version from `js/version.js`).
+  The tab's Done list reads that comment to show the version.
 
 ## Fanning out (one session running several sub-agents)
 
