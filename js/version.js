@@ -3,9 +3,21 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.11.0';
+export const VERSION = '4.12.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.12.0',
+    date: '2026-10-07',
+    title: 'Oil re-theme: the Refinery, New Wells and New Fields',
+    changes: [
+      'The clicker is now an Oil Refinery: tap it to pump Oil, which replaces Aether as the main currency. The first tab is called Refinery.',
+      'The first prestige is now called Drill a New Well (was Ascend), and it pays Crude Reserves (was Cosmic Dust). They are spent in the Reserve Shop (was the Dust Shop), and Auto-Ascend is now Auto-Well.',
+      'The second prestige is now called Open a New Oil Field (was Transcend), and it pays Field Shares (was Fracture Shards), spent in the Share Tree (was the Shard Tree). The Seals of Transcendence are now Field Seals.',
+      'A few other names follow the theme: the Oil Forge in the Void Tower, the Oil Burst spell and Oil Shale in Excavation and the Bazaar.',
+      'Only the names changed. Your save, numbers, bonuses, costs and progress are exactly as they were.'
+    ]
+  },
   {
     version: '4.11.0',
     date: '2026-10-07',

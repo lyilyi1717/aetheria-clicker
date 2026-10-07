@@ -66,7 +66,7 @@ export class CodexUI {
       <div class="codex-chips">
         <span class="chip">${progress.ladderHave}/${progress.ladderTotal} achievements</span>
         <span class="chip">${progress.setsDone}/${progress.setsTotal} collections</span>
-        <span class="chip gold">+${(bonus * 100).toFixed(1)}% Aether</span>
+        <span class="chip gold">+${(bonus * 100).toFixed(1)}% Oil</span>
       </div>`);
     this.root.querySelectorAll('.codex-seg button').forEach(b => {
       b.setAttribute('aria-pressed', b.dataset.pane === this.pane ? 'true' : 'false');
@@ -80,7 +80,7 @@ export class CodexUI {
 
   render_ladder() {
     const saved = this.gs.achievements || {};
-    const info = `<p class="codex-note">Each original achievement gives +${LEGACY_BONUS * 100}% Aether, each new rung +${LADDER_BONUS * 100}%. Rungs are earned by playing and never expire.</p>`;
+    const info = `<p class="codex-note">Each original achievement gives +${LEGACY_BONUS * 100}% Oil, each new rung +${LADDER_BONUS * 100}%. Rungs are earned by playing and never expire.</p>`;
     return info + LADDER_GROUPS.map(g => {
       const list = ACHIEVEMENTS.filter(a => a.group === g.id);
       const have = list.filter(a => saved[a.id]).length;
@@ -103,7 +103,7 @@ export class CodexUI {
 
   render_collections() {
     const sets = this.collections.getCollections().filter(c => !c.id.startsWith('generators_'));
-    return `<p class="codex-note">Each finished set gives +${SET_BONUS * 100}% Aether. Entries fill from what you have already done, so older saves arrive with theirs.</p>` +
+    return `<p class="codex-note">Each finished set gives +${SET_BONUS * 100}% Oil. Entries fill from what you have already done, so older saves arrive with theirs.</p>` +
       sets.map(c => `<section class="card codex-set ${c.complete ? 'card-brand' : ''}">
         <div class="card-head"><h4>${c.icon} ${esc(c.name)}</h4>
           <span class="chip ${c.complete ? 'gold' : ''} num">${c.have}/${c.total}${c.complete ? ' ★ Complete' : c.total - c.have === 1 ? ' (1 to go)' : ''}</span></div>
@@ -121,13 +121,13 @@ export class CodexUI {
       const c = all.find(x => x.id === `generators_${n}`);
       return `<span class="chip ${c.complete ? 'gold' : ''} num">x${n}: ${c.have}/${c.total}${c.complete ? ' ★' : ''}</span>`;
     }).join('');
-    return `<p class="codex-note">Own ${GENERATOR_MILESTONES.join(' / ')} of a generator to earn its stars and read its entry. Your best count is kept through Ascensions. Finishing a whole column gives +${SET_BONUS * 100}% Aether.</p>
+    return `<p class="codex-note">Own ${GENERATOR_MILESTONES.join(' / ')} of a generator to earn its stars and read its entry. Your best count is kept through New Wells. Finishing a whole column gives +${SET_BONUS * 100}% Oil.</p>
       <div class="codex-chips">${sets}</div>
       <div class="codex-gens">${rows.map(r => `<div class="card-row codex-gen ${r.silhouette ? 'is-locked silhouette' : r.stars === 3 ? 'is-owned' : ''}">
         <div class="icon-tile">${r.silhouette ? '<span class="cg-shape">' + r.icon + '</span>' : r.icon}</div>
         <div class="codex-text">
           <div class="codex-name">${r.silhouette ? 'Unknown generator' : esc(r.name)} <span class="tag tier">Tier ${r.tier}</span></div>
-          <div class="codex-desc">${r.silhouette ? (r.tierLocked ? 'Opens with a later Transcend.' : 'Build one to reveal it.') : esc(r.flavour)}</div>
+          <div class="codex-desc">${r.silhouette ? (r.tierLocked ? 'Opens with a later New Field.' : 'Build one to reveal it.') : esc(r.flavour)}</div>
           <div class="cg-stars">${r.milestones.map(m => `<span class="num ${m.done ? 'on' : ''}">${m.done ? '★' : '☆'} ${m.n}</span>`).join('')}
             ${r.best ? `<span class="num cg-best">best ${r.best.toLocaleString('en-US')}</span>` : ''}</div>
         </div></div>`).join('')}</div>`;

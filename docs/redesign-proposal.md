@@ -26,6 +26,24 @@ This document builds on `docs/gamification-roadmap.md` (unlock table, talent eco
 collections, daily/weekly structure) and `docs/game-theory-progression.md` (subgame curves).
 Where I agree I say so and do not re-specify. Where I disagree (§2.1, §6.3, §10) I say why.
 
+**Terminology (R36, oil re-theme).** Since R36 players see oil-industry names. This document keeps
+the internal names because they match the code, save fields and function names, which did not
+change. When writing anything players read, use the right-hand column; the strings live in
+`js/data/strings.js` (`TERMS`) and `js/data/names.js` (items).
+
+| In this doc and the code | What players see |
+| --- | --- |
+| Aether (`aether`) | **Oil** |
+| The Monolith / Cosmic Falafel (tab `monolith`) | **Oil Refinery** (tab "Refinery") |
+| Ascend / Ascension (`ascend()`, `ascensionCount`) | **Drill a New Well** / **New Well** |
+| Cosmic Dust (`cosmicDust`, `totalCosmicDust`) | **Crude Reserves** ("Reserves") |
+| Dust shop (`DustShopSystem`) | **Reserve Shop** |
+| Auto-Ascend (`autoAscend`) | **Auto-Well** |
+| Transcend / Transcendence (`transcend()`, `transcendenceCount`) | **Open a New Oil Field** / **New Field** |
+| Fracture Shards (`fractureShards`) | **Field Shares** ("Shares") |
+| Shard tree (`ShardTreeSystem`) | **Share Tree** |
+| Seals of Transcendence | **Field Seals** |
+
 ---
 
 ## 1. Verdict

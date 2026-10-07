@@ -206,7 +206,7 @@ export class CollectionSystem {
       rewards.notify({
         tier: 'big', kind: 'codex-set', icon: c.icon, color: '#fbbf24',
         title: `Collection complete: ${c.name}`, batchTitle: '{n} collections complete',
-        detail: `+${SET_BONUS * 100}% Aether`
+        detail: `+${SET_BONUS * 100}% Oil`
       });
     }
   }

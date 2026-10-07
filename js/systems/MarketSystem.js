@@ -6,7 +6,7 @@ import { MONSTER_FLOOR_BASE, getIndexFloor } from './CombatSystem.js';
 const fmtGold = (g) => new BigNum(g).format('standard', 0);
 
 export const COMMODITIES = [
-  { id: 'ore', name: 'Aether Ore', icon: '🪨', basePrice: 50, minPrice: 15, maxPrice: 120 },
+  { id: 'ore', name: 'Oil Shale', icon: '🪨', basePrice: 50, minPrice: 15, maxPrice: 120 },
   { id: 'silk', name: 'Mana Silk', icon: '🧵', basePrice: 200, minPrice: 70, maxPrice: 500 },
   { id: 'amber', name: 'Solar Amber', icon: '🏺', basePrice: 1000, minPrice: 350, maxPrice: 2800 },
   { id: 'shard', name: 'Void Crystal', icon: '🔮', basePrice: 5000, minPrice: 1500, maxPrice: 15000 }

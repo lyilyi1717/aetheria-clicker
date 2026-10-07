@@ -417,7 +417,7 @@ export class CombatSystem {
       this.gameState.hero.hp = this.getTotalMaxHp(); // Heal to new max
       rewards.notify({
         tier: 'medium', kind: 'aether-forge', icon: '🔥', color: '#38bdf8',
-        title: `Aether Forge Lv ${this.gameState.hero.aetherForgeLevel}`, detail: 'Max HP up, hero healed'
+        title: `Oil Forge Lv ${this.gameState.hero.aetherForgeLevel}`, detail: 'Max HP up, hero healed'
       });
       return true;
     }

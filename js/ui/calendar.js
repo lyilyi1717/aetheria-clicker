@@ -76,7 +76,7 @@ export class CalendarUI {
             <span class="chip life">✓ Active</span>
           </section>
           <section class="card" aria-labelledby="cal-seals-h">
-            <div class="card-head"><h3 id="cal-seals-h">Seals of Transcendence</h3><span class="cal-dim" data-c="sealSummary"></span></div>
+            <div class="card-head"><h3 id="cal-seals-h">Field Seals</h3><span class="cal-dim" data-c="sealSummary"></span></div>
             <div class="cal-seals" data-c="seals">
               ${SEALS.map(s => `
                 <div class="cal-seal" data-seal="${s.id}" title="${esc(s.desc)}">
@@ -86,7 +86,7 @@ export class CalendarUI {
                   <div class="bar gold" data-bar><i></i></div>
                 </div>`).join('')}
             </div>
-            <p class="cal-note">A lit Seal never goes dark. Each lit Seal adds +1 Fracture Shard to spend at every Transcend, up to +${SEAL_SHARD_BONUS_MAX} (they do not raise the shard bonus).</p>
+            <p class="cal-note">A lit Seal never goes dark. Each lit Seal adds +1 Field Share to spend at every New Field, up to +${SEAL_SHARD_BONUS_MAX} (they do not raise the Share bonus).</p>
           </section>
         </div>
         <section class="card cal-ledger" aria-labelledby="cal-ledger-h">
@@ -152,7 +152,7 @@ export class CalendarUI {
     const sand = DALLAH_SAND * days;
     const gift = `<span class="chip sand">+${sand} Chrono Sand</span>` +
       `<span class="chip gold">+${days} bonus contract${days > 1 ? 's' : ''}</span>` +
-      `<span class="chip life">+25% Aether · 1 h</span>`;
+      `<span class="chip life">+25% Oil · 1 h</span>`;
     if (e.gift.dataset.key !== gift) { e.gift.dataset.key = gift; e.gift.innerHTML = gift; }
     const dots = Array.from({ length: DALLAH_BANK_MAX }, (_, i) => `<i class="${i < d.bank ? 'on' : ''}">${i < d.bank ? '✓' : ''}</i>`).join('');
     const bank = `Banked ${dots} <span>${d.bank > 0 ? `· ${d.bank} unclaimed day${d.bank > 1 ? 's' : ''}` : '· a new cup is poured at midnight'}</span>`;
@@ -175,7 +175,7 @@ export class CalendarUI {
   renderSeals() {
     const seals = this.sys.getSeals();
     const lit = seals.filter(s => s.lit).length;
-    setText(this.el.sealSummary, `${lit} / ${SEALS.length} lit · +${Math.min(SEAL_SHARD_BONUS_MAX, lit)} ◆ to spend at each Transcend`);
+    setText(this.el.sealSummary, `${lit} / ${SEALS.length} lit · +${Math.min(SEAL_SHARD_BONUS_MAX, lit)} ◆ to spend at each New Field`);
     for (const s of seals) {
       const el = this.sealEls.get(s.id);
       if (!el) continue;

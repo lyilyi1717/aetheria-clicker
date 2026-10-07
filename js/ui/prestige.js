@@ -3,6 +3,7 @@
 // Shows the gate, the shard multipliers, the generator ladder and the exact trade before confirm.
 import { BigNum } from '../engine/BigNum.js';
 import { MAX_TIER_COUNT } from '../systems/BuildingSystem.js';
+import { TERMS as T } from '../data/strings.js';
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 
@@ -59,14 +60,14 @@ export class TranscendPanel {
     }
     cont.innerHTML = `
       <div class="transcend-box tr-box">
-        <h3>🌌 Multiverse Transcendence</h3>
-        <p class="tr-keep" style="margin:0">The second prestige layer. Each Transcend pays 2 Fracture Shards
-          (each ×1.5 Aether and ×1.5 Cosmic Dust gain, forever) and opens the next generator tier.</p>
+        <h3>${T.reset2CurrencyIcon} ${T.reset2}</h3>
+        <p class="tr-keep" style="margin:0">The second prestige layer. Each ${T.reset2Noun} pays 2 ${T.reset2Currency}
+          (each ×1.5 ${T.currency} and ×1.5 ${T.reset1Currency} gain, forever) and opens the next generator tier.</p>
         <div class="tr-note" data-tr="legacy" hidden></div>
         <div class="tr-stats">
-          <div class="tr-stat"><div class="k">Fracture Shards</div><div class="v" data-tr="shards"></div></div>
-          <div class="tr-stat"><div class="k">Shard bonus</div><div class="v" data-tr="shardMult"></div></div>
-          <div class="tr-stat"><div class="k">Transcends</div><div class="v" data-tr="count"></div></div>
+          <div class="tr-stat"><div class="k">${T.reset2Currency}</div><div class="v" data-tr="shards"></div></div>
+          <div class="tr-stat"><div class="k">${T.shareBonus}</div><div class="v" data-tr="shardMult"></div></div>
+          <div class="tr-stat"><div class="k">${T.reset2Plural}</div><div class="v" data-tr="count"></div></div>
           <div class="tr-stat"><div class="k">Generator tiers</div><div class="v" data-tr="tiers"></div></div>
         </div>
         <div class="tr-gate-text" data-tr="gateText"></div>
@@ -75,8 +76,8 @@ export class TranscendPanel {
           <div class="tr-gain"><div class="h">You gain</div><ul data-tr="gain"></ul></div>
           <div class="tr-lose"><div class="h">You reset</div><ul data-tr="lose"></ul></div>
         </div>
-        <div class="tr-keep">You keep: generator tiers, Fracture Shards, the Shard Tree, talents, Tower, Excavation, Garden,
-          Alchemy, Bazaar, Codex and your Ascension count.</div>
+        <div class="tr-keep">You keep: generator tiers, ${T.reset2Currency}, the ${T.shareTree}, talents, Tower, Excavation, Garden,
+          Alchemy, Bazaar, Codex and your ${T.reset1Noun} count.</div>
         <button id="btn-do-transcend" class="btn-action"></button>
       </div>
     `;
@@ -96,17 +97,17 @@ export class TranscendPanel {
 
   tradeLines(tp) {
     const gain = [
-      `+${tp.shardsGained} Fracture Shards (${tp.shardsBefore} → ${tp.shardsAfter})`,
-      ...(tp.sealShards > 0 ? [`+${tp.sealShards} more shards to spend in the Shard Tree (lit Seals; they do not raise the bonus)`] : []),
-      `Aether ${fmtBigMult(tp.shardBefore)} → ${fmtBigMult(tp.shardAfter)} from shards`,
-      `Cosmic Dust gain ${fmtBigMult(tp.dustGainBefore)} → ${fmtBigMult(tp.dustGainAfter)}`,
+      `+${tp.shardsGained} ${T.reset2Currency} (${tp.shardsBefore} → ${tp.shardsAfter})`,
+      ...(tp.sealShards > 0 ? [`+${tp.sealShards} more ${T.reset2Short} to spend in the ${T.shareTree} (lit Seals; they do not raise the bonus)`] : []),
+      `${T.currency} ${fmtBigMult(tp.shardBefore)} → ${fmtBigMult(tp.shardAfter)} from ${T.reset2Short}`,
+      `${T.reset1Currency} gain ${fmtBigMult(tp.dustGainBefore)} → ${fmtBigMult(tp.dustGainAfter)}`,
       tp.newTier ? `New generator: ${tp.newTier.icon} ${tp.newTier.name} (tier ${tp.newTier.tier})`
         : `Generator ladder already complete (${MAX_TIER_COUNT} tiers)`
     ];
     const lose = [
-      `Dust multiplier ${fmtBigMult(tp.dustBefore)} → ${fmtBigMult(tp.dustAfter)} (this layer's lifetime dust starts again at 0)`,
-      'Cosmic Dust and every Dust Shop purchase (Auto-Buy, Blueprint Memory, Hourglass, ...)',
-      'The run: Aether and generators (like an Ascension)'
+      `${T.reset1Short} multiplier ${fmtBigMult(tp.dustBefore)} → ${fmtBigMult(tp.dustAfter)} (this layer's lifetime ${T.reset1Short} starts again at 0)`,
+      `${T.reset1Currency} and every ${T.reset1Shop} purchase (Auto-Buy, Blueprint Memory, Hourglass, ...)`,
+      `The run: ${T.currency} and generators (like a ${T.reset1Noun})`
     ];
     return { gain, lose };
   }
@@ -115,11 +116,11 @@ export class TranscendPanel {
     if (!this.ps.canTranscend()) return;
     const tp = this.ps.getTranscendPreview();
     const { gain, lose } = this.tradeLines(tp);
-    const msg = 'Transcend Reality?\n\nYou gain:\n- ' + gain.join('\n- ') +
+    const msg = `${T.reset2}?\n\nYou gain:\n- ` + gain.join('\n- ') +
       '\n\nYou reset:\n- ' + lose.join('\n- ') +
-      `\n\nDust × shard multiplier right after: ${fmtBigMult(tp.before)} → ${fmtBigMult(tp.after)}.` +
-      ' Dust now refills ' + fmtBigMult(tp.dustGainAfter) + ' as fast, so production usually catches up within a day.' +
-      `\nNext Transcend at ${tp.nextGate.format('standard', 0)} lifetime dust.`;
+      `\n\n${T.reset1Short} × ${T.reset2Short} multiplier right after: ${fmtBigMult(tp.before)} → ${fmtBigMult(tp.after)}.` +
+      ` ${T.reset1Short} now refill ` + fmtBigMult(tp.dustGainAfter) + ' as fast, so production usually catches up within a day.' +
+      `\nNext ${T.reset2Noun} at ${tp.nextGate.format('standard', 0)} lifetime ${T.reset1Short}.`;
     if (!confirm(msg)) return;
     this.ps.transcend();
     // New tier cards appear; the dust shop and dust were reset
@@ -135,7 +136,7 @@ export class TranscendPanel {
 
     setText(this.el.shards, gs.fractureShards.format('standard', 0) +
       (gs.totalFractureShards.gt(gs.fractureShards) ? ` (${gs.totalFractureShards.format('standard', 0)} earned)` : ''));
-    setText(this.el.shardMult, `${fmtBigMult(tp.shardBefore)} Aether & dust`);
+    setText(this.el.shardMult, `${fmtBigMult(tp.shardBefore)} ${T.currency} & ${T.reset1Short}`);
     setText(this.el.count, String(gs.transcendenceCount || 0));
     setText(this.el.tiers, `${tp.tiersBefore} / ${MAX_TIER_COUNT}`);
 
@@ -143,7 +144,7 @@ export class TranscendPanel {
     const pct = canT ? 100 : Math.max(0, Math.min(100, dust.div(tp.gate).toNumber() * 100));
     const w = `${pct.toFixed(1)}%`;
     if (this.el.gateFill.style.width !== w) this.el.gateFill.style.width = w;
-    setText(this.el.gateText, `Lifetime dust this layer: ${dust.format('standard', 0)} / ${tp.gate.format('standard', 0)}` +
+    setText(this.el.gateText, `Lifetime ${T.reset1Short} this layer: ${dust.format('standard', 0)} / ${tp.gate.format('standard', 0)}` +
       (canT ? ' — ready!' : ''));
 
     const { gain, lose } = this.tradeLines(tp);
@@ -155,12 +156,12 @@ export class TranscendPanel {
       this.el.legacy.hidden = false;
       const dustBack = BigNum.fromJSON(legacy.dust).format('standard', 0);
       const one = legacy.transcends === 1;
-      this.el.legacy.textContent = `Transcendence was reworked. Your ${legacy.transcends} earlier Transcend` +
-        `${one ? ' now counts' : 's now count'} under the new rules: ${legacy.shards} Fracture Shards` +
-        ` and ${dustBack} Cosmic Dust returned.`;
+      this.el.legacy.textContent = `${T.reset2Plural} were reworked. Your ${legacy.transcends} earlier ` +
+        `${one ? `${T.reset2Noun} now counts` : `${T.reset2Plural} now count`} under the new rules: ${legacy.shards} ${T.reset2Currency}` +
+        ` and ${dustBack} ${T.reset1Currency} returned.`;
     }
 
-    setText(this.el.btn, canT ? '✨ Transcend Reality!' : `Locked (needs ${tp.gate.format('standard', 0)} lifetime dust)`);
+    setText(this.el.btn, canT ? `${T.reset2CurrencyIcon} ${T.reset2}!` : `Locked (needs ${tp.gate.format('standard', 0)} lifetime ${T.reset1Short})`);
     this.el.btn.classList.toggle('active', canT);
     this.el.btn.classList.toggle('disabled', !canT);
   }

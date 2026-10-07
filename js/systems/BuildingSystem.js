@@ -60,7 +60,7 @@ export const BUILDING_DEFINITIONS = [
   {
     id: 'harvester',
     name: 'Boulevard World Kiosk',
-    desc: 'Extracts riyals and aether from wandering tourists.',
+    desc: 'Extracts riyals and Oil from wandering tourists.',
     icon: '🎡',
     baseCost: new BigNum(20000000),
     baseCps: new BigNum(44000),
@@ -141,7 +141,7 @@ export const TIER_COST_RATIO = 18;
 export const TIER_CPS_RATIO = 7;
 
 const GENERATED_TIERS = [
-  ['falcon_club', 'Falcon Racing Club', '🦅', 'Trains hyperspace falcons to fetch aether from passing comets.'],
+  ['falcon_club', 'Falcon Racing Club', '🦅', 'Trains hyperspace falcons to fetch Oil from passing comets.'],
   ['camel_derby', 'Robot Camel Derby', '🐪', 'Jockey drones race at relativistic speed; the wagers fuel the void.'],
   ['date_vault', 'Date Palm Vault', '🌴', 'Ages sukkari dates until they collapse into sugar stars.'],
   ['kabsa_reactor', 'Kabsa Fusion Reactor', '🍲', 'Fuses rice and saffron at the core of a captive sun.'],
@@ -156,7 +156,7 @@ const GENERATED_TIERS = [
   ['hejaz_hyperrail', 'Hejaz Hyperrail', '🚄', 'The old railway, rebuilt to run between parallel timelines.'],
   ['empty_quarter_engine', 'Empty Quarter Engine', '🌌', 'Harvests the nothing between grains of sand. There is a lot of it.'],
   ['pearl_dyson', 'Pearl-Diver Dyson Sphere', '🦪', 'Divers wrap a star in nacre and harvest its glow.'],
-  ['eternal_dallah', 'The Eternal Dallah', '🏺', 'Pours a coffee that never ends, and so neither does the Aether.']
+  ['eternal_dallah', 'The Eternal Dallah', '🏺', 'Pours a coffee that never ends, and so neither does the Oil.']
 ];
 
 {

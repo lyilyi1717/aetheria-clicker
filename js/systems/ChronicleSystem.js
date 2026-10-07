@@ -55,14 +55,14 @@ export const MARGIN_NOTES_PER_CLEAR = 0.25;
 // What a Chronicle resets and keeps. The preview and the confirm print these; test_chronicle.js
 // checks the reset does exactly this.
 export const CHRONICLE_RESETS = [
-  'The run: Aether, generators and shop upgrades',
-  'Cosmic Dust, lifetime dust and every Dust Shop feature',
-  'Fracture Shards (balance and earned) and the shard tree',
-  'Transcends: the count starts again at 0, so the ladder is back to 14 generator tiers'
+  'The run: Oil, generators and shop upgrades',
+  'Crude Reserves, lifetime Reserves and every Reserve Shop feature',
+  'Field Shares (balance and earned) and the Share Tree',
+  'New Fields: the count starts again at 0, so the ladder is back to 14 generator tiers'
 ];
 export const CHRONICLE_KEEPS = [
   'Pages, Page upgrades, Chapter stamps and challenge records',
-  'Ascension count, talents and talent points, records',
+  'New Well count, talents and talent points, records',
   'Codex, collections and achievements',
   'Tower (floors, gear, Warden trophies), Excavation, Garden, Alchemy, Guild and Bazaar',
   'Wardens and Garden breeding stay unlocked',
@@ -73,15 +73,15 @@ export const CHRONICLE_KEEPS = [
 
 export const PAGE_UPGRADES = [
   { id: 'bookmark', name: 'Bookmark', icon: '🔖', cost: 3,
-    desc: 'A Chronicle keeps Auto-Ascend and your rule: no Ascending by hand after the reset.' },
+    desc: 'A Chronicle keeps Auto-Well and your rule: no drilling a New Well by hand after the reset.' },
   { id: 'ink', name: 'Ink of Memory', icon: '🖋️', cost: 4,
-    desc: `Begin every Chronicle with ${INK_SHARDS} Fracture Shards (×2.25 Aether and dust gain from the start).` },
+    desc: `Begin every Chronicle with ${INK_SHARDS} Field Shares (×2.25 Oil and Reserves gain from the start).` },
   { id: 'second_reading', name: 'Second Reading', icon: '📖', cost: 5,
     desc: 'Challenges pay their Pages twice on the first clear.' },
   { id: 'margin_notes', name: 'Margin Notes', icon: '✍️', cost: 6,
-    desc: `+${Math.round(MARGIN_NOTES_PER_CLEAR * 100)}% Aether for every challenge you have cleared.` },
+    desc: `+${Math.round(MARGIN_NOTES_PER_CLEAR * 100)}% Oil for every challenge you have cleared.` },
   { id: 'dog_ear', name: 'Dog-Ear', icon: '📑', cost: 5, requires: ['bookmark'],
-    desc: 'A Chronicle also keeps Long Sleep and Hourglass from the shard tree.' },
+    desc: 'A Chronicle also keeps Long Sleep and Hourglass from the Share Tree.' },
   { id: 'gilded_edges', name: 'Gilded Edges', icon: '✨', cost: 8,
     desc: `+${GILDED_EXTRA_PAGES} Page from every Chronicle.` }
 ];
@@ -110,9 +110,9 @@ export const NO_RULES = Object.freeze({
 export function describeRules(rules) {
   const out = [];
   for (const [k, v] of Object.entries(rules || {})) {
-    if (k === 'aetherMult') out.push({ text: v >= 1 ? `🧆 Aether ×${v}` : `🧆 Aether ÷${Math.round(1 / v)}`, good: v >= 1 });
+    if (k === 'aetherMult') out.push({ text: v >= 1 ? `🏭 Oil ×${v}` : `🏭 Oil ÷${Math.round(1 / v)}`, good: v >= 1 });
     else if (k === 'excavationMult') out.push({ text: `⛏ Excavation ×${v}`, good: v >= 1 });
-    else if (k === 'layerBonusesOff' && v) out.push({ text: '🌌 Dust, shard and Page bonuses off', good: false });
+    else if (k === 'layerBonusesOff' && v) out.push({ text: '🌌 Reserves, Share and Page bonuses off', good: false });
     else if (k === 'comboCap') out.push({ text: `🔥 Combo caps at ×${v}`, good: false });
     else if (k === 'noFrenzy' && v) out.push({ text: '🧯 No Frenzy', good: false });
     else if (k === 'noSpells' && v) out.push({ text: '🌑 No spells', good: false });
@@ -128,7 +128,7 @@ export function describeRules(rules) {
 export const CHAPTERS = [
   {
     id: 'sand', number: 1, name: 'Chapter of Sand', icon: '⏳', weeks: 10, stampPages: 3,
-    blurb: 'Excavation is the engine for ten weeks: the dig hits three times as hard and the Falafel pays half. Its four challenges stay open after the Chapter ends.',
+    blurb: 'Excavation is the engine for ten weeks: the dig hits three times as hard and the Refinery pays half. Its four challenges stay open after the Chapter ends.',
     rules: { excavationMult: 3, aetherMult: 0.5 },
     challenges: [
       { id: 'sand_dry_well', name: 'Dry Well', icon: '🧯', pages: 3, requires: 0,
@@ -141,7 +141,7 @@ export const CHAPTERS = [
         desc: 'Only the first 6 generators open.',
         rules: { layerBonusesOff: true, maxTiers: 6 }, goal: { runAether: 1e10 } },
       { id: 'sand_sandstorm', name: 'Sandstorm', icon: '🌪️', pages: 5, requires: 3,
-        desc: 'The storm takes nine tenths of all Aether.',
+        desc: 'The storm takes nine tenths of all Oil.',
         rules: { layerBonusesOff: true, aetherMult: 0.1 }, goal: { runAether: 1e10 } }
     ]
   }
@@ -369,10 +369,10 @@ export function getSealGate(gs) {
     const p = cal.getSealSetProgress(1) || {};
     const lit = nonNegInt(p.lit), total = Math.max(1, nonNegInt(p.total));
     return { source: 'seals', met: lit >= total || byTranscends, sealsMet: lit >= total, lit, total, need: SEAL_STANDIN_TRANSCENDS,
-      text: `Seal set I (${lit}/${total} lit) or ${SEAL_STANDIN_TRANSCENDS} Transcends` };
+      text: `Seal set I (${lit}/${total} lit) or ${SEAL_STANDIN_TRANSCENDS} New Fields` };
   }
   return { source: 'standin', met: byTranscends, sealsMet: false, need: SEAL_STANDIN_TRANSCENDS,
-    text: `${SEAL_STANDIN_TRANSCENDS} Transcends for the first Chronicle (stands in for Seal set I)` };
+    text: `${SEAL_STANDIN_TRANSCENDS} New Fields for the first Chronicle (stands in for Seal set I)` };
 }
 
 // Transcends needed for the next Chronicle (without Seal set I the first one needs more)
@@ -392,10 +392,10 @@ export function getPendingPages(gs, transcends = gs?.transcendenceCount || 0) {
 export function getChronicleBlockReason(gs) {
   if (isChallengeActive(gs)) return 'finish or abandon the running challenge first';
   const t = nonNegInt(gs?.transcendenceCount);
-  if (t < CHRONICLE_TRANSCEND_GATE) return `needs ${CHRONICLE_TRANSCEND_GATE} Transcends (you: ${t})`;
+  if (t < CHRONICLE_TRANSCEND_GATE) return `needs ${CHRONICLE_TRANSCEND_GATE} New Fields (you: ${t})`;
   const seal = getSealGate(gs);
   if (!seal.met) {
-    return seal.source === 'seals' ? `needs ${seal.text} (you: ${t})` : `the first Chronicle needs ${SEAL_STANDIN_TRANSCENDS} Transcends (you: ${t})`;
+    return seal.source === 'seals' ? `needs ${seal.text} (you: ${t})` : `the first Chronicle needs ${SEAL_STANDIN_TRANSCENDS} New Fields (you: ${t})`;
   }
   return null;
 }

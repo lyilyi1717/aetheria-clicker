@@ -38,17 +38,17 @@ export const LONG_WARP_COOLDOWN_MS = 24 * 3600 * 1000;
 export const AUTO_ASCEND_CHECK_MS = 1000;
 
 export const SHARD_TREE_BRANCHES = [
-  { id: 'foundry', name: 'Foundry', icon: '🏭', desc: 'Deep Blueprints: one per Transcend tier. That tier\'s 5 upgrades cost ÷10.' },
-  { id: 'chronos', name: 'Chronos', icon: '⏳', desc: 'Time works for you: Auto-Ascend, a longer offline cap, a daily 6 h Fast Forward, Auto-Blast.' },
+  { id: 'foundry', name: 'Foundry', icon: '🏭', desc: 'Deep Blueprints: one per New Field tier. That tier\'s 5 upgrades cost ÷10.' },
+  { id: 'chronos', name: 'Chronos', icon: '⏳', desc: 'Time works for you: Auto-Well, a longer offline cap, a daily 6 h Fast Forward, Auto-Blast.' },
   { id: 'tower', name: 'Tower', icon: '🗼', desc: 'The Void Tower: Wardens every 250 floors, and a Second Wind against bosses.' }
 ];
 
 // Auto-Ascend rules. "×m" Ascends once the Ascension would multiply this layer's lifetime dust by
 // at least m (pending >= (m - 1) x lifetime). "timer" Ascends every N minutes of run time.
 export const AUTO_ASCEND_RULES = [
-  { id: 'x1.2', label: '×1.2 dust', mult: 1.2 },
-  { id: 'x1.5', label: '×1.5 dust', mult: 1.5 },
-  { id: 'x2', label: '×2 dust', mult: 2 },
+  { id: 'x1.2', label: '×1.2 Reserves', mult: 1.2 },
+  { id: 'x1.5', label: '×1.5 Reserves', mult: 1.5 },
+  { id: 'x2', label: '×2 Reserves', mult: 2 },
   { id: 'timer', label: 'Timer' }
 ];
 export const AUTO_ASCEND_TIMER_OPTIONS = [10, 30, 60, 240]; // minutes; 10 = the minimum run
@@ -73,18 +73,18 @@ function foundryNodes() {
 export const SHARD_TREE_NODES = [
   ...foundryNodes(),
   {
-    id: 'chronos_auto_ascend', branch: 'chronos', cost: 2, icon: '♾️', name: 'Auto-Ascend',
-    desc: 'Ascends for you by your rule (dust ×1.2 / ×1.5 / ×2, or a timer), never before the 10-min minimum run. Uses held Sidr Honey like a manual Ascend.',
+    id: 'chronos_auto_ascend', branch: 'chronos', cost: 2, icon: '♾️', name: 'Auto-Well',
+    desc: 'Drills a New Well for you by your rule (Reserves ×1.2 / ×1.5 / ×2, or a timer), never before the 10-min minimum run. Uses held Sidr Honey like a New Well drilled by hand.',
     requires: []
   },
   {
     id: 'chronos_offline', branch: 'chronos', cost: 2, icon: '🛌', name: 'Long Sleep',
-    desc: 'Offline Aether: +8 h at 100% (the 24 h cap moves out by 8 h too).',
+    desc: 'Offline Oil: +8 h at 100% (the 24 h cap moves out by 8 h too).',
     requires: ['chronos_auto_ascend']
   },
   {
     id: 'chronos_long_warp', branch: 'chronos', cost: 3, icon: '⏩', name: 'Hourglass',
-    desc: 'Once a day: Fast Forward 6 h (6 h of Aether production and Garden growth, instantly).',
+    desc: 'Once a day: Fast Forward 6 h (6 h of Oil production and Garden growth, instantly).',
     requires: ['chronos_offline']
   },
   {
@@ -192,10 +192,10 @@ export function getBlockReason(gameState, id) {
     if (!hasNode(gameState, req)) return `needs ${getNode(req).name}`;
   }
   if (node.branch === 'foundry') {
-    if (getOpenTierCount(gameState) < node.tier) return `opens with Tier ${node.tier} (Transcend ${node.tier - BASE_TIERS})`;
+    if (getOpenTierCount(gameState) < node.tier) return `opens with Tier ${node.tier} (New Field ${node.tier - BASE_TIERS})`;
     if (!isFoundryOpen(gameState)) return 'opens with the upgrade shop';
   }
-  if (getShardBalance(gameState) < node.cost) return `needs ${node.cost} shard${node.cost === 1 ? '' : 's'}`;
+  if (getShardBalance(gameState) < node.cost) return `needs ${node.cost} Share${node.cost === 1 ? '' : 's'}`;
   return null;
 }
 

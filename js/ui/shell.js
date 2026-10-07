@@ -58,20 +58,20 @@ function fmtClock(s) {
 export function getNextGoal(gs, buildings, prestige, now = Date.now()) {
   if (prestige.canAscend(now)) {
     const dust = prestige.getPendingCosmicDust();
-    return { icon: '🚀', text: `Ascend for +${dust.format('standard', 0)} Dust`, pct: 1, tab: 'prestige' };
+    return { icon: '🚀', text: `Drill a New Well for +${dust.format('standard', 0)} Reserves`, pct: 1, tab: 'prestige' };
   }
   const def = BUILDING_DEFINITIONS.find(d => buildings.isTierUnlocked(d.id) && !(gs.buildings[d.id]?.count > 0));
   if (def) {
     const cost = buildings.getBuildingCost(def.id, 1);
-    return { icon: def.icon, text: `${def.name}: ${cost.format('standard', 2)} Aether`, pct: ratio(gs.aether, cost), tab: 'monolith' };
+    return { icon: def.icon, text: `${def.name}: ${cost.format('standard', 2)} Oil`, pct: ratio(gs.aether, cost), tab: 'monolith' };
   }
   if (prestige.getPendingCosmicDust().lte(0)) {
     const gate = new BigNum(ASCEND_GATE);
     const pct = Math.max(0, Math.min(1, log10(gs.totalAetherEarned) / log10(gate)));
-    return { icon: '🚀', text: `Ascension at ${gate.format('standard', 0)} Aether`, pct, tab: 'prestige' };
+    return { icon: '🚀', text: `New Well at ${gate.format('standard', 0)} Oil`, pct, tab: 'prestige' };
   }
   const left = prestige.getMinRunRemaining(now);
-  return { icon: '⏳', text: `Ascension in ${fmtClock(left)}`, pct: 1 - left / MIN_RUN_SECONDS, tab: 'prestige' };
+  return { icon: '⏳', text: `New Well in ${fmtClock(left)}`, pct: 1 - left / MIN_RUN_SECONDS, tab: 'prestige' };
 }
 
 export class Shell {

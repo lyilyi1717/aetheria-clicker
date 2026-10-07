@@ -101,7 +101,7 @@ export class ChronicleUI {
         <div class="icon-tile" aria-hidden="true">${c.icon}</div>
         <div>
           <div class="n">${esc(c.name)} <span class="tag run" data-run hidden>running</span></div>
-          <div class="r">${esc(c.desc)} Reach ${fmtBig(c.goal.runAether)} Aether in the challenge run.</div>
+          <div class="r">${esc(c.desc)} Reach ${fmtBig(c.goal.runAether)} Oil in the challenge run.</div>
           <div class="chr-ch-rules">${describeRules(c.rules).map(chipHtml).join('')}</div>
           <div class="bar sand" data-bar hidden><i></i></div>
           <div class="best num" data-best></div>
@@ -212,13 +212,13 @@ export class ChronicleUI {
     const reason = this.sys.getChallengeBlockReason(id);
     if (reason) return;
     const c = getChallenge(id);
-    const msg = `Start "${c.name}"?\n\n${c.desc}\nGoal: ${fmtBig(c.goal.runAether)} Aether in a fresh run, with dust, shard and Page bonuses off.\n\n` +
-      'Your current run (Aether and generators) is set aside and comes back exactly as it is when the challenge ends or you abandon it. ' +
-      'Ascending, Transcending and the 6 h Fast Forward wait until then. Everything else keeps running.';
+    const msg = `Start "${c.name}"?\n\n${c.desc}\nGoal: ${fmtBig(c.goal.runAether)} Oil in a fresh run, with Reserves, Share and Page bonuses off.\n\n` +
+      'Your current run (Oil and generators) is set aside and comes back exactly as it is when the challenge ends or you abandon it. ' +
+      'New Wells, New Fields and the 6 h Fast Forward wait until then. Everything else keeps running.';
     if (!confirm(msg)) return;
     if (!this.sys.startChallenge(id)) return;
     sound.playBuy();
-    rewards.notify({ tier: 'medium', kind: 'challenge-start', icon: c.icon, color: SAND, title: `Challenge: ${c.name}`, detail: `Reach ${fmtBig(c.goal.runAether)} Aether` });
+    rewards.notify({ tier: 'medium', kind: 'challenge-start', icon: c.icon, color: SAND, title: `Challenge: ${c.name}`, detail: `Reach ${fmtBig(c.goal.runAether)} Oil` });
     this.app.updateBuildingsUI?.();
     this.update('chronicle');
   }
@@ -269,17 +269,17 @@ export class ChronicleUI {
     setText(this.modal.yes, `Begin ${name}`);
     const features = Object.values(gs.dustShop?.ranks || {}).filter(r => r > 0).length;
     const keep = [
-      `${p.pagesBefore} Pages earned + ${p.pages} new (Aether ${fmtMult(p.aetherMultBefore)} → ${fmtMult(p.aetherMultAfter)})`,
-      `${gs.ascensionCount.toLocaleString()} Ascensions, talents, Codex and achievements`,
+      `${p.pagesBefore} Pages earned + ${p.pages} new (Oil ${fmtMult(p.aetherMultBefore)} → ${fmtMult(p.aetherMultAfter)})`,
+      `${gs.ascensionCount.toLocaleString()} New Wells, talents, Codex and achievements`,
       `Floor ${(gs.hero?.maxFloor || 1).toLocaleString()}, depth ${(gs.miningGrid?.maxDepth || 0).toLocaleString()}, Garden, Guild, Bazaar`,
       'Wardens and Garden breeding stay unlocked'
     ];
-    if (p.keepsAutoAscend) keep.push('Auto-Ascend (Bookmark)');
+    if (p.keepsAutoAscend) keep.push('Auto-Well (Bookmark)');
     if (p.startsChapter) keep.push(`Chapter 1 begins: ${p.startsChapter.name}`);
     const lose = [
-      `${fmtBig(p.dust)} lifetime dust, ${features} Dust Shop feature${features === 1 ? '' : 's'}`,
-      `${p.shards} shards${p.shardsAfter ? ` (you start with ${p.shardsAfter})` : ''}, ${p.treeNodes} shard tree node${p.treeNodes === 1 ? '' : 's'}`,
-      `${p.transcends} Transcends: back to 14 generator tiers`,
+      `${fmtBig(p.dust)} lifetime Reserves, ${features} Reserve Shop feature${features === 1 ? '' : 's'}`,
+      `${p.shards} Shares${p.shardsAfter ? ` (you start with ${p.shardsAfter})` : ''}, ${p.treeNodes} Share Tree node${p.treeNodes === 1 ? '' : 's'}`,
+      `${p.transcends} New Fields: back to 14 generator tiers`,
       'The current run'
     ];
     this.setList(this.modal.keep, keep);
@@ -335,14 +335,14 @@ export class ChronicleUI {
     const w = `${(pct * 100).toFixed(1)}%`;
     if (el.weekFill.style.width !== w) el.weekFill.style.width = w;
     setText(el.pagesChip, `📜 Pages ${c.pages}`);
-    setText(el.multChip, `${fmtMult(new BigNum(PAGE_AETHER_MULT).pow(c.totalPages))} Aether from ${c.totalPages} Pages`);
+    setText(el.multChip, `${fmtMult(new BigNum(PAGE_AETHER_MULT).pow(c.totalPages))} Oil from ${c.totalPages} Pages`);
     el.rules.classList.toggle('is-off', !!st && !st.running);
 
     // Challenges
     const active = c.active?.id || null;
     const opened = sys.getAvailableChapters().length > 0;
     setText(el.chNote, !opened ? `Challenges open with ${CHAPTERS[0].name}, at your first Chronicle.`
-      : active ? 'A challenge is running: Ascend and Transcend wait until it ends. Your main run is safe.' : '');
+      : active ? 'A challenge is running: New Wells and New Fields wait until it ends. Your main run is safe.' : '');
     setHidden(el.chNote, opened && !active);
     const prog = sys.getChallengeProgress();
     for (const [id, refs] of this.chEls) {
@@ -368,7 +368,7 @@ export class ChronicleUI {
       if (running && prog) {
         const f = `${(prog.pct * 100).toFixed(1)}%`;
         if (refs.fill.style.width !== f) refs.fill.style.width = f;
-        best = `${fmtBig(prog.have)} / ${fmtBig(prog.goal)} Aether · ${fmtDuration((Date.now() - c.active.startedAt) / 1000)}`;
+        best = `${fmtBig(prog.have)} / ${fmtBig(prog.goal)} Oil · ${fmtDuration((Date.now() - c.active.startedAt) / 1000)}`;
       } else if (done) {
         best = `Best ${fmtDuration(rec.best)} · +${def.pages} Pages ✓`;
       } else if (reason && reason.startsWith('opens')) {
@@ -399,10 +399,10 @@ export class ChronicleUI {
     if (el.gateFill.style.width !== gp) el.gateFill.style.width = gp;
     setText(el.gateVal, `${Math.min(t, need)}/${need}`);
     const seal = getSealGate(gs);
-    let note = `Needs ${CHRONICLE_TRANSCEND_GATE} Transcends this Chronicle.`;
-    if (seal.source === 'seals' && seal.sealsMet) note = `All ${seal.total} Seals of Transcendence are lit: ${CHRONICLE_TRANSCEND_GATE} Transcends open your first Chronicle.`;
-    else if (seal.source === 'seals') note = `Needs ${CHRONICLE_TRANSCEND_GATE} Transcends and all ${seal.total} Seals of Transcendence (${seal.lit} lit), or ${SEAL_STANDIN_TRANSCENDS} Transcends without them. After the first Chronicle, ${CHRONICLE_TRANSCEND_GATE} is enough.`;
-    else if (seal.source === 'standin') note = `Your first Chronicle needs ${need} Transcends; after it, ${CHRONICLE_TRANSCEND_GATE} is enough.`;
+    let note = `Needs ${CHRONICLE_TRANSCEND_GATE} New Fields this Chronicle.`;
+    if (seal.source === 'seals' && seal.sealsMet) note = `All ${seal.total} Field Seals are lit: ${CHRONICLE_TRANSCEND_GATE} New Fields open your first Chronicle.`;
+    else if (seal.source === 'seals') note = `Needs ${CHRONICLE_TRANSCEND_GATE} New Fields and all ${seal.total} Field Seals (${seal.lit} lit), or ${SEAL_STANDIN_TRANSCENDS} New Fields without them. After the first Chronicle, ${CHRONICLE_TRANSCEND_GATE} is enough.`;
+    else if (seal.source === 'standin') note = `Your first Chronicle needs ${need} New Fields; after it, ${CHRONICLE_TRANSCEND_GATE} is enough.`;
     setText(el.sealNote, note);
     const reason = sys.getBlockReason();
     const pages = sys.getPreview().pages;

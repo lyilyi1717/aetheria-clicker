@@ -22,7 +22,7 @@ const BUFF_ICONS = {
 
 // Buff type -> target tag + tab to jump to (null tab = global, no jump)
 const BUFF_TARGETS = {
-  aether_mult: { tag: 'Monolith', tab: 'monolith', affects: 'all Aether' },
+  aether_mult: { tag: 'Monolith', tab: 'monolith', affects: 'all Oil' },
   click_mult: { tag: 'Monolith', tab: 'monolith', affects: 'clicks only' },
   click_gold: { tag: 'Monolith', tab: 'monolith', affects: 'clicks mint gold' },
   hero_atk: { tag: 'Void Tower', tab: 'combat', affects: 'hero attack' },
