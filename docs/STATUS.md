@@ -230,6 +230,9 @@ R0–R30 and R32–R35, R38, R40 are done.
 - **Game feel:** `docs/game-feel-guide.md` sets feedback tiers (T0 tap to T3 peak) and a
   checklist for any action, reward or ceremony (linked from AGENTS.md rule 7). An audit of
   where the game falls short goes in `docs/game-feel-opportunities.md`.
+- **Game-feel audit:** `docs/game-feel-opportunities.md` scores every action/reward moment, ranks
+  13 improvements, sketches a shared `js/ui/feedback.js` tier helper and lists issues GF-1–GF-9
+  for the owner to file (open questions in its §6).
 
 - **Changelog:** every player-visible PR bumps `VERSION` and adds a `CHANGELOG` entry in
   `js/version.js` (AGENTS.md "Version and changelog"; CI `changelog` job enforces it). v3.0.0
