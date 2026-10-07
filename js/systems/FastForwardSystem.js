@@ -21,6 +21,7 @@
 // the clock back (or back and forth again) can't reset the price.
 
 import { hasShopItem } from './DustShopSystem.js';
+import { t } from '../i18n/index.js';
 
 export const FF_WARP_SECONDS = 30;          // sim time per use
 export const FF_BASE_COST = 30;             // sand for the first use of a cycle
@@ -30,8 +31,8 @@ export const FF_RESET_MS = FF_RESET_MINUTES * 60 * 1000;
 export const FF_SIM_STEP = 0.25;            // max sim step (combat timers stay accurate)
 export const FF_WARP_RATE = 100;            // sim seconds per real second while warping
 export const FF_LONG_WARPS = [
-  { id: '5m', seconds: 300, cost: 300, label: '5 min' },
-  { id: '1h', seconds: 3600, cost: 3600, label: '1 h' }
+  { id: '5m', seconds: 300, cost: 300, label: t('dur.min', { n: 5 }) },
+  { id: '1h', seconds: 3600, cost: 3600, label: t('dur.h', { n: 1 }) }
 ];
 export const FF_LONG_SIM_STEP = 1.0;        // sim step for Hourglass warps (mining/combat accumulate)
 export const FF_LONG_WARP_RATE = 1800;      // sim seconds per real second for Hourglass warps
