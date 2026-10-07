@@ -10,6 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
+- R39 #75 shared part: news posted by signed-in players is shared with everyone (Supabase
+  `news_posts`, 3/day rate limit, word filter, report, owner hide). Owner asked for it.
 - R31 #67 Slower number growth (PR #102, draft): paused for an owner decision between option 1
   (full economy redesign, its own item) and option 2 (prestige discount: identical pacing, about
   1e16-1e19 at day 60). Details in the #67 comment.
