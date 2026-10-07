@@ -152,6 +152,40 @@ ladder chosen to stay distinct under common colour blindness.
 
 Only Cosmic may glow. Gear cards show rarity as a 4px left border plus the glyph label.
 
+### 2.5 Themes (R35)
+
+The game ships three themes, picked in Settings → Theme (`settings.theme`, default `night`;
+`js/ui/theme.js`). Night is the plain `:root` block in `css/tokens.css` (the values in §2.1);
+each other theme is a `:root[data-theme="…"]` block below it that overrides the **colour
+tokens only** (surfaces, lines, text, accents, rarity, `--tint`, `--shade`, `--art-blend`,
+and the elevation shadows for the light theme). Sizes, fonts, motion and layout are shared.
+
+| Theme | `data-theme` | Look |
+|---|---|---|
+| Night | (none) / `night` | dark emerald, neon currencies (default) |
+| Sand | `sand` | light: parchment surfaces (cream card, never `#fff`), deep brown text, darkened accents so they read as text on cream |
+| Desert Dusk | `dusk` | dark plum surfaces, orange brand line, slightly lifted accents |
+
+Rules that keep every theme working:
+
+- **No colour literals in `css/*.css`.** Use a token. For a translucent accent write
+  `color-mix(in srgb, var(--gold) 30%, transparent)`, not `rgba(251,191,36,0.3)`. The `-dim`
+  tints and `--glow-*` derive from the accents this way, so a theme only sets the accents.
+- **Overlays:** `--tint` is the "lighter" wash (subtle fills and hovers), `--shade` the "darker"
+  one (wells, scrims), both through `color-mix`. Sand flips `--tint` to brown so a raised fill
+  still reads on cream. Plain black/white is allowed only inside `box-shadow` / `text-shadow`
+  and masks.
+- **Art** drawn on black (the Falafel) blends with `mix-blend-mode: var(--art-blend)`: `screen`
+  on dark themes, `normal` on Sand.
+- **JS colours:** toasts (`--toast-accent`), floating text and canvas sparks still pass Night hex
+  values; `themeVar()` (for CSS) and `themeColor()` (for canvas) in `js/ui/theme.js` map known
+  accent hexes to the active theme's token. Under Night they return the value unchanged. New
+  inline colours in JS should be `var(--token)` strings instead.
+- `index.html` sets `data-theme` from `localStorage.AETHERIA_THEME` before the CSS loads, so a
+  reload on Sand doesn't flash dark.
+- A new theme sets every colour token (`test_r35_themes.js` checks the set) and passes the
+  contrast check below.
+
 ---
 
 ## 3. Type
@@ -325,7 +359,10 @@ stays available but never pushes the action below the fold again.
 
 ## 8. Checklist for a UI PR
 
-- [ ] Uses tokens, no new hex values (except new art)
+- [ ] Uses tokens, no new hex values (except new art); translucent colours via `color-mix`
+- [ ] Contrast in every theme (Night, Sand, Desert Dusk): text and accent tokens ≥ 4.5:1 on
+      `--bg-1`/`--bg-2`/`--bg-3`, `--text-on-accent` ≥ 4.5:1 on `--gold` (`test_r35_themes.js`
+      checks the tokens; look at the screen in each theme for anything drawn in JS)
 - [ ] One filled (gold) button per card at most; affordable = gold
 - [ ] The tab's action is above the fold at 1280×800 and 375×812
 - [ ] Tap targets ≥ 44px on touch; no hover-only information
