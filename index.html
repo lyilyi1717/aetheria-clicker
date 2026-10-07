@@ -31,52 +31,52 @@
   <canvas id="particle-canvas"></canvas>
 
   <!-- Random Golden Rift Anomaly -->
-  <div id="golden-anomaly" title="Click the Cosmic Anomaly!">✨</div>
+  <div id="golden-anomaly" title="Click the Cosmic Anomaly!" data-i18n-title="hdr.title.click_the_cosmic_anomaly">✨</div>
 
   <!-- Main Layout -->
   <div id="app-container">
     <!-- Header Dashboard -->
     <header id="top-dashboard" class="hdr">
       <div class="wordmark">
-        <h1 class="game-title">AETHERIA</h1>
-        <small>Saudi Edition · <button id="game-version" class="game-version" title="About & changelog">v</button></small>
+        <h1 class="game-title" data-i18n="hdr.aetheria">AETHERIA</h1>
+        <small><span data-i18n="hdr.edition">Saudi Edition</span> · <button id="game-version" class="game-version" title="About & changelog" data-i18n-title="hdr.title.about_changelog">v</button></small>
       </div>
 
       <!-- Currency strip: shell.js orders it per tab (hero currency first) and hides the ones a tab doesn't use -->
       <div class="res-strip" id="res-strip">
-        <div class="res" data-res="aether" title="Oil: The primary energy used to construct generators and power your realm.">
-          <span class="k">Oil</span>
+        <div class="res" data-res="aether" title="Oil: The primary energy used to construct generators and power your realm." data-i18n-title="hdr.title.oil_the_primary_energy">
+          <span class="k" data-i18n="hdr.oil">Oil</span>
           <span id="stat-aether" class="v num c-aether">0</span>
-          <span id="stat-aether-rate" class="s num" title="Mastery multipliers on Oil/s">+0.0 /s</span>
+          <span id="stat-aether-rate" class="s num" title="Mastery multipliers on Oil/s" data-i18n-title="hdr.title.mastery_multipliers_on_oil">+0.0 /s</span>
         </div>
-        <div class="res" data-res="gold" title="Gold: Earned from combat, mining, market trading, and alchemy. Used for gear, pickaxes, and commodities.">
-          <span class="k">Gold</span>
+        <div class="res" data-res="gold" title="Gold: Earned from combat, mining, market trading, and alchemy. Used for gear, pickaxes, and commodities." data-i18n-title="hdr.title.gold_earned_from_combat">
+          <span class="k" data-i18n="hdr.gold">Gold</span>
           <span id="stat-gold" class="v num c-gold">0</span>
         </div>
-        <div class="res" data-res="dust" title="Crude Reserves: Prestige currency earned by drilling a New Well. Each Reserve you have ever earned grants +2% permanent production, even after you spend it!">
-          <span class="k">Reserves</span>
+        <div class="res" data-res="dust" title="Crude Reserves: Prestige currency earned by drilling a New Well. Each Reserve you have ever earned grants +2% permanent production, even after you spend it!" data-i18n-title="hdr.title.crude_reserves_prestige_currency">
+          <span class="k" data-i18n="hdr.reserves">Reserves</span>
           <span id="stat-cosmic-dust" class="v num c-dust">0</span>
         </div>
-        <div class="res res-mana" data-res="mana" title="Mana: Regenerates constantly. Used to cast spells in the Arcane Grimoire." hidden>
-          <span class="k">Mana</span>
+        <div class="res res-mana" data-res="mana" title="Mana: Regenerates constantly. Used to cast spells in the Arcane Grimoire." data-i18n-title="hdr.title.mana_regenerates_constantly_used" hidden>
+          <span class="k" data-i18n="hdr.mana">Mana</span>
           <span id="stat-mana" class="v num c-mana">100 / 100</span>
           <span class="bar mana"><i id="bar-mana-fill"></i></span>
         </div>
-        <div class="res" data-res="sand" title="Chrono Sand: Time warp energy earned while playing or offline. Spend to fast-forward simulation time!" hidden>
-          <span class="k">Chrono Sand</span>
+        <div class="res" data-res="sand" title="Chrono Sand: Time warp energy earned while playing or offline. Spend to fast-forward simulation time!" data-i18n-title="hdr.title.chrono_sand_time_warp" hidden>
+          <span class="k" data-i18n="hdr.chrono_sand">Chrono Sand</span>
           <span id="stat-chrono" class="v num c-sand">60s</span>
         </div>
-        <div class="res" data-res="pages" title="Chronicle Pages: earned by beginning a Chronicle and clearing challenges. Every Page ever earned gives ×1.4 Oil; spend them on Page upgrades." hidden>
-          <span class="k">Pages</span>
+        <div class="res" data-res="pages" title="Chronicle Pages: earned by beginning a Chronicle and clearing challenges. Every Page ever earned gives ×1.4 Oil; spend them on Page upgrades." data-i18n-title="hdr.title.chronicle_pages_earned_by" hidden>
+          <span class="k" data-i18n="hdr.pages">Pages</span>
           <span id="stat-pages" class="v num c-sand">0</span>
         </div>
-        <div class="res" data-res="seals" title="Guild Seals: Earned from Bounty contracts. Spent on Quartermaster upgrades in the Bounties tab." hidden>
-          <span class="k">Guild Seals</span>
+        <div class="res" data-res="seals" title="Guild Seals: Earned from Bounty contracts. Spent on Quartermaster upgrades in the Bounties tab." data-i18n-title="hdr.title.guild_seals_earned_from" hidden>
+          <span class="k" data-i18n="hdr.guild_seals">Guild Seals</span>
           <span id="stat-guild-seals" class="v num c-gold">0</span>
         </div>
       </div>
 
-      <div id="next-goal" class="goal" title="Your nearest target" hidden>
+      <div id="next-goal" class="goal" title="Your nearest target" data-i18n-title="hdr.title.your_nearest_target" hidden>
         <span class="goal-ic" aria-hidden="true">🎯</span>
         <span class="goal-text">…</span>
         <span class="bar gold"><i></i></span>
@@ -84,12 +84,12 @@
 
       <!-- Desktop/tablet: right edge of the header. Phone: shell.js moves this into the More sheet. -->
       <div id="hdr-actions" class="hdr-actions">
-        <button id="btn-time-warp" class="btn btn-sm btn-aether btn-time-warp" title="Spend Chrono Sand to warp 30s ahead. Each use costs more until the price resets.">
-          <span class="ff-title">⚡ Fast Forward 30s</span>
+        <button id="btn-time-warp" class="btn btn-sm btn-aether btn-time-warp" title="Spend Chrono Sand to warp 30s ahead. Each use costs more until the price resets." data-i18n-title="hdr.title.spend_chrono_sand_to">
+          <span class="ff-title" data-i18n="hdr.fast_forward_30s">⚡ Fast Forward 30s</span>
           <span class="ff-sub"><span id="ff-cost">30 sand</span> · <span id="ff-info">base price</span></span>
         </button>
         <button id="btn-mute" class="btn btn-sm btn-ghost">🔊 Sound On</button>
-        <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.25" title="Volume" aria-label="Volume">
+        <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.25" title="Volume" data-i18n-title="hdr.title.volume" aria-label="Volume" data-i18n-aria-label="hdr.aria.volume">
       </div>
     </header>
 
@@ -102,106 +102,106 @@
     <!-- Main Workspace -->
     <div id="main-workspace">
       <!-- Side Navigation -->
-      <nav id="side-nav" class="side-nav" aria-label="Sections">
-        <div class="nav-group">Core</div>
-        <button class="nav-tab active" data-tab="monolith" title="Refinery: Manual tapping, combo meter, frenzy mode, and Oil generators.">
+      <nav id="side-nav" class="side-nav" aria-label="Sections" data-i18n-aria-label="nav.aria.sections">
+        <div class="nav-group" data-i18n="nav.core">Core</div>
+        <button class="nav-tab active" data-tab="monolith" title="Refinery: Manual tapping, combo meter, frenzy mode, and Oil generators." data-i18n-title="nav.title.refinery_manual_tapping_combo">
           <span class="nav-icon">🏭</span>
-          <span class="nav-lbl">Refinery</span>
+          <span class="nav-lbl" data-i18n="nav.refinery">Refinery</span>
         </button>
-        <button class="nav-tab" data-tab="combat" title="Void Tower: 1000+ floor RPG auto/active combat, gear looting, and boss battles.">
+        <button class="nav-tab" data-tab="combat" title="Void Tower: 1000+ floor RPG auto/active combat, gear looting, and boss battles." data-i18n-title="nav.title.void_tower_1000_floor">
           <span class="nav-icon">🩴</span>
-          <span class="nav-lbl">Void Tower</span>
+          <span class="nav-lbl" data-i18n="nav.void_tower">Void Tower</span>
         </button>
-        <button class="nav-tab" data-tab="mining" title="Excavation: Dig underground strata for gems, gold, and stairs to deeper layers.">
+        <button class="nav-tab" data-tab="mining" title="Excavation: Dig underground strata for gems, gold, and stairs to deeper layers." data-i18n-title="nav.title.excavation_dig_underground_strata">
           <span class="nav-icon">🛻</span>
-          <span class="nav-lbl">Excavation</span>
+          <span class="nav-lbl" data-i18n="nav.excavation">Excavation</span>
         </button>
-        <button class="nav-tab" data-tab="garden" title="Garden: 16 plots of magical flora, real-time growth, mutant seeds, and essences.">
+        <button class="nav-tab" data-tab="garden" title="Garden: 16 plots of magical flora, real-time growth, mutant seeds, and essences." data-i18n-title="nav.title.garden_16_plots_of">
           <span class="nav-icon">🌴</span>
-          <span class="nav-lbl">Garden</span>
+          <span class="nav-lbl" data-i18n="nav.garden">Garden</span>
         </button>
-        <div class="nav-group">Craft</div>
-        <button class="nav-tab" data-tab="alchemy" title="Alchemy: Brew elixirs, synthesize permanent catalysts, and transmute resources.">
+        <div class="nav-group" data-i18n="nav.craft">Craft</div>
+        <button class="nav-tab" data-tab="alchemy" title="Alchemy: Brew elixirs, synthesize permanent catalysts, and transmute resources." data-i18n-title="nav.title.alchemy_brew_elixirs_synthesize">
           <span class="nav-icon">☕</span>
-          <span class="nav-lbl">Alchemy</span>
+          <span class="nav-lbl" data-i18n="nav.alchemy">Alchemy</span>
         </button>
-        <button class="nav-tab" data-tab="spells" title="Grimoire: Active spells to warp time, surge Oil, and devastation strikes.">
+        <button class="nav-tab" data-tab="spells" title="Grimoire: Active spells to warp time, surge Oil, and devastation strikes." data-i18n-title="nav.title.grimoire_active_spells_to">
           <span class="nav-icon">🦅</span>
-          <span class="nav-lbl">Grimoire</span>
+          <span class="nav-lbl" data-i18n="nav.grimoire">Grimoire</span>
         </button>
-        <button class="nav-tab" data-tab="bounties" title="Bounties: a board of guild contracts, one new contract every 30 minutes.">
+        <button class="nav-tab" data-tab="bounties" title="Bounties: a board of guild contracts, one new contract every 30 minutes." data-i18n-title="nav.title.bounties_a_board_of">
           <span class="nav-icon">📜</span>
-          <span class="nav-lbl">Bounties</span>
+          <span class="nav-lbl" data-i18n="nav.bounties">Bounties</span>
         </button>
-        <button class="nav-tab" data-tab="market" title="Bazaar: Simulated commodity stock market and merchant caravan expeditions.">
+        <button class="nav-tab" data-tab="market" title="Bazaar: Simulated commodity stock market and merchant caravan expeditions." data-i18n-title="nav.title.bazaar_simulated_commodity_stock">
           <span class="nav-icon">🐪</span>
-          <span class="nav-lbl">Bazaar</span>
+          <span class="nav-lbl" data-i18n="nav.bazaar">Bazaar</span>
         </button>
-        <div class="nav-group">Meta</div>
-        <button class="nav-tab" data-tab="talents" title="Constellations: 5-branch celestial talent tree to customize your playstyle.">
+        <div class="nav-group" data-i18n="nav.meta">Meta</div>
+        <button class="nav-tab" data-tab="talents" title="Constellations: 5-branch celestial talent tree to customize your playstyle." data-i18n-title="nav.title.constellations_5_branch_celestial">
           <span class="nav-icon">🌙</span>
-          <span class="nav-lbl">Constellations</span>
+          <span class="nav-lbl" data-i18n="nav.constellations">Constellations</span>
         </button>
-        <button class="nav-tab" data-tab="prestige" title="New Well: Soft reset your empire for permanent Crude Reserves and Reserve Shop features.">
+        <button class="nav-tab" data-tab="prestige" title="New Well: Soft reset your empire for permanent Crude Reserves and Reserve Shop features." data-i18n-title="nav.title.new_well_soft_reset">
           <span class="nav-icon">🛢️</span>
-          <span class="nav-lbl">New Well</span>
+          <span class="nav-lbl" data-i18n="nav.new_well">New Well</span>
         </button>
-        <button class="nav-tab" data-tab="chronicle" title="Chronicle: the third prestige layer. Pages, Chapters and challenges.">
+        <button class="nav-tab" data-tab="chronicle" title="Chronicle: the third prestige layer. Pages, Chapters and challenges." data-i18n-title="nav.title.chronicle_the_third_prestige">
           <span class="nav-icon">📖</span>
-          <span class="nav-lbl">Chronicle</span>
+          <span class="nav-lbl" data-i18n="nav.chronicle">Chronicle</span>
         </button>
-        <button class="nav-tab" data-tab="calendar" title="Dallah: daily gift, weekly goals, Seals and the weekly Souq modifier.">
+        <button class="nav-tab" data-tab="calendar" title="Dallah: daily gift, weekly goals, Seals and the weekly Souq modifier." data-i18n-title="nav.title.dallah_daily_gift_weekly">
           <span class="nav-icon">☕</span>
-          <span class="nav-lbl">Dallah</span>
+          <span class="nav-lbl" data-i18n="nav.dallah">Dallah</span>
         </button>
-        <div class="nav-group">Records</div>
-        <button class="nav-tab" data-tab="codex" title="Codex: Achievements (+1.5% boost each), lifetime stats, and save backups.">
+        <div class="nav-group" data-i18n="nav.records">Records</div>
+        <button class="nav-tab" data-tab="codex" title="Codex: Achievements (+1.5% boost each), lifetime stats, and save backups." data-i18n-title="nav.title.codex_achievements_1_5">
           <span class="nav-icon">🏆</span>
-          <span class="nav-lbl">Codex</span>
+          <span class="nav-lbl" data-i18n="nav.codex">Codex</span>
         </button>
-        <button class="nav-tab" data-tab="leaderboard" title="Leaderboard: compare your progress with other players.">
+        <button class="nav-tab" data-tab="leaderboard" title="Leaderboard: compare your progress with other players." data-i18n-title="nav.title.leaderboard_compare_your_progress">
           <span class="nav-icon">🏅</span>
-          <span class="nav-lbl">Leaderboard</span>
+          <span class="nav-lbl" data-i18n="nav.leaderboard">Leaderboard</span>
         </button>
-        <button class="nav-tab" data-tab="community" title="Community: report bugs, suggest ideas and vote for what gets built next.">
+        <button class="nav-tab" data-tab="community" title="Community: report bugs, suggest ideas and vote for what gets built next." data-i18n-title="nav.title.community_report_bugs_suggest">
           <span class="nav-icon">🗳️</span>
-          <span class="nav-lbl">Community</span>
+          <span class="nav-lbl" data-i18n="nav.community">Community</span>
         </button>
-        <button class="nav-tab" data-tab="settings" title="Settings: number notation and display options.">
+        <button class="nav-tab" data-tab="settings" title="Settings: language, number notation and display options." data-i18n-title="nav.title.settings_number_notation_and">
           <span class="nav-icon">⚙️</span>
-          <span class="nav-lbl">Settings</span>
+          <span class="nav-lbl" data-i18n="nav.settings">Settings</span>
         </button>
-        <button class="nav-tab" data-tab="about" title="About: version and changelog.">
+        <button class="nav-tab" data-tab="about" title="About: version and changelog." data-i18n-title="nav.title.about_version_and_changelog">
           <span class="nav-icon">ℹ️</span>
-          <span class="nav-lbl">About</span>
+          <span class="nav-lbl" data-i18n="nav.about">About</span>
         </button>
       </nav>
 
       <!-- Phone (<640px): bottom tab bar + "More" sheet with every other tab (js/ui/shell.js) -->
-      <nav id="bottom-nav" class="bottom-nav" aria-label="Primary">
-        <button class="nav-tab active" data-tab="monolith"><span class="nav-icon">🏭</span><span class="nav-lbl">Refinery</span></button>
-        <button class="nav-tab" data-tab="combat"><span class="nav-icon">🩴</span><span class="nav-lbl">Tower</span></button>
-        <button class="nav-tab" data-tab="mining"><span class="nav-icon">🛻</span><span class="nav-lbl">Dig</span></button>
-        <button class="nav-tab" data-tab="prestige"><span class="nav-icon">🛢️</span><span class="nav-lbl">New Well</span></button>
-        <button id="btn-more" class="more-btn" aria-expanded="false" aria-controls="more-sheet"><span class="nav-icon">☰</span><span class="nav-lbl">More</span><span class="pip" hidden></span></button>
+      <nav id="bottom-nav" class="bottom-nav" aria-label="Primary" data-i18n-aria-label="nav.aria.primary">
+        <button class="nav-tab active" data-tab="monolith"><span class="nav-icon">🏭</span><span class="nav-lbl" data-i18n="nav.refinery">Refinery</span></button>
+        <button class="nav-tab" data-tab="combat"><span class="nav-icon">🩴</span><span class="nav-lbl" data-i18n="nav.tower">Tower</span></button>
+        <button class="nav-tab" data-tab="mining"><span class="nav-icon">🛻</span><span class="nav-lbl" data-i18n="nav.dig">Dig</span></button>
+        <button class="nav-tab" data-tab="prestige"><span class="nav-icon">🛢️</span><span class="nav-lbl" data-i18n="nav.new_well">New Well</span></button>
+        <button id="btn-more" class="more-btn" aria-expanded="false" aria-controls="more-sheet"><span class="nav-icon">☰</span><span class="nav-lbl" data-i18n="nav.more">More</span><span class="pip" hidden></span></button>
       </nav>
       <div id="more-scrim" class="sheet-scrim" hidden></div>
-      <div id="more-sheet" class="more-sheet" role="dialog" aria-label="All tabs" aria-hidden="true">
+      <div id="more-sheet" class="more-sheet" role="dialog" aria-label="All tabs" data-i18n-aria-label="nav.aria.all_tabs" aria-hidden="true">
         <div class="handle" aria-hidden="true"></div>
         <div class="more-grid">
-          <button class="nav-tab" data-tab="garden"><span class="nav-icon">🌴</span><span class="nav-lbl">Garden</span></button>
-          <button class="nav-tab" data-tab="alchemy"><span class="nav-icon">☕</span><span class="nav-lbl">Alchemy</span></button>
-          <button class="nav-tab" data-tab="spells"><span class="nav-icon">🦅</span><span class="nav-lbl">Grimoire</span></button>
-          <button class="nav-tab" data-tab="bounties"><span class="nav-icon">📜</span><span class="nav-lbl">Bounties</span></button>
-          <button class="nav-tab" data-tab="market"><span class="nav-icon">🐪</span><span class="nav-lbl">Bazaar</span></button>
-          <button class="nav-tab" data-tab="talents"><span class="nav-icon">🌙</span><span class="nav-lbl">Constellations</span></button>
-          <button class="nav-tab" data-tab="chronicle"><span class="nav-icon">📖</span><span class="nav-lbl">Chronicle</span></button>
-          <button class="nav-tab" data-tab="calendar"><span class="nav-icon">☕</span><span class="nav-lbl">Dallah</span></button>
-          <button class="nav-tab" data-tab="codex"><span class="nav-icon">🏆</span><span class="nav-lbl">Codex</span></button>
-          <button class="nav-tab" data-tab="leaderboard"><span class="nav-icon">🏅</span><span class="nav-lbl">Leaderboard</span></button>
-          <button class="nav-tab" data-tab="community"><span class="nav-icon">🗳️</span><span class="nav-lbl">Community</span></button>
-          <button class="nav-tab" data-tab="settings"><span class="nav-icon">⚙️</span><span class="nav-lbl">Settings</span></button>
-          <button class="nav-tab" data-tab="about"><span class="nav-icon">ℹ️</span><span class="nav-lbl">About</span></button>
+          <button class="nav-tab" data-tab="garden"><span class="nav-icon">🌴</span><span class="nav-lbl" data-i18n="nav.garden">Garden</span></button>
+          <button class="nav-tab" data-tab="alchemy"><span class="nav-icon">☕</span><span class="nav-lbl" data-i18n="nav.alchemy">Alchemy</span></button>
+          <button class="nav-tab" data-tab="spells"><span class="nav-icon">🦅</span><span class="nav-lbl" data-i18n="nav.grimoire">Grimoire</span></button>
+          <button class="nav-tab" data-tab="bounties"><span class="nav-icon">📜</span><span class="nav-lbl" data-i18n="nav.bounties">Bounties</span></button>
+          <button class="nav-tab" data-tab="market"><span class="nav-icon">🐪</span><span class="nav-lbl" data-i18n="nav.bazaar">Bazaar</span></button>
+          <button class="nav-tab" data-tab="talents"><span class="nav-icon">🌙</span><span class="nav-lbl" data-i18n="nav.constellations">Constellations</span></button>
+          <button class="nav-tab" data-tab="chronicle"><span class="nav-icon">📖</span><span class="nav-lbl" data-i18n="nav.chronicle">Chronicle</span></button>
+          <button class="nav-tab" data-tab="calendar"><span class="nav-icon">☕</span><span class="nav-lbl" data-i18n="nav.dallah">Dallah</span></button>
+          <button class="nav-tab" data-tab="codex"><span class="nav-icon">🏆</span><span class="nav-lbl" data-i18n="nav.codex">Codex</span></button>
+          <button class="nav-tab" data-tab="leaderboard"><span class="nav-icon">🏅</span><span class="nav-lbl" data-i18n="nav.leaderboard">Leaderboard</span></button>
+          <button class="nav-tab" data-tab="community"><span class="nav-icon">🗳️</span><span class="nav-lbl" data-i18n="nav.community">Community</span></button>
+          <button class="nav-tab" data-tab="settings"><span class="nav-icon">⚙️</span><span class="nav-lbl" data-i18n="nav.settings">Settings</span></button>
+          <button class="nav-tab" data-tab="about"><span class="nav-icon">ℹ️</span><span class="nav-lbl" data-i18n="nav.about">About</span></button>
         </div>
         <div id="more-util" class="more-util"></div>
       </div>
@@ -210,9 +210,9 @@
       <main id="content-area">
         <!-- TAB 1: Monolith & Generators -->
         <section id="tab-monolith" class="tab-view active">
-          <div class="tab-guide-banner" data-hint="Tap the Refinery for Oil, buy generators, keep clicking for a Frenzy every 20 clicks.">
+          <div class="tab-guide-banner" data-hint="Tap the Refinery for Oil, buy generators, keep clicking for a Frenzy every 20 clicks." data-i18n-hint="tab.monolith.hint.tap_the_refinery_for">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.monolith.guide">
               <strong>How It Works:</strong> Tap the central <em>Oil Refinery</em> to pump crude Oil. Rhythmic clicking builds your <strong>Combo Multiplier</strong> (5x after 20 clicks); every 20 clicks in a row triggers <strong>Frenzy Mode</strong> (3x click yield for 4 s, and it stacks while you keep going). Spend Oil on <strong>Generators</strong> to automate massive passive income. Watch for floating <strong>Golden Anomalies</strong> for instant jackpot rewards!
               <div class="guide-flow"><span><strong>Produces:</strong> Oil (clicks + generators)</span><span><strong>Used in:</strong> Generators, the Oil Forge (Void Tower), New Wells (lifetime Oil becomes Crude Reserves). Building count also gives +1% hero Attack and Gold per 100 buildings.</span></div>
             </div>
@@ -221,13 +221,13 @@
           <div class="panel-grid-2">
             <!-- Left: Click Monolith -->
             <div class="glass-card monolith-section">
-              <h2 class="monolith-title">THE OIL REFINERY</h2>
+              <h2 class="monolith-title" data-i18n="tab.monolith.the_oil_refinery">THE OIL REFINERY</h2>
               <div id="monolith-click-power" class="monolith-click-power num">+1 per Click</div>
 
               <div class="monolith-orb-wrapper">
                 <div class="orb-ring"></div>
-                <div id="monolith-orb" class="monolith-orb" title="Tap to pump Oil!">
-                  <img src="refinery.svg" alt="Oil Refinery" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;">
+                <div id="monolith-orb" class="monolith-orb" title="Tap to pump Oil!" data-i18n-title="tab.monolith.title.tap_to_pump_oil">
+                  <img src="refinery.svg" alt="Oil Refinery" data-i18n-alt="tab.monolith.alt.oil_refinery" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;">
                 </div>
               </div>
 
@@ -237,7 +237,7 @@
                 <div class="combo-bar">
                   <div id="combo-bar-fill" class="combo-bar-fill"></div>
                 </div>
-                <div id="frenzy-badge" class="frenzy-badge" style="display: none;">🔥 FRENZY ACTIVE!</div>
+                <div id="frenzy-badge" class="frenzy-badge" style="display: none;" data-i18n="tab.monolith.frenzy_active">🔥 FRENZY ACTIVE!</div>
               </div>
             </div>
 
@@ -246,13 +246,13 @@
             <div id="upgrade-shop" class="glass-card upgrade-shop"></div>
             <div class="glass-card">
               <div class="buildings-header">
-                <h3>Oil Generators</h3>
+                <h3 data-i18n="tab.monolith.oil_generators">Oil Generators</h3>
                 <div class="buy-amount-group" id="building-buy-amount">
                   <button class="buy-amt-btn active" data-amount="1">1x</button>
                   <button class="buy-amt-btn" data-amount="10">10x</button>
                   <button class="buy-amt-btn" data-amount="25">25x</button>
                   <button class="buy-amt-btn" data-amount="100">100x</button>
-                  <button class="buy-amt-btn" data-amount="max">MAX</button>
+                  <button class="buy-amt-btn" data-amount="max" data-i18n="tab.monolith.max">MAX</button>
                 </div>
               </div>
               <div id="building-list" class="building-list"></div>
@@ -263,9 +263,9 @@
 
         <!-- TAB 2: Void Tower (Combat) -->
         <section id="tab-combat" class="tab-view">
-          <div class="tab-guide-banner" data-hint="Your hero fights on its own; tap the monster to strike, beat each boss before the enrage clock.">
+          <div class="tab-guide-banner" data-hint="Your hero fights on its own; tap the monster to strike, beat each boss before the enrage clock." data-i18n-hint="tab.combat.hint.your_hero_fights_on">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.combat.guide">
               <strong>How It Works:</strong> Your <strong>Astral Champion</strong> continuously auto-battles through 1,000+ procedural dungeon floors. <strong>Click the monster directly</strong> to unleash rapid active strikes! Trigger your 4 active skills on cooldown. Defeat floor bosses every 10 floors before the 45-second enrage clock runs out to collect rare gear and Boss Tokens.
               <div class="guide-flow"><span><strong>Produces:</strong> Gold, Monster Bones, Void Cores, Boss Tokens, gear, hero XP</span><span><strong>Used in:</strong> Gold buys pickaxes, Auto-Drills, Bazaar trades, the Golden Enchanter and Chrono Sand. Bones, Cores and Tokens are Alchemy ingredients. Every 10 bosses slain gives +1% Oil and +2% Pickaxe Power.</span></div>
             </div>
@@ -276,7 +276,7 @@
             <div class="combat-arena">
               <!-- Hero Status -->
               <div class="glass-card">
-                <h3>Astral Champion</h3>
+                <h3 data-i18n="tab.combat.astral_champion">Astral Champion</h3>
                 <div id="hero-lvl-text" style="font-size: 0.85rem; color: var(--accent-gold); margin-bottom: 0.5rem;">Level 1</div>
                 
                 <div class="combat-bar-container">
@@ -292,22 +292,22 @@
                 <div id="combat-skills-bar" class="combat-skills-bar"></div>
 
                 <!-- Gear Inventory -->
-                <h4 style="margin-top: 1rem; font-size: 0.85rem; text-transform: uppercase;">Hero Equipment</h4>
+                <h4 style="margin-top: 1rem; font-size: 0.85rem; text-transform: uppercase;" data-i18n="tab.combat.hero_equipment">Hero Equipment</h4>
                 <div id="hero-gear-container" class="gear-grid"></div>
                 
                 <!-- The Oil Forge -->
                 <div class="glass-card" style="margin-top: 1.5rem; background: color-mix(in srgb, var(--aether) 5%, transparent); border: 1px solid color-mix(in srgb, var(--aether) 20%, transparent);">
-                  <h4 style="margin-top: 0; font-size: 0.85rem; text-transform: uppercase; color: var(--accent-cyan);">The Oil Forge</h4>
-                  <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">Infuse massive Oil to Awaken your gear: +25% Base Attack and Max HP per level.</p>
+                  <h4 style="margin-top: 0; font-size: 0.85rem; text-transform: uppercase; color: var(--accent-cyan);" data-i18n="tab.combat.the_oil_forge">The Oil Forge</h4>
+                  <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;" data-i18n="tab.combat.infuse_massive_oil_to">Infuse massive Oil to Awaken your gear: +25% Base Attack and Max HP per level.</p>
                   <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: var(--accent-cyan); font-size: 0.9rem;">Forge Level <span id="forge-level">0</span></strong>
-                    <button class="btn btn-outline" id="btn-forge-awaken" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Awaken (<span id="forge-cost">100.0k</span> Oil)</button>
+                    <strong style="color: var(--accent-cyan); font-size: 0.9rem;" data-i18n-html="tab.combat.forge_level">Forge Level <span id="forge-level">0</span></strong>
+                    <button class="btn btn-outline" id="btn-forge-awaken" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" data-i18n-html="tab.combat.awaken">Awaken (<span id="forge-cost">100.0k</span> Oil)</button>
                   </div>
                 </div>
               </div>
 
               <!-- Monster Arena -->
-              <div id="monster-arena-box" class="monster-arena-box" title="Click directly on the monster to attack rapidly!">
+              <div id="monster-arena-box" class="monster-arena-box" title="Click directly on the monster to attack rapidly!" data-i18n-title="tab.combat.title.click_directly_on_the">
                 <div id="boss-timer" style="color: var(--danger); font-weight: bold; visibility: hidden;">⏱️ Enrage: 45s</div>
                 <div class="monster-avatar" data-avatar="none">
                   <span class="monster-avatar-fallback" aria-hidden="true">👾</span>
@@ -322,7 +322,7 @@
                   </div>
                 </div>
 
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem;">
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem;" data-i18n-html="tab.combat.em_click_monster_directly">
                   👉 <em>Click monster directly to unleash rapid active strikes!</em>
                 </p>
               </div>
@@ -332,9 +332,9 @@
 
         <!-- TAB 3: Excavation (Mining) -->
         <section id="tab-mining" class="tab-view">
-          <div class="tab-guide-banner" data-hint="Tap tiles to dig, find the stairs 🪜 to go deeper, spend Stone on your pickaxe.">
+          <div class="tab-guide-banner" data-hint="Tap tiles to dig, find the stairs 🪜 to go deeper, spend Stone on your pickaxe." data-i18n-hint="tab.mining.hint.tap_tiles_to_dig">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.mining.guide">
               <strong>How It Works:</strong> Click stone tiles on the 6×6 excavation grid to chisel through strata rock layers. Uncover <strong>Gemstones</strong> (Fawanees, Dallahs, Oud Wood, Misbaha, Mabkhara), Gold caches, and the <strong>Stairs (🪜)</strong> to advance deeper. Every level is tougher rock, and every 25 levels opens a new stratum (Limestone ➔ Granite ➔ Obsidian ➔ Voidstone ➔ Aetherite ➔ Starcore ➔ Abyssal Heart) with richer Mabkhara veins. Spend <strong>Stone</strong> to level your pickaxe (each level doubles its power) and place Auto-Drills, or trigger <strong>Dynamite</strong> to hit a 3×3 area for 40 pickaxe hits per tile!
               <div class="guide-flow"><span><strong>Produces:</strong> Gems (Fanoos, Dallah, Oud Wood, Misbaha, Mabkhara), Stone, Gold caches, Depth</span><span><strong>Used in:</strong> Gems are Alchemy ingredients. Stone buys pickaxe levels and Auto-Drills, and transmutes to Gold in Alchemy. Stone also buys Garden Golems. Each max depth gives +2% Oil (Depth Resonance) and +1% hero Max HP, Max Mana and Mana Regen (up to +100%). Every 10 max depth gives +10% Crude Reserves on each New Well (Geode Attunement).</span></div>
             </div>
@@ -351,17 +351,17 @@
 
         <!-- TAB 4: Botanical Nexus (Garden) -->
         <section id="tab-garden" class="tab-view">
-          <div class="tab-guide-banner" data-hint="Plant seeds, harvest essences when mature; Golems automate a row each.">
+          <div class="tab-guide-banner" data-hint="Plant seeds, harvest essences when mature; Golems automate a row each." data-i18n-hint="tab.garden.hint.plant_seeds_harvest_essences">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.garden.guide">
               <strong>How It Works:</strong> Select a seed type and plant it in any of the 16 plots. Flora grows in real time through <em>Seed ➔ Sprout ➔ Blooming ➔ Mature</em>, from 5 minutes (Mint Leaf) up to 2 hours (Sidr Tree). <strong>Water All</strong> adds 30s of growth (60s cooldown). <strong>Fertilize</strong> spends 1 Fresh Mint per growing plot to double that plot's next essence yield. Every harvest returns its seed and has a 25% chance to yield a <strong>mutant seed</strong> of the next tier. <strong>Garden Golems</strong> (up to 4, bought with Stone + Lemon Drops) each automate one row of 4 plots: they harvest the moment a plant matures and replant the same seed, or the row's fallback seed. Golem rows keep working offline at 50% speed for up to 12 hours.
               <div class="guide-flow"><span><strong>Produces:</strong> Essences (Fresh Mint, Lemon Drops, Truffle Oil, Taif Rosewater, Golden Dates, Sidr Honey), mutant seeds, Bazaar goods</span><span><strong>Used in:</strong> Essences are Alchemy ingredients. Fresh Mint also buys Fertilizer, and Lemon Drops (with Stone from Excavation) buys Garden Golems. Hasawi Lemon also restores Mana. Hasawi Lemon, Desert Truffle and Date Palm can drop Silk, Amber and Void Crystal to sell in the Bazaar.</span></div>
             </div>
           </div>
 
           <div class="glass-card">
-            <h2>Botanical Nexus</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <h2 data-i18n="tab.garden.botanical_nexus">Botanical Nexus</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n-html="tab.garden.cultivate_magical_flora_to">
               Cultivate magical flora to harvest rare essences for Alchemical Transmutation and Elixirs!
             </p>
 
@@ -376,17 +376,17 @@
 
         <!-- TAB 5: Alchemy -->
         <section id="tab-alchemy" class="tab-view">
-          <div class="tab-guide-banner" data-hint="Brew timed elixirs and permanent catalysts from gems, drops and essences.">
+          <div class="tab-guide-banner" data-hint="Brew timed elixirs and permanent catalysts from gems, drops and essences." data-i18n-hint="tab.alchemy.hint.brew_timed_elixirs_and">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.alchemy.guide">
               <strong>How It Works:</strong> Combine mined gemstones, dungeon monster drops, and garden essences in the crucible. Brew <strong>Timed Elixirs</strong> for massive temporary multipliers (Click yield, Hero Attack, Global CPS, Gold) or synthesize <strong>Permanent Catalysts</strong> that permanently enhance your hero's base stats and global production forever!
               <div class="guide-flow"><span><strong>Produces:</strong> Timed elixirs, permanent catalysts, Gold, Chrono Sand</span><span><strong>Used in:</strong> Elixirs boost Click yield, Hero Attack, Oil and Gold for a while; re-brewing extends one up to 10 minutes, and Oil buffs from elixirs and spells add together rather than multiply. Catalysts permanently add hero Attack or Max HP; each Philosopher's Catalyst adds +2% Oil, and its Sidr Honey and Mabkhara cost rises 8% per brew. Chrono Sand powers Fast Forward: 30s of sand costs 1,000 Gold × the Market Index, and the bank holds up to 1,440s (more with Chrono Reservoir). Each Fast Forward costs 3× the last (30, 90, 270, 810…) until 30 minutes pass without one.</span></div>
             </div>
           </div>
 
           <div class="glass-card">
-            <h2>The Alchemical Crucible</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <h2 data-i18n="tab.alchemy.the_alchemical_crucible">The Alchemical Crucible</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n-html="tab.alchemy.synthesize_botanical_essences_and">
               Synthesize botanical essences and mined gemstones into permanent stat catalysts & potent temporary elixirs!
             </p>
 
@@ -397,17 +397,17 @@
 
         <!-- TAB 6: Spells (Grimoire) -->
         <section id="tab-spells" class="tab-view">
-          <div class="tab-guide-banner" data-hint="Spend Mana on spells; they also appear as Quick Cast on the tabs they help.">
+          <div class="tab-guide-banner" data-hint="Spend Mana on spells; they also appear as Quick Cast on the tabs they help." data-i18n-hint="tab.spells.hint.spend_mana_on_spells">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.spells.guide">
               <strong>How It Works:</strong> Your Mana pool regenerates continuously. Cast tactical spells on cooldown: <strong>Oil Burst</strong> gives instant minutes of production, <strong>Chrono Warp</strong> accelerates game time by 5x, <strong>Midas' Blessing</strong> adds Gold to manual clicks, and <strong>Astral Renewal</strong> resets all active cooldowns across the entire game!
               <div class="guide-flow"><span><strong>Produces:</strong> Oil bursts, time warp, Midas gold, Oil multipliers, monster damage, mining reveals</span><span><strong>Used in:</strong> Spells spend Mana. Leyline Overflow: while Mana is full, the Garden grows 1.5× faster and Auto-Drills run 1.25× faster. Max depth in Excavation raises Max Mana and Mana Regen by 1% per depth, up to +100%.</span></div>
             </div>
           </div>
 
           <div class="glass-card">
-            <h2>Arcane Grimoire</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <h2 data-i18n="tab.spells.arcane_grimoire">Arcane Grimoire</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n-html="tab.spells.channel_your_mana_into">
               Channel your Mana into tactical spells to surge production, warp time, and shatter obstacles!
             </p>
             <div id="spells-grid-container" class="spells-grid"></div>
@@ -416,16 +416,16 @@
 
         <!-- TAB 7: Talents (Constellations) -->
         <section id="tab-talents" class="tab-view">
-          <div class="tab-guide-banner" data-hint="Spend Talent Points from Bounties and New Wells; respec any time for free.">
+          <div class="tab-guide-banner" data-hint="Spend Talent Points from Bounties and New Wells; respec any time for free." data-i18n-hint="tab.talents.hint.spend_talent_points_from">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.talents.guide">
               <strong>How It Works:</strong> Earn <strong>Talent Points</strong> from Milestone Stars, Record Wells and Guild Rank (see the header below). Allocate points into 5 branches: <em>Clicker</em> (crits & frenzy), <em>Architect</em> (generator output & discounts), <em>Warlord</em> (combat damage & loot), <em>Artisan</em> (mining & plants), and <em>Chronomancer</em> (mana & offline speed). Respec at any time for free!
               <div class="guide-flow"><span><strong>Produces:</strong> Permanent bonuses across every subgame</span><span><strong>Used in:</strong> Points come from stars, records and Guild Rank. Each tab's Active Bonuses strip shows which talents affect it.</span></div>
             </div>
           </div>
 
           <div class="glass-card">
-            <h2>Constellations of Eternity</h2>
+            <h2 data-i18n="tab.talents.constellations_of_eternity">Constellations of Eternity</h2>
             <div id="talent-points-header" style="margin: 0.75rem 0; font-size: 1.1rem; color: var(--accent-gold);"></div>
             <div id="talents-tree-grid" class="talents-grid"></div>
           </div>
@@ -433,23 +433,23 @@
 
         <!-- TAB 8: Bounties -->
         <section id="tab-bounties" class="tab-view">
-          <div class="tab-guide-banner" data-hint="Complete contracts anywhere in the game, then claim them here for Gold, Sand and Seals.">
+          <div class="tab-guide-banner" data-hint="Complete contracts anywhere in the game, then claim them here for Gold, Sand and Seals." data-i18n-hint="tab.bounties.hint.complete_contracts_anywhere_in">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.bounties.guide">
               <strong>How It Works:</strong> The Adventurer's Guild posts a new contract every 30 minutes, up to 6 on the board (it keeps filling while you are away). Pick the ones you want and play: clicking, combat, mining, gardening, alchemy and spells all count. Claiming a completed contract awards Gold, Chrono Sand and Guild Seals and counts toward your Guild Rank (each rank pays a Talent Point). Each contract has one free reroll.
               <div class="guide-flow"><span><strong>Produces:</strong> Gold, Chrono Sand, Guild Seals, Guild Rank (Talent Points)</span><span><strong>Used in:</strong> Guild Seals buy Quartermaster upgrades (Oil, Hero Attack, Combat Gold, Offline Efficiency). Talent Points go to Constellations.</span></div>
             </div>
           </div>
 
           <div class="glass-card">
-            <h2>Adventurer's Guild Contracts</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <h2 data-i18n="tab.bounties.adventurer_s_guild_contracts">Adventurer's Guild Contracts</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n-html="tab.bounties.choose_contracts_from_the">
               Choose contracts from the board for Gold, Chrono Sand, Guild Seals and Guild Rank. A new one is posted every 30 minutes.
             </p>
             <div id="bounties-list-container" class="bounties-list"></div>
 
-            <h2 style="margin-top: 2rem; color: var(--accent-gold);">Guild Quartermaster</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <h2 style="margin-top: 2rem; color: var(--accent-gold);" data-i18n="tab.bounties.guild_quartermaster">Guild Quartermaster</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n-html="tab.bounties.spend_guild_seals_on">
               Spend Guild Seals on permanent empire charters! Available Seals: <strong id="qm-seals-count" style="color: var(--accent-gold);">0</strong>
             </p>
             <div id="quartermaster-upgrades-grid" class="ascension-perks-grid"></div>
@@ -458,17 +458,17 @@
 
         <!-- TAB 9: Bazaar (Market) -->
         <section id="tab-market" class="tab-view">
-          <div class="tab-guide-banner" data-hint="Buy low in crashes 💥, sell high in surges 🚀, send caravans for safe returns.">
+          <div class="tab-guide-banner" data-hint="Buy low in crashes 💥, sell high in surges 🚀, send caravans for safe returns." data-i18n-hint="tab.market.hint.buy_low_in_crashes">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.market.guide">
               <strong>How It Works:</strong> A simulated live commodity market. Commodity prices fluctuate every few seconds. Buy low during <em>Market Crashes (💥)</em> and sell high during <em>Market Surges (🚀)</em> to multiply your Gold. You can also dispatch <strong>Merchant Caravans</strong> on timed trade routes for guaranteed returns!
               <div class="guide-flow"><span><strong>Produces:</strong> Gold from trades and caravans, Golden Enchanter levels</span><span><strong>Used in:</strong> Gold flows back to every Gold sink. Each Enchanter level gives +5% Oil production.</span></div>
             </div>
           </div>
 
           <div class="glass-card">
-            <h2>The Grand Bazaar & Caravan Exchange</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <h2 data-i18n="tab.market.the_grand_bazaar_caravan">The Grand Bazaar & Caravan Exchange</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n-html="tab.market.trade_fluctuating_commodities_buy">
               Trade fluctuating commodities: buy low during crashes and sell high during market surges!
               Prices and caravans scale with the Market Index (your deepest Void Tower floor): <strong id="market-index-display" style="color: var(--accent-gold)">x1</strong>
             </p>
@@ -479,24 +479,24 @@
           <!-- THE HIGH ENCHANTER (Gold -> Oil Synergy) -->
           <div class="glass-card" style="margin-top: 1.5rem;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <h2>The High Enchanter</h2>
+              <h2 data-i18n="tab.market.the_high_enchanter">The High Enchanter</h2>
               <div class="buy-amount-group" id="enchanter-buy-amount">
                 <button class="buy-amt-btn active" data-amount="1">1x</button>
                 <button class="buy-amt-btn" data-amount="10">10x</button>
                 <button class="buy-amt-btn" data-amount="100">100x</button>
-                <button class="buy-amt-btn" data-amount="max">MAX</button>
+                <button class="buy-amt-btn" data-amount="max" data-i18n="tab.market.max">MAX</button>
               </div>
             </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n-html="tab.market.the_high_enchanter_weaves">
               The High Enchanter weaves immense quantities of Gold into Golden Synergy threads, permanently multiplying your global Oil production.
             </p>
 
             <div id="market-enchanter-panel" style="display: flex; justify-content: space-between; align-items: center; background: color-mix(in srgb, var(--shade) 30%, transparent); padding: 1rem; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);">
               <div>
-                <strong style="color: var(--accent-gold); font-size: 1.1rem;">Golden Synergy Lv. <span id="enchanter-level">0</span></strong>
-                <div style="font-size: 0.9rem; color: var(--text-3); margin-top: 0.2rem;">Current Bonus: <span id="enchanter-bonus" style="color: var(--life)">+0% Global Oil</span></div>
+                <strong style="color: var(--accent-gold); font-size: 1.1rem;" data-i18n-html="tab.market.synergy_level">Golden Synergy Lv. <span id="enchanter-level">0</span></strong>
+                <div style="font-size: 0.9rem; color: var(--text-3); margin-top: 0.2rem;" data-i18n-html="tab.market.current_bonus">Current Bonus: <span id="enchanter-bonus" style="color: var(--life)">+0% Global Oil</span></div>
               </div>
-              <button class="btn btn-outline" id="btn-buy-enchanter" style="min-width: 150px; font-weight: bold; border-color: var(--accent-gold); color: var(--accent-gold);">
+              <button class="btn btn-outline" id="btn-buy-enchanter" style="min-width: 150px; font-weight: bold; border-color: var(--accent-gold); color: var(--accent-gold);" data-i18n-html="tab.market.weave_button">
                 <span id="enchanter-label">Weave Spell x1</span> (<span id="enchanter-cost">1.00M</span> Gold)
               </button>
             </div>
@@ -505,9 +505,9 @@
 
         <!-- TAB 10: Ascension Temple -->
         <section id="tab-prestige" class="tab-view">
-          <div class="tab-guide-banner" data-hint="Drill a New Well to turn this run's Oil into Crude Reserves: +2% production per Reserve, forever.">
+          <div class="tab-guide-banner" data-hint="Drill a New Well to turn this run's Oil into Crude Reserves: +2% production per Reserve, forever." data-i18n-hint="tab.prestige.hint.drill_a_new_well">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.prestige.guide">
               <strong>How It Works:</strong> When you accumulate 1 Billion total Oil, you can <strong>Drill a New Well</strong>. Drilling resets your earthly generators and Oil in exchange for permanent <strong>Crude Reserves</strong> (+2% production per Reserve earned; spending it never lowers this). Spend Reserves in the <strong>Reserve Shop</strong> on features for every run: Auto-Buy, Blueprint Memory, Golems, longer Fast Forwards and more, with new tiers at New Well 1, 3, 5, 10 and 20. Reach 1 Billion lifetime Crude Reserves (×10 more each time) to <strong>Open a New Oil Field</strong>: +2 Field Shares and a new generator tier each time!
               <div class="guide-flow"><span><strong>Produces:</strong> Crude Reserves, Reserve Shop features, Field Shares, Record Well Talent Points</span><span><strong>Used in:</strong> Shop features automate generators, Spells and Golems, keep upgrades, extend offline time and Fast Forward, and boost the Hero and Elixirs. Each Field Share gives ×1.5 Oil production and ×1.5 Crude Reserves gain; each New Field opens a new generator tier (up to 30).</span></div>
             </div>
@@ -515,15 +515,15 @@
 
           <div class="glass-card">
             <div class="prestige-hero">
-              <h2 style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 0.5rem;">DRILLING SITE</h2>
-              <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 1rem;">
+              <h2 style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 0.5rem;" data-i18n="tab.prestige.drilling_site">DRILLING SITE</h2>
+              <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 1rem;" data-i18n-html="tab.prestige.cap_this_well_and">
                 Cap this well and drill a new one. Bank permanent Crude Reserves to power every future run!
               </p>
               <div id="pending-dust-display" style="font-size: 1.25rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.35rem;">
                 Pending Crude Reserves: +0
               </div>
               <div id="pending-dust-breakdown" class="pending-dust-breakdown"></div>
-              <button id="btn-do-ascend" class="btn-action" style="padding: 0.6rem 1.5rem; font-size: 1rem;">
+              <button id="btn-do-ascend" class="btn-action" style="padding: 0.6rem 1.5rem; font-size: 1rem;" data-i18n="tab.prestige.drill_button">
                 🛢️ Drill a New Well
               </button>
             </div>
@@ -531,8 +531,8 @@
             <!-- Dust shop (R6): built by js/ui/dustShop.js -->
             <div id="dust-shop-section"></div>
 
-            <h3 style="margin-top: 1.5rem;">Masteries</h3>
-            <p class="masteries-hint">Permanent cross-bonuses earned from every subgame. Each is its own multiplier.</p>
+            <h3 style="margin-top: 1.5rem;" data-i18n="tab.prestige.masteries">Masteries</h3>
+            <p class="masteries-hint" data-i18n="tab.prestige.permanent_cross_bonuses_earned">Permanent cross-bonuses earned from every subgame. Each is its own multiplier.</p>
             <div id="masteries-panel" class="masteries-panel"></div>
 
             <div id="transcendence-section" style="margin-top: 2rem;"></div>
@@ -543,9 +543,9 @@
 
         <!-- Chronicle (prestige layer 3, R20): built by js/ui/chronicle.js -->
         <section id="tab-chronicle" class="tab-view">
-          <div class="tab-guide-banner" data-hint="Begin a Chronicle at 12 New Fields for Pages; play the Chapter's challenges for more.">
+          <div class="tab-guide-banner" data-hint="Begin a Chronicle at 12 New Fields for Pages; play the Chapter's challenges for more." data-i18n-hint="tab.chronicle.hint.begin_a_chronicle_at">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.chronicle.guide">
               <strong>How It Works:</strong> The <strong>Chronicle</strong> is the third prestige layer. Once New Fields slow down, begin a Chronicle: your Reserves, Field Shares, Share Tree and New Field count start again, and you earn <strong>Chronicle Pages</strong>. Every Page you have ever earned gives ×1.4 Oil, and spent Pages buy permanent upgrades. Your first Chronicle opens <strong>Chapter 1: Sand</strong>, a ten-week season with its own rules and four <strong>challenges</strong>: side runs with special rules that pay Pages. Starting a challenge sets your current run aside; it comes back exactly as it was when the challenge ends.
               <div class="guide-flow"><span><strong>Produces:</strong> Chronicle Pages, Chapter stamps, challenge records</span><span><strong>Used in:</strong> Pages multiply Oil (×1.4 each, forever) and buy Page upgrades that carry Auto-Well, Field Shares and more through each Chronicle.</span></div>
             </div>
@@ -555,9 +555,9 @@
 
         <!-- TAB: Dallah (R15): daily gift, weekly Ledger, Souq Rotation, Seals -->
         <section id="tab-calendar" class="tab-view">
-          <div class="tab-guide-banner" data-hint="A daily gift, three weekly goals, a weekly market modifier and the Seals that add Field Shares. Nothing here is ever lost by staying away.">
+          <div class="tab-guide-banner" data-hint="A daily gift, three weekly goals, a weekly market modifier and the Seals that add Field Shares. Nothing here is ever lost by staying away." data-i18n-hint="tab.calendar.hint.a_daily_gift_three">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.calendar.guide">
               <strong>How It Works:</strong> The <strong>Dallah</strong> pours a gift on your first visit each day; missed days wait for you (up to 3) and there is no streak to lose. The <strong>Ledger</strong> sets 3 goals every Monday for Guild Seals and a stamp. Each lit <strong>Seal</strong> adds +1 Field Share to spend at every New Field (up to +3) and never goes dark.
               <div class="guide-flow"><span><strong>Produces:</strong> Chrono Sand, contracts, Guild Seals, Field Shares</span><span><strong>Used in:</strong> Fast Forward, Quartermaster charters, New Fields.</span></div>
             </div>
@@ -567,27 +567,27 @@
 
         <!-- TAB 11: Codex & Settings -->
         <section id="tab-codex" class="tab-view">
-          <div class="tab-guide-banner" data-hint="Achievements, finished collections and the Generator Codex add Oil. Save, export and import live here.">
+          <div class="tab-guide-banner" data-hint="Achievements, finished collections and the Generator Codex add Oil. Save, export and import live here." data-i18n-hint="tab.codex.hint.achievements_finished_collections_and">
             <span class="guide-icon">💡</span>
-            <div class="guide-text">
+            <div class="guide-text" data-i18n-html="tab.codex.guide">
               <strong>How It Works:</strong> Review your unlocked milestone achievements—achievements, finished collections and the Generator Codex each grant a permanent <strong>Global Production Aura</strong>. Check lifetime statistics tracking your 365-day empire, trigger manual saves, or export your save code string to easily backup your progress or play across devices.
               <div class="guide-flow"><span><strong>Produces:</strong> Achievements</span><span><strong>Used in:</strong> Original achievements +1.5%, new rungs +0.5%, finished sets +1% global production.</span></div>
             </div>
           </div>
 
           <div class="glass-card">
-            <h2>Codex</h2>
+            <h2 data-i18n="tab.codex.codex">Codex</h2>
             <div id="codex-root"></div>
 
-            <h3 style="margin-top: 2rem;">Lifetime Statistics</h3>
+            <h3 style="margin-top: 2rem;" data-i18n="tab.codex.lifetime_statistics">Lifetime Statistics</h3>
             <div id="game-stats-container" style="margin-top: 0.75rem; max-width: 500px;"></div>
 
-            <h3 style="margin-top: 2rem;">Save & Backup Management</h3>
+            <h3 style="margin-top: 2rem;" data-i18n="tab.codex.save_backup_management">Save & Backup Management</h3>
             <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
-              <button id="btn-manual-save" class="btn-action">💾 Save Game</button>
-              <button id="btn-export-save" class="btn-action">📋 Export Save</button>
-              <button id="btn-import-save" class="btn-action">📥 Import Save</button>
-              <button id="btn-hard-reset" class="btn-action" style="border-color: var(--danger); color: var(--danger);">⚠️ Wipe Progress</button>
+              <button id="btn-manual-save" class="btn-action" data-i18n="tab.codex.save_game">💾 Save Game</button>
+              <button id="btn-export-save" class="btn-action" data-i18n="tab.codex.export_save">📋 Export Save</button>
+              <button id="btn-import-save" class="btn-action" data-i18n="tab.codex.import_save">📥 Import Save</button>
+              <button id="btn-hard-reset" class="btn-action" style="border-color: var(--danger); color: var(--danger);" data-i18n="tab.codex.wipe_progress">⚠️ Wipe Progress</button>
             </div>
           </div>
         </section>
@@ -595,8 +595,8 @@
         <!-- TAB: Leaderboard -->
         <section id="tab-leaderboard" class="tab-view">
           <div class="glass-card">
-            <h2>Leaderboard</h2>
-            <p class="about-intro">Top 50 players on each board. A green dot means they played in the last 2 minutes.</p>
+            <h2 data-i18n="tab.leaderboard.leaderboard">Leaderboard</h2>
+            <p class="about-intro" data-i18n="tab.leaderboard.top_50_players_on">Top 50 players on each board. A green dot means they played in the last 2 minutes.</p>
             <div id="leaderboard-root"></div>
           </div>
         </section>
@@ -604,7 +604,7 @@
         <!-- TAB: Community (R40): bugs and ideas from GitHub issues, js/ui/community.js -->
         <section id="tab-community" class="tab-view">
           <div class="glass-card">
-            <h2>Bugs &amp; Ideas</h2>
+            <h2 data-i18n="tab.community.bugs_ideas">Bugs &amp; Ideas</h2>
             <div id="community-root"></div>
           </div>
         </section>
@@ -612,28 +612,28 @@
         <!-- TAB: Settings -->
         <section id="tab-settings" class="tab-view">
           <div class="glass-card">
-            <h2>Settings</h2>
+            <h2 data-i18n="tab.settings.settings">Settings</h2>
             <h3 style="margin-top: 1rem;" data-i18n="settings.language">Language</h3>
             <p class="about-intro" data-i18n="settings.language.intro">The language of the whole game. Arabic reads right to left.</p>
             <div id="settings-language" class="settings-group"></div>
 
-            <h3 style="margin-top: 2rem;">Theme</h3>
-            <p class="about-intro">Colours for the whole game. Night is the original; Sand is a light, warm theme; Desert Dusk is dark plum and orange.</p>
+            <h3 style="margin-top: 2rem;" data-i18n="tab.settings.theme">Theme</h3>
+            <p class="about-intro" data-i18n="tab.settings.colours_for_the_whole">Colours for the whole game. Night is the original; Sand is a light, warm theme; Desert Dusk is dark plum and orange.</p>
             <div id="settings-theme" class="settings-group"></div>
 
-            <h3 style="margin-top: 2rem;">Account &amp; Cloud Save</h3>
+            <h3 style="margin-top: 2rem;" data-i18n="tab.settings.account_cloud_save">Account &amp; Cloud Save</h3>
             <div id="settings-account" class="acct"></div>
 
-            <h3 style="margin-top: 2rem;">Number Notation</h3>
-            <p class="about-intro">How large numbers are displayed. Letters: after T (trillion) comes aa, ab, ac… each one 1,000 times the last. Scientific and Engineering show numbers below one million in full.</p>
+            <h3 style="margin-top: 2rem;" data-i18n="tab.settings.number_notation">Number Notation</h3>
+            <p class="about-intro" data-i18n="tab.settings.how_large_numbers_are">How large numbers are displayed. Letters: after T (trillion) comes aa, ab, ac… each one 1,000 times the last. Scientific and Engineering show numbers below one million in full.</p>
             <div id="settings-notation" class="settings-group"></div>
             
-            <h3 style="margin-top: 2rem;">Audio Rhythm Scale</h3>
-            <p class="about-intro">Change the musical scale used for sound effects. Acts as a rhythmic sound box!</p>
+            <h3 style="margin-top: 2rem;" data-i18n="tab.settings.audio_rhythm_scale">Audio Rhythm Scale</h3>
+            <p class="about-intro" data-i18n="tab.settings.change_the_musical_scale">Change the musical scale used for sound effects. Acts as a rhythmic sound box!</p>
             <div id="settings-rhythm" class="settings-group"></div>
 
-            <h3 style="margin-top: 2rem;">Reduce Motion</h3>
-            <p class="about-intro">Stops the orb spin, screen shake and background particles, shortens reward ceremonies and shows totals at once. Starts out matching your device setting.</p>
+            <h3 style="margin-top: 2rem;" data-i18n="tab.settings.reduce_motion">Reduce Motion</h3>
+            <p class="about-intro" data-i18n="tab.settings.stops_the_orb_spin">Stops the orb spin, screen shake and background particles, shortens reward ceremonies and shows totals at once. Starts out matching your device setting.</p>
             <div id="settings-motion" class="settings-group"></div>
           </div>
         </section>
@@ -641,13 +641,13 @@
         <!-- TAB: About -->
         <section id="tab-about" class="tab-view">
           <div class="glass-card">
-            <h2>About Aetheria</h2>
-            <p class="about-intro">
+            <h2 data-i18n="tab.about.about_aetheria">About Aetheria</h2>
+            <p class="about-intro" data-i18n-html="tab.about.a_deep_incremental_game">
               A deep incremental game: run the Oil Refinery, climb the Void Tower, dig, garden, brew, cast, and drill new wells.
               Progress saves automatically in this browser.
             </p>
-            <p class="about-intro">Current version: <strong id="about-version"></strong></p>
-            <h3 style="margin-top: 1.5rem;">Changelog</h3>
+            <p class="about-intro" data-i18n-html="tab.about.current_version">Current version: <strong id="about-version"></strong></p>
+            <h3 style="margin-top: 1.5rem;" data-i18n="tab.about.changelog">Changelog</h3>
             <div id="about-changelog"></div>
           </div>
         </section>
@@ -658,20 +658,20 @@
   <!-- Offline Progress Modal -->
   <div id="offline-modal" class="modal-overlay">
     <div class="modal-box">
-      <h2 class="offline-title">WELCOME BACK, TRAVELER!</h2>
-      <p class="offline-intro">You were away for <strong id="offline-time-text">0 hours</strong>. Your empire kept working:</p>
+      <h2 class="offline-title" data-i18n="offline.welcome_back_traveler">WELCOME BACK, TRAVELER!</h2>
+      <p class="offline-intro" data-i18n-html="offline.intro">You were away for <strong id="offline-time-text">0 hours</strong>. Your empire kept working:</p>
 
       <div class="offline-totals">
-        <div class="offline-aether">+<span id="offline-aether-text">0</span> Oil</div>
+        <div class="offline-aether" data-i18n-html="offline.oil">+<span id="offline-aether-text">0</span> Oil</div>
         <div id="offline-chrono-text" class="offline-chrono">+0 Chrono Sand</div>
       </div>
 
-      <table class="offline-breakdown" id="offline-breakdown" aria-label="How offline Oil was paid">
+      <table class="offline-breakdown" id="offline-breakdown" aria-label="How offline Oil was paid" data-i18n-aria-label="offline.aria.how_offline_oil_was">
         <tbody></tbody>
       </table>
       <p class="offline-note" id="offline-note"></p>
 
-      <button id="offline-modal-close" class="btn-action offline-close">Claim & Continue</button>
+      <button id="offline-modal-close" class="btn-action offline-close" data-i18n="offline.claim_continue">Claim & Continue</button>
     </div>
   </div>
 
