@@ -44,6 +44,7 @@ import { CalendarUI } from './ui/calendar.js';
 import { gearCard } from './ui/rarity.js';
 import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
 import { applyThemeSetting, renderThemeSettings, themeVar } from './ui/theme.js';
+import { NewsTicker, renderNewsSettings } from './ui/newsTicker.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
 import { Leaderboard } from './leaderboard.js';
@@ -264,7 +265,11 @@ class AetheriaApp {
         this.saveManager.save();
       });
     }
-    renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, () => this.saveManager.save());
+    this.newsTicker = new NewsTicker(() => this.gameState.settings.news, CHANGELOG);
+    this.newsTicker.mount(document.getElementById('top-dashboard'));
+    const newsChanged = () => { this.newsTicker.refresh(); this.saveManager.save(); };
+    renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, newsChanged);
+    renderNewsSettings(document.getElementById('settings-news'), this.gameState.settings, newsChanged);
     renderThemeSettings(document.getElementById('settings-theme'), this.gameState.settings, () => this.saveManager.save());
   }
 

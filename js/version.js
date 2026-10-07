@@ -3,9 +3,21 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.12.0';
+export const VERSION = '4.13.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.13.0',
+    date: '2026-10-07',
+    title: 'News strip',
+    changes: [
+      'A thin news strip now runs under the header: game tips, flavour headlines from the realm and what is new in this version.',
+      'Write your own headlines in Settings → News (up to 120 characters, up to 20 entries) and delete them there any time. They show up in the strip between the built-in news. For now they stay in your browser; other players do not see them.',
+      'English headlines scroll right to left; Arabic headlines scroll left to right, so each reads naturally.',
+      'Hover over the strip or tap it to pause it. With Reduce Motion on, the strip stands still and shows the next headline every 6 seconds.',
+      'Don\'t want it? Untick "Show the news strip" in Settings → News.'
+    ]
+  },
   {
     version: '4.12.0',
     date: '2026-10-07',
