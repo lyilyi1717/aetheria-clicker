@@ -227,6 +227,10 @@ R0–R30 and R32–R35, R38, R40 are done.
 
 ## Notes for the next session
 
+- **Game feel:** `docs/game-feel-guide.md` sets feedback tiers (T0 tap to T3 peak) and a
+  checklist for any action, reward or ceremony (linked from AGENTS.md rule 7). An audit of
+  where the game falls short goes in `docs/game-feel-opportunities.md`.
+
 - **Changelog:** every player-visible PR bumps `VERSION` and adds a `CHANGELOG` entry in
   `js/version.js` (AGENTS.md "Version and changelog"; CI `changelog` job enforces it). v3.0.0
   backfilled R0-R22, which had shipped without entries. The current version is `VERSION` in

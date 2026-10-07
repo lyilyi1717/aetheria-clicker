@@ -352,6 +352,8 @@ stays available but never pushes the action below the fold again.
   the page there (two columns once each row gets 440px) and scrolls in its own box below that.
 - **Phone bottom stack:** bottom nav (60px + safe area); the buff bar sits directly above it;
   content gets matching bottom padding so nothing hides under either.
+- **Rewards and feedback:** how strongly an action or reward should react (feedback tiers
+  T0–T3, build-up, escalation, honest juice) is in `docs/game-feel-guide.md`.
 - **No horizontal page scroll at 375px.** Wide content (tables, trees) either reflows or
   scrolls inside its own container with a visible edge fade.
 
@@ -369,5 +371,6 @@ stays available but never pushes the action below the fold again.
 - [ ] Rarity / state not by colour alone
 - [ ] Changing numbers use `.num`
 - [ ] Works with reduced motion
+- [ ] Actions and rewards pass the game-feel checklist (`docs/game-feel-guide.md` §7)
 - [ ] Screenshots at desktop and 375px in the PR
 - [ ] Matches the mockup in `docs/ui/mockups/` if there is one, or says why not
