@@ -83,6 +83,14 @@ export function localize(rows, prefix, fields, params = {}) {
   return rows;
 }
 
+/** localize() for a plain list of strings: keys `<prefix>.<index>.name`. */
+export function localizeList(list, prefix) {
+  const rows = list.map((name, i) => ({ id: i, name }));
+  localize(rows, prefix, ['name']);
+  rows.forEach((r, i) => { list[i] = r.name; });
+  return list;
+}
+
 /** Every data-table key registered so far: { key: { text, params } } (tests). */
 export function localizedKeys() {
   const out = {};
