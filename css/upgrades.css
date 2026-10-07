@@ -34,7 +34,7 @@
   transition: border-color var(--dur-2) var(--ease-out);
 }
 .upcard[hidden] { display: none; }
-.upcard.aff { border-color: rgba(251, 191, 36, 0.5); }
+.upcard.aff { border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
 .upcard.is-locked { opacity: 0.85; }
 .upcard-text { min-width: 0; }
 .upcard .n { font-weight: 700; font-size: var(--fs-13); color: var(--text-1); }

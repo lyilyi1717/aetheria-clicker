@@ -43,6 +43,7 @@ import { ChronicleUI } from './ui/chronicle.js';
 import { CalendarUI } from './ui/calendar.js';
 import { gearCard } from './ui/rarity.js';
 import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
+import { applyThemeSetting, renderThemeSettings, themeVar } from './ui/theme.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
 import { Leaderboard } from './leaderboard.js';
@@ -73,6 +74,7 @@ class AetheriaApp {
     }
     BigNum.notation = this.gameState.settings.notation;
     applyMotionSetting(this.gameState.settings);
+    applyThemeSetting(this.gameState.settings);
     if (typeof sound !== 'undefined' && this.gameState.settings.rhythmScale) { sound.rhythmScale = this.gameState.settings.rhythmScale; }
 
     // Attach systems
@@ -263,6 +265,7 @@ class AetheriaApp {
       });
     }
     renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, () => this.saveManager.save());
+    renderThemeSettings(document.getElementById('settings-theme'), this.gameState.settings, () => this.saveManager.save());
   }
 
   setupTabs() {
@@ -790,7 +793,7 @@ class AetheriaApp {
     const floorEl = this.$('combat-floor-title');
     if (floorEl) {
       const zone = this.combatSystem.getZone(h.floor);
-      const title = `<span style="color: ${zone.color}">${zone.icon} Floor ${h.floor}: ${zone.name}</span>`;
+      const title = `<span style="color: ${themeVar(zone.color)}">${zone.icon} Floor ${h.floor}: ${zone.name}</span>`;
       if (this.lastCombatTitle !== title) {
         this.lastCombatTitle = title;
         floorEl.innerHTML = title;
@@ -891,7 +894,7 @@ class AetheriaApp {
     const strata = this.miningSystem.getCurrentStrata();
     if (depthEl) {
       const record = grid.maxDepth > grid.depth ? ` · Record ${grid.maxDepth}` : '';
-      const title = `<span style="color: ${strata.color}">${strata.icon} Depth ${grid.depth} - ${strata.name} Strata${record}</span>`;
+      const title = `<span style="color: ${themeVar(strata.color)}">${strata.icon} Depth ${grid.depth} - ${strata.name} Strata${record}</span>`;
       if (this.lastMiningTitle !== title) {
         this.lastMiningTitle = title;
         depthEl.innerHTML = title;
@@ -906,7 +909,7 @@ class AetheriaApp {
       if (!this.$('btn-buy-drill')) {
         pickaxeEl.innerHTML = `
           <div style="display:flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-            <img loading="lazy" decoding="async" src="cosmic_shovel.webp" alt="Mining Tool" style="width: 64px; height: 64px; border-radius: 8px; border: 2px solid var(--accent-purple); box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);">
+            <img loading="lazy" decoding="async" src="cosmic_shovel.webp" alt="Mining Tool" style="width: 64px; height: 64px; border-radius: 8px; border: 2px solid var(--accent-purple); box-shadow: 0 0 10px color-mix(in srgb, var(--dust) 50%, transparent);">
             <div>
               <div>Pickaxe: <strong id="mining-pick-name"></strong> (Lv <span id="mining-pick-level"></span>, Power: <span id="mining-pick-power"></span>)</div>
               <div>Auto-Drills: <strong id="mining-drill-count"></strong> (<span id="mining-drill-rate"></span> hits/sec)</div>
@@ -960,9 +963,9 @@ class AetheriaApp {
       if (forceRebuildGrid || container.children.length === 0 || this.lastMiningBlocks !== grid.blocks) {
         this.lastMiningBlocks = grid.blocks;
         container.innerHTML = grid.blocks.map(b => b.revealed ? `
-          <div class="mine-tile revealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${strata.color}">${tileContent(b)}</div>
+          <div class="mine-tile revealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${themeVar(strata.color)}">${tileContent(b)}</div>
         ` : `
-          <div class="mine-tile unrevealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${strata.color}">
+          <div class="mine-tile unrevealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${themeVar(strata.color)}">
             <div class="tile-hp-bar" id="tile-bar-${b.id}" style="width: ${(b.hp / b.maxHp) * 100}%"></div>
             <span class="tile-hp-text" id="tile-text-${b.id}">${fmt(b.hp, 1)}</span>
           </div>
@@ -1488,7 +1491,7 @@ class AetheriaApp {
 
   updateMarketUI() {
     const trendIcons = { surge: '🚀 SURGE', rising: '📈 RISING', stable: '⚖️ STABLE', falling: '📉 FALLING', crash: '💥 CRASH' };
-    const trendColors = { surge: '#10b981', rising: '#4ade80', stable: '#94a3b8', falling: '#f87171', crash: '#ef4444' };
+    const trendColors = { surge: 'var(--life)', rising: 'var(--life)', stable: 'var(--text-3)', falling: 'var(--danger)', crash: 'var(--danger)' };
 
     // Row element refs (built once in buildMarketStructure): no closest/querySelector per frame
     if (!this.marketRowEls) {
@@ -1511,7 +1514,7 @@ class AetheriaApp {
 
       if (tEl) {
         setText(tEl, trendIcons[item.trend] || '⚖️ STABLE');
-        const color = trendColors[item.trend] || '#94a3b8';
+        const color = trendColors[item.trend] || 'var(--text-3)';
         if (tEl.dataset.trend !== item.trend) {
           tEl.dataset.trend = item.trend;
           tEl.style.color = color;

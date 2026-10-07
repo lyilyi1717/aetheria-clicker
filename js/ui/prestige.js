@@ -20,18 +20,18 @@ const STYLE = `
 .tr-box { display: flex; flex-direction: column; gap: 0.6rem; }
 .tr-box h3 { margin: 0; }
 .tr-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem; }
-.tr-stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 0.45rem 0.6rem; min-width: 0; }
+.tr-stat { background: color-mix(in srgb, var(--tint) 4%, transparent); border: 1px solid color-mix(in srgb, var(--tint) 8%, transparent); border-radius: 8px; padding: 0.45rem 0.6rem; min-width: 0; }
 .tr-stat .k { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; }
 .tr-stat .v { font-weight: 700; color: var(--accent-rose); overflow-wrap: anywhere; }
-.tr-gate-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.tr-gate-bar { height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--tint) 8%, transparent); overflow: hidden; }
 .tr-gate-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent-purple), var(--accent-rose)); transition: width 0.3s; }
 .tr-gate-text { font-size: 0.85rem; color: var(--text-muted); overflow-wrap: anywhere; }
 .tr-trade { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 .tr-trade > div { border-radius: 8px; padding: 0.5rem 0.6rem; font-size: 0.85rem; min-width: 0; }
 .tr-trade ul { margin: 0.25rem 0 0; padding-left: 1.1rem; }
 .tr-trade li { overflow-wrap: anywhere; }
-.tr-gain { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.35); }
-.tr-lose { background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.3); }
+.tr-gain { background: color-mix(in srgb, var(--life) 8%, transparent); border: 1px solid color-mix(in srgb, var(--life) 35%, transparent); }
+.tr-lose { background: color-mix(in srgb, var(--danger) 7%, transparent); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); }
 .tr-trade .h { font-weight: 700; }
 .tr-keep, .tr-note { font-size: 0.8rem; color: var(--text-dim); }
 .tr-note { border-left: 3px solid var(--accent-gold); padding-left: 0.5rem; color: var(--text-muted); }

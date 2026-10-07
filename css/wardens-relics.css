@@ -1,8 +1,8 @@
 /* Tower Wardens, Strata Relics, Aether Ore and Gem Polishing (R18). Linked from js/ui/wardens-relics.js */
 .wr-panel { margin-top: 1rem; }
 .wr-inset {
-  background: rgba(56, 189, 248, 0.05);
-  border: 1px solid rgba(56, 189, 248, 0.22);
+  background: color-mix(in srgb, var(--aether) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--aether) 22%, transparent);
   border-radius: 8px;
   padding: 0.75rem;
   margin: 0 0 1rem;
@@ -14,11 +14,11 @@
 .wr-row {
   display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
   padding: 0.45rem 0.6rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--tint) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tint) 8%, transparent);
   border-radius: 6px;
 }
-.wr-row.is-done { border-color: rgba(251, 191, 36, 0.4); }
+.wr-row.is-done { border-color: color-mix(in srgb, var(--gold) 40%, transparent); }
 .wr-row-main { display: flex; flex-direction: column; min-width: 0; font-size: 0.85rem; }
 .wr-row-main strong { overflow-wrap: anywhere; }
 .wr-sub { font-size: 0.75rem; color: var(--text-muted); }
@@ -31,7 +31,7 @@
 .relic-slot {
   display: flex; align-items: center; gap: 0.35rem;
   padding: 0.35rem 0.45rem;
-  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border: 1px dashed color-mix(in srgb, var(--tint) 15%, transparent);
   border-radius: 6px;
   font-size: 0.72rem;
   color: var(--text-muted);
@@ -39,7 +39,7 @@
 }
 .relic-slot .relic-icon { font-size: 1.1rem; filter: grayscale(1) opacity(0.35); }
 .relic-slot .relic-name { overflow-wrap: anywhere; }
-.relic-slot.found { border-style: solid; border-color: rgba(251, 191, 36, 0.55); color: var(--text-main, #f8fafc); background: rgba(251, 191, 36, 0.07); }
+.relic-slot.found { border-style: solid; border-color: color-mix(in srgb, var(--gold) 55%, transparent); color: var(--text-main); background: color-mix(in srgb, var(--gold) 7%, transparent); }
 .relic-slot.found .relic-icon { filter: none; }
 .relic-slot.seeking { border-color: var(--accent-cyan); color: var(--accent-cyan); }
 

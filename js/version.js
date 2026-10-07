@@ -3,9 +3,19 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.10.0';
+export const VERSION = '4.11.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.11.0',
+    date: '2026-10-07',
+    title: 'Themes: Night, Sand and Desert Dusk',
+    changes: [
+      'New Theme setting at the top of Settings, with three themes for the whole game: Night (the original dark emerald look, still the default), Sand (a light, warm parchment theme with deep brown text and gold; not plain white) and Desert Dusk (dark plum with an orange glow).',
+      'Your choice is saved with your settings and stays after a reload. Existing saves start on Night, so nothing changes until you pick another theme.',
+      'Every theme keeps the same meaning for each colour (gold is still "you can buy this", pink is still shards), and all text meets the same readability standard in each one. Toasts, floating numbers and click sparks follow the theme too.'
+    ]
+  },
   {
     version: '4.10.0',
     date: '2026-10-07',
