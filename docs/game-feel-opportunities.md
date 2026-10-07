@@ -347,22 +347,22 @@ tiers), then one PR per area from §3. Each PR runs the guide's §7 checklist.
 
 ---
 
-## 5. Suggested roadmap issues
+## 5. Roadmap issues
 
-R-numbers are assigned by whoever files them (next free after R40); each needs a row in the
-`docs/STATUS.md` Plan table. Suggested order follows §3.
+Filed as R41–R49 (issues #113–#121, rows in the `docs/STATUS.md` Plan table). R41 comes first;
+the rest depend on it. Order follows §3.
 
-| # | Title | Done when |
+| Item | Title | Done when |
 |---|---|---|
-| GF-1 | Feedback-tier helper and effect budget | `js/ui/feedback.js` + pure budget module with tests; ParticleEngine caps particles (250/150 phone) and texts (40) and merges "+n" texts; existing effects routed through it with no visible change except fewer pile-ups; `npm test` passes. |
-| GF-2 | Boss and Warden kills feel like a win | Boss/Warden kill has hit-stop, flash, shake (motion on), a distinct sound, "Boss down!" callout and a gold count-up; enrage timer turns red and ticks at ≤ 10 s; reduced motion keeps colour + sound only; checked at 375 px. |
-| GF-3 | Welcome-back celebration | Offline modal plays a sound, counts the total up (≤ 1.2 s, skippable), has a Collect button that pulses the Oil counter; reduced motion snaps; wording unchanged. |
-| GF-4 | Monolith combo climb and Frenzy moment | Floating numbers merge and stay readable at 375 px; combo pitch climbs in scale steps (capped) and steps back down; Frenzy has a wind-up on clicks 18–19, its own sound, callout and burst; the bar holds full before resetting; tooltip hides after the first tap. |
-| GF-5 | Ascension and Transcend ceremonies | `confirm()` replaced by an in-game sheet with a hold-to-confirm build-up; distinct release for New Well and New Field (≤ 3.5 s, skippable); `playAscension` used; reduced-motion version; owner decisions in §6 applied. |
-| GF-6 | Sound families by meaning | Spend/collect/find/cast/boom sounds as in §3 item 6; contract claim shows its amounts; Daily Dallah plays one sound; `playGem` scales with rarity. |
-| GF-7 | First-time unlocks and rare events | Tab unlock is a short skippable ceremony + nav pulse; big toasts play brass; Mirage, Caravan Star, Golden harvest, Aether Ore and legendary gear each have their own look and sound. |
-| GF-8 | Honest sale and silent-tap fixes | Bazaar sale at or below the reference price gets neutral feedback (owner rule from §6); failed breeding answers neutrally; no player action is silent and still. |
-| GF-9 | Reduced-motion colour cues | `.reward-pulse`, `.blast-flash` and the boss flash have static colour fallbacks under reduced motion; `test_r24_motion.js` (or a new test) covers them. |
+| GF-1 = R41 #113 | Feedback-tier helper and effect budget | `js/ui/feedback.js` + pure budget module with tests; ParticleEngine caps particles (250/150 phone) and texts (40) and merges "+n" texts; existing effects routed through it with no visible change except fewer pile-ups; `npm test` passes. |
+| GF-2 = R42 #114 | Boss and Warden kills feel like a win | Boss/Warden kill has hit-stop, flash, shake (motion on), a distinct sound, "Boss down!" callout and a gold count-up; enrage timer turns red and ticks at ≤ 10 s; reduced motion keeps colour + sound only; checked at 375 px. |
+| GF-3 = R43 #115 | Welcome-back celebration | Offline modal plays a sound, counts the total up (≤ 1.2 s, skippable), has a Collect button that pulses the Oil counter; reduced motion snaps; wording unchanged. |
+| GF-4 = R44 #116 | Monolith combo climb and Frenzy moment | Floating numbers merge and stay readable at 375 px; combo pitch climbs in scale steps (capped) and steps back down; Frenzy has a wind-up on clicks 18–19, its own sound, callout and burst; the bar holds full before resetting; tooltip hides after the first tap. |
+| GF-5 = R45 #117 | Ascension and Transcend ceremonies | `confirm()` replaced by an in-game sheet with a hold-to-confirm build-up; distinct release for New Well and New Field (≤ 3.5 s, skippable); `playAscension` used; reduced-motion version; owner decisions in §6 applied. |
+| GF-6 = R46 #118 | Sound families by meaning | Spend/collect/find/cast/boom sounds as in §3 item 6; contract claim shows its amounts; Daily Dallah plays one sound; `playGem` scales with rarity. |
+| GF-7 = R47 #119 | First-time unlocks and rare events | Tab unlock is a short skippable ceremony + nav pulse; big toasts play brass; Mirage, Caravan Star, Golden harvest, Aether Ore and legendary gear each have their own look and sound. |
+| GF-8 = R48 #120 | Honest sale and silent-tap fixes | Bazaar sale at or below the reference price gets neutral feedback (owner rule from §6); failed breeding answers neutrally; no player action is silent and still. |
+| GF-9 = R49 #121 | Reduced-motion colour cues | `.reward-pulse`, `.blast-flash` and the boss flash have static colour fallbacks under reduced motion; `test_r24_motion.js` (or a new test) covers them. |
 
 ---
 
@@ -387,4 +387,4 @@ implementer should use the default in brackets (AGENTS.md: owner decisions go in
    commodity (a save field with a default, AGENTS.md rule 2)? [(a), no save change.]
 7. **An "Effects" setting.** Add Settings → Effects (Full / Light / Off) separate from Reduce
    Motion, for players who want sound and colour but fewer particles? [Not now; revisit after
-   GF-1 if players ask.]
+   R41 if players ask.]
