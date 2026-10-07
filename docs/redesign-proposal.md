@@ -737,6 +737,7 @@ reset of some kind every 2–14 days for nine months.
 | Tower | gear rolls at `1.11^(f-1)` (`CombatSystem.js:323`), monsters/gold/Market Index stay 1.12; legacy hero rebase + `indexFloor` | roadmap §0.2, §8 — agree |
 | Tower | boss timer 30 s → **45 s**, boss HP 250× → 400× base; Wardens every 250 floors (60 s, ×3) | bosses should be the Tower's medium beat, not a speed bump |
 | Tower | gold per kill `× M` already; add **Forge accepts gold** at `1e3 · 5^lvl · M` | progression doc §5.5 — agree |
+| Tower | **gear levels** (R34): each equipped item +1 … +30, +4% main stat per level, paid in Monster Bones (`10·(L+1)`, 4,650 per slot to +30); the level stays with the slot when a better drop replaces the item | player feedback (#70) |
 | Excavation | keep all v2 curves; add Strata Relics (1/200 per tile, pity 400), Aether Ore (10% of stone tiles → Bazaar), Gem Polishing 5:1 | progression doc §5.4, roadmap §5.3 — agree |
 | Garden | keep curves; breeding via shard tree (month 1); golden mutation 1% | new |
 | Alchemy | 7 → 13 recipes (6 hybrid essences); recipe **discovery** (a recipe appears when you first hold both ingredients) | new |
@@ -745,6 +746,17 @@ reset of some kind every 2–14 days for nine months.
 | Talents | remove +3/Ascension and the 20% roll; S1 stars + S2 Record stars + S3 Guild Rank; keystones move to the dust shop (§6.2) | roadmap §3 — agree, with the keystone move |
 | Achievements | 24 → ~90 ladder, +1% each (was 1.5%; 90 × 1.5% = ×2.35 is fine, but 1% keeps the category flat) | roadmap §5.3 |
 | Fast Forward | keep the 30 s escalator; dust-shop Hourglass adds 5 min / 1 h buttons at `dt = 1.0` | progression doc §5.5 |
+
+*R34 implementation (gear levels):* `CombatSystem.js` (`GEAR_LEVEL_*`, `gearStat`, `levelUpGear`),
+panel in `js/ui/equipment.js`. The level multiplies the item's base stat; Crit and Drain keep
+their drop caps (50% / 30%) and the panel won't sell a level that adds nothing. **Resource:**
+Monster Bones, not Aether Ore or polished gems. Bones are the Tower's own drop (40% of loot rolls)
+and their only sink was one 2-bone Alchemy recipe; Aether Ore already has a sink (Bazaar sales)
+and lives in Excavation, so a Tower-only player couldn't level at all. **Carry-over:** the full
+level moves to the new item (the level belongs to the slot), so a better drop is never a loss.
+Sim (`npm run sim:tower`, the hero spends bones once a minute on the cheapest level): open
+profile's 30-day wall 650 → 740 floors, casual 30-day best floor 740 → 820; casual reaches about
++12 on weapon/armor in week 1 and +29 by day 30. `--no-gear-levels` reproduces the old report.
 
 *R18 implementation (Excavation and Alchemy rows):* every broken tile (stairs included) rolls
 1/200 for a Strata Relic, with a pity of 400 tiles since the last relic (`miningGrid.relics`,

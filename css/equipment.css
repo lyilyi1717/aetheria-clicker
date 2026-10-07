@@ -12,6 +12,9 @@
 .gl-stat { font-size: var(--fs-12); color: var(--text-3); overflow-wrap: anywhere; }
 .gl-row .btn-buy { flex: 0 0 auto; min-width: 112px; }
 
+/* Phone: the panel sits in a narrow column, so the button drops under the name and stat */
 @media (max-width: 480px) {
-  .gl-row .btn-buy { min-width: 96px; }
+  .gl-row { flex-wrap: wrap; }
+  .gl-main { flex-basis: calc(100% - 36px - var(--sp-3)); }
+  .gl-row .btn-buy { flex: 1 1 100%; min-width: 0; flex-direction: row; justify-content: space-between; }
 }

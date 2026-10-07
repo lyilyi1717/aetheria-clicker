@@ -22,8 +22,10 @@ export class EquipmentUI {
   // Main stat as the gear cards show it: "1.2e5 Atk", "12% Crit"
   statText(slot, v) {
     const key = GEAR_MAIN_STAT[slot].key;
-    if (key === 'attack') return `${this.combat.fmt(v)} Atk`;
-    if (key === 'hp') return `${this.combat.fmt(v)} HP`;
+    // Early gear is small: one decimal so a +4% step is visible (5 -> 5.2, not 5 -> 5)
+    const num = v < 1000 ? String(Math.round(v * 10) / 10) : this.combat.fmt(v);
+    if (key === 'attack') return `${num} Atk`;
+    if (key === 'hp') return `${num} HP`;
     return `${(v * 100).toFixed(1)}% ${key === 'crit' ? 'Crit' : 'Drain'}`;
   }
 

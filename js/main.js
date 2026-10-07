@@ -846,7 +846,7 @@ class AetheriaApp {
       const g = h.gear;
       const fmt = (v) => this.combatSystem.fmt(v);
       // Stats include gear levels (R34); the level shows after the stat
-      const lv = (item) => getGearLevel(item) > 0 ? ` (+${getGearLevel(item)})` : '';
+      const lv = (item) => getGearLevel(item) > 0 ? ` · Lv +${getGearLevel(item)}` : '';
       gearCont.innerHTML =
         gearCard('Weapon', g.weapon, `+${fmt(gearStat('weapon', g.weapon))} Atk${lv(g.weapon)}`) +
         gearCard('Armor', g.armor, `+${fmt(gearStat('armor', g.armor))} HP${lv(g.armor)}`) +
