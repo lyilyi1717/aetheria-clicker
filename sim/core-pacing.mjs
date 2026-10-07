@@ -62,7 +62,7 @@ const ACTIVE_MULT = process.env.SIM_ACTIVE_MULT ? Number(process.env.SIM_ACTIVE_
 
 const CHECKPOINTS = [
   ['10 min', 600], ['1 h', 3600], ['1 d', DAY], ['1 w', 7 * DAY],
-  ['1 mo', 30 * DAY], ['3 mo', 90 * DAY], ['6 mo', 180 * DAY], ['1 y', YEAR]
+  ['1 mo', 30 * DAY], ['2 mo', 60 * DAY], ['3 mo', 90 * DAY], ['6 mo', 180 * DAY], ['1 y', YEAR]
 ];
 
 // --- R5 upgrade shop block -------------------------------------------------------------------
@@ -298,6 +298,7 @@ function run(profile) {
 
   const dtFor = (t) => t < 3600 ? 1 : t < DAY ? 10 : t < 7 * DAY ? 60 : 300;
 
+  let lifetimeAether = BigNum.zero();   // every Aether earned across all runs (R31 target)
   let runStart = 0, ci = 0;
   const resets = [];
   const transcends = [];
@@ -317,6 +318,7 @@ function run(profile) {
     const income = cps.mul(dt * activeMult(t)).add(clickYield);
     gs.aether = gs.aether.add(income);
     gs.totalAetherEarned = gs.totalAetherEarned.add(income);
+    lifetimeAether = lifetimeAether.add(income);
     t += dt;
     if (Math.floor(t / 5) !== Math.floor((t - dt) / 5) || dt >= 5) greedyBuy();
     ach.checkAchievements();
@@ -362,6 +364,8 @@ function run(profile) {
       rows.push({
         label: CHECKPOINTS[ci][0],
         cps: gs.getNetAetherPerSecond().format('scientific', 2),
+        run: gs.totalAetherEarned.format('scientific', 2),
+        life: lifetimeAether.format('scientific', 2),
         asc: gs.ascensionCount,
         dust: gs.totalCosmicDust.format('scientific', 2),
         trans: gs.transcendenceCount,
@@ -412,9 +416,9 @@ const out = [];
 for (const profile of ['idle', 'casual']) {
   const r = run(profile);
   out.push(`\n### profile: ${profile}\n`);
-  out.push('| time | CPS | Ascensions | lifetime dust (this layer) | Transcends (this Chronicle) | tiers | upgrades (this run) | Chronicles | Pages earned |');
-  out.push('|---|---|---|---|---|---|---|---|---|');
-  for (const row of r.rows) out.push(`| ${row.label} | ${row.cps} | ${row.asc} | ${row.dust} | ${row.trans} | ${row.tiers} | ${row.upgrades} | ${row.chron} | ${row.pages} |`);
+  out.push('| time | CPS | run Aether | lifetime Aether | Ascensions | lifetime dust (this layer) | Transcends (this Chronicle) | tiers | upgrades (this run) | Chronicles | Pages earned |');
+  out.push('|---|---|---|---|---|---|---|---|---|---|---|');
+  for (const row of r.rows) out.push(`| ${row.label} | ${row.cps} | ${row.run} | ${row.life} | ${row.asc} | ${row.dust} | ${row.trans} | ${row.tiers} | ${row.upgrades} | ${row.chron} | ${row.pages} |`);
   out.push('');
   out.push(`- first Ascension: ${r.firstResetMin.toFixed(1)} min`);
   if (r.upgradesPerRun.length) {
