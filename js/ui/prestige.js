@@ -4,6 +4,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { MAX_TIER_COUNT } from '../systems/BuildingSystem.js';
 import { TERMS as T } from '../data/strings.js';
+import { t } from '../i18n/index.js';
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 
@@ -12,7 +13,7 @@ export function fmtBigMult(v) {
   const b = v instanceof BigNum ? v : new BigNum(v);
   if (b.lt(1e6)) {
     const n = b.toNumber();
-    return `×${n >= 10 ? n.toLocaleString(undefined, { maximumFractionDigits: 1 }) : n.toFixed(2)}`;
+    return `×${n >= 10 ? n.toLocaleString('en-US', { maximumFractionDigits: 1 }) : n.toFixed(2)}`;
   }
   return `×${b.format('scientific', 2)}`;
 }
@@ -29,13 +30,13 @@ const STYLE = `
 .tr-gate-text { font-size: 0.85rem; color: var(--text-muted); overflow-wrap: anywhere; }
 .tr-trade { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 .tr-trade > div { border-radius: 8px; padding: 0.5rem 0.6rem; font-size: 0.85rem; min-width: 0; }
-.tr-trade ul { margin: 0.25rem 0 0; padding-left: 1.1rem; }
+.tr-trade ul { margin: 0.25rem 0 0; padding-inline-start: 1.1rem; }
 .tr-trade li { overflow-wrap: anywhere; }
 .tr-gain { background: color-mix(in srgb, var(--life) 8%, transparent); border: 1px solid color-mix(in srgb, var(--life) 35%, transparent); }
 .tr-lose { background: color-mix(in srgb, var(--danger) 7%, transparent); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); }
 .tr-trade .h { font-weight: 700; }
 .tr-keep, .tr-note { font-size: 0.8rem; color: var(--text-dim); }
-.tr-note { border-left: 3px solid var(--accent-gold); padding-left: 0.5rem; color: var(--text-muted); }
+.tr-note { border-inline-start: 3px solid var(--accent-gold); padding-inline-start: 0.5rem; color: var(--text-muted); }
 @media (max-width: 600px) { .tr-trade { grid-template-columns: 1fr; } }
 `;
 
@@ -61,23 +62,21 @@ export class TranscendPanel {
     cont.innerHTML = `
       <div class="transcend-box tr-box">
         <h3>${T.reset2CurrencyIcon} ${T.reset2}</h3>
-        <p class="tr-keep" style="margin:0">The second prestige layer. Each ${T.reset2Noun} pays 2 ${T.reset2Currency}
-          (each ×1.5 ${T.currency} and ×1.5 ${T.reset1Currency} gain, forever) and opens the next generator tier.</p>
+        <p class="tr-keep" style="margin:0">${t('tr.intro')}</p>
         <div class="tr-note" data-tr="legacy" hidden></div>
         <div class="tr-stats">
           <div class="tr-stat"><div class="k">${T.reset2Currency}</div><div class="v" data-tr="shards"></div></div>
           <div class="tr-stat"><div class="k">${T.shareBonus}</div><div class="v" data-tr="shardMult"></div></div>
           <div class="tr-stat"><div class="k">${T.reset2Plural}</div><div class="v" data-tr="count"></div></div>
-          <div class="tr-stat"><div class="k">Generator tiers</div><div class="v" data-tr="tiers"></div></div>
+          <div class="tr-stat"><div class="k">${t('tr.tiers')}</div><div class="v" data-tr="tiers"></div></div>
         </div>
         <div class="tr-gate-text" data-tr="gateText"></div>
         <div class="tr-gate-bar"><div class="tr-gate-fill" data-tr="gateFill"></div></div>
         <div class="tr-trade">
-          <div class="tr-gain"><div class="h">You gain</div><ul data-tr="gain"></ul></div>
-          <div class="tr-lose"><div class="h">You reset</div><ul data-tr="lose"></ul></div>
+          <div class="tr-gain"><div class="h">${t('tr.gain')}</div><ul data-tr="gain"></ul></div>
+          <div class="tr-lose"><div class="h">${t('tr.lose')}</div><ul data-tr="lose"></ul></div>
         </div>
-        <div class="tr-keep">You keep: generator tiers, ${T.reset2Currency}, the ${T.shareTree}, talents, Tower, Excavation, Garden,
-          Alchemy, Bazaar, Codex and your ${T.reset1Noun} count.</div>
+        <div class="tr-keep">${t('tr.keep')}</div>
         <button id="btn-do-transcend" class="btn-action"></button>
       </div>
     `;
@@ -92,22 +91,22 @@ export class TranscendPanel {
     const key = items.join('\n');
     if (!ul || ul.dataset.key === key) return;
     ul.dataset.key = key;
-    ul.replaceChildren(...items.map(t => { const li = document.createElement('li'); li.textContent = t; return li; }));
+    ul.replaceChildren(...items.map(text => { const li = document.createElement('li'); li.textContent = text; return li; }));
   }
 
   tradeLines(tp) {
     const gain = [
-      `+${tp.shardsGained} ${T.reset2Currency} (${tp.shardsBefore} → ${tp.shardsAfter})`,
-      ...(tp.sealShards > 0 ? [`+${tp.sealShards} more ${T.reset2Short} to spend in the ${T.shareTree} (lit Seals; they do not raise the bonus)`] : []),
-      `${T.currency} ${fmtBigMult(tp.shardBefore)} → ${fmtBigMult(tp.shardAfter)} from ${T.reset2Short}`,
-      `${T.reset1Currency} gain ${fmtBigMult(tp.dustGainBefore)} → ${fmtBigMult(tp.dustGainAfter)}`,
-      tp.newTier ? `New generator: ${tp.newTier.icon} ${tp.newTier.name} (tier ${tp.newTier.tier})`
-        : `Generator ladder already complete (${MAX_TIER_COUNT} tiers)`
+      t('tr.g.shares', { n: tp.shardsGained, a: tp.shardsBefore, b: tp.shardsAfter }),
+      ...(tp.sealShards > 0 ? [t('tr.g.seals', { n: tp.sealShards })] : []),
+      t('tr.g.oil', { a: fmtBigMult(tp.shardBefore), b: fmtBigMult(tp.shardAfter) }),
+      t('tr.g.reserves', { a: fmtBigMult(tp.dustGainBefore), b: fmtBigMult(tp.dustGainAfter) }),
+      tp.newTier ? t('tr.g.tier', { icon: tp.newTier.icon, name: tp.newTier.name, n: tp.newTier.tier })
+        : t('tr.g.ladder', { n: MAX_TIER_COUNT })
     ];
     const lose = [
-      `${T.reset1Short} multiplier ${fmtBigMult(tp.dustBefore)} → ${fmtBigMult(tp.dustAfter)} (this layer's lifetime ${T.reset1Short} starts again at 0)`,
-      `${T.reset1Currency} and every ${T.reset1Shop} purchase (Auto-Buy, Blueprint Memory, Hourglass, ...)`,
-      `The run: ${T.currency} and generators (like a ${T.reset1Noun})`
+      t('tr.l.mult', { a: fmtBigMult(tp.dustBefore), b: fmtBigMult(tp.dustAfter) }),
+      t('tr.l.shop'),
+      t('tr.l.run')
     ];
     return { gain, lose };
   }
@@ -116,11 +115,10 @@ export class TranscendPanel {
     if (!this.ps.canTranscend()) return;
     const tp = this.ps.getTranscendPreview();
     const { gain, lose } = this.tradeLines(tp);
-    const msg = `${T.reset2}?\n\nYou gain:\n- ` + gain.join('\n- ') +
-      '\n\nYou reset:\n- ' + lose.join('\n- ') +
-      `\n\n${T.reset1Short} × ${T.reset2Short} multiplier right after: ${fmtBigMult(tp.before)} → ${fmtBigMult(tp.after)}.` +
-      ` ${T.reset1Short} now refill ` + fmtBigMult(tp.dustGainAfter) + ' as fast, so production usually catches up within a day.' +
-      `\nNext ${T.reset2Noun} at ${tp.nextGate.format('standard', 0)} lifetime ${T.reset1Short}.`;
+    const msg = t('tr.confirm.q') + '\n\n' + t('tr.gain') + ':\n- ' + gain.join('\n- ') +
+      '\n\n' + t('tr.lose') + ':\n- ' + lose.join('\n- ') +
+      '\n\n' + t('tr.confirm.after', { a: fmtBigMult(tp.before), b: fmtBigMult(tp.after), x: fmtBigMult(tp.dustGainAfter) }) +
+      '\n' + t('tr.confirm.next', { n: tp.nextGate.format('standard', 0) });
     if (!confirm(msg)) return;
     this.ps.transcend();
     // New tier cards appear; the dust shop and dust were reset
@@ -135,8 +133,8 @@ export class TranscendPanel {
     const canT = this.ps.canTranscend();
 
     setText(this.el.shards, gs.fractureShards.format('standard', 0) +
-      (gs.totalFractureShards.gt(gs.fractureShards) ? ` (${gs.totalFractureShards.format('standard', 0)} earned)` : ''));
-    setText(this.el.shardMult, `${fmtBigMult(tp.shardBefore)} ${T.currency} & ${T.reset1Short}`);
+      (gs.totalFractureShards.gt(gs.fractureShards) ? ' ' + t('tr.earned', { n: gs.totalFractureShards.format('standard', 0) }) : ''));
+    setText(this.el.shardMult, t('tr.mult', { x: fmtBigMult(tp.shardBefore) }));
     setText(this.el.count, String(gs.transcendenceCount || 0));
     setText(this.el.tiers, `${tp.tiersBefore} / ${MAX_TIER_COUNT}`);
 
@@ -144,8 +142,8 @@ export class TranscendPanel {
     const pct = canT ? 100 : Math.max(0, Math.min(100, dust.div(tp.gate).toNumber() * 100));
     const w = `${pct.toFixed(1)}%`;
     if (this.el.gateFill.style.width !== w) this.el.gateFill.style.width = w;
-    setText(this.el.gateText, `Lifetime ${T.reset1Short} this layer: ${dust.format('standard', 0)} / ${tp.gate.format('standard', 0)}` +
-      (canT ? ' — ready!' : ''));
+    setText(this.el.gateText, t('tr.gate', { a: dust.format('standard', 0), b: tp.gate.format('standard', 0) }) +
+      (canT ? ' ' + t('tr.ready') : ''));
 
     const { gain, lose } = this.tradeLines(tp);
     this.setList(this.el.gain, gain);
@@ -156,12 +154,10 @@ export class TranscendPanel {
       this.el.legacy.hidden = false;
       const dustBack = BigNum.fromJSON(legacy.dust).format('standard', 0);
       const one = legacy.transcends === 1;
-      this.el.legacy.textContent = `${T.reset2Plural} were reworked. Your ${legacy.transcends} earlier ` +
-        `${one ? `${T.reset2Noun} now counts` : `${T.reset2Plural} now count`} under the new rules: ${legacy.shards} ${T.reset2Currency}` +
-        ` and ${dustBack} ${T.reset1Currency} returned.`;
+      this.el.legacy.textContent = t(one ? 'tr.legacy1' : 'tr.legacy', { n: legacy.transcends, s: legacy.shards, d: dustBack });
     }
 
-    setText(this.el.btn, canT ? `${T.reset2CurrencyIcon} ${T.reset2}!` : `Locked (needs ${tp.gate.format('standard', 0)} lifetime ${T.reset1Short})`);
+    setText(this.el.btn, canT ? `${T.reset2CurrencyIcon} ${T.reset2}!` : t('tr.locked', { n: tp.gate.format('standard', 0) }));
     this.el.btn.classList.toggle('active', canT);
     this.el.btn.classList.toggle('disabled', !canT);
   }
