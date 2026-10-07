@@ -3,17 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.9.0';
+export const VERSION = '4.10.0';
 
 export const CHANGELOG = [
   {
-    version: '4.9.0',
+    version: '4.10.0',
     date: '2026-10-07',
     title: 'Excavation: deeper digging and Auto-Blast',
     changes: [
       'Pickaxe upgrades are much cheaper the further you go: each level now costs ×1.6 the last (was ×2.5). The first upgrade is 160 stone (was 125), level 5 is about 1,000 (was about 4,900) and level 10 about 11,000 (was 4.8 million). Digging no longer stalls in the Voidstone strata: a player with two sessions a day reaches about depth 100 in the first week and the last stratum, Abyssal Heart, in about five to six weeks (it used to take months).',
       'Existing saves keep their depth and pickaxe; only the next upgrades get cheaper, so you will speed up right away.',
       'New Shard Tree node, Auto-Blast (Chronos, 1 shard): Excavation throws its dynamite for you whenever it is ready. Switch it on or off under the Excavation shop. It works while the game is open (also in a background tab and during Fast Forward), like the drills; Excavation does not dig while the game is closed.'
+    ]
+  },
+  {
+    version: '4.9.0',
+    date: '2026-10-07',
+    title: 'Gear levels',
+    changes: [
+      'Your Void Tower gear can now be levelled up. Under Hero Equipment, spend Monster Bones to raise each item from +0 up to +30. Every level adds +4% to that item\'s main stat (Attack, HP, Crit or Drain), so +30 is +120%.',
+      'A level costs 10 Monster Bones at +0, then 10 more for each step (20, 30, ...). Getting one item to +30 takes 4,650 bones.',
+      'Levels stay with the slot: when a better drop replaces your weapon, the new one keeps your +level. Nothing is ever lost by upgrading.',
+      'Crit (50%) and Drain (30%) keep their caps. An item already at the cap can\'t be levelled, so bones are never wasted.',
+      'Old saves start every item at +0, and Monster Bones you have saved up can be spent right away.'
     ]
   },
   {
