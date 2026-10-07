@@ -3,6 +3,7 @@
 
 import { getGeodeAttunementMult, getNectarOfferingMult, getNectarHeld } from './systems/PrestigeSystem.js';
 import { getRunClicks, getFingerOfWastaMult } from './systems/DustShopSystem.js';
+import { itemName } from './data/names.js';
 
 const pct = (v) => `${Math.round(v)}%`;
 
@@ -121,8 +122,8 @@ export function getMasteries(gs) {
   list.push(
     { id: 'geode', icon: '💎', name: 'Geode Attunement', effect: 'Cosmic Dust gain', tabs: ['prestige'],
       value: getGeodeAttunementMult(gs), source: `Depth ${d}`, rule: '+10% per 10 max depth' },
-    { id: 'nectar', icon: '🌸', name: 'Nectar Offering', effect: 'Cosmic Dust gain (Nectar consumed)', tabs: ['prestige'],
-      value: getNectarOfferingMult(gs), source: `${nectar} Nectar`, rule: '+2% × √Nectar, max ×2' }
+    { id: 'nectar', icon: '🌸', name: 'Honey Offering', effect: `Cosmic Dust gain (${itemName('starNectar')} consumed)`, tabs: ['prestige'],
+      value: getNectarOfferingMult(gs), source: `${nectar} ${itemName('starNectar')}`, rule: '+2% × √Honey, max ×2' }
   );
   return list;
 }
