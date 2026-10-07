@@ -45,6 +45,7 @@ import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
 import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
+import { CommunityUI } from './ui/community.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
 
@@ -151,6 +152,8 @@ class AetheriaApp {
     // Daily Dallah, Weekly Ledger, Souq Rotation, Seals (R15): creates this.calendarSystem
     this.calendarUI = new CalendarUI(this);
     this.calendarUI.init();
+    this.communityUI = new CommunityUI(this); // R40: bugs & ideas from GitHub issues
+    this.communityUI.init();
     initTooltips({ switchTab: (tab) => this.switchTab(tab) });
 
     // Setup DOM Listeners & Navigation
@@ -574,7 +577,7 @@ class AetheriaApp {
     this.quickCastBtns = {};
     for (const section of document.querySelectorAll('section.tab-view')) {
       const tab = section.id.replace('tab-', '');
-      if (['settings', 'about', 'talents', 'leaderboard'].includes(tab)) continue;
+      if (['settings', 'about', 'talents', 'leaderboard', 'community'].includes(tab)) continue;
       const strip = document.createElement('div');
       strip.className = 'tab-bonus-strip';
       strip.id = `tab-bonus-${tab}`;
@@ -1819,6 +1822,7 @@ class AetheriaApp {
     this.dustShopUI?.update();
     this.chronicleUI?.update(this.currentTab);
     this.calendarUI?.update(this.currentTab, dt);
+    this.communityUI?.update(this.currentTab);
     this.talentSourcesUI?.update(dt, this.currentTab);
 
     // Fast, lightweight state updates without replacing DOM nodes
