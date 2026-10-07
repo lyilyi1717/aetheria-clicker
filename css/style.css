@@ -1669,11 +1669,12 @@ button, input, select, textarea {
 
 /* Phone: compact header, bottom tab bar + More sheet */
 @media (max-width: 639px) {
-  .hdr { gap: var(--sp-3); }
-  .wordmark .game-title { font-size: var(--fs-13); }
+  .hdr { gap: var(--sp-2); }
+  .wordmark .game-title { font-size: var(--fs-13); letter-spacing: 0.06em; }
+  .res-mana { min-width: 64px; } /* R29: with the larger root font all four currencies fit at 375px */
   .wordmark small { display: none; }
   .res-strip {
-    gap: var(--sp-4);
+    gap: var(--sp-3);
     padding-right: 24px;
     -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
     mask-image: linear-gradient(90deg, #000 85%, transparent);
