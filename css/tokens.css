@@ -165,6 +165,7 @@
   --font-ui: 'Cairo', 'Noto Kufi Arabic', Tahoma, system-ui, sans-serif;
   --fs-root: clamp(18px, 17px + 0.25vw, 20px);
   --lh-body: 1.6;
+  --header-h: 64px;
   /* Monospace fonts have no Arabic; Arabic words next to numbers ("25 مانا") use Cairo */
   --font-mono: 'Cairo', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
@@ -174,3 +175,7 @@
 /* A .num cell takes its direction from its own first letter: "+3", "1.5M / 2M" read left to right,
    a cell that starts with an Arabic word stays right to left */
 :root[dir="rtl"] .num { unicode-bidi: plaintext; }
+/* Settings samples are left to right for number notations only; text samples follow their words */
+:root[dir="rtl"] .settings-sample { direction: inherit; unicode-bidi: plaintext; }
+/* Cairo has tall ascenders: the header grows a little so the currency labels are not clipped */
+:root[lang="ar"] .res { line-height: 1.1; }
