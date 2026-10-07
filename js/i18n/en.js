@@ -796,4 +796,66 @@ export default {
   "lb.empty": "No players yet. Be the first!",
   "lb.loading": "Loading…",
   "lb.playing_now": "Playing now",
+
+  // offlineModal.js
+  "dur.s": "{n} s",
+  "dur.min": "{n} min",
+  "dur.h_min": "{h} h {m} min",
+  "dur.h": "{n} h",
+  "dur.d_h": "{d} d {h} h",
+  "dur.d": "{n} d",
+  "offline.first": "First {d}",
+  "offline.next": "Next {d}",
+  "offline.after": "After {d}",
+  "offline.golems": "Garden Golems: +{n} harvests",
+  "offline.total": "Total",
+  "offline.total_oil": "+{n} Oil",
+  "offline.note": "Offline Oil is paid at full rate for the first {a} and half rate until {b}. Chrono Reservoir extends both.",
+
+  // comboBar.js
+  "combo.ready": "Combo Ready",
+  "combo.ready_frenzy": "Combo Ready · Frenzy every {n} clicks",
+  "combo.frenzy_in": "Frenzy in {n}",
+  "combo.text": "{n}x Combo! ({x}x boost)",
+
+  // motion.js
+  "motion.auto": "Match my device",
+  "motion.on": "On: less motion",
+  "motion.off": "Off: full motion",
+  "motion.device": "device: {v}",
+  "motion.device.on": "on",
+  "motion.device.off": "off",
+
+  // autoBlast.js
+  "ab.name": "Auto-Blast",
+  "ab.on": "On",
+  "ab.off": "Off",
+  "ab.unlock": "Unlock in the {shareTree} (Chronos, {n} ◆): dynamite throws itself when ready.",
+  "ab.next": "Next blast in {s} s, while the game is open.",
+  "ab.blasting": "Blasting…",
+  "ab.off_status": "Off: throw the dynamite by hand.",
+
+  // talents.js
+  "tp.one": "Talent Point",
+  "tp.many": "Talent Points",
+  "tp.where": "Where points come from",
+  "tp.next": "Next stars",
+  "tp.note": "Points come from Milestone Stars (first {reset1Noun}, depth, Tower zones, first harvests, Catalysts, {reset2Noun}), Record {reset1Noun} (each 10x of your best single-run {reset1Short}) and Guild Rank (contracts claimed). Drilling a {reset1Noun} alone pays nothing.",
+  "tp.earned": "{src}: {n} TP",
+  "tp.row": "{label} (+{n} TP)",
+
+  // tooltip.js
+  "tip.details": "Details",
+  "tip.close": "Close",
+  "tip.go": "Go to {label}",
+  "tip.tab": "tab",
+
+  // rewards.js
+  "rewards.away": "While you were away",
+
+  // unlocks.js
+  "unlock.soon": "Soon",
+  "unlock.new": "NEW: {name}",
+  "unlock.locked": "Locked: {text}",
+  "unlock.locked_soon": "Locked: keep playing to open this",
 };

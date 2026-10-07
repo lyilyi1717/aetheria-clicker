@@ -1344,4 +1344,66 @@ export default {
   "lb.empty": "لا لاعبين بعد. كن الأول!",
   "lb.loading": "جارٍ التحميل…",
   "lb.playing_now": "يلعب الآن",
+
+  // offlineModal.js
+  "dur.s": "{n} ث",
+  "dur.min": "{n} د",
+  "dur.h_min": "{h} س {m} د",
+  "dur.h": "{n} س",
+  "dur.d_h": "{d} ي {h} س",
+  "dur.d": "{n} ي",
+  "offline.first": "أول {d}",
+  "offline.next": "الـ{d} التالية",
+  "offline.after": "بعد {d}",
+  "offline.golems": "غولم الحديقة: +{n} حصاد",
+  "offline.total": "المجموع",
+  "offline.total_oil": "+{n} نفط",
+  "offline.note": "يُدفع نفط الغياب بالمعدل الكامل لأول {a} وبنصف المعدل حتى {b}. وخزان الزمن يمدّد الاثنين.",
+
+  // comboBar.js
+  "combo.ready": "الكومبو جاهز",
+  "combo.ready_frenzy": "الكومبو جاهز · هيجان كل {n} نقرة",
+  "combo.frenzy_in": "الهيجان بعد {n}",
+  "combo.text": "كومبو ×{n}! (تعزيز ×{x})",
+
+  // motion.js
+  "motion.auto": "مثل جهازي",
+  "motion.on": "تشغيل: حركة أقل",
+  "motion.off": "إيقاف: حركة كاملة",
+  "motion.device": "الجهاز: {v}",
+  "motion.device.on": "تشغيل",
+  "motion.device.off": "إيقاف",
+
+  // autoBlast.js
+  "ab.name": "التفجير التلقائي",
+  "ab.on": "تشغيل",
+  "ab.off": "إيقاف",
+  "ab.unlock": "افتحه من شجرة الأسهم (الزمن، {n} ◆): يُفجَّر الديناميت وحده حين يجهز.",
+  "ab.next": "التفجير التالي بعد {s} ث، ما دامت اللعبة مفتوحة.",
+  "ab.blasting": "جارٍ التفجير…",
+  "ab.off_status": "متوقف: فجّر الديناميت بيدك.",
+
+  // talents.js
+  "tp.one": "نقطة موهبة",
+  "tp.many": "نقاط مواهب",
+  "tp.where": "من أين تأتي النقاط",
+  "tp.next": "النجوم التالية",
+  "tp.note": "تأتي النقاط من نجوم المراحل (أول بئر جديدة، والعمق، ومناطق البرج، وأول حصاد، والمحفّزات، والحقل الجديد)، والبئر القياسية (كل ×10 من أفضل احتياطي في جولة واحدة)، ورتبة النقابة (العقود المستلمة). وحفر بئر جديدة وحده لا يعطي نقاطًا.",
+  "tp.earned": "{src}: {n} نقطة",
+  "tp.row": "{label} (+{n} نقطة)",
+
+  // tooltip.js
+  "tip.details": "التفاصيل",
+  "tip.close": "إغلاق",
+  "tip.go": "اذهب إلى {label}",
+  "tip.tab": "التبويب",
+
+  // rewards.js
+  "rewards.away": "أثناء غيابك",
+
+  // unlocks.js
+  "unlock.soon": "قريبًا",
+  "unlock.new": "جديد: {name}",
+  "unlock.locked": "مقفل: {text}",
+  "unlock.locked_soon": "مقفل: واصل اللعب لتفتحه",
 };
