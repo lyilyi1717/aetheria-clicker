@@ -52,7 +52,7 @@ export class AutoBlastUI {
     if (this.el.seg.hidden === owned) this.el.seg.hidden = !owned;
     if (!owned) {
       const cost = getNode('chronos_auto_blast').cost;
-      setText(this.el.status, `Unlock in the Shard Tree (Chronos, ${cost} ◆): dynamite throws itself when ready.`);
+      setText(this.el.status, `Unlock in the Share Tree (Chronos, ${cost} ◆): dynamite throws itself when ready.`);
       return;
     }
     const on = isAutoBlastOn(gs);

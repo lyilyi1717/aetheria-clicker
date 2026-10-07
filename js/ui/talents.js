@@ -54,7 +54,7 @@ export class TalentSourcesPanel {
       <div class="ts-earned"><span class="chip dust num" id="ts-e-stars"></span><span class="chip dust num" id="ts-e-record"></span><span class="chip dust num" id="ts-e-guild"></span></div>
       <div class="eyebrow" style="margin-bottom: var(--sp-2)">Next stars</div>
       <div id="ts-next"></div>
-      <div class="ts-note">Points come from Milestone Stars (first Ascension, depth, Tower zones, first harvests, Catalysts, Transcend), Record Ascension (each 10x of your best single-run dust) and Guild Rank (contracts claimed). Ascending alone pays nothing.</div>`;
+      <div class="ts-note">Points come from Milestone Stars (first New Well, depth, Tower zones, first harvests, Catalysts, New Field), Record New Well (each 10x of your best single-run Reserves) and Guild Rank (contracts claimed). Drilling a New Well alone pays nothing.</div>`;
     header.insertAdjacentElement('afterend', box);
     this.el = {
       stars: box.querySelector('#ts-e-stars'), record: box.querySelector('#ts-e-record'),

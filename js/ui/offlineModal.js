@@ -57,13 +57,13 @@ export function renderOfflineModal(res) {
   if (tbody) {
     tbody.textContent = '';
     for (const cells of buildBreakdownRows(res)) tbody.appendChild(row(cells));
-    tbody.appendChild(row(['Total', '', `+${aether} Aether`], 'offline-total'));
+    tbody.appendChild(row(['Total', '', `+${aether} Oil`], 'offline-total'));
   }
   const note = el('offline-note');
   if (note) {
     const b = res.bands;
     note.textContent = b
-      ? `Offline Aether is paid at full rate for the first ${formatDuration(b.fullEnd)} and half rate until ${formatDuration(b.capEnd)}. Chrono Reservoir extends both.`
+      ? `Offline Oil is paid at full rate for the first ${formatDuration(b.fullEnd)} and half rate until ${formatDuration(b.capEnd)}. Chrono Reservoir extends both.`
       : '';
   }
   modal.classList.add('visible');

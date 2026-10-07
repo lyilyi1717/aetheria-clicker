@@ -11,6 +11,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from './rewards.js';
+import { TERMS as T } from '../data/strings.js';
 import {
   ShardTreeSystem, SHARD_TREE_BRANCHES, SHARD_TREE_NODES, AUTO_ASCEND_RULES, AUTO_ASCEND_TIMER_OPTIONS,
   LONG_WARP_SECONDS, getShardBalance, getSpentShards, getNode, autoAscendRuleMet
@@ -66,8 +67,8 @@ export class ShardTreeUI {
     if (!batch) return;
     rewards.notify({
       tier: 'medium', kind: 'auto-ascend', icon: '🔁', color: '#c084fc',
-      title: batch.count > 1 ? `Auto-Ascended ×${batch.count}` : 'Auto-Ascended', batchTitle: 'Auto-Ascended ×{n}',
-      amount: batch.dust, fmt: fmtBig, unit: 'Cosmic Dust'
+      title: batch.count > 1 ? `${T.autoReset1} ×${batch.count}` : T.autoReset1, batchTitle: `${T.autoReset1} ×{n}`,
+      amount: batch.dust, fmt: fmtBig, unit: T.reset1Currency
     });
   }
 
@@ -102,7 +103,7 @@ export class ShardTreeUI {
       <div class="st-wrap">
         <section class="card st-head">
           <div>
-            <div class="eyebrow">Fracture Shards</div>
+            <div class="eyebrow">${T.reset2Currency}</div>
             <div class="st-big num" data-st="balance"></div>
             <div class="st-sub num" data-st="sub"></div>
           </div>
@@ -110,14 +111,14 @@ export class ShardTreeUI {
             <div class="bar-row"><span data-st="gateLabel"></span><span class="bar shard"><i data-st="gateFill"></i></span><span class="val" data-st="gatePct"></span></div>
           </div>
         </section>
-        <p class="st-intro">Spend shards on permanent nodes; Transcend never resets the tree. Your shard bonus counts every shard you have <em>earned</em>, so spending never lowers it.</p>
+        <p class="st-intro">Spend ${T.reset2Short} on permanent nodes; a ${T.reset2Noun} never resets the tree. Your ${T.shareBonus.toLowerCase()} counts every Share you have <em>earned</em>, so spending never lowers it.</p>
         <div class="st-filter" role="group" aria-label="Show branch">
           <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
           ${SHARD_TREE_BRANCHES.map(b => `<button type="button" class="chip" data-filter="${b.id}" aria-pressed="false">${b.icon} ${esc(b.name)} <span class="num" data-count="${b.id}"></span></button>`).join('')}
         </div>
         <div class="st-tree" data-filter-on="all">
           <section class="card st-branch" data-branch="foundry">
-            <h3>${SHARD_TREE_BRANCHES[0].icon} Foundry <small>Deep Blueprint: a Transcend tier's upgrades cost ÷10 · 1 ${SHARD} each</small></h3>
+            <h3>${SHARD_TREE_BRANCHES[0].icon} Foundry <small>Deep Blueprint: a ${T.reset2Noun} tier's upgrades cost ÷10 · 1 ${SHARD} each</small></h3>
             <div class="st-foundry">${tiles}</div>
             <div class="st-tile-detail">
               <div class="st-tile-text"><div class="st-n" data-fd="name"></div><div class="st-req" data-fd="req"></div></div>
@@ -128,8 +129,8 @@ export class ShardTreeUI {
             <h3>${SHARD_TREE_BRANCHES[1].icon} Chronos <small class="num" data-count2="chronos"></small></h3>
             <div class="st-nodes">${nodes('chronos')}</div>
             <div class="st-auto" data-auto hidden>
-              <div class="st-auto-row"><span class="st-lbl">Auto-Ascend</span>${seg('enabled', [['on', 'On'], ['off', 'Off']])}</div>
-              <div class="st-auto-row"><span class="st-lbl">When dust ≥</span>${seg('rule', AUTO_ASCEND_RULES.map(r => [r.id, r.id === 'timer' ? 'Timer' : `×${r.mult}`]))}</div>
+              <div class="st-auto-row"><span class="st-lbl">${T.autoReset1}</span>${seg('enabled', [['on', 'On'], ['off', 'Off']])}</div>
+              <div class="st-auto-row"><span class="st-lbl">When ${T.reset1Short} ≥</span>${seg('rule', AUTO_ASCEND_RULES.map(r => [r.id, r.id === 'timer' ? 'Timer' : `×${r.mult}`]))}</div>
               <div class="st-auto-row" data-auto-timer><span class="st-lbl">Every</span>${seg('timer', AUTO_ASCEND_TIMER_OPTIONS.map(m => [String(m), m < 60 ? `${m} min` : `${m / 60} h`]))}</div>
               <div class="st-auto-status" data-auto-status></div>
             </div>
@@ -198,7 +199,7 @@ export class ShardTreeUI {
     const node = getNode(id);
     if (!node || !this.sys.buy(id)) return;
     sound.playBuy();
-    rewards.notify({ tier: 'medium', kind: 'shard-node', icon: node.icon, color: '#f472b6', title: `Shard Tree: ${node.name}`, batchTitle: '{n} shard nodes' });
+    rewards.notify({ tier: 'medium', kind: 'shard-node', icon: node.icon, color: '#f472b6', title: `${T.shareTree}: ${node.name}`, batchTitle: `{n} ${T.shareTree} nodes` });
     this.update('prestige');
   }
 
@@ -207,7 +208,7 @@ export class ShardTreeUI {
     if (!res) return;
     rewards.notify({
       tier: 'medium', kind: 'long-warp', icon: '⏩', color: '#e7c38a',
-      title: `${LONG_WARP_SECONDS / 3600} h Fast Forward`, amount: res.aether, fmt: fmtBig, unit: 'Aether',
+      title: `${LONG_WARP_SECONDS / 3600} h Fast Forward`, amount: res.aether, fmt: fmtBig, unit: T.currency,
       detail: res.gardenHarvests ? `${res.gardenHarvests} Garden harvests` : ''
     });
     this.update('prestige');
@@ -220,13 +221,13 @@ export class ShardTreeUI {
     const el = this.el;
     const balance = getShardBalance(gs);
     setText(el.balance, `${balance} ${SHARD}`);
-    setText(el.sub, `Earned ${gs.getShardCount()} · spent ${getSpentShards(gs)} · ${fmtMult(gs.getShardAetherMult())} Aether and dust gain`);
+    setText(el.sub, `Earned ${gs.getShardCount()} · spent ${getSpentShards(gs)} · ${fmtMult(gs.getShardAetherMult())} ${T.currency} and ${T.reset1Short} gain`);
 
     // Next Transcend progress (lifetime dust of this layer vs the gate)
     const ps = this.app.prestigeSystem;
     const gate = ps.getTranscendGate();
     const pct = Math.max(0, Math.min(100, 100 * gs.totalCosmicDust.div(gate).toNumber()));
-    setText(el.gateLabel, `Next Transcend · ${fmtBig(gate)} dust`);
+    setText(el.gateLabel, `Next ${T.reset2Noun} · ${fmtBig(gate)} ${T.reset1Short}`);
     const w = `${pct.toFixed(1)}%`;
     if (el.gateFill.style.width !== w) el.gateFill.style.width = w;
     setText(el.gatePct, `${Math.floor(pct)}%`);
@@ -255,9 +256,9 @@ export class ShardTreeUI {
       refs.btn.classList.toggle('btn-primary', state === 'aff');
       refs.btn.classList.toggle('is-locked', state === 'lock');
       setAttr(refs.btn, 'aria-disabled', String(state !== 'aff'));
-      setAttr(refs.btn, 'title', state === 'aff' ? `Buy for ${n.cost} shard${n.cost === 1 ? '' : 's'}` : (reason || ''));
+      setAttr(refs.btn, 'title', state === 'aff' ? `Buy for ${n.cost} Share${n.cost === 1 ? '' : 's'}` : (reason || ''));
       const reqText = isOwned
-        ? (granted ? 'Kept free: you had it before the shard tree' : '')
+        ? (granted ? `Kept free: you had it before the ${T.shareTree}` : '')
         : (reason && reason.startsWith('needs ') ? reason[0].toUpperCase() + reason.slice(1) : (n.requires.length ? `After ${n.requires.map(r => getNode(r).name).join(', ')}` : 'No prerequisite'));
       setText(refs.req, reqText);
     }
@@ -301,18 +302,18 @@ export class ShardTreeUI {
     const wait = ps.getMinRunRemaining(now);
     const pending = ps.getPendingCosmicDust();
     let status;
-    if (!a.enabled) status = 'Off: you Ascend by hand.';
+    if (!a.enabled) status = `Off: you drill each ${T.reset1Noun} by hand.`;
     else if (wait > 0) status = `Waiting for the 10-min minimum run (${fmtClock(wait)}).`;
-    else if (pending.lte(0)) status = 'Waiting for this run\'s first Cosmic Dust (1e9 run Aether).';
+    else if (pending.lte(0)) status = `Waiting for this run's first ${T.reset1Currency} (1e9 run ${T.currency}).`;
     else if (isTimer) {
       const left = a.timerMin * 60 - (now - (this.gs.runStartedAt || 0)) / 1000;
-      status = left > 0 ? `Next Auto-Ascend in ${fmtClock(left)}.` : 'Ascending…';
+      status = left > 0 ? `Next ${T.autoReset1} in ${fmtClock(left)}.` : 'Drilling…';
     } else {
       const rule = AUTO_ASCEND_RULES.find(r => r.id === a.rule);
       const need = this.gs.totalCosmicDust.mul(rule.mult - 1).ceil();
       status = autoAscendRuleMet(a, pending, this.gs.totalCosmicDust, Infinity)
-        ? 'Ascending…'
-        : `Pending ${fmtBig(pending)} of ${fmtBig(need)} dust.`;
+        ? 'Drilling…'
+        : `Pending ${fmtBig(pending)} of ${fmtBig(need)} ${T.reset1Short}.`;
     }
     setText(el.autoStatus, status);
   }

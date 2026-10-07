@@ -18,11 +18,17 @@ export const TERMS = {
   reset1Past: 'drilled a new well', // "you drilled a new well"
   reset1Currency: 'Crude Reserves',
   reset1CurrencyIcon: '🛢️',
+  reset1Short: 'Reserves', // the currency in running text ("lifetime Reserves")
+  reset1Shop: 'Reserve Shop', // spends reset1Currency (internal: dust shop)
+  autoReset1: 'Auto-Well', // the automatic reset1 (internal: auto-ascend)
   // Second prestige layer (internal: transcend(), transcendences, shards)
   reset2: 'Open a New Oil Field',
   reset2Noun: 'New Field',
   reset2Plural: 'New Fields',
   reset2Past: 'opened a new oil field',
   reset2Currency: 'Field Shares',
-  reset2CurrencyIcon: '📜'
+  reset2CurrencyIcon: '📜',
+  reset2Short: 'Shares', // the currency in running text
+  shareTree: 'Share Tree', // spends reset2Currency (internal: shard tree)
+  shareBonus: 'Share bonus'
 };

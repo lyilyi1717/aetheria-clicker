@@ -4,16 +4,16 @@ import { rewards } from '../ui/rewards.js';
 
 const LEGACY_ACHIEVEMENTS = [
   // Clicks
-  { id: 'click_1', name: 'First Sparks', desc: 'Click the Monolith 1 time.', icon: '👆', check: gs => gs.totalClicks >= 1 },
-  { id: 'click_100', name: 'Rhythmic Pulse', desc: 'Click the Monolith 100 times.', icon: '⚡', check: gs => gs.totalClicks >= 100 },
-  { id: 'click_1000', name: 'Kinetic Dynamo', desc: 'Click the Monolith 1,000 times.', icon: '🔥', check: gs => gs.totalClicks >= 1000 },
-  { id: 'click_10000', name: 'Finger of the Gods', desc: 'Click the Monolith 10,000 times.', icon: '👑', check: gs => gs.totalClicks >= 10000 },
+  { id: 'click_1', name: 'First Sparks', desc: 'Tap the Refinery 1 time.', icon: '👆', check: gs => gs.totalClicks >= 1 },
+  { id: 'click_100', name: 'Rhythmic Pulse', desc: 'Tap the Refinery 100 times.', icon: '⚡', check: gs => gs.totalClicks >= 100 },
+  { id: 'click_1000', name: 'Kinetic Dynamo', desc: 'Tap the Refinery 1,000 times.', icon: '🔥', check: gs => gs.totalClicks >= 1000 },
+  { id: 'click_10000', name: 'Finger of the Gods', desc: 'Tap the Refinery 10,000 times.', icon: '👑', check: gs => gs.totalClicks >= 10000 },
 
   // Aether milestones
-  { id: 'aether_1m', name: 'Aether Reservoir', desc: 'Amass 1,000,000 total Aether.', icon: '💎', check: gs => gs.totalAetherEarned.gte(new BigNum(1000000)) },
-  { id: 'aether_1b', name: 'Billionaire Mage', desc: 'Amass 1,000,000,000 total Aether.', icon: '🔮', check: gs => gs.totalAetherEarned.gte(new BigNum(1000000000)) },
-  { id: 'aether_1t', name: 'Trillionaire Sorcerer', desc: 'Amass 1 Trillion total Aether.', icon: '🌌', check: gs => gs.totalAetherEarned.gte(new BigNum(1000000000000)) },
-  { id: 'aether_1qa', name: 'Galactic Overlord', desc: 'Amass 1 Quadrillion total Aether.', icon: '🌀', check: gs => gs.totalAetherEarned.gte(new BigNum(1000000000000000)) },
+  { id: 'aether_1m', name: 'Oil Reservoir', desc: 'Amass 1,000,000 total Oil.', icon: '💎', check: gs => gs.totalAetherEarned.gte(new BigNum(1000000)) },
+  { id: 'aether_1b', name: 'Billionaire Mage', desc: 'Amass 1,000,000,000 total Oil.', icon: '🔮', check: gs => gs.totalAetherEarned.gte(new BigNum(1000000000)) },
+  { id: 'aether_1t', name: 'Trillionaire Sorcerer', desc: 'Amass 1 Trillion total Oil.', icon: '🌌', check: gs => gs.totalAetherEarned.gte(new BigNum(1000000000000)) },
+  { id: 'aether_1qa', name: 'Galactic Overlord', desc: 'Amass 1 Quadrillion total Oil.', icon: '🌀', check: gs => gs.totalAetherEarned.gte(new BigNum(1000000000000000)) },
 
   // Combat
   { id: 'combat_floor10', name: 'Dungeon Delver', desc: 'Conquer Floor 10 in the Void Tower.', icon: '🗡️', check: gs => gs.hero?.floor >= 10 },
@@ -37,7 +37,7 @@ const LEGACY_ACHIEVEMENTS = [
   { id: 'spells_10', name: 'Spellweaver', desc: 'Cast 10 active spells.', icon: '✨', check: gs => gs.stats.totalSpellsCast >= 10 },
 
   // Prestige & Time
-  { id: 'ascend_1', name: 'Cosmic Rebirth', desc: 'Ascend to the stars for the first time.', icon: '🚀', check: gs => gs.ascensionCount >= 1 },
+  { id: 'ascend_1', name: 'Cosmic Rebirth', desc: 'Drill your first New Well.', icon: '🚀', check: gs => gs.ascensionCount >= 1 },
   { id: 'time_warp', name: 'Time Bender', desc: 'Possess at least 300 Chrono Sand.', icon: '⏳', check: gs => gs.chronoSand >= 300 },
   { id: 'bounties_10', name: 'Guild Veteran', desc: 'Complete 10 guild contracts.', icon: '📜', check: gs => gs.stats.totalBountiesCompleted >= 10 }
 ];
@@ -56,9 +56,9 @@ const f = (n) => (n >= 1e12 ? n.toExponential().replace('e+', 'e') : n.toLocaleS
 
 // stat: id prefix; get(gs) -> number; unit: sentence tail; rungs: [threshold, name, icon]
 const LADDER_STATS = [
-  { stat: 'clicks', get: gs => gs.totalClicks || 0, desc: n => `Click the Monolith ${f(n)} times.`, rungs: [
+  { stat: 'clicks', get: gs => gs.totalClicks || 0, desc: n => `Tap the Refinery ${f(n)} times.`, rungs: [
     [1e5, 'Tireless Tapper', '👆'], [1e6, 'Million-Touch Monk', '🖐️'], [1e7, 'Hand of Creation', '🤲'], [1e8, 'The Unblinking Finger', '☝️']] },
-  { stat: 'aether', big: true, get: gs => gs.totalAetherEarned, desc: n => `Amass ${f(n)} total Aether.`, rungs: [
+  { stat: 'aether', big: true, get: gs => gs.totalAetherEarned, desc: n => `Amass ${f(n)} total Oil.`, rungs: [
     [1e18, 'Quintillion Quill', '📈'], [1e21, 'Sextillion Seer', '🔭'], [1e24, 'Septillion Sage', '🪐'], [1e30, 'Nonillion Nomad', '🌠'],
     [1e36, 'Undecillion Usher', '☄️'], [1e48, 'Quindecillion Keeper', '🌑'], [1e60, 'Vigintillion Vizier', '🌗'], [1e72, 'Beyond Counting', '♾️']] },
   { stat: 'floor', get: gs => Math.max(gs.hero?.maxFloor || 0, gs.hero?.floor || 0), desc: n => `Reach Floor ${f(n)} in the Void Tower.`, rungs: [
@@ -78,9 +78,9 @@ const LADDER_STATS = [
     [25, 'Apothecary', '⚗️'], [100, 'Elixir Artisan', '🍶'], [500, 'Grand Alchemist', '🫗'], [2500, 'Philosopher Prime', '🧿']] },
   { stat: 'spells', get: gs => gs.stats?.totalSpellsCast || 0, desc: n => `Cast ${f(n)} active spells.`, rungs: [
     [100, 'Incantor', '📖'], [1000, 'Archmage', '🪄'], [10000, 'Weaver of Worlds', '🔯']] },
-  { stat: 'ascend', get: gs => gs.ascensionCount || 0, desc: n => `Ascend ${f(n)} times.`, rungs: [
-    [5, 'Star Climber', '🌟'], [10, 'Constellation Maker', '⭐'], [25, 'Dust Magnate', '🌌'], [50, 'Cycle Master', '🔄'], [100, 'Hundredfold Rebirth', '🎆']] },
-  { stat: 'transcend', get: gs => getLifetimeTranscends(gs), desc: n => `Transcend ${f(n)} ${n === 1 ? 'time' : 'times'}.`, rungs: [
+  { stat: 'ascend', get: gs => gs.ascensionCount || 0, desc: n => `Drill a New Well ${f(n)} times.`, rungs: [
+    [5, 'Star Climber', '🌟'], [10, 'Constellation Maker', '⭐'], [25, 'Reserves Magnate', '🌌'], [50, 'Cycle Master', '🔄'], [100, 'Hundredfold Rebirth', '🎆']] },
+  { stat: 'transcend', get: gs => getLifetimeTranscends(gs), desc: n => `Open a New Oil Field ${f(n)} ${n === 1 ? 'time' : 'times'}.`, rungs: [
     [1, 'Beyond the Veil', '🪽'], [2, 'Twice Risen', '🕊️'], [5, 'Fifth Ladder', '🪜'], [10, 'Tenfold Ascendant', '🔱'],
     [20, 'Cosmic Cartographer', '🧭'], [32, 'Eternity Walker', '🏺']] },
   { stat: 'bounties', get: gs => gs.stats?.totalBountiesCompleted || 0, desc: n => `Complete ${f(n)} guild contracts.`, rungs: [
@@ -108,8 +108,8 @@ const LADDER_ACHIEVEMENTS = LADDER_STATS.flatMap(({ stat, get, desc, rungs, big:
 
 // Codex ladder sections, in display order; the original achievements are filed under them
 export const LADDER_GROUPS = [
-  ['clicks', 'Clicks'], ['aether', 'Aether'], ['playtime', 'Time played'], ['generators', 'Generators'],
-  ['ascend', 'Ascensions'], ['transcend', 'Transcendence'], ['floor', 'Void Tower floors'],
+  ['clicks', 'Clicks'], ['aether', 'Oil'], ['playtime', 'Time played'], ['generators', 'Generators'],
+  ['ascend', 'New Wells'], ['transcend', 'New Fields'], ['floor', 'Void Tower floors'],
   ['slain', 'Monsters slain'], ['bosses', 'Bosses defeated'], ['depth', 'Mining depth'],
   ['blocks', 'Blocks excavated'], ['harvest', 'Plants harvested'], ['brew', 'Potions brewed'],
   ['spells', 'Spells cast'], ['bounties', 'Guild contracts'], ['misc', 'Other milestones']

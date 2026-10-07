@@ -28,19 +28,19 @@ export const TALENT_TAB_EFFECTS = {
 
 // Dust shop item id -> tabs it affects + effect text (gs is passed for live values)
 export const SHOP_TAB_EFFECTS = {
-  finger_of_wasta:   { tabs: ['monolith'], text: (r, gs) => `+${pct((getFingerOfWastaMult(gs) - 1) * 100)} Aether (${getRunClicks(gs).toLocaleString('en-US')} clicks this run)` },
+  finger_of_wasta:   { tabs: ['monolith'], text: (r, gs) => `+${pct((getFingerOfWastaMult(gs) - 1) * 100)} Oil (${getRunClicks(gs).toLocaleString('en-US')} clicks this run)` },
   auto_buy:          { tabs: ['monolith'], text: (r, gs) => (gs.dustShop?.autoBuy ? 'Buys the best generator every 10 s' : 'Switched off') },
   titan_legacy:      { tabs: ['combat'], text: r => `+${r * 100} HP, +${r * 25} Attack` },
   astral_alchemist:  { tabs: ['alchemy'], text: () => '2x Elixir Duration' },
   golem_covenant:    { tabs: ['garden'], text: () => 'Golems can be bought' },
   auto_leylines:     { tabs: ['spells'], text: () => 'Auto-casts spells at full mana' },
-  chrono_vault:      { tabs: ['codex'], text: r => `+${r * 4} h offline Aether at 100%, +${r * 50}% Sand bank` }
+  chrono_vault:      { tabs: ['codex'], text: r => `+${r * 4} h offline Oil at 100%, +${r * 50}% Sand bank` }
 };
 
 // What each Active Bonuses chip kind is, for its tooltip (R24)
 export const BONUS_KIND_LABELS = {
   talent: 'Constellation talent',
-  perk: 'Dust shop feature',
+  perk: 'Reserve Shop feature',
   mastery: 'Universal Mastery',
   buff: 'Timed buff'
 };
@@ -100,29 +100,29 @@ export function getMasteries(gs) {
   const b = totalBuildings(gs), k = bossesSlain(gs), d = maxDepth(gs);
   const nectar = getNectarHeld(gs);
   const list = [
-    { id: 'building_aether', icon: '🏗️', name: 'Building Mastery', effect: 'Aether', tabs: ['monolith'],
+    { id: 'building_aether', icon: '🏗️', name: 'Building Mastery', effect: 'Oil', tabs: ['monolith'],
       value: buildingAetherMult(gs), source: `${b} buildings`, rule: '+1.5% per 100 buildings' },
     { id: 'building_combat', icon: '🏗️', name: 'Building Mastery', effect: 'Hero Attack & Combat Gold', tabs: ['combat'],
       value: buildingCombatMult(gs), source: `${b} buildings`, rule: '+1% per 100 buildings' },
-    { id: 'dungeon_aether', icon: '💀', name: 'Dungeon Mastery', effect: 'Aether', tabs: ['monolith'],
+    { id: 'dungeon_aether', icon: '💀', name: 'Dungeon Mastery', effect: 'Oil', tabs: ['monolith'],
       value: dungeonAetherMult(gs), source: `${k} bosses`, rule: '+1% per 10 bosses' },
     { id: 'dungeon_pickaxe', icon: '💀', name: 'Dungeon Mastery', effect: 'Pickaxe Power', tabs: ['mining'],
       value: dungeonPickaxeMult(gs), source: `${k} bosses`, rule: '+2% per 10 bosses, max +100%' },
-    { id: 'depth_aether', icon: '⛏️', name: 'Depth Resonance', effect: 'Aether', tabs: ['monolith'],
+    { id: 'depth_aether', icon: '⛏️', name: 'Depth Resonance', effect: 'Oil', tabs: ['monolith'],
       value: depthAetherMult(gs), source: `Depth ${d}`, rule: '+2% per max depth' },
     { id: 'depth_vitality', icon: '⛏️', name: 'Excavation Mastery', effect: 'Max Mana, Mana Regen & Hero HP', tabs: ['spells', 'combat'],
       value: depthVitalityMult(gs), source: `Depth ${d}`, rule: '+1% per max depth, max +100%' },
-    { id: 'golden_synergy', icon: '💰', name: 'Golden Synergy', effect: 'Aether', tabs: ['monolith'],
+    { id: 'golden_synergy', icon: '💰', name: 'Golden Synergy', effect: 'Oil', tabs: ['monolith'],
       value: goldenSynergyMult(gs), source: `Level ${gs.market?.goldenSynergy || 0}`, rule: '+5% per level' }
   ];
   if (gs.alchemy && gs.alchemy.catalysts !== undefined) {
-    list.push({ id: 'catalyst', icon: '⚗️', name: "Philosopher's Catalyst", effect: 'Aether', tabs: ['monolith'],
+    list.push({ id: 'catalyst', icon: '⚗️', name: "Philosopher's Catalyst", effect: 'Oil', tabs: ['monolith'],
       value: catalystMult(gs), source: `${gs.alchemy.catalysts} brewed`, rule: '+2% per catalyst' });
   }
   list.push(
-    { id: 'geode', icon: '💎', name: 'Geode Attunement', effect: 'Cosmic Dust gain', tabs: ['prestige'],
+    { id: 'geode', icon: '💎', name: 'Geode Attunement', effect: 'Crude Reserves gain', tabs: ['prestige'],
       value: getGeodeAttunementMult(gs), source: `Depth ${d}`, rule: '+10% per 10 max depth' },
-    { id: 'nectar', icon: '🌸', name: 'Honey Offering', effect: `Cosmic Dust gain (${itemName('starNectar')} consumed)`, tabs: ['prestige'],
+    { id: 'nectar', icon: '🌸', name: 'Honey Offering', effect: `Crude Reserves gain (${itemName('starNectar')} consumed)`, tabs: ['prestige'],
       value: getNectarOfferingMult(gs), source: `${nectar} ${itemName('starNectar')}`, rule: '+2% × √Honey, max ×2' }
   );
   return list;
@@ -130,9 +130,9 @@ export function getMasteries(gs) {
 
 // Tooltip text for the Aether/s header stat: every Aether-affecting mastery
 export function getAetherMasteryTooltip(gs) {
-  const rows = getMasteries(gs).filter(m => m.effect === 'Aether');
+  const rows = getMasteries(gs).filter(m => m.effect === 'Oil');
   const total = rows.reduce((t, m) => t * m.value, 1);
-  return `Mastery multipliers on Aether/s (${fmtMult(total)} total):\n` +
+  return `Mastery multipliers on Oil/s (${fmtMult(total)} total):\n` +
     rows.map(m => `${fmtMult(m.value)} ${m.name} (${m.source})`).join('\n');
 }
 

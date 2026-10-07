@@ -27,11 +27,11 @@ export const BOUNTY_TEMPLATES = [
   { type: 'cast_spell', title: 'Arcane Mastery', reqBase: 3, cap: 30, icon: '✨', tab: 'spells', desc: 'Cast active spells', task: n => `Cast ${n} spells` },
   { type: 'buy_building', title: 'Expanding Empire', reqBase: 10, cap: 80, icon: '🏛️', tab: 'monolith', desc: 'Construct generators', task: n => `Build ${n} generators` }
 ];
-export const TAB_NAMES = { monolith: 'Falafel', combat: 'Tower', mining: 'Dig', garden: 'Garden', alchemy: 'Alchemy', spells: 'Grimoire' };
+export const TAB_NAMES = { monolith: 'Refinery', combat: 'Tower', mining: 'Dig', garden: 'Garden', alchemy: 'Alchemy', spells: 'Grimoire' };
 const CLICK_TYPES = ['click', 'crit_click'];
 
 export const QUARTERMASTER_UPGRADES = [
-  { id: 'aether_treaty', name: 'Aetheric Treaty', icon: '📜', desc: '+25% Global Aether Production per rank', baseCost: 5, costInc: 3, maxRank: 50 },
+  { id: 'aether_treaty', name: 'Aetheric Treaty', icon: '📜', desc: '+25% Global Oil Production per rank', baseCost: 5, costInc: 3, maxRank: 50 },
   { id: 'hunters_edge', name: "Hunter's Edge", icon: '⚔️', desc: '+15% Hero Attack per rank', baseCost: 5, costInc: 3, maxRank: 50 },
   { id: 'golden_req', name: 'Golden Requisition', icon: '💰', desc: '+25% Combat Gold Drops per rank', baseCost: 5, costInc: 3, maxRank: 50 },
   { id: 'chronos_contract', name: 'Chronos Contract', icon: '⏳', desc: '+5% Offline Efficiency per rank', baseCost: 10, costInc: 5, maxRank: 10 }

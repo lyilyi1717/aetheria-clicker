@@ -50,7 +50,7 @@ export const UNLOCKS = [
     tab: 'codex', icon: '🏆', name: 'Codex',
     trigger: (gs) => ({ have: Math.min(3, achievementCount(gs)), need: 3, done: achievementCount(gs) >= 3 }),
     label: (p) => `Unlock 3 achievements · ${p.have}/3`,
-    flavour: 'Your Teta started a scrapbook. Each achievement is +1.5% Aether.'
+    flavour: 'Your Teta started a scrapbook. Each achievement is +1.5% Oil.'
   },
   {
     tab: 'combat', icon: '🩴', name: 'Void Tower',
@@ -96,7 +96,7 @@ export const UNLOCKS = [
     flavour: 'Khalti found her old Vimto pot. Time to brew.'
   },
   {
-    tab: 'prestige', icon: '🚀', name: 'Ascension',
+    tab: 'prestige', icon: '🚀', name: 'New Well',
     // Gate decided in R7: open when Ascension pays dust (or after one), not the roadmap's
     // floor 100 + depth 25, which would push a casual first Ascension past the 30-min target
     trigger: (gs) => {
@@ -104,26 +104,26 @@ export const UNLOCKS = [
       const pct = done ? 1 : Math.max(0, Math.min(1, log10(gs.totalAetherEarned) / Math.log10(ASCEND_AETHER_GATE)));
       return { have: pct, need: 1, pct, done };
     },
-    label: () => `Earn ${new BigNum(ASCEND_AETHER_GATE).format('standard', 0)} Aether in one run`,
-    flavour: 'The stars are listening. Rebirth for Cosmic Dust.'
+    label: () => `Earn ${new BigNum(ASCEND_AETHER_GATE).format('standard', 0)} Oil in one run`,
+    flavour: 'Cap the well, drill a new one and bank Crude Reserves.'
   },
   {
     tab: 'talents', icon: '🌙', name: 'Constellations',
     trigger: (gs) => ({ have: Math.min(1, ascensions(gs)), need: 1, done: ascensions(gs) >= 1 }),
-    label: () => 'Ascend once',
+    label: () => 'Drill a New Well once',
     flavour: 'Your first Talent Point is waiting in the stars.'
   },
   {
     tab: 'leaderboard', icon: '🏅', name: 'Leaderboard',
     trigger: (gs) => ({ have: Math.min(1, ascensions(gs)), need: 1, done: ascensions(gs) >= 1 }),
-    label: () => 'Ascend once',
+    label: () => 'Drill a New Well once',
     flavour: 'The whole diwaniya wants to know your floor.'
   },
   {
     tab: 'calendar', icon: '☕', name: 'Dallah',
     // R7 pick (not in the roadmap table): with the first Ascension, as the day-2 return hook
     trigger: (gs) => ({ have: Math.min(1, ascensions(gs)), need: 1, done: ascensions(gs) >= 1 }),
-    label: () => 'Ascend once',
+    label: () => 'Drill a New Well once',
     flavour: 'Teta poured you a cup. Come back tomorrow for another.'
   },
   {
@@ -132,7 +132,7 @@ export const UNLOCKS = [
       const a = Math.min(2, ascensions(gs)), f = Math.min(150, maxFloor(gs));
       return { have: a + f / 75, need: 4, pct: (a / 2 + f / 150) / 2, done: ascensions(gs) >= 2 && maxFloor(gs) >= 150 };
     },
-    label: (gs) => `Ascend twice (${Math.min(2, ascensions(gs))}/2) and reach floor 150 (${Math.min(150, maxFloor(gs))}/150)`,
+    label: (gs) => `Drill a New Well twice (${Math.min(2, ascensions(gs))}/2) and reach floor 150 (${Math.min(150, maxFloor(gs))}/150)`,
     labelUsesState: true,
     flavour: 'The camel traders let you into the souq.'
   },
@@ -143,7 +143,7 @@ export const UNLOCKS = [
       const done = n(gs.transcendenceCount) >= 1 || n(gs.chronicle?.count) > 0;
       return { have: done ? 1 : 0, need: 1, done };
     },
-    label: () => 'Transcend once',
+    label: () => 'Open a New Oil Field once',
     flavour: 'An old book opens itself. The third layer begins.'
   }
 ];

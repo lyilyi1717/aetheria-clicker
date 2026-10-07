@@ -30,7 +30,7 @@ export const SYNERGY_COST_EXP = 4;             // cost: baseCost(A) x 10^4
 const TIER_LEVEL_NAMES = ['Polished', 'Gilded', 'Blessed', 'Legendary', 'Eternal'];
 
 const CLICK_UPGRADE_NAMES = [
-  ['Sesame Fingertips', '👆'], ['Tahini Grip', '✊'], ['Falafel Flick', '🧆'],
+  ['Sesame Fingertips', '👆'], ['Tahini Grip', '✊'], ['Valve Flick', '🔧'],
   ['Cardamom Knuckles', '🌿'], ['Saffron Tap', '🌼'], ['Dallah Pour', '🫖'],
   ['Oud Strum', '🎸'], ['Majlis Clap', '👏'], ['Desert Drumbeat', '🥁'],
   ['Camel Kick', '🐪'], ['Falcon Strike', '🦅'], ['Sandstorm Slap', '🌪️'],

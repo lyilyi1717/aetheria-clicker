@@ -130,7 +130,7 @@ export class GardenBreedingUI {
 
     let text;
     if (!unlocked) {
-      text = '🔒 Unlocks at your first Transcend. Cross two neighbouring mature plants for a chance at a hybrid essence.';
+      text = '🔒 Unlocks at your first New Field. Cross two neighbouring mature plants for a chance at a hybrid essence.';
     } else if (!this.breedMode) {
       text = 'Turn on Breed mode, then click two neighbouring mature plants of a matching pair. Both are harvested as normal, so a miss costs nothing. Golem rows harvest instantly, so breed on manual rows.';
     } else if (this.flash && this.selected === null) {

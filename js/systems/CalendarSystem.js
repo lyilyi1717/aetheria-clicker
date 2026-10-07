@@ -72,8 +72,8 @@ export const LEDGER_GOALS = [
   { id: 'brew', tab: 'alchemy', icon: '🧪', label: t => `Brew ${t} potions or Catalysts`, legacy: 5, start: 10, stat: gs => n(gs.stats?.totalPotionsBrewed), ok: gs => !!gs.alchemy },
   { id: 'spells', tab: 'spells', icon: '✨', label: t => `Cast ${t} spells`, legacy: 15, start: 40, stat: gs => n(gs.stats?.totalSpellsCast), ok: gs => n(gs.stats?.totalSpellsCast) > 0 || n(gs.ascensionCount) > 0 },
   { id: 'contracts', tab: 'bounties', icon: '📜', label: t => `Complete ${t} contracts`, legacy: 5, start: 12, stat: gs => n(gs.stats?.totalBountiesCompleted), ok: gs => true },
-  { id: 'ascend', tab: 'prestige', icon: '🚀', label: t => `Ascend ${t} times`, legacy: 3, start: 6, stat: gs => n(gs.ascensionCount), ok: gs => n(gs.ascensionCount) >= 1 },
-  { id: 'clicks', tab: 'monolith', icon: '🧆', label: t => `Click the Monolith ${t} times`, legacy: 300, start: 1200, stat: gs => n(gs.totalClicks), ok: gs => true }
+  { id: 'ascend', tab: 'prestige', icon: '🚀', label: t => `Drill a New Well ${t} times`, legacy: 3, start: 6, stat: gs => n(gs.ascensionCount), ok: gs => n(gs.ascensionCount) >= 1 },
+  { id: 'clicks', tab: 'monolith', icon: '🏭', label: t => `Tap the Refinery ${t} times`, legacy: 300, start: 1200, stat: gs => n(gs.totalClicks), ok: gs => true }
 ];
 const GOAL_BY_ID = new Map(LEDGER_GOALS.map(g => [g.id, g]));
 const fmtTarget = (t) => t.toLocaleString('en-US');
@@ -105,9 +105,9 @@ export const SEALS = [
   { id: 'deep', icon: '🪨', name: 'Deep', short: 'd100', desc: 'Reach depth 100 in Excavation', goal: 100, value: gs => n(gs.miningGrid?.maxDepth) },
   { id: 'tower', icon: '🏢', name: 'Tower', short: 'f501', desc: 'Reach Tower floor 501 (Kingdom Centre)', goal: 501, value: gs => n(gs.hero?.maxFloor) },
   { id: 'oasis', icon: '🌳', name: 'Oasis', short: '25 cat.', desc: 'Brew 25 Catalysts', goal: 25, value: gs => n(gs.alchemy?.catalysts) },
-  { id: 'rebirth', icon: '🔮', name: 'Rebirth', short: '15 asc.', desc: 'Ascend 15 times', goal: 15, value: gs => n(gs.ascensionCount) },
+  { id: 'rebirth', icon: '🔮', name: 'Rebirth', short: '15 wells', desc: 'Drill a New Well 15 times', goal: 15, value: gs => n(gs.ascensionCount) },
   { id: 'guild', icon: '📜', name: 'Guild', short: 'rank 7', desc: 'Reach Guild Rank 7', goal: 7, value: gs => n(gs.records?.guildRank) },
-  { id: 'stars', icon: '✨', name: 'Stars', short: '1e8 dust', desc: 'Pay 1e8 Cosmic Dust in one Ascension', goal: 8, value: gs => bigLog10(gs.records?.bestRunDust) },
+  { id: 'stars', icon: '✨', name: 'Stars', short: '1e8 Reserves', desc: 'Pay 1e8 Crude Reserves in one New Well', goal: 8, value: gs => bigLog10(gs.records?.bestRunDust) },
   { id: 'memory', icon: '📖', name: 'Memory', short: '40% codex', desc: 'Fill 40% of the Codex', goal: 40, value: gs => n(gs.collectionSystem?.getCodexPercent?.()) }
 ];
 
@@ -279,7 +279,7 @@ export class CalendarSystem {
     this.notify({
       tier: 'medium', kind: 'dallah', icon: '☕', color: '#e7c38a',
       title: days > 1 ? `Dallah poured: ${days} days` : 'Dallah poured',
-      detail: `+${sand} Chrono Sand${contracts ? ` · +${contracts} contract${contracts > 1 ? 's' : ''}` : ''} · +25% Aether for 1 h`
+      detail: `+${sand} Chrono Sand${contracts ? ` · +${contracts} contract${contracts > 1 ? 's' : ''}` : ''} · +25% Oil for 1 h`
     });
     return { days, sand, contracts };
   }
@@ -479,7 +479,7 @@ export class CalendarSystem {
         this.notify({
           tier: 'medium', kind: 'seal-lit', icon: seal.icon, color: '#fbbf24',
           title: `Seal of the ${seal.name} lit`, batchTitle: '{n} Seals lit',
-          detail: `${count} / ${SEALS.length} lit · +${bonus} shard${bonus === 1 ? '' : 's'} at each Transcend`
+          detail: `${count} / ${SEALS.length} lit · +${bonus} Share${bonus === 1 ? '' : 's'} at each New Field`
         });
       }
     }

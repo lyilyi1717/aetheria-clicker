@@ -136,12 +136,12 @@ export class PrestigeSystem {
     checkMilestones(this.gameState);
 
     // Big tier ceremony (§5.1). Transcend calls ascend(true) and shows its own epic one instead.
-    if (!force && !quiet) rewards.notify({ tier: 'big', kind: 'ascension', icon: '✨', color: '#06b6d4', title: 'Ascended!', batchTitle: '{n} Ascensions', amount: pending, fmt: (d) => d.format('standard', 0), unit: 'Cosmic Dust' });
+    if (!force && !quiet) rewards.notify({ tier: 'big', kind: 'ascension', icon: '✨', color: '#06b6d4', title: 'New Well drilled!', batchTitle: '{n} New Wells', amount: pending, fmt: (d) => d.format('standard', 0), unit: 'Crude Reserves' });
     // A new dust shop tier just opened (Ascension 1 / 3 / 5 / 10 / 20)
     const opened = DUST_SHOP_TIERS.includes(this.gameState.ascensionCount) ? this.gameState.ascensionCount : 0;
     if (opened) {
       const n = DUST_SHOP_ITEMS.filter(d => d.tier === opened).length;
-      rewards.notify({ tier: 'medium', kind: 'dust-shop-tier', icon: '🛒', color: '#c084fc', title: `Dust Shop: ${n} new feature${n === 1 ? '' : 's'}`, detail: `Ascension ${opened} opened a new shop tier` });
+      rewards.notify({ tier: 'medium', kind: 'dust-shop-tier', icon: '🛒', color: '#c084fc', title: `Reserve Shop: ${n} new feature${n === 1 ? '' : 's'}`, detail: `New Well ${opened} opened a new shop tier` });
     }
     return true;
   }
@@ -227,7 +227,7 @@ export class PrestigeSystem {
       hero.hp = Math.min(hero.hp, this.gameState.combatSystem.getTotalMaxHp());
     }
 
-    rewards.notify({ tier: 'epic', kind: 'transcend', icon: '🌌', color: '#ec4899', title: 'Transcended Reality', batchTitle: '{n} Transcends', amount: payout, fmt: (n) => String(n), unit: 'Fracture Shards', detail: sealShards > 0 ? `+${sealShards} more to spend (Seals)` : undefined });
+    rewards.notify({ tier: 'epic', kind: 'transcend', icon: '🌌', color: '#ec4899', title: 'New Oil Field opened!', batchTitle: '{n} New Fields', amount: payout, fmt: (n) => String(n), unit: 'Field Shares', detail: sealShards > 0 ? `+${sealShards} more to spend (Seals)` : undefined });
     return true;
   }
 }

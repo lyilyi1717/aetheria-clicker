@@ -90,7 +90,7 @@ export class WardensRelicsUI {
     let note;
     if (!unlocked) {
       note = `Every ${WARDEN_INTERVAL}th floor a named Warden guards the Tower: ${WARDEN_TIMER_SECONDS} s to beat ×${WARDEN_HP_MULT} boss HP. ` +
-        'Each first kill wins a trophy (+2% Tower gold). Unlocks at your first Transcend.';
+        'Each first kill wins a trophy (+2% Tower gold). Unlocks at your first New Field.';
     } else if (challenge) {
       note = `Challenging ${getWardenName(challenge.floor)} (floor ${challenge.floor}). Win or lose, you return to floor ${h.floor}; losing costs nothing.`;
     } else {
@@ -181,7 +181,7 @@ export class WardensRelicsUI {
     setText(document.getElementById('relic-note'), note);
     const owned = this.gs.market?.items?.ore?.owned ?? 0;
     setText(document.getElementById('ore-note'),
-      `🪨 Aether Ore: ${pct(AETHER_ORE_CHANCE)} of stone tiles drop 1. Found ${this.fmtNum(grid.oreFound || 0, 0)} · ${this.fmtNum(owned + (this.gs.inventory.aetherOre || 0), 0)} in stock to sell in the Bazaar.`);
+      `🪨 Oil Shale: ${pct(AETHER_ORE_CHANCE)} of stone tiles drop 1. Found ${this.fmtNum(grid.oreFound || 0, 0)} · ${this.fmtNum(owned + (this.gs.inventory.aetherOre || 0), 0)} in stock to sell in the Bazaar.`);
   }
 
   // --- Gem Polishing ---

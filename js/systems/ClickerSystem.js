@@ -190,7 +190,7 @@ export class ClickerSystem {
       const payout = cps.mul(SUPERNOVA_CPS_SECONDS).max(this.gameState.getClickYield().mul(SUPERNOVA_MIN_CLICKS));
       this.gameState.aether = this.gameState.aether.add(payout);
       this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(payout);
-      rewards.notify({ ...note, kind: 'anomaly-supernova', icon: '💥', title: 'Supernova!', amount: payout, fmt: fmtStd, unit: 'Aether' });
+      rewards.notify({ ...note, kind: 'anomaly-supernova', icon: '💥', title: 'Supernova!', amount: payout, fmt: fmtStd, unit: 'Oil' });
     } else if (this.anomalyType === 'time_flux') {
       this.triggerFrenzy(25);
       rewards.notify({ ...note, kind: 'anomaly-flux', icon: '⏱️', title: 'Time Flux!', detail: '25 s of Frenzy' });
@@ -200,7 +200,7 @@ export class ClickerSystem {
       rewards.notify({ ...note, kind: 'anomaly-cache', icon: '💠', title: 'Cosmic Cache!', detail: 'Full Mana and 120 s of Chrono Sand' });
     } else if (this.anomalyType === 'mirage') {
       this.applyMirage();
-      rewards.notify({ ...note, kind: 'anomaly-mirage', icon: '🌫️', color: '#c084fc', title: 'Mirage!', detail: `x${MIRAGE_MULT} Aether and gold for ${MIRAGE_DURATION} s` });
+      rewards.notify({ ...note, kind: 'anomaly-mirage', icon: '🌫️', color: '#c084fc', title: 'Mirage!', detail: `x${MIRAGE_MULT} Oil and gold for ${MIRAGE_DURATION} s` });
     } else if (this.anomalyType === 'caravan_star') {
       const res = this.applyCaravanStar();
       rewards.notify({
@@ -223,7 +223,7 @@ export class ClickerSystem {
     const gs = this.gameState;
     gs.activeBuffs = gs.activeBuffs.filter(b => b.id !== 'mirage' && b.id !== 'mirage_gold');
     gs.activeBuffs.push(
-      { id: 'mirage', name: 'Mirage (Aether)', type: 'aether_mult', value: MIRAGE_MULT, duration: MIRAGE_DURATION, maxDuration: MIRAGE_DURATION },
+      { id: 'mirage', name: 'Mirage (Oil)', type: 'aether_mult', value: MIRAGE_MULT, duration: MIRAGE_DURATION, maxDuration: MIRAGE_DURATION },
       { id: 'mirage_gold', name: 'Mirage (Gold)', type: 'gold_mult', value: MIRAGE_MULT, duration: MIRAGE_DURATION, maxDuration: MIRAGE_DURATION }
     );
   }

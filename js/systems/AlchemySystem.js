@@ -32,7 +32,7 @@ export const RECIPES = [
     buffType: 'aether_mult',
     buffValue: 3.0,
     duration: 60,
-    desc: '+200% Global Aether Production for 60s',
+    desc: '+200% Global Oil Production for 60s',
     cost: { manaSap: 2, emeralds: 1 }
   },
   {
@@ -64,7 +64,7 @@ export const RECIPES = [
     id: 'philosophers_catalyst',
     name: "Royal Wasta Seal",
     type: 'permanent',
-    desc: '+2% Aether per Catalyst brewed (additive). Cost rises 8% per brew.',
+    desc: '+2% Oil per Catalyst brewed (additive). Cost rises 8% per brew.',
     cost: { voidAmethyst: 1, starNectar: 1 }
   }
 ];
@@ -87,11 +87,11 @@ export const HYBRID_RECIPES = [
   },
   {
     id: 'rose_date_syrup', name: 'Rose Date Syrup', type: 'buff', buffType: 'aether_mult', buffValue: 1.5, duration: 180,
-    desc: '+50% Global Aether Production for 180s', cost: { roseDate: 2, emeralds: 2 }, hybrid: true
+    desc: '+50% Global Oil Production for 180s', cost: { roseDate: 2, emeralds: 2 }, hybrid: true
   },
   {
     id: 'honeyed_dates', name: 'Honeyed Dates', type: 'buff', buffType: 'aether_mult', buffValue: 1.75, duration: 120,
-    desc: '+75% Global Aether Production for 120s', cost: { honeyDate: 2, diamonds: 2 }, hybrid: true
+    desc: '+75% Global Oil Production for 120s', cost: { honeyDate: 2, diamonds: 2 }, hybrid: true
   },
   {
     id: 'mint_honey_tea', name: 'Mint Honey Tea', type: 'buff', buffType: 'click_mult', buffValue: 2.0, duration: 300,

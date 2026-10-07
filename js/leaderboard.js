@@ -19,9 +19,9 @@ export const SEASON_PROBE_MS = 10 * 60 * 1000;  // how often to look for the Sea
 // (hero.indexFloor). Until the owner runs supabase/leaderboard_season2.sql that table does
 // not exist, and the client keeps writing to and showing Season 1 as before.
 const floorBoard = { id: 'floor', label: 'Max Floor', column: 'max_floor', value: r => `Floor ${r.max_floor.toLocaleString()}` };
-const aetherBoard = { id: 'aether', label: 'Best Run Aether', column: 'aether_log10', value: r => r.aether_text };
-const ascBoard = { id: 'ascensions', label: 'Ascensions', column: 'ascensions', value: r => r.ascensions.toLocaleString() };
-const transcendBoard = { id: 'transcends', label: 'Transcends', column: 'transcends', value: r => (r.transcends || 0).toLocaleString() };
+const aetherBoard = { id: 'aether', label: 'Best Run Oil', column: 'aether_log10', value: r => r.aether_text };
+const ascBoard = { id: 'ascensions', label: 'New Wells', column: 'ascensions', value: r => r.ascensions.toLocaleString() };
+const transcendBoard = { id: 'transcends', label: 'New Fields', column: 'transcends', value: r => (r.transcends || 0).toLocaleString() };
 const depthBoard = { id: 'depth', label: 'Max Depth', column: 'max_depth', value: r => `Depth ${r.max_depth.toLocaleString()}` };
 
 export const CURRENT_SEASON = 2;

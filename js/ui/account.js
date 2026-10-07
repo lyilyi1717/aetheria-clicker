@@ -23,12 +23,12 @@ export function conflictRows(data, now = Date.now()) {
   const when = p.savedAt ? new Date(p.savedAt) : null;
   return [
     ['Saved', when ? `${agoText(p.savedAt, now)} (${when.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })})` : 'unknown'],
-    ['Ascensions', p.ascensions.toLocaleString()],
-    ['Transcends', p.transcends.toLocaleString()],
+    ['New Wells', p.ascensions.toLocaleString()],
+    ['New Fields', p.transcends.toLocaleString()],
     ['Tower floor', p.floor.toLocaleString()],
     ['Max depth', p.depth.toLocaleString()],
-    ['Cosmic Dust earned', p.dust.format('standard', 2)],
-    ['Aether this run', p.runAether.format('standard', 2)]
+    ['Crude Reserves earned', p.dust.format('standard', 2)],
+    ['Oil this run', p.runAether.format('standard', 2)]
   ];
 }
 

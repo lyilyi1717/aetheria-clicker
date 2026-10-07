@@ -148,7 +148,7 @@ export class UpgradeShopUI {
       tile.classList.toggle('lock', state === 'lock');
       tile.classList.toggle('is-selected', u.id === this.selected);
       tile.setAttribute('aria-pressed', String(u.id === this.selected));
-      const label = `${u.name}, ${state === 'aff' ? 'affordable' : state === 'lock' ? 'locked' : 'not enough Aether'}`;
+      const label = `${u.name}, ${state === 'aff' ? 'affordable' : state === 'lock' ? 'locked' : 'not enough Oil'}`;
       if (tile.getAttribute('aria-label') !== label) tile.setAttribute('aria-label', label);
       const p = tile.querySelector('.p');
       const w = state === 'cost' ? `${Math.floor(this.progress(u) * 100)}%` : state === 'aff' ? '100%' : '0%';
@@ -210,7 +210,7 @@ export class UpgradeShopUI {
       action = `<button type="button" class="btn btn-sm btn-primary num" data-upg-buy="${u.id}">Buy · ${fmt(cost)}</button>`;
     } else if (state === 'cost') {
       const missing = cost.sub(this.gs.aether);
-      action = `<button type="button" class="btn btn-sm is-locked num" aria-disabled="true" title="Costs ${fmt(cost)} Aether">need ${fmt(missing)}</button>`;
+      action = `<button type="button" class="btn btn-sm is-locked num" aria-disabled="true" title="Costs ${fmt(cost)} Oil">need ${fmt(missing)}</button>`;
     } else {
       action = `<span class="upg-togo num">${this.toGo(u)}</span>`;
     }
@@ -218,7 +218,7 @@ export class UpgradeShopUI {
       <div class="icon-tile" aria-hidden="true">${u.icon}</div>
       <div class="upcard-text">
         <div class="n">${esc(u.name)}</div>
-        <div class="e">${esc(u.desc)} · <span class="num">${fmt(cost)}</span> Aether${discounted ? ' (Deep Blueprint ÷10)' : ''}</div>
+        <div class="e">${esc(u.desc)} · <span class="num">${fmt(cost)}</span> Oil${discounted ? ' (Deep Blueprint ÷10)' : ''}</div>
         <div class="req">${esc(this.requirementLine(u))}</div>
       </div>
       ${action}`;

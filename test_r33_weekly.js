@@ -168,7 +168,7 @@ console.log('--- R33: a week drawn before R33 keeps its goals and rewards until 
   gs.unlocks = Object.fromEntries(UNLOCKS.map(u => [u.tab, 1]));
   cal.tick();
   assert.deepEqual(cal.getLedger().goals.map(g => [g.id, g.target, g.seals]), [['clicks', 300, LEDGER_LEGACY_SEALS], ['contracts', 5, LEDGER_LEGACY_SEALS], ['fiends', 60, LEDGER_LEGACY_SEALS]]);
-  assert.equal(cal.getLedger().goals[0].label, 'Click the Monolith 300 times');
+  assert.equal(cal.getLedger().goals[0].label, 'Tap the Refinery 300 times');
   const seals0 = gs.guildSeals || 0;
   gs.totalClicks += 300; cal.tick();
   assert.equal(gs.guildSeals, seals0 + LEDGER_LEGACY_SEALS, 'the old goal finishes at its old target, for its old reward');

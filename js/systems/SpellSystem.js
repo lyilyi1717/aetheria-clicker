@@ -16,11 +16,11 @@ export const CELESTIAL_DURATION = 30;
 export const SPELLS = [
   {
     id: 'aether_burst',
-    name: 'Aether Burst',
+    name: 'Oil Burst',
     icon: '⚡',
     manaCost: 25,
     cooldown: BURST_COOLDOWN,
-    desc: `Instantly grants ${BURST_CPS_SECONDS} seconds of ambient Aether production.`
+    desc: `Instantly grants ${BURST_CPS_SECONDS} seconds of ambient Oil production.`
   },
   {
     id: 'chrono_warp',
@@ -44,7 +44,7 @@ export const SPELLS = [
     icon: '🌟',
     manaCost: 50,
     cooldown: 90,
-    desc: `Aligns zodiac constellations: +${Math.round((CELESTIAL_MULT - 1) * 100)}% Aether production for ${CELESTIAL_DURATION}s.`
+    desc: `Aligns zodiac constellations: +${Math.round((CELESTIAL_MULT - 1) * 100)}% Oil production for ${CELESTIAL_DURATION}s.`
   },
   {
     id: 'void_strike',
@@ -118,7 +118,7 @@ export class SpellSystem {
       const payout = cps.mul(BURST_CPS_SECONDS).max(this.gameState.getClickYield().mul(BURST_MIN_CLICKS));
       this.gameState.aether = this.gameState.aether.add(payout);
       this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(payout);
-      this.notifySpell('🔮', 'Aether Burst', '#38bdf8', { amount: payout, fmt: (a) => a.format('standard', 2), unit: 'Aether' });
+      this.notifySpell('🔮', 'Oil Burst', '#38bdf8', { amount: payout, fmt: (a) => a.format('standard', 2), unit: 'Oil' });
     } else if (spellId === 'chrono_warp') {
       this.removeBuff('chrono_warp');
       this.gameState.activeBuffs.push({
@@ -152,7 +152,7 @@ export class SpellSystem {
         duration: CELESTIAL_DURATION,
         maxDuration: CELESTIAL_DURATION
       });
-      this.notifySpell('🌟', 'Celestial Alignment', '#ec4899', { detail: `+${Math.round((CELESTIAL_MULT - 1) * 100)}% Aether for ${CELESTIAL_DURATION}s` });
+      this.notifySpell('🌟', 'Celestial Alignment', '#ec4899', { detail: `+${Math.round((CELESTIAL_MULT - 1) * 100)}% Oil for ${CELESTIAL_DURATION}s` });
     } else if (spellId === 'void_strike') {
       if (this.gameState.combatSystem && this.gameState.combatSystem.monster) {
         const m = this.gameState.combatSystem.monster;

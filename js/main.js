@@ -1143,7 +1143,7 @@ class AetheriaApp {
     if (buyGolemBtn) {
       const cost = this.gardenSystem.getNextGolemCost();
       const t = !cost ? '🗿 All rows automated'
-        : !this.gardenSystem.isGolemPurchaseUnlocked() ? '🔒 Golems: buy Golem Covenant in the Dust Shop (Ascension 5)'
+        : !this.gardenSystem.isGolemPurchaseUnlocked() ? '🔒 Golems: buy Golem Covenant in the Reserve Shop (New Well 5)'
         : `🗿 Buy Golem (Row ${golems + 1}): ${new BigNum(cost.stone).format('standard', 0)} Stone + ${new BigNum(cost.manaSap).format('standard', 0)} ${itemName('manaSap')}`;
       setText(buyGolemBtn, t);
       buyGolemBtn.classList.toggle('disabled', !this.gardenSystem.canBuyGolem());
@@ -1274,7 +1274,7 @@ class AetheriaApp {
     const catEl = this.$('alc-catalyst-status');
     if (catEl) {
       const n = this.alchemySystem.getCatalystCount();
-      setText(catEl, `Brewed: ${fmtNum(n)} (Aether x${this.gameState.getCatalystMult().toFixed(2)})`);
+      setText(catEl, `Brewed: ${fmtNum(n)} (Oil x${this.gameState.getCatalystMult().toFixed(2)})`);
     }
     const chronoLbl = this.$('chrono-transmute-lbl');
     if (chronoLbl) {
@@ -1607,7 +1607,7 @@ class AetheriaApp {
       // The button's spans are static markup; only their text changes (no per-frame innerHTML)
       const levelText = String(level);
       if (enchanterLevel.textContent !== levelText) enchanterLevel.textContent = levelText;
-      const bonusText = `+${level * 5}% Global Aether`;
+      const bonusText = `+${level * 5}% Global Oil`;
       if (enchanterBonus.textContent !== bonusText) enchanterBonus.textContent = bonusText;
       const btnText = amt === 'max' ? 'Weave Max' : `Weave Spell x${amt}`;
       if (enchanterLabel.textContent !== btnText) enchanterLabel.textContent = btnText;
@@ -1632,8 +1632,8 @@ class AetheriaApp {
     if (ascBtn) {
       ascBtn.onclick = () => {
         const dm = this.prestigeSystem.getDustMultipliers();
-        const nectarNote = `\n\nHoney Offering: all ${fmtNum(dm.nectar)} ${itemName('starNectar')} will be consumed (${fmtMult(dm.nectarMult)} dust).`;
-        if (confirm(`Ascend now? This resets Aether and Buildings to grant Cosmic Dust to spend in the Dust Shop!${nectarNote}`)) {
+        const nectarNote = `\n\nHoney Offering: all ${fmtNum(dm.nectar)} ${itemName('starNectar')} will be consumed (${fmtMult(dm.nectarMult)} Reserves).`;
+        if (confirm(`Drill a New Well now? This resets Oil and Buildings to grant Crude Reserves to spend in the Reserve Shop!${nectarNote}`)) {
           this.prestigeSystem.ascend();
           this.updateBuildingsUI();
           this.updatePrestigeUI();
@@ -1682,24 +1682,24 @@ class AetheriaApp {
     const pendEl = this.$('pending-dust-display');
     const ascBtn = this.$('btn-do-ascend');
 
-    setText(pendEl, `Pending Cosmic Dust: +${pending.format('standard', 0)}`);
+    setText(pendEl, `Pending Crude Reserves: +${pending.format('standard', 0)}`);
     if (ascBtn) {
       const wait = this.prestigeSystem.getMinRunRemaining();
       const inChallenge = !!this.gameState.chronicle?.active;   // R20: no Ascending mid-challenge
       const disabled = pending.lte(0) || wait > 0 || inChallenge;
       if (ascBtn.disabled !== disabled) ascBtn.disabled = disabled;
       const m = Math.ceil(wait);
-      setText(ascBtn, inChallenge ? '✨ Ascend after your Chronicle challenge' : wait > 0 ? `✨ Ascend in ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')} (min. run)` : '✨ Ascend to the Stars');
+      setText(ascBtn, inChallenge ? '🛢️ Drill a New Well after your Chronicle challenge' : wait > 0 ? `🛢️ Drill a New Well in ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')} (min. run)` : '🛢️ Drill a New Well');
     }
 
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
     const dm = this.prestigeSystem.getDustMultipliers();
     const breakdown = `${fmtMult(dm.geode)} from Depth ${dm.depth} · ${fmtMult(dm.nectarMult)} from ${fmtNum(dm.nectar)} ${itemName('starNectar')} (consumed)` +
-      (dm.amplifier > 1 ? ` · ${fmtMult(dm.amplifier)} from Dust Amplifier` : '') +
-      (dm.shards > 0 ? ` · ${fmtBigMult(dm.shardMult)} from ${dm.shards} Fracture Shards` : '');
+      (dm.amplifier > 1 ? ` · ${fmtMult(dm.amplifier)} from Reserve Amplifier` : '') +
+      (dm.shards > 0 ? ` · ${fmtBigMult(dm.shardMult)} from ${dm.shards} Field Shares` : '');
     setText(this.$('pending-dust-breakdown'), breakdown);
     if (ascBtn) {
-      const tip = `Base ${this.prestigeSystem.getBaseCosmicDust().format('standard', 0)} Dust · ${breakdown}`;
+      const tip = `Base ${this.prestigeSystem.getBaseCosmicDust().format('standard', 0)} Reserves · ${breakdown}`;
       if (ascBtn.title !== tip) ascBtn.title = tip;
     }
 
@@ -1729,7 +1729,7 @@ class AetheriaApp {
       statsCont.innerHTML = `
         <div class="stat-line"><span>Playtime:</span><strong>${days} Days (${hours} Hours)</strong></div>
         <div class="stat-line"><span>Total Clicks:</span><strong>${fmtNum(this.gameState.totalClicks)}</strong></div>
-        <div class="stat-line"><span>Total Aether Gathered:</span><strong>${this.gameState.totalAetherEarned.format('standard', 2)}</strong></div>
+        <div class="stat-line"><span>Total Oil Gathered:</span><strong>${this.gameState.totalAetherEarned.format('standard', 2)}</strong></div>
         <div class="stat-line"><span>Monsters Vanquished:</span><strong>${fmtNum(s.totalMonstersSlain)}</strong></div>
         <div class="stat-line"><span>Bosses Vanquished:</span><strong>${fmtNum(s.totalBossesSlain)}</strong></div>
         <div class="stat-line"><span>Blocks Excavated:</span><strong>${fmtNum(s.totalBlocksMined)}</strong></div>
@@ -1737,7 +1737,7 @@ class AetheriaApp {
         <div class="stat-line"><span>Potions Brewed:</span><strong>${fmtNum(s.totalPotionsBrewed)}</strong></div>
         <div class="stat-line"><span>Spells Cast:</span><strong>${fmtNum(s.totalSpellsCast)}</strong></div>
         <div class="stat-line"><span>Guild Contracts Fulfilled:</span><strong>${fmtNum(s.totalBountiesCompleted)}</strong></div>
-        <div class="stat-line"><span>Ascensions:</span><strong>${fmtNum(this.gameState.ascensionCount)}</strong></div>
+        <div class="stat-line"><span>New Wells:</span><strong>${fmtNum(this.gameState.ascensionCount)}</strong></div>
       `;
     }
   }

@@ -24,7 +24,7 @@ const setAttr = (el, k, v) => {
 const toggle = (el, cls, on) => { if (el && el.classList.contains(cls) !== on) el.classList.toggle(cls, on); };
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (d) => (d instanceof BigNum ? d : new BigNum(d)).format('standard', 0);
-const tierLabel = (t) => (t === 0 ? 'Any' : `Asc ${t}`);
+const tierLabel = (t) => (t === 0 ? 'Any' : `Well ${t}`);
 
 // Items the player can see: every open tier, the next tier (locked, to aim at) and "any" items.
 // Tiers after the next stay hidden until the next one opens (mockup note).
@@ -80,17 +80,17 @@ export class DustShopUI {
     const cont = document.getElementById('dust-shop-section');
     if (!cont || cont.dataset.built) return;
     cont.dataset.built = '1';
-    const chips = [['all', 'All'], ...DUST_SHOP_TIERS.map(t => [String(t), `Asc ${t}`])];
+    const chips = [['all', 'All'], ...DUST_SHOP_TIERS.map(t => [String(t), `Well ${t}`])];
     cont.innerHTML = `
       <div class="card-head ds-head">
-        <h2>Dust Shop <span class="ds-sub">Balance <b class="c-dust num" data-ds="balance"></b> · <span class="num" data-ds="affordable"></span></span></h2>
+        <h2>Reserve Shop <span class="ds-sub">Balance <b class="c-dust num" data-ds="balance"></b> · <span class="num" data-ds="affordable"></span></span></h2>
         <div class="ds-tiers" role="group" aria-label="Show shop tier">
           ${chips.map(([v, l]) => `<button type="button" class="chip" data-filter="${v}" aria-pressed="${v === 'all'}">${l}<b data-you="${v}" hidden> · you</b></button>`).join('')}
         </div>
       </div>
-      <p class="ds-intro">Features for every run, bought with Cosmic Dust. New tiers open at Ascension 1, 3, 5, 10 and 20.
-        Spending dust never lowers production: the dust bonus counts every dust you have <em>earned</em>.
-        Transcend resets the shop along with your dust.</p>
+      <p class="ds-intro">Features for every run, bought with Crude Reserves. New tiers open at New Well 1, 3, 5, 10 and 20.
+        Spending Reserves never lowers production: the Reserves bonus counts every Reserve you have <em>earned</em>.
+        A New Field resets the shop along with your Reserves.</p>
       <div class="ds-legacy" data-ds="legacy" hidden></div>
       <div class="ds-shop">${DUST_SHOP_ITEMS.map(d => this.cardHtml(d)).join('')}</div>
       <p class="ds-more" data-ds="more" hidden></p>`;
@@ -124,9 +124,9 @@ export class DustShopUI {
     const dust = BigNum.fromJSON(r.dust);
     const parts = [];
     if (kept.length) parts.push(`You keep ${kept.join(', ')} as owned shop features.`);
-    if (refunded.length) parts.push(`${refunded.join(' and ')} ${refunded.length > 1 ? 'were' : 'was'} removed; the ${fmt(dust)} dust you spent on ${refunded.length > 1 ? 'them' : 'it'} is back in your balance.`);
+    if (refunded.length) parts.push(`${refunded.join(' and ')} ${refunded.length > 1 ? 'were' : 'was'} removed; the ${fmt(dust)} Reserves you spent on ${refunded.length > 1 ? 'them' : 'it'} is back in your balance.`);
     if (!parts.length) return;
-    el.textContent = `Ascension perks are now the Dust Shop. ${parts.join(' ')}`;
+    el.textContent = `New Well perks are now the Reserve Shop. ${parts.join(' ')}`;
     el.hidden = false;
   }
 
@@ -155,7 +155,7 @@ export class DustShopUI {
     btn.id = 'btn-auto-buy';
     btn.className = 'chip ds-autobuy';
     btn.hidden = true;
-    btn.title = `Dust shop Auto-Buy: buys the best-value generator every ${AUTO_BUY_INTERVAL} s`;
+    btn.title = `Reserve Shop Auto-Buy: buys the best-value generator every ${AUTO_BUY_INTERVAL} s`;
     btn.addEventListener('click', () => {
       this.gs.dustShop.autoBuy = !this.gs.dustShop.autoBuy;
       this.updateAutoBuySwitch();
@@ -253,7 +253,7 @@ export class DustShopUI {
       const rank = getShopRank(gs, d.id);
       const cost = getNextShopCost(gs, d.id);
       let rankText;
-      if (state === 'lock') rankText = `Unlocks at Ascension ${d.tier} (you: ${gs.ascensionCount})`;
+      if (state === 'lock') rankText = `Unlocks at New Well ${d.tier} (you: ${gs.ascensionCount})`;
       else if (d.maxRank === 1) rankText = state === 'own' ? 'Bought' : '';
       else if (d.maxRank === Infinity) rankText = `Rank ${rank}`;
       else rankText = `Rank ${rank} / ${d.maxRank}`;
@@ -271,9 +271,9 @@ export class DustShopUI {
       toggle(btn, 'is-locked', locked);
       setAttr(btn, 'aria-disabled', locked ? 'true' : null);
       let label;
-      if (state === 'lock') label = `🔒 Asc ${d.tier} · ${fmt(cost)} dust`;
-      else if (state === 'open') label = `Need ${fmt(cost.sub(gs.cosmicDust))} more dust`;
-      else label = `Buy · ${fmt(cost)} dust`;
+      if (state === 'lock') label = `🔒 Well ${d.tier} · ${fmt(cost)} Reserves`;
+      else if (state === 'open') label = `Need ${fmt(cost.sub(gs.cosmicDust))} more Reserves`;
+      else label = `Buy · ${fmt(cost)} Reserves`;
       setText(btn, label);
     }
     setText(this.el.balance, fmt(gs.cosmicDust));
@@ -290,7 +290,7 @@ export class DustShopUI {
       if (chip.hidden !== hide) chip.hidden = hide;
     }
     const later = next === null ? [] : DUST_SHOP_TIERS.filter(t => t > next);
-    const more = later.length ? `More features open at Ascension ${later.join(', ')}.` : '';
+    const more = later.length ? `More features open at New Well ${later.join(', ')}.` : '';
     setText(this.el.more, more);
     if (this.el.more.hidden !== !more) this.el.more.hidden = !more;
   }
