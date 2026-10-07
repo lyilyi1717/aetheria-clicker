@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=Cairo:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;700;800&display=swap" rel="stylesheet">
   <!-- Theme (R35, js/ui/theme.js): set before the CSS paints so a light theme doesn't flash dark -->
   <!-- Language (R37, js/i18n/lang.js): Arabic pages paint right to left from the first frame -->
-  <script>try { var l = localStorage.getItem('AETHERIA_LANG'); if (!l) { var n = [].concat(navigator.languages || [], navigator.language || []); l = n.some(function (x) { return /^ar/i.test(x); }) ? 'ar' : 'en'; } if (l === 'ar') { document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl'; } } catch (e) {}</script>
+  <script>try { var l = localStorage.getItem('AETHERIA_LANG'); if (!l && localStorage.getItem('AETHERIA_CHRONICLES_SAVE_V1')) l = 'en'; if (!l) { var n = [].concat(navigator.languages || [], navigator.language || []); l = n.some(function (x) { return /^ar/i.test(x); }) ? 'ar' : 'en'; } if (l === 'ar') { document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl'; } } catch (e) {}</script>
   <script>try { var t = localStorage.getItem('AETHERIA_THEME'); if (t === 'sand' || t === 'dusk') document.documentElement.dataset.theme = t; } catch (e) {}</script>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/style.css">

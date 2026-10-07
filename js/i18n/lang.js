@@ -23,6 +23,12 @@ export function storedLang() {
   try { return normalizeLang(globalThis.localStorage?.getItem(LANG_STORAGE_KEY)); } catch { return null; }
 }
 
+// A browser that already holds a save from before languages existed keeps English
+const SAVE_KEY = 'AETHERIA_CHRONICLES_SAVE_V1';
+function hasOldSave() {
+  try { return !!globalThis.localStorage?.getItem(SAVE_KEY); } catch { return false; }
+}
+
 /** First visit: Arabic when the browser asks for it, else English. */
 export function browserLang() {
   const nav = globalThis.navigator;
@@ -30,7 +36,7 @@ export function browserLang() {
   return list.some(l => String(l).toLowerCase().startsWith('ar')) ? 'ar' : DEFAULT_LANG;
 }
 
-let current = storedLang() || browserLang();
+let current = storedLang() || (hasOldSave() ? DEFAULT_LANG : browserLang());
 
 export function getLang() { return current; }
 export function isRtl() { return current === 'ar'; }
