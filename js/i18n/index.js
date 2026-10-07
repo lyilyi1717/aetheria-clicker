@@ -44,9 +44,10 @@ function fill(str, params) {
 }
 
 // Right to left: a literal signed number in the text ("+25%", "×1.5", "-4%") is isolated too, so
-// its sign stays on its left. Only after a space, a bracket, '>' or the start (never inside ids).
-const SIGNED = /(^|[\s(>،])([+\-−×]\d[\d.,]*(?:%|[KMBT]\b|e\d+)?)/g;
-function isolateSigns(str) {
+// its sign stays on its left. Only after a space, a bracket, '>', the start or the joined
+// conjunction و ("و+50%"), never inside ids.
+const SIGNED = /(^|[\s(>،]|(?<=\sو)|(?<=^و))([+\-−×]\d[\d.,]*(?:%|[KMBT]\b|e\d+)?)/g;
+export function isolateSigns(str) {
   return str.replace(SIGNED, (m, pre, num) => pre + FSI + num + PDI);
 }
 

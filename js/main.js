@@ -51,7 +51,7 @@ import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
-import { t, tOr, getLang, buffName, bidi, applyLanguageToDocument, syncLanguageSetting, renderLanguageSettings } from './i18n/index.js';
+import { t, tOr, getLang, buffName, bidi, isolateSigns, applyLanguageToDocument, syncLanguageSetting, renderLanguageSettings } from './i18n/index.js';
 
 // Plain-number display in the player's notation (Settings tab); see BigNum.formatNumber
 const fmtNum = (n, precision = 2) => BigNum.formatNumber(n, precision);
@@ -215,7 +215,7 @@ class AetheriaApp {
         return `
         <div class="changelog-entry"${dir}>
           <div class="changelog-head"><strong>v${entry.version}</strong> &mdash; ${loc.title} <span class="changelog-date">${entry.date}</span></div>
-          <ul>${loc.changes.map(c => `<li>${c}</li>`).join('')}</ul>
+          <ul>${loc.changes.map(c => `<li>${loc === entry ? c : isolateSigns(c)}</li>`).join('')}</ul>
         </div>
       `;
       }).join('');

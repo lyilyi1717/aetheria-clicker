@@ -10,7 +10,7 @@ import {
   SYNERGY_MIN_SOURCE, getUpgradeDefinition, getClickUpgradeMult
 } from '../systems/UpgradeSystem.js';
 import { BUILDING_DEFINITIONS } from '../systems/BuildingSystem.js';
-import { t } from '../i18n/index.js';
+import { t, bidi } from '../i18n/index.js';
 
 const MAX_TILES = 8;      // style guide 5.2: never more than ~8 equal-weight items without "N more"
 const UPCOMING_TILES = 3; // locked-by-requirement tiles shown after the available ones
@@ -138,7 +138,7 @@ export class UpgradeShopUI {
           <span class="upg-ic" aria-hidden="true">${u.icon}</span><span class="p"></span><span class="upg-mark" aria-hidden="true"></span>
         </button>`).join('') +
         (more > 0 || this.showAll && list.length > MAX_TILES
-          ? `<button type="button" class="upg upg-more" data-upg-more="1">${this.showAll ? t('upgui.less') : `+${more}`}</button>`
+          ? `<button type="button" class="upg upg-more" data-upg-more="1">${this.showAll ? t('upgui.less') : bidi(`+${more}`)}</button>`
           : '');
     }
 

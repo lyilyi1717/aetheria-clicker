@@ -45,7 +45,7 @@ export function rewardTitle(entry) {
   const n = entry.count || 1;
   if (n <= 1) return entry.title || '';
   if (entry.batchTitle) return entry.batchTitle.replace('{n}', String(n));
-  return `${entry.title} ×${n}`;
+  return `${entry.title} ${bidi(`×${n}`)}`;
 }
 
 // Value line ("+1.2M gold"), or '' when the event carries no amount
