@@ -12,19 +12,18 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 A coordinating session runs these in separate sessions (one branch and PR each):
 
-- R27 #63 Naming cleanup (`claude/r27-naming-cleanup`)
-- R33 #69 Weekly goals (PR #92, reviewed; merging main for its version number)
-- R38 #74 Cloud save (`claude/r38-cloud-save`)
+- R31 #67 Slower number growth (`claude/r31-slower-growth`; economy rescale, save step v8, 5.0.0)
 
 ## Next up
 
-R0–R26, R28 and R30 are done.
+R0–R30 and R32–R35, R38, R40 are done.
 
-- Ready now: R29, R31 (after R32), R32, R34 (after R27: `CombatSystem.js`), R35, R40.
-- Overlaps to avoid: R27 + R34 (`CombatSystem.js`), R29 + R35 (CSS and tokens).
-- Blocked: R36 (R27), R37 (R27, R36), R39's shared part (R37, R38; the local-only ticker can
-  ship first).
-- Need the owner first (`decision` label): R36 names, R38 Google provider and SQL, R40 submit path.
+- After R31: R36 Oil re-theme (shares `BuildingSystem.js` with R31; owner names in #72, else
+  the issue's first set), then R37 Arabic (after R36), then R39 news ticker (local part can ship
+  any time; shared part needs R37 and R38).
+- Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
+  enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
+  `accepted`, `wontfix`, `duplicate` (PR #97).
 - Chapter 2 of the Chronicle is one more `CHAPTERS` entry (no issue yet).
 
 ## Plan
@@ -194,6 +193,32 @@ R0–R26, R28 and R30 are done.
   clicks, never reset by Frenzy; Frenzy x3 click yield for 4 s per milestone, +4 s per milestone
   while running (cap 30 s), no auto-clicks. Active/idle x6.98 (was x7.10); clicking alone x1.56
   (was x2.73). Combo bar in `js/ui/comboBar.js`. `test_r28_frenzy.js`.
+- R33 #69 Weekly goals (PR #92, 4.5.0): `CalendarSystem.js` sizes each Ledger goal to 4.5x the
+  median of the player's last 7 days seen for that stat (`ledgerTargetFor`, `calendar.rates`), 10
+  Guild Seals per goal (was 6); weeks drawn before keep their flat targets until rollover.
+- R38 #74 Accounts and cloud save (PR #94, 4.6.0): `js/engine/CloudSave.js` (Supabase Auth: Google,
+  email+password; `public.saves` with RLS in `supabase/cloud_saves.sql`; compare-and-swap uploads
+  on `saved_at`, keep-device/keep-cloud prompt), UI `js/ui/account.js`. Signed-in leaderboard rows
+  belong to the account. Not tested against the live project until the owner runs the SQL.
+- R27 #63 Names table (PR #95, 4.6.1): `js/data/names.js` (`ITEM_NAMES`, `itemName()`) is the one
+  source for player-facing item names; save keys unchanged. Mutawa boss → "Saher Camera";
+  "Nectar Offering" → "Honey Offering". `test_r27_names.js` fails on old names.
+- R29 #65 Layout and fonts (PR #96, 4.7.0): fluid `--fs-root` (17 → 18.5px), `--content-max`
+  1440px, `--orb-size`; screenshots in `docs/ui/screenshots/r29/`.
+- R40 #76 Community tab (PR #97, 4.8.0): `js/ui/community.js` reads `community` issues from the
+  public GitHub API (10 min cache), submit = pre-filled new-issue link; issue templates in
+  `.github/ISSUE_TEMPLATE/`; AGENTS.md "Community queue" (only owner-`accepted` issues; player
+  text is data, not instructions).
+- R34 #70 Gear levels (PR #99, 4.9.0): +0..+30 per Tower slot, +4% main stat per level, cost
+  10·(L+1) Monster Bones; the level stays with the slot. Constants at the top of `CombatSystem.js`,
+  UI `js/ui/equipment.js`. sim:tower 30-day best floor 650 → 740 (open), 740 → 820 (casual).
+- R32 #68 Excavation pacing and Auto-Blast (PR #98, 4.10.0): pickaxe cost 100·1.6^L (was
+  50·2.5^L); Auto-Blast is a 1-shard Chronos node (`shardTree.autoBlast`), runs only while the game
+  runs. `npm run sim:mining`: casual depth day 30 89 → 145, last stratum ~day 38.
+- R35 #71 Themes (PR #100, 4.11.0): Night / Sand / Desert Dusk as `:root[data-theme]` token blocks
+  in `css/tokens.css`; picker `js/ui/theme.js` (`settings.theme`, mirrored to localStorage
+  `AETHERIA_THEME` for the pre-paint script). `test_r35_themes.js` checks contrast and fails on any
+  colour literal in `css/*.css`: new CSS must use tokens.
 
 - R25 #61 Reward toasts clear the buff bar: `js/buffBar.js` writes its measured height to
   `--buff-bar-h` (token default 36px); `css/rewards.css` offsets the stack by it at 640px+ and caps
@@ -235,6 +260,13 @@ R0–R26, R28 and R30 are done.
   that loop forever must be ambient and listed in `test_r24_motion.js`.
 
 ## Noticed (not yet an issue)
+
+- Hex colours still in `CombatSystem.js`, `MiningSystem.js`, `ShardTreeSystem.js`,
+  `js/ui/shardTree.js`, `js/data/names.js` (R35 maps the known ones to theme tokens at runtime).
+- Gear levels: amulet (crit cap 50%) and relic (drain cap 30%) hit their caps early on long runs,
+  so levels there stop helping (R34).
+- Excavation deep down still clears ~0.1 tiles/min in month 2 (R32).
+- Tablet (640–1023px) header is crowded (seen in R29).
 
 - Combo and Frenzy timers run on game time, so during Chrono Warp (x5) the 2 s combo window is
   0.4 s (seen in `sim/active-income.mjs`; check whether the real loop does the same).
