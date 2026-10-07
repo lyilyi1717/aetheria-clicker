@@ -22,7 +22,7 @@
 .upg.lock { opacity: 0.5; filter: grayscale(1); }
 .upg.is-selected { background: var(--bg-4); outline: 2px solid var(--aether); outline-offset: 1px; }
 .upg .p { position: absolute; left: 0; bottom: -1px; height: 3px; width: 0; background: var(--gold); border-radius: 0 0 6px 6px; transition: width var(--dur-3) var(--ease-out); }
-.upg .upg-mark { position: absolute; right: 3px; top: 2px; font-size: 10px; color: var(--gold); line-height: 1; }
+.upg .upg-mark { position: absolute; right: 3px; top: 2px; font-size: var(--fs-11); color: var(--gold); line-height: 1; }
 .upg.lock .upg-mark { color: var(--text-3); }
 .upg-more { font-size: var(--fs-13); font-weight: 700; color: var(--text-2); font-family: var(--font-ui); }
 
