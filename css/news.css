@@ -1,0 +1,114 @@
+/* News ticker strip (R39, js/ui/newsTicker.js) and its Settings → News block. Tokens only. */
+
+.news-ticker {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 28px;
+  padding: 0 var(--gutter);
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--line-1);
+  font-size: var(--fs-13);
+  color: var(--text-2);
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  z-index: 15;
+  -webkit-tap-highlight-color: transparent;
+}
+.news-ticker[hidden] { display: none; }
+.news-ticker:focus-visible { outline: 2px solid var(--aether); outline-offset: -2px; }
+
+.news-tag {
+  flex: 0 0 auto;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-pill);
+  background: var(--sand-dim);
+  color: var(--sand);
+  font-size: var(--fs-11);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 18px;
+}
+.news-ticker.is-paused .news-tag { background: var(--bg-3); color: var(--text-3); }
+
+.news-track {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  /* Soft edges so items fade in and out instead of being cut */
+  mask-image: linear-gradient(90deg, transparent, black var(--sp-4), black calc(100% - var(--sp-4)), transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, black var(--sp-4), black calc(100% - var(--sp-4)), transparent);
+}
+
+.news-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  line-height: 28px;
+  white-space: nowrap;
+  unicode-bidi: isolate;
+  will-change: transform;
+}
+.news-item[data-kind="player"] { color: var(--text-1); }
+.news-item[data-kind="new"] { color: var(--sand); }
+
+/* Reduced Motion: the item stands still, cut with an ellipsis, aligned to its own reading side */
+.news-ticker.is-static .news-item {
+  position: static;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  will-change: auto;
+  transform: none;
+}
+.news-ticker.is-static .news-item { text-align: start; }
+
+@media (max-width: 639px) {
+  .news-ticker { height: 26px; font-size: var(--fs-12); }
+  .news-item { line-height: 26px; }
+}
+
+/* Settings → News */
+.news-settings { max-width: 560px; }
+.news-form { display: flex; flex-direction: column; gap: var(--sp-1); }
+.news-label { font-size: var(--fs-13); color: var(--text-2); }
+.news-row { display: flex; gap: var(--sp-2); }
+.news-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--tap);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-1);
+  background: var(--bg-1);
+  color: var(--text-1);
+  font: inherit;
+  font-size: var(--fs-14);
+}
+.news-input:focus-visible { outline: 2px solid var(--aether); outline-offset: 1px; }
+.news-input::placeholder { color: var(--text-3); }
+.news-row .btn { min-height: var(--tap); }
+.news-meta { display: flex; justify-content: space-between; gap: var(--sp-2); font-size: var(--fs-12); min-height: 1.2em; }
+.news-msg { color: var(--danger); }
+.news-count { color: var(--text-3); margin-inline-start: auto; }
+
+.news-list-head { margin-top: var(--sp-3); font-size: var(--fs-13); font-weight: 600; color: var(--text-2); }
+.news-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.news-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-1);
+  background: var(--bg-3);
+}
+.news-entry-text { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; color: var(--text-1); font-size: var(--fs-14); }
+.news-entry .btn { flex: 0 0 auto; min-height: var(--tap); }
+.news-empty { color: var(--text-3); font-size: var(--fs-13); }
+.news-note { margin: var(--sp-1) 0 0; color: var(--text-3); font-size: var(--fs-12); }
