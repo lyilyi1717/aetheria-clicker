@@ -12,6 +12,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { BUILDING_DEFINITIONS } from './BuildingSystem.js';
 import { addAscendKeepRule } from './UpgradeSystem.js';
+import { localize } from '../i18n/index.js';
 
 // Lifetime Ascensions needed for each tier; 0 = open from the start ("any")
 export const DUST_SHOP_TIERS = [1, 3, 5, 10, 20];
@@ -60,6 +61,14 @@ export const DUST_SHOP_ITEMS = [
   { id: 'dust_amplifier', tier: 0, icon: '✨', name: 'Reserve Amplifier', cost: 100, growth: 2, maxRank: Infinity,
     desc: '+10% Crude Reserves from every New Well per rank (additive). Price doubles each rank.', see: 'See it: Drill a New Well button' }
 ];
+
+localize(DUST_SHOP_ITEMS, 'shop', ['name', 'desc', 'see'], {
+  genesis: { n: GENESIS_STALLS, gold: GENESIS_GOLD.toLocaleString('en-US'), stall: BUILDING_DEFINITIONS[0].name },
+  blueprint_memory: { n: BLUEPRINT_MEMORY_LEVELS },
+  auto_buy: { s: AUTO_BUY_INTERVAL },
+  blueprint_memory_2: { n: BLUEPRINT_MEMORY_2_TIERS },
+  resonant_start: { n: RESONANT_START_TIERS, first: BUILDING_DEFINITIONS[0].name, last: BUILDING_DEFINITIONS[RESONANT_START_TIERS - 1].name }
+});
 
 const ITEM_BY_ID = new Map(DUST_SHOP_ITEMS.map(d => [d.id, d]));
 

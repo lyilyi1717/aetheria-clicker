@@ -599,4 +599,36 @@ export default {
   "combat.warden_holds": "The Warden holds! Back to the climb",
   "combat.boss_timeout": "Boss timeout: retreating 1 floor",
   "combat.defeated": "Defeated: retreating 1 floor",
+
+  // MiningSystem.js
+  "mine.relic": "Strata Relic: {name}",
+  "mine.relic_batch": "{n} Strata Relics found",
+  "mine.relic_detail": "+{n}% pickaxe",
+  "mine.fx.stairs": "STAIRS FOUND! DEPTH +1",
+  "mine.stratum": "Entered the {name} strata",
+  "mine.depth": "Depth {n}",
+  "mine.fx.gold": "+{n} GOLD",
+  "mine.fx.stone": "+{n} STONE",
+  "mine.fx.ore": "+1 OIL SHALE",
+
+  // PrestigeSystem.js
+  "prestige.toast": "New Well drilled!",
+  "prestige.toast_batch": "{n} {reset1Plural}",
+  "prestige.unit": "{reset1Currency}",
+  "prestige.shop_tier1": "{reset1Shop}: {n} new feature",
+  "prestige.shop_tier": "{reset1Shop}: {n} new features",
+  "prestige.shop_tier_detail": "{reset1Noun} {n} opened a new shop tier",
+  "transcend.toast": "New Oil Field opened!",
+  "transcend.toast_batch": "{n} {reset2Plural}",
+  "transcend.unit": "{reset2Currency}",
+  "transcend.seals": "+{n} more to spend (Seals)",
+
+  // ShardTreeSystem.js
+  "tree.tier": "Tier {n}",
+  "tree.deep_name": "Deep Blueprint: {tier}",
+  "tree.deep_desc": "{tier}'s 5 shop upgrades cost ÷{n}.",
+  "tree.block.tier": "opens with Tier {n} ({reset2Noun} {f})",
+  "tree.block.shop": "opens with the upgrade shop",
+  "tree.block.share1": "needs {n} Share",
+  "tree.block.shares": "needs {n} Shares",
 };
