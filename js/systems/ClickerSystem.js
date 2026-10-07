@@ -4,6 +4,7 @@ import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { COMBO_FULL, FRENZY_AUTO_CLICKS, FRENZY_EVERY, FRENZY_DURATION, FRENZY_MAX_TIMER } from './combo.js';
+import { itemName } from '../data/names.js';
 
 // --- R3 Golden Anomalies (docs/redesign-proposal.md §5.2) ---
 // Spawn every 60-120 s after the last click (50-90 s after one escapes). Weights are out of 60:
@@ -212,7 +213,7 @@ export class ClickerSystem {
       const gem = gems[Math.floor(this.rng() * gems.length)];
       const amount = 3 + Math.floor(this.rng() * 5);
       this.gameState.inventory[gem] = (this.gameState.inventory[gem] || 0) + amount;
-      rewards.notify({ ...note, kind: 'anomaly-vein', icon: '💎', title: 'Ancient Vein!', detail: `+${amount} ${gem}` });
+      rewards.notify({ ...note, kind: 'anomaly-vein', icon: '💎', title: 'Ancient Vein!', detail: `+${amount} ${itemName(gem, amount)}` });
     }
   }
 

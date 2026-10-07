@@ -3,9 +3,20 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.6.0';
+export const VERSION = '4.6.1';
 
 export const CHANGELOG = [
+  {
+    version: '4.6.1',
+    date: '2026-10-06',
+    title: 'Names cleanup',
+    changes: [
+      'Every tab now uses the same item names. Old names that were still showing are gone: Excavation tiles, Alchemy and hybrid recipe costs, the Garden guide and the Ancient Vein reward now say Fanoos, Dallah, Oud Wood, Misbaha and Mabkhara, and Golems cost Stone + Lemon Drops (the same item that used to say "Mana Sap").',
+      'The "Gem Hoarder" achievement now reads "Possess at least 1 Fanoos, Dallah, and Oud Wood". It checks the same items as before.',
+      'The Nectar Offering on the Ascend screen is now the Honey Offering and counts your Sidr Honey. Same bonus, same rules.',
+      'The "Mutawa" Void Tower boss is gone; that boss is now the Saher Camera. Nothing else about the fight changes.'
+    ]
+  },
   {
     version: '4.6.0',
     date: '2026-10-06',
