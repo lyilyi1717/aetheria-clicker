@@ -51,6 +51,7 @@ import { SharedNews, sharedQueueItems, sharedNewsHooks } from './ui/sharedNews.j
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
 import { initAutoTap, renderAutoTap } from './ui/autoTap.js';
+import { initCombatFx, renderBossTimer } from './ui/combatFx.js';
 import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
@@ -457,6 +458,7 @@ class AetheriaApp {
     }
 
     const monsterCard = document.getElementById('monster-arena-box');
+    initCombatFx(this.combatSystem, monsterCard, document.querySelector('.monster-avatar'), this.$('boss-timer'));
     if (monsterCard) {
       monsterCard.addEventListener('pointerdown', (e) => {
         sound.ensureContext();
@@ -859,12 +861,7 @@ class AetheriaApp {
     setText(this.$('monster-hp-text'), t('combat.hp', { hp: this.combatSystem.fmt(Math.max(0, m.hp)), max: this.combatSystem.fmt(m.maxHp) }));
     setWidth(this.$('monster-hp-fill'), `${Math.max(0, (m.hp / m.maxHp) * 100)}%`);
 
-    if (bossTimerEl) {
-      // visibility (not display) so the portrait doesn't jump when a boss arrives
-      const vis = m.isBoss ? 'visible' : 'hidden';
-      if (bossTimerEl.style.visibility !== vis) bossTimerEl.style.visibility = vis;
-      if (m.isBoss) setText(bossTimerEl, t('combat.enrage', { s: m.timer.toFixed(1) }));
-    }
+    renderBossTimer(bossTimerEl, m);   // R42: enrage urgency, last boss gold (js/ui/combatFx.js)
 
     // Update skill cooldowns
     for (const key in h.skills) {

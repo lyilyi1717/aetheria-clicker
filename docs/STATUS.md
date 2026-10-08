@@ -15,7 +15,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40 and R41 are done.
+R0–R30, R32–R40, R41 and R42 are done.
 
 - Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
   enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
@@ -285,6 +285,10 @@ R0–R30, R32–R40 and R41 are done.
   chains, sound cooldowns, caps, merge rule); `ParticleEngine` caps 250/150 sparks and 40 texts and
   merges "+n" texts by key. Click/crit/anomaly, combat hits, dig hits and Auto-tap go through it.
   `.fx-shake`/`.is-hitstop` are in `css/animations.css`, unused until R42. R42–R50 build on this.
+- R42 #114 Boss kills (5.13.0): `js/ui/combatFx.js` hooks `CombatSystem.onBossDefeated` (T2 via
+  `feedback.fire`, hit-stop + flash on `.monster-avatar`, shake on the arena card, callout + gold
+  count-up) and `renderBossTimer` (red/ticks at <= 10 s, scale at <= 3 s, "Last boss: +n gold"
+  between bosses in the same reserved line). New voices `playBossDown`, `playTick`.
 
 
 - R25 #61 Reward toasts clear the buff bar: `js/buffBar.js` writes its measured height to
