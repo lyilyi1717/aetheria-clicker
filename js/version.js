@@ -3,9 +3,81 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.6.0';
+export const VERSION = '5.10.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.10.0',
+    date: '2026-10-08',
+    title: 'Combat Effect Tab Isolation & Interface Polish',
+    changes: [
+      'Combat text and particle effects now remain cleanly within the Void Tower arena instead of overflowing into Excavation or other tabs.',
+      'Mana currency is now cleanly hidden from the header until the Grimoire is discovered and unlocked.',
+      'Fixed Arabic unlock teaser progress fraction rendering so progress reads naturally from left to right.'
+    ],
+    ar: {
+      title: 'عزل تأثيرات القتال وتحسينات الواجهة',
+      changes: [
+        'نصوص وأضرار القتال وتأثيراتها أصبحت محصورة ببرج الفراغ دون الظهور فوق تبويب التنقيب أو التبويبات الأخرى.',
+        'تم إخفاء عملة المانا من الشريط العلوي حتى يتم اكتشاف وفتح كتاب التعاويذ.',
+        'إصلاح اتجاه عرض كسور التقدم في مؤشرات الفتح باللغة العربية لتقرأ بشكل طبيعي.'
+      ]
+    }
+  },
+  {
+    version: '5.9.0',
+    date: '2026-10-08',
+    title: 'Excavation Geode Jackpots, Dewdrop Tapping & Cross-Synergies',
+    changes: [
+      'Excavation Geode Pockets: unearth hidden jackpot tiles in the underground grid for x3 Gold cache value, 2 free precious gems, and an active Oil rush surge.',
+      'Active Garden Dewdrop Tapping: tap growing crop plots to accelerate growth speed with sparks and splash Oil bursts.',
+      'Geothermal Warmth & Botanical Rigging: digging deeper into Excavation now warms and speeds up Garden crop cycles, while plant harvests strengthen your pickaxe power.'
+    ],
+    ar: {
+      title: 'جوائز الجيود الكبرى وندى الحدائق والتناغم التبادلي',
+      changes: [
+        'جيوب الجيود في التنقيب: اكشف عن كتل الجوائز الكبرى تحت الأرض للحصول على 3 أضعاف الذهب وحبتين ثمينتين واندفاعة نفطية نشطة.',
+        'نقرات ندى الحديقة النشطة: انقر على الأحواض النامية لتسريع نمو المحاصيل مع تناثر شرارات وقطرات نفطية فورية.',
+        'الدفء الجوفي وتجهيز النباتات: الحفر لأعماق أبعد في التنقيب يدفئ ويسرع دورات نمو المحاصيل، وحصاد النباتات يزيد من قوة ضربات الفأس.'
+      ]
+    }
+  },
+  {
+    version: '5.8.0',
+    date: '2026-10-08',
+    title: 'Super-Crits, Mining Shockwaves & Subgame Scaling',
+    changes: [
+      'Critical strikes now cascade: roll into fiery Orange Super-Crits and Prismatic Hyper-Crits across Refinery clicks and Void Tower combat.',
+      'Excavation strikes now feature critical hits and shockwaves: critical strikes deal bonus damage, and Super-Crits shatter adjacent blocks simultaneously.',
+      'Hydraulic Bore & Subterranean Irrigation: your growing Oil empire now directly supercharges your pickaxe striking power and accelerates Garden crop growth.',
+      'Harvesting mature garden crops now rewards an immediate Nectar Surge of active Oil on the spot.'
+    ],
+    ar: {
+      title: 'الضربات الفائقة وموجات التعدين وتسريع الزراعة',
+      changes: [
+        'الضربات الحرجة أصبحت تتضاعف: احصل على ضربات فائقة نارية برتقالية وبنفسجية في التكرير وبرج الفراغ.',
+        'ضربات الفأس في التنقيب أصبحت تشمل الضربات الحرجة وموجات الصدمة: الضربات الفائقة تكسر الكتل المجاورة في وقت واحد.',
+        'الضغط الهيدروليكي والري الجوفي: ثروتك النفطية المتنامية تزيد مباشرة من قوة ضربات الفأس وتسرع نمو محاصيل الحديقة.',
+        'حصاد المحاصيل الناضجة في الحديقة يمنحك الآن دفعة نفطية فورية من الرحيق.'
+      ]
+    }
+  },
+  {
+    version: '5.7.0',
+    date: '2026-10-08',
+    title: 'Drill a New Well whenever you are ready',
+    changes: [
+      'The 10-minute minimum run restriction on drilling a New Well has been removed. You can now Ascend as soon as you have met the Oil requirement and earned pending Reserves, without waiting on a cooldown.',
+      'Auto-Ascend rules and Coming Up estimates now reflect the change, allowing immediate drilling as soon as your criteria are met.'
+    ],
+    ar: {
+      title: 'احفر بئرًا جديدة متى كنت مستعدًا',
+      changes: [
+        'تمت إزالة شرط الانتظار لمدة 10 دقائق لحفر بئر جديدة. يمكنك الآن الصعود فور استيفاء متطلبات النفط وكسب الاحتياطي، دون انتظار أي مؤقت.',
+        'قواعد الصعود التلقائي وتوقعات لوحة القادم أصبحت تعكس هذا التغيير فورًا بمجرد تحقق الشروط.'
+      ]
+    }
+  },
   {
     version: '5.6.0',
     date: '2026-10-08',

@@ -308,6 +308,7 @@ export default {
 
   // main.js: garden, golems, alchemy
   "mine.tile.stairs": "درج",
+  "mine.tile.geode": "جيب الجيود",
   "res.gold": "ذهب",
   "garden.water": "💧 اسقِ الكل ({state})",
   "garden.fert_tip": "يكلّف {item} واحدًا لكل حوض نامٍ. والحصاد التالي لذلك الحوض يعطي ضعف الخلاصة.",
@@ -1038,6 +1039,8 @@ export default {
   "mine.fx.gold": "+{n} ذهب",
   "mine.fx.stone": "+{n} حجر",
   "mine.fx.ore": "+1 صخر زيتي",
+  "mine.fx.geode": "💎 جائزة الجيود الكبرى!",
+  "garden.fx.dewdrop": "+{s}ث ندى الصباح! 💧",
 
   // Excavation names (MiningSystem.js)
   "strata.0.name": "حجر جيري",

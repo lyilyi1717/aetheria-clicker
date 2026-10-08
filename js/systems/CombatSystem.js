@@ -4,6 +4,7 @@ import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { hasWardensNode, hasSecondWind } from './ShardTreeSystem.js';
 import { getShopRank } from './DustShopSystem.js';
+import { resolveCritTier } from './ClickerSystem.js';
 import { t, localizeList } from '../i18n/index.js';
 import { gearName } from '../ui/rarity.js';
 
@@ -440,16 +441,26 @@ export class CombatSystem {
   }
 
   // Active click on monster (player can attack actively as fast as they click!)
+  rollGearCritTier() {
+    const stat = gearStat('amulet', this.gameState.hero?.gear?.amulet);
+    return resolveCritTier(stat);
+  }
+
   rollGearCrit() {
-    return Math.random() < gearStat('amulet', this.gameState.hero.gear.amulet);
+    return this.rollGearCritTier() > 0;
   }
 
   activeClickAttack(clientX, clientY) {
     if (!this.monster || this.monster.hp <= 0) return;
-    const crit = this.rollGearCrit();
-    const dmg = Math.max(1, Math.floor(this.getTotalAttack() * 0.75 * (crit ? 2 : 1)));
-    this.dealDamageToMonster(dmg, clientX, clientY, crit);
+    const tier = this.rollGearCritTier();
+    const mult = tier >= 2 ? 4 : tier === 1 ? 2 : 1;
+    const dmg = Math.max(1, Math.floor(this.getTotalAttack() * 0.75 * mult));
+    this.dealDamageToMonster(dmg, clientX, clientY, tier);
     sound.playHit();
+  }
+
+  isCombatVisible() {
+    return typeof window !== 'undefined' && (!window.gameApp || window.gameApp.currentTab === 'combat');
   }
 
   castHeroSkill(skillKey) {
@@ -460,29 +471,44 @@ export class CombatSystem {
     skill.cd = skill.maxCd;
     sound.playSpell();
 
+    const isVis = this.isCombatVisible();
+    const spawnX = isVis && typeof window !== 'undefined' ? window.innerWidth / 2 : null;
+    const spawnY = isVis && typeof window !== 'undefined' ? window.innerHeight / 2 : null;
+
     if (skillKey === 'strike') {
       const dmg = Math.floor(this.getTotalAttack() * skill.dmgMult);
-      this.dealDamageToMonster(dmg, window.innerWidth / 2, window.innerHeight / 2, true);
+      this.dealDamageToMonster(dmg, spawnX, spawnY, true);
     } else if (skillKey === 'shield') {
       h.shield += Math.floor(this.getTotalMaxHp() * 0.35);
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+SHIELD ${this.fmt(h.shield)}`, '#38bdf8', true);
+      if (spawnX && spawnY) particles.spawnFloatingText(spawnX, spawnY, `+SHIELD ${this.fmt(h.shield)}`, '#38bdf8', true);
     } else if (skillKey === 'leech') {
       const dmg = Math.floor(this.getTotalAttack() * 1.5);
-      this.dealDamageToMonster(dmg, window.innerWidth / 2, window.innerHeight / 2, false);
+      this.dealDamageToMonster(dmg, spawnX, spawnY, false);
       const heal = Math.floor(this.getTotalMaxHp() * skill.healPercent);
       h.hp = Math.min(this.getTotalMaxHp(), h.hp + heal);
-      particles.spawnFloatingText(window.innerWidth / 2, window.innerHeight / 2, `+${this.fmt(heal)} HP`, '#4ade80', true);
+      if (spawnX && spawnY) particles.spawnFloatingText(spawnX, spawnY, `+${this.fmt(heal)} HP`, '#4ade80', true);
     } else if (skillKey === 'supernova') {
       const dmg = Math.floor(this.getTotalAttack() * skill.dmgMult);
-      this.dealDamageToMonster(dmg, window.innerWidth / 2, window.innerHeight / 2, true);
+      this.dealDamageToMonster(dmg, spawnX, spawnY, true);
     }
   }
 
-  dealDamageToMonster(amount, x, y, isCrit = false) {
+  dealDamageToMonster(amount, x, y, critTier = 0) {
     this.monster.hp -= amount;
-    if (x && y) {
-      particles.spawnFloatingText(x, y, `-${this.fmt(amount)}`, isCrit ? '#ef4444' : '#f97316', isCrit);
-      particles.spawnClickSparks(x, y, 8, isCrit ? '#ef4444' : '#f97316');
+    const isCrit = typeof critTier === 'number' ? critTier > 0 : Boolean(critTier);
+    const tier = typeof critTier === 'number' ? critTier : (isCrit ? 1 : 0);
+    if (x && y && this.isCombatVisible()) {
+      let color = '#f97316';
+      let label = '';
+      if (tier >= 2) {
+        color = '#f59e0b';
+        label = '⚡ SUPER CRIT! ';
+      } else if (tier === 1) {
+        color = '#ef4444';
+        label = 'CRIT! ';
+      }
+      particles.spawnFloatingText(x, y, `${label}-${this.fmt(amount)}`, color, isCrit);
+      particles.spawnClickSparks(x, y, tier >= 2 ? 14 : isCrit ? 10 : 8, color);
     }
 
     // Lifesteal
@@ -708,10 +734,11 @@ export class CombatSystem {
     h.attackCooldown -= dt;
     if (h.attackCooldown <= 0) {
       h.attackCooldown = h.attackSpeed;
-      const crit = this.rollGearCrit();
-      const dmg = this.getTotalAttack() * (crit ? 2 : 1);
-      const isVisible = window.gameApp && window.gameApp.currentTab === 'combat';
-      this.dealDamageToMonster(dmg, isVisible ? (window.innerWidth / 2 + 100) : null, isVisible ? (window.innerHeight / 2) : null, crit);
+      const tier = this.rollGearCritTier();
+      const mult = tier >= 2 ? 4 : tier === 1 ? 2 : 1;
+      const dmg = this.getTotalAttack() * mult;
+      const isVisible = this.isCombatVisible();
+      this.dealDamageToMonster(dmg, isVisible && typeof window !== 'undefined' ? (window.innerWidth / 2 + 100) : null, isVisible && typeof window !== 'undefined' ? (window.innerHeight / 2) : null, tier);
     }
 
     // Boss Timer
@@ -748,8 +775,8 @@ export class CombatSystem {
 
       if (dmg > 0) {
         h.hp -= dmg;
-        const isVisible = window.gameApp && window.gameApp.currentTab === 'combat';
-        if (isVisible) {
+        const isVisible = this.isCombatVisible();
+        if (isVisible && typeof window !== 'undefined') {
           sound.playHit();
           particles.spawnFloatingText(window.innerWidth / 2 - 100, window.innerHeight / 2, `-${this.fmt(dmg)}`, '#ef4444', false);
         }

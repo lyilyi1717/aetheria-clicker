@@ -517,6 +517,8 @@ class AetheriaApp {
             this.gardenSystem.harvestPlot(idx, e.clientX, e.clientY);
           } else if (!p.seed) {
             this.gardenSystem.plantSeed(idx);
+          } else {
+            this.gardenSystem.tapPlot(idx, e.clientX, e.clientY);
           }
           this.updateGardenUI();
         }
@@ -978,6 +980,7 @@ class AetheriaApp {
       let icon = '⛏️'; let label = itemName('stone');
       if (b.content === 'stairs') { icon = '🪜'; label = t('mine.tile.stairs'); }
       else if (b.content === 'gold_cache') { icon = '💰'; label = t('res.gold'); }
+      else if (b.content === 'geode_pocket') { icon = '✨💎'; label = t('mine.tile.geode'); }
       else if (TILE_ITEM_KEY[b.content]) { const e = ITEM_NAMES[TILE_ITEM_KEY[b.content]]; icon = e.icon; label = e.name; }
       return `<span class="m-icon">${icon}</span><span class="m-lbl">${label}</span>`;
     };

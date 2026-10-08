@@ -5,6 +5,7 @@ import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from '../data/names.js';
 import { isAutoBlastOn } from './ShardTreeSystem.js';
+import { resolveCritTier } from './ClickerSystem.js';
 import { t, localize, localizeList } from '../i18n/index.js';
 
 // A new stratum every 25 depth (§5.1). Cosmetic plus drop table: each stratum adds
@@ -351,6 +352,8 @@ export class MiningSystem {
 
       if (i === stairIndex) {
         content = 'stairs';
+      } else if (rand < 0.03) {
+        content = 'geode_pocket';
       } else if (rand < 0.04 + extra) {
         content = 'voidAmethyst';
       } else if (rand < 0.10 + extra) {
@@ -399,7 +402,42 @@ export class MiningSystem {
     power *= getActiveRules(this.gameState).excavationMult;
     // Challenge rewards (R56): +x pickaxe power, one additive category
     power *= 1 + getChallengeRewardTotal(this.gameState, 'dig');
+    // Hydraulic Bore (Oil wealth -> Mining Power):
+    const netCps = this.gameState.getNetAetherPerSecond?.();
+    if (netCps && netCps.gt && netCps.gt(10)) {
+      const lg = Math.max(0, Math.log10(Math.abs(netCps.m)) + netCps.e);
+      if (lg > 1) {
+        power *= (1 + (lg - 1) * 0.15);
+      }
+    }
+    // Botanical Rigging (Garden Harvests -> Pickaxe Power):
+    const harvests = this.gameState.stats?.totalPlantsHarvested || 0;
+    if (harvests > 0) {
+      power *= (1 + Math.min(0.50, Math.floor(harvests / 5) * 0.02));
+    }
     return Math.floor(power);
+  }
+
+  triggerMiningShockwave(centerIndex, damage) {
+    const grid = this.gameState.miningGrid;
+    if (!grid?.blocks) return;
+    const size = this.gridSize;
+    const r = Math.floor(centerIndex / size);
+    const c = centerIndex % size;
+    const neighbors = [
+      r > 0 ? (r - 1) * size + c : -1,
+      r < size - 1 ? (r + 1) * size + c : -1,
+      c > 0 ? r * size + (c - 1) : -1,
+      c < size - 1 ? r * size + (c + 1) : -1
+    ];
+    for (const idx of neighbors) {
+      if (idx >= 0 && idx < grid.blocks.length) {
+        const b = grid.blocks[idx];
+        if (b && !b.revealed) {
+          this.damageBlock(b, damage);
+        }
+      }
+    }
   }
 
   mineBlock(index, clientX, clientY, silent = false) {
@@ -407,12 +445,32 @@ export class MiningSystem {
     // While descending the old grid is spent; its tiles would pay at the new depth.
     if (!block || block.revealed || this.descending) return;
 
-    const power = this.getPickaxePower();
+    let power = this.getPickaxePower();
     if (!silent) sound.playDig();
 
+    // Mining Crit System applies to manual player clicks (Base 10% + half of player's crit chance)
+    const isManual = clientX !== undefined || clientY !== undefined;
+    const critChance = isManual ? (0.10 + (this.gameState.critChance || 0) * 0.5) : 0;
+    const critTier = resolveCritTier(critChance);
+
+    let textColor = '#cbd5e1';
+    let label = '';
+    if (critTier === 1) {
+      power = Math.floor(power * 2.5);
+      textColor = '#fbbf24';
+      label = 'CRIT! ';
+      if (!silent) sound.playCrit();
+    } else if (critTier >= 2) {
+      power = Math.floor(power * 5);
+      textColor = '#f97316';
+      label = '⚡ SUPER CRIT! ';
+      if (!silent) sound.playCrit();
+      this.triggerMiningShockwave(index, Math.max(1, Math.floor(power * 0.3)));
+    }
+
     if (clientX && clientY) {
-      particles.spawnClickSparks(clientX, clientY, 6, '#e2e8f0');
-      particles.spawnFloatingText(clientX, clientY, `-${new BigNum(power).format('standard', 0)}`, '#cbd5e1');
+      particles.spawnClickSparks(clientX, clientY, critTier > 1 ? 12 : 6, textColor);
+      particles.spawnFloatingText(clientX, clientY, `${label}-${new BigNum(power).format('standard', 0)}`, textColor, critTier > 0);
     }
     this.damageBlock(block, power, clientX, clientY);
   }
@@ -483,6 +541,32 @@ export class MiningSystem {
       const gold = this.getGoldCacheValue(grid.depth);
       this.gameState.gold = this.gameState.gold.add(gold);
       if (x && y) particles.spawnFloatingText(x, y, t('mine.fx.gold', { n: gold.format('standard', 0) }), '#eab308', true);
+      return;
+    }
+
+    if (block.content === 'geode_pocket') {
+      sound.playAchievement();
+      const gold = this.getGoldCacheValue(grid.depth).mul(3);
+      this.gameState.gold = this.gameState.gold.add(gold);
+      const gemKeys = ['rubies', 'sapphires', 'emeralds', 'diamonds'];
+      const gem1 = gemKeys[Math.floor(this.random() * gemKeys.length)];
+      const gem2 = gemKeys[Math.floor(this.random() * gemKeys.length)];
+      this.gameState.inventory[gem1] = (this.gameState.inventory[gem1] || 0) + 1;
+      this.gameState.inventory[gem2] = (this.gameState.inventory[gem2] || 0) + 1;
+
+      const netCps = this.gameState.getNetAetherPerSecond?.();
+      const oilSurge = (netCps && netCps.gt && netCps.gt(0)) ? netCps.mul(30) : new BigNum(100);
+      this.gameState.aether = this.gameState.aether.add(oilSurge);
+
+      rewards.notify({
+        tier: 'big', kind: 'geode', icon: '💎', color: '#f59e0b',
+        title: t('mine.fx.geode'),
+        detail: `+${gold.format('standard', 0)} Gold, +${oilSurge.format('standard', 0)} Oil, 2 Gems!`
+      });
+      if (x && y) {
+        particles.spawnClickSparks(x, y, 16, '#f59e0b');
+        particles.spawnFloatingText(x, y, t('mine.fx.geode'), '#f59e0b', true);
+      }
       return;
     }
 

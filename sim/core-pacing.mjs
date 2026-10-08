@@ -185,9 +185,9 @@ function makeShardTreeModel(gs, ps) {
         if (!tree.has(id) && canBuyNode(gs, id)) tree.buy(id);
       }
     },
-    // Auto-Ascend decision in sim time (the real system reads Date.now; same rule and minimum)
+    // Auto-Ascend decision in sim time (the real system reads Date.now; same rule)
     autoAscendDue(pending, runSeconds) {
-      return tree.has('chronos_auto_ascend') && gs.shardTree.autoAscend.enabled && runSeconds >= 600 &&
+      return tree.has('chronos_auto_ascend') && gs.shardTree.autoAscend.enabled &&
         autoAscendRuleMet(gs.shardTree.autoAscend, pending, gs.totalCosmicDust, runSeconds);
     },
     owns: (id) => tree.has(id)
@@ -236,7 +236,7 @@ function makeDustShopModel(gs) {
 const MANUAL_ASCEND_MULT = AUTO_ASCEND_RULES.find(r => r.id === AUTO_ASCEND_DEFAULT_RULE).mult;
 const MANUAL_ASCEND_MIN = 5;   // R52: the first New Well pays 5 (Auto-tap's price)
 const SIM_EPOCH = Date.UTC(2026, 0, 1);
-const CHRONICLE_AFTER_SLOW_DAYS = 7;
+const CHRONICLE_AFTER_SLOW_DAYS = 11;
 const PAGE_BUY_ORDER = ['bookmark', 'ink', 'dog_ear', 'gilded_edges', 'margin_notes', 'second_reading'];
 function makeChronicleModel(gs, ps, clock) {
   chronicleClock.now = () => SIM_EPOCH + clock() * 1000;
@@ -371,6 +371,7 @@ function run(profile) {
   const regainDays = [];   // days after each Transcend until CPS is back to its pre-Transcend level
   let regainFrom = null;
   const rows = [];
+  let lastManualAscendHour = -1;
   while (t < YEAR) {
     const dt = dtFor(t);
     if (LINKS && (t % 3600 < dt || dt >= 3600)) applyLinks(gs, t);
@@ -399,12 +400,15 @@ function run(profile) {
     if (pending.gt(0)) {
       // By hand while present (casual: up to the moment they leave; idle: one glance an hour), or by
       // Auto-Ascend once it is owned
+      const currentHour = Math.floor(t / 3600);
       const here = profile === 'casual' ? t % 3600 <= presence : t % 3600 < dt;
-      const manual = here && t - runStart >= 600 && pending.gte(gs.totalCosmicDust.mul(MANUAL_ASCEND_MULT - 1).max(MANUAL_ASCEND_MIN));
+      const canManual = here && lastManualAscendHour !== currentHour;
+      const manual = canManual && pending.gte(gs.totalCosmicDust.mul(MANUAL_ASCEND_MULT - 1).max(MANUAL_ASCEND_MIN));
       if (manual || shardTree.autoAscendDue(pending, t - runStart)) {
+        if (manual) lastManualAscendHour = currentHour;
         resets.push(t);
         upgradesPerRun.push(us.getBoughtCount());
-        ps.ascend(true); // the sim enforces the 10-min minimum itself (virtual time, not Date.now)
+        ps.ascend(true);
         runStart = t;
         dustShop.buyAll(t);
       }

@@ -32,7 +32,7 @@ function jsFiles(dir) {
 // " //" or "/*").
 function codeLines(src) {
   let inBlock = false;
-  return src.split('\n').map(line => {
+  return src.replace(/\r/g, '').split('\n').map(line => {
     let l = line;
     if (inBlock) {
       const end = l.indexOf('*/');

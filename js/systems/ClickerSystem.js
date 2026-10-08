@@ -39,6 +39,16 @@ export function pickAnomalyType(r) {
 
 const fmtStd = (a) => a.format('standard', 2);
 
+// Resolve critical strike tier (Stat Overflow):
+// 0 = Normal, 1 = Crit, 2 = Super-Crit (>100%), 3 = Hyper-Crit (>200%)
+export function resolveCritTier(chance, rng = Math.random) {
+  if (chance <= 0) return 0;
+  const guaranteed = Math.floor(chance);
+  let tier = guaranteed;
+  if (rng() < (chance - guaranteed)) tier += 1;
+  return tier;
+}
+
 export class ClickerSystem {
   // rng: injectable () => [0,1) so tests can seed anomaly rolls (defaults to Math.random)
   constructor(gameState, rng = Math.random) {
@@ -88,13 +98,31 @@ export class ClickerSystem {
       }
       this.clickTokens -= 1;
     }
-    // Determine if critical strike
-    const isCrit = Math.random() < this.gameState.critChance;
+
+    // Determine critical strike tier
+    const effectiveCritChance = this.gameState.critChance || 0;
+    const critTier = resolveCritTier(effectiveCritChance, this.rng);
+    const isCrit = critTier > 0;
     let yieldAmount = this.gameState.getClickYield();
 
-    if (isCrit) {
-      yieldAmount = yieldAmount.mul(this.gameState.critMultiplier);
+    if (critTier > 0) {
+      const multBase = this.gameState.critMultiplier || 3;
+      // Tier 1: multBase, Tier 2: 1 + 2*(multBase-1), Tier 3+: 1 + 4*(multBase-1)
+      const tierMult = critTier === 1
+        ? multBase
+        : 1 + Math.pow(2, critTier - 1) * (multBase - 1);
+      yieldAmount = yieldAmount.mul(tierMult);
       sound.playCrit();
+
+      if (clientX && clientY) {
+        if (critTier >= 3) {
+          particles.spawnFloatingText(clientX, clientY - 35, '🔮 HYPER CRIT!', '#a855f7', true);
+          particles.spawnClickSparks(clientX, clientY, 14, '#a855f7');
+        } else if (critTier === 2) {
+          particles.spawnFloatingText(clientX, clientY - 30, '⚡ SUPER CRIT!', '#f97316', true);
+          particles.spawnClickSparks(clientX, clientY, 10, '#f97316');
+        }
+      }
     } else {
       sound.playClick(1 + (this.gameState.comboCount % FRENZY_EVERY) * 0.03);
     }

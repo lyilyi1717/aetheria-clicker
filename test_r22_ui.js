@@ -17,7 +17,7 @@ const tokens = definedIn(tokensCss);
 console.log('--- tokens.css carries the style guide §2.1 block ---');
 {
   const guide = read('./docs/ui-style-guide.md');
-  const block = guide.match(/```css\n([\s\S]*?)```/)[1];
+  const block = guide.match(/```css\r?\n([\s\S]*?)```/)[1];
   for (const name of definedIn(block)) assert.ok(tokens.has(name), `tokens.css is missing ${name}`);
   assert.match(tokensCss, /--rarity-legendary:\s*#ef8a3c/, 'Legendary is orange, not red');
   assert.match(tokensCss, /--font-ui:\s*'Inter'/, 'Inter is the UI font');

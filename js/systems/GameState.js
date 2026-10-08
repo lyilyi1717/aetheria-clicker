@@ -50,7 +50,7 @@ export class GameState {
     this.cosmicDust = new BigNum(0);
     this.totalCosmicDust = new BigNum(0);
     this.ascensionCount = 0;
-    // Wall-clock ms when the current run began (Ascend minimum run, see PrestigeSystem.getMinRunRemaining)
+    // Wall-clock ms when the current run began
     this.runStartedAt = Date.now();
 
     // Fracture Shards: fractureShards is the spendable balance (shard tree, R13);

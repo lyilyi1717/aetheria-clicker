@@ -417,6 +417,17 @@ export class GardenSystem {
       }
     }
 
+    // Nectar Surge: harvesting yields immediate active Oil windfall (15s of net CPS, min 10 Oil)
+    const netCps = this.gameState.getNetAetherPerSecond?.();
+    if (netCps && netCps.gt && netCps.gt(0)) {
+      const oilSurge = netCps.mul(15).max(10);
+      this.gameState.aether = this.gameState.aether.add(oilSurge);
+      this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(oilSurge);
+      if (clientX && clientY) {
+        particles.spawnFloatingText(clientX, clientY - 40, `+${oilSurge.format('standard', 0)} OIL!`, '#38bdf8');
+      }
+    }
+
     // Mana Lily restores mana on harvest
     if (seedId === 'mana_lily') {
       const restore = 15 * fertMult;
@@ -467,6 +478,31 @@ export class GardenSystem {
     return true;
   }
 
+  // Active Dewdrop Tapping: clicking growing crops accelerates growth & splashes oil
+  tapPlot(plotIndex, clientX, clientY) {
+    const plot = this.gameState.garden?.plots?.[plotIndex];
+    if (!plot || !plot.seed || plot.stage === 'mature' || plot.progress >= plot.maxTime) return false;
+
+    // Advance growth by 5% of maxTime (min 3s, max 30s)
+    const boost = Math.min(30, Math.max(3, Math.floor(plot.maxTime * 0.05)));
+    plot.progress = Math.min(plot.maxTime, plot.progress + boost);
+    this.updateStage(plot);
+
+    sound.playClick();
+
+    // Small oil splash from dewdrop: 1s of net CPS, min 10
+    const netCps = this.gameState.getNetAetherPerSecond?.();
+    const oilSplash = (netCps && netCps.gt && netCps.gt(0)) ? netCps.mul(1) : new BigNum(10);
+    this.gameState.aether = this.gameState.aether.add(oilSplash);
+    this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(oilSplash);
+
+    if (clientX && clientY) {
+      particles.spawnClickSparks(clientX, clientY, 6, '#38bdf8');
+      particles.spawnFloatingText(clientX, clientY, t('garden.fx.dewdrop', { s: boost }), '#38bdf8', false);
+    }
+    return true;
+  }
+
   harvestAll() {
     let harvested = 0;
     for (let i = 0; i < this.gameState.garden.plots.length; i++) {
@@ -490,9 +526,23 @@ export class GardenSystem {
     return planted;
   }
 
-  // Growth speed from talents (Leyline Overflow is applied by SpellSystem)
+  // Growth speed from talents, subterranean irrigation, and geothermal warmth
   getGrowthMultiplier() {
-    return 1 + (this.gameState.talents?.botanical_haste?.rank || 0) * 0.2;
+    let mult = 1 + (this.gameState.talents?.botanical_haste?.rank || 0) * 0.2;
+    // Subterranean Irrigation (Oil wealth -> Garden speed):
+    const totalAether = this.gameState.totalAetherEarned;
+    if (totalAether && totalAether.gt && totalAether.gt(100)) {
+      const lg = Math.max(0, Math.log10(Math.abs(totalAether.m)) + totalAether.e);
+      if (lg > 2) {
+        mult *= (1 + Math.min(3, (lg - 2) * 0.10));
+      }
+    }
+    // Geothermal Warmth (Excavation Depth -> Garden growth speed):
+    const maxDepth = this.gameState.miningGrid?.maxDepth || 1;
+    if (maxDepth > 10) {
+      mult *= (1 + Math.min(0.50, (maxDepth - 10) * 0.005));
+    }
+    return mult;
   }
 
   updateStage(plot) {

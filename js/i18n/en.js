@@ -260,6 +260,7 @@ export default {
 
   // main.js: garden, golems, alchemy
   "mine.tile.stairs": "STAIRS",
+  "mine.tile.geode": "GEODE POCKET",
   "res.gold": "Gold",
   "garden.water": "💧 Water All ({state})",
   "garden.fert_tip": "Costs 1 {item} per growing plot. That plot's next harvest yields ×2 essence.",
@@ -612,6 +613,8 @@ export default {
   "mine.fx.gold": "+{n} GOLD",
   "mine.fx.stone": "+{n} STONE",
   "mine.fx.ore": "+1 OIL SHALE",
+  "mine.fx.geode": "💎 GEODE JACKPOT!",
+  "garden.fx.dewdrop": "+{s}s Dewdrop! 💧",
 
   // PrestigeSystem.js
   "prestige.toast": "New Well drilled!",

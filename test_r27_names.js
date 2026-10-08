@@ -49,7 +49,7 @@ const walk = (dir) => {
 };
 walk('js');
 for (const f of files) {
-  readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
+  readFileSync(f, 'utf8').replace(/\r/g, '').split('\n').forEach((line, i) => {
     const code = line.replace(/\/\/.*$/, '').replace(/<!--.*?-->/g, '');
     if (OLD.test(code)) check(false, `old name in ${f}:${i + 1}: ${line.trim().slice(0, 100)}`);
   });

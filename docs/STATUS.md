@@ -328,15 +328,25 @@ R0–R30 and R32–R40 are done.
   explains itself on hover; add its class to `TAP_TIP_SELECTOR` if phones need it. New animations
   that loop forever must be ambient and listed in `test_r24_motion.js`.
 
+- Dopamine, Subgames & Game Feel (v5.7.0 - v5.10.0):
+  - Removed 10-minute minimum Ascension run restriction (`MIN_RUN_SECONDS = 0`).
+  - Added Stat Overflow: cascading Super-Crits (Orange) and Hyper-Crits (Violet) across Refinery and Tower attacks.
+  - Mining Super-Crits and Shockwaves: 4-tile adjacent AoE detonation on manual mining crits.
+  - Excavation Geode Pockets (jackpot tiles): 3% chance to unearth 3x gold cache, 2 random gems, and 30s Oil surge.
+  - Active Garden Dewdrop Tapping: clicking growing plots advances crop timer by 5% and splashes oil.
+  - Cross-Subgame Synergies: Hydraulic Bore (Oil -> Mining Power), Subterranean Irrigation (Oil -> Garden Growth), Geothermal Warmth (Excavation Depth -> Garden Speed), Botanical Rigging (Harvests -> Pickaxe Power), and Nectar Surge (Harvest -> Oil Windfall).
+  - Polish & Bug Fixes: Suppressed Tower combat particles/floats when combat tab is hidden; hid Mana from header until Grimoire is unlocked; isolated Arabic unlock teaser fractions so they read left-to-right (`0/10`); stabilized `test_r52_clicks.js` timing race.
+
 ## Noticed (not yet an issue)
 
 - After R31: Talent S2 gives ~10 stars/yr.
 - After R52: the Aetherial Strike talent can push active play past x2 over idle.
 - After R56: the Salt stamp pays 0 Pages (a paying stamp would move the sim around day 210);
   since R52, Sandstorm takes ~31 h on a fresh idle run.
-- `test_r52_clicks.js` is flaky (about 2 in 30 runs fail on `Date.now` timing in the offline
-  test); worth a small fix item if CI starts flaking.
-- Arabic unlock teaser labels show fractions reversed (e.g. "20/0"); seen in R54.
+- [FIXED v5.8] `test_r52_clicks.js` timing flake resolved with 1e-4 tolerance.
+- [FIXED v5.10] Arabic unlock teaser labels fraction reversal resolved with isolate wrapper.
+- [FIXED v5.10] Header Mana currency hidden until Grimoire is unlocked.
+- [FIXED v5.10] Combat floating damage text and particles confined to active Tower tab.
 
 - Hex colours still in `CombatSystem.js`, `MiningSystem.js`, `ShardTreeSystem.js`,
   `js/ui/shardTree.js`, `js/data/names.js` (R35 maps the known ones to theme tokens at runtime).
@@ -350,7 +360,7 @@ R0–R30 and R32–R40 are done.
 
 - R7 starter gifts not built: Rare weapon (Tower), half-filled first contract (Bounties), free
   Cold Vimto brew (Alchemy), free caravan (Bazaar). Save export/import still sits in the Codex
-  (roadmap §2.1 rule 5 wants it in Settings). The header shows Mana before the Grimoire opens.
+  (roadmap §2.1 rule 5 wants it in Settings).
 - **Active income is x7.2, not the doc's ~x2** (R3, design doc §6.1 R3 notes). The specified
   spell/anomaly values were applied; the rest comes from Chrono Warp (~+1), Bursts cast inside
   Celestial, and Frenzy clicks. Owner decision: which of those to trim (each changes the
@@ -364,6 +374,3 @@ R0–R30 and R32–R40 are done.
   scales with the current floor; neither follows the R8 curves.
 - A brand-new account carrying a rebased legacy save shows floor <= 1,000 + 1,000/h on Season 2
   for its first hours (R19 guard ceiling); old anonymous accounts can still post forged floors.
-- Combat floating damage text and particles still render over other tabs (seen on Excavation
-  and over the Tower quick-cast chips; `docs/ui-review.md` finding 6). `1ae4d47` fixed it for
-  auto-attacks only.

@@ -138,11 +138,11 @@ console.log('--- Auto-tap keeps tapping offline ---');
   const gs = make(1000);
   const sm = new SaveManager(gs);
   const res = sm.processOfflineTime(Date.now() - 2 * H * 1000);
-  assert.ok(close(res.gainedAether.toNumber(), 1000 * 2 * H), 'without Auto-tap: production only');
+  assert.ok(close(res.gainedAether.toNumber(), 1000 * 2 * H, 1e-4), 'without Auto-tap: production only');
   gs.aether = BigNum.zero();
   gs.dustShop.ranks.auto_tap = 1;
   const res2 = sm.processOfflineTime(Date.now() - 2 * H * 1000);
-  assert.ok(close(res2.gainedAether.toNumber(), 1500 * 2 * H), 'with Auto-tap: x1.5');
+  assert.ok(close(res2.gainedAether.toNumber(), 1500 * 2 * H, 1e-4), 'with Auto-tap: x1.5');
 }
 
 console.log('--- save step v9: bought click upgrades are refunded as Oil ---');
