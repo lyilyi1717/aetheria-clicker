@@ -108,7 +108,7 @@ export const SEALS = [
   { id: 'oasis', icon: '🌳', name: 'Oasis', short: '25 cat.', desc: 'Brew 25 Catalysts', goal: 25, value: gs => n(gs.alchemy?.catalysts) },
   { id: 'rebirth', icon: '🔮', name: 'Rebirth', short: '15 wells', desc: 'Drill a New Well 15 times', goal: 15, value: gs => n(gs.ascensionCount) },
   { id: 'guild', icon: '📜', name: 'Guild', short: 'rank 7', desc: 'Reach Guild Rank 7', goal: 7, value: gs => n(gs.records?.guildRank) },
-  { id: 'stars', icon: '✨', name: 'Stars', short: '1e8 Reserves', desc: 'Pay 1e8 Crude Reserves in one New Well', goal: 8, value: gs => bigLog10(gs.records?.bestRunDust) },
+  { id: 'stars', icon: '✨', name: 'Stars', short: '500 Reserves', desc: 'Pay 500 Crude Reserves in one New Well', goal: Math.log10(500), value: gs => bigLog10(gs.records?.bestRunDust) },
   { id: 'memory', icon: '📖', name: 'Memory', short: '40% codex', desc: 'Fill 40% of the Codex', goal: 40, value: gs => n(gs.collectionSystem?.getCodexPercent?.()) }
 ];
 localize(SEALS, 'seal', ['name', 'short', 'desc']);

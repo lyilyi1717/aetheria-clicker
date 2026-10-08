@@ -18,6 +18,8 @@ globalThis.localStorage ??= {
 };
 
 const clone = o => JSON.parse(JSON.stringify(o));
+// Runs the migration chain only up to version v (to test one older step on its own)
+const upTo = (data, v) => migrateSave(data, MIGRATIONS.filter(st => st.to <= v));
 // Fields stamped from the wall clock on save/load (savedAt, and the Fast Forward high-water
 // mark that follows it) legitimately differ between two serializes; compare the rest.
 const stable = o => {
@@ -130,13 +132,14 @@ console.log('--- v1 fixture loads and round-trips ---');
 {
   const gs = new GameState();
   gs.deserialize(clone(V1_FIXTURE));
-  assert.equal(gs.aether.toString(), new BigNum(1.5e12).toString());
+  // v8 (R31): the run is refunded as Oil on the new scale (3e14 run Oil -> 10^(4 + 5.48 x 0.2))
+  assert.ok(Math.abs(Math.log10(gs.aether.toNumber()) - (4 + (Math.log10(3e14) - 9) * 0.2)) < 1e-9);
   assert.equal(gs.ascensionCount, 3);
   assert.equal(gs.totalClicks, 1234);
   assert.equal(gs.alchemy.catalysts, 12);
   assert.equal(gs.stats.globalMultiplier, 1);
   assert.equal(gs.inventory.herbs, 7);
-  assert.equal(gs.buildings.tapper.count, 10);
+  assert.equal(gs.buildings.tapper.count, 0, 'v8 refunds the run');
   assert.equal(gs.settings.notation, 'suffix');
 
   const out = clone(gs.serialize());
@@ -214,36 +217,36 @@ console.log('--- v3 -> v4: saves that Transcended under the old rules are refund
     transcendenceCount: 3,
     buildings: { tapper: { count: 40 }, matrix: { count: 2 } }
   };
-  const gs = new GameState();
-  gs.deserialize(clone(V3_TRANSCENDED));
+  // Step v4 on its own (later steps rescale the economy, R31): raw data after the chain up to v7
+  const big = (v) => BigNum.fromJSON(v);
+  const shardMultV7 = (d) => Math.pow(1.5, big(d.totalFractureShards).toNumber()); // the rules v4-v7 shipped with
+  const d = upTo(clone(V3_TRANSCENDED), 7);
   // 2 shards per old Transcend (6: x11.4) beats matching the old x3.3 (3 shards)
-  assert.equal(gs.fractureShards.toNumber(), 6);
-  assert.equal(gs.totalFractureShards.toNumber(), 6);
-  assert.equal(gs.transcendenceCount, 3, 'old Transcends count: tiers 15-17 open');
+  assert.equal(big(d.fractureShards).toNumber(), 6);
+  assert.equal(big(d.totalFractureShards).toNumber(), 6);
+  assert.equal(d.transcendenceCount, 3, 'old Transcends count');
   // Dust the old Transcends took (23 x 1e4) comes back, lifetime and spendable
-  assert.ok(near(gs.totalCosmicDust.toNumber(), 5000 + 230000));
-  assert.ok(near(gs.cosmicDust.toNumber(), 1000 + 230000));
-  assert.deepEqual(gs.legacyTranscendRefund, { transcends: 3, oldShards: { m: 2.3, e: 1 }, shards: 6, dust: { m: 2.3, e: 5 } });
-  assert.equal(gs.buildings.tapper.count, 40);
+  assert.ok(near(big(d.totalCosmicDust).toNumber(), 5000 + 230000));
+  assert.ok(near(big(d.cosmicDust).toNumber(), 1000 + 230000));
+  assert.deepEqual(d.legacyTranscendRefund, { transcends: 3, oldShards: { m: 2.3, e: 1 }, shards: 6, dust: { m: 2.3, e: 5 } });
+  assert.equal(d.buildings.tapper.count, 40);
   // Never weaker: the new shard multiplier beats the old one
-  assert.ok(gs.getShardAetherMult().toNumber() >= 1 + 0.1 * 23);
+  assert.ok(shardMultV7(d) >= 1 + 0.1 * 23);
 
   // One Transcend at a very large pile: 1e4 shards (old x1,001). 2 shards would be x2.25, so the
   // refund pays the fewest shards that match x1,001: ceil(log 1001 / log 1.5) = 18
-  const gsBig = new GameState();
-  gsBig.deserialize({ ...clone(V3_TRANSCENDED), transcendenceCount: 1, fractureShards: { m: 1, e: 4 } });
-  assert.equal(gsBig.totalFractureShards.toNumber(), 18);
-  assert.ok(gsBig.getShardAetherMult().toNumber() >= 1001);
-  assert.ok(near(gsBig.totalCosmicDust.toNumber(), 5000 + 1e8));
+  const dBig = upTo({ ...clone(V3_TRANSCENDED), transcendenceCount: 1, fractureShards: { m: 1, e: 4 } }, 7);
+  assert.equal(big(dBig.totalFractureShards).toNumber(), 18);
+  assert.ok(shardMultV7(dBig) >= 1001);
+  assert.ok(near(big(dBig.totalCosmicDust).toNumber(), 5000 + 1e8));
 
   // Past 1e308 shards (an edited or runaway save): finite and still never weaker
-  const gsHuge = new GameState();
-  gsHuge.deserialize({ ...clone(V3_TRANSCENDED), fractureShards: { m: 1, e: 400 } });
-  assert.equal(gsHuge.totalFractureShards.toNumber(), Math.ceil(399 / Math.log10(1.5)));
-  assert.equal(gsHuge.totalCosmicDust.toString(), new BigNum(1, 404).add(5000).toString());
+  const dHuge = upTo({ ...clone(V3_TRANSCENDED), fractureShards: { m: 1, e: 400 } }, 7);
+  assert.equal(big(dHuge.totalFractureShards).toNumber(), Math.ceil(399 / Math.log10(1.5)));
+  assert.equal(big(dHuge.totalCosmicDust).toString(), new BigNum(1, 404).add(5000).toString());
 
   // Saves that never Transcended are unchanged apart from the new lifetime-shard field
-  const plain = migrateSave(clone(V2_FIXTURE));
+  const plain = upTo(clone(V2_FIXTURE), 7);
   assert.equal(plain.legacyTranscendRefund, undefined);
   assert.deepEqual(plain.totalCosmicDust, V2_FIXTURE.totalCosmicDust);
   const gsPlain = new GameState();
@@ -251,13 +254,16 @@ console.log('--- v3 -> v4: saves that Transcended under the old rules are refund
   assert.equal(gsPlain.totalFractureShards.toNumber(), 0);
   assert.equal(gsPlain.legacyTranscendRefund, null);
 
-  // The migrated save round-trips, and is not refunded twice
+  // The fully migrated save round-trips, and is not refunded twice
+  const gs = new GameState();
+  gs.deserialize(clone(V3_TRANSCENDED));
+  assert.equal(gs.totalFractureShards.toNumber(), 6);
   const out = clone(gs.serialize());
   assert.equal(out.version, SAVE_VERSION);
   const gs2 = new GameState();
   gs2.deserialize(clone(out));
   assert.deepEqual(stable(gs2.serialize()), stable(out), 'a refunded save round-trips unchanged');
-  assert.ok(near(gs2.totalCosmicDust.toNumber(), 235000), 'not refunded twice');
+  assert.ok(gs2.totalCosmicDust.eq(gs.totalCosmicDust), 'not refunded twice');
 }
 
 console.log('--- v4 -> v5: Ascension perks become the Dust shop (R6) ---');
@@ -275,14 +281,17 @@ console.log('--- v4 -> v5: Ascension perks become the Dust shop (R6) ---');
     },
     buildings: { tapper: { count: 12 } }
   };
+  // Step v5 on its own (v8 rescales dust, R31)
+  const d = upTo(clone(V4_WITH_PERKS), 7);
+  assert.deepEqual(d.dustShop.ranks, { genesis: 1, auto_leylines: 1, chrono_vault: 3 });
+  // Eternal Resonance x2 refunded at its old prices: 10 + 15 dust
+  assert.ok(Math.abs(BigNum.fromJSON(d.cosmicDust).toNumber() - (50 + 25)) < 1e-9);
+  assert.equal(BigNum.fromJSON(d.totalCosmicDust).toNumber(), 1e4, 'lifetime dust untouched');
+  assert.equal(d.buildings.tapper.count, 12);
   const gs = new GameState();
   gs.deserialize(clone(V4_WITH_PERKS));
   assert.deepEqual(gs.dustShop.ranks, { genesis: 1, auto_leylines: 1, chrono_vault: 3 });
-  // Eternal Resonance x2 refunded at its old prices: 10 + 15 dust
-  assert.ok(Math.abs(gs.cosmicDust.toNumber() - (50 + 25)) < 1e-9);
-  assert.equal(gs.totalCosmicDust.toNumber(), 1e4, 'lifetime dust untouched');
   assert.equal(gs.getChronoSandCap(), 1440 * 2.5, 'Chrono Reservoir III still raises the sand bank');
-  assert.equal(gs.buildings.tapper.count, 12);
   const out = clone(gs.serialize());
   assert.equal(out.version, SAVE_VERSION);
   assert.equal(out.ascensionPerks, undefined, 'the old perk field is gone');
@@ -380,6 +389,95 @@ console.log('--- v5 -> v6: saves from before progressive unlocking keep the tabs
   const v6 = load({ ...base, version: 6, unlocks: { combat: 9 }, unlockSeen: {} });
   assert.deepEqual(v6.unlocks, { combat: 9 });
   assert.equal(v6.unlockSeen.combat, undefined);
+}
+
+console.log('--- v7 -> v8: the economy redesign moves saves to the same point on the new curve (R31) ---');
+{
+  const lg = (b) => Math.log10(b.m) + b.e;
+  // Mid-year under the old economy: 10 New Fields, a deep layer, a long run, the old ladder
+  const V7_MIDYEAR = {
+    version: 7,
+    savedAt: 1760000000000,
+    runStartedAt: 1759990000000,
+    aether: { m: 3, e: 39 },
+    totalAetherEarned: { m: 1, e: 40 },
+    cosmicDust: { m: 2, e: 16 },
+    totalCosmicDust: { m: 1, e: 17 },     // old gate for the 11th New Field: 1e19
+    ascensionCount: 400,
+    transcendenceCount: 10,
+    fractureShards: { m: 3, e: 0 },
+    totalFractureShards: { m: 2, e: 1 },
+    talentPoints: 55,
+    buildings: { tapper: { count: 900, unlocked: true }, matrix: { count: 120 }, dune_array: { count: 4 }, mirage_forge: { count: 3 } },
+    upgrades: ['tapper_u1', 'tapper_u2', 'click_1'],
+    dustShop: { ranks: { genesis: 1, blueprint_memory: 1, chrono_vault: 2, dust_amplifier: 120 }, autoBuy: true, runClickBase: 0 },
+    shardTree: { owned: { chronos_auto_ascend: true, foundry_t16: true, foundry_t25: true, foundry_t30: true }, granted: { foundry_t30: true },
+      autoAscend: { enabled: true, rule: 'x2', timerMin: 30 } },
+    records: { bestRunDust: { m: 1, e: 16 }, magnitudeStars: 13, stars: {}, harvested: {}, transcendPaid: 10, contractsClaimed: 0, guildRank: 0 },
+    chronicle: { count: 0, pages: 0, totalPages: 0, upgrades: {}, challenges: {},
+      active: { id: 'sand_dry_well', startedAt: 1759990000000, stash: { aether: { m: 1, e: 30 }, totalAetherEarned: { m: 5, e: 31 },
+        clickPower: { m: 1, e: 0 }, buildings: { tapper: 500, eternal_dallah: 2 }, upgrades: ['tapper_u1'], comboCount: 0, runStartedAt: 1759980000000 } } }
+  };
+  const d = migrateSave(clone(V7_MIDYEAR));
+  assert.equal(d.version, 8);
+  // The run is refunded: generators and upgrades back to 0, run Oil 1e40 -> 10^(4 + 31 x 0.2)
+  assert.ok(Math.abs(lg(d.totalAetherEarned) - 10.2) < 1e-9);
+  assert.deepEqual(d.aether, d.totalAetherEarned, 'the whole run comes back as Oil to spend');
+  assert.deepEqual(Object.keys(d.buildings).sort(), ['dune_array', 'matrix', 'tapper'], 'retired tier 21 is gone');
+  assert.ok(Object.values(d.buildings).every(b => b.count === 0));
+  assert.equal(d.buildings.tapper.unlocked, true, 'other building fields are kept');
+  assert.deepEqual(d.upgrades, []);
+  // Reserves keep their place on the way to the next New Field (log 17 of 19 -> the new gate,
+  // capped at the 9th step: 400 x 1.6^8)
+  const newGate = Math.log10(400) + 8 * Math.log10(1.6);
+  const want = 1 + (17 - Math.log10(150)) * (newGate - 1) / (19 - Math.log10(150));
+  assert.ok(Math.abs(lg(d.totalCosmicDust) - want) < 1e-3, `lifetime Reserves ${lg(d.totalCosmicDust)} vs ${want}`);
+  assert.ok(lg(d.totalCosmicDust) < newGate);
+  // Shop: features and ranks kept and paid at the new prices, Amplifier refunded
+  assert.deepEqual(d.dustShop.ranks, { genesis: 1, blueprint_memory: 1, chrono_vault: 2 });
+  const life = BigNum.fromJSON(d.totalCosmicDust).toNumber();
+  assert.equal(BigNum.fromJSON(d.cosmicDust).toNumber(), Math.floor(life - (5 + 10 + 10 + 15) + 1e-9));
+  // Shares unchanged; the bought Deep Blueprint of tier 25 is refunded, the granted one dropped
+  assert.equal(BigNum.fromJSON(d.totalFractureShards).toNumber(), 20);
+  assert.equal(BigNum.fromJSON(d.fractureShards).toNumber(), 4);
+  assert.deepEqual(Object.keys(d.shardTree.owned).sort(), ['chronos_auto_ascend', 'foundry_t16']);
+  assert.deepEqual(d.shardTree.granted, {});
+  assert.equal(d.shardTree.autoAscend.rule, 'x1.25', 'the old default rule moves to the new default');
+  // Talent stars: the record moves with the Reserves, points already paid stay
+  assert.ok(lg(d.records.bestRunDust) <= lg(d.totalCosmicDust));
+  assert.equal(d.records.magnitudeStars, Math.max(0, Math.floor(lg(d.records.bestRunDust) / Math.log10(2) + 1e-9) - 3));
+  assert.equal(d.talentPoints, 55);
+  // A run set aside by a challenge is refunded the same way
+  const st = d.chronicle.active.stash;
+  assert.ok(Math.abs(lg(st.totalAetherEarned) - (4 + (31 + Math.log10(5) - 9) * 0.2)) < 1e-9);
+  assert.deepEqual(st.buildings, { tapper: 0 });
+  assert.deepEqual(st.upgrades, []);
+
+  // It loads into the new game: small finite numbers, all 18 tiers this save has open
+  const gs = new GameState();
+  gs.deserialize(clone(V7_MIDYEAR));
+  assert.equal(gs.transcendenceCount, 10);
+  assert.equal(gs.getShardAetherMult().toNumber(), 1 + 0.25 * 20);
+  assert.ok(gs.getDustMultiplier() > 1 && gs.getDustMultiplier() < 200, `dust multiplier ${gs.getDustMultiplier()}`);
+  assert.equal(gs.shardTree.autoAscend.rule, 'x1.25');
+  const out = clone(gs.serialize());
+  assert.equal(out.version, SAVE_VERSION);
+  const gs2 = new GameState();
+  gs2.deserialize(clone(out));
+  assert.deepEqual(stable(gs2.serialize()), stable(out), 'a v8 save round-trips unchanged');
+
+  // A new player's save: one New Well (150 Reserves) -> 10, the new first New Well; no Field yet
+  const early = migrateSave({ version: 7, aether: { m: 5, e: 8 }, totalAetherEarned: { m: 2, e: 9 },
+    cosmicDust: { m: 1.5, e: 2 }, totalCosmicDust: { m: 1.5, e: 2 }, ascensionCount: 1, buildings: { tapper: { count: 30 } },
+    shardTree: { owned: {}, granted: {}, autoAscend: { enabled: true, rule: 'x1.5', timerMin: 30 } } });
+  assert.equal(BigNum.fromJSON(early.totalCosmicDust).toNumber(), 10);
+  assert.equal(BigNum.fromJSON(early.cosmicDust).toNumber(), 10);
+  assert.equal(early.shardTree.autoAscend.rule, 'x1.5', 'a rule the player picked stays');
+  assert.ok(Math.abs(lg(early.totalAetherEarned) - (4 + Math.log10(2) * 0.2)) < 1e-9, 'just past the old gate -> just past the new one');
+  // A save with nothing to convert is still valid
+  const empty = migrateSave({ version: 7 });
+  assert.deepEqual(empty.aether, { m: 0, e: 0 });
+  assert.deepEqual(empty.cosmicDust, { m: 0, e: 0 });
 }
 
 console.log('All save versioning tests passed.');

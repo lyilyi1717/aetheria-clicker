@@ -8,7 +8,7 @@
 // First three branches:
 //   Foundry  12 "Deep Blueprint" nodes (1 shard each), one per Transcend tier (9-20): that tier's 5 shop
 //            upgrades cost /10. Read by the upgrade shop through getDeepBlueprintDivisor().
-//   Chronos  Auto-Ascend (2; rule: x1.2 / x1.5 / x2 lifetime dust, or a timer) -> Long Sleep
+//   Chronos  Auto-Ascend (2; rule: x1.2 / x1.25 / x1.5 / x2 lifetime dust, or a timer) -> Long Sleep
 //            (2; offline cap +8 h) -> Hourglass (3; a 6 h Fast Forward once per day). Auto-Blast (1)
 //            stands alone: Excavation dynamite fires itself whenever it is off cooldown (R32).
 //   Tower    Wardens (1; every 250th floor) -> Second Wind (2; one free retry per boss fight).
@@ -81,7 +81,7 @@ export const SHARD_TREE_NODES = [
   ...foundryNodes(),
   {
     id: 'chronos_auto_ascend', branch: 'chronos', cost: 2, icon: '♾️', name: 'Auto-Well',
-    desc: 'Drills a New Well for you by your rule (Reserves ×1.2 / ×1.5 / ×2, or a timer), never before the 10-min minimum run. Uses held Sidr Honey like a New Well drilled by hand.',
+    desc: 'Drills a New Well for you by your rule (Reserves ×1.2 / ×1.25 / ×1.5 / ×2, or a timer). The Reserves rules wait for a run of at least 30 min. Uses held Sidr Honey like a New Well drilled by hand.',
     requires: []
   },
   {

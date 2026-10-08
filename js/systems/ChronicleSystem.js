@@ -125,16 +125,16 @@ export const CHAPTERS = [
     challenges: [
       { id: 'sand_dry_well', name: 'Dry Well', icon: '🧯', pages: 3, requires: 0,
         desc: 'Combo caps at ×2 and Frenzy never starts.',
-        rules: { layerBonusesOff: true, comboCap: 2, noFrenzy: true }, goal: { runAether: 1e11 } },
+        rules: { layerBonusesOff: true, comboCap: 2, noFrenzy: true }, goal: { runAether: 1e6 } },
       { id: 'sand_lights_out', name: 'Lights Out', icon: '🌑', pages: 3, requires: 0,
         desc: 'Spells can\'t be cast, and Automated Leylines rests.',
-        rules: { layerBonusesOff: true, noSpells: true }, goal: { runAether: 1e11 } },
+        rules: { layerBonusesOff: true, noSpells: true }, goal: { runAether: 1e6 } },
       { id: 'sand_small_souq', name: 'Small Souq', icon: '🐪', pages: 4, requires: 1,
         desc: 'Only the first 6 generators open.',
-        rules: { layerBonusesOff: true, maxTiers: 6 }, goal: { runAether: 1e10 } },
+        rules: { layerBonusesOff: true, maxTiers: 6 }, goal: { runAether: 1e5 } },
       { id: 'sand_sandstorm', name: 'Sandstorm', icon: '🌪️', pages: 5, requires: 3,
         desc: 'The storm takes nine tenths of all Oil.',
-        rules: { layerBonusesOff: true, aetherMult: 0.1 }, goal: { runAether: 1e10 } }
+        rules: { layerBonusesOff: true, aetherMult: 0.1 }, goal: { runAether: 1e5 } }
     ]
   }
 ];
@@ -190,7 +190,7 @@ export function validateChapters(chapters = CHAPTERS) {
       if (!(Number.isInteger(c.requires) && c.requires >= 0 && c.requires < ch.challenges.length)) errs.push(`${cw}: requires out of range`);
       checkRules(cw, c.rules);
       const g = c.goal?.runAether;
-      if (!(typeof g === 'number' && Number.isFinite(g) && g >= 1e9)) errs.push(`${cw}: goal.runAether must be a number >= 1e9`);
+      if (!(typeof g === 'number' && Number.isFinite(g) && g >= 1e4)) errs.push(`${cw}: goal.runAether must be a number >= 1e4`);
     });
     // At least one challenge must be open from the start
     if (!ch.challenges.some(c => c.requires === 0)) errs.push(`${w}: no challenge is open from the start`);

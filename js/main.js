@@ -1717,8 +1717,7 @@ class AetheriaApp {
     const dm = this.prestigeSystem.getDustMultipliers();
     const breakdown = t('prestige.bd.depth', { x: fmtMult(dm.geode), n: dm.depth }) + ' · ' +
       t('prestige.bd.nectar', { x: fmtMult(dm.nectarMult), n: fmtNum(dm.nectar), item: itemName('starNectar') }) +
-      (dm.amplifier > 1 ? ' · ' + t('prestige.bd.amp', { x: fmtMult(dm.amplifier) }) : '') +
-      (dm.shards > 0 ? ' · ' + t('prestige.bd.shares', { x: fmtBigMult(dm.shardMult), n: dm.shards }) : '');
+      (dm.amplifier > 1 ? ' · ' + t('prestige.bd.amp', { x: fmtMult(dm.amplifier) }) : '');
     setText(this.$('pending-dust-breakdown'), breakdown);
     if (ascBtn) {
       const tip = t('prestige.base_tip', { n: this.prestigeSystem.getBaseCosmicDust().format('standard', 0) }) + ' · ' + breakdown;

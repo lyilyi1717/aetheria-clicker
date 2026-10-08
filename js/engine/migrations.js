@@ -194,6 +194,140 @@ export const MIGRATIONS = [
       data.settings = settings;
       return data;
     }
+  },
+  {
+    // v7 -> v8 (economy redesign, roadmap R31): numbers grow slowly and prestige bonuses add up.
+    // Each save moves to the matching point on the new curve; counts (New Wells, New Fields,
+    // shares, Pages, Chronicles) are kept as they are. All constants inlined (see step 3).
+    //   - The run is refunded: generators and shop upgrades go back to 0, and the run's Oil comes
+    //     back as Oil on the new scale (log scale: the old 1e9 New Well gate is the new 1e4, each
+    //     old decade above it is 0.2 of a new one). Tiers 21-30 are gone (retired).
+    //   - Reserves of this layer keep their place on the way to the next New Field (log scale:
+    //     the old first New Well's 150 is the new 10, the old gate 1e9 x 10^k is the new
+    //     400 x 1.6^k). The best single New Well (talent stars) moves the same way.
+    //   - Reserve Shop: features and Chrono/Titan ranks are kept; their new prices come out of
+    //     the converted Reserves, and what is left is spendable. Reserve Amplifier ranks are
+    //     refunded (rebuy them at the new price).
+    //   - Deep Blueprints for the retired tiers 21-30 are refunded as shares.
+    //   - Auto-Well on the old default rule (x2) moves to the new default (x1.25).
+    to: 8,
+    migrate(data) {
+      const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+      const isBig = (v) => v && typeof v === 'object' && Number.isFinite(Number(v.m)) && Number.isFinite(Number(v.e));
+      const lg = (v) => {
+        if (isBig(v)) return Number(v.m) > 0 ? Number(v.e) + Math.log10(Number(v.m)) : -Infinity;
+        const n = num(v);
+        return n > 0 ? Math.log10(n) : -Infinity;
+      };
+      const fromLog = (l, floor = false) => {
+        if (!Number.isFinite(l)) return { m: 0, e: 0 };
+        if (floor && l < 15) {
+          const n = Math.floor(Math.pow(10, l) + 1e-9);
+          if (n <= 0) return { m: 0, e: 0 };
+          const e = Math.floor(Math.log10(n));
+          return { m: n / Math.pow(10, e), e };
+        }
+        const e = Math.floor(l);
+        return { m: Math.pow(10, l - e), e };
+      };
+      // Oil: old log 9 -> new log 4, 0.2 new decades per old decade above it
+      const mapOil = (v) => {
+        const l = lg(v);
+        if (!Number.isFinite(l)) return { m: 0, e: 0 };
+        return fromLog(l <= 9 ? l * 4 / 9 : 4 + (l - 9) * 0.2);
+      };
+      // Reserves: piecewise log map, old 150 -> new 10, old gate 1e9 x 10^k -> new 400 x 1.6^k
+      // (k capped at 8: the new gates grow x3 per step from the 9th New Field on)
+      const k = Math.max(0, Math.floor(num(data.transcendenceCount)));
+      const oldGate = 9 + k;
+      const newGate = Math.log10(400) + Math.min(k, 8) * Math.log10(1.6);
+      const oldFirst = Math.log10(150);
+      const mapDustLog = (l) => {
+        if (!Number.isFinite(l)) return -Infinity;
+        if (l <= oldFirst) return l - oldFirst + 1;
+        return Math.min(newGate, 1 + (l - oldFirst) * (newGate - 1) / (oldGate - oldFirst));
+      };
+      const mapDust = (v) => fromLog(mapDustLog(lg(v)), true);
+
+      // The run: refund generators and upgrades, Oil on the new scale
+      const retired = ['mirage_forge', 'qahwa_nebula', 'sadu_loom', 'oasis_gate', 'cosmic_majlis', 'thobe_singularity',
+        'hejaz_hyperrail', 'empty_quarter_engine', 'pearl_dyson', 'eternal_dallah'];
+      const resetBuildings = (b, countOnly) => {
+        const out = {};
+        for (const [id, v] of Object.entries(b && typeof b === 'object' ? b : {})) {
+          if (retired.includes(id)) continue;
+          out[id] = countOnly ? 0 : { ...(v && typeof v === 'object' ? v : {}), count: 0 };
+        }
+        return out;
+      };
+      const runOil = mapOil(data.totalAetherEarned);
+      data.aether = runOil;
+      data.totalAetherEarned = { ...runOil };
+      data.buildings = resetBuildings(data.buildings, false);
+      data.upgrades = [];
+      const active = data.chronicle?.active;
+      if (active?.stash && typeof active.stash === 'object') {
+        const s = active.stash;
+        const stashOil = mapOil(s.totalAetherEarned);
+        active.stash = { ...s, aether: stashOil, totalAetherEarned: { ...stashOil }, buildings: resetBuildings(s.buildings, true), upgrades: [] };
+      }
+
+      // Reserves of this layer, then the shop
+      const lifeOld = lg(data.totalCosmicDust);
+      const life = mapDust(data.totalCosmicDust);
+      data.totalCosmicDust = life;
+      const shop = data.dustShop && typeof data.dustShop === 'object' ? { ...data.dustShop } : null;
+      const ranks = shop?.ranks && typeof shop.ranks === 'object' ? { ...shop.ranks } : {};
+      const PRICES = { genesis: [5], blueprint_memory: [10], chrono_vault: [10, 1.5], auto_buy: [30], titan_legacy: [10, 1.5],
+        finger_of_wasta: [50], astral_alchemist: [15], golem_covenant: [30], hourglass: [40], auto_leylines: [60],
+        blueprint_memory_2: [50], resonant_start: [250] };
+      let kept = 0;
+      for (const [id, [cost, growth]] of Object.entries(PRICES)) {
+        const r = Math.max(0, Math.floor(num(ranks[id])));
+        for (let i = 0; i < r; i++) kept += growth ? Math.ceil(cost * Math.pow(growth, i)) : cost;
+      }
+      delete ranks.dust_amplifier;
+      if (shop) { shop.ranks = ranks; data.dustShop = shop; }
+      const lifeNew = isBig(life) ? Number(life.m) * Math.pow(10, Number(life.e)) : 0;
+      data.cosmicDust = fromLog(Number.isFinite(lifeOld) ? Math.log10(Math.max(0, lifeNew - kept)) : -Infinity, true);
+
+      // Talent stars from the best single New Well: same Reserve map, one star per doubling from 16
+      const rec = data.records && typeof data.records === 'object' ? { ...data.records } : null;
+      if (rec) {
+        const best = mapDust(rec.bestRunDust);
+        rec.bestRunDust = best;
+        const bl = lg(best);
+        rec.magnitudeStars = Number.isFinite(bl) ? Math.max(0, Math.floor(bl / Math.log10(2) + 1e-9) - 3) : 0;
+        data.records = rec;
+      }
+
+      // Shard tree: refund Deep Blueprints of retired tiers, move the old default Auto-Well rule
+      const tree = data.shardTree && typeof data.shardTree === 'object' ? { ...data.shardTree } : null;
+      if (tree) {
+        const owned = { ...(tree.owned || {}) };
+        const granted = { ...(tree.granted || {}) };
+        let refund = 0;
+        for (let tier = 21; tier <= 30; tier++) {
+          const id = `foundry_t${tier}`;
+          if (owned[id] === true && !granted[id]) refund++;
+          delete owned[id];
+          delete granted[id];
+        }
+        tree.owned = owned;
+        tree.granted = granted;
+        if (tree.autoAscend && typeof tree.autoAscend === 'object' && tree.autoAscend.rule === 'x2') {
+          tree.autoAscend = { ...tree.autoAscend, rule: 'x1.25' };
+        }
+        data.shardTree = tree;
+        if (refund > 0) {
+          const bal = data.fractureShards;
+          const l = lg(bal);
+          const have = Number.isFinite(l) ? Math.pow(10, l) : 0;
+          data.fractureShards = fromLog(Math.log10(have + refund), true);
+        }
+      }
+      return data;
+    }
   }
 ];
 
