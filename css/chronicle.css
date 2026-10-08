@@ -36,8 +36,15 @@
 .chr-ch .best { font-size: var(--fs-11); color: var(--text-3); overflow-wrap: anywhere; }
 .chr-ch .bar { margin: 4px 0; }
 .chr-ch-rules { display: flex; gap: 4px; flex-wrap: wrap; margin: 4px 0 2px; }
-.chr-ch-rules .chip { min-height: 22px; padding: 0 8px; font-size: var(--fs-11); }
+.chr-ch-rules .chip { min-height: 22px; height: auto; max-width: 100%; padding: 2px 8px; font-size: var(--fs-11); white-space: normal; text-align: start; }
 .chr-ch .chip.life { white-space: nowrap; }
+/* Permanent reward of the first clear (R56): dim until earned */
+.chr-reward { margin: 2px 0; }
+.chr-reward .chip { min-height: 22px; height: auto; max-width: 100%; padding: 2px 8px; font-size: var(--fs-11); white-space: normal; text-align: start; opacity: 0.75; }
+.chr-reward.paid .chip { opacity: 1; }
+.chr-reward-sum { font-size: var(--fs-12); color: var(--gold); margin: 0 0 var(--sp-2); overflow-wrap: anywhere; }
+.chr-chapter-h { margin: var(--sp-3) 0 var(--sp-2); font-size: var(--fs-14); color: var(--text-2); }
+.chr-chapter-h:first-of-type { margin-top: 0; }
 
 /* Pages tree */
 .chr-ptree { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--sp-2); }

@@ -276,8 +276,22 @@ console.log('--- Chapter: world rules for its weeks, then a stamp; no new Chapte
   assert.equal(gs.chronicle.stamps.sand, true);
   assert.equal(gs.chronicle.totalPages, pages + CHAPTERS[0].stampPages);
   assert.deepEqual(cs.advanceChapters(now), [], 'stamped once');
-  assert.equal(getChapterStatus(gs, now).running, false);
+  // Chapter 2 (R56) begins where Sand ended: its rule only touches the dig
+  const salt = getChapterStatus(gs, now);
+  assert.equal(salt.chapter.id, 'salt');
+  assert.equal(salt.running, true);
+  assert.equal(salt.startedAt, T0 + 10 * 7 * DAY);
+  assert.equal(getActiveRules(gs, now).excavationMult, 2);
+  assert.equal(getActiveRules(gs, now).aetherMult, 1);
   assert.equal(cs.getChallengeBlockReason('sand_dry_well'), null, 'challenges stay open after the Chapter');
+  assert.equal(cs.getChallengeBlockReason('salt_still_water'), null, 'Chapter 2 challenges open with it');
+  // Salt ends: stamped (no Pages, so the core sim stays put); no Chapter 3 yet = rules lift
+  now = T0 + 20 * 7 * DAY + 1;
+  const pages2 = gs.chronicle.totalPages;
+  assert.deepEqual(cs.advanceChapters(now).map(c => c.id), ['salt']);
+  assert.equal(gs.chronicle.totalPages, pages2 + CHAPTERS[1].stampPages);
+  assert.equal(getChapterStatus(gs, now).running, false);
+  assert.equal(getActiveRules(gs, now), NO_RULES);
   now = T0;
 }
 

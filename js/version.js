@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.4.0';
+export const VERSION = '5.5.0';
 
 export const CHANGELOG = [
   {
-    version: '5.4.0',
+    version: '5.5.0',
     date: '2026-10-08',
     title: 'Pick a build for each run',
     changes: [
@@ -25,6 +25,26 @@ export const CHANGELOG = [
         'الثبات: ترقيات المولّدات أقوى بنسبة 30%، أي +26% لكل ترقية بدلًا من +20% (نحو +34% لمولّد يملك ترقياته الست كلها).',
         'التركيز: +15% من إنتاج النفط لكل هدف تبلغه في الألعاب الجانبية خلال الجولة (احفر 25 ثم 100 مربع، واهزم زعيمًا ثم 5 زعماء، واحصد 3 ثم 10 نباتات)، حتى +40%.',
         'غيّرت رأيك بعد شراء مولّد؟ اختر غيره على أي حال: يبدأ مع بئرك الجديدة التالية.'
+      ]
+    }
+  },
+  {
+    version: '5.4.0',
+    date: '2026-10-08',
+    title: 'Challenge rewards and the Chapter of Salt',
+    changes: [
+      'Every Chronicle challenge now pays a permanent reward on its first clear, shown on its card: Dry Well +10% Oil, Lights Out +10% offline Oil, Small Souq starts every run with 10 Shawarma Stalls, Sandstorm +1 Page from every Chronicle. Rewards of the same kind add together, and the Oil ones add to Margin Notes rather than multiplying.',
+      'Challenges you cleared before this update pay their rewards as soon as you load your save.',
+      'The Chapter of Salt follows the Chapter of Sand: for ten weeks the dig hits twice as hard, with no Oil penalty. Its four new challenges stay open after it ends: Still Water (no Auto-tap, no spells; +25% Excavation power), Dark Flats (no spells, 8 generators; +10% Oil), Narrow Caravan (5 generators at half pay; +10% offline Oil) and Dead Sea (Oil ÷10, no Frenzy, no Auto-tap; +15% Oil). They also pay 4 to 6 Pages on the first clear.',
+      'If your Chapter of Sand has already ended, the Chapter of Salt starts where it ended. Its stamp is a keepsake and pays no Pages.'
+    ],
+    ar: {
+      title: 'مكافآت التحديات وفصل الملح',
+      changes: [
+        'صار كل تحدٍّ من تحديات السجل يمنح مكافأة دائمة عند إنجازه أول مرة، وتظهر على بطاقته: البئر الجافة +10% نفط، وانطفاء الأنوار +10% من نفط الغياب، والسوق الصغير يبدأ كل جولة بـ 10 من أكشاك الشاورما، والعاصفة الرملية +1 صفحة من كل سجل. المكافآت من النوع نفسه تُجمع، ومكافآت النفط تُضاف إلى ملاحظات الهامش بدل أن تتضاعف.',
+        'التحديات التي أنجزتها قبل هذا التحديث تمنح مكافآتها بمجرد تحميل حفظك.',
+        'فصل الملح يأتي بعد فصل الرمل: لعشرة أسابيع يضرب الحفر بضعف القوة، دون أي خصم من النفط. وتبقى تحدياته الأربعة الجديدة مفتوحة بعد انتهائه: الماء الراكد (لا نقر تلقائي ولا تعاويذ؛ +25% من قوة التنقيب)، والسباخ المظلمة (لا تعاويذ، 8 مولّدات؛ +10% نفط)، والقافلة الضيقة (5 مولّدات بنصف العائد؛ +10% من نفط الغياب)، والبحر الميت (النفط ÷10، ولا هيجان، ولا نقر تلقائي؛ +15% نفط). وتمنح أيضًا من 4 إلى 6 صفحات عند أول إنجاز.',
+        'إذا كان فصل الرمل قد انتهى عندك، يبدأ فصل الملح من حيث انتهى. ختمه تذكار ولا يمنح صفحات.'
       ]
     }
   },
