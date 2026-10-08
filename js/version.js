@@ -3,9 +3,31 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.3.0';
+export const VERSION = '5.4.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.4.0',
+    date: '2026-10-08',
+    title: 'Pick a build for each run',
+    changes: [
+      'New after your first New Well: Run Attunement, in the Ascension tab under the New Well button. Pick one of three for each run; you can change it until you buy your first generator, and it stays with you for every New Well after (Auto-Ascend keeps it too).',
+      'Idle: +30% Oil production while you haven\'t tapped for 60 seconds. Auto-tap doesn\'t count as a tap, so it never interrupts the bonus. Everyone starts with Idle, including existing saves.',
+      'Steady: generator upgrades are 30% stronger, +26% each instead of +20% (about +34% for a generator with all 6 upgrades).',
+      'Focus: +15% Oil production for each side-tab goal you reach in the run (dig 25 and 100 blocks, beat 1 and 5 bosses, harvest 3 and 10 plants), up to +40%.',
+      'Changed your mind after buying a generator? Pick another one anyway: it starts with your next New Well.'
+    ],
+    ar: {
+      title: 'اختر أسلوبك لكل جولة',
+      changes: [
+        'جديد بعد بئرك الجديدة الأولى: تناغم الجولة، في تبويب الصعود تحت زر البئر الجديدة. اختر واحدًا من ثلاثة لكل جولة؛ يمكنك تغييره حتى تشتري أول مولّد، ثم يبقى معك في كل بئر جديدة بعدها (والصعود التلقائي يحتفظ به أيضًا).',
+        'الهدوء: +30% من إنتاج النفط ما دمت لم تنقر منذ 60 ثانية. النقر التلقائي لا يُحسب نقرة، فلا يقطع المكافأة أبدًا. الجميع يبدأ بالهدوء، ومنهم أصحاب الحفظ الحالي.',
+        'الثبات: ترقيات المولّدات أقوى بنسبة 30%، أي +26% لكل ترقية بدلًا من +20% (نحو +34% لمولّد يملك ترقياته الست كلها).',
+        'التركيز: +15% من إنتاج النفط لكل هدف تبلغه في الألعاب الجانبية خلال الجولة (احفر 25 ثم 100 مربع، واهزم زعيمًا ثم 5 زعماء، واحصد 3 ثم 10 نباتات)، حتى +40%.',
+        'غيّرت رأيك بعد شراء مولّد؟ اختر غيره على أي حال: يبدأ مع بئرك الجديدة التالية.'
+      ]
+    }
+  },
   {
     version: '5.3.0',
     date: '2026-10-08',

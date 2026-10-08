@@ -20,6 +20,7 @@ import { MarketSystem, COMMODITIES, getStockCap } from './systems/MarketSystem.j
 import { PrestigeSystem } from './systems/PrestigeSystem.js';
 import { DUST_SHOP_ITEMS } from './systems/DustShopSystem.js';
 import { DustShopUI } from './ui/dustShop.js';
+import { AttunementUI } from './ui/attunements.js';
 import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
 import { TalentSourcesPanel } from './ui/talents.js';
 import { buildContractsBoard, updateContractsBoard, bindContracts } from './ui/contracts.js';
@@ -1653,6 +1654,9 @@ class AetheriaApp {
     // Dust shop (R6, js/ui/dustShop.js): panel, Auto-Buy switch and clock, Hourglass warps
     this.dustShopUI = new DustShopUI(this);
     this.dustShopUI.init();
+    // Run attunement (R55, js/ui/attunements.js): Idle / Steady / Focus, above the dust shop
+    this.attunementUI = new AttunementUI(this);
+    this.attunementUI.init();
 
     const ascBtn = document.getElementById('btn-do-ascend');
     if (ascBtn) {
@@ -1731,6 +1735,7 @@ class AetheriaApp {
 
     this.updateMasteriesPanel();
 
+    this.attunementUI?.update();
     this.dustShopUI?.update();
 
     this.transcendUI?.update();

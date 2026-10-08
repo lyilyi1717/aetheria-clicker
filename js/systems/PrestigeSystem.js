@@ -5,6 +5,7 @@ import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js'
 import { isChallengeActive } from './ChronicleSystem.js';
 import { resetUpgradesOnAscend, resetAllUpgrades } from './UpgradeSystem.js';
 import { applyRunStart, getDustAmplifierMult, resetDustShop, DUST_SHOP_TIERS, DUST_SHOP_ITEMS } from './DustShopSystem.js';
+import { startAttunementRun } from './AttunementSystem.js';
 import { t } from '../i18n/index.js';
 
 // The 7 Ascension perks are now the dust shop (R6, DustShopSystem.js; save step v5 converts them)
@@ -140,6 +141,9 @@ export class PrestigeSystem {
     // Upgrade shop resets too, except what a Blueprint Memory keep rule holds (R5/R6)
     resetUpgradesOnAscend(this.gameState);
 
+    // Attunement (R55): the pick carries over and can be changed until the first purchase.
+    // Before applyRunStart, so the generators Cosmic Genesis / Resonant Start grant don't lock it.
+    startAttunementRun(this.gameState);
     // Dust shop: Cosmic Genesis, Resonant Start; Finger of Wasta's click count starts again
     applyRunStart(this.gameState);
 

@@ -98,6 +98,7 @@ console.log('--- Auto-tap: dust shop item, 1 plain tap a second while idle ---')
   assert.ok(gs.getAutoTapPerSecond().eq(0));
 
   gs.ascensionCount = 1;
+  gs.attunement.id = 'steady';   // R55: Idle's +30% would apply after a New Well; Steady leaves flat output alone
   gs.cosmicDust = new BigNum(5);
   assert.ok(buyShopItem(gs, 'auto_tap'));
   assert.equal(gs.getAutoTapPerSecond().toNumber(), 500);

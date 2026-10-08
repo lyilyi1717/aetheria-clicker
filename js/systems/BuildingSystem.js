@@ -2,6 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { localize } from '../i18n/index.js';
+import { lockAttunement } from './AttunementSystem.js';
 
 export const BUILDING_DEFINITIONS = [
   {
@@ -245,6 +246,7 @@ export class BuildingSystem {
     if (toBuy > 0 && this.gameState.aether.gte(cost)) {
       this.gameState.aether = this.gameState.aether.sub(cost);
       this.gameState.buildings[id].count += toBuy;
+      lockAttunement(this.gameState);   // R55: the run's attunement is set from the first purchase
       if (!quiet) sound.playBuy();
 
       // Check bounties

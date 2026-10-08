@@ -514,6 +514,36 @@ leaderboard column. No save migration: `codex` is a new additive field.
 > **4.1e12**, idle **4.4e10** (main before R52: idle 7.2e9); 2-month row casual 2.5e12, idle
 > 5.7e11.
 
+> **R55 Ascension attunements (v5.4.0, issue #129).** After the first New Well the player picks 1
+> of 3 attunements for the run (`js/systems/AttunementSystem.js`, panel `js/ui/attunements.js`
+> under the New Well button). The pick can change until the first generator is bought; after that
+> a new pick waits for the next run, so Auto-Buy (which buys seconds after a New Well) never takes
+> the choice away. It carries over to every later run, Auto-Ascend included. Each is one additive
+> category in `getNetAetherPerSecond` (Steady acts on tier upgrades instead), best **≤ +40%**:
+>
+> | Attunement | Effect | Worth |
+> |---|---|---|
+> | **Idle** (default; old saves get it) | +30% production while the last *hand* tap is ≥ 60 s old | +30% idle; ~+25% for the casual model (present 10 min/h) |
+> | **Steady** | tier upgrades ×1.26 each instead of ×1.2 | +34% on a tier with all 6; ~+22% at a run's typical 4 per tier |
+> | **Focus** | +15% per subgame milestone this run, at most +40%: Excavation 25 / 100 blocks, Tower 1 / 5 bosses, Garden 3 / 10 harvests (counted from the run's start) | 0 … +40%; rewards playing the side tabs |
+>
+> *Auto-tap is not a tap for Idle.* Auto-tap only runs while the player isn't tapping (R52), so if
+> it counted, Idle would be off for everyone who owns it (all players from the first New Well);
+> its taps are paid from production, so they include the Idle bonus. *Steady's value*: the issue's
+> +25% (×1.25 each) was worth ~+18% at a typical run's 4 upgrades a tier, below Idle in every case,
+> so it is +30%. Focus milestones are per run so they come back after every New Well; the steps
+> were set from the Weekly Ledger paces (~400 blocks, ~5 bosses, ~24 harvests a week of
+> lifetime play) so a long run reaches most of them with light play.
+>
+> *Sim (`npm run sim`, default pick Idle in both profiles):* a steady +25–30% brings Transcends
+> forward (casual first eight: days 4.0 … 56.6, were 4.3 … 69.9), so day 50–70 sits earlier in a
+> later layer. First Ascension unchanged (idle 60 min, casual 10); upgrades per run median casual
+> **34**, idle **31** (were 32 / 28); median run Oil over days 50–70 casual **2.4e11** (was 4.1e12;
+> the ≥ 1e11 floor holds), idle 3.5e11 (was 4.4e10). `--attune=steady` compares Steady: its casual
+> run starts its first Chronicle at day ~58, inside the window, and the median falls to 3e9; the
+> window measure is sensitive to where a layer boundary lands, which `sim:check` asserts only for
+> the default pick.
+
 
 | Item | Today | Proposed | Why |
 |---|---|---|---|

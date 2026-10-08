@@ -1,15 +1,17 @@
 // Ascension attunements (R55, docs/redesign-proposal.md §6.1 R55 block). After the first New Well
 // the player picks 1 of 3 attunements for each run. The pick can be changed until the first
-// generator is bought in a run; it carries over to the next run (Auto-Ascend keeps it). All three
+// generator is bought in a run; it carries over to the next run (Auto-Ascend keeps it). After the
+// first purchase a new pick waits for the next run (`next`), so Auto-Buy, which buys within seconds
+// of a New Well, never takes the choice away. All three
 // are one additive production bonus each and modest: the best is at most +40%, so it stays a
 // choice rather than a must.
 //   idle   : +30% production while the player hasn't tapped for 60 s. Auto-tap is not a tap: it
 //            only runs while the player isn't tapping, so it never breaks the bonus.
 //   steady : tier upgrades +30% stronger (each x1.26 instead of x1.2; a tier with all 6 bought
-//            is +34%, about +20% for a typical run's 4 a tier).
+//            is +34%, about +22% for a typical run's 4 a tier).
 //   focus  : +15% production per subgame milestone hit this run (Excavation blocks, Tower bosses,
 //            Garden harvests; two each), at most +40%.
-// State: gameState.attunement = { id, locked, runStart: { blocks, bosses, harvests } }.
+// State: gameState.attunement = { id, next, locked, runStart: { blocks, bosses, harvests } }.
 // Pure functions of gameState (no imports from other systems), so GameState, UpgradeSystem, the
 // sim and the tests read them without any system linked.
 
@@ -39,7 +41,7 @@ function statSnapshot(gs) {
 }
 
 export function defaultAttunementState(gs) {
-  return { id: DEFAULT_ATTUNEMENT, locked: false, runStart: statSnapshot(gs) };
+  return { id: DEFAULT_ATTUNEMENT, next: null, locked: false, runStart: statSnapshot(gs) };
 }
 
 // Saves from before R55 (or with a junk value) get Idle, unlocked, with milestones counted from now
@@ -50,10 +52,13 @@ export function sanitizeAttunementState(data, gs) {
   const runStart = { ...fresh.runStart };
   if (data.runStart && typeof data.runStart === 'object') {
     for (const m of FOCUS_MILESTONES) {
-      if (data.runStart[m.id] != null) runStart[m.id] = Math.min(num(data.runStart[m.id]), runStart[m.id]);
+      const v = Number(data.runStart[m.id]);
+      // never above the current stat, so a bad value can't hide milestones for the whole run
+      if (data.runStart[m.id] != null && Number.isFinite(v)) runStart[m.id] = Math.min(Math.max(0, v), runStart[m.id]);
     }
   }
-  return { id, locked: data.locked === true, runStart };
+  const next = ATTUNEMENT_IDS.includes(data.next) && data.next !== id ? data.next : null;
+  return { id, next, locked: data.locked === true, runStart };
 }
 
 function state(gs) {
@@ -78,10 +83,24 @@ export function canChangeAttunement(gs) {
   return isAttunementOpen(gs) && !state(gs).locked;
 }
 
+// Picks an attunement: for this run while it is still open, else for the next run.
+// Returns 'now', 'next' or false.
 export function setAttunement(gs, id) {
-  if (!ATTUNEMENT_IDS.includes(id) || !canChangeAttunement(gs)) return false;
-  state(gs).id = id;
-  return true;
+  if (!ATTUNEMENT_IDS.includes(id) || !isAttunementOpen(gs)) return false;
+  const s = state(gs);
+  if (!s.locked) {
+    s.id = id;
+    s.next = null;
+    return 'now';
+  }
+  s.next = id === s.id ? null : id;
+  return 'next';
+}
+
+// The attunement the next run starts with
+export function getNextAttunement(gs) {
+  const s = state(gs);
+  return ATTUNEMENT_IDS.includes(s.next) ? s.next : (ATTUNEMENT_IDS.includes(s.id) ? s.id : DEFAULT_ATTUNEMENT);
 }
 
 // Called when a generator is bought (BuildingSystem.buyBuilding)
@@ -89,10 +108,12 @@ export function lockAttunement(gs) {
   if (isAttunementOpen(gs)) state(gs).locked = true;
 }
 
-// Called on every Ascension (PrestigeSystem.ascend): the pick carries over, unlocked again, and
-// Focus counts milestones from here
+// Called on every Ascension (PrestigeSystem.ascend): the pick (or the one waiting for this run)
+// carries over, unlocked again, and Focus counts milestones from here
 export function startAttunementRun(gs) {
   const s = state(gs);
+  s.id = getNextAttunement(gs);
+  s.next = null;
   s.locked = false;
   s.runStart = statSnapshot(gs);
 }
