@@ -235,8 +235,13 @@ export class GameState {
   // Auto-tap (dust shop, R52): Oil per second from its taps, 1 plain click per second (no combo,
   // Frenzy or crits). Counted while the player isn't tapping and in offline gains.
   getAutoTapPerSecond() {
-    if (!hasShopItem(this, 'auto_tap')) return BigNum.zero();
+    if (!this.hasAutoTap()) return BigNum.zero();
     return this.getClickBase().mul(AUTO_TAP_PER_SEC);
+  }
+
+  // Auto-tap owned and not switched off by a Chronicle challenge (Dry Well)
+  hasAutoTap() {
+    return hasShopItem(this, 'auto_tap') && !getActiveRules(this).noAutoTap;
   }
 
   // Calculate current click damage/yield

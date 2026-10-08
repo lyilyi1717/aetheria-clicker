@@ -7,10 +7,11 @@
 //   node sim/core-pacing.mjs --only=casual   # one profile only (faster while tuning)
 //
 // Profiles:
-//   idle   : taps 1/s for the first 3 min of every run, never casts; greedy-buys every 5 s
-//   casual : present 10 min of every hour (2 clicks/s with combo, spells on cooldown,
-//            anomalies clicked), an income multiplier measured on the real spell/anomaly code
-//            (R3 block, sim/active-income.mjs)
+//   idle   : taps 1/s for the first 3 min of every run until it owns Auto-tap (dust shop, R52),
+//            which then taps 1/s all the time; never casts; greedy-buys every 5 s
+//   casual : present 10 min of every hour (2 clicks/s, spells on cooldown, anomalies clicked),
+//            an income multiplier measured on the real spell/anomaly code (R3 block,
+//            sim/active-income.mjs); Auto-tap while away once owned
 // Ascend policy: when pending dust >= max(10, current dust) and the run is at least 10 min old,
 // by hand only while the player is there (casual: the 10 present minutes of each hour; idle: a
 // glance once an hour) until the shard tree's Auto-Ascend is bought, then whenever the rule is met
@@ -36,6 +37,7 @@ import { particles } from '../js/engine/ParticleEngine.js';
 import { ShardTreeSystem, autoAscendRuleMet, AUTO_ASCEND_RULES, AUTO_ASCEND_DEFAULT_RULE, getDeepBlueprintDivisor, canBuyNode, FOUNDRY_FIRST_TIER, FOUNDRY_LAST_TIER } from '../js/systems/ShardTreeSystem.js';
 import { ChronicleSystem, chronicleClock, PAGE_UPGRADES } from '../js/systems/ChronicleSystem.js';
 import { measureActiveIncome } from './active-income.mjs'; // R3 block below
+import { CLICK_CPS_SECONDS } from '../js/systems/combo.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
@@ -46,6 +48,7 @@ const YEAR = 365 * DAY;
 // Year-one targets from docs/redesign-proposal.md (§4.2, §6.4). Enforced only with --assert.
 export const TARGETS = {
   firstAscensionMaxMin: 30,      // casual player's first Ascension within 30 min
+  idleFirstAscensionMaxMin: 90,  // R52 (passive first): the idle player's within 90 min
   maxGapDaysAfterDay1: 14,       // never more than 14 days without a reset (days 1..gapWindowEndDay)
   // The doc's goal (day 270). Layer 2 alone stalls ~day 185 (doc §6.4); the Chronicle (R20)
   // restarts the Transcend ladder so resets keep coming.
@@ -54,13 +57,18 @@ export const TARGETS = {
   casualTwoMonthAetherMax: 1e13
 };
 
-// --- R3 active income block --------------------------------------------------------------------
+// --- R3 / R52 active income block ----------------------------------------------------------------
 // While the casual player is present, income is CPS x ACTIVE_MULT: the real SpellSystem and
-// ClickerSystem played attentively at a fixed CPS (sim/active-income.mjs: 2 clicks/s with combo
-// and Frenzy, Celestial/Chrono Warp/Burst on cooldown, every Golden Anomaly clicked), divided by
-// idle income. It includes the clicks' 3%-of-CPS share, so only the base click (click upgrades)
-// is added on top while present. SIM_ACTIVE_MULT=<x> overrides it (to compare tunings).
-const ACTIVE_MULT = process.env.SIM_ACTIVE_MULT ? Number(process.env.SIM_ACTIVE_MULT) : measureActiveIncome().ratio;
+// ClickerSystem played attentively at a fixed CPS (sim/active-income.mjs: 2 clicks/s with Frenzy,
+// Celestial/Chrono Warp/Burst on cooldown, every Golden Anomaly clicked), divided by generator
+// income alone (Auto-tap pauses while the player taps). A click is 0.5 s of production but at
+// least 1 Oil (R52), so on a fresh run the floor's extra is added on top (clickFloorExtra).
+// SIM_ACTIVE_MULT=<x> overrides it (to compare tunings).
+const MEASURED = measureActiveIncome();
+const ACTIVE_MULT = process.env.SIM_ACTIVE_MULT ? Number(process.env.SIM_ACTIVE_MULT) : MEASURED.vsGenerators;
+const ACTIVE_IDLE_RATIO = MEASURED.ratio;   // vs an idle player with Auto-tap (report)
+// Oil per second that `rate` plain clicks add above their 0.5 s-of-production share (the 1 Oil floor)
+const clickFloorExtra = (gs, cps, rate) => gs.clickPower.sub(cps.mul(CLICK_CPS_SECONDS)).max(0).mul(rate);
 // ---------------------------------------------------------------------------------------------
 
 const CHECKPOINTS = [
@@ -71,11 +79,9 @@ const CHECKPOINTS = [
 // --- R5 upgrade shop block -------------------------------------------------------------------
 // The sim buys upgrades in the same greedy loop as generators, by log10(Aether/s gained per
 // Aether spent) in the generator greedy's units (generator output before global multipliers).
-// Click upgrades are valued at the current click rate (clicks/s x combo), converted into those
-// units by dividing by the global multiplier.
 //   shop.refresh()           at the start of each greedy pass: collect available upgrades
 //   shop.onBuilding(id)      after a generator purchase: its upgrades/synergies may have opened
-//   shop.best(budget, rate)  -> { id, ratio } | null, the best affordable available upgrade
+//   shop.best(budget)        -> { id, ratio } | null, the best affordable available upgrade
 //   shop.buy(id)             buys it and updates the candidate list
 //   shop.buyCheap()          buys every available upgrade costing <= 1% of run Aether (R31)
 // Only the available ones are scored, so a pass costs a handful of checks, not 173.
@@ -120,26 +126,17 @@ function makeUpgradeShopBuyer(gs, bs, us) {
     buy(id) {
       if (!us.buy(id)) return false;
       candidates.delete(id);
-      const u = us.definitions.find(d => d.id === id);
-      if (u.kind === 'click' && us.isAvailable(`click_${u.level + 1}`)) candidates.add(`click_${u.level + 1}`);
       return true;
     },
-    best(budgetLog, clickRate) {
-      let best = null, bestRatio = -Infinity, globalLog = null;
+    best(budgetLog) {
+      let best = null, bestRatio = -Infinity;
       for (const id of candidates) {
         const u = getUpgradeDefinition(id);
         // Deep Blueprints (shard tree Foundry, R13) divide a tier's own upgrade prices
         const c = costLog.get(id) - (u.kind === 'tier' ? Math.log10(getDeepBlueprintDivisor(gs, u.tier)) : 0);
         if (c > budgetLog + 1e-9) continue;
         let gainLog;
-        if (u.kind === 'click') {
-          if (clickRate <= 0) continue;
-          if (globalLog === null) {
-            const base = bs.getTotalProduction();
-            globalLog = base.gt(0) ? lg(gs.getNetAetherPerSecond()) - lg(base) : 0;
-          }
-          gainLog = lg(gs.getClickBase()) + Math.log10(clickRate) - globalLog;
-        } else if (u.kind === 'tier') {
+        if (u.kind === 'tier') {
           gainLog = prodLog(u.building) + tierGainLog;
         } else {
           gainLog = prodLog(u.building) + Math.log10(SYNERGY_PER_UNIT * gs.buildings[u.source].count);
@@ -262,7 +259,6 @@ function run(profile) {
   const us = new UpgradeSystem(gs);
   gs.buildingSystem = bs; gs.achievementSystem = ach; gs.upgradeSystem = us;
   const shop = makeUpgradeShopBuyer(gs, bs, us);
-  let clickRate = 0; // clicks/s x combo right now, for valuing click upgrades
 
   gs.buildingSystem = bs; gs.achievementSystem = ach;
   const shardTree = makeShardTreeModel(gs, ps);
@@ -305,7 +301,7 @@ function run(profile) {
         const ratio = cpsLog + Math.log10(gain) + tierMultLog(def.id) - cost;
         if (ratio > bestRatio) { bestRatio = ratio; best = def.id; }
       }
-      const up = shop.best(budget, clickRate);
+      const up = shop.best(budget);
       if (up && up.ratio >= bestRatio) {
         if (!shop.buy(up.id)) return;
         multLog.clear();
@@ -333,12 +329,15 @@ function run(profile) {
     const dt = dtFor(t);
     const cps = gs.getNetAetherPerSecond();
     const present = t % 3600 < presence;
-    const clicksPerSec = present ? 2 : (t - runStart < 180 ? 1 : 0);
-    clickRate = (present ? 5 : 1) * clicksPerSec;
-    gs.totalClicks += clicksPerSec * dt;   // Finger of Wasta counts this run's clicks
-    // While present the 3%-of-CPS click share is inside ACTIVE_MULT (R3 block); idle taps add it here
-    const clickYield = (present ? gs.getClickBase() : gs.getClickBase().add(cps.mul(0.03))).mul(clickRate * dt);
-    const income = cps.mul(dt * activeMult(t)).add(clickYield);
+    // R52: Auto-tap (dust shop) taps 1/s whenever the player isn't tapping. Before it, the idle
+    // player taps by hand for the first 3 min of a run.
+    const autoTap = !present && gs.hasAutoTap();
+    const clicksPerSec = present ? 2 : (!autoTap && t - runStart < 180 ? 1 : 0);
+    gs.totalClicks += clicksPerSec * dt;   // Finger of Wasta counts this run's (manual) clicks
+    // Present: ACTIVE_MULT holds the clicks' 0.5 s share (R3 block). Away: plain taps, 0.5 s each.
+    const clickIncome = present ? clickFloorExtra(gs, cps, clicksPerSec)
+      : autoTap ? gs.getAutoTapPerSecond() : gs.getClickBase().mul(clicksPerSec);
+    const income = cps.mul(dt * activeMult(t)).add(clickIncome.mul(dt));
     gs.aether = gs.aether.add(income);
     gs.totalAetherEarned = gs.totalAetherEarned.add(income);
     lifetimeAether = lifetimeAether.add(income);
@@ -472,6 +471,9 @@ for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
   out.push(`- Transcends less than 6 h after the previous one: ${close} of ${r.transcendDays.length}`);
   out.push(`- longest stretch with no reset (day 1..${TARGETS.gapWindowEndDay}): ${r.maxGapDays.toFixed(1)} days`);
   out.push(`- a reset at least every ${TARGETS.maxGapDaysAfterDay1} days until day ${r.gapKeptUntilDay.toFixed(0)}`);
+  if (profile === 'idle' && r.firstResetMin > TARGETS.idleFirstAscensionMaxMin) {
+    failures.push(`idle first Ascension at ${r.firstResetMin.toFixed(1)} min > ${TARGETS.idleFirstAscensionMaxMin} min`);
+  }
   if (profile === 'casual') {
     if (r.firstResetMin > TARGETS.firstAscensionMaxMin) {
       failures.push(`first Ascension at ${r.firstResetMin.toFixed(1)} min > ${TARGETS.firstAscensionMaxMin} min`);
@@ -487,8 +489,8 @@ for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
 }
 
 console.log('## Core pacing report (sim/core-pacing.mjs)');
-console.log(`\nCasual active multiplier while present: x${ACTIVE_MULT.toFixed(2)} (R3, sim/active-income.mjs)`);
+console.log(`\nCasual active multiplier while present: x${ACTIVE_MULT.toFixed(2)} of generator output; active / idle with Auto-tap x${ACTIVE_IDLE_RATIO.toFixed(2)} (R3/R52, sim/active-income.mjs)`);
 console.log(out.join('\n'));
-console.log(`\nYear-one targets (casual): ${failures.length ? 'MISSED' : 'met'}`);
+console.log(`\nYear-one targets (casual; idle first Ascension): ${failures.length ? 'MISSED' : 'met'}`);
 for (const f of failures) console.log(`- ${f}`);
 if (assertMode && failures.length) process.exit(1);

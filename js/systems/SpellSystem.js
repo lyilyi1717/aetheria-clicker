@@ -6,8 +6,9 @@ import { hasShopItem } from './DustShopSystem.js';
 import { t, localize } from '../i18n/index.js';
 
 // --- R3 active income (docs/redesign-proposal.md §5.2, §6.1) ---
-// Active play should earn about 2-3x idle, not ~8x: Burst pays 45 s of CPS on a 45 s cooldown
-// (was 120 s / 30 s), Celestial is x2.5 (was x4). test_active_income.js measures the ratio.
+// Active play earns at most x2 an idle player with Auto-tap (R52; R3 measured x6.9): Burst pays
+// 10 s of CPS every 60 s (R3: 45 s / 45 s), Celestial is x1.25 (R3: x2.5), Chrono Warp is every
+// 10 min (was 60 s). test_active_income.js measures the ratio.
 export const BURST_CPS_SECONDS = 10;
 export const BURST_COOLDOWN = 60;
 export const BURST_MIN_CLICKS = 100;        // floor for a fresh run: 100 base clicks (100 Oil)
@@ -30,7 +31,7 @@ export const SPELLS = [
     name: 'Chrono Warp',
     icon: '⏳',
     manaCost: 40,
-    cooldown: 600,
+    cooldown: 600,   // R52: every 10 min (was 60 s)
     desc: 'Distorts spacetime, accelerating game time by 5x for 15s.'
   },
   {

@@ -93,9 +93,9 @@ console.log('--- Ascension: opens when it pays dust or after one; no floor/depth
 {
   const gs = fresh();
   gs.runStartedAt = Date.now() - MIN_RUN_SECONDS * 1000;
-  gs.totalAetherEarned = new BigNum(100);
+  gs.totalAetherEarned = new BigNum(Math.sqrt(ASCEND_AETHER_GATE));
   const p = getUnlockProgress(gs, 'prestige');
-  assert.ok(Math.abs(p.pct - 2 / 4) < 1e-9, 'log progress to 1e4 Aether');
+  assert.ok(Math.abs(p.pct - 1 / 2) < 1e-9, 'log progress to the gate (500 Oil since R52)');
   assert.equal(shortProgress(p), '50%');
   assert.equal(ASCEND_AETHER_GATE, DUST_REF, 'the unlock gate is the Ascension gate (R31)');
   assert.deepEqual(checkUnlocks(gs), []);

@@ -10,10 +10,12 @@ import { t } from '../i18n/index.js';
 // The 7 Ascension perks are now the dust shop (R6, DustShopSystem.js; save step v5 converts them)
 
 // Dust gain = DUST_BASE * (runAether / DUST_REF)^DUST_EXPONENT (design doc 6.1, R31). Ascension
-// pays once run Aether reaches DUST_REF (DUST_BASE dust).
+// pays once run Aether reaches DUST_REF (DUST_BASE dust). R52 moved the gate from 1e4 to 500 and
+// the exponent from 1/5 to 1/6 (passive first: an idle player's first New Well comes within the
+// first hour, and a 1e12 run still pays about the same, 355 dust, was 398).
 export const DUST_BASE = 10;
-export const DUST_REF = 1e4;
-export const DUST_EXPONENT = 1 / 5;
+export const DUST_REF = 500;
+export const DUST_EXPONENT = 1 / 6;
 // Shortest run that may Ascend (design doc 2.1 / 6.1)
 export const MIN_RUN_SECONDS = 600;
 

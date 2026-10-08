@@ -81,7 +81,7 @@ export default {
   "nav.more": "More",
   "nav.aria.all_tabs": "All tabs",
   "tab.monolith.hint.tap_the_refinery_for": "Tap the Refinery for Oil, buy generators, keep clicking for a Frenzy every 20 clicks.",
-  "tab.monolith.guide": "<strong>How It Works:</strong> Tap the central <em>Oil Refinery</em> to pump crude Oil. Rhythmic clicking builds your <strong>Combo Multiplier</strong> (5x after 20 clicks); every 20 clicks in a row triggers <strong>Frenzy Mode</strong> (3x click yield for 4 s, and it stacks while you keep going). Spend Oil on <strong>Generators</strong> to automate massive passive income. Watch for floating <strong>Golden Anomalies</strong> for instant jackpot rewards! <div class=\"guide-flow\"><span><strong>Produces:</strong> Oil (clicks + generators)</span><span><strong>Used in:</strong> Generators, the Oil Forge (Void Tower), New Wells (lifetime Oil becomes Crude Reserves). Building count also gives +1% hero Attack and Gold per 100 buildings.</span></div>",
+  "tab.monolith.guide": "<strong>How It Works:</strong> Your <strong>Generators</strong> are the engine: spend Oil on them and they pump Oil every second, even while you're away. Tapping the central <em>Oil Refinery</em> is a small boost on top: each tap pays half a second of your production (at least 1 Oil). Rhythmic tapping builds a <strong>Combo</strong>; every 20 taps in a row triggers <strong>Frenzy Mode</strong> (+25% tap yield for 4 s, and it stacks while you keep going). <strong>Auto-tap</strong> from the Reserve Shop taps for you once a second. Watch for floating <strong>Golden Anomalies</strong> for instant jackpot rewards! <div class=\"guide-flow\"><span><strong>Produces:</strong> Oil (clicks + generators)</span><span><strong>Used in:</strong> Generators, the Oil Forge (Void Tower), New Wells (lifetime Oil becomes Crude Reserves). Building count also gives +1% hero Attack and Gold per 100 buildings.</span></div>",
   "tab.monolith.the_oil_refinery": "THE OIL REFINERY",
   "tab.monolith.title.tap_to_pump_oil": "Tap to pump Oil!",
   "tab.monolith.alt.oil_refinery": "Oil Refinery",
@@ -107,7 +107,7 @@ export default {
   "tab.alchemy.the_alchemical_crucible": "The Alchemical Crucible",
   "tab.alchemy.synthesize_botanical_essences_and": "Synthesize botanical essences and mined gemstones into permanent stat catalysts & potent temporary elixirs!",
   "tab.spells.hint.spend_mana_on_spells": "Spend Mana on spells; they also appear as Quick Cast on the tabs they help.",
-  "tab.spells.guide": "<strong>How It Works:</strong> Your Mana pool regenerates continuously. Cast tactical spells on cooldown: <strong>Oil Burst</strong> gives instant minutes of production, <strong>Chrono Warp</strong> accelerates game time by 5x, <strong>Midas' Blessing</strong> adds Gold to manual clicks, and <strong>Astral Renewal</strong> resets all active cooldowns across the entire game! <div class=\"guide-flow\"><span><strong>Produces:</strong> Oil bursts, time warp, Midas gold, Oil multipliers, monster damage, mining reveals</span><span><strong>Used in:</strong> Spells spend Mana. Leyline Overflow: while Mana is full, the Garden grows 1.5× faster and Auto-Drills run 1.25× faster. Max depth in Excavation raises Max Mana and Mana Regen by 1% per depth, up to +100%.</span></div>",
+  "tab.spells.guide": "<strong>How It Works:</strong> Your Mana pool regenerates continuously. Cast tactical spells on cooldown: <strong>Oil Burst</strong> gives instant seconds of production, <strong>Chrono Warp</strong> accelerates game time by 5x, <strong>Midas' Blessing</strong> adds Gold to manual clicks, and <strong>Astral Renewal</strong> resets all active cooldowns across the entire game! <div class=\"guide-flow\"><span><strong>Produces:</strong> Oil bursts, time warp, Midas gold, Oil multipliers, monster damage, mining reveals</span><span><strong>Used in:</strong> Spells spend Mana. Leyline Overflow: while Mana is full, the Garden grows 1.5× faster and Auto-Drills run 1.25× faster. Max depth in Excavation raises Max Mana and Mana Regen by 1% per depth, up to +100%.</span></div>",
   "tab.spells.arcane_grimoire": "Arcane Grimoire",
   "tab.spells.channel_your_mana_into": "Channel your Mana into tactical spells to surge production, warp time, and shatter obstacles!",
   "tab.talents.hint.spend_talent_points_from": "Spend Talent Points from Bounties and New Wells; respec any time for free.",
@@ -364,6 +364,8 @@ export default {
   "ff.title2": "Each use this cycle costs x{x} more; the price resets after {min} min without a use.",
   "hdr.rate": "+{n} /s",
   "clicker.per_click": "+{n} per Click",
+  "autotap.on": "🫳 Auto-tap: +{n}/s",
+  "autotap.paused": "🫳 Auto-tap waits while you tap",
   "clicker.frenzy": "🔥 FRENZY ACTIVE! ({s}s)",
 
   // SpellSystem.js
@@ -519,6 +521,7 @@ export default {
   "rule.bonuses_off": "🌌 Reserves, Share and Page bonuses off",
   "rule.combo_cap": "🔥 Combo caps at ×{x}",
   "rule.no_frenzy": "🧯 No Frenzy",
+  "rule.no_auto_tap": "🫳 No Auto-tap",
   "rule.no_spells": "🌑 No spells",
   "rule.max_tiers": "🏪 Only {n} generator tiers",
   "chron.sealset": "Seal set I",
@@ -813,7 +816,8 @@ export default {
   "combo.ready": "Combo Ready",
   "combo.ready_frenzy": "Combo Ready · Frenzy every {n} clicks",
   "combo.frenzy_in": "Frenzy in {n}",
-  "combo.text": "{n}x Combo! ({x}x boost)",
+  "combo.text": "{n}x Combo!",
+  "combo.text_boost": "{n}x Combo! ({x}x boost)",
 
   // motion.js
   "motion.auto": "Match my device",
@@ -1095,7 +1099,7 @@ export default {
   "st.fd_will": "Its 5 upgrades will cost ÷10",
   "st.auto.off": "Off: you drill each {reset1Noun} by hand.",
   "st.auto.min_run": "Waiting for the 10-min minimum run ({time}).",
-  "st.auto.first": "Waiting for this run's first {reset1Currency} (10,000 run {currency}).",
+  "st.auto.first": "Waiting for this run's first {reset1Currency} (500 run {currency}).",
   "st.auto.next": "Next {autoReset1} in {time}.",
   "st.auto.drilling": "Drilling…",
   "st.auto.pending": "Pending {a} of {b} {reset1Short}.",

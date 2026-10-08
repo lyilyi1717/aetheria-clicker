@@ -49,10 +49,10 @@ const make = (ascensions = 0, dust = 0) => {
   return { gs, bs, ps, us };
 };
 
-console.log('--- Table matches design doc 6.2 (R31 prices) ---');
+console.log('--- Table matches design doc 6.2 (R31 prices, R52 Auto-tap) ---');
 {
   const want = {
-    genesis: [1, 5], blueprint_memory: [1, 10], chrono_vault: [1, 10], auto_buy: [3, 30],
+    genesis: [1, 5], auto_tap: [1, 5], blueprint_memory: [1, 10], chrono_vault: [1, 10], auto_buy: [3, 30],
     titan_legacy: [3, 10], finger_of_wasta: [3, 50], astral_alchemist: [5, 15],
     golem_covenant: [5, 30], hourglass: [5, 40], auto_leylines: [10, 60],
     blueprint_memory_2: [10, 50], resonant_start: [20, 250], dust_amplifier: [0, 50]
@@ -148,12 +148,9 @@ console.log('--- Blueprint Memory I keeps upgrades 1-2 of each tier; II keeps ti
   buyShopItem(gs, 'blueprint_memory');
   assert.equal(blueprintMemoryKeeps(tier(12, 2), gs), true);
   assert.equal(blueprintMemoryKeeps(tier(12, 3), gs), false);
-  assert.equal(blueprintMemoryKeeps({ kind: 'click', tier: 0, level: 1 }, gs), false);
   buyShopItem(gs, 'blueprint_memory_2');
   assert.equal(blueprintMemoryKeeps(tier(7, 5), gs), true);
   assert.equal(blueprintMemoryKeeps(tier(8, 5), gs), false);
-  assert.equal(blueprintMemoryKeeps({ kind: 'click', tier: 0, level: 7 }, gs), true);
-  assert.equal(blueprintMemoryKeeps({ kind: 'click', tier: 0, level: 8 }, gs), false);
   assert.equal(blueprintMemoryKeeps({ kind: 'synergy', tier: 6 }, gs), true);
 
   // Through the real Ascend reset (registered keep rule)

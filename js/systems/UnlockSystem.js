@@ -13,7 +13,7 @@ export const ALWAYS_UNLOCKED = ['monolith', 'settings', 'about', 'community'];
 
 // Run Aether at which Ascension starts paying dust (PrestigeSystem.DUST_REF; kept here because
 // PrestigeSystem imports audio. test_unlocks.js checks the two agree)
-export const ASCEND_AETHER_GATE = 1e4;
+export const ASCEND_AETHER_GATE = 500;
 
 const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const maxFloor = (gs) => n(gs.hero?.maxFloor);

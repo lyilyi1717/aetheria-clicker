@@ -1,5 +1,5 @@
 // R5: upgrade shop (design doc 6.1). Table shape, costs, unlock thresholds, effects on
-// production and click yield, synergies, reset on Ascend/Transcend with the Blueprint Memory
+// production (R52 removed the click upgrades: test_r52_clicks.js), synergies, reset on Ascend/Transcend with the Blueprint Memory
 // keep hook, save/load, and BigNum safety at tier 30.
 // Run: node test_upgrades.js
 import assert from 'node:assert/strict';
@@ -9,9 +9,9 @@ import { SaveManager } from './js/engine/SaveManager.js';
 import { BuildingSystem, BUILDING_DEFINITIONS, MAX_TIER_COUNT } from './js/systems/BuildingSystem.js';
 import { PrestigeSystem } from './js/systems/PrestigeSystem.js';
 import {
-  UpgradeSystem, UPGRADE_DEFINITIONS, TIER_UPGRADE_THRESHOLDS, TIER_UPGRADE_MULT, CLICK_UPGRADE_COUNT,
-  CLICK_UPGRADE_MULT, SYNERGY_PER_UNIT, SYNERGY_MIN_TARGET, SYNERGY_MIN_SOURCE,
-  getUpgradeDefinition, getTierUpgradeMult, getClickUpgradeMult, sanitizeUpgrades,
+  UpgradeSystem, UPGRADE_DEFINITIONS, TIER_UPGRADE_THRESHOLDS, TIER_UPGRADE_MULT,
+  SYNERGY_PER_UNIT, SYNERGY_MIN_TARGET, SYNERGY_MIN_SOURCE,
+  getUpgradeDefinition, getTierUpgradeMult, sanitizeUpgrades,
   addAscendKeepRule, getKeptOnAscend, ASCEND_KEEP_RULES
 } from './js/systems/UpgradeSystem.js';
 import { particles } from './js/engine/ParticleEngine.js';
@@ -40,12 +40,12 @@ const make = () => {
 };
 const rich = (gs) => { gs.aether = new BigNum(1, 300); };
 
-console.log('--- Table: 5 per tier for all 20 tiers, 15 click, 8 synergy, unique ids ---');
+console.log('--- Table: 5 per tier for all 20 tiers, 8 synergy, no click upgrades (R52), unique ids ---');
 {
   const byKind = (k) => UPGRADE_DEFINITIONS.filter(u => u.kind === k);
   assert.equal(byKind('tier').length, 5 * MAX_TIER_COUNT);
-  assert.equal(byKind('click').length, CLICK_UPGRADE_COUNT);
-  assert.equal(CLICK_UPGRADE_COUNT, 15);
+  assert.equal(byKind('click').length, 0);
+  assert.equal(UPGRADE_DEFINITIONS.length, 5 * MAX_TIER_COUNT + 8);
   assert.equal(byKind('synergy').length, 8);
   assert.equal(new Set(UPGRADE_DEFINITIONS.map(u => u.id)).size, UPGRADE_DEFINITIONS.length);
   assert.deepEqual(TIER_UPGRADE_THRESHOLDS, [1, 5, 15, 30, 60]);
@@ -57,7 +57,7 @@ console.log('--- Table: 5 per tier for all 20 tiers, 15 click, 8 synergy, unique
   console.log(`  ${UPGRADE_DEFINITIONS.length} upgrades`);
 }
 
-console.log('--- Cost: tier upgrade k = baseCost x 4^(k+1); click i = 10 x baseCost(tier i) ---');
+console.log('--- Cost: tier upgrade k = baseCost x 4^(k+1) ---');
 {
   for (const def of [BUILDING_DEFINITIONS[0], BUILDING_DEFINITIONS[13], BUILDING_DEFINITIONS[19]]) {
     for (let k = 0; k < 5; k++) {
@@ -66,8 +66,7 @@ console.log('--- Cost: tier upgrade k = baseCost x 4^(k+1); click i = 10 x baseC
     }
   }
   assert.equal(getUpgradeDefinition('tapper_u1').cost.toNumber(), 40);
-  assert.equal(getUpgradeDefinition('click_1').cost.toNumber(), 100);
-  assert.ok(close(getUpgradeDefinition('click_15').cost.toNumber(), BUILDING_DEFINITIONS[14].baseCost.toNumber() * 10));
+  assert.equal(getUpgradeDefinition('click_1'), undefined);
 }
 
 console.log('--- Unlock thresholds and buying ---');
@@ -94,12 +93,8 @@ console.log('--- Unlock thresholds and buying ---');
   assert.equal(us.isAvailable('tapper_u1'), false);
   assert.equal(us.buy('tapper_u1'), false);
 
-  // Click chain is sequential
-  assert.equal(us.isAvailable('click_1'), true);
-  assert.equal(us.isAvailable('click_2'), false);
+  assert.equal(us.isAvailable('click_1'), false, 'no click upgrades (R52)');
   rich(gs);
-  us.buy('click_1');
-  assert.equal(us.isAvailable('click_2'), true);
 
   // Synergy needs 25 of the target and 50 of the source
   const syn = UPGRADE_DEFINITIONS.find(u => u.kind === 'synergy');
@@ -115,7 +110,7 @@ console.log('--- Unlock thresholds and buying ---');
   for (let i = 1; i < avail.length; i++) assert.ok(avail[i - 1].cost.lte(avail[i].cost));
   const n = us.buyAllAffordable();
   assert.equal(n, avail.length);
-  assert.equal(us.getAvailable().filter(u => u.kind !== 'click').length, 0);
+  assert.equal(us.getAvailable().length, 0);
 }
 
 console.log('--- Locked tiers: upgrades for tiers 9-20 stay hidden until the tier opens ---');
@@ -160,27 +155,6 @@ console.log('--- Effect: xTIER_UPGRADE_MULT per tier upgrade on that tier only; 
   assert.ok(close(bs.getBuildingProduction('tapper').toNumber() - before, gain));
 }
 
-console.log('--- Click yield = clickPower x 2^(click upgrades) + 3% CPS, combo unchanged ---');
-{
-  const { gs, us } = make();
-  assert.equal(gs.getClickYield().toNumber(), 1);
-  rich(gs);
-  for (let i = 1; i <= 4; i++) assert.equal(us.buy(`click_${i}`), true);
-  gs.aether = BigNum.zero();
-  assert.equal(getClickUpgradeMult(gs), CLICK_UPGRADE_MULT ** 4);
-  assert.equal(gs.getClickBase().toNumber(), 16);
-  assert.equal(gs.getClickYield().toNumber(), 16);
-  gs.buildings.tapper.count = 10; // 10 x 1 x milestone x2 = 20 CPS
-  const cps = gs.getNetAetherPerSecond().toNumber();
-  assert.ok(close(gs.getClickYield().toNumber(), 16 + 0.03 * cps));
-  gs.comboCount = 50; // combo x5 multiplies the whole click
-  assert.ok(close(gs.getClickYield().toNumber(), (16 + 0.03 * cps) * 5));
-  // All 15
-  rich(gs);
-  for (let i = 5; i <= 15; i++) assert.equal(us.buy(`click_${i}`), true);
-  assert.equal(getClickUpgradeMult(gs), 2 ** 15);
-}
-
 console.log('--- Reset on Ascend; Blueprint Memory keep rules; full reset on Transcend ---');
 {
   const { gs, ps, us } = make();
@@ -193,7 +167,6 @@ console.log('--- Reset on Ascend; Blueprint Memory keep rules; full reset on Tra
   gs.totalAetherEarned = new BigNum(1, 12);
   assert.ok(ps.ascend(true));
   assert.equal(us.getBoughtCount(), 0, 'Ascend clears every upgrade');
-  assert.equal(gs.getClickBase().toNumber(), 1);
 
   // Keep rule (what R6 Blueprint Memory registers): first 2 upgrades of each tier
   gs.dustShopTest = { blueprint: true };
@@ -232,13 +205,12 @@ console.log('--- Save/load: bought upgrades round-trip; old saves load with none
   const { gs, us } = make();
   gs.buildings.tapper.count = 50;
   rich(gs);
-  us.buy('tapper_u1'); us.buy('tapper_u3'); us.buy('click_1');
+  us.buy('tapper_u1'); us.buy('tapper_u3');
   const json = JSON.parse(JSON.stringify(gs.serialize()));
-  assert.deepEqual([...json.upgrades].sort(), ['click_1', 'tapper_u1', 'tapper_u3']);
+  assert.deepEqual([...json.upgrades].sort(), ['tapper_u1', 'tapper_u3']);
   const gs2 = new GameState();
   gs2.deserialize(json);
-  assert.deepEqual(Object.keys(gs2.upgrades).sort(), ['click_1', 'tapper_u1', 'tapper_u3']);
-  assert.equal(gs2.getClickBase().toNumber(), 2);
+  assert.deepEqual(Object.keys(gs2.upgrades).sort(), ['tapper_u1', 'tapper_u3']);
 
   // A save from before the shop (no field) and a hand-edited one
   const old = { ...json };
@@ -294,7 +266,6 @@ console.log('--- Deep Blueprint (shard tree Foundry): that tier\'s upgrades cost
   assert.equal(buyNode(gs, `foundry_t${t15.tier}`), true);
   assert.ok(close(us.getCost(`${t15.id}_u1`).toNumber(), full.toNumber() / 10));
   assert.ok(close(us.getCost('tapper_u1').toNumber(), 40), 'other tiers keep their price');
-  assert.ok(close(us.getCost('click_15').toNumber(), getUpgradeDefinition('click_15').cost.toNumber()), 'click upgrades are not tier upgrades');
   gs.aether = full.div(10);
   assert.equal(us.buy(`${t15.id}_u1`), true, 'affordable at the discounted price');
   assert.equal(gs.aether.toNumber(), 0);

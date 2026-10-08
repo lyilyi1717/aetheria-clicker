@@ -7,7 +7,6 @@ import {
   COMBO_FULL, FRENZY_AUTO_CLICKS, FRENZY_EVERY, FRENZY_DURATION, FRENZY_MAX_TIMER,
   CLICK_MAX_PER_SEC, AUTO_TAP_PER_SEC, AUTO_TAP_IDLE_AFTER
 } from './combo.js';
-import { hasShopItem } from './DustShopSystem.js';
 import { itemName } from '../data/names.js';
 import { t } from '../i18n/index.js';
 
@@ -17,9 +16,9 @@ import { t } from '../i18n/index.js';
 export const ANOMALY_WEIGHTS = {
   supernova: 13, time_flux: 13, mana_cache: 13, gem_cache: 13, mirage: 5, caravan_star: 3
 };
-export const SUPERNOVA_CPS_SECONDS = 30;   // was 600
+export const SUPERNOVA_CPS_SECONDS = 30;    // R52 (R3: 180, before: 600)
 export const SUPERNOVA_MIN_CLICKS = 500;
-export const MIRAGE_MULT = 1.5;               // x2 Aether production and gold
+export const MIRAGE_MULT = 1.5;             // x1.5 Aether production and gold (R52; was x2)
 export const MIRAGE_DURATION = 60;
 // Caravan Star: a free large caravan (MarketSystem.getCaravanTier('large'): 60 min, pays 1.5x
 // its 2,000 x Market Index list price, no cargo). If a caravan is already on the road, the
@@ -64,7 +63,7 @@ export class ClickerSystem {
 
   // True when Auto-tap is owned and the player hasn't tapped for AUTO_TAP_IDLE_AFTER seconds
   isAutoTapping() {
-    return hasShopItem(this.gameState, 'auto_tap') && this.sinceManualClick >= AUTO_TAP_IDLE_AFTER;
+    return this.gameState.hasAutoTap() && this.sinceManualClick >= AUTO_TAP_IDLE_AFTER;
   }
 
   // One Auto-tap: a plain click (no combo, Frenzy, crit or click count), paid like a real one
@@ -266,8 +265,8 @@ export class ClickerSystem {
     }
   }
 
-  // Mirage: x2 Aether production (an Aether buff, adds to Celestial like other Aether buffs) and
-  // x2 gold for 60 s. A second Mirage refreshes the timer instead of stacking.
+  // Mirage: x1.5 Aether production (an Aether buff, adds to Celestial like other Aether buffs) and
+  // x1.5 gold for 60 s. A second Mirage refreshes the timer instead of stacking.
   applyMirage() {
     const gs = this.gameState;
     gs.activeBuffs = gs.activeBuffs.filter(b => b.id !== 'mirage' && b.id !== 'mirage_gold');

@@ -1,4 +1,5 @@
-// R28: Frenzy every 20 combo clicks; the combo is x5 at 20 and Frenzy ending no longer resets it.
+// R28: Frenzy every 20 combo clicks; Frenzy ending no longer resets the combo. R52: the combo is
+// feel only (x1) and Frenzy is x1.25; at most 5 clicks a second pay.
 // Run: node test_r28_frenzy.js
 import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
@@ -6,8 +7,8 @@ import { GameState } from './js/systems/GameState.js';
 import { ClickerSystem } from './js/systems/ClickerSystem.js';
 import { restoreStash } from './js/systems/ChronicleSystem.js';
 import {
-  COMBO_FULL, FRENZY_EVERY, FRENZY_DURATION, FRENZY_MULT, FRENZY_MAX_TIMER,
-  comboMultiplier, clicksToNextFrenzy
+  COMBO_FULL, COMBO_MAX_MULT, FRENZY_EVERY, FRENZY_DURATION, FRENZY_MULT, FRENZY_MAX_TIMER,
+  CLICK_MAX_PER_SEC, comboMultiplier, clicksToNextFrenzy
 } from './js/systems/combo.js';
 import { comboView } from './js/ui/comboBar.js';
 import { particles } from './js/engine/ParticleEngine.js';
@@ -22,26 +23,23 @@ const make = () => {
   gs.critChance = 0;
   return gs;
 };
-const click = (c, n) => { for (let i = 0; i < n; i++) c.handleClick(0, 0, false); };
+// Clicks at the paid rate limit (the bucket refills 1 click per 1/5 s of real time)
+const click = (c, n) => { for (let i = 0; i < n; i++) { c.update(0, 1 / CLICK_MAX_PER_SEC); c.handleClick(0, 0, false); } };
 
-// --- combo multiplier: x1 at 0, x5 at 20 and beyond ---
+// --- combo multiplier: x1 (feel only since R52); Frenzy x1.25 ---
 {
   assert.equal(COMBO_FULL, 20);
   assert.equal(FRENZY_EVERY, 20);
-  assert.equal(comboMultiplier(0), 1);
-  assert.equal(comboMultiplier(10), 3);
-  assert.equal(comboMultiplier(20), 5);
-  assert.equal(comboMultiplier(87), 5);
-  assert.equal(comboMultiplier(-3), 1);
+  assert.equal(COMBO_MAX_MULT, 1);
+  assert.equal(FRENZY_MULT, 1.25);
+  for (const n of [-3, 0, 10, 20, 87]) assert.equal(comboMultiplier(n), 1);
 
   const gs = make();
   const yield0 = gs.getClickYield().toNumber();
-  gs.comboCount = 20;
-  assert.equal(gs.getClickYield().toNumber(), yield0 * 5);
   gs.comboCount = 500;
-  assert.equal(gs.getClickYield().toNumber(), yield0 * 5);
+  assert.equal(gs.getClickYield().toNumber(), yield0);
   gs.frenzyActive = true;
-  assert.equal(gs.getClickYield().toNumber(), yield0 * 5 * FRENZY_MULT);
+  assert.equal(gs.getClickYield().toNumber(), yield0 * FRENZY_MULT);
 }
 
 // --- Frenzy at 20, 40, 60; the combo survives Frenzy ending ---
@@ -97,7 +95,7 @@ const click = (c, n) => { for (let i = 0; i < n; i++) c.handleClick(0, 0, false)
   assert.equal(gs.frenzyActive, true);
 }
 
-// --- Chronicle rules: no Frenzy, combo cap ---
+// --- Chronicle rules: no Frenzy; a combo cap still shows when a boost exists ---
 {
   const gs = make();
   gs.chronicle = { ...gs.chronicle, active: { id: 'sand_dry_well', startedAt: 0, stash: null } };
@@ -105,7 +103,7 @@ const click = (c, n) => { for (let i = 0; i < n; i++) c.handleClick(0, 0, false)
   click(c, 40);
   assert.equal(gs.frenzyActive, false, 'Dry Well forbids Frenzy');
   assert.equal(comboView(5, 0, { noFrenzy: true }).text.includes('Frenzy'), false);
-  assert.match(comboView(5, 0, { comboCap: 2 }).text, /\(2\.0x boost\)/);
+  assert.doesNotMatch(comboView(5, 0, { comboCap: 2 }).text, /boost/, 'x1 combo: no boost text');
 }
 
 // --- combo bar view ---
@@ -113,7 +111,7 @@ const click = (c, n) => { for (let i = 0; i < n; i++) c.handleClick(0, 0, false)
   assert.equal(comboView(0).fill, 0);
   assert.equal(comboView(10).fill, 50);
   assert.match(comboView(10).text, /Frenzy in 10/);
-  assert.match(comboView(20, 20).text, /\(5\.0x boost\) · Frenzy in 20/);
+  assert.match(comboView(20, 20).text, /^20x Combo! · Frenzy in 20/);
   assert.equal(comboView(20, 20).fill, 0);
   assert.equal(comboView(35, 20).fill, 75);
   assert.match(comboView(35, 20).text, /Frenzy in 5/);
@@ -132,7 +130,6 @@ const click = (c, n) => { for (let i = 0; i < n; i++) c.handleClick(0, 0, false)
   restoreStash(gs);
   assert.equal(gs.comboCount, 87);
   const c = new ClickerSystem(gs);
-  assert.equal(comboMultiplier(gs.comboCount), 5);
   click(c, 12);
   assert.equal(gs.frenzyActive, false);
   click(c, 1);
