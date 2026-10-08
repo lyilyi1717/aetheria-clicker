@@ -79,6 +79,7 @@ R0–R30 and R32–R40 are done (R39: local ticker only).
 | 8 | R48 Honest Bazaar sale, no silent taps | #120 | R41 (best after R46) |
 | 8 | R49 Reduced-motion colour cues | #121 | R41 |
 | 8 | R50 Game-feel polish (skills, digs, Dallah, Seals, Frenzy end) | #122 | R41 (best after R46) |
+| 8 | R51 Yield gain and best value on generator buttons | #124 | – |
 
 ## Done
 
