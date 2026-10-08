@@ -56,7 +56,7 @@ export const SPELLS = [
     icon: '☄️',
     manaCost: 35,
     cooldown: 40,
-    desc: 'Deals 40% of dungeon monster HP & blasts 4 mining blocks (40 pickaxe hits each).'
+    desc: 'Deals 40% of dungeon monster HP (at most 10x your Attack) & blasts 4 mining blocks (40 pickaxe hits each).'
   },
   {
     id: 'astral_refresh',
@@ -166,7 +166,8 @@ export class SpellSystem {
       if (this.gameState.combatSystem && this.gameState.combatSystem.monster) {
         const m = this.gameState.combatSystem.monster;
         if (m.hp > 0) {
-          const dmg = Math.max(10, Math.floor(m.maxHp * 0.4));
+          // Tower insurance (R64): 40% of max HP, but never more than 10 hits of the hero's Attack
+          const dmg = Math.max(10, Math.floor(Math.min(m.maxHp * 0.4, 10 * this.gameState.combatSystem.getTotalAttack())));
           this.gameState.combatSystem.dealDamageToMonster(dmg, x, y, true);
         }
       }

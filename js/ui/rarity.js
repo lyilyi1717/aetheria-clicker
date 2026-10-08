@@ -35,9 +35,21 @@ export function rarityWord(rarity) {
 export function gearName(item) {
   const name = item?.name;
   if (!name) return t('gear.empty');
+  if (item.uniqueId) return tOr(`gear.unique.${item.uniqueId}`, name);
   const m = /^(Common|Rare|Epic|Legendary|Cosmic) (WEAPON|ARMOR|AMULET|RELIC)$/.exec(name);
   if (m) return t('gear.generated', { rarity: rarityWord(m[1]), slot: t(`gear.slot.${m[2].toLowerCase()}`) });
   return tOr(`gear.start.${name.toLowerCase().replace(/[^a-z]+/g, '_')}`, name);
+}
+
+/** One affix as a line: "+12% Attack", "+0.30 crit multiplier". */
+export function affixText(a) {
+  const pct = Math.round(a.v * 1000) / 10;
+  return a.id === 'precision' ? t('bag.affix.precision', { n: a.v.toFixed(2) }) : t(`bag.affix.${a.id}`, { pct });
+}
+
+/** The unique effect of a boss signature, one sentence. */
+export function uniqueText(id) {
+  return tOr(`gear.unique.${id}.fx`, '');
 }
 
 /** `<span class="rarity legendary" data-glyph="◆◆◆◆">Legendary</span>`, or '' if unknown. */
@@ -53,13 +65,14 @@ export function gearCard(slotLabel, item, statText) {
   const cls = rarityClass(item?.rarity);
   const word = rarityWord(item?.rarity);
   const tip = item
-    ? tipHtml(gearName(item), [slotLabel, word].filter(Boolean).join(' · '), statText,
-      t('gear.tip.replace'))
+    ? tipHtml(gearName(item), [slotLabel, word, item.ilvl ? t('bag.ilvl', { n: item.ilvl }) : ''].filter(Boolean).join(' · '), statText,
+      ...(item.affixes || []).map(affixText), item.uniqueId ? uniqueText(item.uniqueId) : '',
+      item.heirloom ? t('bag.heirloom_tip') : '', t('gear.tip.replace'))
     : tipHtml(t('gear.tip.empty_slot', { slot: slotLabel }), t('gear.tip.find'));
   return `
     <div class="gear ${cls}" ${tipAttr(tip)}>
       <div class="gear-head"><span class="slot">${escapeHtml(slotLabel)}</span>${rarityTag(item?.rarity)}</div>
-      <div class="name">${escapeHtml(gearName(item))}</div>
+      <div class="name">${escapeHtml(gearName(item))}${item?.heirloom ? ' <span class="tag tier">' + t('bag.heirloom') + '</span>' : ''}</div>
       <div class="stat num">${escapeHtml(statText)}</div>
     </div>`;
 }

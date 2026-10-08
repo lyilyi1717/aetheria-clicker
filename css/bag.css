@@ -1,0 +1,84 @@
+/* Gear Bag (R64). Linked from js/ui/bag.js; uses the shared .card / .chip / .seg / .btn / .rarity */
+.bag-panel { margin-top: var(--sp-3); padding: var(--sp-3); }
+.bag-title { font-size: var(--fs-14); }
+.bag-heads { display: inline-flex; gap: var(--sp-2); flex-wrap: wrap; }
+.bag-note { font-size: var(--fs-12); color: var(--text-3); margin: 0 0 var(--sp-3); line-height: var(--lh-body); }
+.bag-panel [hidden] { display: none !important; }
+
+.bag-kashta { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap;
+  padding: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-3); border: 1px solid var(--line-1); border-radius: var(--r-2); background: var(--bg-1); }
+.bag-kashta-text { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-13); color: var(--text-2); min-width: 0; }
+.bag-kashta-actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.bag-kashta .btn[aria-pressed="true"] { border-color: var(--life); color: var(--life); }
+
+.bag-equipped { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.bag-controls { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.bag-ctl { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.bag-ctl-label { font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); min-width: 72px; }
+.bag-ctl .seg { flex-wrap: wrap; }
+.bag-ctl .btn[aria-pressed="true"] { border-color: var(--life); color: var(--life); }
+.bag-actions { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-3); }
+.bag-stock { margin-inline-start: auto; }
+.bag-bulk-confirm { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-3); padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--danger); border-radius: var(--r-2); font-size: var(--fs-13); color: var(--text-1); }
+
+/* 5 tiles per row on a phone (375px minus gutters leaves ~64px each) */
+.bag-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-2); }
+.bag-tile { position: relative; min-height: 64px; padding: var(--sp-1); border-radius: var(--r-1); background: var(--bg-1);
+  border: 1px solid var(--line-1); border-inline-start-width: 4px; color: var(--text-1); cursor: pointer; font: inherit;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.bag-tile:hover { background: var(--bg-3); }
+.bag-tile:focus-visible { outline: 2px solid var(--aether); outline-offset: 2px; }
+.bag-tile.common { border-inline-start-color: var(--rarity-common); }
+.bag-tile.rare { border-inline-start-color: var(--rarity-rare); }
+.bag-tile.epic { border-inline-start-color: var(--rarity-epic); }
+.bag-tile.legendary { border-inline-start-color: var(--rarity-legendary); }
+/* Only Cosmic may glow */
+.bag-tile.cosmic { border-inline-start-color: var(--rarity-cosmic); box-shadow: 0 0 12px color-mix(in srgb, var(--rarity-cosmic) 25%, transparent); }
+.bag-tile.is-upgrade { border-top-color: var(--life); border-bottom-color: var(--life); border-inline-end-color: var(--life); }
+.bag-tile.is-unique::after { content: '⭐'; font-size: var(--fs-11); position: absolute; inset-block-end: 2px; inset-inline-start: 4px; }
+.bt-icon { font-size: var(--fs-20); line-height: 1; }
+.bt-glyph { font-size: var(--fs-11); letter-spacing: -1px; color: var(--text-2); line-height: 1; }
+.bt-lv { position: absolute; inset-block-start: 2px; inset-inline-end: 4px; font-size: var(--fs-11); color: var(--text-3); }
+.bt-up { position: absolute; inset-block-end: 2px; inset-inline-end: 4px; font-size: var(--fs-11); font-weight: 800; color: var(--life); }
+.bt-lock { position: absolute; inset-block-start: 2px; inset-inline-start: 4px; font-size: var(--fs-11); }
+.bag-equipped .bag-tile { background: var(--bg-2); }
+.bag-empty { font-size: var(--fs-13); color: var(--text-3); margin: var(--sp-2) 0 0; }
+.bag-ticker { font-size: var(--fs-12); color: var(--text-3); margin: var(--sp-2) 0 0; min-height: 1em; }
+
+/* Compare sheet: modal on desktop, bottom sheet on phone (style guide §5.7) */
+.bag-scrim { position: fixed; inset: 0; z-index: 10002; background: color-mix(in srgb, var(--shade) 72%, transparent);
+  backdrop-filter: blur(6px); display: grid; place-items: center; padding: var(--gutter); }
+.bag-scrim[hidden] { display: none; }
+.bag-modal { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--bg-1);
+  border: 1px solid var(--line-2); border-radius: var(--r-3); box-shadow: var(--el-3); padding: var(--sp-4); font-family: var(--font-ui); }
+.bag-handle { display: none; width: 36px; height: 4px; border-radius: 2px; background: var(--line-2); margin: 0 auto var(--sp-3); }
+.bag-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-3); }
+.bag-sheet-head h3 { margin: 0; font-family: var(--font-display); color: var(--gold); font-size: var(--fs-18); overflow-wrap: anywhere; }
+.bag-compare { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+.bag-compare .bag-col:only-child { grid-column: 1 / -1; }
+.bag-col { padding: var(--sp-3); background: var(--bg-2); border: 1px solid var(--line-1); border-radius: var(--r-2);
+  border-inline-start-width: 4px; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
+.bag-col.common { border-inline-start-color: var(--rarity-common); } .bag-col.rare { border-inline-start-color: var(--rarity-rare); }
+.bag-col.epic { border-inline-start-color: var(--rarity-epic); } .bag-col.legendary { border-inline-start-color: var(--rarity-legendary); }
+.bag-col.cosmic { border-inline-start-color: var(--rarity-cosmic); }
+.bag-col-title { font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.bag-col-name { font-weight: 600; font-size: var(--fs-14); overflow-wrap: anywhere; }
+.bag-ilvl { font-size: var(--fs-12); color: var(--text-3); }
+.bag-stats { list-style: none; margin: var(--sp-1) 0 0; padding: 0; font-size: var(--fs-13); color: var(--text-2); display: flex; flex-direction: column; gap: 2px; }
+.bag-fx { color: var(--text-1); }
+.bag-none { margin: 0; color: var(--text-3); font-size: var(--fs-13); }
+.bag-sheet-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.bag-sheet-actions .btn { flex: 1 1 140px; justify-content: center; gap: var(--sp-2); }
+.bag-sheet-actions .btn[aria-pressed="true"] { border-color: var(--life); color: var(--life); }
+.bag-cost { color: var(--text-2); font-size: var(--fs-12); }
+.bag-hint { font-size: var(--fs-12); color: var(--text-3); margin: var(--sp-3) 0 0; }
+
+@media (max-width: 639px) {
+  .bag-scrim { align-items: end; padding: 0; }
+  .bag-modal { width: 100%; border-radius: var(--r-3) var(--r-3) 0 0; max-height: 92vh; padding-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom)); }
+  .bag-handle { display: block; }
+  .bag-compare { grid-template-columns: 1fr; }
+  .bag-ctl-label { min-width: 0; flex-basis: 100%; }
+}
+@media (pointer: coarse) { .bag-panel .btn, .bag-modal .btn, .bag-panel .seg button { min-height: var(--tap); } }

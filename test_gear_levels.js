@@ -80,19 +80,22 @@ assert.equal(gearStat('weapon', null), 0);
   assert.equal(cs.getGearLevelInfo('relic').blocked, 'empty');
 }
 
-// --- a better drop keeps the slot's level ---
+// --- equipping a better item keeps the slot's level (the level belongs to the slot) ---
 {
   const { gs, cs, h } = fresh();
-  h.gear.weapon.level = 6;
   for (const s of GEAR_SLOTS) if (h.gear[s]) h.gear[s].level = 6;
-  const seq = [0, 0, 0.5]; // drop roll passes, slot 0 = weapon, Common rarity
+  const seq = [0, 0.99, 0]; // drop roll passes, Common rarity, slot 0 = weapon
   let i = 0;
   const realRandom = Math.random;
   Math.random = () => (i < seq.length ? seq[i++] : 0.99);
-  try { cs.rollLoot(200, true); } finally { Math.random = realRandom; }
+  try { cs.rollLoot(200, false); } finally { Math.random = realRandom; }
+  assert.equal(h.gear.weapon.name, 'Rusty Shortsword', 'a drop waits in the bag until the player equips it');
+  const drop = gs.bag.items.find(x => x.slot === 'weapon' && x.ilvl === 200);
+  assert.ok(drop, 'the floor-200 weapon is in the bag');
+  assert.ok(cs.gear.equip(drop.uid));
   assert.notEqual(h.gear.weapon.name, 'Rusty Shortsword', 'the floor-200 drop replaced the starter weapon');
   assert.equal(h.gear.weapon.level, 6, 'new weapon kept +6');
-  void gs;
+  assert.equal(gs.bag.items.some(x => x.name === 'Rusty Shortsword'), true, 'the old weapon went to the bag');
 }
 
 // --- save defaults: an old save with no gear levels loads at +0 ---

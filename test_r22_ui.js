@@ -86,9 +86,9 @@ console.log('--- gear card ---');
 
 console.log('--- loot drop colours match the rarity tokens ---');
 {
-  const combat = read('./js/systems/CombatSystem.js');
+  const combat = read('./js/systems/gearItems.js');   // the rarity table moved here in R64
   for (const [name, cls] of [['Common', 'common'], ['Rare', 'rare'], ['Epic', 'epic'], ['Legendary', 'legendary'], ['Cosmic', 'cosmic']]) {
-    const drop = combat.match(new RegExp(`name: '${name}', color: '(#[0-9a-f]+)'`, 'i'));
+    const drop = combat.match(new RegExp(`name: '${name}'[^}]*color: '(#[0-9a-f]+)'`, 'i'));
     const token = tokensCss.match(new RegExp(`--rarity-${cls}:\\s*(#[0-9a-f]+)`, 'i'));
     assert.ok(drop && token, `${name}: drop and token colours found`);
     assert.equal(drop[1].toLowerCase(), token[1].toLowerCase(), `${name} drop colour matches its token`);

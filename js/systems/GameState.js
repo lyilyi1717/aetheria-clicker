@@ -9,6 +9,7 @@ import {
   defaultChronicleState, sanitizeChronicleState, restoreStash, getActiveRules, getPageAetherMult
 } from './ChronicleSystem.js';
 import { defaultCalendarState, sanitizeCalendarState } from './CalendarSystem.js';
+import { defaultBag, defaultLoot, sanitizeBag, sanitizeLoot } from './gearItems.js';
 import { getTierUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
 import { defaultDustShopState, sanitizeDustShopState, getShopRank, hasShopItem, getFingerOfWastaMult } from './DustShopSystem.js';
 import { isTabUnlocked, sanitizeUnlocks, sanitizeUnlockSeen } from './UnlockSystem.js';
@@ -133,6 +134,9 @@ export class GameState {
     // System sub-states (initialized by their respective systems)
     this.buildings = {};
     this.hero = null;
+    // Gear bag and loot counters (R64, GearSystem.js): equipped items live in hero.gear
+    this.bag = defaultBag();
+    this.loot = defaultLoot();
     this.miningGrid = null;
     this.garden = null;
     this.alchemy = { catalysts: 0 };
@@ -406,6 +410,8 @@ export class GameState {
       records: serializeRecords(this.records),
       buildings: this.buildings,
       hero: this.hero,
+      bag: this.bag,
+      loot: this.loot,
       mining: this.miningGrid,
       garden: this.garden,
       alchemy: this.alchemy,
@@ -486,6 +492,9 @@ export class GameState {
         const lv = Math.floor(Number(item.level));
         item.level = Number.isFinite(lv) && lv > 0 ? lv : 0;
       }
+      // Saves from before R64 have no bag or loot counters (migration v11 seeds them)
+      this.bag = sanitizeBag(data.bag);
+      this.loot = sanitizeLoot(data.loot);
       this.miningGrid = data.mining || null;
       this.garden = data.garden || null;
       this.alchemy = { catalysts: 0, ...(data.alchemy || {}) };

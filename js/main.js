@@ -37,6 +37,7 @@ import { ComingUpUI } from './ui/comingUp.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
 import { EquipmentUI } from './ui/equipment.js';
+import { BagUI } from './ui/bag.js';
 import { UpgradeSystem } from './systems/UpgradeSystem.js';
 import { UpgradeShopUI } from './ui/upgrades.js';
 import { ShardTreeUI } from './ui/shardTree.js';
@@ -721,6 +722,8 @@ class AetheriaApp {
     this.wardensRelicsUI.build();
     this.equipmentUI = new EquipmentUI(this, fmtNum);
     this.equipmentUI.build();
+    this.bagUI = new BagUI(this, fmtNum);
+    this.bagUI.build();
     this.upgradeShopUI = new UpgradeShopUI(this);
     this.upgradeShopUI.build();
     this.buildSpellsStructure();
@@ -1945,6 +1948,7 @@ class AetheriaApp {
     this.comingUp?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
     this.equipmentUI?.update(this.currentTab);
+    this.bagUI?.update(this.currentTab);
     this.shardTreeUI?.update(this.currentTab);
     this.dustShopUI?.update();
     this.chronicleUI?.update(this.currentTab);

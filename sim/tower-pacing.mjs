@@ -19,15 +19,22 @@
 //   - Gladiator Vigour talent rank and Quartermaster Hunter's Edge rank: see POWER below
 // Gear levels (R34): once a minute the hero spends Monster Bones on the cheapest level-up
 // (ties: weapon, armor, amulet, relic). `--no-gear-levels` turns that off (the pre-R34 game).
+// Gear bag (R64): loot lands in the bag and nothing equips itself, so the sim plays a bot that
+// does what an attentive player does once a minute while the game is open: salvage junk, re-temper
+// a Legendary+ (equipped, or one in the bag that would beat what is worn), then equip every
+// upgrade. It never touches locks, never sells. `--no-bag` leaves the bot out (the hero then keeps
+// the starter kit, which shows what the bag costs an idle account that never opens it).
 // Hero level, gear and floor come from the real CombatSystem (loot RNG is seeded).
 import { GameState } from '../js/systems/GameState.js';
 import { CombatSystem, GEAR_SLOTS, FORGE_BASE_COST, FORGE_COST_GROWTH } from '../js/systems/CombatSystem.js';
+import { withItemLevel, rarityIndex } from '../js/systems/gearItems.js';
 import { particles } from '../js/engine/ParticleEngine.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
 
 const GEAR_LEVELS = !process.argv.includes('--no-gear-levels');
+const BAG_BOT = !process.argv.includes('--no-bag');
 const H = 3600;
 const DAY = 24 * H;
 
@@ -69,6 +76,7 @@ function run(profile, endT) {
   const gs = new GameState();
   const cs = new CombatSystem(gs);
   gs.combatSystem = cs;
+  if (process.argv.includes('--no-kashta')) gs.settings.kashtaAuto = false;
   const h = gs.hero;
   const isOpen = t => profile === 'open' || (t % DAY) < 45 * 60 || ((t % DAY) >= 12 * H && (t % DAY) < 12 * H + 45 * 60);
   const dt = 0.25;
@@ -76,10 +84,36 @@ function run(profile, endT) {
   let ci = 0, t = 0, towerSecs = 0, lastFloor = 1, lastTowerSecs = 0;
   let bosses = 0, timeouts = 0, deaths = 0, clickAcc = 0;
 
+  const gearBot = () => {
+    const g = cs.gear;
+    // Re-temper a Legendary+ from the bag if, brought to the current floor, it would beat the worn one
+    for (const item of g.bag.items.slice()) {
+      if (rarityIndex(item.rarity) < 3 || item.locked) continue;
+      const info = g.retemperInfo(item);
+      if (!info.eligible || !info.canAfford) continue;
+      if (g.ratingDelta(withItemLevel(item, info.target)) > 0.0005) g.retemper(item.uid);
+    }
+    g.equipBest();
+    for (const slot of GEAR_SLOTS) {
+      const item = h.gear[slot];
+      const info = g.retemperInfo(item);
+      if (info.eligible && info.canAfford && info.target - item.ilvl >= 5) g.retemper(item.uid);
+    }
+    // Junk out: everything that is not an upgrade (Legendary+ stay while the bag has room)
+    const crowded = g.bag.items.length > 20;
+    const base = g.ratingLog();
+    for (const item of g.bag.items.slice()) {
+      if (item.locked || g.ratingDelta(item, base) > 0.0005) continue;
+      if (rarityIndex(item.rarity) >= 3 && !crowded) continue;
+      g.salvage(item.uid);
+    }
+  };
+
   const applyPower = () => {
     h.aetherForgeLevel = forgeLevel(t);
     gs.talents.warlord_might = { rank: Math.round(lerp(POWER, t, 1)) };
     gs.quartermaster = { hunters_edge: { rank: Math.round(lerp(POWER, t, 2)) } };
+    if (BAG_BOT) gearBot();
     if (!GEAR_LEVELS) return;
     for (;;) {
       const next = GEAR_SLOTS.map(s => cs.getGearLevelInfo(s)).filter(i => !i.blocked).sort((a, b) => a.cost - b.cost)[0];
