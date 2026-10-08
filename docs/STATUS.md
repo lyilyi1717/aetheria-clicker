@@ -10,8 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Wave 9, run by the R31 coordinator session: R52 #126 in progress; R55 follows R52, R56 (now
-  unblocked by R53), R57 #139 follows R52 and R56.
+- Wave 9, run by the R31 coordinator session: R55 #129 in progress; R56 #130 next; R57 #139
+  follows R56.
 
 ## Next up
 
@@ -254,6 +254,13 @@ R0–R30 and R32–R40 are done.
   `TIER_UPGRADE_COST_STEP`), `ShardTreeSystem` (`AUTO_ASCEND_*`). The 2-month sim row depends on
   where day 60 falls in a layer (run Oil swings ~2 decades); re-run `sim:check` after any pacing
   change.
+- R52 #126 Passive clicking (PR #136, 5.3.0): a click is 0.5 s of production (min 1, max 5 paid
+  clicks/s). The 15 click upgrades are gone (save step v9 refunds them as Oil). Auto-tap is a dust
+  shop item (1 tap/s when idle, also offline). Spells and Frenzy retuned so active is x1.93 over
+  idle with Auto-tap; the combo is feel-only. 6 tier upgrades per tier (at 1/3/8/15/30/60 owned,
+  x3 cost steps). A New Well pays from 500 run Oil. `sim:check` asserts idle first Ascension
+  <= 90 min (60), casual median upgrades per run >= 30 (32), casual median run Oil over days
+  50–70 >= 1e11 (4.1e12; idle 4.4e10).
 - R53 #127 Reprice outside-core (PR #134, 5.2.0): Oil achievement rungs at 1e5–1e16 (ids kept);
   Forge costs 100·1.5^L; subgame→Oil links are one additive category capped at +150%
   (`js/systems/WorldLinks.js`); Geode and Nectar dust links are additive with each other.
@@ -313,8 +320,8 @@ R0–R30 and R32–R40 are done.
 
 ## Noticed (not yet an issue)
 
-- After R31: idle first Ascension is 5 h and idle upgrades per run 22 (R52 takes this on); Talent
-  S2 gives ~10 stars/yr.
+- After R31: Talent S2 gives ~10 stars/yr.
+- After R52: the Aetherial Strike talent can push active play past x2 over idle.
 - Arabic unlock teaser labels show fractions reversed (e.g. "20/0"); seen in R54.
 
 - Hex colours still in `CombatSystem.js`, `MiningSystem.js`, `ShardTreeSystem.js`,
