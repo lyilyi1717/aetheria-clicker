@@ -304,7 +304,7 @@ R0–R30, R32–R40, R41 and R42 are done.
   chains, sound cooldowns, caps, merge rule); `ParticleEngine` caps 250/150 sparks and 40 texts and
   merges "+n" texts by key. Click/crit/anomaly, combat hits, dig hits and Auto-tap go through it.
   `.fx-shake`/`.is-hitstop` are in `css/animations.css`, unused until R42. R42–R50 build on this.
-- R42 #114 Boss kills (PR #170, 5.15.0): `js/ui/combatFx.js` hooks `CombatSystem.onBossDefeated` (T2 via
+- R42 #114 Boss kills (PR #170, 5.17.0): `js/ui/combatFx.js` hooks `CombatSystem.onBossDefeated` (T2 via
   `feedback.fire`, hit-stop + flash on `.monster-avatar`, shake on the arena card, callout + gold
   count-up) and `renderBossTimer` (red/ticks at <= 10 s, scale at <= 3 s, "Last boss: +n gold"
   between bosses in the same reserved line). New voices `playBossDown`, `playTick`.

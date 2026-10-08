@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
+  <!-- Boss: Rukbah Soda (Radioactive Fizzy Citrus Monster) -->
+  <defs>
+    <radialGradient id="sodaBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#14532d"/>
+      <stop offset="70%" stop-color="#052e16"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+    <linearGradient id="canGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="40%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="120" fill="url(#sodaBg)" stroke="#22c55e" stroke-width="6"/>
+  <!-- Denting Metal Soda Can Monster Body -->
+  <path d="M84 56 L172 56 L176 196 L80 196 Z" fill="url(#canGreen)" stroke="#14532d" stroke-width="5"/>
+  <ellipse cx="128" cy="56" rx="44" ry="12" fill="#94a3b8" stroke="#475569" stroke-width="3"/>
+  <ellipse cx="128" cy="196" rx="48" ry="14" fill="#64748b" stroke="#334155" stroke-width="3"/>
+  <!-- Popped Can Mouth vomiting Carbonated Citrus Foam -->
+  <ellipse cx="128" cy="56" rx="24" ry="7" fill="#0f172a"/>
+  <path d="M104 56 Q128 32 152 56 Q164 78 146 88 Q128 72 108 86 Z" fill="#bef264" opacity="0.95"/>
+  <!-- Monster Eyes on Can Label -->
+  <circle cx="106" cy="106" r="14" fill="#ffffff" stroke="#15803d" stroke-width="3"/>
+  <circle cx="150" cy="106" r="14" fill="#ffffff" stroke="#15803d" stroke-width="3"/>
+  <circle cx="110" cy="106" r="6" fill="#dc2626"/>
+  <circle cx="146" cy="106" r="6" fill="#dc2626"/>
+  <!-- Jagged Monster Grin with Sharp Teeth -->
+  <polygon points="98,140 106,150 114,140 122,150 130,140 138,150 146,140 154,150 158,136 94,136" fill="#ffffff" stroke="#14532d" stroke-width="2"/>
+  <!-- Radioactive Fizz Bubbles popping -->
+  <circle cx="70" cy="40" r="8" fill="#bef264"/>
+  <circle cx="186" cy="46" r="10" fill="#bef264"/>
+  <circle cx="196" cy="94" r="6" fill="#bef264"/>
+  <circle cx="58" cy="124" r="7" fill="#bef264"/>
+</svg>

@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.15.0';
+export const VERSION = '5.17.0';
 
 export const CHANGELOG = [
   {
-    version: '5.15.0',
+    version: '5.17.0',
     date: '2026-10-08',
     title: 'Boss Kills Feel Like a Win',
     changes: [
@@ -23,6 +23,60 @@ export const CHANGELOG = [
         'يبقى ذهب آخر زعيم ظاهراً فوق الصورة حتى يصل الزعيم التالي.',
         'مؤقت الغضب يبقى هادئاً حتى آخر 10 ثوانٍ، ثم يصبح أحمر ويدق بهدوء كل ثانية؛ وفي آخر 3 ثوانٍ يكبر قليلاً.',
         'عند تفعيل تقليل الحركة لا يوجد اهتزاز أو وميض أو تكبير للمؤقت؛ وتبقى الألوان والإعلان والأصوات.'
+      ]
+    }
+  },
+  {
+    version: '5.16.1',
+    date: '2026-10-08',
+    title: 'Smooth Excavation Frenzy',
+    changes: [
+      'Excavation board stability: Removed the pulsing scale animation from the excavation grid during Frenzy mode. Rapid digging now keeps the board completely smooth and stationary with its golden glow intact, eliminating lag and jitter (reported by players).'
+    ],
+    ar: {
+      title: 'تحسين سلاسة حفر الحماس',
+      changes: [
+        'استقرار لوحة التنقيب: إزالة حركة الاهتزاز والنبض التكبيري من شبكة الحفر أثناء وضع الحماس. أصبح الحفر السريع سلساً تماماً وثابتاً في مكانه مع الحفاظ على التوهج الذهبي، مما يقضي على البطء والتقطيع (بناءً على ملاحظات اللاعبين).'
+      ]
+    }
+  },
+  {
+    version: '5.16.0',
+    date: '2026-10-08',
+    title: 'Comprehensive Visual Asset Overhaul',
+    changes: [
+      'Void Tower Gear Art: All 20 equipment tiers (weapons, armor, amulets, and relics across common, rare, epic, legendary, and cosmic) now display rich, full-color RPG item illustrations with rarity borders.',
+      'Hero & Boss Portraits: The Astral Champion now has a custom starlight helmet portrait, and iconic dungeon bosses (Abu Sarwal, Rukbah Soda, Mutawa, Karak Addict) feature unique character art.',
+      'Excavation Relics & Gems: Uncovered underground tiles now display custom vector assets for the Ancient Stairs, overflowing Gold Caches, and the 5 cultural gemstone relics (Fawanees, Dallah, Oud Wood, Misbaha, and Mabkhara).',
+      'Alchemy & Grimoire Icons: The Alchemical Crucible cards now display custom brewed elixir flasks, and Grimoire spells feature glowing arcane runic sigils.',
+      'Botanical Nexus & Anomaly: Plant plots now visually progress through distinct sprout and blooming stages before maturity, Garden Golems carry stone sentry badges, and the Golden Anomaly shines as an orbiting celestial star.'
+    ],
+    ar: {
+      title: 'تحديث شامل للرسومات والأصول البصرية',
+      changes: [
+        'رسومات العتاد في برج الفراغ: تعرض الآن جميع درجات المعدات العشرين (الأسلحة والدروع والتمائم والآثار من الشائع إلى الكوني) رسومات ملونة بالكامل مع إطارات ندرة مميزة.',
+        'صور البطل والزعماء: حصل بطل الأجرام السماوية على صورة شخصية ملحمية، وتتميز زعماء الأبراج (أبو سروال وفنيلة، ركبة صودا، المطوع، مدمن كرك) برسومات كرتونية ساخرة فريدة.',
+        'كنوز الحفر والآثار: تكشف بلاطات التنقيب الآن عن رسومات متجهة للدرج القديم وكنوز الذهب والآثار الخمسة (الفوانيس، الدلة، خشب العود، المسبحة، والمبخرة).',
+        'رموز الكيمياء والتعاويذ: بطاقات الخيمياء تعرض الآن قوارير الإكسير المتقنة، كما تضيء تعاويذ المخطوطة برموز سحرية متوهجة.',
+        'الحديقة والظاهرة الكونية: تنمو النباتات الآن بصرياً عبر مراحل البرعم والإزهار، ويحمل غولم الحديقة شارة الحارس الحجري، وتتألق الظاهرة الكونية كجرم سماوي مداري.'
+      ]
+    }
+  },
+  {
+    version: '5.15.0',
+    date: '2026-10-08',
+    title: 'Nectar Surge Rewards Your Own Hands',
+    changes: [
+      'The Nectar Surge Oil windfall (15 seconds of production per harvest) now pays only when you harvest a plot yourself. Golem harvests and harvests while you are away no longer pay it.',
+      'This is a nerf for Golem and offline gardening: those harvests had been multiplying total Oil income by about 3x to 5x, far faster than the rest of the game is paced for. They still give essences and seeds as before.',
+      'Harvesting by hand is unchanged.'
+    ],
+    ar: {
+      title: 'دفعة الرحيق تكافئ يديك',
+      changes: [
+        'دفعة الزيت من الرحيق (١٥ ثانية من الإنتاج لكل حصاد) تُدفع الآن فقط عندما تحصد أنت النبتة بنفسك. حصاد الغولم والحصاد أثناء غيابك لم يعد يمنحها.',
+        'هذا تخفيف للبستنة بالغولم وأثناء الغياب: كان هذا الحصاد يضاعف دخل الزيت الكلي من ٣ إلى ٥ أضعاف تقريبا، أسرع بكثير من وتيرة اللعبة. ما زال يعطي الجواهر والبذور كما كان.',
+        'الحصاد باليد بلا تغيير.'
       ]
     }
   },

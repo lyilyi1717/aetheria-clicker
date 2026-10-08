@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bloomGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f472b6"/>
+      <stop offset="60%" stop-color="#db2777" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#831843" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="64" cy="64" r="50" fill="url(#bloomGlow)"/>
+  <!-- Flower Stem & Leaves -->
+  <path d="M64 116 Q60 90 64 68" fill="none" stroke="#16a34a" stroke-width="6" stroke-linecap="round"/>
+  <path d="M64 96 Q44 94 40 84 Q56 78 64 88" fill="#22c55e" stroke="#15803d" stroke-width="2"/>
+  <path d="M64 88 Q84 86 88 76 Q72 70 64 80" fill="#22c55e" stroke="#15803d" stroke-width="2"/>
+  <!-- Radiant Petals -->
+  <!-- Back Petals -->
+  <circle cx="48" cy="46" r="16" fill="#f472b6" stroke="#9d174d" stroke-width="2"/>
+  <circle cx="80" cy="46" r="16" fill="#f472b6" stroke="#9d174d" stroke-width="2"/>
+  <circle cx="64" cy="34" r="16" fill="#f472b6" stroke="#9d174d" stroke-width="2"/>
+  <circle cx="46" cy="68" r="16" fill="#f472b6" stroke="#9d174d" stroke-width="2"/>
+  <circle cx="82" cy="68" r="16" fill="#f472b6" stroke="#9d174d" stroke-width="2"/>
+  <!-- Golden Glowing Center Pollen Stamen -->
+  <circle cx="64" cy="54" r="14" fill="#facc15" stroke="#ca8a04" stroke-width="3"/>
+  <polygon points="64,44 67,52 75,54 67,57 64,65 61,57 53,54 61,52" fill="#ffffff"/>
+</svg>

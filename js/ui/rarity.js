@@ -49,17 +49,23 @@ export function rarityTag(rarity) {
 }
 
 /** One equipped-gear card: slot label, rarity tag, item name and its stat line. */
-export function gearCard(slotLabel, item, statText) {
+export function gearCard(slotLabel, item, statText, slotKey = '') {
   const cls = rarityClass(item?.rarity);
   const word = rarityWord(item?.rarity);
   const tip = item
     ? tipHtml(gearName(item), [slotLabel, word].filter(Boolean).join(' · '), statText,
       t('gear.tip.replace'))
     : tipHtml(t('gear.tip.empty_slot', { slot: slotLabel }), t('gear.tip.find'));
+  const artImg = (slotKey && item?.rarity)
+    ? `<img class="gear-art" src="assets/generated/gear/${slotKey.toLowerCase()}_${String(item.rarity).toLowerCase()}.webp" alt="${escapeHtml(slotLabel)}" loading="lazy">`
+    : '';
   return `
     <div class="gear ${cls}" ${tipAttr(tip)}>
-      <div class="gear-head"><span class="slot">${escapeHtml(slotLabel)}</span>${rarityTag(item?.rarity)}</div>
-      <div class="name">${escapeHtml(gearName(item))}</div>
-      <div class="stat num">${escapeHtml(statText)}</div>
+      ${artImg}
+      <div class="gear-info">
+        <div class="gear-head"><span class="slot">${escapeHtml(slotLabel)}</span>${rarityTag(item?.rarity)}</div>
+        <div class="name">${escapeHtml(gearName(item))}</div>
+        <div class="stat num">${escapeHtml(statText)}</div>
+      </div>
     </div>`;
 }

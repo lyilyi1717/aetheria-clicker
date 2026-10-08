@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <!-- Fawanees Lantern of Ruby -->
+  <defs>
+    <linearGradient id="brass" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ca8a04"/>
+      <stop offset="50%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#a16207"/>
+    </linearGradient>
+    <linearGradient id="rubyGlass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f43f5e"/>
+      <stop offset="50%" stop-color="#e11d48"/>
+      <stop offset="100%" stop-color="#881337"/>
+    </linearGradient>
+    <radialGradient id="rubyGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff0055" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#ff0055" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="rubyBloom">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <circle cx="64" cy="64" r="50" fill="url(#rubyGlow)"/>
+  <!-- Top Hanging Ring -->
+  <circle cx="64" cy="18" r="10" fill="none" stroke="url(#brass)" stroke-width="4.5"/>
+  <!-- Dome Cap -->
+  <path d="M42 38 Q64 24 86 38 L88 44 L40 44 Z" fill="url(#brass)" stroke="#713f12" stroke-width="2"/>
+  <circle cx="64" cy="24" r="4" fill="url(#brass)"/>
+  <!-- Lantern Glass Body (Hexagonal / Faceted) -->
+  <polygon points="40,44 88,44 98,72 64,102 30,72" fill="url(#rubyGlass)" stroke="url(#brass)" stroke-width="4"/>
+  <!-- Facet division ribs -->
+  <line x1="64" y1="44" x2="64" y2="102" stroke="url(#brass)" stroke-width="3"/>
+  <line x1="40" y1="44" x2="64" y2="76" stroke="url(#brass)" stroke-width="2.5"/>
+  <line x1="88" y1="44" x2="64" y2="76" stroke="url(#brass)" stroke-width="2.5"/>
+  <line x1="30" y1="72" x2="64" y2="76" stroke="url(#brass)" stroke-width="2.5"/>
+  <line x1="98" y1="72" x2="64" y2="76" stroke="url(#brass)" stroke-width="2.5"/>
+  <!-- Base Pedestal -->
+  <path d="M52 102 L76 102 L82 114 L46 114 Z" fill="url(#brass)" stroke="#713f12" stroke-width="2"/>
+  <!-- Inner Ruby Fire Core -->
+  <circle cx="64" cy="68" r="10" fill="#ffffff" filter="url(#rubyBloom)"/>
+  <polygon points="64,52 67,64 78,68 67,72 64,84 61,72 50,68 61,64" fill="#fff1f2"/>
+</svg>
