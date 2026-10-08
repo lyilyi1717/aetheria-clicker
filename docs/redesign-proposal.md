@@ -423,7 +423,7 @@ leaderboard column. No save migration: `codex` is a new additive field.
 > | Cost growth | ×1.15 | same |
 > | Milestones | ×2 at 10/25/50/100/150/200/250/300 (×256 in all) | ×2,2,2,2,3,3,4,5,10 to 1,000 |
 > | Tier upgrades | at owned ≥ 1/5/15/30/60, cost `baseCost × 4^k` (k = 1…5), ×1.2 each; synergies additive within their tier (+0.1% per source owned) | at 1/10/50/100/200, `baseCost × 10^k`; synergies multiplied |
-> | Dust gain | `10 × (runAether / 1e4)^(1/5)`, pays from 1e4 run Oil (10 dust) × Geode × Nectar × Amplifier | `150 × (A/1e9)^(1/3)` × … × shards |
+> | Dust gain | `10 × (runAether / 1e4)^(1/5)`, pays from 1e4 run Oil (10 dust; R52: from 500, 5 dust) × Geode × Nectar × Amplifier | `150 × (A/1e9)^(1/3)` × … × shards |
 > | Dust multiplier | `1 + 0.01 × lifetime dust` (this layer) | `1 + 0.02 ×` |
 > | Transcend gate | `400 × 1.6^k`, ×3 per step from the 9th Transcend (`TRANSCEND_SLOW_FROM = 9`) | `1e9 × 10^k` |
 > | Shards | 2 per Transcend; each lifetime shard **+25% production, additive**; no dust-gain bonus | ×1.5 Aether and ×1.5 dust each |
