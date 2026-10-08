@@ -10,7 +10,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Wave 9, run by the R31 coordinator session: R52 #126, R53 #127, R54 #128 in progress; R55
+- Wave 9, run by the R31 coordinator session: R52 #126, R53 #127 in progress; R55
   follows R52, R56 follows R53 (shared `ChronicleSystem.js`).
 
 ## Next up
@@ -253,6 +253,9 @@ R0–R30 and R32–R40 are done.
   `TIER_UPGRADE_COST_STEP`), `ShardTreeSystem` (`AUTO_ASCEND_*`). The 2-month sim row depends on
   where day 60 falls in a layer (run Oil swings ~2 decades); re-run `sim:check` after any pacing
   change.
+- R54 #128 Coming up panel (PR #135, 5.1.0): logic in `js/ui/comingUp.js`, styles in
+  `css/coming-up.css`. Desktop opens it from a header-chip dropdown; under 1024px it is a bottom
+  sheet opened from the Refinery card. Reserve-based ETAs use this run's pace, so they're rough.
 
 
 - R25 #61 Reward toasts clear the buff bar: `js/buffBar.js` writes its measured height to
@@ -305,6 +308,7 @@ R0–R30 and R32–R40 are done.
 
 - After R31: idle first Ascension is 5 h and idle upgrades per run 22 (R52 takes this on); Talent
   S2 gives ~10 stars/yr; achievement Oil thresholds are unreachable until R53 reprices them.
+- Arabic unlock teaser labels show fractions reversed (e.g. "20/0"); seen in R54.
 
 - Hex colours still in `CombatSystem.js`, `MiningSystem.js`, `ShardTreeSystem.js`,
   `js/ui/shardTree.js`, `js/data/names.js` (R35 maps the known ones to theme tokens at runtime).
