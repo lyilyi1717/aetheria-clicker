@@ -136,15 +136,15 @@ console.log('--- Combat: Aether Forge cost never overflows to free ---');
 {
   const gs = new GameState();
   const cs = new CombatSystem(gs);
-  gs.hero.aetherForgeLevel = 441; // 5^441 overflows a double
-  const c441 = cs.getAetherForgeCost();
-  assert.ok(c441.gt(0), 'cost must be positive');
-  gs.hero.aetherForgeLevel = 440;
-  assert.ok(c441.gt(cs.getAetherForgeCost()), 'cost keeps rising');
+  gs.hero.aetherForgeLevel = 2200; // 1.5^2200 overflows a double
+  const cBig = cs.getAetherForgeCost();
+  assert.ok(cBig.gt(0), 'cost must be positive');
+  gs.hero.aetherForgeLevel = 2199;
+  assert.ok(cBig.gt(cs.getAetherForgeCost()), 'cost keeps rising');
   gs.hero.aetherForgeLevel = 2;
-  assert.ok(Math.abs(cs.getAetherForgeCost().toNumber() - 2500000) < 1e-3);
+  assert.ok(Math.abs(cs.getAetherForgeCost().toNumber() - 225) < 1e-6, 'R53: 100 x 1.5^level');
   gs.aether = BigNum.zero();
-  gs.hero.aetherForgeLevel = 441;
+  gs.hero.aetherForgeLevel = 2200;
   assert.equal(cs.upgradeAetherForge(), false, 'no free upgrade with zero Aether');
 }
 

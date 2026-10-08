@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.2.0';
+export const VERSION = '5.3.0';
 
 export const CHANGELOG = [
   {
-    version: '5.2.0',
+    version: '5.3.0',
     date: '2026-10-08',
     title: 'Your generators do the work',
     changes: [
@@ -31,6 +31,26 @@ export const CHANGELOG = [
         'لكل مولّد الآن 6 ترقيات (كانت 5)، عند امتلاك 1 و3 و8 و15 و30 و60 (كانت 1 و5 و15 و30 و60)، وهي أرخص: كل ترقية تكلّف 3× التي قبلها (كانت 4×)، بدءًا من 3× السعر الأساسي للمولّد. ومع إزالة ترقيات النقر، ما زالت الجولة تقدّم عددًا من الترقيات قريبًا مما كان.',
         'خُفّف اللعب النشط حتى يواكبه اللعب الخامل. اللعب النشط يكسب الآن نحو ضعف ما يكسبه لاعب خامل يملك النقر التلقائي (كان نحو 7×). الكومبو ما زال يتراكم ويُطلق الهيجان، لكنه لم يعد يضاعف النقرات (كان حتى ×5). الهيجان +25% من عائد النقر (كان ×3). انفجار النفط يدفع 10 ث من الإنتاج كل 60 ث (كان 45 ث كل 45 ث). الاصطفاف السماوي +25% (كان +150%). طيّ الزمن يُلقى كل 10 دقائق (كان كل دقيقة). المستعر الأعظم يدفع 30 ث من الإنتاج (كان 3 دقائق). السراب ×1.5 نفط وذهب (كان ×2).',
         'تحدي الملحمة «البئر الجافة»: الهيجان ما زال لا يبدأ، والنقر التلقائي يستريح الآن بدلًا من حدّ الكومبو القديم.'
+      ]
+    }
+  },
+  {
+    version: '5.2.0',
+    date: '2026-10-08',
+    title: 'Everything else, sized for the new numbers',
+    changes: [
+      'Oil achievements can be earned again. The eight Oil ladder goals asked for 1e18 to 1e72 Oil in one run, which the new economy never reaches. They now sit at 100,000, 10 million, 100 million, 10 billion, 100 billion, 1e13, 1e14 and 1e16 (with new names), so together with the four original ones there is one Oil goal for every ×10 from 100,000 to 1e16. Achievements you already earned stay earned.',
+      'The Oil Forge costs 100 Oil for its first level and ×1.5 more for each level after (was 100,000 and ×5), so the hero keeps getting stronger with today\'s Oil. Forge levels you already have are kept.',
+      'Bonuses from other tabs to Oil production now add together instead of multiplying, and all of them together give at most +150%. Each one is smaller to match: Depth Resonance +0.2% per max depth (was +2%), Aetheric Treaty +2% per rank (was +25%), High Enchanter +0.4% per level (was +5%), Philosopher\'s Catalyst +0.2% each (was +2%). Building and Dungeon Mastery are unchanged. This is a nerf: on the new scale these bonuses multiplied to over ×100 and pushed Oil far past the pace the economy is built for. The Oil/s tooltip shows the total.',
+      'Bonuses to Crude Reserves from the Dig and the Garden also add together now: Geode Attunement gives +2% per 10 max depth (was +10%) and Honey Offering up to +20% (was up to ×2, same Honey needed for the maximum). Reserve Amplifier is unchanged. This is also a nerf: Reserves grow slowly with Oil now, so a small Reserve bonus is worth a lot of Oil.'
+    ],
+    ar: {
+      title: 'كل ما تبقّى بمقاس الأرقام الجديدة',
+      changes: [
+        'صار بالإمكان نيل إنجازات النفط من جديد. كانت أهداف سلّم النفط الثمانية تطلب من 1e18 إلى 1e72 نفط في جولة واحدة، ولا يبلغها الاقتصاد الجديد أبدًا. صارت الآن عند 100,000 و10 ملايين و100 مليون و10 مليارات و100 مليار و1e13 و1e14 و1e16 (بأسماء جديدة)، فمع الإنجازات الأربعة الأصلية هناك هدف نفط لكل ×10 من 100,000 إلى 1e16. الإنجازات التي نلتها تبقى لك.',
+        'مستوى فرن النفط الأول يكلّف 100 نفط، وكل مستوى بعده ×1.5 أكثر (كان 100,000 و×5)، فيستمر البطل في التقوّي بنفط اليوم. مستويات الفرن التي لديك تبقى.',
+        'مكافآت إنتاج النفط القادمة من التبويبات الأخرى تُجمع الآن بدل أن تتضاعف، ومجموعها كلها +150% على الأكثر. وصغُرت كل واحدة لتناسب ذلك: رنين العمق +0.2% لكل مستوى من أقصى عمق (كان +2%)، ومعاهدة النفط +2% لكل رتبة (كانت +25%)، وكبير السحرة +0.4% لكل مستوى (كان +5%)، ومحفّز الحكيم +0.2% لكل محفّز (كان +2%). إتقان المباني وإتقان الزنزانة دون تغيير. هذا إضعاف: على المقياس الجديد كانت هذه المكافآت تتضاعف إلى أكثر من ×100 وتدفع النفط أسرع بكثير مما بُني عليه الاقتصاد. تلميح النفط/ث يعرض المجموع.',
+        'مكافآت الاحتياطي الخام من الحفر والحديقة تُجمع الآن أيضًا: تناغم الجيود يعطي +2% لكل 10 مستويات من أقصى عمق (كان +10%)، وقربان العسل حتى +20% (كان حتى ×2، والعسل اللازم للحد الأقصى نفسه). مضخّم الاحتياطي دون تغيير. وهذا إضعاف أيضًا: الاحتياطي ينمو ببطء مع النفط الآن، فمكافأة صغيرة عليه تساوي الكثير من النفط.'
       ]
     }
   },

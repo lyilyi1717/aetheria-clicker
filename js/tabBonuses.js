@@ -4,6 +4,8 @@
 import { getGeodeAttunementMult, getNectarOfferingMult, getNectarHeld } from './systems/PrestigeSystem.js';
 import { getRunClicks, getFingerOfWastaMult } from './systems/DustShopSystem.js';
 import { itemName } from './data/names.js';
+import { getWorldLinkBonuses, getWorldLinkMult, WORLD_LINK_CAP } from './systems/WorldLinks.js';
+import { QUARTERMASTER_UPGRADES } from './systems/BountySystem.js';
 import { t, buffName, bidi } from './i18n/index.js';
 
 const pct = (v) => `${Math.round(v)}%`;
@@ -79,24 +81,25 @@ function totalBuildings(gs) {
 const bossesSlain = (gs) => gs.stats?.totalBossesSlain || 0;
 const maxDepth = (gs) => gs.miningGrid?.maxDepth || 0;
 
-// Building Mastery -> Aether: x(1 + 0.015 * floor(buildings / 100))
-export const buildingAetherMult = (gs) => 1 + 0.015 * Math.floor(totalBuildings(gs) / 100);
+// The Oil links (Building and Dungeon Mastery, Depth Resonance, High Enchanter, Aetheric Treaty,
+// Philosopher's Catalyst) add into one category capped at +150% (R53, systems/WorldLinks.js).
+// Each value below is 1 + that link's own bonus.
+export const buildingAetherMult = (gs) => 1 + getWorldLinkBonuses(gs).building;
 // Building Mastery -> hero attack and combat gold: x(1 + 0.01 * floor(buildings / 100))
 export const buildingCombatMult = (gs) => 1 + 0.01 * Math.floor(totalBuildings(gs) / 100);
-// Dungeon Mastery -> Aether: x(1 + 0.01 * floor(bosses / 10))
-export const dungeonAetherMult = (gs) => 1 + 0.01 * Math.floor(bossesSlain(gs) / 10);
+export const dungeonAetherMult = (gs) => 1 + getWorldLinkBonuses(gs).dungeon;
 // Dungeon Mastery -> pickaxe power: x(1 + 0.02 * floor(bosses / 10)), capped at +100%
 export const dungeonPickaxeMult = (gs) => 1 + Math.min(1, 0.02 * Math.floor(bossesSlain(gs) / 10));
-// Depth Resonance -> Aether: x(1 + 0.02 * maxDepth) (inactive at depth 1, like the old gate)
-export const depthAetherMult = (gs) => (maxDepth(gs) > 1 ? 1 + 0.02 * maxDepth(gs) : 1);
+export const depthAetherMult = (gs) => 1 + getWorldLinkBonuses(gs).depth;
 // Excavation Mastery -> max mana, mana regen, hero HP: x(1 + min(1, 0.01 * maxDepth))
 export const depthVitalityMult = (gs) => (maxDepth(gs) > 1 ? 1 + Math.min(1, 0.01 * maxDepth(gs)) : 1);
-// Golden Synergy (High Enchanter) -> Aether: x(1 + 0.05 * level)
-export const goldenSynergyMult = (gs) => 1 + 0.05 * (gs.market?.goldenSynergy || 0);
-// Philosopher's Catalyst -> Aether: x(1 + 0.02 * catalysts brewed) (only once alchemy.catalysts exists)
-export const catalystMult = (gs) => 1 + 0.02 * (gs.alchemy?.catalysts || 0);
+export const goldenSynergyMult = (gs) => 1 + getWorldLinkBonuses(gs).enchanter;
+export const treatyMult = (gs) => 1 + getWorldLinkBonuses(gs).treaty;
+// (only listed once alchemy.catalysts exists)
+export const catalystMult = (gs) => 1 + getWorldLinkBonuses(gs).catalyst;
 
-// Every mastery category with its current multiplier, the tabs it affects and its source
+// Every mastery category with its current multiplier, the tabs it affects and its source.
+// `add`: an additive link (Oil links, Geode/Nectar), shown as "+N%" rather than "xN" (R53)
 export function getMasteries(gs) {
   const b = totalBuildings(gs), k = bossesSlain(gs), d = maxDepth(gs);
   const nectar = getNectarHeld(gs);
@@ -116,6 +119,10 @@ export function getMasteries(gs) {
     { id: 'golden_synergy', icon: '💰', name: t('market.synergy_toast'), effect: t('m.oil'), oil: true, tabs: ['monolith'],
       value: goldenSynergyMult(gs), source: t('m.src.level', { n: gs.market?.goldenSynergy || 0 }), rule: t('m.rule.golden') }
   ];
+  const treaty = QUARTERMASTER_UPGRADES.find(u => u.id === 'aether_treaty');
+  const treatyRank = gs.quartermaster?.aether_treaty?.rank || 0;
+  list.push({ id: 'treaty', icon: treaty.icon, name: treaty.name, effect: t('m.oil'), oil: true, tabs: ['monolith'],
+    value: treatyMult(gs), source: t('tb.rank', { n: treatyRank }), rule: t('m.rule.treaty') });
   if (gs.alchemy && gs.alchemy.catalysts !== undefined) {
     list.push({ id: 'catalyst', icon: '⚗️', name: t('m.catalyst'), effect: t('m.oil'), oil: true, tabs: ['monolith'],
       value: catalystMult(gs), source: t('m.src.brewed', { n: gs.alchemy.catalysts }), rule: t('m.rule.catalyst') });
@@ -126,15 +133,21 @@ export function getMasteries(gs) {
     { id: 'nectar', icon: '🌸', name: t('m.nectar'), effect: t('m.nectar_effect', { item: itemName('starNectar') }), tabs: ['prestige'],
       value: getNectarOfferingMult(gs), source: `${nectar} ${itemName('starNectar')}`, rule: t('m.rule.nectar') }
   );
+  for (const m of list) if (m.oil || m.id === 'geode' || m.id === 'nectar') m.add = true;
   return list;
 }
 
-// Tooltip text for the Aether/s header stat: every Aether-affecting mastery
+// A mastery's value as shown: "+12%" for an additive link, "x1.12" otherwise
+export const fmtMastery = (m) => (m.add ? fmtBonus(m.value) : fmtMult(m.value));
+
+// "+12%": an additive link bonus (value 1.12)
+export const fmtBonus = (v) => bidi(`+${Math.round((v - 1) * 1000) / 10}%`);
+
+// Tooltip text for the Aether/s header stat: every Oil link, added together up to the cap (R53)
 export function getAetherMasteryTooltip(gs) {
   const rows = getMasteries(gs).filter(m => m.oil);
-  const total = rows.reduce((acc, m) => acc * m.value, 1);
-  return t('m.tooltip', { x: fmtMult(total) }) + '\n' +
-    rows.map(m => `${fmtMult(m.value)} ${m.name} (${m.source})`).join('\n');
+  return t('m.tooltip', { x: fmtMult(getWorldLinkMult(gs)), cap: fmtMult(1 + WORLD_LINK_CAP) }) + '\n' +
+    rows.map(m => `${fmtBonus(m.value)} ${m.name} (${m.source})`).join('\n');
 }
 
 export function getTabBonuses(gameState, tab, talentDefs, shopDefs) {
@@ -155,7 +168,7 @@ export function getTabBonuses(gameState, tab, talentDefs, shopDefs) {
   }
   for (const m of getMasteries(gameState)) {
     if (m.value > 1 && m.tabs.includes(tab)) {
-      items.push({ kind: 'mastery', icon: m.icon, name: m.name, detail: `${fmtMult(m.value)} ${m.effect} · ${m.source}` });
+      items.push({ kind: 'mastery', icon: m.icon, name: m.name, detail: `${fmtMastery(m)} ${m.effect} · ${m.source}` });
     }
   }
   for (const b of gameState.activeBuffs || []) {

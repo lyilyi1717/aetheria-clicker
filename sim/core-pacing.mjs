@@ -53,10 +53,14 @@ export const TARGETS = {
   // The doc's goal (day 270). Layer 2 alone stalls ~day 185 (doc §6.4); the Chronicle (R20)
   // restarts the Transcend ladder so resets keep coming.
   gapWindowEndDay: 270,
-  // R31: numbers grow slowly. Casual run Aether at the 2-month row stays at or below this.
+  // R31: numbers grow slowly. Casual run Aether around two months stays at or below this. R53:
+  // measured as the median of one sample a day over days 50-70, not the single 2-month row: run
+  // Aether swings ~2 decades inside one layer, so the row alone passed or failed on where day 60
+  // fell (on main before R53: 1.6e13 at days 58 and 62, 7.5e11 at day 60 just after a New Well).
   casualTwoMonthAetherMax: 1e13,
-  // R52 (passive first must not cost the upgrade rhythm or the curve): casual 2-month run Aether
-  // at least this, and a median of at least this many upgrades per casual Ascension run
+  twoMonthWindowDays: [50, 70],
+  // R52 (passive first must not cost the curve or the upgrade rhythm): the same median at least
+  // this, and a median of at least this many upgrades per casual Ascension run
   casualTwoMonthAetherMin: 1e11,
   casualUpgradesPerRunMin: 30
 };
@@ -253,6 +257,32 @@ function makeChronicleModel(gs, ps, clock) {
   };
 }
 if (PAGE_BUY_ORDER.length !== PAGE_UPGRADES.length) throw new Error('sim: PAGE_BUY_ORDER is missing a Page upgrade');
+// --- R53 subgame links block (--links) -----------------------------------------------------------
+// By default the sim runs with the subgames off. `--links` sets the subgame stats that feed Oil or
+// dust (Depth Resonance and Geode Attunement from max depth, Dungeon Mastery from bosses, Aetheric
+// Treaty ranks, High Enchanter level, catalysts) from a fixed schedule, so the report shows how much
+// the links add on top of the core. Depth: `npm run sim:mining` (active); bosses and gold (Enchanter
+// level = what the held gold buys at 1e6 x 2.5^L): `npm run sim:tower` (casual); Treaty: ~12
+// contracts a day (24 seals) spent on Treaty ranks; catalysts: about one every two days.
+// [day, maxDepth, bosses, treaty rank, enchanter level, catalysts], linear in between, flat after.
+const LINKS = process.argv.includes('--links');
+const LINK_SCHEDULE = [
+  [0, 0, 0, 0, 0, 0], [1, 54, 39, 2, 41, 0], [7, 104, 69, 9, 82, 3], [14, 123, 75, 14, 90, 7],
+  [30, 145, 81, 20, 98, 15], [60, 166, 90, 29, 105, 30], [180, 200, 110, 50, 120, 90], [365, 220, 130, 50, 130, 180]
+];
+function applyLinks(gs, t) {
+  const d = t / DAY;
+  let i = 1;
+  while (i < LINK_SCHEDULE.length - 1 && LINK_SCHEDULE[i][0] < d) i++;
+  const [a, b] = [LINK_SCHEDULE[i - 1], LINK_SCHEDULE[i]];
+  const u = Math.max(0, Math.min(1, (d - a[0]) / (b[0] - a[0])));
+  const at = (col) => Math.floor(a[col] + u * (b[col] - a[col]));
+  gs.miningGrid = { ...(gs.miningGrid || {}), maxDepth: at(1) };
+  gs.stats.totalBossesSlain = at(2);
+  gs.quartermaster = { ...(gs.quartermaster || {}), aether_treaty: { rank: at(3) } };
+  gs.market = { ...(gs.market || {}), goldenSynergy: at(4) };
+  gs.alchemy = { ...(gs.alchemy || {}), catalysts: at(5) };
+}
 // ---------------------------------------------------------------------------------------------
 
 function run(profile) {
@@ -326,11 +356,13 @@ function run(profile) {
   const transcendAether = [];   // highest run Aether of each Transcend's layer (R31)
   let layerPeak = BigNum.zero();
   const upgradesPerRun = []; // R5: upgrades bought by the end of each Ascension run
+  const twoMonthSamples = []; // run Aether once a day over TARGETS.twoMonthWindowDays (R53)
   const regainDays = [];   // days after each Transcend until CPS is back to its pre-Transcend level
   let regainFrom = null;
   const rows = [];
   while (t < YEAR) {
     const dt = dtFor(t);
+    if (LINKS && (t % 3600 < dt || dt >= 3600)) applyLinks(gs, t);
     const cps = gs.getNetAetherPerSecond();
     const present = t % 3600 < presence;
     // R52: Auto-tap (dust shop) taps 1/s whenever the player isn't tapping. Before it, the idle
@@ -389,6 +421,10 @@ function run(profile) {
       regainFrom = null;
     }
 
+    const [w0, w1] = TARGETS.twoMonthWindowDays;
+    if (t >= w0 * DAY && t <= w1 * DAY + dt && Math.floor(t / DAY) !== Math.floor((t - dt) / DAY)) {
+      twoMonthSamples.push(gs.totalAetherEarned);
+    }
     while (ci < CHECKPOINTS.length && t >= CHECKPOINTS[ci][1]) {
       rows.push({
         label: CHECKPOINTS[ci][0],
@@ -437,6 +473,7 @@ function run(profile) {
     shopFirstBuy: dustShop.firstBuy,
     amplifierRank: gs.dustShop.ranks.dust_amplifier || 0,
     chronicles: chronicle.log,
+    twoMonthMedian: [...twoMonthSamples].sort((a, b) => (a.gt(b) ? 1 : a.lt(b) ? -1 : 0))[twoMonthSamples.length >> 1] || BigNum.zero(),
     gapKeptUntilDay: keptUntil / DAY
   };
 }
@@ -445,6 +482,7 @@ const assertMode = process.argv.includes('--assert');
 const failures = [];
 const out = [];
 const only = process.argv.find(a => a.startsWith('--only='))?.slice(7);   // --only=casual: one profile (tuning)
+if (LINKS) out.push('(--links: subgame links on, schedule in the R53 block)');
 for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
   const r = run(profile);
   out.push(`\n### profile: ${profile}\n`);
@@ -473,6 +511,7 @@ for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
   // Transcend storms (R20): each Transcend is an epic ceremony, so they should not bunch up
   const close = r.transcendDays.filter((d, i) => i > 0 && d - r.transcendDays[i - 1] < 0.25).length;
   out.push(`- Transcends less than 6 h after the previous one: ${close} of ${r.transcendDays.length}`);
+  out.push(`- median run Aether over days ${TARGETS.twoMonthWindowDays.join('-')}: ${r.twoMonthMedian.format('scientific', 2)}`);
   out.push(`- longest stretch with no reset (day 1..${TARGETS.gapWindowEndDay}): ${r.maxGapDays.toFixed(1)} days`);
   out.push(`- a reset at least every ${TARGETS.maxGapDaysAfterDay1} days until day ${r.gapKeptUntilDay.toFixed(0)}`);
   if (profile === 'idle' && r.firstResetMin > TARGETS.idleFirstAscensionMaxMin) {
@@ -482,12 +521,11 @@ for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
     if (r.firstResetMin > TARGETS.firstAscensionMaxMin) {
       failures.push(`first Ascension at ${r.firstResetMin.toFixed(1)} min > ${TARGETS.firstAscensionMaxMin} min`);
     }
-    const twoMonth = r.rows.find(row => row.label === '2 mo');
-    if (twoMonth && twoMonth.runBig.gt(TARGETS.casualTwoMonthAetherMax)) {
-      failures.push(`2-month run Aether ${twoMonth.run} > ${TARGETS.casualTwoMonthAetherMax.toExponential()}`);
+    if (r.twoMonthMedian.gt(TARGETS.casualTwoMonthAetherMax)) {
+      failures.push(`median run Aether over days ${TARGETS.twoMonthWindowDays.join('-')} ${r.twoMonthMedian.format('scientific', 2)} > ${TARGETS.casualTwoMonthAetherMax.toExponential()}`);
     }
-    if (twoMonth && twoMonth.runBig.lt(TARGETS.casualTwoMonthAetherMin)) {
-      failures.push(`2-month run Aether ${twoMonth.run} < ${TARGETS.casualTwoMonthAetherMin.toExponential()}`);
+    if (r.twoMonthMedian.lt(TARGETS.casualTwoMonthAetherMin)) {
+      failures.push(`median run Aether over days ${TARGETS.twoMonthWindowDays.join('-')} ${r.twoMonthMedian.format('scientific', 2)} < ${TARGETS.casualTwoMonthAetherMin.toExponential()}`);
     }
     const ups = [...r.upgradesPerRun].sort((a, b) => a - b);
     const upMedian = ups.length ? ups[ups.length >> 1] : 0;

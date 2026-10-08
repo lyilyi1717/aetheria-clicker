@@ -65,7 +65,7 @@ export const RECIPES = [
     id: 'philosophers_catalyst',
     name: "Royal Wasta Seal",
     type: 'permanent',
-    desc: '+2% Oil per Catalyst brewed (additive). Cost rises 8% per brew.',
+    desc: '+0.2% Oil per Catalyst brewed (additive). Cost rises 8% per brew.',
     cost: { voidAmethyst: 1, starNectar: 1 }
   }
 ];

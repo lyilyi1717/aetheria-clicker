@@ -10,8 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Wave 9, run by the R31 coordinator session: R52 #126, R53 #127 in progress; R55
-  follows R52, R56 follows R53 (shared `ChronicleSystem.js`).
+- Wave 9, run by the R31 coordinator session: R52 #126 in progress; R55 follows R52, R56 (now
+  unblocked by R53), R57 #139 follows R52 and R56.
 
 ## Next up
 
@@ -83,6 +83,7 @@ R0–R30 and R32–R40 are done.
 | 9 | R54 "Coming up" panel | #128 | R31 |
 | 9 | R55 Ascension attunements | #129 | R31, R52 |
 | 9 | R56 Challenge rewards and Chapter 2 | #130 | R31 |
+| 9 | R57 Tame the late-year Chronicle/Page loop | #139 | R52, R56 |
 
 ## Done
 
@@ -253,6 +254,12 @@ R0–R30 and R32–R40 are done.
   `TIER_UPGRADE_COST_STEP`), `ShardTreeSystem` (`AUTO_ASCEND_*`). The 2-month sim row depends on
   where day 60 falls in a layer (run Oil swings ~2 decades); re-run `sim:check` after any pacing
   change.
+- R53 #127 Reprice outside-core (PR #134, 5.2.0): Oil achievement rungs at 1e5–1e16 (ids kept);
+  Forge costs 100·1.5^L; subgame→Oil links are one additive category capped at +150%
+  (`js/systems/WorldLinks.js`); Geode and Nectar dust links are additive with each other.
+  `npm run sim -- --links` adds the links; `sim:check`'s 2-month assert is now the median run Oil
+  over days 50–70 (the day-60 row was phase luck). With links on, months 4–12 run hot (1-year
+  ~1.5e23): that's R57. Link nerfs are steep (Treaty 25%→2%/rank); owner may want to weigh in.
 - R54 #128 Coming up panel (PR #135, 5.1.0): logic in `js/ui/comingUp.js`, styles in
   `css/coming-up.css`. Desktop opens it from a header-chip dropdown; under 1024px it is a bottom
   sheet opened from the Refinery card. Reserve-based ETAs use this run's pace, so they're rough.
@@ -307,7 +314,7 @@ R0–R30 and R32–R40 are done.
 ## Noticed (not yet an issue)
 
 - After R31: idle first Ascension is 5 h and idle upgrades per run 22 (R52 takes this on); Talent
-  S2 gives ~10 stars/yr; achievement Oil thresholds are unreachable until R53 reprices them.
+  S2 gives ~10 stars/yr.
 - Arabic unlock teaser labels show fractions reversed (e.g. "20/0"); seen in R54.
 
 - Hex colours still in `CombatSystem.js`, `MiningSystem.js`, `ShardTreeSystem.js`,

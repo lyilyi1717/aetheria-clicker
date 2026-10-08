@@ -56,7 +56,7 @@ test('unlock rules: rungs unlock on their threshold and only then', () => {
   gs.totalClicks = 100000;
   gs.achievementSystem.checkAchievements();
   assert.ok(gs.achievements.clicks_r1);
-  gs.totalAetherEarned = new BigNum(1e30);
+  gs.totalAetherEarned = new BigNum(5e10);   // R53 rungs: r4 = 1e10, r5 = 1e11
   gs.transcendenceCount = 5;
   gs.stats.totalBossesSlain = 100;
   gs.hero = { floor: 300, maxFloor: 1200 };

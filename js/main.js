@@ -28,7 +28,7 @@ import { CollectionSystem } from './systems/CollectionSystem.js';
 import { CodexUI } from './ui/codex.js';
 import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } from './systems/FastForwardSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
-import { getTabBonuses, BONUS_KIND_LABELS, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
+import { getTabBonuses, BONUS_KIND_LABELS, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult, fmtBonus, fmtMastery } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
 import { Shell } from './ui/shell.js';
 import { UnlocksUI } from './ui/unlocks.js';
@@ -1658,7 +1658,7 @@ class AetheriaApp {
     if (ascBtn) {
       ascBtn.onclick = () => {
         const dm = this.prestigeSystem.getDustMultipliers();
-        const nectarNote = '\n\n' + t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtMult(dm.nectarMult) });
+        const nectarNote = '\n\n' + t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtBonus(dm.nectarMult) });
         if (confirm(t('prestige.confirm') + nectarNote)) {
           this.prestigeSystem.ascend();
           this.updateBuildingsUI();
@@ -1697,7 +1697,7 @@ class AetheriaApp {
     for (const m of list) {
       const refs = this.masteryRowEls[m.id];
       if (!refs) continue;
-      setText(refs.valEl, fmtMult(m.value));
+      setText(refs.valEl, fmtMastery(m));
       setText(refs.srcEl, m.source);
       refs.row.classList.toggle('active', m.value > 1);
     }
@@ -1720,8 +1720,8 @@ class AetheriaApp {
 
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
     const dm = this.prestigeSystem.getDustMultipliers();
-    const breakdown = t('prestige.bd.depth', { x: fmtMult(dm.geode), n: dm.depth }) + ' · ' +
-      t('prestige.bd.nectar', { x: fmtMult(dm.nectarMult), n: fmtNum(dm.nectar), item: itemName('starNectar') }) +
+    const breakdown = t('prestige.bd.depth', { x: fmtBonus(dm.geode), n: dm.depth }) + ' · ' +
+      t('prestige.bd.nectar', { x: fmtBonus(dm.nectarMult), n: fmtNum(dm.nectar), item: itemName('starNectar') }) +
       (dm.amplifier > 1 ? ' · ' + t('prestige.bd.amp', { x: fmtMult(dm.amplifier) }) : '');
     setText(this.$('pending-dust-breakdown'), breakdown);
     if (ascBtn) {
