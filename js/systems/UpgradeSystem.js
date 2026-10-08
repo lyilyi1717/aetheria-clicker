@@ -69,7 +69,7 @@ function buildUpgradeDefinitions() {
         name: t('upg.tier_name', { level: TIER_LEVEL_NAMES[k], name: b.name }),
         icon: b.icon,
         desc: t('upg.tier_desc', { name: b.name, x: TIER_UPGRADE_MULT }),
-        cost: b.baseCost.mul(new BigNum(TIER_UPGRADE_COST_STEP).pow(k + 1))
+        cost: b.baseCost.mul(TIER_UPGRADE_COST_STEP ** (k + 1))
       });
     });
   }

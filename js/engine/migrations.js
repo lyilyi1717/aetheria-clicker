@@ -237,10 +237,10 @@ export const MIGRATIONS = [
         return fromLog(l <= 9 ? l * 4 / 9 : 4 + (l - 9) * 0.2);
       };
       // Reserves: piecewise log map, old 150 -> new 10, old gate 1e9 x 10^k -> new 400 x 1.6^k
-      // (k capped at 8: the new gates grow x3 per step from the 9th New Field on)
+      // (k capped at 7: the new gates grow x3 per step from the 9th New Field on)
       const k = Math.max(0, Math.floor(num(data.transcendenceCount)));
       const oldGate = 9 + k;
-      const newGate = Math.log10(400) + Math.min(k, 8) * Math.log10(1.6);
+      const newGate = Math.log10(400) + Math.min(k, 7) * Math.log10(1.6);
       const oldFirst = Math.log10(150);
       const mapDustLog = (l) => {
         if (!Number.isFinite(l)) return -Infinity;

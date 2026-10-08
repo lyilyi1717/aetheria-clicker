@@ -72,7 +72,7 @@ console.log('--- letters is the default; other notations unchanged ---');
 
 console.log('--- v7: saves on the old default switch to letters, picked notations are kept ---');
 {
-  assert.equal(MIGRATIONS[MIGRATIONS.length - 1].to, 7);
+  assert.ok(MIGRATIONS.some(s => s.to === 7));
   assert.ok(SAVE_VERSION >= 7);
   const step = MIGRATIONS.find(s => s.to === 7);
   const run = (settings) => step.migrate(settings === undefined ? {} : { settings }).settings;

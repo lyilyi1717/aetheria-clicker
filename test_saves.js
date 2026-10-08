@@ -428,8 +428,8 @@ console.log('--- v7 -> v8: the economy redesign moves saves to the same point on
   assert.equal(d.buildings.tapper.unlocked, true, 'other building fields are kept');
   assert.deepEqual(d.upgrades, []);
   // Reserves keep their place on the way to the next New Field (log 17 of 19 -> the new gate,
-  // capped at the 9th step: 400 x 1.6^8)
-  const newGate = Math.log10(400) + 8 * Math.log10(1.6);
+  // capped at the last x1.6 step: 400 x 1.6^7)
+  const newGate = Math.log10(400) + 7 * Math.log10(1.6);
   const want = 1 + (17 - Math.log10(150)) * (newGate - 1) / (19 - Math.log10(150));
   assert.ok(Math.abs(lg(d.totalCosmicDust) - want) < 1e-3, `lifetime Reserves ${lg(d.totalCosmicDust)} vs ${want}`);
   assert.ok(lg(d.totalCosmicDust) < newGate);

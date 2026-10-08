@@ -114,7 +114,7 @@ test('set bonus counts completed collections only', () => {
 
 test('Generator Codex: best count survives a reset, locked tiers are silhouettes', () => {
   const gs = makeGame();
-  assert.equal(gs.collectionSystem.getGeneratorCodex().length, 30);
+  assert.equal(gs.collectionSystem.getGeneratorCodex().length, 20);
   gs.buildings.tapper.count = 120;
   gs.collectionSystem.update(0.1);
   gs.buildings.tapper.count = 0; // an Ascension
@@ -124,7 +124,7 @@ test('Generator Codex: best count survives a reset, locked tiers are silhouettes
   assert.equal(tapper.best, 120);
   assert.equal(tapper.stars, 1);
   assert.ok(tapper.flavourUnlocked && !tapper.silhouette);
-  const last = rows[29];
+  const last = rows[19];
   assert.ok(last.silhouette && last.tierLocked);
   assert.equal(gs.collectionSystem.getGeneratorCodex().filter(r => !r.silhouette).length, 1);
   gs.buildings.tapper.count = 1000;
@@ -144,9 +144,9 @@ test('percentage: derived from ladder rungs plus collection entries', () => {
   assert.ok(Math.abs(gs.collectionSystem.getCodexPercent() - (3 / total) * 100) < 1e-9);
 });
 
-test('old save: opens with collections and ladder derived, nothing re-awarded', () => {
+test('old save (no Codex yet, already on the R31 economy): opens with collections and ladder derived, nothing re-awarded', () => {
   const old = {
-    version: 4, aether: { m: 1, e: 3 }, totalAetherEarned: { m: 2, e: 25 }, totalClicks: 20000, ascensionCount: 7,
+    version: 8, aether: { m: 1, e: 3 }, totalAetherEarned: { m: 2, e: 25 }, totalClicks: 20000, ascensionCount: 7,
     stats: { totalBossesSlain: 12, totalMonstersSlain: 900 },
     achievements: { click_1: { unlockedAt: 5 } },
     buildings: { tapper: { count: 600 } },

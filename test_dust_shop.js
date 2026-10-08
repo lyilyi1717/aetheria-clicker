@@ -13,7 +13,7 @@ import { FastForwardSystem, FF_LONG_WARPS } from './js/systems/FastForwardSystem
 import { GardenSystem } from './js/systems/GardenSystem.js';
 import { CombatSystem } from './js/systems/CombatSystem.js';
 import { computeOfflineBands } from './js/engine/SaveManager.js';
-import { migrateSave, SAVE_VERSION } from './js/engine/migrations.js';
+import { migrateSave, SAVE_VERSION, MIGRATIONS } from './js/engine/migrations.js';
 import { particles } from './js/engine/ParticleEngine.js';
 import {
   DUST_SHOP_ITEMS, DUST_SHOP_TIERS, getShopItemCost, getNextShopCost, canBuyShopItem, buyShopItem,
@@ -49,13 +49,13 @@ const make = (ascensions = 0, dust = 0) => {
   return { gs, bs, ps, us };
 };
 
-console.log('--- Table matches design doc 6.2 ---');
+console.log('--- Table matches design doc 6.2 (R31 prices) ---');
 {
   const want = {
-    genesis: [1, 5], blueprint_memory: [1, 25], chrono_vault: [1, 25], auto_buy: [3, 100],
-    titan_legacy: [3, 30], finger_of_wasta: [3, 150], astral_alchemist: [5, 40],
-    golem_covenant: [5, 200], hourglass: [5, 300], auto_leylines: [10, 500],
-    blueprint_memory_2: [10, 1000], resonant_start: [20, 5000], dust_amplifier: [0, 100]
+    genesis: [1, 5], blueprint_memory: [1, 10], chrono_vault: [1, 10], auto_buy: [3, 30],
+    titan_legacy: [3, 10], finger_of_wasta: [3, 50], astral_alchemist: [5, 15],
+    golem_covenant: [5, 30], hourglass: [5, 40], auto_leylines: [10, 60],
+    blueprint_memory_2: [10, 50], resonant_start: [20, 250], dust_amplifier: [0, 50]
   };
   assert.deepEqual(DUST_SHOP_ITEMS.map(d => d.id).sort(), Object.keys(want).sort());
   for (const d of DUST_SHOP_ITEMS) {
@@ -69,10 +69,10 @@ console.log('--- Table matches design doc 6.2 ---');
 
 console.log('--- Prices: ranked items x1.5 per rank, Dust Amplifier x2 ---');
 {
-  assert.equal(getShopItemCost('chrono_vault', 0).toNumber(), 25);
-  assert.equal(getShopItemCost('chrono_vault', 2).toNumber(), Math.floor(25 * 1.5 ** 2));
-  assert.equal(getShopItemCost('titan_legacy', 3).toNumber(), Math.floor(30 * 1.5 ** 3));
-  assert.equal(getShopItemCost('dust_amplifier', 5).toNumber(), 100 * 2 ** 5);
+  assert.equal(getShopItemCost('chrono_vault', 0).toNumber(), 10);
+  assert.equal(getShopItemCost('chrono_vault', 2).toNumber(), Math.floor(10 * 1.5 ** 2));
+  assert.equal(getShopItemCost('titan_legacy', 3).toNumber(), Math.floor(10 * 1.5 ** 3));
+  assert.equal(getShopItemCost('dust_amplifier', 5).toNumber(), 50 * 2 ** 5);
   // Huge ranks stay finite (BigNum)
   assert.ok(Number.isFinite(getShopItemCost('dust_amplifier', 2000).e));
 }
@@ -322,10 +322,12 @@ console.log('--- v5 migration: kept perks become shop items, removed perks are r
   assert.equal(out.ascensionPerks, undefined);
   assert.deepEqual(out.dustShop.ranks, { genesis: 1, chrono_vault: 4, titan_legacy: 2, astral_alchemist: 1, golem_covenant: 1 });
 
+  // Step v5 on its own (v8 rescales dust, R31)
+  const v7 = migrateSave(clone(V4_PERKS), MIGRATIONS.filter(st => st.to <= 7));
+  assert.ok(Math.abs(BigNum.fromJSON(v7.cosmicDust).toNumber() - (100 + refund)) < 1e-9, 'refund goes to spendable dust');
+  assert.equal(BigNum.fromJSON(v7.totalCosmicDust).toNumber(), 5e4, 'lifetime dust untouched');
   const gs = new GameState();
   gs.deserialize(clone(V4_PERKS));
-  assert.ok(Math.abs(gs.cosmicDust.toNumber() - (100 + refund)) < 1e-9, 'refund goes to spendable dust');
-  assert.equal(gs.totalCosmicDust.toNumber(), 5e4, 'lifetime dust untouched');
   // Kept even where the shop now asks more Ascensions (Titan is Asc 3, Crucible Asc 5; this save has 2)
   assert.ok(hasShopItem(gs, 'titan_legacy') && hasShopItem(gs, 'astral_alchemist'));
   assert.equal(gs.getChronoSandCap(), 1440 * 3);
