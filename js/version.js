@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.17.1';
+export const VERSION = '5.17.2';
 
 export const CHANGELOG = [
+  {
+    version: '5.17.2',
+    date: '2026-10-08',
+    title: 'Super-Crits and Shockwaves Actually Fire',
+    changes: [
+      'Fix: Super-Crits now really happen. About 1 in 5 Refinery crits is a Super-Crit that pays 5x your click (a normal crit pays 3x), with the orange SUPER CRIT! flash.',
+      'Fix: the Excavation shockwave now really happens. About 1 in 5 crits on a manual dig is a Super-Crit that also hits the four tiles around it. Auto-drills and other automatic hits never crit.',
+      'Hyper-Crits still need more than 200% crit chance, which nothing in the game reaches yet.'
+    ],
+    ar: {
+      title: 'الضربات الفائقة وموجات الصدمة تعمل فعلاً',
+      changes: [
+        'إصلاح: الضربات الفائقة تحدث الآن فعلاً. نحو واحدة من كل 5 ضربات حرجة في التكرير ضربة فائقة تعطي 5 أضعاف نقرتك (الحرجة العادية 3 أضعاف)، مع وميض «ضربة فائقة!» البرتقالي.',
+        'إصلاح: موجة الصدمة في التنقيب تحدث الآن فعلاً. نحو واحدة من كل 5 ضربات حرجة في الحفر اليدوي ضربة فائقة تصيب أيضاً المربعات الأربعة المجاورة. الحفارات الآلية والضربات التلقائية لا تُحدث ضربات حرجة أبداً.',
+        'الضربات الخارقة ما زالت تحتاج أكثر من 200% فرصة حرجة، ولا يصل إليها شيء في اللعبة حالياً.'
+      ]
+    }
+  },
   {
     version: '5.17.1',
     date: '2026-10-08',
