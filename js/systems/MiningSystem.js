@@ -3,6 +3,7 @@ import { getActiveRules, getChallengeRewardTotal } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
+import { feedback } from '../ui/feedback.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from '../data/names.js';
 import { isAutoBlastOn } from './ShardTreeSystem.js';
 import { resolveCritTier } from './ClickerSystem.js';
@@ -664,19 +665,18 @@ export class MiningSystem {
       power = Math.floor(power * 2.5);
       textColor = '#fbbf24';
       label = 'CRIT! ';
-      if (!silent) sound.playCrit();
     } else if (critTier >= 2) {
       power = Math.floor(power * 5);
       textColor = '#f97316';
       label = '⚡ SUPER CRIT! ';
-      if (!silent) sound.playCrit();
       this.triggerMiningShockwave(index, Math.max(1, Math.floor(power * 0.3)));
     }
 
-    if (clientX && clientY) {
-      particles.spawnClickSparks(clientX, clientY, critTier > 1 ? 12 : 6, textColor);
-      particles.spawnFloatingText(clientX, clientY, `${label}-${new BigNum(power).format('standard', 0)}`, textColor, critTier > 0);
-    }
+    feedback.fire(critTier > 0 ? 1 : 0, {
+      kind: 'dig-hit', at: { x: clientX, y: clientY }, sound: critTier > 0 && !silent ? 'crit' : false,
+      sparks: critTier > 1 ? 12 : 6, color: textColor,
+      text: `${label}-${new BigNum(power).format('standard', 0)}`, isCrit: critTier > 0
+    });
     this.damageBlock(block, power, clientX, clientY);
   }
 

@@ -1,7 +1,7 @@
 // Auto-tap on the Refinery (R52, dust shop). A line under the per-click value says what it pays,
 // and each tap gives the orb a soft pulse and a small, dim "+n" (T0, quieter than a real tap:
 // no sound, no sparks, so a long idle session doesn't grate; game-feel guide §5).
-import { particles } from '../engine/ParticleEngine.js';
+import { feedback } from './feedback.js';
 import { t } from '../i18n/index.js';
 
 const PULSE_MS = 160;
@@ -12,7 +12,10 @@ export function initAutoTap(clicker, orb) {
   clicker.onAutoTap = (amount) => {
     if (!orb.offsetParent) return;   // Refinery tab hidden: nothing to show
     const r = orb.getBoundingClientRect();
-    particles.spawnFloatingText(r.left + r.width / 2, r.top + r.height * 0.3, '+' + amount.format('standard', 1), '#94a3b8');
+    feedback.fire(0, {
+      kind: 'autotap', at: { x: r.left + r.width / 2, y: r.top + r.height * 0.3 }, sparks: 0,
+      amount, textColor: '#94a3b8', merge: true
+    });
     orb.classList.add('auto-pulse');
     setTimeout(() => orb.classList.remove('auto-pulse'), PULSE_MS);
   };

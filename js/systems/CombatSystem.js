@@ -2,6 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
+import { feedback } from '../ui/feedback.js';
 import { hasWardensNode, hasSecondWind } from './ShardTreeSystem.js';
 import { getShopRank } from './DustShopSystem.js';
 import { resolveCritTier } from './ClickerSystem.js';
@@ -507,8 +508,10 @@ export class CombatSystem {
         color = '#ef4444';
         label = 'CRIT! ';
       }
-      particles.spawnFloatingText(x, y, `${label}-${this.fmt(amount)}`, color, isCrit);
-      particles.spawnClickSparks(x, y, tier >= 2 ? 14 : isCrit ? 10 : 8, color);
+      feedback.fire(isCrit ? 1 : 0, {
+        kind: 'hit', at: { x, y }, sparks: tier >= 2 ? 14 : isCrit ? 10 : 8, color,
+        text: `${label}-${this.fmt(amount)}`, isCrit
+      });
     }
 
     // Lifesteal

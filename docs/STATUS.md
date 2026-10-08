@@ -15,7 +15,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30 and R32–R40 are done.
+R0–R30, R32–R40 and R41 are done.
 
 - Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
   enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
@@ -280,6 +280,11 @@ R0–R30 and R32–R40 are done.
 - R54 #128 Coming up panel (PR #135, 5.1.0): logic in `js/ui/comingUp.js`, styles in
   `css/coming-up.css`. Desktop opens it from a header-chip dropdown; under 1024px it is a bottom
   sheet opened from the Refinery card. Reserve-based ETAs use this run's pace, so they're rough.
+- R41 #113 Feedback-tier helper (PR #155, 5.12.1): `js/ui/feedback.js` (`fire(tier, opts)`, `countUp`,
+  `hitStop`, `shake`; no-op without a DOM) on top of pure `js/ui/feedbackBudget.js` (budgets,
+  chains, sound cooldowns, caps, merge rule); `ParticleEngine` caps 250/150 sparks and 40 texts and
+  merges "+n" texts by key. Click/crit/anomaly, combat hits, dig hits and Auto-tap go through it.
+  `.fx-shake`/`.is-hitstop` are in `css/animations.css`, unused until R42. R42–R50 build on this.
 
 
 - R25 #61 Reward toasts clear the buff bar: `js/buffBar.js` writes its measured height to
@@ -355,6 +360,10 @@ R0–R30 and R32–R40 are done.
   - Polish & Bug Fixes: Suppressed Tower combat particles/floats when combat tab is hidden; hid Mana from header until Grimoire is unlocked; isolated Arabic unlock teaser fractions so they read left-to-right (`0/10`); stabilized `test_r52_clicks.js` timing race.
 
 ## Noticed (not yet an issue)
+- Floating texts and sparks spawned outside `feedback.fire` (Garden, Mining finds, combat
+  shield/heal, golem row) still bypass the helper; the caps cover them, routing them is R46/R47 work.
+- Each particle draws with `save/restore` + `shadowBlur`; that is likely the bigger cost for the
+  phone-heat report #106 than the particle count.
 
 - After R31: Talent S2 gives ~10 stars/yr.
 - After R52: the Aetherial Strike talent can push active play past x2 over idle.
