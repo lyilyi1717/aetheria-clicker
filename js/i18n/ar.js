@@ -1384,6 +1384,23 @@ export default {
   "goal.wait": "بئر جديدة بعد {time}",
   "guide.less": "أقل ▴",
   "guide.more": "المزيد ▾",
+  // comingUp.js (R54)
+  "comingup.title": "القادم",
+  "comingup.hint": "ما سيُفتح لك قريبًا. الأوقات تقريبية بحسب وتيرتك الحالية، ولا تخسر شيئًا إن تأخرت.",
+  "comingup.none": "كل ما هنا مفتوح. يصل المزيد مع {reset2Noun} التالي.",
+  "comingup.eta.ready": "جاهز",
+  "comingup.eta.soon": "أقل من دقيقة",
+  "comingup.eta.min": "نحو {n} دقيقة",
+  "comingup.eta.hours": "نحو {n} ساعة",
+  "comingup.eta.days": "نحو {n} يوم",
+  "comingup.tab": "تبويب جديد {name}: {what}",
+  "comingup.shop1": "{reset1Shop}: ميزة جديدة عند البئر {k} ({frac})",
+  "comingup.shop": "{reset1Shop}: {n} ميزات جديدة عند البئر {k} ({frac})",
+  "comingup.field_gen": "{reset2Noun} يفتح {name}: {frac} احتياطي",
+  "comingup.field": "{reset2Noun} التالي: {frac} احتياطي",
+  "comingup.node": "{shareTree}: {name} ({frac} سهم)",
+  "comingup.seal": "ختم {name}: {what}",
+  "comingup.chronicle": "الملحمة: {frac} {reset2Plural}",
 
   // theme.js
   "theme.night": "الليل",

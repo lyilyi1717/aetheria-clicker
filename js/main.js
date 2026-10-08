@@ -32,6 +32,7 @@ import { getTabBonuses, BONUS_KIND_LABELS, SPELL_TABS, getMasteries, getAetherMa
 import { BuffBar } from './buffBar.js';
 import { Shell } from './ui/shell.js';
 import { UnlocksUI } from './ui/unlocks.js';
+import { ComingUpUI } from './ui/comingUp.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
 import { EquipmentUI } from './ui/equipment.js';
@@ -694,6 +695,8 @@ class AetheriaApp {
     this.shell.build();
     this.unlocksUI = new UnlocksUI(this);
     this.unlocksUI.build();
+    this.comingUp = new ComingUpUI(this);
+    this.comingUp.build();
     this.buildBuildingsStructure();
     this.buildCombatStructure();
     this.buildMiningStructure();
@@ -1851,6 +1854,7 @@ class AetheriaApp {
     this.buffBar.update();
     this.shell?.update(dt);
     this.unlocksUI?.update(dt);
+    this.comingUp?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
     this.equipmentUI?.update(this.currentTab);
     this.shardTreeUI?.update(this.currentTab);

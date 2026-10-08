@@ -10,11 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R31 #67 Economy redesign core (PR #102): owner chose option 1 (full redesign, ~1e12 at day 60,
-  additive prestige). A separate R31 coordinator session runs it and the wave-9 follow-ups.
-  Until R31 merges, other items avoid: `BuildingSystem.js`, `PrestigeSystem.js`, `GameState.js`,
-  `UpgradeSystem.js`, `DustShopSystem.js`, `ShardTreeSystem.js`, `ChronicleSystem.js`,
-  `ClickerSystem.js`, `js/engine/migrations.js`, `sim/core-pacing.mjs`.
+- Wave 9, run by the R31 coordinator session: R52 #126, R53 #127 in progress; R55
+  follows R52, R56 follows R53 (shared `ChronicleSystem.js`).
 
 ## Next up
 
@@ -250,6 +247,15 @@ R0–R30 and R32–R40 are done.
   Language, full RTL with logical CSS, numbers isolated LTR. `test_r37_i18n.js` fails on missing
   Arabic. AGENTS.md rule 11: new text goes through `t()` with Arabic. Merged on the owner's word;
   the list of uncertain Arabic terms is in the PR body.
+- R31 #67 Economy redesign core (PR #102, 5.0.0): about 1e12 at day 60; dust, shard and Page
+  bonuses are additive; save step v8. Knobs: `BuildingSystem` (`TIER1_CPS`, `TIER_CPS_RATIO`),
+  `PrestigeSystem` (`DUST_*`, `TRANSCEND_*`), `UpgradeSystem` (`TIER_UPGRADE_THRESHOLDS`,
+  `TIER_UPGRADE_COST_STEP`), `ShardTreeSystem` (`AUTO_ASCEND_*`). The 2-month sim row depends on
+  where day 60 falls in a layer (run Oil swings ~2 decades); re-run `sim:check` after any pacing
+  change.
+- R54 #128 Coming up panel (PR #135, 5.1.0): logic in `js/ui/comingUp.js`, styles in
+  `css/coming-up.css`. Desktop opens it from a header-chip dropdown; under 1024px it is a bottom
+  sheet opened from the Refinery card. Reserve-based ETAs use this run's pace, so they're rough.
 
 
 - R25 #61 Reward toasts clear the buff bar: `js/buffBar.js` writes its measured height to
@@ -299,6 +305,10 @@ R0–R30 and R32–R40 are done.
   that loop forever must be ambient and listed in `test_r24_motion.js`.
 
 ## Noticed (not yet an issue)
+
+- After R31: idle first Ascension is 5 h and idle upgrades per run 22 (R52 takes this on); Talent
+  S2 gives ~10 stars/yr; achievement Oil thresholds are unreachable until R53 reprices them.
+- Arabic unlock teaser labels show fractions reversed (e.g. "20/0"); seen in R54.
 
 - Hex colours still in `CombatSystem.js`, `MiningSystem.js`, `ShardTreeSystem.js`,
   `js/ui/shardTree.js`, `js/data/names.js` (R35 maps the known ones to theme tokens at runtime).
