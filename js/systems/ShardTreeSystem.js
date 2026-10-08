@@ -31,7 +31,7 @@ export function getOpenTierCount(gameState) {
 
 export const FOUNDRY_FIRST_TIER = BASE_TIERS + 1;
 export const FOUNDRY_LAST_TIER = MAX_TIERS;
-export const DEEP_BLUEPRINT_DIVISOR = 10;      // a tier's 5 upgrades cost /10
+export const DEEP_BLUEPRINT_DIVISOR = 10;      // a tier's 6 upgrades cost /10
 export const OFFLINE_SHARD_BONUS = 8 * 3600;   // seconds added to both offline bands
 export const LONG_WARP_SECONDS = 6 * 3600;     // Hourglass of Eternity: 6 h of production
 export const LONG_WARP_COOLDOWN_MS = 24 * 3600 * 1000;
@@ -39,7 +39,7 @@ export const LONG_WARP_COOLDOWN_MS = 24 * 3600 * 1000;
 export const AUTO_ASCEND_CHECK_MS = 1000;
 
 export const SHARD_TREE_BRANCHES = [
-  { id: 'foundry', name: 'Foundry', icon: '🏭', desc: 'Deep Blueprints: one per New Field tier. That tier\'s 5 upgrades cost ÷10.' },
+  { id: 'foundry', name: 'Foundry', icon: '🏭', desc: 'Deep Blueprints: one per New Field tier. That tier\'s 6 upgrades cost ÷10.' },
   { id: 'chronos', name: 'Chronos', icon: '⏳', desc: 'Time works for you: Auto-Well, a longer offline cap, a daily 6 h Fast Forward, Auto-Blast.' },
   { id: 'tower', name: 'Tower', icon: '🗼', desc: 'The Void Tower: Wardens every 250 floors, and a Second Wind against bosses.' }
 ];

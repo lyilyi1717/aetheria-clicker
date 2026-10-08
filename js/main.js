@@ -49,6 +49,7 @@ import { NewsTicker, renderNewsSettings } from './ui/newsTicker.js';
 import { SharedNews, sharedQueueItems, sharedNewsHooks } from './ui/sharedNews.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
+import { initAutoTap, renderAutoTap } from './ui/autoTap.js';
 import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
@@ -318,6 +319,7 @@ class AetheriaApp {
   setupEventListeners() {
     // Monolith Click
     const monolith = document.getElementById('monolith-orb');
+    initAutoTap(this.clickerSystem, monolith);
     if (monolith) {
       monolith.addEventListener('pointerdown', (e) => {
         sound.ensureContext();
@@ -1768,7 +1770,7 @@ class AetheriaApp {
 
   // Simulation tick (fixed rate)
   onSimTick(dt, realDt = dt) {
-    this.clickerSystem.update(dt);
+    this.clickerSystem.update(dt, realDt);
     // The Tower starts climbing when its tab opens (R7)
     if (this.gameState.isTabUnlocked('combat')) this.combatSystem.update(dt);
     this.miningSystem.update(dt);
@@ -1948,6 +1950,7 @@ class AetheriaApp {
       setText(clickPowerEl, t('clicker.per_click', { n: clickVal.format('standard', 1) }));
     }
 
+    renderAutoTap(this.$('auto-tap-line'), this.gameState, this.clickerSystem);
     renderCombo(this.$('combo-bar-fill'), this.$('combo-text'), this.gameState, this.clickerSystem);
 
     const frenzyBadge = this.$('frenzy-badge');

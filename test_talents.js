@@ -32,10 +32,10 @@ const earn = (gs, aether) => { gs.totalAetherEarned = new BigNum(aether); };
 console.log('--- S1: first Ascension +2, and Ascension no longer pays a flat +3 ---');
 {
   const { gs, ps } = make();
-  earn(gs, 1e4);                       // 10 dust: below the first record star (16)
+  earn(gs, 500);                       // 10 dust: below the first record star (16)
   assert.equal(ps.ascend(true), true);
   assert.equal(gs.talentPoints, 2, 'first Ascension star only');
-  earn(gs, 1e4);
+  earn(gs, 500);
   ps.ascend(true);
   assert.equal(gs.talentPoints, 2, 'second Ascension pays nothing');
   assert.equal(gs.records.earned.stars, 2);

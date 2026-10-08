@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from './js/systems/BuildingSystem.js';
-import { PrestigeSystem, MIN_RUN_SECONDS, DUST_REF } from './js/systems/PrestigeSystem.js';
+import { PrestigeSystem, MIN_RUN_SECONDS, DUST_REF, DUST_MIN_AETHER } from './js/systems/PrestigeSystem.js';
 import {
   etaSeconds, formatEta, dustRate, nextWellEta, wellsEta, sortItems, getComingUp, MAX_ITEMS
 } from './js/ui/comingUp.js';
@@ -53,10 +53,10 @@ console.log('--- formatEta: rough, friendly durations ---');
 console.log('--- New Well ETA: the Oil gate, then the 10-min minimum run ---');
 {
   const { gs, ps } = setup();
-  gs.totalAetherEarned = new BigNum(DUST_REF / 2);
-  // 5,000 Oil missing at 10/s = 500 s, but the run must also last 600 s
+  gs.totalAetherEarned = new BigNum(DUST_MIN_AETHER / 2);
+  // 250 Oil missing to the 500-Oil gate (R52) at 10/s = 25 s, but the run must also last 600 s
   assert.equal(nextWellEta(gs, ps, new BigNum(10), NOW), MIN_RUN_SECONDS);
-  near(nextWellEta(gs, ps, new BigNum(1), NOW), DUST_REF / 2, 'Oil is the slower part');
+  near(nextWellEta(gs, ps, new BigNum(0.1), NOW), DUST_MIN_AETHER / 2 * 10, 'Oil is the slower part');
   assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW), null);
   gs.totalAetherEarned = new BigNum(DUST_REF * 32);
   assert.ok(ps.getPendingCosmicDust().gt(0));

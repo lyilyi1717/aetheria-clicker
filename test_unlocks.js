@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
 import { BuildingSystem } from './js/systems/BuildingSystem.js';
-import { PrestigeSystem, MIN_RUN_SECONDS, DUST_REF } from './js/systems/PrestigeSystem.js';
+import { PrestigeSystem, MIN_RUN_SECONDS, DUST_MIN_AETHER } from './js/systems/PrestigeSystem.js';
 import { AlchemySystem } from './js/systems/AlchemySystem.js';
 import { BountySystem } from './js/systems/BountySystem.js';
 import { CalendarSystem, LEDGER_GOALS } from './js/systems/CalendarSystem.js';
@@ -93,11 +93,11 @@ console.log('--- Ascension: opens when it pays dust or after one; no floor/depth
 {
   const gs = fresh();
   gs.runStartedAt = Date.now() - MIN_RUN_SECONDS * 1000;
-  gs.totalAetherEarned = new BigNum(100);
+  gs.totalAetherEarned = new BigNum(Math.sqrt(ASCEND_AETHER_GATE));
   const p = getUnlockProgress(gs, 'prestige');
-  assert.ok(Math.abs(p.pct - 2 / 4) < 1e-9, 'log progress to 1e4 Aether');
+  assert.ok(Math.abs(p.pct - 1 / 2) < 1e-9, 'log progress to the gate (500 Oil since R52)');
   assert.equal(shortProgress(p), '50%');
-  assert.equal(ASCEND_AETHER_GATE, DUST_REF, 'the unlock gate is the Ascension gate (R31)');
+  assert.equal(ASCEND_AETHER_GATE, DUST_MIN_AETHER, 'the unlock gate is the Ascension gate (R31/R52)');
   assert.deepEqual(checkUnlocks(gs), []);
   gs.totalAetherEarned = new BigNum(1e12);
   assert.ok(gs.prestigeSystem.getPendingCosmicDust().gt(0));

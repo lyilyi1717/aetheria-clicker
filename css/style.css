@@ -607,6 +607,8 @@ button, input, select, textarea {
 
 .monolith-title { font-family: var(--font-display); font-size: clamp(var(--fs-20), 0.9rem + 1vw, var(--fs-24)); letter-spacing: 1px; }
 .monolith-click-power { margin-top: var(--sp-1); font-size: var(--fs-16); font-weight: 600; color: var(--aether); }
+.auto-tap-line { font-size: var(--fs-13); color: var(--text-2); }
+.monolith-orb.auto-pulse { transform: scale(0.98); }
 .combo-text { font-size: var(--fs-14); font-weight: 700; color: var(--gold); }
 
 .combo-container {

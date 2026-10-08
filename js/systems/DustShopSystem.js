@@ -37,6 +37,8 @@ export const RESONANT_START_TIERS = 10;     // Resonant Start gives 1 of each of
 export const DUST_SHOP_ITEMS = [
   { id: 'genesis', tier: 1, icon: '🏪', name: 'Cosmic Genesis', cost: 5, maxRank: 1,
     desc: `Start every run with ${GENESIS_STALLS} Shawarma Stalls and ${GENESIS_GOLD.toLocaleString('en-US')} Gold.`, see: 'Working from your next run' },
+  { id: 'auto_tap', tier: 1, icon: '🫳', name: 'Auto-tap', cost: 5, maxRank: 1,
+    desc: 'Taps the Refinery once a second while you are not tapping (offline too): each tap is half a second of production.', see: 'See it: Refinery tab' },
   { id: 'blueprint_memory', tier: 1, icon: '📐', name: 'Blueprint Memory', cost: 10, maxRank: 1,
     desc: `Keep the first ${BLUEPRINT_MEMORY_LEVELS} upgrades of each generator through a New Well.`, see: 'Kept on your next New Well' },
   { id: 'chrono_vault', tier: 1, icon: '⏳', name: 'Chrono Reservoir', cost: 10, growth: 1.5, maxRank: 10,
@@ -56,7 +58,7 @@ export const DUST_SHOP_ITEMS = [
   { id: 'auto_leylines', tier: 10, icon: '🔮', name: 'Automated Leylines', cost: 60, maxRank: 1,
     desc: 'Casts your spells for you whenever Mana is full.', see: 'See it: Grimoire' },
   { id: 'blueprint_memory_2', tier: 10, icon: '🏛️', name: 'Blueprint Memory II', cost: 50, maxRank: 1,
-    desc: `Keep every upgrade of generators 1-${BLUEPRINT_MEMORY_2_TIERS} (and click upgrades 1-${BLUEPRINT_MEMORY_2_TIERS}) through a New Well.`, see: 'Kept on your next New Well' },
+    desc: `Keep every upgrade of generators 1-${BLUEPRINT_MEMORY_2_TIERS} through a New Well.`, see: 'Kept on your next New Well' },
   { id: 'resonant_start', tier: 20, icon: '🎼', name: 'Resonant Start', cost: 250, maxRank: 1,
     desc: `Start every run with 1 of each of the first ${RESONANT_START_TIERS} generators (${BUILDING_DEFINITIONS[0].name} to ${BUILDING_DEFINITIONS[RESONANT_START_TIERS - 1].name}).`, see: 'Working from your next run' },
   { id: 'dust_amplifier', tier: 0, icon: '✨', name: 'Reserve Amplifier', cost: 50, growth: 2, maxRank: Infinity,
@@ -203,10 +205,7 @@ export function applyRunStart(gs) {
 // Blueprint Memory keep rules for the upgrade shop's Ascend reset (R5 hook)
 export function blueprintMemoryKeeps(u, gs) {
   if (hasShopItem(gs, 'blueprint_memory') && u.kind === 'tier' && u.level <= BLUEPRINT_MEMORY_LEVELS) return true;
-  if (hasShopItem(gs, 'blueprint_memory_2')) {
-    if (u.kind === 'click') return u.level <= BLUEPRINT_MEMORY_2_TIERS;
-    return u.tier >= 1 && u.tier <= BLUEPRINT_MEMORY_2_TIERS;
-  }
+  if (hasShopItem(gs, 'blueprint_memory_2')) return u.tier >= 1 && u.tier <= BLUEPRINT_MEMORY_2_TIERS;
   return false;
 }
 addAscendKeepRule(blueprintMemoryKeeps);

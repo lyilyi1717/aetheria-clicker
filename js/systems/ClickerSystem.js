@@ -3,7 +3,10 @@ import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
-import { COMBO_FULL, FRENZY_AUTO_CLICKS, FRENZY_EVERY, FRENZY_DURATION, FRENZY_MAX_TIMER } from './combo.js';
+import {
+  COMBO_FULL, FRENZY_AUTO_CLICKS, FRENZY_EVERY, FRENZY_DURATION, FRENZY_MAX_TIMER,
+  CLICK_MAX_PER_SEC, AUTO_TAP_PER_SEC, AUTO_TAP_IDLE_AFTER
+} from './combo.js';
 import { itemName } from '../data/names.js';
 import { t } from '../i18n/index.js';
 
@@ -13,9 +16,9 @@ import { t } from '../i18n/index.js';
 export const ANOMALY_WEIGHTS = {
   supernova: 13, time_flux: 13, mana_cache: 13, gem_cache: 13, mirage: 5, caravan_star: 3
 };
-export const SUPERNOVA_CPS_SECONDS = 180;   // was 600
+export const SUPERNOVA_CPS_SECONDS = 30;    // R52 (R3: 180, before: 600)
 export const SUPERNOVA_MIN_CLICKS = 500;
-export const MIRAGE_MULT = 2;               // x2 Aether production and gold
+export const MIRAGE_MULT = 1.5;             // x1.5 Aether production and gold (R52; was x2)
 export const MIRAGE_DURATION = 60;
 // Caravan Star: a free large caravan (MarketSystem.getCaravanTier('large'): 60 min, pays 1.5x
 // its 2,000 x Market Index list price, no cargo). If a caravan is already on the road, the
@@ -49,9 +52,41 @@ export class ClickerSystem {
     // Combo count at the last Frenzy milestone (not saved; reset when the combo drains to 0),
     // so a short pause can't re-fire the same milestone
     this.lastFrenzyAt = 0;
+    // R52 anti-autoclicker: a token bucket refilled at CLICK_MAX_PER_SEC on real time (update's
+    // realDt); a manual click without a token still animates but yields nothing
+    this.clickTokens = CLICK_MAX_PER_SEC;
+    // Auto-tap: seconds since the last manual click, and the fraction of the next auto-tap
+    this.sinceManualClick = Infinity;
+    this.autoTapAcc = 0;
+    this.onAutoTap = null;   // UI hook (js/ui/autoTap.js): (amount) => void
+  }
+
+  // True when Auto-tap is owned and the player hasn't tapped for AUTO_TAP_IDLE_AFTER seconds
+  isAutoTapping() {
+    return this.gameState.hasAutoTap() && this.sinceManualClick >= AUTO_TAP_IDLE_AFTER;
+  }
+
+  // One Auto-tap: a plain click (no combo, Frenzy, crit or click count), paid like a real one
+  autoTap() {
+    const gs = this.gameState;
+    const amount = gs.getClickBase();
+    gs.aether = gs.aether.add(amount);
+    gs.totalAetherEarned = gs.totalAetherEarned.add(amount);
+    this.onAutoTap?.(amount);
+    return amount;
   }
 
   handleClick(clientX, clientY, isAutoClick = false) {
+    if (!isAutoClick) {
+      this.sinceManualClick = 0;
+      // Over CLICK_MAX_PER_SEC: the tap animates and sounds, but pays nothing
+      if (this.clickTokens < 1) {
+        sound.playClick(1 + (this.gameState.comboCount % FRENZY_EVERY) * 0.03);
+        if (clientX && clientY) particles.spawnClickSparks(clientX, clientY, 6, '#38bdf8');
+        return BigNum.zero();
+      }
+      this.clickTokens -= 1;
+    }
     // Determine if critical strike
     const isCrit = Math.random() < this.gameState.critChance;
     let yieldAmount = this.gameState.getClickYield();
@@ -104,6 +139,7 @@ export class ClickerSystem {
       this.gameState.bountySystem.checkProgress('click', 1);
       if (isCrit) this.gameState.bountySystem.checkProgress('crit_click', 1);
     }
+    return yieldAmount;
   }
 
   // Starts Frenzy, or adds `duration` to a running one (up to FRENZY_MAX_TIMER, or the
@@ -119,7 +155,18 @@ export class ClickerSystem {
     sound.playSpell();
   }
 
-  update(dt) {
+  // dt: game time (Chrono Warp speeds it up); realDt: wall-clock time for the click limit and
+  // Auto-tap, so neither runs faster during Chrono Warp
+  update(dt, realDt = dt) {
+    this.clickTokens = Math.min(CLICK_MAX_PER_SEC, this.clickTokens + CLICK_MAX_PER_SEC * realDt);
+    this.sinceManualClick += realDt;
+    if (this.isAutoTapping()) {
+      this.autoTapAcc += AUTO_TAP_PER_SEC * realDt;
+      while (this.autoTapAcc >= 1) { this.autoTapAcc -= 1; this.autoTap(); }
+    } else {
+      this.autoTapAcc = 0;
+    }
+
     // Combo timer decay
     if (this.gameState.comboTimer > 0) {
       this.gameState.comboTimer -= dt;
@@ -187,8 +234,8 @@ export class ClickerSystem {
     const note = { tier: 'medium', icon: '✨', color: '#fde047' };
 
     if (this.anomalyType === 'supernova') {
-      // 3 minutes of Aether, or 500 clicks' worth on a fresh run
-      const payout = cps.mul(SUPERNOVA_CPS_SECONDS).max(this.gameState.getClickYield().mul(SUPERNOVA_MIN_CLICKS));
+      // SUPERNOVA_CPS_SECONDS of Oil, or 500 base clicks (500 Oil) on a fresh run
+      const payout = cps.mul(SUPERNOVA_CPS_SECONDS).max(this.gameState.clickPower.mul(SUPERNOVA_MIN_CLICKS));
       this.gameState.aether = this.gameState.aether.add(payout);
       this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(payout);
       rewards.notify({ ...note, kind: 'anomaly-supernova', icon: '💥', title: t('anomaly.supernova'), amount: payout, fmt: fmtStd, unit: t('unit.oil') });
@@ -218,8 +265,8 @@ export class ClickerSystem {
     }
   }
 
-  // Mirage: x2 Aether production (an Aether buff, adds to Celestial like other Aether buffs) and
-  // x2 gold for 60 s. A second Mirage refreshes the timer instead of stacking.
+  // Mirage: x1.5 Aether production (an Aether buff, adds to Celestial like other Aether buffs) and
+  // x1.5 gold for 60 s. A second Mirage refreshes the timer instead of stacking.
   applyMirage() {
     const gs = this.gameState;
     gs.activeBuffs = gs.activeBuffs.filter(b => b.id !== 'mirage' && b.id !== 'mirage_gold');
