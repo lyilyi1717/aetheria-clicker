@@ -10,8 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: R58 #156, R59 #157,
-  R63 #161 in progress. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
+- Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: R58 #156, R60 #158,
+  R64 #162 in progress. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
 
 - Wave 9, run by the R31 coordinator session: R57 #139 in progress (also takes on the
@@ -19,7 +19,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40 and R41 are done.
+R0–R30, R32–R40, R41 and R42 are done.
 
 - Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
   enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
@@ -97,6 +97,13 @@ R0–R30, R32–R40 and R41 are done.
 | 10 | R65 Mythics, Barakah meter, boss telegraphs | #163 | R64 |
 
 ## Done
+
+- R59 #157 (PR #165, v5.13.0): Garden taps share the R52 paid-click bucket
+  (`ClickerSystem.spendPaidTap()`), Dewdrop pays 0.25 s, tap growth 2% of grow time (was 5%; needed
+  to fit the x2.89 envelope), BigNum import crash fixed. Active-tapping sim: `sim/garden-tap.mjs`.
+- R63 #161 (PR #166, v5.14.0): `GEAR_FLOOR_BASE` 1.105; save step v10 sets `pendingFloorRebase`
+  so over-floor saves step down via `rebaseLegacyFloor` (record kept). `npm run sim:tower` now fails
+  outside +-10% of 414/498/560 at 1 d/1 w/1 m (open profile now 97/380/510/520).
 
 - Redesign proposal written (`docs/redesign-proposal.md`).
 - Project setup: `AGENTS.md`, `CLAUDE.md`, this file, `sim/core-pacing.mjs` (`npm run sim`),
@@ -297,6 +304,10 @@ R0–R30, R32–R40 and R41 are done.
   chains, sound cooldowns, caps, merge rule); `ParticleEngine` caps 250/150 sparks and 40 texts and
   merges "+n" texts by key. Click/crit/anomaly, combat hits, dig hits and Auto-tap go through it.
   `.fx-shake`/`.is-hitstop` are in `css/animations.css`, unused until R42. R42–R50 build on this.
+- R42 #114 Boss kills (PR #170, 5.17.0): `js/ui/combatFx.js` hooks `CombatSystem.onBossDefeated` (T2 via
+  `feedback.fire`, hit-stop + flash on `.monster-avatar`, shake on the arena card, callout + gold
+  count-up) and `renderBossTimer` (red/ticks at <= 10 s, scale at <= 3 s, "Last boss: +n gold"
+  between bosses in the same reserved line). New voices `playBossDown`, `playTick`.
 
 
 - R25 #61 Reward toasts clear the buff bar: `js/buffBar.js` writes its measured height to
@@ -372,6 +383,11 @@ R0–R30, R32–R40 and R41 are done.
   - Polish & Bug Fixes: Suppressed Tower combat particles/floats when combat tab is hidden; hid Mana from header until Grimoire is unlocked; isolated Arabic unlock teaser fractions so they read left-to-right (`0/10`); stabilized `test_r52_clicks.js` timing race.
 
 ## Noticed (not yet an issue)
+
+- Untapped Garden is ~x3.42 of generator output from Nectar Surge on hand harvests (R60's area).
+- Tower 1 h floor is ~65% of target (97 vs 149); starting-kit tuning could fix it.
+- Save step v10 is taken by R63: R57 (#146) must renumber its step to v11.
+- `test_mining.js` has a flaky random-hits assertion; `sim/core-pacing.mjs` has no Garden profile.
 - Floating texts and sparks spawned outside `feedback.fire` (Garden, Mining finds, combat
   shield/heal, golem row) still bypass the helper; the caps cover them, routing them is R46/R47 work.
 - Each particle draws with `save/restore` + `shadowBlur`; that is likely the bigger cost for the

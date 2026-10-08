@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
+  <!-- Boss: Abu Sarwal Wa Fanila (The Mighty Uncle) -->
+  <defs>
+    <radialGradient id="uncleBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#451a03"/>
+      <stop offset="70%" stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#0c0a09"/>
+    </radialGradient>
+    <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fbcfe8"/>
+      <stop offset="50%" stop-color="#f472b6"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="120" fill="url(#uncleBg)" stroke="#dc2626" stroke-width="6"/>
+  <!-- Giant Potbelly in White Fanila Tank Top -->
+  <path d="M72 130 Q128 110 184 130 L196 220 Q128 240 60 220 Z" fill="#f8fafc" stroke="#334155" stroke-width="4"/>
+  <!-- White Sirwal Trouser Waistband -->
+  <path d="M60 220 Q128 238 196 220 L196 250 L60 250 Z" fill="#e2e8f0" stroke="#475569" stroke-width="3"/>
+  <!-- Muscular Tan Arms -->
+  <!-- Left Arm holding Flying Slipper -->
+  <path d="M72 136 Q34 140 28 100 Q40 88 56 104" fill="#fb923c" stroke="#7c2d12" stroke-width="4"/>
+  <!-- Right Arm holding Flying Slipper -->
+  <path d="M184 136 Q222 140 228 100 Q216 88 200 104" fill="#fb923c" stroke="#7c2d12" stroke-width="4"/>
+  <!-- Legendary Shib-Shib Flying Slippers -->
+  <!-- Left Shib-Shib -->
+  <g transform="rotate(-35 30 76)">
+    <rect x="14" y="60" width="32" height="16" rx="8" fill="#e11d48" stroke="#881337" stroke-width="3"/>
+    <path d="M22 60 Q30 52 38 60" fill="none" stroke="#ffffff" stroke-width="4"/>
+  </g>
+  <!-- Right Shib-Shib -->
+  <g transform="rotate(35 226 76)">
+    <rect x="210" y="60" width="32" height="16" rx="8" fill="#e11d48" stroke="#881337" stroke-width="3"/>
+    <path d="M218 60 Q226 52 234 60" fill="none" stroke="#ffffff" stroke-width="4"/>
+  </g>
+  <!-- Uncle Head & Face -->
+  <circle cx="128" cy="86" r="38" fill="#fb923c" stroke="#7c2d12" stroke-width="4"/>
+  <!-- Thick Saudi Mustache -->
+  <path d="M104 98 Q128 92 152 98 Q140 114 128 104 Q116 114 104 98 Z" fill="#18181b"/>
+  <!-- Stern Eyebrows & Eyes -->
+  <line x1="106" y1="74" x2="120" y2="80" stroke="#18181b" stroke-width="4" stroke-linecap="round"/>
+  <line x1="150" y1="74" x2="136" y2="80" stroke="#18181b" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="114" cy="84" r="3.5" fill="#18181b"/>
+  <circle cx="142" cy="84" r="3.5" fill="#18181b"/>
+  <!-- Enrage Vein on Forehead -->
+  <path d="M142 64 L148 68 L144 72" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+</svg>

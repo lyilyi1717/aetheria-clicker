@@ -51,6 +51,7 @@ import { SharedNews, sharedQueueItems, sharedNewsHooks } from './ui/sharedNews.j
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
 import { initAutoTap, renderAutoTap } from './ui/autoTap.js';
+import { initCombatFx, renderBossTimer } from './ui/combatFx.js';
 import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
@@ -458,6 +459,7 @@ class AetheriaApp {
     }
 
     const monsterCard = document.getElementById('monster-arena-box');
+    initCombatFx(this.combatSystem, monsterCard, document.querySelector('.monster-avatar'), this.$('boss-timer'));
     if (monsterCard) {
       monsterCard.addEventListener('pointerdown', (e) => {
         sound.ensureContext();
@@ -860,12 +862,7 @@ class AetheriaApp {
     setText(this.$('monster-hp-text'), t('combat.hp', { hp: this.combatSystem.fmt(Math.max(0, m.hp)), max: this.combatSystem.fmt(m.maxHp) }));
     setWidth(this.$('monster-hp-fill'), `${Math.max(0, (m.hp / m.maxHp) * 100)}%`);
 
-    if (bossTimerEl) {
-      // visibility (not display) so the portrait doesn't jump when a boss arrives
-      const vis = m.isBoss ? 'visible' : 'hidden';
-      if (bossTimerEl.style.visibility !== vis) bossTimerEl.style.visibility = vis;
-      if (m.isBoss) setText(bossTimerEl, t('combat.enrage', { s: m.timer.toFixed(1) }));
-    }
+    renderBossTimer(bossTimerEl, m);   // R42: enrage urgency, last boss gold (js/ui/combatFx.js)
 
     // Update skill cooldowns
     for (const key in h.skills) {
@@ -888,10 +885,10 @@ class AetheriaApp {
       const g = h.gear;
       const fmt = (v) => this.combatSystem.fmt(v);
       gearCont.innerHTML =
-        gearCard(t('gear.slot.weapon'), g.weapon, t('gear.stat.atk', { n: fmt(gearStat('weapon', g.weapon)) })) +
-        gearCard(t('gear.slot.armor'), g.armor, t('gear.stat.hp', { n: fmt(gearStat('armor', g.armor)) })) +
-        gearCard(t('gear.slot.amulet'), g.amulet, t('gear.stat.crit', { n: (gearStat('amulet', g.amulet) * 100).toFixed(0) })) +
-        gearCard(t('gear.slot.relic'), g.relic, t('gear.stat.drain', { n: (gearStat('relic', g.relic) * 100).toFixed(0) }));
+        gearCard(t('gear.slot.weapon'), g.weapon, t('gear.stat.atk', { n: fmt(gearStat('weapon', g.weapon)) }), 'weapon') +
+        gearCard(t('gear.slot.armor'), g.armor, t('gear.stat.hp', { n: fmt(gearStat('armor', g.armor)) }), 'armor') +
+        gearCard(t('gear.slot.amulet'), g.amulet, t('gear.stat.crit', { n: (gearStat('amulet', g.amulet) * 100).toFixed(0) }), 'amulet') +
+        gearCard(t('gear.slot.relic'), g.relic, t('gear.stat.drain', { n: (gearStat('relic', g.relic) * 100).toFixed(0) }), 'relic');
     }
 
     // Aether Forge
@@ -1041,6 +1038,18 @@ class AetheriaApp {
       this.$('btn-skill-frenzy')?.classList.toggle('disabled', frenzyLv >= 8 || stone < frenzyCost);
     }
 
+    const MINING_TILE_ART = {
+      stairs: 'assets/generated/mining/stairs.svg',
+      gold_cache: 'assets/generated/mining/gold_cache.svg',
+      geode_pocket: 'assets/generated/mining/gold_cache.svg',
+      bomb: 'assets/generated/mining/dynamite.svg',
+      ruby: 'assets/generated/mining/relic_ruby.svg',
+      sapphire: 'assets/generated/mining/relic_sapphire.svg',
+      emerald: 'assets/generated/mining/relic_emerald.svg',
+      diamond: 'assets/generated/mining/relic_diamond.svg',
+      voidAmethyst: 'assets/generated/mining/relic_void_amethyst.svg'
+    };
+
     const tileContent = (b) => {
       let icon = '⛏️'; let label = itemName('stone');
       if (b.content === 'stairs') { icon = '🪜'; label = t('mine.tile.stairs'); }
@@ -1048,7 +1057,11 @@ class AetheriaApp {
       else if (b.content === 'gold_cache') { icon = '💰'; label = t('res.gold'); }
       else if (b.content === 'geode_pocket') { icon = '✨💎'; label = t('mine.tile.geode'); }
       else if (TILE_ITEM_KEY[b.content]) { const e = ITEM_NAMES[TILE_ITEM_KEY[b.content]]; icon = e.icon; label = e.name; }
-      return `<span class="m-icon">${icon}</span><span class="m-lbl">${label}</span>`;
+      const art = MINING_TILE_ART[b.content];
+      const iconMarkup = art
+        ? `<img class="m-art-img" src="${art}" alt="${icon}" loading="lazy">`
+        : `<span class="m-icon">${icon}</span>`;
+      return `${iconMarkup}<span class="m-lbl">${label}</span>`;
     };
 
     const getCrackClass = (b) => {
@@ -1177,9 +1190,12 @@ class AetheriaApp {
         Object.entries(SEED_TYPES).map(([id, def]) => `<option value="${id}">${def.icon} ${def.name}</option>`).join('');
       golemCont.innerHTML = `
         <div class="golem-header">
-          <div>
-            <strong>${t('golem.title')}</strong> <span id="golem-count" class="res-badge num">0 / ${MAX_GOLEMS}</span>
-            <div class="golem-sub">${t('golem.sub')}</div>
+          <div style="display: flex; align-items: center; gap: var(--sp-2);">
+            <img src="assets/generated/garden/golem_automator.svg" class="golem-avatar-ico" alt="Golem" loading="lazy">
+            <div>
+              <strong>${t('golem.title')}</strong> <span id="golem-count" class="res-badge num">0 / ${MAX_GOLEMS}</span>
+              <div class="golem-sub">${t('golem.sub')}</div>
+            </div>
           </div>
           <button id="btn-buy-golem" class="btn-action" data-action="buy-golem"></button>
         </div>
@@ -1285,7 +1301,10 @@ class AetheriaApp {
       if (!p.seed) {
         const cls = `garden-plot empty${golemCls}`;
         if (plotEl.className !== cls) plotEl.className = cls;
-        setText(icoEl, '');
+        if (icoEl && icoEl.dataset.stage !== 'empty') {
+          icoEl.dataset.stage = 'empty';
+          icoEl.innerHTML = '';
+        }
         setText(statEl, t('garden.empty'));
         setWidth(fillEl, '0%');
       } else {
@@ -1295,7 +1314,23 @@ class AetheriaApp {
 
         const cls = `garden-plot planted${isMature ? ' mature' : ''}${p.fertilized ? ' fertilized' : ''}${golemCls}`;
         if (plotEl.className !== cls) plotEl.className = cls;
-        setText(icoEl, def.icon);
+
+        let stageKey = 'mature';
+        let stageContent = def.icon;
+        if (!isMature) {
+          if (progressPct < 35) {
+            stageKey = 'sprout';
+            stageContent = '<img class="plot-art-ico" src="assets/generated/garden/sprout.svg" alt="Sprout" loading="lazy">';
+          } else {
+            stageKey = 'blooming';
+            stageContent = '<img class="plot-art-ico" src="assets/generated/garden/blooming_flower.svg" alt="Blooming" loading="lazy">';
+          }
+        }
+        if (icoEl && icoEl.dataset.stage !== stageKey) {
+          icoEl.dataset.stage = stageKey;
+          icoEl.innerHTML = stageContent;
+        }
+
         const st = isMature ? t('garden.ready') : `${def.name} (${this.formatGrowTime(p.maxTime - p.progress)})${p.fertilized ? ' 🧪' : ''}`;
         setText(statEl, st);
         setWidth(fillEl, `${progressPct}%`);
@@ -1318,13 +1353,25 @@ class AetheriaApp {
 
   // --- Alchemy Structure ---
   buildAlchemyStructure() {
+    const ALCHEMY_ART = {
+      swiftness: 'assets/generated/alchemy/karak_tea.svg',
+      titans_draught: 'assets/generated/alchemy/almarai_laban.svg',
+      aether_surge: 'assets/generated/alchemy/cold_vimto.svg',
+      midas_elixir: 'assets/generated/alchemy/golden_dallah_brew.svg',
+      perm_might: 'assets/generated/alchemy/mandi_feast_nectar.svg',
+      perm_vitality: 'assets/generated/alchemy/shawarma_of_life.svg',
+      philosophers_catalyst: 'assets/generated/alchemy/royal_wasta_seal.svg'
+    };
+
     const listCont = document.getElementById('alchemy-recipes-list');
     if (listCont) {
       listCont.innerHTML = RECIPES.map(r => {
         const costStr = Object.entries(this.alchemySystem.getRecipeCost(r)).map(([k, v]) =>
           `<bdi><span id="alc-cost-${r.id}-${k}">${fmtNum(v)}</span>x</bdi> ${itemName(k)} (<span id="alc-own-${r.id}-${k}">0</span>)`).join(t('list.sep'));
+        const artMarkup = ALCHEMY_ART[r.id] ? `<img class="alc-art-img" src="${ALCHEMY_ART[r.id]}" alt="${r.name}" loading="lazy">` : '';
         return `
           <div class="alchemy-card" id="alc-card-${r.id}">
+            ${artMarkup}
             <div class="alc-info">
               <div class="alc-name">${r.name}</div>
               <div class="alc-desc">${r.desc}</div>
@@ -1420,11 +1467,20 @@ class AetheriaApp {
 
   // --- Spells Structure ---
   buildSpellsStructure() {
+    const SPELL_ART = {
+      aether_burst: 'assets/generated/spells/aether_burst.svg',
+      chrono_warp: 'assets/generated/spells/chrono_warp.svg',
+      midas_touch: 'assets/generated/spells/midas_touch.svg',
+      celestial_alignment: 'assets/generated/spells/celestial_alignment.svg',
+      void_strike: 'assets/generated/spells/void_strike.svg',
+      astral_refresh: 'assets/generated/spells/astral_refresh.svg'
+    };
+
     const cont = document.getElementById('spells-grid-container');
     if (cont) {
       cont.innerHTML = SPELLS.map(s => `
         <div class="spell-card" id="spell-card-${s.id}">
-          <div class="sp-icon">${s.icon}</div>
+          <div class="sp-icon">${SPELL_ART[s.id] ? `<img class="sp-art-img" src="${SPELL_ART[s.id]}" alt="${s.name}" loading="lazy">` : s.icon}</div>
           <div class="sp-details">
             <div class="sp-name">${s.name}</div>
             <div class="sp-desc">${s.desc}</div>

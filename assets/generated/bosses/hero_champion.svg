@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
+  <defs>
+    <radialGradient id="heroAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="60%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+    <linearGradient id="goldPlate" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </linearGradient>
+    <linearGradient id="astralSteel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#94a3b8"/>
+      <stop offset="50%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Frame & Aura -->
+  <circle cx="128" cy="128" r="120" fill="url(#heroAura)" stroke="url(#goldPlate)" stroke-width="6"/>
+  <!-- Stars in background -->
+  <circle cx="64" cy="64" r="2" fill="#ffffff"/>
+  <circle cx="192" cy="74" r="2.5" fill="#ffffff"/>
+  <circle cx="180" cy="180" r="2" fill="#ffffff"/>
+  <!-- Flowing Royal Cape -->
+  <path d="M64 160 Q40 220 50 240 Q128 250 206 240 Q216 220 192 160 Z" fill="#6366f1" stroke="#312e81" stroke-width="4"/>
+  <!-- Heavy Astral Pauldrons (Shoulders) -->
+  <polygon points="46,140 84,130 92,180 38,180" fill="url(#goldPlate)" stroke="#713f12" stroke-width="3"/>
+  <polygon points="210,140 172,130 164,180 218,180" fill="url(#goldPlate)" stroke="#713f12" stroke-width="3"/>
+  <!-- Torso Breastplate -->
+  <path d="M84 136 L172 136 L164 210 L128 230 L92 210 Z" fill="url(#astralSteel)" stroke="#0f172a" stroke-width="4"/>
+  <!-- Golden Solar Crest on Chest -->
+  <circle cx="128" cy="170" r="16" fill="url(#goldPlate)"/>
+  <polygon points="128,158 132,168 142,170 134,176 136,186 128,180 120,186 122,176 114,170 124,168" fill="#ffffff"/>
+  <!-- Hero Helmet / Headpiece -->
+  <path d="M96 80 Q128 42 160 80 L166 128 Q128 144 90 128 Z" fill="url(#astralSteel)" stroke="#0f172a" stroke-width="4"/>
+  <!-- Starlight Visor T-slit with glowing cyan gaze -->
+  <path d="M102 96 L154 96 L144 110 L112 110 Z" fill="#0284c7" stroke="#38bdf8" stroke-width="2"/>
+  <line x1="128" y1="96" x2="128" y2="126" stroke="#38bdf8" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="116" cy="103" r="3" fill="#ffffff"/>
+  <circle cx="140" cy="103" r="3" fill="#ffffff"/>
+  <!-- Crown Wing Plumes on Helmet -->
+  <polygon points="128,42 118,18 128,26 138,18" fill="url(#goldPlate)" stroke="#713f12" stroke-width="2"/>
+</svg>

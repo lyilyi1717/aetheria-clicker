@@ -730,18 +730,78 @@ button, input, select, textarea {
 /* Golden Anomaly */
 #golden-anomaly {
   position: fixed;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: radial-gradient(circle, #fde047, #f59e0b, #b45309);
   box-shadow: 0 0 25px var(--gold);
   display: none;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
   cursor: pointer;
   z-index: 999;
   animation: floatWobble 3s infinite ease-in-out;
+}
+.golden-anomaly-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Vector Asset Icon Styles */
+.m-art-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 2px;
+}
+.alc-art-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: var(--r-1);
+  background: color-mix(in srgb, var(--bg-2) 80%, transparent);
+  border: 1px solid var(--line-1);
+  padding: 2px;
+}
+.sp-art-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+.hero-status-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+.hero-avatar-pane {
+  flex-shrink: 0;
+}
+.hero-avatar-img {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-gold);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 35%, transparent);
+  background: var(--bg-1);
+  object-fit: cover;
+}
+.golem-avatar-ico {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: var(--r-1);
+  flex-shrink: 0;
+}
+.plot-art-ico {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
 }
 
 /* Combat Tab */
@@ -771,6 +831,70 @@ button, input, select, textarea {
 
 .monster-arena-box.hit-shake {
   transform: translate(2px, -2px);
+}
+
+/* R42 boss/Warden kills (js/ui/combatFx.js). The enrage line keeps its space (visibility only);
+   red at <= 10 s, a little bigger at <= 3 s; between bosses it shows the last boss's gold. */
+.boss-timer {
+  color: var(--text-2);
+  font-weight: bold;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.boss-timer.enrage-urgent { color: var(--danger); }
+.boss-timer.enrage-critical { transform: scale(1.15); }
+.boss-timer.boss-timer-last { color: var(--text-3); font-weight: normal; font-size: var(--fs-13); }
+:root[data-motion="reduced"] .boss-timer.enrage-critical { transform: none; }
+
+/* White flash on the portrait (0.6 -> 0 over 150 ms); never under reduced motion */
+.monster-avatar.fx-flash::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white; /* the hit flash is white in every theme: it sits on the art, not the UI */
+  pointer-events: none;
+  animation: fxFlash 150ms ease-out forwards;
+}
+@keyframes fxFlash { from { opacity: 0.6; } to { opacity: 0; } }
+:root[data-motion="reduced"] .monster-avatar.fx-flash::after { display: none; }
+
+/* "BOSS DOWN!" callout + gold chip over the portrait for 900 ms */
+.boss-down-callout {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1, 4px);
+  pointer-events: none;
+  z-index: 2;
+  background: color-mix(in srgb, var(--bg-1) 45%, transparent);
+  animation: bossDownIn 900ms ease-out forwards;
+}
+.boss-down-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-24);
+  font-weight: 700;
+  color: var(--gold);
+  text-align: center;
+  text-shadow: 0 2px 8px #000;
+  animation: bossDownPop 160ms var(--ease-pop);
+}
+.boss-down-gold {
+  font-size: var(--fs-16);
+  font-weight: 700;
+  color: var(--gold);
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--gold-dim);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+@keyframes bossDownPop { from { transform: scale(1.4); } to { transform: scale(1); } }
+@keyframes bossDownIn {
+  0% { opacity: 0; }
+  10%, 80% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* Fixed square portrait frame: the card never resizes when the monster or its art changes.
@@ -892,7 +1016,6 @@ button, input, select, textarea {
 .mining-grid-board.frenzy-active {
   box-shadow: 0 0 25px color-mix(in srgb, var(--gold) 45%, transparent), inset 0 0 15px color-mix(in srgb, var(--gold) 25%, transparent);
   border-radius: 12px;
-  animation: pulseGlow 0.5s 6 alternate;
 }
 
 .mine-tile {

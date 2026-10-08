@@ -526,11 +526,13 @@ export class CombatSystem {
   }
 
   onMonsterDefeated() {
-    sound.playDefeat();
     const h = this.gameState.hero;
     const floor = this.getFightFloor();
     const isBoss = this.monster.isBoss;
     const isWarden = !!this.monster.isWarden;
+    // A boss on screen gets its own T2 sound (R42, js/ui/combatFx.js); everything else the blip
+    const bossFx = isBoss && typeof this.onBossDefeated === 'function' && this.isCombatVisible();
+    if (!bossFx) sound.playDefeat();
     const rewardMult = isWarden ? WARDEN_REWARD_MULT : 1;
 
     this.gameState.stats.totalMonstersSlain++;
@@ -558,6 +560,7 @@ export class CombatSystem {
     if (isBoss) goldMult *= this.gameState.calendarSystem?.getBossGoldMult?.() || 1;
     const goldEarned = new BigNum(MONSTER_FLOOR_BASE).pow(floor - 1).mul(new BigNum((isBoss ? 50 : 10) * rewardMult * goldMult)).floor();
     this.gameState.gold = this.gameState.gold.add(goldEarned);
+    if (isBoss) this.onBossDefeated?.({ isWarden, gold: goldEarned, floor });
 
     // XP Reward
     const xpGained = (isBoss ? 40 : 10) * rewardMult * floor;

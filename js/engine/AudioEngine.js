@@ -530,6 +530,40 @@ export class AudioEngine {
     });
   }
 
+  // Boss/Warden down (R42): a low thud as the hit-stop ends (sine 80 -> 40 Hz, 120 ms), then the
+  // last two notes of the brass phrase
+  playBossDown() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime + 0.09;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(80, t);
+    osc.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.5, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.13);
+    const s = this._scale();
+    for (const [f, off, dur] of [[s[2], 0.14, 0.14], [s[4], 0.3, 0.6]]) {
+      this._voice('sawtooth', f, t + off, dur, 0.12, { attack: 0.03 });
+      this._voice('square', f / 2, t + off, dur, 0.06, { attack: 0.03 });
+    }
+  }
+
+  // Enrage countdown tick (R42): a short, quiet pluck, once a second for the last 10 s
+  playTick() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    this._voice('triangle', this._scale()[0] * 2, this.ctx.currentTime, 0.08, 0.06);
+  }
+
   // One entry point for the reward system (js/ui/rewards.js)
   playTier(tier) {
     if (tier === 'small') this.playPluck();
@@ -553,7 +587,7 @@ export const SOUND_IDS = {
   click: 'playClick', crit: 'playCrit', buy: 'playBuy', hit: 'playHit', defeat: 'playDefeat',
   dig: 'playDig', gem: 'playGem', spell: 'playSpell', achievement: 'playAchievement',
   ascension: 'playAscension', pluck: 'playPluck', bell: 'playBell', brass: 'playBrass',
-  choir: 'playChoir'
+  choir: 'playChoir', 'boss-down': 'playBossDown', tick: 'playTick'
 };
 
 export const sound = new AudioEngine();
