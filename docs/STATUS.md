@@ -10,18 +10,14 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R39 #75 shared part (PR #123, 4.15.0): shared news is built; waits for review and for the owner
-  to run `supabase/news.sql`. Notes below under Done once merged.
 - R31 #67 Slower number growth (PR #102, draft): paused for an owner decision between option 1
   (full economy redesign, its own item) and option 2 (prestige discount: identical pacing, about
   1e16-1e19 at day 60). Details in the #67 comment.
 
 ## Next up
 
-R0–R30 and R32–R40 are done (R39: local ticker only).
+R0–R30 and R32–R40 are done.
 
-- R39 shared part: PR #123. `supabase/news.sql` is already applied to the live project
-  (2026-10-08), so shared news goes live as soon as the PR merges.
 - Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
   enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
   `accepted`, `wontfix`, `duplicate` (PR #97). Game title after the oil re-theme (question in #23).
@@ -236,6 +232,12 @@ R0–R30 and R32–R40 are done (R39: local ticker only).
 - R39 #75 News ticker, local part (PR #110, 4.13.0): `js/ui/newsTicker.js` + `css/news.css`, entries
   in `settings.news` (20 x 120 chars), per-entry direction by script, Reduced Motion = static
   rotation. Shared posting not built; #75 stays open.
+- R39 #75 News ticker, shared part (PR #123, 4.15.0): `js/ui/sharedNews.js` (REST, no SDK) feeds
+  other players' headlines into the strip (newest 30, last 7 days; Settings → News has Share,
+  Report, Delete and a show/hide switch). `supabase/news.sql` holds the rules (RLS, 3 posts / 24 h
+  via `news_post_log`, word filter, 3 reports hide; owner hides with an `update`); it is applied
+  to the live project. The Supabase MCP tool hangs on `drop ...` statements (it waits for a
+  confirmation): run them in the SQL editor, or leave them out on a fresh setup.
 - R37 #73 Arabic (PR #104, 4.14.0): `js/i18n/` (`t()`, `localize()`), `en.js`/`ar.js`, Settings →
   Language, full RTL with logical CSS, numbers isolated LTR. `test_r37_i18n.js` fails on missing
   Arabic. AGENTS.md rule 11: new text goes through `t()` with Arabic. Merged on the owner's word;
