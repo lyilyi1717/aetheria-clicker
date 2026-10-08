@@ -167,11 +167,11 @@ export const CHAPTERS = [
     challenges: [
       { id: 'salt_still_water', name: 'Still Water', icon: '🫗', pages: 4, requires: 0,
         desc: 'Clicks build no combo, and Frenzy never starts.',
-        rules: { layerBonusesOff: true, comboCap: 1, noFrenzy: true }, goal: { runAether: 1e7 },
+        rules: { layerBonusesOff: true, comboCap: 1, noFrenzy: true }, goal: { runAether: 3e6 },
         reward: { kind: 'dig', value: 0.25 } },
       { id: 'salt_dark_flats', name: 'Dark Flats', icon: '🌘', pages: 4, requires: 0,
         desc: 'No spells, and only the first 8 generators open.',
-        rules: { layerBonusesOff: true, noSpells: true, maxTiers: 8 }, goal: { runAether: 1e6 },
+        rules: { layerBonusesOff: true, noSpells: true, maxTiers: 8 }, goal: { runAether: 2e6 },
         reward: { kind: 'oil', value: 0.1 } },
       { id: 'salt_caravan', name: 'Narrow Caravan', icon: '🐫', pages: 5, requires: 1,
         desc: 'Only the first 5 generators open, and they pay half.',

@@ -947,6 +947,26 @@ After the first Chronicle the Seal half counts as met.
   another. Idle: Chronicles at 122, 216, 306. CPS at a year is lower than without the layer
   (~4e29 casual, just after Chronicle IV, vs 2e82): the layer restarts the climb rather than
   inflating numbers.
+- **Challenge rewards (R56, v5.3.0).** Every challenge pays one permanent reward on its first
+  clear, recorded in `chronicle.rewards` (default `{}`; a save from before R56 gets the rewards
+  of its old clears on load, recorded so they pay once). Kinds, each one additive category,
+  none compounding: `oil` (+x Oil, summed into the same factor as Margin Notes:
+  `1 + 0.25·clears + Σoil`), `offline` (+x offline efficiency, added to talents and Chronos
+  Contract), `startGen` (every run after an Ascension starts with n tier-1 generators, the max of
+  this and Cosmic Genesis), `pages` (+n Pages per Chronicle), `dig` (+x pickaxe power). Values:
+  Dry Well +10% Oil, Lights Out +10% offline, Small Souq 10 starting generators, Sandstorm +1
+  Page per Chronicle; Still Water +25% dig, Dark Flats +10% Oil, Narrow Caravan +10% offline,
+  Dead Sea +15% Oil. All Oil rewards together are +35%. Challenge runs keep layer bonuses off, so
+  the Oil rewards don't shorten later goals.
+- **Chapter 2, Salt (R56).** Starts where Sand ends (10 weeks). World rule: Excavation ×2, no
+  Oil change. Stamp pays **0 Pages** (deviation from Chapter 1's 3): the core sim reaches the
+  Salt stamp (casual Chronicle I at day ~70, Salt ends ~day 210) and plays no challenges, so
+  a Page stamp would move the year-one report (late-year pacing is already hot, R57). The
+  stamp stays a collection keepsake. Challenges (layer bonuses off): Still Water (combo ×1, no
+  Frenzy, 3e6, 4 Pages), Dark Flats (no spells, 8 tiers, 2e6, 4), Narrow Caravan (5 tiers, Oil
+  ÷2, 1e5, 5, after 1 clear), Dead Sea (Oil ÷10, combo ×2, no spells, 1e5, 6, after 3). Goals
+  are sized so a fresh idle run with no talents takes 9–31 h (Sand's take 6–19 h),
+  measured with a greedy buyer on the real classes. `npm run sim` is unchanged.
 
 ---
 
