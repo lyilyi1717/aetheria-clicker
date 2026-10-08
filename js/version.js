@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.12.2';
+export const VERSION = '5.13.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.13.0',
+    date: '2026-10-08',
+    title: 'A Steadier Climb up the Void Tower',
+    changes: [
+      'Gear now grows a little slower per Tower floor (x1.105 per floor, was x1.11), so the Tower climb keeps its intended pace: about 380 floors after a day, 510 after a week and 520 after a month of play with the game open, instead of racing past 700.',
+      'This is a nerf to new gear drops. Gear you already own keeps its stats.',
+      'Old saves may move down a floor band: if your Tower floor is higher than your gear can clear now, you restart at the highest floor it can. Your record floor is kept.'
+    ],
+    ar: {
+      title: 'تسلق أكثر ثباتا في برج الفراغ',
+      changes: [
+        'ينمو العتاد الآن أبطأ قليلا مع كل طابق في البرج (×1.105 لكل طابق بدلا من ×1.11)، فيحافظ التسلق على وتيرته المقصودة: نحو 380 طابقا بعد يوم، و510 بعد أسبوع، و520 بعد شهر من اللعب والمتصفح مفتوح، بدلا من تجاوز 700.',
+        'هذا تخفيف لعتاد الغنائم الجديد. العتاد الذي تملكه بالفعل يحتفظ بإحصاءاته.',
+        'قد تنزل الحفظات القديمة طابقا أو أكثر: إذا كان طابقك في البرج أعلى مما يستطيع عتادك تجاوزه الآن، تبدأ من أعلى طابق يستطيع تجاوزه. يبقى رقمك القياسي محفوظا.'
+      ]
+    }
+  },
   {
     version: '5.12.2',
     date: '2026-10-08',
