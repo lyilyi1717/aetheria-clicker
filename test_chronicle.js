@@ -16,7 +16,7 @@ import { UPGRADE_DEFINITIONS } from './js/systems/UpgradeSystem.js';
 import { CalendarSystem, SEALS } from './js/systems/CalendarSystem.js';
 import {
   ChronicleSystem, CHAPTERS, PAGE_UPGRADES, NO_RULES, RULE_KEYS, chronicleClock,
-  CHRONICLE_TRANSCEND_GATE, SEAL_STANDIN_TRANSCENDS, CHRONICLE_BASE_PAGES, PAGE_AETHER_MULT, INK_SHARDS,
+  CHRONICLE_TRANSCEND_GATE, SEAL_STANDIN_TRANSCENDS, CHRONICLE_BASE_PAGES, PAGE_AETHER_PER_PAGE, INK_SHARDS,
   GILDED_EXTRA_PAGES, MARGIN_NOTES_PER_CLEAR, CHRONICLE_RESETS, CHRONICLE_KEEPS,
   getActiveRules, getPendingPages, getSealGate, getChronicleBlockReason, getLifetimeTranscends,
   getPageAetherMult, getChapterStatus, validateChapters, sanitizeChronicleState, defaultChronicleState,
@@ -96,23 +96,23 @@ console.log('--- Chapter data is valid; a broken chapter is caught ---');
   }
 }
 
-console.log('--- Gate: 12 Transcends, and 24 for the first Chronicle until the Seals exist ---');
+console.log('--- Gate: 6 Transcends, and 8 for the first Chronicle until the Seals exist ---');
 {
   const { gs, cs } = climbed(CHRONICLE_TRANSCEND_GATE);
   assert.equal(getSealGate(gs).source, 'standin');
-  assert.equal(cs.canChronicle(), false, '12 Transcends are not enough while the stand-in applies');
-  assert.match(getChronicleBlockReason(gs), /24 New Fields \(you: 12\)/);
+  assert.equal(cs.canChronicle(), false, '6 Transcends are not enough while the stand-in applies');
+  assert.match(getChronicleBlockReason(gs), /8 New Fields \(you: 6\)/);
   gs.transcendenceCount = SEAL_STANDIN_TRANSCENDS - 1;
   assert.equal(cs.canChronicle(), false);
   gs.transcendenceCount = SEAL_STANDIN_TRANSCENDS;
   assert.equal(cs.canChronicle(), true);
 
-  // With the calendar system's Seals, the doc gate applies: 12 Transcends and Seal set I
+  // With the calendar system's Seals, the doc gate applies: 6 Transcends and Seal set I
   const s = climbed(CHRONICLE_TRANSCEND_GATE);
   let lit = 6;
   s.gs.calendarSystem = { getSealSetProgress: (set) => (set === 1 ? { lit, total: 7 } : null) };
   assert.equal(getSealGate(s.gs).source, 'seals');
-  assert.match(getChronicleBlockReason(s.gs), /Seal set I \(6\/7 lit\) or 24 New Fields \(you: 12\)/);
+  assert.match(getChronicleBlockReason(s.gs), /Seal set I \(6\/7 lit\) or 8 New Fields \(you: 6\)/);
   assert.equal(getChronicleTranscendsNeeded(s.gs), SEAL_STANDIN_TRANSCENDS);
   // ... the Transcend path still opens it without the Seals (no Seal can lock the layer away)
   s.gs.transcendenceCount = SEAL_STANDIN_TRANSCENDS;
@@ -121,8 +121,8 @@ console.log('--- Gate: 12 Transcends, and 24 for the first Chronicle until the S
   lit = 7;
   assert.equal(getChronicleTranscendsNeeded(s.gs), CHRONICLE_TRANSCEND_GATE);
   assert.equal(s.cs.canChronicle(), true);
-  s.gs.transcendenceCount = 11;
-  assert.match(getChronicleBlockReason(s.gs), /needs 12 New Fields \(you: 11\)/);
+  s.gs.transcendenceCount = 5;
+  assert.match(getChronicleBlockReason(s.gs), /needs 6 New Fields \(you: 5\)/);
 
   // The real calendar system reports Seal set I (all seven Seals)
   const r = climbed(CHRONICLE_TRANSCEND_GATE);
@@ -130,43 +130,44 @@ console.log('--- Gate: 12 Transcends, and 24 for the first Chronicle until the S
   assert.deepEqual(r.gs.calendarSystem.getSealSetProgress(1), { lit: r.gs.calendarSystem.getLitSealCount(), total: SEALS.length });
   for (const seal of SEALS) r.gs.calendar.seals[seal.id] = true;
   assert.equal(getSealGate(r.gs).sealsMet, true);
-  assert.equal(r.cs.canChronicle(), true, '12 Transcends + Seal set I');
+  assert.equal(r.cs.canChronicle(), true, '6 Transcends + Seal set I');
 
-  // After the first Chronicle the Seal half is met for good: Chronicle II needs 12 Transcends
+  // After the first Chronicle the Seal half is met for good: Chronicle II needs 6 Transcends
   const { gs: g2, cs: c2 } = climbed(SEAL_STANDIN_TRANSCENDS);
   c2.chronicle(now);
   assert.equal(getSealGate(g2).met, true);
-  g2.transcendenceCount = 12;
+  g2.transcendenceCount = 6;
   assert.equal(c2.canChronicle(), true);
 }
 
-console.log('--- Page payout: 3, +1 per 2 Transcends past 12, +1 with Gilded Edges ---');
+console.log('--- Page payout: 3, +1 per 2 Transcends past 6, +1 with Gilded Edges ---');
 {
   const gs = new GameState();
-  assert.equal(getPendingPages(gs, 11), 0);
-  assert.equal(getPendingPages(gs, 12), CHRONICLE_BASE_PAGES);
-  assert.equal(getPendingPages(gs, 13), 3);
-  assert.equal(getPendingPages(gs, 14), 4);
-  assert.equal(getPendingPages(gs, 24), 9);
+  assert.equal(CHRONICLE_TRANSCEND_GATE, 6);
+  assert.equal(getPendingPages(gs, 5), 0);
+  assert.equal(getPendingPages(gs, 6), CHRONICLE_BASE_PAGES);
+  assert.equal(getPendingPages(gs, 7), 3);
+  assert.equal(getPendingPages(gs, 8), 4);
+  assert.equal(getPendingPages(gs, 18), 9);
   gs.chronicle.upgrades.gilded_edges = true;
-  assert.equal(getPendingPages(gs, 24), 9 + GILDED_EXTRA_PAGES);
-  // Pages multiply Aether by 1.4 each, from every Page ever earned (spending never lowers it)
+  assert.equal(getPendingPages(gs, 18), 9 + GILDED_EXTRA_PAGES);
+  // Pages add +20% Aether each, from every Page ever earned (spending never lowers it; R31: was x1.4)
   gs.chronicle.totalPages = 10;
   gs.chronicle.pages = 0;
   const m = getPageAetherMult(gs).toNumber();
-  assert.ok(Math.abs(m - Math.pow(PAGE_AETHER_MULT, 10)) / m < 1e-9, `x1.4^10 (${m})`);
+  assert.ok(Math.abs(m - (1 + PAGE_AETHER_PER_PAGE * 10)) < 1e-9, `1 + 0.2 x 10 (${m})`);
 }
 
 console.log('--- Chronicle reset: exactly what the preview lists resets, the rest is kept ---');
 {
-  const { gs, cs, ps } = climbed(26);
+  const { gs, cs, ps } = climbed(20);
   gs.runStartedAt = 0;
   gs.upgrades = { [UPGRADE_DEFINITIONS[0].id]: true, [UPGRADE_DEFINITIONS[1].id]: true };
   const before = clone(gs.serialize());
   const pv = cs.getPreview();
   assert.equal(pv.number, 1);
   assert.equal(pv.pages, 10);
-  assert.equal(pv.transcends, 26);
+  assert.equal(pv.transcends, 20);
   assert.equal(pv.startsChapter.id, 'sand');
   assert.equal(pv.resets, CHRONICLE_RESETS);
   assert.equal(pv.keeps, CHRONICLE_KEEPS);
@@ -183,10 +184,10 @@ console.log('--- Chronicle reset: exactly what the preview lists resets, the res
   assert.deepEqual(gs.dustShop.ranks, {}, 'dust shop');
   assert.ok(gs.fractureShards.eq(0) && gs.totalFractureShards.eq(0), 'shards');
   assert.equal(gs.transcendenceCount, 0, 'Transcends this Chronicle');
-  assert.equal(getUnlockedTierCount(gs), 14, 'ladder back to 14 tiers');
+  assert.equal(getUnlockedTierCount(gs), 8, 'ladder back to 8 tiers');
   assert.equal(gs.shardTree.owned.chronos_auto_ascend, undefined, 'tree reset (no Bookmark)');
   assert.equal(gs.shardTree.owned.tower_second_wind, undefined);
-  assert.ok(ps.getTranscendGate().eq(1e9), 'Transcend gate back to the first step');
+  assert.ok(ps.getTranscendGate().eq(400), 'Transcend gate back to the first step');
   // Keeps
   assert.equal(gs.ascensionCount, before.ascensionCount + 1, 'Ascension count (the reset counts as one, like Transcend)');
   assert.ok(Math.abs(gs.gold.toNumber() - (1e15 + 1000)) < 1, 'gold (+1,000 from Cosmic Genesis)');
@@ -205,8 +206,8 @@ console.log('--- Chronicle reset: exactly what the preview lists resets, the res
   assert.equal(gs.chronicle.count, 1);
   assert.equal(gs.chronicle.pages, 10);
   assert.equal(gs.chronicle.totalPages, 10);
-  assert.equal(gs.chronicle.pastTranscends, 26);
-  assert.equal(getLifetimeTranscends(gs), 26, 'lifetime Transcends kept for records');
+  assert.equal(gs.chronicle.pastTranscends, 20);
+  assert.equal(getLifetimeTranscends(gs), 20, 'lifetime Transcends kept for records');
   assert.deepEqual(gs.chronicle.chapter, { id: 'sand', startedAt: now }, 'Chapter 1 begins');
   assert.equal(cs.chronicle(now), null, 'no second Chronicle at 0 Transcends');
 }
@@ -237,7 +238,7 @@ console.log('--- Page upgrades: Bookmark, Dog-Ear, Ink of Memory, Gilded Edges, 
   assert.equal(cs.getUpgradeBlockReason('second_reading'), 'needs 5 Pages');
 
   const res = cs.chronicle(now);
-  assert.equal(res.pages, 9 + GILDED_EXTRA_PAGES);
+  assert.equal(res.pages, CHRONICLE_BASE_PAGES + (24 - CHRONICLE_TRANSCEND_GATE) / 2 + GILDED_EXTRA_PAGES);
   assert.ok(gs.fractureShards.eq(INK_SHARDS) && gs.totalFractureShards.eq(INK_SHARDS), 'Ink: starts with 2 shards');
   for (const id of ['chronos_auto_ascend', 'chronos_offline', 'chronos_long_warp']) {
     assert.equal(gs.shardTree.owned[id], true, `${id} kept`);
@@ -334,7 +335,7 @@ console.log('--- Challenge runner: rules apply, the run is stashed, everything r
   cs.abandonChallenge();
   assert.equal(isChallengeActive(gs), false);
   assert.equal(getActiveRules(gs, now).maxTiers, Infinity);
-  assert.equal(getUnlockedTierCount(gs), 14);
+  assert.equal(getUnlockedTierCount(gs), 8);
   const back = clone(gs.serialize());
   delete back.savedAt;
   assert.deepEqual(back, mainRun, 'state after abandon equals the state before the challenge');
@@ -484,7 +485,7 @@ console.log('--- BigNum stays finite: 1e6 Pages, huge runs, max tiers ---');
   gs.chronicle.challenges = Object.fromEntries(CHAPTERS[0].challenges.map(c => [c.id, { done: true, best: 1, clears: 1 }]));
   gs.chronicle.upgrades.margin_notes = true;
   const m = getPageAetherMult(gs);
-  assert.ok(Number.isFinite(m.e) && m.gt(1e100000), 'x1.4^1e6 as a BigNum');
+  assert.ok(Number.isFinite(m.e) && m.gt(2e5), '1 + 0.2 x 1e6 (x Margin Notes)');
   gs.buildings.tapper.count = 1000;
   for (let i = 0; i < MAX_TIER_COUNT; i++) gs.buildings[Object.keys(gs.buildings)[i]].count = 500;
   const cps = gs.getNetAetherPerSecond();

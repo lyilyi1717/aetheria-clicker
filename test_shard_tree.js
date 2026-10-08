@@ -13,7 +13,7 @@ import { computeOfflineBands } from './js/engine/SaveManager.js';
 import {
   ShardTreeSystem, SHARD_TREE_NODES, SHARD_TREE_BRANCHES, getNode, getOpenTierCount,
   getDeepBlueprintDivisor, getOfflineBonusSeconds, getSpentShards, getShardBalance,
-  sanitizeShardTreeState, defaultShardTreeState, autoAscendRuleMet, buyNode,
+  sanitizeShardTreeState, defaultShardTreeState, autoAscendRuleMet, buyNode, AUTO_ASCEND_MIN_RUN_SECONDS, AUTO_ASCEND_DEFAULT_RULE,
   DEEP_BLUEPRINT_DIVISOR, OFFLINE_SHARD_BONUS, LONG_WARP_SECONDS, LONG_WARP_COOLDOWN_MS
 } from './js/systems/ShardTreeSystem.js';
 import { particles } from './js/engine/ParticleEngine.js';
@@ -37,8 +37,8 @@ console.log('--- Node table: three branches, doc costs ---');
 {
   assert.deepEqual(SHARD_TREE_BRANCHES.map(b => b.id), ['foundry', 'chronos', 'tower']);
   const foundry = SHARD_TREE_NODES.filter(n => n.branch === 'foundry');
-  assert.equal(foundry.length, 16, '16 Deep Blueprints');
-  assert.deepEqual(foundry.map(n => n.tier), Array.from({ length: 16 }, (_, i) => 15 + i));
+  assert.equal(foundry.length, 12, '12 Deep Blueprints, tiers 9-20 (R31)');
+  assert.deepEqual(foundry.map(n => n.tier), Array.from({ length: 12 }, (_, i) => 9 + i));
   assert.ok(foundry.every(n => n.cost === 1));
   assert.equal(getNode('chronos_auto_ascend').cost, 2, 'auto-Ascend is 2 shards (§6.3)');
   assert.equal(new Set(SHARD_TREE_NODES.map(n => n.id)).size, SHARD_TREE_NODES.length, 'unique ids');
@@ -51,11 +51,10 @@ console.log('--- Spending: balance only, multipliers never drop ---');
 {
   const { gs, st } = make(5);
   const aBefore = gs.getShardAetherMult();
-  const dBefore = gs.getShardDustMult();
   assert.equal(st.buy('chronos_auto_ascend'), true);
   assert.equal(getShardBalance(gs), 3);
   assert.equal(gs.getShardCount(), 5, 'lifetime shards untouched');
-  assert.ok(gs.getShardAetherMult().eq(aBefore) && gs.getShardDustMult().eq(dBefore), 'x1.5 multipliers unchanged');
+  assert.ok(gs.getShardAetherMult().eq(aBefore), 'production bonus unchanged');
   assert.equal(getSpentShards(gs), 2);
   assert.equal(st.buy('chronos_auto_ascend'), false, 'cannot buy twice');
   assert.equal(st.buy('chronos_offline'), true);
@@ -79,16 +78,16 @@ console.log('--- Prerequisites ---');
   st.buy('tower_wardens');
   assert.equal(st.buy('tower_second_wind'), true);
   // Foundry: the tier must be open and the upgrade shop linked
-  assert.match(st.getBlockReason('foundry_t15'), /Tier 15/);
+  assert.match(st.getBlockReason('foundry_t9'), /Tier 9/);
   gs.transcendenceCount = 1;
-  assert.equal(st.getBlockReason('foundry_t15'), 'opens with the upgrade shop');
+  assert.equal(st.getBlockReason('foundry_t9'), 'opens with the upgrade shop');
   gs.upgradeSystem = {};
-  assert.equal(st.getBlockReason('foundry_t15'), null);
-  assert.match(st.getBlockReason('foundry_t16'), /Tier 16/);
-  assert.equal(getDeepBlueprintDivisor(gs, 15), 1);
-  assert.equal(st.buy('foundry_t15'), true);
-  assert.equal(getDeepBlueprintDivisor(gs, 15), DEEP_BLUEPRINT_DIVISOR);
-  assert.equal(getDeepBlueprintDivisor(gs, 16), 1);
+  assert.equal(st.getBlockReason('foundry_t9'), null);
+  assert.match(st.getBlockReason('foundry_t10'), /Tier 10/);
+  assert.equal(getDeepBlueprintDivisor(gs, 9), 1);
+  assert.equal(st.buy('foundry_t9'), true);
+  assert.equal(getDeepBlueprintDivisor(gs, 9), DEEP_BLUEPRINT_DIVISOR);
+  assert.equal(getDeepBlueprintDivisor(gs, 10), 1);
   assert.equal(getDeepBlueprintDivisor(gs, 3), 1);
 }
 
@@ -132,7 +131,7 @@ console.log('--- Chronos: 6 h Fast Forward once a day ---');
   assert.equal(st.canLongWarp(now + LONG_WARP_COOLDOWN_MS), true);
 }
 
-console.log('--- Chronos: Auto-Ascend rules and the 10-min minimum ---');
+console.log('--- Chronos: Auto-Ascend rules, the 10-min minimum, and 30 min for the ratio rules (R31) ---');
 {
   const B = (n) => new BigNum(n);
   // x2: pending >= lifetime; x1.5: >= 0.5 x; x1.2: >= 0.2 x
@@ -142,20 +141,27 @@ console.log('--- Chronos: Auto-Ascend rules and the 10-min minimum ---');
   assert.equal(autoAscendRuleMet({ rule: 'x1.5' }, B(49), B(100), 1e9), false);
   assert.equal(autoAscendRuleMet({ rule: 'x1.2' }, B(20), B(100), 1e9), true);
   assert.equal(autoAscendRuleMet({ rule: 'x2' }, B(0), B(0), 1e9), false, 'nothing pending: never');
-  assert.equal(autoAscendRuleMet({ rule: 'x2' }, B(1), B(0), 0), true, 'first Ascension of a layer');
+  assert.equal(autoAscendRuleMet({ rule: 'x1.25' }, B(25), B(100), 1e9), true);
+  assert.equal(autoAscendRuleMet({ rule: 'x1.25' }, B(24), B(100), 1e9), false);
+  assert.equal(autoAscendRuleMet({ rule: 'x2' }, B(1), B(0), AUTO_ASCEND_MIN_RUN_SECONDS), true, 'first Ascension of a layer');
+  assert.equal(autoAscendRuleMet({ rule: 'x2' }, B(1), B(0), AUTO_ASCEND_MIN_RUN_SECONDS - 1), false, 'ratio rules wait for a 30-min run');
+  assert.equal(AUTO_ASCEND_MIN_RUN_SECONDS, 30 * 60);
+  assert.equal(AUTO_ASCEND_DEFAULT_RULE, 'x1.25');
   assert.equal(autoAscendRuleMet({ rule: 'timer', timerMin: 30 }, B(5), B(1e6), 29 * 60), false);
   assert.equal(autoAscendRuleMet({ rule: 'timer', timerMin: 30 }, B(5), B(1e6), 30 * 60), true);
 
   const { gs, ps, st } = make(2);
   const now = Date.now();
-  gs.totalAetherEarned = new BigNum(1e12);  // pending 1,500 dust
+  gs.totalAetherEarned = new BigNum(1e14);  // pending 1,000 dust
   gs.runStartedAt = now - 3600e3;
   assert.equal(st.tick(now), false, 'not owned');
   st.buy('chronos_auto_ascend');
   gs.runStartedAt = now - (MIN_RUN_SECONDS - 5) * 1000;
   st.lastCheckAt = 0;
   assert.equal(st.shouldAutoAscend(now), false, 'respects the 10-min minimum run');
-  gs.runStartedAt = now - (MIN_RUN_SECONDS + 5) * 1000;
+  gs.runStartedAt = now - (AUTO_ASCEND_MIN_RUN_SECONDS - 5) * 1000;
+  assert.equal(st.shouldAutoAscend(now), false, 'the default rule waits for a 30-min run');
+  gs.runStartedAt = now - (AUTO_ASCEND_MIN_RUN_SECONDS + 5) * 1000;
   st.setAutoAscendEnabled(false);
   assert.equal(st.shouldAutoAscend(now), false, 'off switch');
   st.setAutoAscendEnabled(true);
@@ -171,8 +177,8 @@ console.log('--- Chronos: Auto-Ascend rules and the 10-min minimum ---');
   assert.equal(st.takeAutoAscendBatch(), null, 'batch is handed over once');
   // Two Auto-Ascensions before the UI looks: one batch with both
   for (let i = 0; i < 2; i++) {
-    gs.totalAetherEarned = new BigNum(10 ** (15 + 3 * i)); // each pending >= lifetime (x2 rule)
-    gs.runStartedAt = Date.now() - (MIN_RUN_SECONDS + 5) * 1000;
+    gs.totalAetherEarned = new BigNum(10 ** (16 + 2 * i)); // each pending >= 0.25 x lifetime (x1.25 rule)
+    gs.runStartedAt = Date.now() - (AUTO_ASCEND_MIN_RUN_SECONDS + 5) * 1000;
     st.lastCheckAt = 0;
     assert.equal(st.tick(), true);
   }
@@ -286,7 +292,7 @@ console.log('--- Old saves: empty tree; Wardens kept free if they already Transc
   const s = sanitizeShardTreeState({ owned: { bogus: true, tower_wardens: 'yes', chronos_offline: true }, granted: { chronos_long_warp: true }, autoAscend: { rule: 'x9', timerMin: 3, enabled: false }, longWarpAt: 'x' });
   assert.deepEqual(s.owned, { chronos_offline: true });
   assert.deepEqual(s.granted, {});
-  assert.deepEqual(s.autoAscend, { enabled: false, rule: 'x2', timerMin: 30 });
+  assert.deepEqual(s.autoAscend, { enabled: false, rule: 'x1.25', timerMin: 30 });
   assert.equal(s.longWarpAt, 0);
   assert.deepEqual(sanitizeShardTreeState([]), defaultShardTreeState());
 }

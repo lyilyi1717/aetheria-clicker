@@ -32,10 +32,10 @@ const earn = (gs, aether) => { gs.totalAetherEarned = new BigNum(aether); };
 console.log('--- S1: first Ascension +2, and Ascension no longer pays a flat +3 ---');
 {
   const { gs, ps } = make();
-  earn(gs, 1e9);                       // 150 dust: below the first record star (1e4)
+  earn(gs, 1e4);                       // 10 dust: below the first record star (16)
   assert.equal(ps.ascend(true), true);
   assert.equal(gs.talentPoints, 2, 'first Ascension star only');
-  earn(gs, 1e9);
+  earn(gs, 1e4);
   ps.ascend(true);
   assert.equal(gs.talentPoints, 2, 'second Ascension pays nothing');
   assert.equal(gs.records.earned.stars, 2);
@@ -69,18 +69,19 @@ console.log('--- S1: depth, Tower zones, catalysts, harvests: one-off, no repeat
   assert.equal(g.gs.records.harvested.frost_petal, true);
 }
 
-console.log('--- S2: Record Ascension = floor(log10(best run dust)) - 3, pays the difference ---');
+console.log('--- S2: Record Ascension = floor(log2(best run dust)) - 3, pays the difference (R31) ---');
 {
-  assert.equal(magnitudeStarsFor(new BigNum(9999)), 0);
-  assert.equal(magnitudeStarsFor(new BigNum(1e4)), 1);
-  assert.equal(magnitudeStarsFor(new BigNum(6e5)), 2);
-  assert.equal(magnitudeStarsFor(new BigNum(1.6e7)), 4);
-  assert.equal(magnitudeStarsFor(new BigNum(1e50)), 47);
+  assert.equal(magnitudeStarsFor(new BigNum(15)), 0);
+  assert.equal(magnitudeStarsFor(new BigNum(16)), 1);
+  assert.equal(magnitudeStarsFor(new BigNum(40)), 2);
+  assert.equal(magnitudeStarsFor(new BigNum(128)), 4);
+  assert.equal(magnitudeStarsFor(new BigNum(1024)), 7);
+  assert.equal(magnitudeStarsFor(new BigNum(1e50)), Math.floor(50 / Math.log10(2)) - 3);
   const { gs } = make();
-  assert.equal(recordAscensionDust(gs, new BigNum(1e4)), 1);
-  assert.equal(recordAscensionDust(gs, new BigNum(5e3)), 0, 'a lesser run pays nothing');
-  assert.equal(recordAscensionDust(gs, new BigNum(1e4)), 0, 'matching the record pays nothing');
-  assert.equal(recordAscensionDust(gs, new BigNum(2e6)), 2, 'jumping two orders pays both');
+  assert.equal(recordAscensionDust(gs, new BigNum(16)), 1);
+  assert.equal(recordAscensionDust(gs, new BigNum(12)), 0, 'a lesser run pays nothing');
+  assert.equal(recordAscensionDust(gs, new BigNum(16)), 0, 'matching the record pays nothing');
+  assert.equal(recordAscensionDust(gs, new BigNum(64)), 2, 'jumping two doublings pays both');
   assert.equal(gs.talentPoints, 3);
   assert.equal(gs.records.earned.record, 3);
   // Lifetime: Ascend and Transcend resets leave it alone

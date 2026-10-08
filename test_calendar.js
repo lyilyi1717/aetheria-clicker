@@ -281,7 +281,7 @@ console.log('--- Seals: lit by progress, never go dark ---');
   gs.ascensionCount = 15;
   gs.hero = { maxFloor: 501 };
   gs.records.guildRank = 7;
-  gs.records.bestRunDust = new BigNum(1e8);
+  gs.records.bestRunDust = new BigNum(500);
   gs.collectionSystem = { getCodexPercent: () => 40 };
   const lit = cal.updateSeals();
   assert.equal(lit.length, SEALS.length, 'all seven light at their tier I bar');
@@ -315,7 +315,7 @@ console.log('--- Seals feed shards: +1 per lit Seal, max +3, spendable only (nev
     assert.equal(gs.fractureShards.toNumber(), TRANSCEND_SHARDS + bonus, `${lit} lit: spendable`);
     assert.equal(gs.totalFractureShards.toNumber(), TRANSCEND_SHARDS, `${lit} lit: lifetime (the multiplier) stays +2`);
     assert.equal(gs.getShardCount(), TRANSCEND_SHARDS);
-    assert.ok(gs.getShardAetherMult().eq(new BigNum(1.5).pow(2)), 'x1.5 per base shard only');
+    assert.ok(gs.getShardAetherMult().eq(new BigNum(1 + 0.25 * 2)), '+25% per base shard only');
     // the balance may exceed the lifetime count; a save round trip must not "fix" that
     const gs2 = new GameState();
     gs2.deserialize(clone(gs.serialize()));

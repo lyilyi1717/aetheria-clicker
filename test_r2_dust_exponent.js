@@ -4,21 +4,21 @@ import { GameState } from './js/systems/GameState.js';
 import { PrestigeSystem, MIN_RUN_SECONDS } from './js/systems/PrestigeSystem.js';
 globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
 
-console.log('--- R2: dust exponent is 1/3 ---');
+console.log('--- R2/R31: dust is 10 x (run Aether / 1e4)^(1/5) ---');
 {
   const gs = new GameState();
   const ps = new PrestigeSystem(gs);
   const dust = (a) => { gs.totalAetherEarned = new BigNum(a); return ps.getPendingCosmicDust().toNumber(); };
-  assert.equal(dust(999999999), 0);
-  assert.equal(dust(1e9), 150);
-  assert.equal(dust(8e9), 300);      // x8 Aether doubles dust (was x16)
-  assert.equal(dust(27e9), 450);
-  assert.equal(dust(64e9), 600);
-  assert.equal(dust(1e12), 1500);
-  // Past a double: 1e330 run Aether -> 150 * 10^(321/3)
+  assert.equal(dust(9999), 0);
+  assert.equal(dust(1e4), 10);
+  assert.equal(dust(32e4), 20);      // x32 Aether doubles dust
+  assert.equal(dust(243e4), 30);
+  assert.equal(dust(1e9), 100);
+  assert.equal(dust(1e14), 1000);
+  // Past a double: 1e330 run Aether -> 10 * 10^(326/5)
   gs.totalAetherEarned = new BigNum('1e330');
   const d = ps.getPendingCosmicDust();
-  assert.ok(Math.abs((d.e + Math.log10(d.m)) - (Math.log10(150) + 107)) < 1e-6, `dust ${d}`);
+  assert.ok(Math.abs((d.e + Math.log10(d.m)) - (1 + 326 / 5)) < 1e-6, `dust ${d}`);
 }
 
 console.log('--- R2: minimum run on Ascend ---');

@@ -4,8 +4,8 @@
 //
 //   1. Chronicle reset and Pages. At 12 Transcends (plus Seal set I, see getSealGate) the player
 //      may begin a Chronicle: the run, dust, the dust shop, Fracture Shards, the shard tree and the
-//      Transcend count start again (tiers back to 14), and Chronicle Pages are paid. Pages are
-//      the layer-3 currency: every Page ever earned multiplies Aether and Cosmic Dust gain
+//      Transcend count start again (tiers back to the base 8), and Chronicle Pages are paid. Pages are
+//      the layer-3 currency: every Page ever earned adds +20% Aether production
 //      (spending never lowers it, same rule as dust and shards), and spent Pages buy permanent
 //      Page upgrades. What resets and what is kept is listed in CHRONICLE_RESETS /
 //      CHRONICLE_KEEPS and shown before the confirm.
@@ -34,18 +34,18 @@ const WEEK_MS = 7 * DAY_MS;
 // ---- Gate and payout ------------------------------------------------------------------------
 
 // Transcends (this Chronicle) needed to begin a Chronicle
-export const CHRONICLE_TRANSCEND_GATE = 12;
+export const CHRONICLE_TRANSCEND_GATE = 6;
 // The doc's gate also needs Seal set I (R15). A first Chronicle also opens without the Seals at
 // this many Transcends, so a Seal the player can't reach (a Tower floor, the Codex) never locks
 // the layer away; the sim, which doesn't model Seals, takes this path (~day 90 casual, about when
 // the doc's calendar completes Seal set I). After the first Chronicle the Seal half is met for good.
-export const SEAL_STANDIN_TRANSCENDS = 24;
+export const SEAL_STANDIN_TRANSCENDS = 8;
 // Pages paid by a Chronicle: base + 1 per PAGES_STEP Transcends past the gate
 export const CHRONICLE_BASE_PAGES = 3;
 export const CHRONICLE_PAGES_STEP = 2;
-// Every Page ever earned: x PAGE_AETHER_MULT Aether (sim-tuned: x1.5 or a dust-gain bonus
-// bunched Transcends into storms after the second Chronicle; see the doc §6.6)
-export const PAGE_AETHER_MULT = 1.4;
+// Every Page ever earned: +PAGE_AETHER_PER_PAGE Aether, additive (R31; was x1.4 compounding)
+export const PAGE_AETHER_PER_PAGE = 0.2;
+export function pageAetherMultFor(pages) { return new BigNum(1 + PAGE_AETHER_PER_PAGE * nonNegInt(pages)); }
 // Fracture Shards a Chronicle starts with when Ink of Memory is owned
 export const INK_SHARDS = 2;
 // Gilded Edges: extra Pages on every Chronicle
@@ -125,16 +125,16 @@ export const CHAPTERS = [
     challenges: [
       { id: 'sand_dry_well', name: 'Dry Well', icon: '🧯', pages: 3, requires: 0,
         desc: 'Combo caps at ×2 and Frenzy never starts.',
-        rules: { layerBonusesOff: true, comboCap: 2, noFrenzy: true }, goal: { runAether: 1e11 } },
+        rules: { layerBonusesOff: true, comboCap: 2, noFrenzy: true }, goal: { runAether: 1e6 } },
       { id: 'sand_lights_out', name: 'Lights Out', icon: '🌑', pages: 3, requires: 0,
         desc: 'Spells can\'t be cast, and Automated Leylines rests.',
-        rules: { layerBonusesOff: true, noSpells: true }, goal: { runAether: 1e11 } },
+        rules: { layerBonusesOff: true, noSpells: true }, goal: { runAether: 1e6 } },
       { id: 'sand_small_souq', name: 'Small Souq', icon: '🐪', pages: 4, requires: 1,
         desc: 'Only the first 6 generators open.',
-        rules: { layerBonusesOff: true, maxTiers: 6 }, goal: { runAether: 1e10 } },
+        rules: { layerBonusesOff: true, maxTiers: 6 }, goal: { runAether: 1e5 } },
       { id: 'sand_sandstorm', name: 'Sandstorm', icon: '🌪️', pages: 5, requires: 3,
         desc: 'The storm takes nine tenths of all Oil.',
-        rules: { layerBonusesOff: true, aetherMult: 0.1 }, goal: { runAether: 1e10 } }
+        rules: { layerBonusesOff: true, aetherMult: 0.1 }, goal: { runAether: 1e5 } }
     ]
   }
 ];
@@ -190,7 +190,7 @@ export function validateChapters(chapters = CHAPTERS) {
       if (!(Number.isInteger(c.requires) && c.requires >= 0 && c.requires < ch.challenges.length)) errs.push(`${cw}: requires out of range`);
       checkRules(cw, c.rules);
       const g = c.goal?.runAether;
-      if (!(typeof g === 'number' && Number.isFinite(g) && g >= 1e9)) errs.push(`${cw}: goal.runAether must be a number >= 1e9`);
+      if (!(typeof g === 'number' && Number.isFinite(g) && g >= 1e4)) errs.push(`${cw}: goal.runAether must be a number >= 1e4`);
     });
     // At least one challenge must be open from the start
     if (!ch.challenges.some(c => c.requires === 0)) errs.push(`${w}: no challenge is open from the start`);
@@ -344,9 +344,9 @@ export function getClearedCount(gs) {
 
 function pagesEarned(gs) { return nonNegInt(gs?.chronicle?.totalPages); }
 
-// x1.4 Aether per Page ever earned, x(1 + 0.25 per clear) with Margin Notes
+// +20% Aether per Page ever earned, x(1 + 0.25 per clear) with Margin Notes
 export function getPageAetherMult(gs) {
-  let m = new BigNum(PAGE_AETHER_MULT).pow(pagesEarned(gs));
+  let m = pageAetherMultFor(pagesEarned(gs));
   if (hasPageUpgrade(gs, 'margin_notes')) m = m.mul(1 + MARGIN_NOTES_PER_CLEAR * getClearedCount(gs));
   return m;
 }
@@ -426,8 +426,8 @@ export class ChronicleSystem {
     return {
       number: c.count + 1,
       pages, pagesBefore: c.totalPages, pagesAfter: c.totalPages + pages,
-      aetherMultBefore: new BigNum(PAGE_AETHER_MULT).pow(c.totalPages),
-      aetherMultAfter: new BigNum(PAGE_AETHER_MULT).pow(c.totalPages + pages),
+      aetherMultBefore: pageAetherMultFor(c.totalPages),
+      aetherMultAfter: pageAetherMultFor(c.totalPages + pages),
       transcends: gs.transcendenceCount || 0,
       transcendsNeeded: getChronicleTranscendsNeeded(gs),
       shards: gs.getShardCount ? gs.getShardCount() : 0,

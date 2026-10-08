@@ -32,6 +32,7 @@ import { getTabBonuses, BONUS_KIND_LABELS, SPELL_TABS, getMasteries, getAetherMa
 import { BuffBar } from './buffBar.js';
 import { Shell } from './ui/shell.js';
 import { UnlocksUI } from './ui/unlocks.js';
+import { ComingUpUI } from './ui/comingUp.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
 import { EquipmentUI } from './ui/equipment.js';
@@ -692,6 +693,8 @@ class AetheriaApp {
     this.shell.build();
     this.unlocksUI = new UnlocksUI(this);
     this.unlocksUI.build();
+    this.comingUp = new ComingUpUI(this);
+    this.comingUp.build();
     this.buildBuildingsStructure();
     this.buildCombatStructure();
     this.buildMiningStructure();
@@ -1717,8 +1720,7 @@ class AetheriaApp {
     const dm = this.prestigeSystem.getDustMultipliers();
     const breakdown = t('prestige.bd.depth', { x: fmtMult(dm.geode), n: dm.depth }) + ' · ' +
       t('prestige.bd.nectar', { x: fmtMult(dm.nectarMult), n: fmtNum(dm.nectar), item: itemName('starNectar') }) +
-      (dm.amplifier > 1 ? ' · ' + t('prestige.bd.amp', { x: fmtMult(dm.amplifier) }) : '') +
-      (dm.shards > 0 ? ' · ' + t('prestige.bd.shares', { x: fmtBigMult(dm.shardMult), n: dm.shards }) : '');
+      (dm.amplifier > 1 ? ' · ' + t('prestige.bd.amp', { x: fmtMult(dm.amplifier) }) : '');
     setText(this.$('pending-dust-breakdown'), breakdown);
     if (ascBtn) {
       const tip = t('prestige.base_tip', { n: this.prestigeSystem.getBaseCosmicDust().format('standard', 0) }) + ' · ' + breakdown;
@@ -1850,6 +1852,7 @@ class AetheriaApp {
     this.buffBar.update();
     this.shell?.update(dt);
     this.unlocksUI?.update(dt);
+    this.comingUp?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
     this.equipmentUI?.update(this.currentTab);
     this.shardTreeUI?.update(this.currentTab);

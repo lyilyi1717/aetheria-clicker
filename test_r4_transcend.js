@@ -1,4 +1,4 @@
-// R4: Transcend rework (design doc 6.1). Gate, shard payout and multipliers, generated tiers 15-30,
+// R4/R31: Transcend (design doc 6.1). Gate, shard payout and multipliers, the 20-tier ladder,
 // what Transcend resets and keeps, and the preview numbers.
 // Run: node test_r4_transcend.js
 import assert from 'node:assert/strict';
@@ -7,8 +7,8 @@ import { GameState } from './js/systems/GameState.js';
 import { SaveManager } from './js/engine/SaveManager.js';
 import { GardenSystem } from './js/systems/GardenSystem.js';
 import {
-  BuildingSystem, BUILDING_DEFINITIONS, BASE_TIER_COUNT, MAX_TIER_COUNT,
-  TIER_COST_RATIO, TIER_CPS_RATIO, getUnlockedTierCount
+  BuildingSystem, BUILDING_DEFINITIONS, BASE_TIER_COUNT, MAX_TIER_COUNT, RETIRED_BUILDING_IDS,
+  TIER1_COST, TIER1_CPS, TIER_COST_RATIO, TIER_CPS_RATIO, getUnlockedTierCount
 } from './js/systems/BuildingSystem.js';
 import {
   PrestigeSystem, TRANSCEND_BASE_GATE, TRANSCEND_SHARDS, TRANSCEND_SLOW_FROM
@@ -28,122 +28,121 @@ const make = () => {
   return { gs, bs, ps };
 };
 
-console.log('--- Generated tiers 15-30: deterministic ids, x18 cost, x7 CPS, finite ---');
+console.log('--- Ladder (R31): 20 tiers, x10 cost, x4 output, fixed ids, tiers 21-30 retired ---');
 {
-  assert.equal(BASE_TIER_COUNT, 14);
-  assert.equal(MAX_TIER_COUNT, 30);
-  assert.equal(BUILDING_DEFINITIONS.length, 30);
+  assert.equal(BASE_TIER_COUNT, 8);
+  assert.equal(MAX_TIER_COUNT, 20);
+  assert.equal(BUILDING_DEFINITIONS.length, 20);
   const ids = BUILDING_DEFINITIONS.map(d => d.id);
-  assert.equal(new Set(ids).size, 30, 'ids are unique');
-  // The hand-written tiers keep their ids (saves key buildings by id)
+  assert.equal(new Set(ids).size, 20, 'ids are unique');
+  // Ids never change (saves key buildings by id)
   assert.equal(ids[0], 'tapper');
   assert.equal(ids[13], 'matrix');
-  // Generated ids are fixed data: changing or reordering them would orphan saved counts
   assert.deepEqual(ids.slice(14, 17), ['falcon_club', 'camel_derby', 'date_vault']);
-  assert.equal(ids[29], 'eternal_dallah');
+  assert.equal(ids[19], 'dune_array');
+  for (const id of RETIRED_BUILDING_IDS) assert.ok(!ids.includes(id), `${id} is retired`);
+  assert.equal(RETIRED_BUILDING_IDS.length, 10);
   BUILDING_DEFINITIONS.forEach((d, i) => {
     assert.equal(d.tier, i + 1);
     assert.equal(d.costMult, 1.15);
     assert.ok(d.name && d.icon && d.desc, `tier ${i + 1} has text`);
+    assert.ok(close(d.baseCost.toNumber(), TIER1_COST * TIER_COST_RATIO ** i), `tier ${i + 1} cost`);
+    assert.ok(close(d.baseCps.toNumber(), TIER1_CPS * TIER_CPS_RATIO ** i), `tier ${i + 1} output`);
   });
-  for (let i = BASE_TIER_COUNT; i < 30; i++) {
-    const d = BUILDING_DEFINITIONS[i], prev = BUILDING_DEFINITIONS[i - 1];
-    assert.ok(close(d.baseCost.div(prev.baseCost).toNumber(), TIER_COST_RATIO), `tier ${i + 1} cost x18`);
-    assert.ok(close(d.baseCps.div(prev.baseCps).toNumber(), TIER_CPS_RATIO), `tier ${i + 1} CPS x7`);
-  }
-  const top = BUILDING_DEFINITIONS[29];
-  assert.ok(Number.isFinite(top.baseCost.toNumber()) && Number.isFinite(top.baseCps.toNumber()));
-  // 6.2e15 x 18^16 and 2.1e10 x 7^16
-  assert.ok(Math.abs(log10(top.baseCost) - (Math.log10(6.2e15) + 16 * Math.log10(18))) < 1e-9);
-  assert.ok(Math.abs(log10(top.baseCps) - (Math.log10(2.1e10) + 16 * Math.log10(7))) < 1e-9);
+  assert.equal(BUILDING_DEFINITIONS[0].baseCost.toNumber(), 10);
+  assert.equal(BUILDING_DEFINITIONS[19].baseCost.toNumber(), 1e20);
 }
 
-console.log('--- Tier unlocks: 14 + one per Transcend, capped at 30 ---');
+console.log('--- Tier unlocks: 8 + one per Transcend, capped at 20 ---');
 {
-  for (const [t, n] of [[0, 14], [1, 15], [5, 19], [16, 30], [40, 30], [-3, 14], [NaN, 14]]) {
+  for (const [t, n] of [[0, 8], [1, 9], [5, 13], [12, 20], [40, 20], [-3, 8], [NaN, 8]]) {
     assert.equal(getUnlockedTierCount({ transcendenceCount: t }), n, `${t} Transcends -> ${n} tiers`);
   }
   const { gs, bs } = make();
   gs.aether = new BigNum('1e60');
   bs.buyAmount = 1;
-  assert.equal(bs.isTierUnlocked('matrix'), true);
-  assert.equal(bs.isTierUnlocked('falcon_club'), false);
-  assert.equal(bs.buyBuilding('falcon_club'), false, 'a locked tier cannot be bought');
-  assert.equal(bs.getMaxBuyable('falcon_club').count, 0);
+  assert.equal(bs.isTierUnlocked('observatory'), true);
+  assert.equal(bs.isTierUnlocked('gateway'), false);
+  assert.equal(bs.buyBuilding('gateway'), false, 'a locked tier cannot be bought');
+  assert.equal(bs.getMaxBuyable('gateway').count, 0);
   gs.transcendenceCount = 1;
-  assert.equal(bs.buyBuilding('falcon_club'), true);
-  assert.equal(gs.buildings.falcon_club.count, 1);
-  assert.equal(bs.buyBuilding('camel_derby'), false);
+  assert.equal(bs.buyBuilding('gateway'), true);
+  assert.equal(gs.buildings.gateway.count, 1);
+  assert.equal(bs.buyBuilding('foundry'), false);
 
-  // MAX buy, milestones and production on a generated tier
+  // MAX buy, milestones and production
   bs.buyAmount = 'max';
-  gs.aether = bs.getBuildingCost('falcon_club', 24);
-  assert.equal(bs.getMaxBuyable('falcon_club').count, 24);
-  assert.equal(bs.buyBuilding('falcon_club'), true);
-  assert.equal(gs.buildings.falcon_club.count, 25);
-  const def = BUILDING_DEFINITIONS[14];
-  assert.ok(close(bs.getBuildingProduction('falcon_club').toNumber(), def.baseCps.toNumber() * 25 * 4), 'milestones x2 x2 at 10 and 25');
-  assert.ok(bs.getTotalProduction().gte(bs.getBuildingProduction('falcon_club')));
+  gs.aether = bs.getBuildingCost('gateway', 24);
+  assert.equal(bs.getMaxBuyable('gateway').count, 24);
+  assert.equal(bs.buyBuilding('gateway'), true);
+  assert.equal(gs.buildings.gateway.count, 25);
+  const def = BUILDING_DEFINITIONS[8];
+  assert.ok(close(bs.getBuildingProduction('gateway').toNumber(), def.baseCps.toNumber() * 25 * 4), 'milestones x2 x2 at 10 and 25');
+  // Milestones: x2 at 10/25/50/100/150/200/250/300, nothing past 300
+  assert.equal(bs.getMilestoneMultiplier(9), 1);
+  assert.equal(bs.getMilestoneMultiplier(300), 256);
+  assert.equal(bs.getMilestoneMultiplier(5000), 256);
 }
 
-console.log('--- Offline gains include generated tiers ---');
+console.log('--- Offline gains include the top tier ---');
 {
   const { gs } = make();
-  gs.transcendenceCount = 16;
-  gs.buildings.eternal_dallah.count = 1;
+  gs.transcendenceCount = 12;
+  gs.buildings.dune_array.count = 1;
   const store = new Map();
   globalThis.localStorage ??= { getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: k => store.delete(k) };
   const sm = new SaveManager(gs);
   const cps = gs.getNetAetherPerSecond();
-  assert.ok(cps.gte(BUILDING_DEFINITIONS[29].baseCps));
+  assert.ok(cps.gte(BUILDING_DEFINITIONS[19].baseCps));
   const res = sm.processOfflineTime(Date.now() - 3600 * 1000);
   assert.ok(res, 'an hour away pays');
-  assert.ok(gs.aether.gte(cps.mul(3000)), 'an hour of tier-30 output was paid');
+  assert.ok(gs.aether.gte(cps.mul(3000)), 'an hour of tier-20 output was paid');
 }
 
-console.log('--- Gate: 1e9 x 10^k lifetime dust of the layer ---');
+console.log('--- Gate: 400 x 1.6^k lifetime dust of the layer, x3 per step from the 9th ---');
 {
   const { gs, ps } = make();
-  assert.equal(TRANSCEND_BASE_GATE, 1e9);
-  assert.equal(TRANSCEND_SLOW_FROM, Infinity, 'x30 regime off (re-simulated in R4)');
-  for (let k = 0; k < 40; k += 3) {
-    const g = ps.getTranscendGate(k);
-    assert.ok(Math.abs(log10(g) - (9 + k)) < 1e-9, `gate ${k} = 1e${9 + k}`);
+  assert.equal(TRANSCEND_BASE_GATE, 400);
+  assert.equal(TRANSCEND_SLOW_FROM, 9);
+  for (let k = 0; k <= 7; k++) {
+    assert.ok(close(ps.getTranscendGate(k).toNumber(), 400 * 1.6 ** k), `gate ${k}`);
   }
-  assert.equal(ps.getTranscendGate().toNumber(), 1e9);
-  gs.totalCosmicDust = new BigNum(999999999);
+  for (let k = 8; k < 30; k += 3) {
+    assert.ok(close(ps.getTranscendGate(k).toNumber(), 400 * 1.6 ** 7 * 3 ** (k - 7)), `late gate ${k}`);
+  }
+  assert.equal(ps.getTranscendGate().toNumber(), 400);
+  gs.totalCosmicDust = new BigNum(399);
   assert.equal(ps.canTranscend(), false);
   assert.equal(ps.transcend(), false);
-  gs.totalCosmicDust = new BigNum(1e9);
+  gs.totalCosmicDust = new BigNum(400);
   assert.equal(ps.canTranscend(), true);
   gs.transcendenceCount = 2;
-  assert.equal(ps.canTranscend(), false, 'third Transcend needs 1e11');
-  gs.totalCosmicDust = new BigNum(1e11);
+  assert.equal(ps.canTranscend(), false, 'third Transcend needs 1,024');
+  gs.totalCosmicDust = new BigNum(1024);
   assert.equal(ps.canTranscend(), true);
 }
 
-console.log('--- Shards: 2 per Transcend, x1.5 Aether and x1.5 dust gain each ---');
+console.log('--- Shards: 2 per Transcend, +25% Aether each, additive; no dust-gain bonus ---');
 {
   const { gs, ps } = make();
   gs.buildings.tapper.count = 1;
   const base = gs.getNetAetherPerSecond().toNumber();
   gs.totalFractureShards = new BigNum(2);
-  assert.ok(close(gs.getNetAetherPerSecond().toNumber(), base * 2.25), 'x1.5^2 Aether');
+  assert.ok(close(gs.getNetAetherPerSecond().toNumber(), base * 1.5), '+50% Aether');
   gs.totalFractureShards = new BigNum(10);
-  assert.ok(close(gs.getNetAetherPerSecond().toNumber(), base * Math.pow(1.5, 10), 1e-6));
+  assert.ok(close(gs.getNetAetherPerSecond().toNumber(), base * 3.5));
   // Spendable shards do not drive the multiplier: spending must never lower production
   gs.fractureShards = BigNum.zero();
-  assert.ok(close(gs.getNetAetherPerSecond().toNumber(), base * Math.pow(1.5, 10), 1e-6));
+  assert.ok(close(gs.getNetAetherPerSecond().toNumber(), base * 3.5));
 
   gs.totalFractureShards = BigNum.zero();
-  gs.totalAetherEarned = new BigNum(8e9);
-  assert.equal(ps.getPendingCosmicDust().toNumber(), 300);
-  gs.totalFractureShards = new BigNum(2);
-  assert.equal(ps.getPendingCosmicDust().toNumber(), 675, '300 x 2.25');
-  assert.ok(close(ps.getDustMultipliers().shardMult.toNumber(), 2.25));
-  // Huge shard counts stay finite (BigNum, no double overflow)
+  gs.totalAetherEarned = new BigNum(32e4);
+  assert.equal(ps.getPendingCosmicDust().toNumber(), 20);
+  gs.totalFractureShards = new BigNum(20);
+  assert.equal(ps.getPendingCosmicDust().toNumber(), 20, 'shards no longer raise dust gain');
+  // Huge shard counts stay finite
   gs.totalFractureShards = new BigNum(5000);
-  assert.ok(gs.getShardAetherMult().gt(new BigNum('1e800')));
+  assert.equal(gs.getShardAetherMult().toNumber(), 1 + 0.25 * 5000);
   assert.ok(gs.getNetAetherPerSecond().gt(0));
 }
 
@@ -152,8 +151,8 @@ console.log('--- Transcend: what resets and what stays ---');
   const { gs, ps } = make();
   gs.transcendenceCount = 0;
   gs.ascensionCount = 20;
-  gs.cosmicDust = new BigNum(4e8);
-  gs.totalCosmicDust = new BigNum(2e9);
+  gs.cosmicDust = new BigNum(100);
+  gs.totalCosmicDust = new BigNum(500);
   gs.aether = new BigNum(1e30);
   gs.totalAetherEarned = new BigNum(1e30);
   gs.buildings.matrix.count = 50;
@@ -177,11 +176,11 @@ console.log('--- Transcend: what resets and what stays ---');
   assert.deepEqual(gs.achievements, { first: true }, 'Codex kept');
   assert.equal(gs.talents.click_power.rank, 2, 'talents kept');
   assert.equal(gs.ascensionCount, 21, 'lifetime Ascension count kept (+1 for the reset)');
-  assert.equal(new BuildingSystem(gs).getUnlockedTierCount(), 15, 'new tier unlocked');
+  assert.equal(new BuildingSystem(gs).getUnlockedTierCount(), 9, 'new tier unlocked');
   assert.equal(new GardenSystem(gs).isBreedingUnlocked(), true, 'R17 stand-in still opens at the first Transcend');
   assert.ok(close(gs.getDustMultiplier(), 1));
   assert.ok(close(gs.getShardAetherMult().toNumber(), tp.shardAfter.toNumber()), 'preview matches the result');
-  assert.equal(ps.getTranscendGate().toNumber(), 1e10, 'next gate x10');
+  assert.ok(close(ps.getTranscendGate().toNumber(), 640), 'next gate x1.6');
 
   // State survives a save round-trip
   const gs2 = new GameState();
@@ -197,25 +196,24 @@ console.log('--- Preview numbers ---');
   gs.transcendenceCount = 3;
   gs.totalFractureShards = new BigNum(6);
   gs.fractureShards = new BigNum(6);
-  gs.totalCosmicDust = new BigNum(1e12);
+  gs.totalCosmicDust = new BigNum(2000);
   const tp = ps.getTranscendPreview();
-  assert.equal(tp.gate.toNumber(), 1e12);
-  assert.equal(tp.nextGate.toNumber(), 1e13);
+  assert.ok(close(tp.gate.toNumber(), 400 * 1.6 ** 3));
+  assert.ok(close(tp.nextGate.toNumber(), 400 * 1.6 ** 4));
   assert.equal(tp.shardsGained, 2);
   assert.equal(tp.shardsBefore, 6);
   assert.equal(tp.shardsAfter, 8);
-  assert.ok(close(tp.shardBefore.toNumber(), Math.pow(1.5, 6)));
-  assert.ok(close(tp.shardAfter.toNumber(), Math.pow(1.5, 8)));
-  assert.ok(close(tp.dustGainAfter.toNumber(), Math.pow(1.5, 8)));
-  assert.ok(close(tp.dustBefore.toNumber(), 1 + 0.02 * 1e12));
+  assert.ok(close(tp.shardBefore.toNumber(), 2.5));
+  assert.ok(close(tp.shardAfter.toNumber(), 3));
+  assert.ok(close(tp.dustBefore.toNumber(), 1 + 0.01 * 2000));
   assert.equal(tp.dustAfter.toNumber(), 1);
-  assert.equal(tp.tiersBefore, 17);
-  assert.equal(tp.tiersAfter, 18);
-  assert.equal(tp.newTier.id, BUILDING_DEFINITIONS[17].id);
-  assert.ok(close(tp.before.toNumber(), (1 + 0.02 * 1e12) * Math.pow(1.5, 6)));
-  assert.ok(close(tp.after.toNumber(), Math.pow(1.5, 8)));
+  assert.equal(tp.tiersBefore, 11);
+  assert.equal(tp.tiersAfter, 12);
+  assert.equal(tp.newTier.id, BUILDING_DEFINITIONS[11].id);
+  assert.ok(close(tp.before.toNumber(), 21 * 2.5));
+  assert.ok(close(tp.after.toNumber(), 3));
   // At the ladder cap there is no new tier to promise
-  gs.transcendenceCount = 16;
+  gs.transcendenceCount = 12;
   assert.equal(ps.getTranscendPreview().newTier, null);
 }
 

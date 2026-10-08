@@ -6,12 +6,12 @@
 
 import { BigNum } from '../engine/BigNum.js';
 import { BUILDING_DEFINITIONS } from '../systems/BuildingSystem.js';
-import { MIN_RUN_SECONDS } from '../systems/PrestigeSystem.js';
+import { MIN_RUN_SECONDS, DUST_REF } from '../systems/PrestigeSystem.js';
 import { SPELL_TABS } from '../tabBonuses.js';
 import { t } from '../i18n/index.js';
 
 export const PHONE_QUERY = '(max-width: 639px)';
-const ASCEND_GATE = 1e9; // lifetime run Aether before Ascension pays dust (PrestigeSystem)
+const ASCEND_GATE = DUST_REF; // run Aether before Ascension pays dust (PrestigeSystem)
 
 // Header currencies per tab, hero first. Aether, Gold and Dust always show; Mana only where
 // spells are cast, Sand and Seals only where they are spent.
@@ -100,7 +100,11 @@ export class Shell {
     this.buildGuides();
     this.bindSheet();
     this.bindActionsPlacement();
-    this.goalEl?.addEventListener('click', () => { if (this.goalTab) this.app.switchTab(this.goalTab); });
+    // The chip opens the "Coming up" panel (R54, js/ui/comingUp.js); without it, the goal's tab
+    this.goalEl?.addEventListener('click', () => {
+      if (this.app.comingUp) this.app.comingUp.toggle();
+      else if (this.goalTab) this.app.switchTab(this.goalTab);
+    });
 
     // "N active bonuses" summary line opens the chip list (strip markup comes from main.js)
     document.getElementById('content-area')?.addEventListener('click', (e) => {

@@ -14,10 +14,13 @@ import { defaultDustShopState, sanitizeDustShopState, getShopRank, hasShopItem, 
 import { isTabUnlocked, sanitizeUnlocks, sanitizeUnlockSeen } from './UnlockSystem.js';
 import { defaultNewsState, sanitizeNews } from '../ui/newsTicker.js';
 
-// Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
-// PrestigeSystem imports audio/particles and GameState must stay loadable on its own.
-export const SHARD_AETHER_MULT = 1.5;
-export const SHARD_DUST_MULT = 1.5;
+// Prestige bonuses (design doc 6.1, R31). All additive, none compounding. Kept here, not in
+// PrestigeSystem, because PrestigeSystem imports audio/particles and GameState must stay loadable
+// on its own.
+// Cosmic Dust: +1% production per lifetime dust of this layer
+export const DUST_PROD_PER_DUST = 0.01;
+// Fracture Shards: +25% production per lifetime shard. Shards no longer raise dust gain (R31).
+export const SHARD_AETHER_PER_SHARD = 0.25;
 
 // Timed buffs can be extended to at most 10 minutes (x Astral Crucible/talent duration multipliers)
 export const BUFF_DURATION_CAP = 600;
@@ -209,9 +212,9 @@ export class GameState {
     const rules = getActiveRules(this);
     mult *= rules.aetherMult;
 
-    // Cosmic Dust bonus (+2% per lifetime dust this layer), Fracture Shards (x1.5 each) and
-    // Chronicle Pages (x1.4 each) are BigNum: they grow without bound across a year and must not
-    // overflow a double. Challenges that turn the layer bonuses off count them as x1.
+    // Cosmic Dust (+1% per lifetime dust this layer), Fracture Shards (+25% each) and Chronicle
+    // Pages (+20% each) are additive bonuses, each its own category (R31). Kept as BigNum like the
+    // rest of production. Challenges that turn the layer bonuses off count them as x1.
     if (rules.layerBonusesOff) return base.mul(mult);
     return base.mul(mult).mul(this.getDustMultiplierBig()).mul(this.getShardAetherMult()).mul(getPageAetherMult(this));
   }
@@ -269,14 +272,14 @@ export class GameState {
     return this.miningGrid?.maxDepth || 0;
   }
 
-  // Production multiplier from Cosmic Dust: 1 + 0.02 per lifetime dust (spending never lowers it)
+  // Production multiplier from Cosmic Dust: 1 + 0.01 per lifetime dust (spending never lowers it)
   getDustMultiplier(total = this.totalCosmicDust) {
-    return Math.max(1, 1 + total.toNumber() * 0.02);
+    return Math.max(1, 1 + total.toNumber() * DUST_PROD_PER_DUST);
   }
 
-  // Same as getDustMultiplier, without the double overflow past 1e308 dust
+  // Same as getDustMultiplier, as a BigNum
   getDustMultiplierBig(total = this.totalCosmicDust) {
-    return BigNum.one().add(total.mul(0.02)).max(1);
+    return BigNum.one().add(total.mul(DUST_PROD_PER_DUST)).max(1);
   }
 
   // Lifetime Fracture Shards as a plain count (shards are small integers; 0 if unset)
@@ -285,14 +288,9 @@ export class GameState {
     return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
   }
 
-  // Fracture Shards: x1.5 Aether production per lifetime shard
+  // Fracture Shards: +25% Aether production per lifetime shard, additive
   getShardAetherMult(shards = this.getShardCount()) {
-    return new BigNum(SHARD_AETHER_MULT).pow(shards);
-  }
-
-  // Fracture Shards: x1.5 Cosmic Dust gain per lifetime shard
-  getShardDustMult(shards = this.getShardCount()) {
-    return new BigNum(SHARD_DUST_MULT).pow(shards);
+    return new BigNum(1 + SHARD_AETHER_PER_SHARD * shards);
   }
 
   // Depth Resonance (Excavation -> Aether): x(1 + 0.02 * maxDepth)

@@ -9,7 +9,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from './rewards.js';
 import {
-  ChronicleSystem, CHAPTERS, PAGE_UPGRADES, PAGE_AETHER_MULT, CHRONICLE_TRANSCEND_GATE, SEAL_STANDIN_TRANSCENDS,
+  ChronicleSystem, CHAPTERS, PAGE_UPGRADES, pageAetherMultFor, CHRONICLE_TRANSCEND_GATE, SEAL_STANDIN_TRANSCENDS,
   getChallenge, describeRules, getSealGate, getChronicleTranscendsNeeded
 } from '../systems/ChronicleSystem.js';
 import { t, bidi } from '../i18n/index.js';
@@ -335,7 +335,7 @@ export class ChronicleUI {
     const w = `${(pct * 100).toFixed(1)}%`;
     if (el.weekFill.style.width !== w) el.weekFill.style.width = w;
     setText(el.pagesChip, t('chr.pages_chip', { n: c.pages }));
-    setText(el.multChip, t('chr.mult_chip', { x: fmtMult(new BigNum(PAGE_AETHER_MULT).pow(c.totalPages)), n: c.totalPages }));
+    setText(el.multChip, t('chr.mult_chip', { x: fmtMult(pageAetherMultFor(c.totalPages)), n: c.totalPages }));
     el.rules.classList.toggle('is-off', !!st && !st.running);
 
     // Challenges
