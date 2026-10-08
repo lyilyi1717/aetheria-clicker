@@ -7,7 +7,7 @@ import {
   APPROVE_LIKES, VOTES_CACHE_MS, VOTES_MIN_REFRESH_MS, VOTES_CACHE_KEY, VOTES_MAX_PER_DAY,
   checkRequest, rowsToRequests, openVotes, likesByIssue, likesToGo, votesErrorMessage, feedPath, CommunityVotes
 } from './js/ui/communityVotes.js';
-import { issueFromRequest, withLikes, likesLine, promote } from './scripts/community-promote.mjs';
+import { issueFromRequest, withLikes, likesLine, promote, dbHeaders } from './scripts/community-promote.mjs';
 import { communityLabelsFor } from './scripts/community-labels.mjs';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
@@ -144,6 +144,13 @@ console.log('--- Action: issue text, likes line ---');
   assert.equal(issueFromRequest({ id: 1, kind: 'feature', title: 'x' }).labels[1], 'feature');
   assert.equal(withLikes(iss.body, 9).match(/In-game likes: \*\*(\d+)\*\*/)[1], '9');
   assert.ok(withLikes('plain', 2).endsWith(likesLine(2)));
+}
+
+console.log('--- Action: both kinds of Supabase secret key ---');
+{
+  assert.equal(dbHeaders('sb_secret_abc').Authorization, undefined, 'new secret keys: apikey header only');
+  assert.equal(dbHeaders('sb_secret_abc').apikey, 'sb_secret_abc');
+  assert.equal(dbHeaders('eyJhbGci.x.y').Authorization, 'Bearer eyJhbGci.x.y', 'legacy service_role JWT: bearer too');
 }
 
 console.log('--- Action: promote with mocked Supabase + GitHub ---');

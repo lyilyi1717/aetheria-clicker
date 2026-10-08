@@ -41,10 +41,17 @@ export function withLikes(body, n) {
 }
 
 // --- run (GitHub Action) ---------------------------------------------------------------------
+// New Supabase secret keys (sb_secret_...) go in `apikey` only; a legacy service_role key is a
+// JWT and is sent as the bearer token too.
+export function dbHeaders(key) {
+  const h = { apikey: key, 'Content-Type': 'application/json', Prefer: 'return=minimal' };
+  if (!String(key).startsWith('sb_')) h.Authorization = `Bearer ${key}`;
+  return h;
+}
 async function db(url, key, path, { method = 'GET', body } = {}) {
   const res = await fetch(`${url}/rest/v1/${path}`, {
     method,
-    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    headers: dbHeaders(key),
     body: body === undefined ? undefined : JSON.stringify(body)
   });
   if (!res.ok) throw new Error(`Supabase ${method} ${path.split('?')[0]}: ${res.status} ${await res.text()}`);
