@@ -100,7 +100,11 @@ export class Shell {
     this.buildGuides();
     this.bindSheet();
     this.bindActionsPlacement();
-    this.goalEl?.addEventListener('click', () => { if (this.goalTab) this.app.switchTab(this.goalTab); });
+    // The chip opens the "Coming up" panel (R54, js/ui/comingUp.js); without it, the goal's tab
+    this.goalEl?.addEventListener('click', () => {
+      if (this.app.comingUp) this.app.comingUp.toggle();
+      else if (this.goalTab) this.app.switchTab(this.goalTab);
+    });
 
     // "N active bonuses" summary line opens the chip list (strip markup comes from main.js)
     document.getElementById('content-area')?.addEventListener('click', (e) => {

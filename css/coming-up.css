@@ -1,0 +1,81 @@
+/* "Coming up" panel (R54, js/ui/comingUp.js): the next unlocks with progress and a rough ETA.
+   Desktop: a dropdown under the header goal chip. Below 1024px: a bottom sheet, opened from the
+   "Coming up" button in the Refinery card (the header chip is hidden there, style guide §7). */
+
+.cu-scrim { position: fixed; inset: 0; z-index: 9000; background: transparent; }
+.cu-scrim[hidden], .coming-up[hidden] { display: none; }
+
+.coming-up {
+  position: fixed;
+  top: calc(var(--header-h) + var(--sp-2));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9001;
+  width: min(calc(100% - 2 * var(--gutter)), 440px);
+  max-height: calc(100vh - var(--header-h) - var(--sp-6));
+  overflow-y: auto;
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  background: var(--bg-1);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-3);
+  box-shadow: var(--el-3);
+  animation: cu-drop var(--dur-2) var(--ease-out);
+}
+.coming-up .handle { display: none; }
+.cu-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.cu-title { margin: 0; font-family: var(--font-display); font-size: var(--fs-16); color: var(--gold); }
+.cu-close { min-width: 32px; }
+.cu-hint { margin: var(--sp-1) 0 var(--sp-3); font-size: var(--fs-12); color: var(--text-3); line-height: 1.4; }
+
+.cu-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.cu-row {
+  display: flex; align-items: center; gap: var(--sp-3);
+  width: 100%; min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-2);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-2);
+  color: var(--text-1);
+  font: inherit; text-align: start;
+}
+button.cu-row { cursor: pointer; }
+button.cu-row:hover, button.cu-row:focus-visible { border-color: var(--line-2); background: var(--bg-3); }
+.cu-row.is-ready { border-color: var(--gold); }
+.cu-ic { flex: 0 0 28px; font-size: var(--fs-20); text-align: center; }
+.cu-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
+.cu-text { font-size: var(--fs-13); line-height: 1.35; overflow-wrap: anywhere; }
+.cu-body .bar-row .val { min-width: 3em; }
+.cu-eta {
+  flex: 0 0 auto; padding: 2px var(--sp-2);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  color: var(--gold);
+  font-size: var(--fs-12); font-weight: 700; white-space: nowrap;
+}
+.cu-row.is-ready .cu-eta { background: var(--gold); color: var(--text-on-accent); }
+.cu-empty { font-size: var(--fs-13); color: var(--text-2); }
+
+/* The header chip opens the panel; the in-card copy only shows where the header chip is hidden */
+.goal-inline { display: none; }
+@media (max-width: 1023px) {
+  .goal.goal-inline { display: flex; width: 100%; max-width: 360px; margin: var(--sp-3) auto 0; min-height: var(--tap); }
+  .goal-inline .goal-text { flex: 1; text-align: start; }
+  .goal-inline .goal-text b { color: var(--gold); }
+
+  .cu-scrim { background: color-mix(in srgb, var(--shade) 55%, transparent); }
+  .coming-up.is-sheet {
+    top: auto; bottom: 0;
+    width: min(100%, 480px);
+    max-height: 80vh;
+    padding: var(--sp-3) var(--gutter) calc(var(--sp-4) + env(safe-area-inset-bottom));
+    border-bottom: 0;
+    border-radius: var(--r-3) var(--r-3) 0 0;
+    animation: cu-sheet var(--dur-3) var(--ease-out);
+  }
+  .coming-up.is-sheet .handle { display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--line-2); margin: 0 auto var(--sp-3); }
+}
+
+@keyframes cu-drop { from { opacity: 0; transform: translate(-50%, -6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes cu-sheet { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .coming-up, .coming-up.is-sheet { animation: none; } }
+:root[data-motion="reduced"] .coming-up { animation: none; }
