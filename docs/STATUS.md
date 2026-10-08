@@ -291,6 +291,10 @@ R0–R30 and R32–R40 are done.
   achievement sound on whatever tab was open. `MiningSystem.revealReward` now uses tier `small`
   and no sound when there is no tap position (drills); taps keep `big`. Test: `test_offtab_fx.js`.
 
+- #149 Bug: account confirmation emails linked to http://localhost:3000. Supabase's Site URL
+  was the default and the game's URL wasn't in Redirect URLs, so `redirect_to` was ignored. Fixed
+  in the Supabase dashboard (2026-10-08); the required settings are now in `supabase/cloud_saves.sql`'s header.
+
 ## Notes for the next session
 
 - **Game feel:** `docs/game-feel-guide.md` sets feedback tiers (T0 tap to T3 peak) and a
