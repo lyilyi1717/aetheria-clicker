@@ -143,7 +143,7 @@ function nextShopTier(gs, prestige, rate, now) {
   const n = DUST_SHOP_ITEMS.filter(d => d.tier === tier).length;
   return {
     id: 'shop', icon: '🛒', tab: 'prestige',
-    text: t(n === 1 ? 'comingup.shop1' : 'comingup.shop', { n, k: tier, have }),
+    text: t(n === 1 ? 'comingup.shop1' : 'comingup.shop', { n, k: tier, frac: `${have}/${tier}` }),
     pct: clamp01(have / tier), eta: wellsEta(gs, prestige, rate, tier - have, now)
   };
 }
@@ -165,9 +165,11 @@ function nextField(gs, prestige, rate, now) {
   const tiers = getUnlockedTierCount(gs);
   const nextTiers = getUnlockedTierCount({ transcendenceCount: num(gs.transcendenceCount) + 1, chronicle: gs.chronicle });
   const gen = nextTiers > tiers ? BUILDING_DEFINITIONS[nextTiers - 1] : null;
+  // One parameter for the fraction, so Arabic keeps "100/400" left to right (t() isolates it)
+  const frac = `${total.format('standard', 0)}/${gate.format('standard', 0)}`;
   const text = gen
-    ? t('comingup.field_gen', { name: gen.name, have: total.format('standard', 0), need: gate.format('standard', 0) })
-    : t('comingup.field', { have: total.format('standard', 0), need: gate.format('standard', 0) });
+    ? t('comingup.field_gen', { name: gen.name, frac })
+    : t('comingup.field', { frac });
   return { id: 'field', icon: gen ? gen.icon : '🌍', tab: 'prestige', text, pct: ratio(total, gate), eta };
 }
 
@@ -185,7 +187,7 @@ function nextNode(gs, prestige, fieldEta) {
   else if (fieldEta !== null && have + num(prestige.getTranscendShards?.().base) >= node.cost) eta = fieldEta;
   return {
     id: 'node', icon: node.icon, tab: 'prestige',
-    text: t('comingup.node', { name: node.name, have: Math.min(have, node.cost), need: node.cost }),
+    text: t('comingup.node', { name: node.name, frac: `${Math.min(have, node.cost)}/${node.cost}` }),
     pct: clamp01(have / node.cost), eta
   };
 }
@@ -207,7 +209,7 @@ function nextChronicle(gs) {
   const need = getChronicleTranscendsNeeded(gs);
   return {
     id: 'chronicle', icon: '📖', tab: 'chronicle',
-    text: t('comingup.chronicle', { have: Math.min(fields, need), need }),
+    text: t('comingup.chronicle', { frac: `${Math.min(fields, need)}/${need}` }),
     pct: clamp01(fields / need), eta: fields >= need ? 0 : null
   };
 }
