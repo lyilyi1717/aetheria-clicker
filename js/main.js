@@ -20,6 +20,7 @@ import { MarketSystem, COMMODITIES, getStockCap } from './systems/MarketSystem.j
 import { PrestigeSystem } from './systems/PrestigeSystem.js';
 import { DUST_SHOP_ITEMS } from './systems/DustShopSystem.js';
 import { DustShopUI } from './ui/dustShop.js';
+import { AttunementUI } from './ui/attunements.js';
 import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
 import { TalentSourcesPanel } from './ui/talents.js';
 import { buildContractsBoard, updateContractsBoard, bindContracts } from './ui/contracts.js';
@@ -28,7 +29,7 @@ import { CollectionSystem } from './systems/CollectionSystem.js';
 import { CodexUI } from './ui/codex.js';
 import { FastForwardSystem, FF_WARP_SECONDS, FF_COST_GROWTH, FF_RESET_MINUTES } from './systems/FastForwardSystem.js';
 import { VERSION, CHANGELOG } from './version.js';
-import { getTabBonuses, BONUS_KIND_LABELS, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult } from './tabBonuses.js';
+import { getTabBonuses, BONUS_KIND_LABELS, SPELL_TABS, getMasteries, getAetherMasteryTooltip, fmtMult, fmtBonus, fmtMastery } from './tabBonuses.js';
 import { BuffBar } from './buffBar.js';
 import { Shell } from './ui/shell.js';
 import { UnlocksUI } from './ui/unlocks.js';
@@ -49,6 +50,7 @@ import { NewsTicker, renderNewsSettings } from './ui/newsTicker.js';
 import { SharedNews, sharedQueueItems, sharedNewsHooks } from './ui/sharedNews.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
+import { initAutoTap, renderAutoTap } from './ui/autoTap.js';
 import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
@@ -318,6 +320,7 @@ class AetheriaApp {
   setupEventListeners() {
     // Monolith Click
     const monolith = document.getElementById('monolith-orb');
+    initAutoTap(this.clickerSystem, monolith);
     if (monolith) {
       monolith.addEventListener('pointerdown', (e) => {
         sound.ensureContext();
@@ -1651,12 +1654,15 @@ class AetheriaApp {
     // Dust shop (R6, js/ui/dustShop.js): panel, Auto-Buy switch and clock, Hourglass warps
     this.dustShopUI = new DustShopUI(this);
     this.dustShopUI.init();
+    // Run attunement (R55, js/ui/attunements.js): Idle / Steady / Focus, above the dust shop
+    this.attunementUI = new AttunementUI(this);
+    this.attunementUI.init();
 
     const ascBtn = document.getElementById('btn-do-ascend');
     if (ascBtn) {
       ascBtn.onclick = () => {
         const dm = this.prestigeSystem.getDustMultipliers();
-        const nectarNote = '\n\n' + t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtMult(dm.nectarMult) });
+        const nectarNote = '\n\n' + t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtBonus(dm.nectarMult) });
         if (confirm(t('prestige.confirm') + nectarNote)) {
           this.prestigeSystem.ascend();
           this.updateBuildingsUI();
@@ -1695,7 +1701,7 @@ class AetheriaApp {
     for (const m of list) {
       const refs = this.masteryRowEls[m.id];
       if (!refs) continue;
-      setText(refs.valEl, fmtMult(m.value));
+      setText(refs.valEl, fmtMastery(m));
       setText(refs.srcEl, m.source);
       refs.row.classList.toggle('active', m.value > 1);
     }
@@ -1718,8 +1724,8 @@ class AetheriaApp {
 
     // Dust-gain links (Geode Attunement, Nectar Offering): text only, the button is never rebuilt
     const dm = this.prestigeSystem.getDustMultipliers();
-    const breakdown = t('prestige.bd.depth', { x: fmtMult(dm.geode), n: dm.depth }) + ' · ' +
-      t('prestige.bd.nectar', { x: fmtMult(dm.nectarMult), n: fmtNum(dm.nectar), item: itemName('starNectar') }) +
+    const breakdown = t('prestige.bd.depth', { x: fmtBonus(dm.geode), n: dm.depth }) + ' · ' +
+      t('prestige.bd.nectar', { x: fmtBonus(dm.nectarMult), n: fmtNum(dm.nectar), item: itemName('starNectar') }) +
       (dm.amplifier > 1 ? ' · ' + t('prestige.bd.amp', { x: fmtMult(dm.amplifier) }) : '');
     setText(this.$('pending-dust-breakdown'), breakdown);
     if (ascBtn) {
@@ -1729,6 +1735,7 @@ class AetheriaApp {
 
     this.updateMasteriesPanel();
 
+    this.attunementUI?.update();
     this.dustShopUI?.update();
 
     this.transcendUI?.update();
@@ -1768,7 +1775,7 @@ class AetheriaApp {
 
   // Simulation tick (fixed rate)
   onSimTick(dt, realDt = dt) {
-    this.clickerSystem.update(dt);
+    this.clickerSystem.update(dt, realDt);
     // The Tower starts climbing when its tab opens (R7)
     if (this.gameState.isTabUnlocked('combat')) this.combatSystem.update(dt);
     this.miningSystem.update(dt);
@@ -1948,6 +1955,7 @@ class AetheriaApp {
       setText(clickPowerEl, t('clicker.per_click', { n: clickVal.format('standard', 1) }));
     }
 
+    renderAutoTap(this.$('auto-tap-line'), this.gameState, this.clickerSystem);
     renderCombo(this.$('combo-bar-fill'), this.$('combo-text'), this.gameState, this.clickerSystem);
 
     const frenzyBadge = this.$('frenzy-badge');

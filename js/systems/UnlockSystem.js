@@ -11,9 +11,9 @@ import { t } from '../i18n/index.js';
 // Always open, never stored. Community (R40) too: a new player can hit a bug on day one.
 export const ALWAYS_UNLOCKED = ['monolith', 'settings', 'about', 'community'];
 
-// Run Aether at which Ascension starts paying dust (PrestigeSystem.DUST_REF; kept here because
+// Run Aether at which Ascension starts paying dust (PrestigeSystem.DUST_MIN_AETHER; kept here because
 // PrestigeSystem imports audio. test_unlocks.js checks the two agree)
-export const ASCEND_AETHER_GATE = 1e4;
+export const ASCEND_AETHER_GATE = 500;
 
 const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const maxFloor = (gs) => n(gs.hero?.maxFloor);

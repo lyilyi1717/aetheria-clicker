@@ -276,8 +276,22 @@ console.log('--- Chapter: world rules for its weeks, then a stamp; no new Chapte
   assert.equal(gs.chronicle.stamps.sand, true);
   assert.equal(gs.chronicle.totalPages, pages + CHAPTERS[0].stampPages);
   assert.deepEqual(cs.advanceChapters(now), [], 'stamped once');
-  assert.equal(getChapterStatus(gs, now).running, false);
+  // Chapter 2 (R56) begins where Sand ended: its rule only touches the dig
+  const salt = getChapterStatus(gs, now);
+  assert.equal(salt.chapter.id, 'salt');
+  assert.equal(salt.running, true);
+  assert.equal(salt.startedAt, T0 + 10 * 7 * DAY);
+  assert.equal(getActiveRules(gs, now).excavationMult, 2);
+  assert.equal(getActiveRules(gs, now).aetherMult, 1);
   assert.equal(cs.getChallengeBlockReason('sand_dry_well'), null, 'challenges stay open after the Chapter');
+  assert.equal(cs.getChallengeBlockReason('salt_still_water'), null, 'Chapter 2 challenges open with it');
+  // Salt ends: stamped (no Pages, so the core sim stays put); no Chapter 3 yet = rules lift
+  now = T0 + 20 * 7 * DAY + 1;
+  const pages2 = gs.chronicle.totalPages;
+  assert.deepEqual(cs.advanceChapters(now).map(c => c.id), ['salt']);
+  assert.equal(gs.chronicle.totalPages, pages2 + CHAPTERS[1].stampPages);
+  assert.equal(getChapterStatus(gs, now).running, false);
+  assert.equal(getActiveRules(gs, now), NO_RULES);
   now = T0;
 }
 
@@ -327,7 +341,7 @@ console.log('--- Challenge runner: rules apply, the run is stashed, everything r
   const save = clone(gs.serialize());
   assert.equal(save.chronicle.active.id, 'sand_small_souq');
   assert.ok(save.chronicle.active.stash, 'stash saved');
-  for (const k of ['maxTiers', 'layerBonusesOff', 'comboCap', 'noSpells', 'noFrenzy', 'excavationMult']) {
+  for (const k of ['maxTiers', 'layerBonusesOff', 'comboCap', 'noSpells', 'noFrenzy', 'noAutoTap', 'excavationMult']) {
     assert.ok(!JSON.stringify(save).includes(`"${k}"`), `override ${k} is not in the save`);
   }
 
@@ -364,17 +378,21 @@ console.log('--- Reload mid-challenge: rules come back from the id, then revert 
   const g2 = m2.gs;
   assert.equal(isChallengeActive(g2), true);
   const r = getActiveRules(g2, now);
-  assert.equal(r.comboCap, 2);
+  assert.equal(r.noAutoTap, true);
   assert.equal(r.noFrenzy, true);
   assert.equal(g2.buildings.tapper.count, 12, 'challenge run continues');
-  // Combo cap and no Frenzy, through the real click yield
+  // No Frenzy through the real click yield, and Auto-tap rests even when owned (R52)
   g2.comboCount = 50;
   g2.frenzyActive = true;
   const capped = g2.getClickYield();
   g2.comboCount = 0;
   g2.frenzyActive = false;
   const base = g2.getClickYield();
-  assert.ok(Math.abs(capped.div(base).toNumber() - 2) < 1e-9, 'combo x5 capped at x2, Frenzy x5 ignored');
+  assert.ok(Math.abs(capped.div(base).toNumber() - 1) < 1e-9, 'Frenzy ignored');
+  g2.dustShop.ranks.auto_tap = 1;
+  assert.equal(g2.hasAutoTap(), false, 'Auto-tap rests');
+  assert.ok(g2.getAutoTapPerSecond().eq(0));
+  delete g2.dustShop.ranks.auto_tap;
   const probe = make();
   probe.gs.deserialize(JSON.parse(save));
   const cl = new ClickerSystem(probe.gs);
@@ -388,13 +406,13 @@ console.log('--- Reload mid-challenge: rules come back from the id, then revert 
   ref.gs.deserialize(clone(mainRun));
   const norm = (g) => { const o = clone(g.serialize()); delete o.savedAt; delete o.fastForward; return o; };
   assert.deepEqual(norm(g2), norm(ref.gs));
-  assert.equal(getActiveRules(g2, now).comboCap, Infinity);
+  assert.equal(getActiveRules(g2, now).noAutoTap, false);
 
   // Reload after the challenge ended: nothing of it survives
   const m3 = make();
   m3.gs.deserialize(clone(g2.serialize()));
   assert.equal(isChallengeActive(m3.gs), false);
-  assert.equal(getActiveRules(m3.gs, now).comboCap, Infinity);
+  assert.equal(getActiveRules(m3.gs, now).noAutoTap, false);
 }
 
 console.log('--- Completing a challenge: Pages once (twice with Second Reading), best time, run restored ---');

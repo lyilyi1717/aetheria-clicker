@@ -1,6 +1,6 @@
 import { getLang, normalizeLang } from '../i18n/lang.js';
 import { BigNum } from '../engine/BigNum.js';
-import { comboMultiplier, FRENZY_MULT } from './combo.js';
+import { comboMultiplier, FRENZY_MULT, CLICK_CPS_SECONDS, AUTO_TAP_PER_SEC } from './combo.js';
 import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
 import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
 import { defaultRecords, sanitizeRecords, serializeRecords, seedRecords } from './TalentSources.js';
@@ -9,10 +9,12 @@ import {
   defaultChronicleState, sanitizeChronicleState, restoreStash, getActiveRules, getPageAetherMult
 } from './ChronicleSystem.js';
 import { defaultCalendarState, sanitizeCalendarState } from './CalendarSystem.js';
-import { getTierUpgradeMult, getClickUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
+import { getTierUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
 import { defaultDustShopState, sanitizeDustShopState, getShopRank, hasShopItem, getFingerOfWastaMult } from './DustShopSystem.js';
 import { isTabUnlocked, sanitizeUnlocks, sanitizeUnlockSeen } from './UnlockSystem.js';
 import { defaultNewsState, sanitizeNews } from '../ui/newsTicker.js';
+import { getWorldLinkMult } from './WorldLinks.js';
+import { defaultAttunementState, sanitizeAttunementState, getAttunementMult } from './AttunementSystem.js';
 
 // Prestige bonuses (design doc 6.1, R31). All additive, none compounding. Kept here, not in
 // PrestigeSystem, because PrestigeSystem imports audio/particles and GameState must stay loadable
@@ -67,6 +69,11 @@ export class GameState {
 
     // Daily Dallah, Weekly Ledger, Seals (R15, CalendarSystem.js); nothing in it is ever taken away
     this.calendar = defaultCalendarState();
+
+    // Ascension attunement (R55, AttunementSystem.js): this run's pick, kept across Ascensions
+    this.attunement = defaultAttunementState(this);
+    // Seconds since the player's last tap (runtime only, ClickerSystem; Idle attunement)
+    this.secondsSinceTap = Infinity;
 
     // Active Clicker Stats
     this.clickPower = new BigNum(1);
@@ -167,9 +174,6 @@ export class GameState {
     // Legacy compounding Catalyst multiplier; migrated to alchemy.catalysts and kept at 1
     let mult = this.stats.globalMultiplier || 1;
 
-    // Philosopher's Catalyst: +2% Aether per brew, additive within its own category
-    mult *= this.getCatalystMult();
-
     // Achievement ladder (+1.5% per original achievement, +0.5% per rung) and completed
     // Codex sets (+1% each), one additive category (R14)
     if (this.achievementSystem) {
@@ -179,34 +183,15 @@ export class GameState {
     // Dust shop Finger of Wasta: +1% per 100 clicks this run, up to +50%
     mult *= getFingerOfWastaMult(this);
 
-    // Universal Mastery: Building Mastery (+1.5% Global Aether per 100 total buildings)
-    if (this.buildingSystem) {
-      const totalBldgs = this.buildingSystem.getTotalBuildingsCount();
-      const bldgMasteryRank = Math.floor(totalBldgs / 100);
-      mult *= (1 + bldgMasteryRank * 0.015);
-    }
-    
-    // Universal Mastery: Dungeon Mastery (+1.0% Global Aether per 10 bosses slain)
-    if (this.stats && this.stats.totalBossesSlain > 0) {
-      const dungeonMasteryRank = Math.floor(this.stats.totalBossesSlain / 10);
-      mult *= (1 + dungeonMasteryRank * 0.01);
-    }
-    
-    // Depth Resonance: +2% Aether per max depth reached
-    mult *= this.getDepthResonanceMult();
-    
-    // High Enchanter (Golden Synergy)
-    if (this.market && this.market.goldenSynergy) {
-      mult *= (1 + this.market.goldenSynergy * 0.05);
-    }
+    // Subgame links (Building and Dungeon Mastery, Depth Resonance, High Enchanter, Aetheric
+    // Treaty, Philosopher's Catalyst) add into one category (R53, WorldLinks.js)
+    mult *= getWorldLinkMult(this);
+
+    // Ascension attunement (R55): Idle or Focus, one additive bonus (Steady acts on tier upgrades)
+    mult *= getAttunementMult(this);
 
     // Active Aether buffs add together within one category (Celestial +300% & Philter +200% = x6)
     mult *= this.getAetherBuffMult();
-
-    // Multiply by Quartermaster Aetheric Treaty
-    if (this.quartermaster && this.quartermaster['aether_treaty']) {
-      mult *= (1 + this.quartermaster['aether_treaty'].rank * 0.25);
-    }
 
     // Chronicle rules (R20): the Chapter's world rules and a running challenge's overrides
     const rules = getActiveRules(this);
@@ -224,24 +209,29 @@ export class GameState {
     return getTierUpgradeMult(this, buildingId);
   }
 
-  // Base click before the CPS share: clickPower x 2^(click upgrades bought) (design doc 6.1)
+  // Base click (R52, design doc 6.1): 0.5 s of current production, at least clickPower (1).
+  // Resonant Flow adds 0.02 s per rank. Combo, Frenzy, talents and buffs apply in getClickYield.
   getClickBase() {
-    return this.clickPower.mul(getClickUpgradeMult(this));
+    let seconds = CLICK_CPS_SECONDS;
+    if (this.talents?.click_synergy?.rank > 0) seconds += this.talents.click_synergy.rank * 0.02;
+    return this.getNetAetherPerSecond().mul(seconds).max(this.clickPower);
+  }
+
+  // Auto-tap (dust shop, R52): Oil per second from its taps, 1 plain click per second (no combo,
+  // Frenzy or crits). Counted while the player isn't tapping and in offline gains.
+  getAutoTapPerSecond() {
+    if (!this.hasAutoTap()) return BigNum.zero();
+    return this.getClickBase().mul(AUTO_TAP_PER_SEC);
+  }
+
+  // Auto-tap owned and not switched off by a Chronicle challenge (Dry Well)
+  hasAutoTap() {
+    return hasShopItem(this, 'auto_tap') && !getActiveRules(this).noAutoTap;
   }
 
   // Calculate current click damage/yield
   getClickYield() {
     let base = this.getClickBase();
-
-    // Add % of passive CPS to click
-    const cps = this.getNetAetherPerSecond();
-    if (cps.gt(0)) {
-      let clickPercentOfCps = 0.03; // Base 3%
-      if (this.talents && this.talents['click_synergy']) {
-        clickPercentOfCps += this.talents['click_synergy'].rank * 0.02;
-      }
-      base = base.add(cps.mul(clickPercentOfCps));
-    }
 
     // Aetherial Strike talent: +25% click yield per rank
     if (this.talents?.click_power?.rank > 0) {
@@ -402,6 +392,7 @@ export class GameState {
       shardTree: this.shardTree,
       chronicle: this.chronicle,
       calendar: this.calendar,
+      attunement: this.attunement,
       clickPower: this.clickPower.toJSON(),
       critChance: this.critChance,
       critMultiplier: this.critMultiplier,
@@ -526,6 +517,8 @@ export class GameState {
       // Saves from before R7 arrive with unlocks seeded from what they've used (migration v6)
       this.unlocks = sanitizeUnlocks(data.unlocks);
       this.unlockSeen = sanitizeUnlockSeen(data.unlockSeen);
+      // Saves from before R55 have no attunement: Idle, milestones counted from now
+      this.attunement = sanitizeAttunementState(data.attunement, this);
       // Saves from before R9 have no records: seed them from what the save shows (no grants)
       this.records = data.records ? sanitizeRecords(data.records) : seedRecords(this);
       // Saves from before R23 have played past the first visits: start every guide collapsed

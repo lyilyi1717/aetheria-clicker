@@ -1,10 +1,12 @@
 // Upgrade shop on the Monolith (design doc 6.1 "Upgrade shop" / "Click yield", roadmap R5).
 // One-time Aether purchases that reset on Ascend (and Transcend):
-//   - tier upgrades: 5 per generator tier, available at owned >= 1/5/15/30/60 (R31; was up to 200),
-//     cost baseCost x 4^(k+1) (k = 0..4), each x1.2 that tier's output (TIER_UPGRADE_MULT). Generated for all 20 tiers;
-//     a locked tier's upgrades stay hidden.
-//   - click upgrades: 15 in a chain, x2 the base click each (click yield =
-//     clickPower x 2^bought + 3% CPS, GameState.getClickYield). Cost: 10 x base cost of tier i.
+//   - tier upgrades: 6 per generator tier (R52; R31 had 5 at 1/5/15/30/60), available at owned
+//     >= 1/3/8/15/30/60, cost baseCost x 3^(k+1) (k = 0..5), each x1.2 that tier's output
+//     (TIER_UPGRADE_MULT). R52 added the 6th and cut the price step from 4 so a run still lands
+//     about 30 upgrades without the click chain. Generated for all 20 tiers; a locked tier's
+//     upgrades stay hidden.
+//   (The 15 click upgrades were removed in R52: a click is 0.5 s of production, see
+//   GameState.getClickBase. Save step v9 refunds the ones a save had bought.)
 //   - synergy upgrades: 8, "tier A +0.1% per tier B owned" (SYNERGY_PER_UNIT), additive.
 // The table and the multiplier helpers are pure functions of gameState, so GameState and
 // BuildingSystem can read them without the UpgradeSystem instance being linked (tests, sim).
@@ -13,32 +15,22 @@ import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
 import { getDeepBlueprintDivisor } from './ShardTreeSystem.js';
+import { getTierUpgradeStep } from './AttunementSystem.js';
 import { t, localizeList } from '../i18n/index.js';
 
-export const TIER_UPGRADE_THRESHOLDS = [1, 5, 15, 30, 60];
-// Tier upgrades are x1.2 each (x2.49 for all 5), not the doc's first-draft x2 (x32): simulated
+export const TIER_UPGRADE_THRESHOLDS = [1, 3, 8, 15, 30, 60];
+// Tier upgrades are x1.2 each (x2.99 for all 6), not the doc's first-draft x2 (x32): simulated
 // on the real classes (sim/core-pacing.mjs, design doc 6.1 R3/R5 notes), x2 put the casual first
 // Transcend at day 0.2 and x1.25 / +0.3% at day 1.5; x1.2 / +0.1% puts it at day 4.2.
 export const TIER_UPGRADE_MULT = 1.2;
-export const TIER_UPGRADE_COST_STEP = 4;        // tier upgrade k (1-5) costs baseCost x 4^k (R31; was 10^k)
-export const CLICK_UPGRADE_COUNT = 15;
-export const CLICK_UPGRADE_MULT = 2;
-export const CLICK_UPGRADE_COST_FACTOR = 10;   // click upgrade i costs 10 x baseCost(tier i)
+export const TIER_UPGRADE_COST_STEP = 3;        // tier upgrade k (1-6) costs baseCost x 3^k (R52; R31: 4^k, before: 10^k)
 export const SYNERGY_PER_UNIT = 0.001;         // +0.1% to tier A per tier B owned (doc draft: +1%)
 export const SYNERGY_MIN_TARGET = 25;          // own 25 of tier A ...
 export const SYNERGY_MIN_SOURCE = 50;          // ... and 50 of tier B to see the synergy
 export const SYNERGY_COST_EXP = 4;             // cost: baseCost(A) x 10^4
 
-const TIER_LEVEL_NAMES = [1, 2, 3, 4, 5].map(k => t(`upg.level.${k}`));
+const TIER_LEVEL_NAMES = TIER_UPGRADE_THRESHOLDS.map((_, k) => t(`upg.level.${k + 1}`));
 
-const CLICK_UPGRADE_NAMES = [
-  ['Sesame Fingertips', '👆'], ['Tahini Grip', '✊'], ['Valve Flick', '🔧'],
-  ['Cardamom Knuckles', '🌿'], ['Saffron Tap', '🌼'], ['Dallah Pour', '🫖'],
-  ['Oud Strum', '🎸'], ['Majlis Clap', '👏'], ['Desert Drumbeat', '🥁'],
-  ['Camel Kick', '🐪'], ['Falcon Strike', '🦅'], ['Sandstorm Slap', '🌪️'],
-  ['Mirage Palm', '🏜️'], ['Star of Najd Touch', '⭐'], ['Hand of Eternity', '✋']
-];
-localizeList(CLICK_UPGRADE_NAMES.map(c => c[0]), 'clickup').forEach((name, i) => { CLICK_UPGRADE_NAMES[i][0] = name; });
 
 // [target A, source B, name]: A gets +1% output per B owned
 const SYNERGIES = [
@@ -73,17 +65,6 @@ function buildUpgradeDefinitions() {
       });
     });
   }
-  CLICK_UPGRADE_NAMES.forEach(([name, icon], i) => {
-    list.push({
-      id: `click_${i + 1}`,
-      kind: 'click',
-      level: i + 1,
-      tier: 0,
-      name, icon,
-      desc: t('upg.click_desc', { x: CLICK_UPGRADE_MULT }),
-      cost: BUILDING_DEFINITIONS[i].baseCost.mul(CLICK_UPGRADE_COST_FACTOR)
-    });
-  });
   for (const [target, source, name] of SYNERGIES) {
     const a = DEF_BY_ID.get(target);
     const b = DEF_BY_ID.get(source);
@@ -111,7 +92,6 @@ for (const u of UPGRADE_DEFINITIONS) {
   if (!map.has(u.building)) map.set(u.building, []);
   map.get(u.building).push(u);
 }
-const CLICK_UPGRADES = UPGRADE_DEFINITIONS.filter(u => u.kind === 'click');
 
 export function getUpgradeDefinition(id) {
   return UPGRADE_BY_ID.get(id);
@@ -126,26 +106,15 @@ const isBoughtIn = (gs, id) => gs?.upgrades?.[id] === true;
 export function getTierUpgradeMult(gs, buildingId) {
   if (!gs?.upgrades) return 1;
   let mult = 1;
+  const step = getTierUpgradeStep(gs, TIER_UPGRADE_MULT);   // Steady attunement (R55): x1.26
   for (const u of TIER_UPGRADES_BY_BUILDING.get(buildingId) || []) {
-    if (isBoughtIn(gs, u.id)) mult *= TIER_UPGRADE_MULT;
+    if (isBoughtIn(gs, u.id)) mult *= step;
   }
   let synergy = 0;
   for (const u of SYNERGIES_BY_TARGET.get(buildingId) || []) {
     if (isBoughtIn(gs, u.id)) synergy += SYNERGY_PER_UNIT * owned(gs, u.source);
   }
   return mult * (1 + synergy);
-}
-
-export function getClickUpgradeCount(gs) {
-  if (!gs?.upgrades) return 0;
-  let n = 0;
-  for (const u of CLICK_UPGRADES) if (isBoughtIn(gs, u.id)) n++;
-  return n;
-}
-
-// 2^(click upgrades bought), multiplies clickPower
-export function getClickUpgradeMult(gs) {
-  return Math.pow(CLICK_UPGRADE_MULT, getClickUpgradeCount(gs));
 }
 
 // Saved shape: array of ids (older dev builds / hand edits may hold an { id: true } map).
@@ -232,7 +201,6 @@ export class UpgradeSystem {
     if (!u || this.isBought(id) || !this.isTierOpen(u)) return false;
     const gs = this.gameState;
     if (u.kind === 'tier') return owned(gs, u.building) >= u.requires;
-    if (u.kind === 'click') return u.level === 1 || this.isBought(`click_${u.level - 1}`);
     if (u.kind === 'synergy') return owned(gs, u.building) >= SYNERGY_MIN_TARGET && owned(gs, u.source) >= SYNERGY_MIN_SOURCE;
     return false;
   }
@@ -242,7 +210,6 @@ export class UpgradeSystem {
     const u = UPGRADE_BY_ID.get(id);
     if (!u) return '';
     if (u.kind === 'tier') return t('upg.req.tier', { n: u.requires, name: DEF_BY_ID.get(u.building).name });
-    if (u.kind === 'click') return t('upg.req.click', { name: CLICK_UPGRADE_NAMES[u.level - 2]?.[0] ?? '' });
     return t('upg.req.syn', { a: SYNERGY_MIN_TARGET, an: DEF_BY_ID.get(u.building).name, b: SYNERGY_MIN_SOURCE, bn: DEF_BY_ID.get(u.source).name });
   }
 
@@ -288,12 +255,11 @@ export class UpgradeSystem {
     return n;
   }
 
-  // Generator output (before global multipliers) an upgrade would add right now. 0 for clicks:
-  // their value depends on how fast the player clicks.
+  // Generator output (before global multipliers) an upgrade would add right now
   getProductionGain(id) {
     const u = UPGRADE_BY_ID.get(id);
     const bs = this.gameState.buildingSystem;
-    if (!u || !bs || u.kind === 'click') return BigNum.zero();
+    if (!u || !bs) return BigNum.zero();
     const prod = bs.getBuildingProduction(u.building);
     if (u.kind === 'tier') return prod.mul(TIER_UPGRADE_MULT - 1);
     return prod.mul(SYNERGY_PER_UNIT * owned(this.gameState, u.source));

@@ -4,12 +4,14 @@ import { GameState } from './js/systems/GameState.js';
 import { PrestigeSystem, MIN_RUN_SECONDS } from './js/systems/PrestigeSystem.js';
 globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
 
-console.log('--- R2/R31: dust is 10 x (run Aether / 1e4)^(1/5) ---');
+console.log('--- R2/R31: dust is 10 x (run Aether / 1e4)^(1/5), paid from 500 run Aether (R52) ---');
 {
   const gs = new GameState();
   const ps = new PrestigeSystem(gs);
   const dust = (a) => { gs.totalAetherEarned = new BigNum(a); return ps.getPendingCosmicDust().toNumber(); };
-  assert.equal(dust(9999), 0);
+  assert.equal(dust(499), 0);
+  assert.equal(dust(500), 5);         // the first New Well can pay for Auto-tap
+  assert.equal(dust(9999), 9);
   assert.equal(dust(1e4), 10);
   assert.equal(dust(32e4), 20);      // x32 Aether doubles dust
   assert.equal(dust(243e4), 30);

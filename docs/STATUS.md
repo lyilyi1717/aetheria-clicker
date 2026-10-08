@@ -10,8 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Wave 9, run by the R31 coordinator session: R52 #126, R53 #127 in progress; R55
-  follows R52, R56 follows R53 (shared `ChronicleSystem.js`).
+- Wave 9, run by the R31 coordinator session: R57 #139 in progress (also takes on the
+  attunement pacing below).
 
 ## Next up
 
@@ -20,7 +20,6 @@ R0–R30 and R32–R40 are done.
 - Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
   enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
   `accepted`, `wontfix`, `duplicate` (PR #97). Game title after the oil re-theme (question in #23).
-- Chapter 2 of the Chronicle is one more `CHAPTERS` entry (no issue yet).
 
 ## Plan
 
@@ -83,6 +82,7 @@ R0–R30 and R32–R40 are done.
 | 9 | R54 "Coming up" panel | #128 | R31 |
 | 9 | R55 Ascension attunements | #129 | R31, R52 |
 | 9 | R56 Challenge rewards and Chapter 2 | #130 | R31 |
+| 9 | R57 Tame the late-year Chronicle/Page loop | #139 | R52, R56 |
 
 ## Done
 
@@ -253,6 +253,30 @@ R0–R30 and R32–R40 are done.
   `TIER_UPGRADE_COST_STEP`), `ShardTreeSystem` (`AUTO_ASCEND_*`). The 2-month sim row depends on
   where day 60 falls in a layer (run Oil swings ~2 decades); re-run `sim:check` after any pacing
   change.
+- R52 #126 Passive clicking (PR #136, 5.3.0): a click is 0.5 s of production (min 1, max 5 paid
+  clicks/s). The 15 click upgrades are gone (save step v9 refunds them as Oil). Auto-tap is a dust
+  shop item (1 tap/s when idle, also offline). Spells and Frenzy retuned so active is x1.93 over
+  idle with Auto-tap; the combo is feel-only. 6 tier upgrades per tier (at 1/3/8/15/30/60 owned,
+  x3 cost steps). A New Well pays from 500 run Oil. `sim:check` asserts idle first Ascension
+  <= 90 min (60), casual median upgrades per run >= 30 (32), casual median run Oil over days
+  50–70 >= 1e11 (4.1e12; idle 4.4e10).
+- R55 #129 Ascension attunements (PR #143, 5.5.0): pick 1 of 3 per run, one additive category.
+  Idle (default) +30% while the last hand tap is >= 60 s old (Auto-tap doesn't count); Steady
+  makes tier upgrades x1.26 each instead of x1.2; Focus +15% per subgame milestone, capped at
+  +40%. The pick locks at the first generator bought; a later pick is queued for the next New
+  Well. Old saves get Idle. Pacing is phase-sensitive: default casual days 50–70 median is 2.4e11;
+  Steady starts a Chronicle around day 58 and would fail `sim:check` (in R57's scope).
+- R56 #130 Challenge rewards and Chapter 2 (PR #141, 5.4.0): each Chronicle challenge pays one
+  permanent reward on first clear (`chronicle.rewards`; old clears are paid on load). Oil rewards
+  total +35%, additive with Margin Notes; also offline +10% x2, Small Souq start, Sandstorm +1
+  Page, Still Water +25% dig. Chapter 2 is the Chapter of Salt (4 challenges, Excavation x2); the
+  comboCap rules became noAutoTap. Save v10 is still free.
+- R53 #127 Reprice outside-core (PR #134, 5.2.0): Oil achievement rungs at 1e5–1e16 (ids kept);
+  Forge costs 100·1.5^L; subgame→Oil links are one additive category capped at +150%
+  (`js/systems/WorldLinks.js`); Geode and Nectar dust links are additive with each other.
+  `npm run sim -- --links` adds the links; `sim:check`'s 2-month assert is now the median run Oil
+  over days 50–70 (the day-60 row was phase luck). With links on, months 4–12 run hot (1-year
+  ~1.5e23): that's R57. Link nerfs are steep (Treaty 25%→2%/rank); owner may want to weigh in.
 - R54 #128 Coming up panel (PR #135, 5.1.0): logic in `js/ui/comingUp.js`, styles in
   `css/coming-up.css`. Desktop opens it from a header-chip dropdown; under 1024px it is a bottom
   sheet opened from the Refinery card. Reserve-based ETAs use this run's pace, so they're rough.
@@ -306,8 +330,12 @@ R0–R30 and R32–R40 are done.
 
 ## Noticed (not yet an issue)
 
-- After R31: idle first Ascension is 5 h and idle upgrades per run 22 (R52 takes this on); Talent
-  S2 gives ~10 stars/yr; achievement Oil thresholds are unreachable until R53 reprices them.
+- After R31: Talent S2 gives ~10 stars/yr.
+- After R52: the Aetherial Strike talent can push active play past x2 over idle.
+- After R56: the Salt stamp pays 0 Pages (a paying stamp would move the sim around day 210);
+  since R52, Sandstorm takes ~31 h on a fresh idle run.
+- `test_r52_clicks.js` is flaky (about 2 in 30 runs fail on `Date.now` timing in the offline
+  test); worth a small fix item if CI starts flaking.
 - Arabic unlock teaser labels show fractions reversed (e.g. "20/0"); seen in R54.
 
 - Hex colours still in `CombatSystem.js`, `MiningSystem.js`, `ShardTreeSystem.js`,

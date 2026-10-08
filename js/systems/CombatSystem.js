@@ -54,6 +54,10 @@ export const WARDEN_TROPHY_GOLD = 0.02;
 // Warden kills pay x3 boss gold and XP and drop 3 Void Cores + 3 Boss Tokens (bosses: 1 + 1)
 export const WARDEN_REWARD_MULT = 3;
 
+// Oil Forge (R53): level L costs FORGE_BASE_COST x FORGE_COST_GROWTH^L Oil (was 100,000 x 5^L)
+export const FORGE_BASE_COST = 100;
+export const FORGE_COST_GROWTH = 1.5;
+
 // Named Wardens for floors 250, 500, 750, ... The list cycles with a numeral after floor 2,500.
 export const WARDEN_NAMES = [
   'Saher, the All-Seeing Camera',
@@ -413,9 +417,11 @@ export class CombatSystem {
 
   getAetherForgeCost() {
     const level = this.gameState.hero.aetherForgeLevel || 0;
-    // Base cost 100k, scales x5 per level. BigNum pow: Math.pow(5, 441+) is Infinity, which
-    // new BigNum() turns into 0, i.e. free Forge levels forever.
-    return new BigNum(5).pow(level).mul(100000);
+    // FORGE_BASE_COST x FORGE_COST_GROWTH^level (R53, priced for the R31 Oil curve: one hour of
+    // casual income buys about level 5 at hour one, 16 at day one, 34 at week one, 41 at a month,
+    // which keeps `npm run sim:tower` floors within ~10% of the pre-R31 report).
+    // BigNum pow: a plain Math.pow overflows to Infinity, which new BigNum() turns into 0.
+    return new BigNum(FORGE_COST_GROWTH).pow(level).mul(FORGE_BASE_COST);
   }
 
   upgradeAetherForge() {

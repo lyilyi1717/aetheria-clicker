@@ -6,8 +6,8 @@
 import { BigNum } from '../engine/BigNum.js';
 import { rewards } from './rewards.js';
 import {
-  UPGRADE_DEFINITIONS, TIER_UPGRADE_THRESHOLDS, CLICK_UPGRADE_COUNT, SYNERGY_MIN_TARGET,
-  SYNERGY_MIN_SOURCE, getUpgradeDefinition, getClickUpgradeMult
+  UPGRADE_DEFINITIONS, TIER_UPGRADE_THRESHOLDS, SYNERGY_MIN_TARGET,
+  SYNERGY_MIN_SOURCE, getUpgradeDefinition
 } from '../systems/UpgradeSystem.js';
 import { BUILDING_DEFINITIONS } from '../systems/BuildingSystem.js';
 import { t, bidi } from '../i18n/index.js';
@@ -178,9 +178,6 @@ export class UpgradeShopUI {
     if (u.kind === 'tier') {
       const name = BUILDING_NAME.get(u.building);
       return t('upgui.req.tier', { a: u.level, b: TIER_UPGRADE_THRESHOLDS.length, n: u.requires, name, have: owned(u.building), x: this.fmtMult(this.gs.getTierUpgradeMult(u.building)) });
-    }
-    if (u.kind === 'click') {
-      return t('upgui.req.click', { a: u.level, b: CLICK_UPGRADE_COUNT, x: getClickUpgradeMult(this.gs) });
     }
     const n = SYNERGY_IDS.indexOf(u.id) + 1;
     return t('upgui.req.syn', { a: n, b: SYNERGY_IDS.length, n1: SYNERGY_MIN_TARGET, name1: BUILDING_NAME.get(u.building), h1: owned(u.building), n2: SYNERGY_MIN_SOURCE, name2: BUILDING_NAME.get(u.source), h2: owned(u.source) });

@@ -418,7 +418,7 @@ console.log('--- v7 -> v8: the economy redesign moves saves to the same point on
       active: { id: 'sand_dry_well', startedAt: 1759990000000, stash: { aether: { m: 1, e: 30 }, totalAetherEarned: { m: 5, e: 31 },
         clickPower: { m: 1, e: 0 }, buildings: { tapper: 500, eternal_dallah: 2 }, upgrades: ['tapper_u1'], comboCount: 0, runStartedAt: 1759980000000 } } }
   };
-  const d = migrateSave(clone(V7_MIDYEAR));
+  const d = migrateSave(clone(V7_MIDYEAR), MIGRATIONS.filter(m => m.to <= 8));   // step v8 alone
   assert.equal(d.version, 8);
   // The run is refunded: generators and upgrades back to 0, run Oil 1e40 -> 10^(4 + 31 x 0.2)
   assert.ok(Math.abs(lg(d.totalAetherEarned) - 10.2) < 1e-9);

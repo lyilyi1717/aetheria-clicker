@@ -6,13 +6,16 @@ import { hasShopItem } from './DustShopSystem.js';
 import { t, localize } from '../i18n/index.js';
 
 // --- R3 active income (docs/redesign-proposal.md §5.2, §6.1) ---
-// Active play should earn about 2-3x idle, not ~8x: Burst pays 45 s of CPS on a 45 s cooldown
-// (was 120 s / 30 s), Celestial is x2.5 (was x4). test_active_income.js measures the ratio.
-export const BURST_CPS_SECONDS = 45;
-export const BURST_COOLDOWN = 45;
-export const BURST_MIN_CLICKS = 100;        // floor for a fresh run: 100 clicks' worth
-export const CELESTIAL_MULT = 2.5;
+// Active play earns at most x2 an idle player with Auto-tap (R52; R3 measured x6.9): Burst pays
+// 10 s of CPS every 60 s (R3: 45 s / 45 s), Celestial is x1.25 (R3: x2.5), Chrono Warp is every
+// 10 min (was 60 s). test_active_income.js measures the ratio.
+export const BURST_CPS_SECONDS = 10;
+export const BURST_COOLDOWN = 60;
+export const BURST_MIN_CLICKS = 100;        // floor for a fresh run: 100 base clicks (100 Oil)
+export const CELESTIAL_MULT = 1.25;
 export const CELESTIAL_DURATION = 30;
+export const WARP_SPEED = 5;
+export const WARP_DURATION = 15;
 
 export const SPELLS = [
   {
@@ -28,7 +31,7 @@ export const SPELLS = [
     name: 'Chrono Warp',
     icon: '⏳',
     manaCost: 40,
-    cooldown: 60,
+    cooldown: 600,   // R52: every 10 min (was 60 s)
     desc: 'Distorts spacetime, accelerating game time by 5x for 15s.'
   },
   {
@@ -121,7 +124,7 @@ export class SpellSystem {
 
     if (spellId === 'aether_burst') {
       const cps = this.gameState.getNetAetherPerSecond();
-      const payout = cps.mul(BURST_CPS_SECONDS).max(this.gameState.getClickYield().mul(BURST_MIN_CLICKS));
+      const payout = cps.mul(BURST_CPS_SECONDS).max(this.gameState.clickPower.mul(BURST_MIN_CLICKS));
       this.gameState.aether = this.gameState.aether.add(payout);
       this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(payout);
       this.notifySpell('🔮', spellName('aether_burst'), '#38bdf8', { amount: payout, fmt: (a) => a.format('standard', 2), unit: t('unit.oil') });
@@ -131,11 +134,11 @@ export class SpellSystem {
         id: 'chrono_warp',
         name: 'Chrono Warp (5x Speed)',
         type: 'time_speed',
-        value: 5,
-        duration: 15,
-        maxDuration: 15
+        value: WARP_SPEED,
+        duration: WARP_DURATION,
+        maxDuration: WARP_DURATION
       });
-      if (this.gameLoop) this.gameLoop.timeScale = 5.0;
+      if (this.gameLoop) this.gameLoop.timeScale = WARP_SPEED;
       this.notifySpell('⏳', spellName('chrono_warp'), '#f59e0b', { detail: t('spellfx.chrono_warp') });
     } else if (spellId === 'midas_touch') {
       this.removeBuff('midas_touch');

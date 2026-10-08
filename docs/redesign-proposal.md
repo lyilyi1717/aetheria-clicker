@@ -423,7 +423,7 @@ leaderboard column. No save migration: `codex` is a new additive field.
 > | Cost growth | ×1.15 | same |
 > | Milestones | ×2 at 10/25/50/100/150/200/250/300 (×256 in all) | ×2,2,2,2,3,3,4,5,10 to 1,000 |
 > | Tier upgrades | at owned ≥ 1/5/15/30/60, cost `baseCost × 4^k` (k = 1…5), ×1.2 each; synergies additive within their tier (+0.1% per source owned) | at 1/10/50/100/200, `baseCost × 10^k`; synergies multiplied |
-> | Dust gain | `10 × (runAether / 1e4)^(1/5)`, pays from 1e4 run Oil (10 dust) × Geode × Nectar × Amplifier | `150 × (A/1e9)^(1/3)` × … × shards |
+> | Dust gain | `10 × (runAether / 1e4)^(1/5)`, pays from 1e4 run Oil (10 dust; R52: from 500, 5 dust) × Geode × Nectar × Amplifier | `150 × (A/1e9)^(1/3)` × … × shards |
 > | Dust multiplier | `1 + 0.01 × lifetime dust` (this layer) | `1 + 0.02 ×` |
 > | Transcend gate | `400 × 1.6^k`, ×3 per step from the 9th Transcend (`TRANSCEND_SLOW_FROM = 9`) | `1e9 × 10^k` |
 > | Shards | 2 per Transcend; each lifetime shard **+25% production, additive**; no dust-gain bonus | ×1.5 Aether and ×1.5 dust each |
@@ -455,6 +455,94 @@ leaderboard column. No save migration: `codex` is a new additive field.
 > dust (Amplifier ranks refunded), Deep Blueprints for retired tiers are refunded as shards, and
 > the old default Auto-Ascend rule ×2 moves to ×1.25. Counts (New Wells, Transcends, shards,
 > Pages, Chronicles) are kept.
+>
+> **R53 (v5.2.0, issue #127): everything outside the core, repriced.**
+>
+> | Item | R53 (shipped) | Before |
+> |---|---|---|
+> | Oil achievement ladder (run Oil) | 1e5, 1e7, 1e8, 1e10, 1e11, 1e13, 1e14, 1e16 (with the originals 1e6/1e9/1e12/1e15: one goal per decade 1e5–1e16) | 1e18 … 1e72 |
+> | Oil Forge | `100 × 1.5^L` Oil | `1e5 × 5^L` |
+> | Subgame → Oil links | **one additive category, capped at +150%** (`WorldLinks.js`): Depth Resonance +0.2%/depth, Aetheric Treaty +2%/rank, High Enchanter +0.4%/level, Philosopher's Catalyst +0.2%/brew, Building Mastery +1.5%/100, Dungeon Mastery +1%/10 bosses | each its own multiplier: +2%, +25%, +5%, +2%, +1.5%, +1% |
+> | Dust links | Geode Attunement + Nectar Offering add together: +2% per 10 depth, +0.4%·√Nectar up to +20% | ×(1 + 10% per 10 depth) × min(2, 1 + 2%·√Nectar) |
+> | Chronicle goals, `ASCEND_AETHER_GATE`, contracts | unchanged: R31 already set the goals (1e6/1e5) and the gate (1e4); contracts and the Quartermaster never read Oil | — |
+>
+> *Why.* `npm run sim -- --links` sets the subgame stats from a schedule (depth from `sim:mining`,
+> bosses and gold from `sim:tower`, ~24 seals a day on the Treaty). With the old link values the
+> casual 2-month run Oil was ~4e16 (core alone ~1e12) and layer peaks reached 1e22 within the
+> year, with half of all Transcends less than 6 h apart: the links compounded to ×100+ and, through
+> the fifth-root dust formula, Geode ×2.6 was worth ×120 run Oil. Additive alone was not enough
+> (still ~1e21 at two months): the core's late Transcends run away under any steady multiplier
+> above ~×2–3 (sweep in the PR). The new values keep the links near ×2 at two months, and the
+> per-Transcend peaks with links on stay within the core's own (2e8 … 2e14 for the first eight).
+> The Forge price keeps `sim:tower` floors within ~10% of the pre-R31 report. `sim:check` now
+> takes the median of daily run-Oil samples over days 50–70 (the single day-60 row passed or
+> failed on where day 60 fell inside a layer).
+
+> **R52 passive-first clicking (v5.3.0, issue #126).** The owner wants progress passive-driven:
+> clicking is a small optional boost. Shipped values (replace the rows above where they differ):
+>
+> | Item | R52 (shipped) | Before R52 |
+> |---|---|---|
+> | Click yield | **0.5 s of current production**, at least `clickPower` (1); Resonant Flow +0.02 s per rank (`GameState.getClickBase`) | `clickPower × 2^n + 3% CPS` |
+> | Click upgrades | **removed**; save step v9 refunds the ones bought (10 × base cost of tier i each) | 15, ×2 each |
+> | Click rate | at most **5 paid clicks/s** (token bucket on real time); faster taps animate and pay nothing | unlimited |
+> | Auto-tap | dust shop, Asc 1, **5 dust**: 1 plain click/s (no combo, Frenzy or crit) whenever the player hasn't tapped for 2 s, and in offline gains (+50% of production); the Dry Well challenge turns it off | — |
+> | Combo / Frenzy | combo **×1** (feel: bar, pitch, Frenzy every 20); Frenzy **×1.25** for 4 s | ×5 / ×3 |
+> | Spells / anomalies | Burst **10 s of CPS every 60 s**; Celestial **×1.25** 30 s; Chrono Warp ×5 15 s every **10 min**; Supernova **30 s**; Mirage **×1.5** | 45 s / 45 s; ×2.5; every 60 s; 180 s; ×2 |
+> | Dust gain | R31's `10 × (runAether / 1e4)^(1/5)`, now paid from **500** run Oil (5 dust, the price of Auto-tap) | paid from 1e4 (10 dust) |
+> | Tier upgrades | **6** per tier at owned ≥ 1/3/8/15/30/60, cost `baseCost × 3^k` (k = 1…6), ×1.2 each | 5 at 1/5/15/30/60, `baseCost × 4^k` |
+>
+> *Why.* At 0.5 s a click, the attentive model's 2 clicks/s alone add as much as the generators,
+> so "~×2" can't hold against generators alone. **It is measured against an idle player with
+> Auto-tap** (×1.5 generators), which every player owns from the first New Well on; the owner
+> accepted this (PM review of the R52 PR). `sim/active-income.mjs` gives **×1.93** (clicks only
+> ×1.46, spells only ×1.28, anomalies only ×1.07; ×2.89 of generator output; R3 values measured
+> ×6.86). Little is left for the combo, so it became feel only, and Frenzy, Burst, Celestial, Warp
+> and the anomalies shrank to fit.
+>
+> The early-game lever is where dust starts paying: the R31 curve is unchanged, but a New Well
+> pays from 500 run Oil (5 dust). A first draft moved the whole curve instead (`(A / 500)^(1/6)`);
+> that paid more dust mid-game, so Auto-Ascend fired sooner, runs got shorter and both upgrades
+> per run and 2-month Oil fell. Removing the 15 click upgrades also took about 5 purchases out of
+> every casual run (R31's 31 per run median included a median of 6 click upgrades; 26 without).
+> Neither the thresholds nor the price alone changed the median much (a casual run owns about 8
+> tiers, so 8 × 5 upgrades is the ceiling); a 6th level per tier plus the ×3 price step brings it
+> back. `sim:check` now also asserts idle first Ascension ≤ 90 min, a casual median run Oil over
+> days 50–70 (R53's measure) of at least 1e11, and a casual median of ≥ 30 upgrades per run.
+> Result: first Ascension idle **60 min** (was 300), casual 10 min; upgrades per run median casual
+> **32**, idle **28** (R31: 31 / 22 with click upgrades); median run Oil over days 50–70 casual
+> **4.1e12**, idle **4.4e10** (main before R52: idle 7.2e9); 2-month row casual 2.5e12, idle
+> 5.7e11.
+
+> **R55 Ascension attunements (v5.5.0, issue #129).** After the first New Well the player picks 1
+> of 3 attunements for the run (`js/systems/AttunementSystem.js`, panel `js/ui/attunements.js`
+> under the New Well button). The pick can change until the first generator is bought; after that
+> a new pick waits for the next run, so Auto-Buy (which buys seconds after a New Well) never takes
+> the choice away. It carries over to every later run, Auto-Ascend included. Each is one additive
+> category in `getNetAetherPerSecond` (Steady acts on tier upgrades instead), best **≤ +40%**:
+>
+> | Attunement | Effect | Worth |
+> |---|---|---|
+> | **Idle** (default; old saves get it) | +30% production while the last *hand* tap is ≥ 60 s old | +30% idle; ~+25% for the casual model (present 10 min/h) |
+> | **Steady** | tier upgrades ×1.26 each instead of ×1.2 | +34% on a tier with all 6; ~+22% at a run's typical 4 per tier |
+> | **Focus** | +15% per subgame milestone this run, at most +40%: Excavation 25 / 100 blocks, Tower 1 / 5 bosses, Garden 3 / 10 harvests (counted from the run's start) | 0 … +40%; rewards playing the side tabs |
+>
+> *Auto-tap is not a tap for Idle.* Auto-tap only runs while the player isn't tapping (R52), so if
+> it counted, Idle would be off for everyone who owns it (all players from the first New Well);
+> its taps are paid from production, so they include the Idle bonus. *Steady's value*: the issue's
+> +25% (×1.25 each) was worth ~+18% at a typical run's 4 upgrades a tier, below Idle in every case,
+> so it is +30%. Focus milestones are per run so they come back after every New Well; the steps
+> were set from the Weekly Ledger paces (~400 blocks, ~5 bosses, ~24 harvests a week of
+> lifetime play) so a long run reaches most of them with light play.
+>
+> *Sim (`npm run sim`, default pick Idle in both profiles):* a steady +25–30% brings Transcends
+> forward (casual first eight: days 4.0 … 56.6, were 4.3 … 69.9), so day 50–70 sits earlier in a
+> later layer. First Ascension unchanged (idle 60 min, casual 10); upgrades per run median casual
+> **34**, idle **31** (were 32 / 28); median run Oil over days 50–70 casual **2.4e11** (was 4.1e12;
+> the ≥ 1e11 floor holds), idle 3.5e11 (was 4.4e10). `--attune=steady` compares Steady: its casual
+> run starts its first Chronicle at day ~58, inside the window, and the median falls to 3e9; the
+> window measure is sensitive to where a layer boundary lands, which `sim:check` asserts only for
+> the default pick.
 
 
 | Item | Today | Proposed | Why |
@@ -636,6 +724,7 @@ count (1 / 3 / 5 / 10 / 20) so the shop grows with the player.
 | Tier | Feature | Cost |
 |---|---|---|
 | Asc 1 | Cosmic Genesis (start with 15 Stalls, 1,000 gold) — keep | 5 |
+| Asc 1 | **Auto-tap** (1 click/s while you're not tapping, and offline; R52) | 5 |
 | Asc 1 | **Blueprint Memory**: keep the first 2 upgrades of each tier through Ascension | 25 |
 | Asc 1 | Chrono Reservoir I–X (+4 h offline at 100% per rank) | 25 × 1.5^r |
 | Asc 3 | **Auto-Buy** (best generator every 10 s) | 100 |
@@ -760,6 +849,13 @@ Highest run Oil per layer before each Transcend (casual): 3.7e8, 1.1e10, 4.2e10,
 per run median 31 casual (22 idle); about 106 Transcends and 11 Chronicles in the casual year.
 `sim:check` asserts the casual 2-month run Oil stays ≤ 1e13. The table below is the pre-R31
 proposal, kept for history.
+
+**R52 (v5.3.0):** with passive-first clicking (§6.1 R52 block) run Oil casual / idle reads 1 w
+2.1e7 / 8.4e8, 1 mo 6.3e11 / 7e8, **2 mo 2.5e12 / 5.7e11**, 3 mo 1.5e9 / 8.5e13 (the rows swing
+with where a reset lands; the median over days 50–70 is 4.1e12 / 4.4e10). Casual Transcends at
+days 4.3, 9.4, 15.0, 22.1, 30.9, 41.3, 54.1, 69.9, first Chronicle day 77 (idle 125); 106
+Transcends and 11 Chronicles in the casual year. First Ascension idle 60 min, casual 10 min;
+longest stretch without a reset (day 1–270) casual 2.3 days, idle 4.1 days.
 
 
 Model: proposed §6.1 constants; upgrade shop; one new tier per Transcend to 30; dust-shop
@@ -925,6 +1021,26 @@ After the first Chronicle the Seal half counts as met.
   another. Idle: Chronicles at 122, 216, 306. CPS at a year is lower than without the layer
   (~4e29 casual, just after Chronicle IV, vs 2e82): the layer restarts the climb rather than
   inflating numbers.
+- **Challenge rewards (R56, v5.3.0).** Every challenge pays one permanent reward on its first
+  clear, recorded in `chronicle.rewards` (default `{}`; a save from before R56 gets the rewards
+  of its old clears on load, recorded so they pay once). Kinds, each one additive category,
+  none compounding: `oil` (+x Oil, summed into the same factor as Margin Notes:
+  `1 + 0.25·clears + Σoil`), `offline` (+x offline efficiency, added to talents and Chronos
+  Contract), `startGen` (every run after an Ascension starts with n tier-1 generators, the max of
+  this and Cosmic Genesis), `pages` (+n Pages per Chronicle), `dig` (+x pickaxe power). Values:
+  Dry Well +10% Oil, Lights Out +10% offline, Small Souq 10 starting generators, Sandstorm +1
+  Page per Chronicle; Still Water +25% dig, Dark Flats +10% Oil, Narrow Caravan +10% offline,
+  Dead Sea +15% Oil. All Oil rewards together are +35%. Challenge runs keep layer bonuses off, so
+  the Oil rewards don't shorten later goals.
+- **Chapter 2, Salt (R56).** Starts where Sand ends (10 weeks). World rule: Excavation ×2, no
+  Oil change. Stamp pays **0 Pages** (deviation from Chapter 1's 3): the core sim reaches the
+  Salt stamp (casual Chronicle I at day ~70, Salt ends ~day 210) and plays no challenges, so
+  a Page stamp would move the year-one report (late-year pacing is already hot, R57). The
+  stamp stays a collection keepsake. Challenges (layer bonuses off): Still Water (no Auto-tap, no
+  spells, 3e6, 4 Pages), Dark Flats (no spells, 8 tiers, 2e6, 4), Narrow Caravan (5 tiers, Oil
+  ÷2, 1e5, 5, after 1 clear), Dead Sea (Oil ÷10, no Frenzy, no Auto-tap, 1e5, 6, after 3). Goals
+  are sized so a fresh idle run with no talents takes 12–31 h (Sand's take 7–31 h; R52 click model, 0.5 taps/s, no Auto-tap),
+  measured with a greedy buyer on the real classes. `npm run sim` is unchanged.
 
 ---
 
@@ -1010,6 +1126,7 @@ dependencies respected.
 | 19 | **Leaderboard Season 2** | `js/leaderboard.js`, `supabase/leaderboard_season2.sql` (new table `leaderboard_season`, keyed by season; Season 1 table frozen, never rewritten) | fairness after #8 | S–M |
 | 20 | **Chronicle layer**: Pages, Challenge runner (rule overrides on `GameState`), Chapter 1 "Sand" | new `js/systems/ChronicleSystem.js`, `main.js`, `index.html` | months 4–12 | L |
 | R31 | **Economy redesign core** (issue #67): 20-tier ladder ×10 cost / ×4 output, dust `10·(A/1e4)^(1/5)`, additive dust/shard/Page bonuses, gate `400·1.6^k`, repriced upgrade and dust shops, save step v8. Targets: ~1e12 Oil at day 60, ≤ 1e13 casual (asserted) | `BuildingSystem.js`, `PrestigeSystem.js`, `GameState.js`, `UpgradeSystem.js`, `DustShopSystem.js`, `ShardTreeSystem.js`, `ChronicleSystem.js`, `migrations.js`, `sim/core-pacing.mjs` | numbers players can read | L |
+| R53 | **Reprice outside the core** (issue #127): Oil achievement ladder 1e5–1e16, Forge `100·1.5^L`, subgame → Oil links one additive category (cap +150%), Geode/Nectar additive and smaller; `sim --links` | `AchievementSystem.js`, `CombatSystem.js`, `WorldLinks.js`, `GameState.js` (one line), `PrestigeSystem.js` (dust links), `tabBonuses.js`, sims | links can't add decades | M |
 
 **Minimum set that changes the verdict: #1–#6.** They touch only the core files, keep every
 save, and move the game from "one day" to "two to four months". #7–#12 make it feel like a
@@ -1039,7 +1156,9 @@ different game. #13–#20 are the year.
    that, stretch layer 2 instead (gate ×30, shards ×2/×2) and accept ~1e117.
 5. **Model fidelity.** `sim_core_proposed.mjs` is a float model, not the real classes, and it
    ignores subgame multipliers (Depth Resonance ×3 at a week, Enchanter, Catalysts ~×1.8).
-   Those shift the curve earlier by a few hours to a day; they do not change its shape. The
+   Those shift the curve earlier by a few hours to a day; they do not change its shape.
+   *R53:* on the R31 curve they did change it (2-month Oil ~4e16); they are now one additive
+   category capped at +150% and `npm run sim -- --links` measures them (§6.1, R53 block). The
    upgrade-shop data table should be simulated on the real classes before #5 ships.
 6. **The roadmap's Seven Seals as the Transcend gate** is in conflict with this proposal; I
    keep the Seals as a shard bonus and half of the Chronicle gate. The owner should pick one.

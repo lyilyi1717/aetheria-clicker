@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.2.0';
+export const VERSION = '5.6.0';
 
 export const CHANGELOG = [
   {
-    version: '5.2.0',
+    version: '5.6.0',
     date: '2026-10-08',
     title: 'Vote for bugs and ideas, no GitHub needed',
     changes: [
@@ -16,6 +16,96 @@ export const CHANGELOG = [
       'You can post 3 requests a day, delete your own while they are still in the Vote list, and report spam or abuse: 3 reports hide a request for everyone.',
       'The GitHub way still works for players who prefer it.'
     ]
+  },
+  {
+    version: '5.5.0',
+    date: '2026-10-08',
+    title: 'Pick a build for each run',
+    changes: [
+      'New after your first New Well: Run Attunement, in the Ascension tab under the New Well button. Pick one of three for each run; you can change it until you buy your first generator, and it stays with you for every New Well after (Auto-Ascend keeps it too).',
+      'Idle: +30% Oil production while you haven\'t tapped for 60 seconds. Auto-tap doesn\'t count as a tap, so it never interrupts the bonus. Everyone starts with Idle, including existing saves.',
+      'Steady: generator upgrades are 30% stronger, +26% each instead of +20% (about +34% for a generator with all 6 upgrades).',
+      'Focus: +15% Oil production for each side-tab goal you reach in the run (dig 25 and 100 blocks, beat 1 and 5 bosses, harvest 3 and 10 plants), up to +40%.',
+      'Changed your mind after buying a generator? Pick another one anyway: it starts with your next New Well.'
+    ],
+    ar: {
+      title: 'اختر أسلوبك لكل جولة',
+      changes: [
+        'جديد بعد بئرك الجديدة الأولى: تناغم الجولة، في تبويب الصعود تحت زر البئر الجديدة. اختر واحدًا من ثلاثة لكل جولة؛ يمكنك تغييره حتى تشتري أول مولّد، ثم يبقى معك في كل بئر جديدة بعدها (والصعود التلقائي يحتفظ به أيضًا).',
+        'الهدوء: +30% من إنتاج النفط ما دمت لم تنقر منذ 60 ثانية. النقر التلقائي لا يُحسب نقرة، فلا يقطع المكافأة أبدًا. الجميع يبدأ بالهدوء، ومنهم أصحاب الحفظ الحالي.',
+        'الثبات: ترقيات المولّدات أقوى بنسبة 30%، أي +26% لكل ترقية بدلًا من +20% (نحو +34% لمولّد يملك ترقياته الست كلها).',
+        'التركيز: +15% من إنتاج النفط لكل هدف تبلغه في الألعاب الجانبية خلال الجولة (احفر 25 ثم 100 مربع، واهزم زعيمًا ثم 5 زعماء، واحصد 3 ثم 10 نباتات)، حتى +40%.',
+        'غيّرت رأيك بعد شراء مولّد؟ اختر غيره على أي حال: يبدأ مع بئرك الجديدة التالية.'
+      ]
+    }
+  },
+  {
+    version: '5.4.0',
+    date: '2026-10-08',
+    title: 'Challenge rewards and the Chapter of Salt',
+    changes: [
+      'Every Chronicle challenge now pays a permanent reward on its first clear, shown on its card: Dry Well +10% Oil, Lights Out +10% offline Oil, Small Souq starts every run with 10 Shawarma Stalls, Sandstorm +1 Page from every Chronicle. Rewards of the same kind add together, and the Oil ones add to Margin Notes rather than multiplying.',
+      'Challenges you cleared before this update pay their rewards as soon as you load your save.',
+      'The Chapter of Salt follows the Chapter of Sand: for ten weeks the dig hits twice as hard, with no Oil penalty. Its four new challenges stay open after it ends: Still Water (no Auto-tap, no spells; +25% Excavation power), Dark Flats (no spells, 8 generators; +10% Oil), Narrow Caravan (5 generators at half pay; +10% offline Oil) and Dead Sea (Oil ÷10, no Frenzy, no Auto-tap; +15% Oil). They also pay 4 to 6 Pages on the first clear.',
+      'If your Chapter of Sand has already ended, the Chapter of Salt starts where it ended. Its stamp is a keepsake and pays no Pages.'
+    ],
+    ar: {
+      title: 'مكافآت التحديات وفصل الملح',
+      changes: [
+        'صار كل تحدٍّ من تحديات السجل يمنح مكافأة دائمة عند إنجازه أول مرة، وتظهر على بطاقته: البئر الجافة +10% نفط، وانطفاء الأنوار +10% من نفط الغياب، والسوق الصغير يبدأ كل جولة بـ 10 من أكشاك الشاورما، والعاصفة الرملية +1 صفحة من كل سجل. المكافآت من النوع نفسه تُجمع، ومكافآت النفط تُضاف إلى ملاحظات الهامش بدل أن تتضاعف.',
+        'التحديات التي أنجزتها قبل هذا التحديث تمنح مكافآتها بمجرد تحميل حفظك.',
+        'فصل الملح يأتي بعد فصل الرمل: لعشرة أسابيع يضرب الحفر بضعف القوة، دون أي خصم من النفط. وتبقى تحدياته الأربعة الجديدة مفتوحة بعد انتهائه: الماء الراكد (لا نقر تلقائي ولا تعاويذ؛ +25% من قوة التنقيب)، والسباخ المظلمة (لا تعاويذ، 8 مولّدات؛ +10% نفط)، والقافلة الضيقة (5 مولّدات بنصف العائد؛ +10% من نفط الغياب)، والبحر الميت (النفط ÷10، ولا هيجان، ولا نقر تلقائي؛ +15% نفط). وتمنح أيضًا من 4 إلى 6 صفحات عند أول إنجاز.',
+        'إذا كان فصل الرمل قد انتهى عندك، يبدأ فصل الملح من حيث انتهى. ختمه تذكار ولا يمنح صفحات.'
+      ]
+    }
+  },
+  {
+    version: '5.3.0',
+    date: '2026-10-08',
+    title: 'Your generators do the work',
+    changes: [
+      'Clicking is weaker now, on purpose: your generators drive progress and tapping is a small extra. Each tap pays half a second of your current production (at least 1 Oil), instead of a flat amount plus 3% of production.',
+      'The 15 click upgrades are gone. If you bought any, their Oil has been refunded to you.',
+      'Only 5 taps a second pay. Faster tapping still sparkles, but pays nothing extra.',
+      'New in the Reserve Shop: Auto-tap (5 Reserves, after your first New Well). It taps the Refinery once a second whenever you aren\'t tapping, and keeps going while you\'re away: +50% Oil on top of your generators.',
+      'Your first New Well comes much sooner: it now pays from 500 Oil in a run (was 10,000), and 500 Oil pays 5 Reserves, just enough for Auto-tap. Bigger runs pay the same as before.',
+      'Each generator now has 6 upgrades (was 5), at 1, 3, 8, 15, 30 and 60 owned (was 1, 5, 15, 30 and 60), and they are cheaper: each costs 3× the one before it (was 4×), starting at 3× the generator\'s base price. With the click upgrades gone, a run still offers about as many upgrades as before.',
+      'Active play is toned down so idle play keeps up. Playing actively now earns about twice what an idle player with Auto-tap earns (was about 7×). The combo still builds and triggers Frenzy, but no longer multiplies taps (was up to ×5). Frenzy is +25% tap yield (was ×3). Oil Burst pays 10 s of production every 60 s (was 45 s every 45 s). Celestial Alignment is +25% (was +150%). Chrono Warp can be cast every 10 min (was every minute). Supernova pays 30 s of production (was 3 min). Mirage is ×1.5 Oil and gold (was ×2).',
+      'Chronicle challenge Dry Well: Frenzy still never starts, and Auto-tap now rests instead of the old combo cap.'
+    ],
+    ar: {
+      title: 'مولّداتك تقوم بالعمل',
+      changes: [
+        'النقر أضعف الآن عن قصد: مولّداتك هي ما يدفع تقدّمك، والنقر إضافة صغيرة. كل نقرة تدفع نصف ثانية من إنتاجك الحالي (نفط واحد على الأقل)، بدلًا من مقدار ثابت مع 3% من الإنتاج.',
+        'أُزيلت ترقيات النقر الخمس عشرة. إن كنت اشتريت شيئًا منها فقد أُعيد إليك نفطها.',
+        'خمس نقرات فقط في الثانية تُحتسب. النقر الأسرع ما زال يلمع، لكنه لا يدفع شيئًا إضافيًا.',
+        'جديد في متجر الاحتياطي: النقر التلقائي (5 احتياطي، بعد بئرك الجديدة الأولى). ينقر المصفاة مرة كل ثانية حين لا تنقر أنت، ويستمر وأنت غائب: +50% نفط فوق مولّداتك.',
+        'بئرك الجديدة الأولى تأتي أبكر بكثير: صارت تدفع ابتداءً من 500 نفط في الجولة (كانت 10,000)، و500 نفط تدفع 5 احتياطي، وهي بالضبط ثمن النقر التلقائي. الجولات الأكبر تدفع كما كانت.',
+        'لكل مولّد الآن 6 ترقيات (كانت 5)، عند امتلاك 1 و3 و8 و15 و30 و60 (كانت 1 و5 و15 و30 و60)، وهي أرخص: كل ترقية تكلّف 3× التي قبلها (كانت 4×)، بدءًا من 3× السعر الأساسي للمولّد. ومع إزالة ترقيات النقر، ما زالت الجولة تقدّم عددًا من الترقيات قريبًا مما كان.',
+        'خُفّف اللعب النشط حتى يواكبه اللعب الخامل. اللعب النشط يكسب الآن نحو ضعف ما يكسبه لاعب خامل يملك النقر التلقائي (كان نحو 7×). الكومبو ما زال يتراكم ويُطلق الهيجان، لكنه لم يعد يضاعف النقرات (كان حتى ×5). الهيجان +25% من عائد النقر (كان ×3). انفجار النفط يدفع 10 ث من الإنتاج كل 60 ث (كان 45 ث كل 45 ث). الاصطفاف السماوي +25% (كان +150%). طيّ الزمن يُلقى كل 10 دقائق (كان كل دقيقة). المستعر الأعظم يدفع 30 ث من الإنتاج (كان 3 دقائق). السراب ×1.5 نفط وذهب (كان ×2).',
+        'تحدي الملحمة «البئر الجافة»: الهيجان ما زال لا يبدأ، والنقر التلقائي يستريح الآن بدلًا من حدّ الكومبو القديم.'
+      ]
+    }
+  },
+  {
+    version: '5.2.0',
+    date: '2026-10-08',
+    title: 'Everything else, sized for the new numbers',
+    changes: [
+      'Oil achievements can be earned again. The eight Oil ladder goals asked for 1e18 to 1e72 Oil in one run, which the new economy never reaches. They now sit at 100,000, 10 million, 100 million, 10 billion, 100 billion, 1e13, 1e14 and 1e16 (with new names), so together with the four original ones there is one Oil goal for every ×10 from 100,000 to 1e16. Achievements you already earned stay earned.',
+      'The Oil Forge costs 100 Oil for its first level and ×1.5 more for each level after (was 100,000 and ×5), so the hero keeps getting stronger with today\'s Oil. Forge levels you already have are kept.',
+      'Bonuses from other tabs to Oil production now add together instead of multiplying, and all of them together give at most +150%. Each one is smaller to match: Depth Resonance +0.2% per max depth (was +2%), Aetheric Treaty +2% per rank (was +25%), High Enchanter +0.4% per level (was +5%), Philosopher\'s Catalyst +0.2% each (was +2%). Building and Dungeon Mastery are unchanged. This is a nerf: on the new scale these bonuses multiplied to over ×100 and pushed Oil far past the pace the economy is built for. The Oil/s tooltip shows the total.',
+      'Bonuses to Crude Reserves from the Dig and the Garden also add together now: Geode Attunement gives +2% per 10 max depth (was +10%) and Honey Offering up to +20% (was up to ×2, same Honey needed for the maximum). Reserve Amplifier is unchanged. This is also a nerf: Reserves grow slowly with Oil now, so a small Reserve bonus is worth a lot of Oil.'
+    ],
+    ar: {
+      title: 'كل ما تبقّى بمقاس الأرقام الجديدة',
+      changes: [
+        'صار بالإمكان نيل إنجازات النفط من جديد. كانت أهداف سلّم النفط الثمانية تطلب من 1e18 إلى 1e72 نفط في جولة واحدة، ولا يبلغها الاقتصاد الجديد أبدًا. صارت الآن عند 100,000 و10 ملايين و100 مليون و10 مليارات و100 مليار و1e13 و1e14 و1e16 (بأسماء جديدة)، فمع الإنجازات الأربعة الأصلية هناك هدف نفط لكل ×10 من 100,000 إلى 1e16. الإنجازات التي نلتها تبقى لك.',
+        'مستوى فرن النفط الأول يكلّف 100 نفط، وكل مستوى بعده ×1.5 أكثر (كان 100,000 و×5)، فيستمر البطل في التقوّي بنفط اليوم. مستويات الفرن التي لديك تبقى.',
+        'مكافآت إنتاج النفط القادمة من التبويبات الأخرى تُجمع الآن بدل أن تتضاعف، ومجموعها كلها +150% على الأكثر. وصغُرت كل واحدة لتناسب ذلك: رنين العمق +0.2% لكل مستوى من أقصى عمق (كان +2%)، ومعاهدة النفط +2% لكل رتبة (كانت +25%)، وكبير السحرة +0.4% لكل مستوى (كان +5%)، ومحفّز الحكيم +0.2% لكل محفّز (كان +2%). إتقان المباني وإتقان الزنزانة دون تغيير. هذا إضعاف: على المقياس الجديد كانت هذه المكافآت تتضاعف إلى أكثر من ×100 وتدفع النفط أسرع بكثير مما بُني عليه الاقتصاد. تلميح النفط/ث يعرض المجموع.',
+        'مكافآت الاحتياطي الخام من الحفر والحديقة تُجمع الآن أيضًا: تناغم الجيود يعطي +2% لكل 10 مستويات من أقصى عمق (كان +10%)، وقربان العسل حتى +20% (كان حتى ×2، والعسل اللازم للحد الأقصى نفسه). مضخّم الاحتياطي دون تغيير. وهذا إضعاف أيضًا: الاحتياطي ينمو ببطء مع النفط الآن، فمكافأة صغيرة عليه تساوي الكثير من النفط.'
+      ]
+    }
   },
   {
     version: '5.1.0',
