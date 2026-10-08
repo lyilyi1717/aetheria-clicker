@@ -38,6 +38,7 @@ import { ShardTreeSystem, autoAscendRuleMet, AUTO_ASCEND_RULES, AUTO_ASCEND_DEFA
 import { ChronicleSystem, chronicleClock, PAGE_UPGRADES } from '../js/systems/ChronicleSystem.js';
 import { measureActiveIncome } from './active-income.mjs'; // R3 block below
 import { CLICK_CPS_SECONDS } from '../js/systems/combo.js';
+import { ATTUNEMENT_IDS, DEFAULT_ATTUNEMENT } from '../js/systems/AttunementSystem.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
@@ -285,8 +286,18 @@ function applyLinks(gs, t) {
 }
 // ---------------------------------------------------------------------------------------------
 
+// --- R55 attunement block ------------------------------------------------------------------------
+// Every run keeps one attunement (Auto-Ascend keeps the last pick). Default: Idle, the default for
+// new and old saves (+30% production while the last hand tap is 60 s old; Auto-tap isn't a tap).
+// `--attune=steady` compares Steady (tier upgrades x1.26 each). Focus needs the subgames, which
+// the core sim leaves off, so it would read +0% here.
+const ATTUNEMENT = process.argv.find(a => a.startsWith('--attune='))?.slice(9) || DEFAULT_ATTUNEMENT;
+if (!ATTUNEMENT_IDS.includes(ATTUNEMENT)) throw new Error(`sim: unknown attunement ${ATTUNEMENT}`);
+// ---------------------------------------------------------------------------------------------
+
 function run(profile) {
   const gs = new GameState();
+  gs.attunement.id = ATTUNEMENT;   // R55 attunement block
   const bs = new BuildingSystem(gs);
   const ps = new PrestigeSystem(gs);
   const ach = new AchievementSystem(gs);
@@ -363,12 +374,14 @@ function run(profile) {
   while (t < YEAR) {
     const dt = dtFor(t);
     if (LINKS && (t % 3600 < dt || dt >= 3600)) applyLinks(gs, t);
-    const cps = gs.getNetAetherPerSecond();
     const present = t % 3600 < presence;
     // R52: Auto-tap (dust shop) taps 1/s whenever the player isn't tapping. Before it, the idle
     // player taps by hand for the first 3 min of a run.
     const autoTap = !present && gs.hasAutoTap();
     const clicksPerSec = present ? 2 : (!autoTap && t - runStart < 180 ? 1 : 0);
+    // R55 attunement block: hand taps reset the Idle attunement's clock, Auto-tap doesn't
+    gs.secondsSinceTap = clicksPerSec > 0 ? 0 : gs.secondsSinceTap + dt;
+    const cps = gs.getNetAetherPerSecond();
     gs.totalClicks += clicksPerSec * dt;   // Finger of Wasta counts this run's (manual) clicks
     // Present: ACTIVE_MULT holds the clicks' 0.5 s share (R3 block). Away: plain taps, 0.5 s each.
     const clickIncome = present ? clickFloorExtra(gs, cps, clicksPerSec)
@@ -483,6 +496,7 @@ const failures = [];
 const out = [];
 const only = process.argv.find(a => a.startsWith('--only='))?.slice(7);   // --only=casual: one profile (tuning)
 if (LINKS) out.push('(--links: subgame links on, schedule in the R53 block)');
+out.push(`Attunement every run (R55): ${ATTUNEMENT}`);
 for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
   const r = run(profile);
   out.push(`\n### profile: ${profile}\n`);

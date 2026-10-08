@@ -1,6 +1,8 @@
 // Per-tab "Active Bonuses" strip: shows which Constellation talents, Dust shop features,
 // Universal Mastery cross-bonuses and timed buffs (elixirs/spells) affect the current tab.
 
+import { getAttunement } from './systems/AttunementSystem.js';
+import { attunementNow } from './ui/attunements.js';
 import { getGeodeAttunementMult, getNectarOfferingMult, getNectarHeld } from './systems/PrestigeSystem.js';
 import { getRunClicks, getFingerOfWastaMult } from './systems/DustShopSystem.js';
 import { itemName } from './data/names.js';
@@ -170,6 +172,11 @@ export function getTabBonuses(gameState, tab, talentDefs, shopDefs) {
     if (m.value > 1 && m.tabs.includes(tab)) {
       items.push({ kind: 'mastery', icon: m.icon, name: m.name, detail: `${fmtMastery(m)} ${m.effect} · ${m.source}` });
     }
+  }
+  // Run attunement (R55) on the generator tab: its name and what it is worth right now
+  const att = getAttunement(gameState);
+  if (att && tab === 'monolith') {
+    items.push({ kind: 'perk', icon: '🧿', name: `${t('att.title')}: ${t(`att.${att}.name`)}`, detail: attunementNow(gameState, att) });
   }
   for (const b of gameState.activeBuffs || []) {
     if ((BUFF_TYPE_TABS[b.type] || []).includes(tab)) {

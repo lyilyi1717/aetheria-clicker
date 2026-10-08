@@ -15,6 +15,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
 import { getDeepBlueprintDivisor } from './ShardTreeSystem.js';
+import { getTierUpgradeStep } from './AttunementSystem.js';
 import { t, localizeList } from '../i18n/index.js';
 
 export const TIER_UPGRADE_THRESHOLDS = [1, 3, 8, 15, 30, 60];
@@ -105,8 +106,9 @@ const isBoughtIn = (gs, id) => gs?.upgrades?.[id] === true;
 export function getTierUpgradeMult(gs, buildingId) {
   if (!gs?.upgrades) return 1;
   let mult = 1;
+  const step = getTierUpgradeStep(gs, TIER_UPGRADE_MULT);   // Steady attunement (R55): x1.26
   for (const u of TIER_UPGRADES_BY_BUILDING.get(buildingId) || []) {
-    if (isBoughtIn(gs, u.id)) mult *= TIER_UPGRADE_MULT;
+    if (isBoughtIn(gs, u.id)) mult *= step;
   }
   let synergy = 0;
   for (const u of SYNERGIES_BY_TARGET.get(buildingId) || []) {

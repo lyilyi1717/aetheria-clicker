@@ -14,6 +14,7 @@ import { defaultDustShopState, sanitizeDustShopState, getShopRank, hasShopItem, 
 import { isTabUnlocked, sanitizeUnlocks, sanitizeUnlockSeen } from './UnlockSystem.js';
 import { defaultNewsState, sanitizeNews } from '../ui/newsTicker.js';
 import { getWorldLinkMult } from './WorldLinks.js';
+import { defaultAttunementState, sanitizeAttunementState, getAttunementMult } from './AttunementSystem.js';
 
 // Prestige bonuses (design doc 6.1, R31). All additive, none compounding. Kept here, not in
 // PrestigeSystem, because PrestigeSystem imports audio/particles and GameState must stay loadable
@@ -68,6 +69,11 @@ export class GameState {
 
     // Daily Dallah, Weekly Ledger, Seals (R15, CalendarSystem.js); nothing in it is ever taken away
     this.calendar = defaultCalendarState();
+
+    // Ascension attunement (R55, AttunementSystem.js): this run's pick, kept across Ascensions
+    this.attunement = defaultAttunementState(this);
+    // Seconds since the player's last tap (runtime only, ClickerSystem; Idle attunement)
+    this.secondsSinceTap = Infinity;
 
     // Active Clicker Stats
     this.clickPower = new BigNum(1);
@@ -180,6 +186,9 @@ export class GameState {
     // Subgame links (Building and Dungeon Mastery, Depth Resonance, High Enchanter, Aetheric
     // Treaty, Philosopher's Catalyst) add into one category (R53, WorldLinks.js)
     mult *= getWorldLinkMult(this);
+
+    // Ascension attunement (R55): Idle or Focus, one additive bonus (Steady acts on tier upgrades)
+    mult *= getAttunementMult(this);
 
     // Active Aether buffs add together within one category (Celestial +300% & Philter +200% = x6)
     mult *= this.getAetherBuffMult();
@@ -383,6 +392,7 @@ export class GameState {
       shardTree: this.shardTree,
       chronicle: this.chronicle,
       calendar: this.calendar,
+      attunement: this.attunement,
       clickPower: this.clickPower.toJSON(),
       critChance: this.critChance,
       critMultiplier: this.critMultiplier,
@@ -507,6 +517,8 @@ export class GameState {
       // Saves from before R7 arrive with unlocks seeded from what they've used (migration v6)
       this.unlocks = sanitizeUnlocks(data.unlocks);
       this.unlockSeen = sanitizeUnlockSeen(data.unlockSeen);
+      // Saves from before R55 have no attunement: Idle, milestones counted from now
+      this.attunement = sanitizeAttunementState(data.attunement, this);
       // Saves from before R9 have no records: seed them from what the save shows (no grants)
       this.records = data.records ? sanitizeRecords(data.records) : seedRecords(this);
       // Saves from before R23 have played past the first visits: start every guide collapsed

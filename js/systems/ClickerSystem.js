@@ -79,6 +79,7 @@ export class ClickerSystem {
   handleClick(clientX, clientY, isAutoClick = false) {
     if (!isAutoClick) {
       this.sinceManualClick = 0;
+      this.gameState.secondsSinceTap = 0;   // Idle attunement (R55); Auto-tap never resets it
       // Over CLICK_MAX_PER_SEC: the tap animates and sounds, but pays nothing
       if (this.clickTokens < 1) {
         sound.playClick(1 + (this.gameState.comboCount % FRENZY_EVERY) * 0.03);
@@ -160,6 +161,7 @@ export class ClickerSystem {
   update(dt, realDt = dt) {
     this.clickTokens = Math.min(CLICK_MAX_PER_SEC, this.clickTokens + CLICK_MAX_PER_SEC * realDt);
     this.sinceManualClick += realDt;
+    this.gameState.secondsSinceTap = (this.gameState.secondsSinceTap ?? Infinity) + realDt;
     if (this.isAutoTapping()) {
       this.autoTapAcc += AUTO_TAP_PER_SEC * realDt;
       while (this.autoTapAcc >= 1) { this.autoTapAcc -= 1; this.autoTap(); }

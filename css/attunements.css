@@ -1,0 +1,38 @@
+/* Ascension attunements (R55): js/ui/attunements.js. Tokens and components from
+   docs/ui-style-guide.md; cards follow the dust shop's .ds-item. Linked from attunements.js. */
+
+.att { margin: var(--sp-5) 0 var(--sp-2); text-align: start; }
+.att[hidden] { display: none; }
+.att-head h2 { margin: 0; font-size: var(--fs-18); }
+.att-intro { font-size: var(--fs-12); color: var(--text-2); margin: var(--sp-1) 0 var(--sp-3); max-width: 70ch; }
+
+.att-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); }
+.att-card {
+  display: grid; grid-template-columns: 32px 1fr; gap: var(--sp-2); align-items: start;
+  min-height: 44px; padding: var(--sp-3); border-radius: var(--r-2); text-align: start;
+  background: var(--bg-2); border: 1px solid var(--line-1); color: var(--text-1);
+  font: inherit; cursor: pointer; min-width: 0;
+}
+.att-card:hover { background: var(--bg-3); }
+.att-card:focus-visible { outline: 2px solid var(--dust); outline-offset: 2px; }
+.att-card.on { border-color: var(--dust); background: var(--dust-dim); }
+.att-card.queued { border-color: var(--dust); border-style: dashed; }
+.att-icon { font-size: var(--fs-20); line-height: 1.2; }
+.att-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.att-name { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-2); font-size: var(--fs-14); font-weight: 700; }
+.att-tag { font-size: var(--fs-11); font-weight: 600; color: var(--dust); white-space: nowrap; }
+.att-tag[hidden] { display: none; }
+.att-desc { font-size: var(--fs-12); color: var(--text-2); }
+.att-now { font-size: var(--fs-12); color: var(--dust); font-weight: 600; }
+.att-now:empty { display: none; }
+
+/* T0 pick: a quick squash; a fresh New Well: one glow (never loops) */
+.att-card.pop { animation: att-pop 200ms ease-out; }
+.att.fresh .att-cards { animation: att-glow 1.2s ease-out 1; border-radius: var(--r-2); }
+@keyframes att-pop { 0% { transform: scale(1); } 40% { transform: scale(0.97); } 100% { transform: scale(1); } }
+@keyframes att-glow { 0% { box-shadow: 0 0 0 0 var(--dust); } 100% { box-shadow: 0 0 0 12px transparent; } }
+[data-motion="reduced"] .att-card.pop, [data-motion="reduced"] .att.fresh .att-cards { animation: none; }
+
+@media (max-width: 639px) {
+  .att-cards { grid-template-columns: 1fr; }
+}
