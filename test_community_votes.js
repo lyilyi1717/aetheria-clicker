@@ -124,6 +124,10 @@ console.log('--- vote client: signed out, table missing ---');
   const off = new CommunityVotes({ getCloud: () => cloud(true), fetchFn: mockServer({ missing: true }).fetchFn, storage: memStore(), url: 'https://x' });
   await off.load();
   assert.equal(off.state, 'off', 'before the SQL is run the tab falls back to GitHub only');
+  const locked = new CommunityVotes({ getCloud: () => cloud(true), storage: memStore(), url: 'https://x',
+    fetchFn: async () => ({ ok: false, status: 401, json: async () => ({ code: '42501' }), clone() { return this; } }) });
+  await locked.load();
+  assert.equal(locked.state, 'off', 'tables without grants yet count as not set up');
   const down = new CommunityVotes({ fetchFn: async () => { throw new Error('offline'); }, storage: { getItem() { throw new Error('x'); }, setItem() { throw new Error('x'); } }, url: 'https://x' });
   await down.load();
   assert.equal(down.state, 'error');

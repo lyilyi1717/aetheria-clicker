@@ -108,7 +108,8 @@ function writeJson(storage, key, value) {
 async function isMissing(res) {
   if (res.status === 404) return true;
   if (res.status < 400) return false;
-  try { const b = await res.clone().json(); return ['PGRST205', '42P01'].includes(b?.code); } catch { return false; }
+  // Missing table, or tables present but not opened to players yet (SQL run only in part)
+  try { const b = await res.clone().json(); return ['PGRST205', '42P01', '42501'].includes(b?.code); } catch { return false; }
 }
 async function bodyOf(res) {
   try { return await res.json(); } catch { return null; }
