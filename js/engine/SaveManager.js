@@ -1,6 +1,7 @@
 // SaveManager: LocalStorage, Auto-Save, Export/Import, and Offline Progression
 import { getOfflineBonusSeconds } from '../systems/ShardTreeSystem.js';
 import { getShopRank } from '../systems/DustShopSystem.js';
+import { getChallengeRewardTotal } from '../systems/ChronicleSystem.js';
 
 const SAVE_KEY = 'AETHERIA_CHRONICLES_SAVE_V1';
 
@@ -131,6 +132,8 @@ export class SaveManager {
     if (this.gameState.quartermaster && this.gameState.quartermaster['chronos_contract']) {
       offlineEfficiency += this.gameState.quartermaster['chronos_contract'].rank * 0.05;
     }
+    // Challenge rewards (R56) add to the same efficiency
+    offlineEfficiency += getChallengeRewardTotal(this.gameState, 'offline');
     
     // Banded payout (100% then 50%); Chrono Reservoir extends the bands. Efficiency (talents,
     // Chronos Contract) multiplies whatever the bands pay.
