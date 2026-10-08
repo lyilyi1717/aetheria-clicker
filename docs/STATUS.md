@@ -298,6 +298,12 @@ R0–R30 and R32–R40 are done.
 - #151 Bug: email confirmation/reset links gave no visible result. `AccountUI.init` now opens
   Settings, scrolls to Account and shows the outcome; `otp_expired` maps to `cloud.link_expired`.
 
+- #152 Leaderboard: registered players only. No guest sign-in; `Leaderboard.ensureSession` uses
+  the account session. Name = account `user_metadata.nickname` (`CloudSave.setNickname`, asked at
+  sign-up) > old `settings.lbName` > `funnyName(user_id)` (`js/data/funnyNames.js`). Server rules
+  and guest-row cleanup: `supabase/leaderboard_registered.sql` (handles Season 1 live or frozen;
+  re-run it after `leaderboard_season2.sql`).
+
 ## Notes for the next session
 
 - **Game feel:** `docs/game-feel-guide.md` sets feedback tiers (T0 tap to T3 peak) and a

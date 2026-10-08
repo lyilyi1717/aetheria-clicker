@@ -87,7 +87,7 @@ function fakeSupabase({ autoconfirm = true, savesTable = true } = {}) {
   const issue = (user) => {
     const at = `at-${++db.seq}`, rt = `rt-${db.seq}`;
     db.tokens.set(at, user.id); db.tokens.set(rt, user.id);
-    return { access_token: at, refresh_token: rt, expires_in: 3600, user: { id: user.id, email: user.email, app_metadata: { provider: 'email' } } };
+    return { access_token: at, refresh_token: rt, expires_in: 3600, user: { id: user.id, email: user.email, app_metadata: { provider: 'email' }, user_metadata: { ...user.meta } } };
   };
   globalThis.fetch = async (url, opts = {}) => {
     if (db.down) throw new TypeError('Failed to fetch');
@@ -103,7 +103,7 @@ function fakeSupabase({ autoconfirm = true, savesTable = true } = {}) {
       if (p === 'signup') {
         if (!body.email) { const anon = { id: `anon-${++db.seq}`, anon: true }; db.users.set(anon.id, anon); return json(200, issue(anon)); }
         if ([...db.users.values()].some(x => x.email === body.email)) return json(422, { code: 'user_already_exists', msg: 'User already registered' });
-        const user = { id: `uid-${++db.seq}`, email: body.email, password: body.password, confirmed: autoconfirm };
+        const user = { id: `uid-${++db.seq}`, email: body.email, password: body.password, confirmed: autoconfirm, meta: { ...body.data } };
         db.users.set(user.id, user);
         return autoconfirm ? json(200, issue(user)) : json(200, { id: user.id, email: user.email });
       }
@@ -120,7 +120,12 @@ function fakeSupabase({ autoconfirm = true, savesTable = true } = {}) {
           return id ? json(200, issue(db.users.get(id))) : json(400, { error_code: 'refresh_token_not_found' });
         }
       }
-      if (p === 'user') return who ? json(200, { id: who, email: db.users.get(who).email }) : json(401, { msg: 'no' });
+      if (p === 'user') {
+        if (!who) return json(401, { msg: 'no' });
+        const user = db.users.get(who);
+        if (method === 'PUT' && body.data) user.meta = { ...user.meta, ...body.data };
+        return json(200, { id: who, email: user.email, user_metadata: { ...user.meta } });
+      }
       if (p === 'recover') return json(200, {});
       if (p === 'logout') return new Response(null, { status: 204 });
       return json(404, {});
@@ -370,29 +375,38 @@ function browser(name) {
   assert.equal(H.cloud.signedIn, false);
 }
 
-// --- Leaderboard: a signed-in player's row is the account's ------------------------------
+// --- Leaderboard: only accounts post, under their nickname ---------------------------------
 {
   const db = fakeSupabase();
   const L = browser('L');
-  L.gs.settings.lbName = 'Linker';
-  const app = { gameState: L.gs, saveManager: L.sm };
+  const app = { gameState: L.gs, saveManager: L.sm, cloudSave: L.cloud };
   const lb = new Leaderboard(app);
   lb.resolveSeason = async () => 2;
-  // Guest first
+  // Guest: nothing is posted and no anonymous user is made
   await lb.push('t');
-  const guestId = lb.session.user_id;
-  assert.ok(db.lb.has(guestId));
-  // Sign in: the next push writes the account's row and removes the guest row
-  await L.cloud.signUp('l@example.com', 'secret99');
-  app.cloudSave = L.cloud;
+  assert.equal(db.lb.size, 0);
+  assert.equal([...db.users.values()].some(u => u.anon), false);
+  // Sign up with a nickname: the account's row carries it
+  await L.cloud.signUp('l@example.com', 'secret99', 'Linker');
+  assert.equal(L.cloud.nickname, 'Linker');
   await lb.push('t');
-  assert.equal(lb.session.user_id, L.cloud.session.user_id);
-  assert.ok(db.lb.has(L.cloud.session.user_id));
-  assert.equal(db.lb.has(guestId), false, 'guest row retired, player listed once');
-  // Sign out: back to the guest player
+  const uid = L.cloud.session.user_id;
+  assert.equal(db.lb.get(uid).display_name, 'Linker');
+  // Rename: stored on the account, used by the next push
+  await L.cloud.setNickname('Oil Baron');
+  assert.equal(db.users.get(uid).meta.nickname, 'Oil Baron');
+  await lb.push('t');
+  assert.equal(db.lb.get(uid).display_name, 'Oil Baron');
+  // Signed out: posting stops
   await L.cloud.signOut();
+  db.lb.clear();
   await lb.push('t');
-  assert.equal(lb.session.user_id, guestId);
+  assert.equal(db.lb.size, 0);
+  // A confirmation link brings the nickname chosen at sign-up
+  const u2 = { id: 'uid-link', email: 'm@example.com', confirmed: true, meta: { nickname: 'Mango Fan' } };
+  db.users.set(u2.id, u2); db.tokens.set('mAT', u2.id);
+  await L.cloud.handleCallback('https://g.example/#access_token=mAT&refresh_token=mRT&expires_in=3600&type=signup');
+  assert.equal(L.cloud.nickname, 'Mango Fan');
 }
 
 console.log('Cloud save tests passed.');
