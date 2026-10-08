@@ -752,6 +752,7 @@ export default {
   "m.rule.depth_vitality": "+1% per max depth, max +100%",
   "m.rule.golden": "+0.4% per level",
   "m.rule.catalyst": "+0.2% per catalyst",
+  "m.rule.treaty": "+2% per rank",
   "m.rule.geode": "+2% per 10 max depth",
   "m.rule.nectar": "+0.4% × √Honey, max +20%",
   "m.tooltip": "Mastery bonuses on Oil/s add up ({x} total, at most {cap}):",

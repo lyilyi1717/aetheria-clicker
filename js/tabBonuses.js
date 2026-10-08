@@ -122,7 +122,7 @@ export function getMasteries(gs) {
   const treaty = QUARTERMASTER_UPGRADES.find(u => u.id === 'aether_treaty');
   const treatyRank = gs.quartermaster?.aether_treaty?.rank || 0;
   list.push({ id: 'treaty', icon: treaty.icon, name: treaty.name, effect: t('m.oil'), oil: true, tabs: ['monolith'],
-    value: treatyMult(gs), source: t('tb.rank', { n: treatyRank }), rule: treaty.desc });
+    value: treatyMult(gs), source: t('tb.rank', { n: treatyRank }), rule: t('m.rule.treaty') });
   if (gs.alchemy && gs.alchemy.catalysts !== undefined) {
     list.push({ id: 'catalyst', icon: '⚗️', name: t('m.catalyst'), effect: t('m.oil'), oil: true, tabs: ['monolith'],
       value: catalystMult(gs), source: t('m.src.brewed', { n: gs.alchemy.catalysts }), rule: t('m.rule.catalyst') });

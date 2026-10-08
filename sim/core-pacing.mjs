@@ -50,8 +50,12 @@ export const TARGETS = {
   // The doc's goal (day 270). Layer 2 alone stalls ~day 185 (doc §6.4); the Chronicle (R20)
   // restarts the Transcend ladder so resets keep coming.
   gapWindowEndDay: 270,
-  // R31: numbers grow slowly. Casual run Aether at the 2-month row stays at or below this.
-  casualTwoMonthAetherMax: 1e13
+  // R31: numbers grow slowly. Casual run Aether around two months stays at or below this. R53:
+  // measured as the median of one sample a day over days 50-70, not the single 2-month row: run
+  // Aether swings ~2 decades inside one layer, so the row alone passed or failed on where day 60
+  // fell (on main before R53: 1.6e13 at days 58 and 62, 7.5e11 at day 60 just after a New Well).
+  casualTwoMonthAetherMax: 1e13,
+  twoMonthWindowDays: [50, 70]
 };
 
 // --- R3 active income block --------------------------------------------------------------------
@@ -352,6 +356,7 @@ function run(profile) {
   const transcendAether = [];   // highest run Aether of each Transcend's layer (R31)
   let layerPeak = BigNum.zero();
   const upgradesPerRun = []; // R5: upgrades bought by the end of each Ascension run
+  const twoMonthSamples = []; // run Aether once a day over TARGETS.twoMonthWindowDays (R53)
   const regainDays = [];   // days after each Transcend until CPS is back to its pre-Transcend level
   let regainFrom = null;
   const rows = [];
@@ -413,6 +418,10 @@ function run(profile) {
       regainFrom = null;
     }
 
+    const [w0, w1] = TARGETS.twoMonthWindowDays;
+    if (t >= w0 * DAY && t <= w1 * DAY + dt && Math.floor(t / DAY) !== Math.floor((t - dt) / DAY)) {
+      twoMonthSamples.push(gs.totalAetherEarned);
+    }
     while (ci < CHECKPOINTS.length && t >= CHECKPOINTS[ci][1]) {
       rows.push({
         label: CHECKPOINTS[ci][0],
@@ -461,6 +470,7 @@ function run(profile) {
     shopFirstBuy: dustShop.firstBuy,
     amplifierRank: gs.dustShop.ranks.dust_amplifier || 0,
     chronicles: chronicle.log,
+    twoMonthMedian: [...twoMonthSamples].sort((a, b) => (a.gt(b) ? 1 : a.lt(b) ? -1 : 0))[twoMonthSamples.length >> 1] || BigNum.zero(),
     gapKeptUntilDay: keptUntil / DAY
   };
 }
@@ -498,15 +508,15 @@ for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
   // Transcend storms (R20): each Transcend is an epic ceremony, so they should not bunch up
   const close = r.transcendDays.filter((d, i) => i > 0 && d - r.transcendDays[i - 1] < 0.25).length;
   out.push(`- Transcends less than 6 h after the previous one: ${close} of ${r.transcendDays.length}`);
+  out.push(`- median run Aether over days ${TARGETS.twoMonthWindowDays.join('-')}: ${r.twoMonthMedian.format('scientific', 2)}`);
   out.push(`- longest stretch with no reset (day 1..${TARGETS.gapWindowEndDay}): ${r.maxGapDays.toFixed(1)} days`);
   out.push(`- a reset at least every ${TARGETS.maxGapDaysAfterDay1} days until day ${r.gapKeptUntilDay.toFixed(0)}`);
   if (profile === 'casual') {
     if (r.firstResetMin > TARGETS.firstAscensionMaxMin) {
       failures.push(`first Ascension at ${r.firstResetMin.toFixed(1)} min > ${TARGETS.firstAscensionMaxMin} min`);
     }
-    const twoMonth = r.rows.find(row => row.label === '2 mo');
-    if (twoMonth && twoMonth.runBig.gt(TARGETS.casualTwoMonthAetherMax)) {
-      failures.push(`2-month run Aether ${twoMonth.run} > ${TARGETS.casualTwoMonthAetherMax.toExponential()}`);
+    if (r.twoMonthMedian.gt(TARGETS.casualTwoMonthAetherMax)) {
+      failures.push(`median run Aether over days ${TARGETS.twoMonthWindowDays.join('-')} ${r.twoMonthMedian.format('scientific', 2)} > ${TARGETS.casualTwoMonthAetherMax.toExponential()}`);
     }
     if (r.maxGapDays > TARGETS.maxGapDaysAfterDay1) {
       failures.push(`${r.maxGapDays.toFixed(1)}-day stretch with no reset > ${TARGETS.maxGapDaysAfterDay1} days`);
