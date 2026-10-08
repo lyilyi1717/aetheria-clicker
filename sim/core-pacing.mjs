@@ -63,7 +63,11 @@ export const TARGETS = {
   // R52 (passive first must not cost the curve or the upgrade rhythm): the same median at least
   // this, and a median of at least this many upgrades per casual Ascension run
   casualTwoMonthAetherMin: 1e11,
-  casualUpgradesPerRunMin: 30
+  casualUpgradesPerRunMin: 30,
+  // R57: months 6-12 (days 180-365) keep the slow curve: the highest run Aether in that window (one
+  // sample a day) stays at or below this, with or without --links, for the casual and idle player
+  lateWindowDays: [180, 365],
+  latePeakAetherMax: 1e17
 };
 
 // --- R3 / R52 active income block ----------------------------------------------------------------
@@ -295,6 +299,8 @@ const ATTUNEMENT = process.argv.find(a => a.startsWith('--attune='))?.slice(9) |
 if (!ATTUNEMENT_IDS.includes(ATTUNEMENT)) throw new Error(`sim: unknown attunement ${ATTUNEMENT}`);
 // ---------------------------------------------------------------------------------------------
 
+const medianBig = (xs) => [...xs].sort((a, b) => (a.gt(b) ? 1 : a.lt(b) ? -1 : 0))[xs.length >> 1] || BigNum.zero();
+
 function run(profile) {
   const gs = new GameState();
   gs.attunement.id = ATTUNEMENT;   // R55 attunement block
@@ -368,6 +374,8 @@ function run(profile) {
   let layerPeak = BigNum.zero();
   const upgradesPerRun = []; // R5: upgrades bought by the end of each Ascension run
   const twoMonthSamples = []; // run Aether once a day over TARGETS.twoMonthWindowDays (R53)
+  const monthPeak = [];       // R57: highest run Aether in each 30-day month (index 0..12)
+  const lateSamples = [];     // R57: run Aether once a day over TARGETS.lateWindowDays
   const regainDays = [];   // days after each Transcend until CPS is back to its pre-Transcend level
   let regainFrom = null;
   const rows = [];
@@ -391,6 +399,8 @@ function run(profile) {
     gs.totalAetherEarned = gs.totalAetherEarned.add(income);
     lifetimeAether = lifetimeAether.add(income);
     if (gs.totalAetherEarned.gt(layerPeak)) layerPeak = gs.totalAetherEarned;
+    const mi = Math.floor(t / (30 * DAY));
+    if (!monthPeak[mi] || gs.totalAetherEarned.gt(monthPeak[mi])) monthPeak[mi] = gs.totalAetherEarned;
     t += dt;
     if (Math.floor(t / 5) !== Math.floor((t - dt) / 5) || dt >= 5) greedyBuy();
     ach.checkAchievements();
@@ -437,6 +447,10 @@ function run(profile) {
     const [w0, w1] = TARGETS.twoMonthWindowDays;
     if (t >= w0 * DAY && t <= w1 * DAY + dt && Math.floor(t / DAY) !== Math.floor((t - dt) / DAY)) {
       twoMonthSamples.push(gs.totalAetherEarned);
+    }
+    const [l0, l1] = TARGETS.lateWindowDays;
+    if (t >= l0 * DAY && t <= l1 * DAY + dt && Math.floor(t / DAY) !== Math.floor((t - dt) / DAY)) {
+      lateSamples.push(gs.totalAetherEarned);
     }
     while (ci < CHECKPOINTS.length && t >= CHECKPOINTS[ci][1]) {
       rows.push({
@@ -486,7 +500,10 @@ function run(profile) {
     shopFirstBuy: dustShop.firstBuy,
     amplifierRank: gs.dustShop.ranks.dust_amplifier || 0,
     chronicles: chronicle.log,
-    twoMonthMedian: [...twoMonthSamples].sort((a, b) => (a.gt(b) ? 1 : a.lt(b) ? -1 : 0))[twoMonthSamples.length >> 1] || BigNum.zero(),
+    twoMonthMedian: medianBig(twoMonthSamples),
+    lateMedian: medianBig(lateSamples),
+    latePeak: lateSamples.reduce((m, x) => (x.gt(m) ? x : m), BigNum.zero()),
+    monthPeak,
     gapKeptUntilDay: keptUntil / DAY
   };
 }
@@ -526,6 +543,9 @@ for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
   const close = r.transcendDays.filter((d, i) => i > 0 && d - r.transcendDays[i - 1] < 0.25).length;
   out.push(`- Transcends less than 6 h after the previous one: ${close} of ${r.transcendDays.length}`);
   out.push(`- median run Aether over days ${TARGETS.twoMonthWindowDays.join('-')}: ${r.twoMonthMedian.format('scientific', 2)}`);
+  out.push(`- run Aether over days ${TARGETS.lateWindowDays.join('-')} (R57): median ${r.lateMedian.format('scientific', 2)}, highest ${r.latePeak.format('scientific', 2)}`);
+  out.push(`- highest run Aether per month: ${r.monthPeak.slice(0, 12).map((x, i) => `${i + 1}: ${x.format('scientific', 1)}`).join(', ')}`);
+  out.push(`- Chronicles in the year: ${r.chronicles.length}; Pages earned: ${r.rows.at(-1).pages}`);
   out.push(`- longest stretch with no reset (day 1..${TARGETS.gapWindowEndDay}): ${r.maxGapDays.toFixed(1)} days`);
   out.push(`- a reset at least every ${TARGETS.maxGapDaysAfterDay1} days until day ${r.gapKeptUntilDay.toFixed(0)}`);
   if (profile === 'idle' && r.firstResetMin > TARGETS.idleFirstAscensionMaxMin) {
