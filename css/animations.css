@@ -106,3 +106,15 @@ body::before {
   :root:not([data-motion="full"]) body::before { display: none; }
   :root:not([data-motion="full"]) .monster-arena-box.hit-shake { transform: none; }
 }
+
+/* Feedback helper (R41, js/ui/feedback.js): T2 shake of one element (3 px, <= 240 ms, one at a
+   time) and hit-stop (freeze an element's animations for 60-120 ms; the sim keeps running).
+   Reduced motion: the global rule in tokens.css removes both. */
+@keyframes fxShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+}
+.fx-shake { animation: fxShake 240ms linear; }
+.is-hitstop, .is-hitstop * { animation-play-state: paused !important; }

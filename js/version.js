@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.10.1';
+export const VERSION = '5.10.2';
 
 export const CHANGELOG = [
+  {
+    version: '5.10.2',
+    date: '2026-10-08',
+    title: 'Tidier Floating Numbers',
+    changes: [
+      'Floating numbers no longer pile up: rapid taps on the Refinery add into one "+n" that grows a little instead of stacking dozens of numbers, and Auto-tap numbers do the same.',
+      'Sparks and floating text now have a cap (250 sparks, 150 on phones, and 40 texts). When the screen is busy the oldest effects fade out faster, so your newest tap always shows. Phones also draw a bit fewer sparks per effect, which should help long sessions run cooler.',
+      'Crit sounds have a short pause between them (a quarter of a second) so fast crit streaks no longer grate; taps in between still play the normal click.'
+    ],
+    ar: {
+      title: 'أرقام عائمة أكثر ترتيباً',
+      changes: [
+        'لم تعد الأرقام العائمة تتكدّس: النقرات السريعة على المصفاة تُجمع في رقم "+n" واحد يكبر قليلاً بدلاً من عشرات الأرقام فوق بعضها، وكذلك أرقام النقر التلقائي.',
+        'للشرارات والنصوص العائمة الآن حدّ أقصى (250 شرارة، و150 على الهواتف، و40 نصاً). عندما تزدحم الشاشة تتلاشى أقدم المؤثرات أسرع، فتظهر نقرتك الأحدث دائماً. كما ترسم الهواتف شرارات أقل قليلاً لكل مؤثر، مما يساعد على بقاء الجهاز أبرد في الجلسات الطويلة.',
+        'صار بين أصوات الضربات الحرجة فاصل قصير (ربع ثانية) حتى لا تزعج السلاسل السريعة منها؛ والنقرات بينها ما زالت تُصدر صوت النقر العادي.'
+      ]
+    }
+  },
   {
     version: '5.10.1',
     date: '2026-10-08',

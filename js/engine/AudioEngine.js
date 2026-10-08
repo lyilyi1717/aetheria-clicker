@@ -435,7 +435,24 @@ export class AudioEngine {
     else if (tier === 'big') this.playBrass();
     else if (tier === 'epic') this.playChoir();
   }
+
+  // One entry point for the feedback helper (js/ui/feedback.js): a sound id from SOUND_IDS.
+  // Returns false for an unknown id. Mute, volume and Fast Forward are checked by each voice.
+  play(id, pitchMod) {
+    const method = SOUND_IDS[id];
+    if (!method) return false;
+    this[method](pitchMod);
+    return true;
+  }
 }
+
+// Sound ids the feedback helper accepts (R41)
+export const SOUND_IDS = {
+  click: 'playClick', crit: 'playCrit', buy: 'playBuy', hit: 'playHit', defeat: 'playDefeat',
+  dig: 'playDig', gem: 'playGem', spell: 'playSpell', achievement: 'playAchievement',
+  ascension: 'playAscension', pluck: 'playPluck', bell: 'playBell', brass: 'playBrass',
+  choir: 'playChoir'
+};
 
 export const sound = new AudioEngine();
 
