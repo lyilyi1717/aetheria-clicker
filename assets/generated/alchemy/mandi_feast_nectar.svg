@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <linearGradient id="fieryNectar" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="50%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#7c2d12"/>
+    </linearGradient>
+    <radialGradient id="flameGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffedd5"/>
+      <stop offset="50%" stop-color="#f97316" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#ea580c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="64" cy="64" r="50" fill="url(#flameGlow)"/>
+  <!-- Flaming Aura Tongue Waves -->
+  <path d="M42 40 Q32 20 48 10 Q50 26 56 34" fill="#fb923c"/>
+  <path d="M86 40 Q96 20 80 10 Q78 26 72 34" fill="#fb923c"/>
+  <path d="M64 30 Q64 12 60 4 Q68 18 64 30" fill="#fdba74"/>
+  <!-- Potion Vial Body -->
+  <path d="M52 34 L76 34 L78 50 L94 88 Q96 110 64 110 Q32 110 34 88 L50 50 Z" fill="url(#fieryNectar)" stroke="#431407" stroke-width="3.5"/>
+  <!-- Glowing Saffron Star -->
+  <polygon points="64,68 67,78 77,80 69,87 72,97 64,91 56,97 59,87 51,80 61,78" fill="#fef08a"/>
+  <!-- Cork Stopper -->
+  <rect x="52" y="24" width="24" height="12" rx="3" fill="#a16207" stroke="#451a03" stroke-width="2"/>
+</svg>

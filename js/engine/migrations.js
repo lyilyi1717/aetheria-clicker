@@ -359,6 +359,25 @@ export const MIGRATIONS = [
       refundInto(data.chronicle?.active?.stash, 'aether');
       return data;
     }
+  },
+  {
+    // v9 -> v10 (R63, Tower gear base 1.11 -> 1.105): new gear rolls on a flatter curve, so a
+    // kit built on the old one can sit above the floor it now clears. Equipped gear keeps the
+    // stats it has; flag the hero so CombatSystem.rebaseLegacyFloor (needs live combat stats)
+    // steps the floor down to the highest one the kit clears. maxFloor stays the record;
+    // indexFloor is the floor the Market Index reads (kept sane here, set again by the rebase).
+    to: 10,
+    migrate(data) {
+      const h = data.hero;
+      if (!h || typeof h !== 'object') return data;
+      const floor = Number(h.floor), maxFloor = Number(h.maxFloor), idx = Number(h.indexFloor);
+      const f = Number.isFinite(floor) && floor >= 1 ? Math.floor(floor) : 1;
+      if (!(Number.isFinite(idx) && idx >= 1)) {
+        h.indexFloor = Number.isFinite(maxFloor) && maxFloor >= 1 ? Math.min(Math.floor(maxFloor), f) : f;
+      }
+      h.pendingFloorRebase = true;
+      return data;
+    }
   }
 ];
 

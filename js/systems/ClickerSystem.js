@@ -86,6 +86,14 @@ export class ClickerSystem {
     return amount;
   }
 
+  // R59: other subgames (Garden taps, ...) draw from the same paid-click budget as the Oil
+  // monolith. Returns true when a token was spent; false means the tap pays nothing.
+  spendPaidTap() {
+    if (this.clickTokens < 1) return false;
+    this.clickTokens -= 1;
+    return true;
+  }
+
   // Click pitch climbs with the combo (R44 turns this into scale steps)
   clickPitch() {
     return 1 + (this.gameState.comboCount % FRENZY_EVERY) * 0.03;

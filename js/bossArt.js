@@ -29,7 +29,6 @@ export const BOSS_ART_MANIFEST = 'assets/generated/manifest.json';
 // Boss art keyed by `zone<N>_boss<M>`; the manifest adds to this at startup
 export const BOSS_ART = {};
 
-// Hand-placed portraits keyed by monster name (without the "⚡ BOSS: " prefix)
 export const MONSTER_ART = {
   'Drifting Camry': 'drifting_camry.webp',
   'Giant Kabsa Monster': 'giant_kabsa.webp',

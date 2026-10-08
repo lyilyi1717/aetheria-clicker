@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <linearGradient id="dynRed" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="60%" stop-color="#b91c1c"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </linearGradient>
+    <radialGradient id="sparkBlast" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="60%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Spark Burst at fuse tip -->
+  <circle cx="86" cy="18" r="16" fill="url(#sparkBlast)"/>
+  <polygon points="86,8 89,15 97,18 89,21 86,28 83,21 75,18 83,15" fill="#ffffff"/>
+  <!-- Twisted Burning Fuse Rope -->
+  <path d="M86 18 Q82 30 76 36 Q70 42 66 52" fill="none" stroke="#d97706" stroke-width="3" stroke-linecap="round"/>
+  <!-- 3 Dynamite Sticks Bound Together -->
+  <!-- Left Stick -->
+  <rect x="34" y="52" width="18" height="64" rx="4" fill="url(#dynRed)" stroke="#450a0a" stroke-width="2"/>
+  <!-- Right Stick -->
+  <rect x="76" y="52" width="18" height="64" rx="4" fill="url(#dynRed)" stroke="#450a0a" stroke-width="2"/>
+  <!-- Center Main Stick -->
+  <rect x="52" y="48" width="24" height="68" rx="5" fill="url(#dynRed)" stroke="#450a0a" stroke-width="2.5"/>
+  <!-- Black Warning Tape Rings -->
+  <rect x="30" y="62" width="68" height="10" rx="2" fill="#18181b" stroke="#09090b" stroke-width="1.5"/>
+  <rect x="30" y="94" width="68" height="10" rx="2" fill="#18181b" stroke="#09090b" stroke-width="1.5"/>
+  <!-- TNT Stencil Text Label -->
+  <text x="64" y="86" fill="#fef08a" font-family="sans-serif" font-weight="900" font-size="12" text-anchor="middle" letter-spacing="2">TNT</text>
+</svg>

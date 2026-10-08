@@ -1,3 +1,4 @@
+import { BigNum } from '../engine/BigNum.js';
 import { recordHarvest } from './TalentSources.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
@@ -19,6 +20,10 @@ export const SEED_TYPES = {
 // Water All (§5.2): +30 s growth on a 60 s cooldown
 export const WATER_BOOST = 30;
 export const WATER_COOLDOWN = 60;
+
+// R59: a Dewdrop tap pays this many seconds of net production (was 1; a plain click pays 0.5)
+export const DEWDROP_CPS_SECONDS = 0.25;
+export const TAP_GROWTH_FRACTION = 0.02;   // of a plot's grow time per tap (was 0.05)
 
 // Garden Golems (§5.6): golem k automates row k (plots 4k..4k+3)
 export const MAX_GOLEMS = 4;
@@ -276,7 +281,7 @@ export class GardenSystem {
     let lastSeed = null;
     if (plot.seed && plot.progress >= plot.maxTime) {
       lastSeed = plot.seed;
-      harvested = this.harvestPlot(plotIndex, undefined, undefined, true);
+      harvested = this.harvestPlot(plotIndex, undefined, undefined, true, true);
     }
     if (!plot.seed) {
       const seed = this.getRowPlantSeed(this.getRowOfPlot(plotIndex), lastSeed);
@@ -386,7 +391,7 @@ export class GardenSystem {
     return count;
   }
 
-  harvestPlot(plotIndex, clientX, clientY, silent = false) {
+  harvestPlot(plotIndex, clientX, clientY, silent = false, auto = false) {
     const plot = this.gameState.garden.plots[plotIndex];
     if (!plot || !plot.seed || (plot.stage !== 'mature' && plot.progress < plot.maxTime)) return false;
 
@@ -417,8 +422,10 @@ export class GardenSystem {
       }
     }
 
-    // Nectar Surge: harvesting yields immediate active Oil windfall (15s of net CPS, min 10 Oil)
-    const netCps = this.gameState.getNetAetherPerSecond?.();
+    // Nectar Surge: a harvest by hand pays an immediate Oil windfall (15s of net CPS, min 10 Oil).
+    // Golem and offline harvests (auto) pay none: the surge sits outside the subgame-link cap, so
+    // automated rows would multiply the whole economy (R60).
+    const netCps = auto ? null : this.gameState.getNetAetherPerSecond?.();
     if (netCps && netCps.gt && netCps.gt(0)) {
       const oilSurge = netCps.mul(15).max(10);
       this.gameState.aether = this.gameState.aether.add(oilSurge);
@@ -483,16 +490,25 @@ export class GardenSystem {
     const plot = this.gameState.garden?.plots?.[plotIndex];
     if (!plot || !plot.seed || plot.stage === 'mature' || plot.progress >= plot.maxTime) return false;
 
-    // Advance growth by 5% of maxTime (min 3s, max 30s)
-    const boost = Math.min(30, Math.max(3, Math.floor(plot.maxTime * 0.05)));
+    sound.playClick();
+
+    // R59: a tap shares the click cap (CLICK_MAX_PER_SEC paid taps a second, the monolith's
+    // bucket). Over it the tap still sounds and sparks but grows nothing and pays nothing.
+    const clicker = this.gameState.clickerSystem;
+    if (clicker?.spendPaidTap && !clicker.spendPaidTap()) {
+      if (clientX && clientY) particles.spawnClickSparks(clientX, clientY, 3, '#38bdf8');
+      return true;
+    }
+
+    // Advance growth by 2% of maxTime (min 3s, max 30s); R59 was 5%, which with Nectar Surge made every tap worth more than a click
+    const boost = Math.min(30, Math.max(3, Math.floor(plot.maxTime * TAP_GROWTH_FRACTION)));
     plot.progress = Math.min(plot.maxTime, plot.progress + boost);
     this.updateStage(plot);
 
-    sound.playClick();
-
-    // Small oil splash from dewdrop: 1s of net CPS, min 10
+    // Small oil splash from dewdrop: DEWDROP_CPS_SECONDS of net CPS, min 10
     const netCps = this.gameState.getNetAetherPerSecond?.();
-    const oilSplash = (netCps && netCps.gt && netCps.gt(0)) ? netCps.mul(1) : new BigNum(10);
+    const oilSplash = (netCps && netCps.gt && netCps.gt(0))
+      ? netCps.mul(DEWDROP_CPS_SECONDS).max(10) : new BigNum(10);
     this.gameState.aether = this.gameState.aether.add(oilSplash);
     this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(oilSplash);
 

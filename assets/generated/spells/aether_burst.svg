@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <radialGradient id="oilBurstGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#0284c7" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="geyserStream" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="60%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="50" fill="url(#oilBurstGlow)"/>
+  <!-- High Pressure Erupting Oil Geyser -->
+  <path d="M54 116 Q48 76 56 46 Q64 14 64 8 Q64 14 72 46 Q80 76 74 116 Z" fill="url(#geyserStream)" stroke="#38bdf8" stroke-width="2"/>
+  <!-- Side Splash Fountains -->
+  <path d="M60 48 Q40 32 26 44 M68 48 Q88 32 102 44" fill="none" stroke="#7dd3fc" stroke-width="4" stroke-linecap="round"/>
+  <path d="M62 32 Q46 16 34 26 M66 32 Q82 16 94 26" fill="none" stroke="#e0f2fe" stroke-width="3" stroke-linecap="round"/>
+  <!-- Energy Spark Burst -->
+  <polygon points="64,4 68,14 78,18 68,22 64,32 60,22 50,18 60,14" fill="#ffffff"/>
+</svg>

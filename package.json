@@ -7,7 +7,7 @@
     "start": "python server.py",
     "test": "node run_tests.mjs",
     "sim": "node sim/core-pacing.mjs",
-    "sim:check": "node sim/core-pacing.mjs --assert",
+    "sim:check": "node sim/core-pacing.mjs --assert && node sim/garden-tap.mjs --assert",
     "sim:tower": "node sim/tower-pacing.mjs",
     "sim:mining": "node sim/mining-pacing.mjs"
   },

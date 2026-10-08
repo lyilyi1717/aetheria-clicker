@@ -34,12 +34,12 @@ export const COMBAT_SCALE_MAX_EXP = 6000;
 
 export const COMBAT_STAT_MAX = 1e300;
 
-// Monsters, gold and the Market Index grow 1.12^(floor-1); gear rolls at 1.11^(floor-1).
+// Monsters, gold and the Market Index grow 1.12^(floor-1); gear rolls at 1.105^(floor-1).
 // Gear then lags monsters by ~1.009^floor, so the Forge, levels, talents and the Quartermaster
 // have to close the gap and the climb decelerates (docs/gamification-roadmap.md §0.2). With
 // both at 1.12 the hero out-scaled the floor for ever (~1 floor/s auto-climb).
 export const MONSTER_FLOOR_BASE = 1.12;
-export const GEAR_FLOOR_BASE = 1.11;
+export const GEAR_FLOOR_BASE = 1.105;
 
 // Bosses (every 10th floor) are the Tower's medium beat: x400 HP, 45 s to kill them
 export const BOSS_HP_MULT = 400;

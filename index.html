@@ -33,7 +33,9 @@
   <canvas id="particle-canvas"></canvas>
 
   <!-- Random Golden Rift Anomaly -->
-  <div id="golden-anomaly" title="Click the Cosmic Anomaly!" data-i18n-title="hdr.title.click_the_cosmic_anomaly">✨</div>
+  <div id="golden-anomaly" title="Click the Cosmic Anomaly!" data-i18n-title="hdr.title.click_the_cosmic_anomaly">
+    <img src="assets/generated/misc/golden_anomaly.svg" alt="Cosmic Anomaly" class="golden-anomaly-img" draggable="false">
+  </div>
 
   <!-- Main Layout -->
   <div id="app-container">
@@ -279,8 +281,15 @@
             <div class="combat-arena">
               <!-- Hero Status -->
               <div class="glass-card">
-                <h3 data-i18n="tab.combat.astral_champion">Astral Champion</h3>
-                <div id="hero-lvl-text" style="font-size: 0.85rem; color: var(--accent-gold); margin-bottom: 0.5rem;">Level 1</div>
+                <div class="hero-status-header">
+                  <div class="hero-avatar-pane">
+                    <img src="assets/generated/bosses/hero_champion.svg" alt="Astral Champion" class="hero-avatar-img" draggable="false">
+                  </div>
+                  <div>
+                    <h3 data-i18n="tab.combat.astral_champion">Astral Champion</h3>
+                    <div id="hero-lvl-text" style="font-size: 0.85rem; color: var(--accent-gold); margin-bottom: 0.5rem;">Level 1</div>
+                  </div>
+                </div>
                 
                 <div class="combat-bar-container">
                   <div id="hero-hp-text" style="font-size: 0.85rem;">100 / 100 HP</div>
