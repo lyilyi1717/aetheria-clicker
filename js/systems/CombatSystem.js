@@ -35,7 +35,7 @@ export const COMBAT_SCALE_MAX_EXP = 6000;
 
 export const COMBAT_STAT_MAX = 1e300;
 
-// Monsters, gold and the Market Index grow 1.12^(floor-1); gear rolls at 1.105^(floor-1).
+// Monsters, gold and the Market Index grow 1.12^(floor-1); gear rolls at 1.109^(floor-1).
 // Gear then lags monsters by ~1.009^floor, so the Forge, levels, talents and the Quartermaster
 // have to close the gap and the climb decelerates (docs/gamification-roadmap.md §0.2). With
 // both at 1.12 the hero out-scaled the floor for ever (~1 floor/s auto-climb).
@@ -95,15 +95,9 @@ export function getWardenName(floor) {
   return cycle === 0 ? base : `${base} ${ROMAN[cycle + 1] || cycle + 1}`;
 }
 
-// Gear levels (R34): every equipped item can be raised +1 ... +GEAR_LEVEL_MAX with Monster Bones.
-// Each level adds GEAR_LEVEL_STEP to the item's main stat (Attack, HP, Crit, Drain), multiplied
-// in. Crit and Drain keep their drop caps. The level belongs to the slot: a better drop takes over
-// the old item's level, so a level is never lost.
-export const GEAR_LEVEL_MAX = 30;
-export const GEAR_LEVEL_STEP = 0.04;
-export const GEAR_LEVEL_RESOURCE = 'monsterBones';
+// Gear slots and the main stat each carries, with its cap (Crit and Drain). Gear levels (R34, paid
+// in Monster Bones) were retired in R64: migration v11 bakes each level into the item's stats.
 export const GEAR_SLOTS = ['weapon', 'armor', 'amulet', 'relic'];
-// Main stat per slot and its cap (Crit and Drain caps match rollLoot)
 export const GEAR_MAIN_STAT = {
   weapon: { key: 'attack', cap: Infinity },
   armor: { key: 'hp', cap: Infinity },
@@ -111,27 +105,11 @@ export const GEAR_MAIN_STAT = {
   relic: { key: 'lifesteal', cap: 0.3 }
 };
 
-// Level of a gear item; saves from before R34 (no `level`) and junk values read as 0
-export function getGearLevel(item) {
-  const n = Math.floor(Number(item?.level));
-  return Number.isFinite(n) ? Math.max(0, Math.min(GEAR_LEVEL_MAX, n)) : 0;
-}
-
-export function gearLevelMult(level) {
-  return 1 + GEAR_LEVEL_STEP * Math.max(0, Math.min(GEAR_LEVEL_MAX, Math.floor(level) || 0));
-}
-
-// Monster Bones to go from `level` to `level + 1`: 10, 20, 30, ... (+30 costs 4,650 per slot)
-export function gearLevelCost(level) {
-  return 10 * (Math.max(0, Math.floor(level) || 0) + 1);
-}
-
-// An item's main stat with its level applied (and the slot's cap)
+// An item's main stat (with the slot's cap)
 export function gearStat(slot, item) {
   const def = GEAR_MAIN_STAT[slot];
   if (!def || !item) return 0;
-  const base = Number(item[def.key]) || 0;
-  return Math.min(def.cap, base * gearLevelMult(getGearLevel(item)));
+  return Math.min(def.cap, Number(item[def.key]) || 0);
 }
 
 export function combatFloorScale(floor) {
@@ -188,10 +166,10 @@ export class CombatSystem {
         shield: 0,
         aetherForgeLevel: 0,
         gear: {
-          weapon: { name: 'Rusty Shortsword', attack: 5, rarity: 'Common', level: 0 },
-          armor: { name: 'Tattered Tunic', hp: 20, rarity: 'Common', level: 0 },
-          amulet: { name: 'Pebble Amulet', crit: 0.02, rarity: 'Common', level: 0 },
-          relic: { name: 'Ancient Shard', lifesteal: 0.02, rarity: 'Common', level: 0 }
+          weapon: { name: 'Rusty Shortsword', attack: 5, rarity: 'Common' },
+          armor: { name: 'Tattered Tunic', hp: 20, rarity: 'Common' },
+          amulet: { name: 'Pebble Amulet', crit: 0.02, rarity: 'Common' },
+          relic: { name: 'Ancient Shard', lifesteal: 0.02, rarity: 'Common' }
         },
         skills: {
           strike: { name: 'Heavy Strike', cd: 0, maxCd: 4, dmgMult: 2.5 },
@@ -651,33 +629,6 @@ export class CombatSystem {
   // Tower setbacks: a quiet red toast; an auto-climb bouncing off a boss folds into one (×N)
   notifySetback(title) {
     rewards.notify({ tier: 'small', kind: 'tower-setback', icon: '⚠️', color: '#ef4444', title });
-  }
-
-  // --- Gear levels (R34) ---
-
-  // Cost and state of the next level for one slot. `blocked` names why it can't be bought.
-  getGearLevelInfo(slot) {
-    const item = this.gameState.hero?.gear?.[slot];
-    const def = GEAR_MAIN_STAT[slot];
-    const level = getGearLevel(item);
-    const cost = gearLevelCost(level);
-    const have = Math.floor(Number(this.gameState.inventory?.[GEAR_LEVEL_RESOURCE]) || 0);
-    let blocked = null;
-    if (!item || !def) blocked = 'empty';
-    else if (level >= GEAR_LEVEL_MAX) blocked = 'max';
-    else if (gearStat(slot, item) >= def.cap) blocked = 'capped';
-    else if (have < cost) blocked = 'cost';
-    return { slot, item, level, cost, have, blocked, stat: gearStat(slot, item),
-      nextStat: def && item ? Math.min(def.cap, (Number(item[def.key]) || 0) * gearLevelMult(level + 1)) : 0 };
-  }
-
-  levelUpGear(slot) {
-    const info = this.getGearLevelInfo(slot);
-    if (info.blocked) return false;
-    const inv = this.gameState.inventory;
-    inv[GEAR_LEVEL_RESOURCE] = info.have - info.cost;
-    info.item.level = info.level + 1;
-    return true;
   }
 
   // One kill's loot (R64): the drop table, pity and bag live in GearSystem

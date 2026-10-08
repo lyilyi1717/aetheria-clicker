@@ -101,7 +101,7 @@ export class GameState {
       emeralds: 0,
       diamonds: 0,
       voidAmethyst: 0,
-      monsterBones: 0,
+      gearScrap: 0,
       voidCores: 0,
       bossTokens: 0
     };
@@ -486,12 +486,6 @@ export class GameState {
       this.spentTalentPoints = data.spentTalentPoints ?? 0;
       this.buildings = data.buildings || {};
       this.hero = data.hero || null;
-      // Gear levels (R34): saves from before them (or with a junk value) start every item at +0
-      for (const item of Object.values(this.hero?.gear || {})) {
-        if (!item || typeof item !== 'object') continue;
-        const lv = Math.floor(Number(item.level));
-        item.level = Number.isFinite(lv) && lv > 0 ? lv : 0;
-      }
       // Saves from before R64 have no bag or loot counters (migration v11 seeds them)
       this.bag = sanitizeBag(data.bag);
       this.loot = sanitizeLoot(data.loot);

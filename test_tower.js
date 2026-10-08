@@ -1,4 +1,4 @@
-// Void Tower rebalance (R8): gear at 1.1068, bosses x400 / 45 s, indexFloor, legacy floor rebase.
+// Void Tower rebalance (R8): gear at 1.109, bosses x400 / 45 s, indexFloor, legacy floor rebase.
 // Run: node test_tower.js
 import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
@@ -27,20 +27,20 @@ function withRandom(values, fn) {
   try { return fn(); } finally { Math.random = orig; }
 }
 
-console.log('--- Scaling: gear rolls at 1.1068, monsters stay at 1.12 ---');
+console.log('--- Scaling: gear rolls at 1.109, monsters stay at 1.12 ---');
 {
   assert.equal(MONSTER_FLOOR_BASE, 1.12);
-  assert.equal(GEAR_FLOOR_BASE, 1.1068);
+  assert.equal(GEAR_FLOOR_BASE, 1.109);
   assert.equal(gearFloorScale(1), 1);
-  close(gearFloorScale(101), Math.pow(1.1068, 100));
+  close(gearFloorScale(101), Math.pow(1.109, 100));
   close(combatFloorScale(101), Math.pow(1.12, 100));
   // Gear lags monsters by (1.11/1.12)^(f-1): ~0.41 at floor 100, ~0.011 at floor 500
-  close(gearFloorScale(500) / combatFloorScale(500), Math.pow(1.1068 / 1.12, 499));
+  close(gearFloorScale(500) / combatFloorScale(500), Math.pow(1.109 / 1.12, 499));
   // Both stay finite at absurd floors (cap at exponent 6000)
   for (const f of [6001, 700000, 1e12]) {
     assert.ok(Number.isFinite(gearFloorScale(f)) && Number.isFinite(combatFloorScale(f) * BOSS_HP_MULT));
   }
-  assert.equal(gearFloorScale(700000), Math.pow(1.1068, COMBAT_SCALE_MAX_EXP));
+  assert.equal(gearFloorScale(700000), Math.pow(1.109, COMBAT_SCALE_MAX_EXP));
 }
 
 console.log('--- Bosses: x400 HP, 45 s timer ---');
@@ -73,19 +73,19 @@ console.log('--- Bosses: x400 HP, 45 s timer ---');
   assert.equal(gs.hero.floor, 9, 'timeout retreats one floor');
 }
 
-console.log('--- Loot: weapon and armor roll on the 1.1068 curve ---');
+console.log('--- Loot: weapon and armor roll on the 1.109 curve ---');
 {
   const gs = new GameState();
   const cs = new CombatSystem(gs);
   // R64: drops go to the bag. Rolls: drop (0 -> yes), rarity (0.99 -> Common), slot (0 -> weapon)
   withRandom([0, 0.99, 0], () => cs.rollLoot(101, false));
   const weapon = gs.bag.items.find(i => i.slot === 'weapon' && i.rarity === 'Common');
-  assert.equal(weapon.attack, Math.floor(10 * Math.pow(1.1068, 100)));
+  assert.equal(weapon.attack, Math.floor(10 * Math.pow(1.109, 100)));
   assert.equal(gs.hero.gear.weapon.name, 'Rusty Shortsword', 'a drop is not equipped automatically');
   // rarity roll 29.975 -> Cosmic (x5); slot 0.3 -> armor
   withRandom([0, 0.29975, 0.3], () => cs.rollLoot(201, false));
   const armor = gs.bag.items.find(i => i.slot === 'armor' && i.rarity === 'Cosmic');
-  assert.equal(armor.hp, Math.floor(40 * 5 * Math.pow(1.1068, 200)));
+  assert.equal(armor.hp, Math.floor(40 * 5 * Math.pow(1.109, 200)));
 }
 
 console.log('--- indexFloor follows the climb; the Market Index reads it ---');
@@ -410,7 +410,7 @@ console.log('--- R18: a Warden-unlocked climb still walls (rewards do not restar
 }
 
 
-console.log('--- Migration step 10 (R63): gear base 1.1068, floor stepped down to what the kit clears ---');
+console.log('--- Migration step 10 (R63): gear base 1.109, floor stepped down to what the kit clears ---');
 {
   assert.ok(MIGRATIONS.some(s => s.to === 10));
   // A v9 hero on a 1.11-era kit: floor 500 but gear from floor 120 only reaches so far

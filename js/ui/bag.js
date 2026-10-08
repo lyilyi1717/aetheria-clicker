@@ -1,10 +1,10 @@
-// Gear Bag panel (R64, docs/gear-and-boss-design.md §2.5) on the Tower tab, under the gear levels.
+// Gear Bag panel (R64, docs/gear-and-boss-design.md §2.5) on the Tower tab, under the equipped gear.
 // Tiles are built once per item and patched in place (never per-frame innerHTML), so a tap is never
 // swallowed by a rebuild. A tap opens the compare sheet: modal on desktop, bottom sheet on phone.
 import {
   SLOTS, RARITY_NAMES, rarityIndex, AUTO_SALVAGE_CHOICES, BAG_CAP
 } from '../systems/gearItems.js';
-import { gearStat, getGearLevel, GEAR_MAIN_STAT } from '../systems/CombatSystem.js';
+import { gearStat, GEAR_MAIN_STAT } from '../systems/CombatSystem.js';
 import { ITEM_NAMES } from '../data/names.js';
 import { rarityTag, rarityClass, RARITY_GLYPHS, gearName, affixText, uniqueText } from './rarity.js';
 import { t } from '../i18n/index.js';
@@ -48,9 +48,9 @@ export class BagUI {
   build() {
     this.ensureStylesheet();
     if (document.getElementById('bag-panel')) return;
-    const anchor = document.getElementById('gear-levels-panel') || document.getElementById('hero-gear-container');
+    const anchor = document.getElementById('hero-gear-container');
     if (!anchor) return;
-    const bones = ITEM_NAMES.monsterBones;
+    const scrap = ITEM_NAMES.gearScrap;
     const panel = document.createElement('div');
     panel.id = 'bag-panel';
     panel.className = 'card bag-panel';
@@ -103,7 +103,7 @@ export class BagUI {
       <div class="bag-actions">
         <button class="btn btn-sm" id="bag-equip-best" type="button"></button>
         <button class="btn btn-sm" id="bag-bulk" type="button"></button>
-        <span class="bag-stock chip" id="bag-stock">${bones.icon} 0</span>
+        <span class="bag-stock chip" id="bag-stock">${scrap.icon} 0</span>
       </div>
       <div class="bag-bulk-confirm" id="bag-bulk-confirm" hidden>
         <span id="bag-bulk-text"></span>
@@ -264,11 +264,11 @@ export class BagUI {
     return `<span class="chip ${cls}">${delta > 0 ? '▲' : '▼'} ${t('bag.rating_delta', { pct: (delta > 0 ? '+' : '') + pct })}</span>`;
   }
 
-  itemBlock(item, titleKey, slotLevel) {
+  itemBlock(item, titleKey) {
     if (!item) return `<div class="bag-col"><div class="bag-col-title">${t(titleKey)}</div><p class="bag-none">${t('gear.empty')}</p></div>`;
-    const stat = gearStat(item.slot, { ...item, level: slotLevel });
+    const stat = gearStat(item.slot, item);
     const rows = [
-      `<li class="num">${esc(this.mainStatText(item.slot, stat))}${slotLevel > 0 ? ' · ' + esc(t('gear.lv', { n: slotLevel })) : ''}</li>`,
+      `<li class="num">${esc(this.mainStatText(item.slot, stat))}</li>`,
       ...(item.affixes || []).map(a => `<li>${esc(affixText(a))}</li>`)
     ];
     if (item.uniqueId) rows.push(`<li class="bag-fx"><em>${esc(uniqueText(item.uniqueId))}</em></li>`);
@@ -287,11 +287,10 @@ export class BagUI {
     const item = f.item;
     const worn = this.gs.hero.gear[item.slot];
     const delta = f.equipped ? 0 : g.ratingDelta(item);
-    const slotLv = getGearLevel(worn);
     const info = g.retemperInfo(item);
     const val = g.salvageValue(item);
     const sell = g.sellValue(item);
-    const bones = ITEM_NAMES.monsterBones, cores = ITEM_NAMES.voidCores;
+    const scrap = ITEM_NAMES.gearScrap, cores = ITEM_NAMES.voidCores;
     const confirm = (kind) => this.confirmUid === item.uid && this.confirmKind === kind;
     const salvageLbl = confirm('salvage') ? t('bag.tap_again') : t('bag.salvage');
     const sellLbl = confirm('sell') ? t('bag.tap_again') : t('bag.sell');
@@ -312,13 +311,13 @@ export class BagUI {
         ${f.equipped ? `<span class="chip life">${esc(t('bag.worn'))}</span>` : this.deltaChip(delta)}
       </div>
       <div class="bag-compare">
-        ${f.equipped ? '' : this.itemBlock(worn, 'bag.equipped_now', slotLv)}
-        ${this.itemBlock(item, f.equipped ? 'bag.equipped_now' : 'bag.this_item', f.equipped ? slotLv : slotLv)}
+        ${f.equipped ? '' : this.itemBlock(worn, 'bag.equipped_now')}
+        ${this.itemBlock(item, f.equipped ? 'bag.equipped_now' : 'bag.this_item')}
       </div>
       <div class="bag-sheet-actions">
         ${f.equipped ? '' : `<button data-act="equip" class="btn ${delta > 0 ? 'btn-primary' : ''}" type="button">${t('bag.equip')}</button>`}
         <button data-act="lock" class="btn" aria-pressed="${locked}" type="button">${locked ? '🔓 ' + t('bag.unlock') : '🔒 ' + t('bag.lock')}</button>
-        ${f.equipped ? '' : `<button data-act="salvage"${dis(locked)} type="button">${salvageLbl} <span class="num bag-cost">${bones.icon}${val.bones}${coreTxt}</span></button>
+        ${f.equipped ? '' : `<button data-act="salvage"${dis(locked)} type="button">${salvageLbl} <span class="num bag-cost">${scrap.icon}${val.scrap}${coreTxt}</span></button>
         <button data-act="sell"${dis(locked)} type="button">${sellLbl} <span class="num bag-cost">${esc(this.fmtNum(sell))} 🪙</span></button>`}
         ${retemper}
         <button data-act="close" class="btn btn-ghost" type="button">${t('bag.close')}</button>
@@ -358,6 +357,7 @@ export class BagUI {
   }
 
   update(tab) {
+    this.gear?.flushNotice?.();
     if (tab !== 'combat' || !this.panel) return;
     const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
     if (now - this.lastRun < THROTTLE_MS) return;
@@ -438,7 +438,7 @@ export class BagUI {
     setHidden(confirmBox, !this.bulkPending);
     if (this.bulkPending) {
       setText(document.getElementById('bag-bulk-text'), t('bag.bulk_confirm', {
-        n: preview.count, bones: preview.bones, cores: preview.cores
+        n: preview.count, scrap: preview.scrap, cores: preview.cores
       }));
     }
 
@@ -464,8 +464,8 @@ export class BagUI {
     if (autoBtn.getAttribute('aria-pressed') !== String(auto)) autoBtn.setAttribute('aria-pressed', String(auto));
 
     const inv = this.gs.inventory;
-    const bones = ITEM_NAMES.monsterBones, cores = ITEM_NAMES.voidCores;
-    setText(document.getElementById('bag-stock'), `${bones.icon} ${this.fmtNum(Math.floor(inv.monsterBones || 0), 0)}  ${cores.icon} ${this.fmtNum(Math.floor(inv.voidCores || 0), 0)}`);
+    const scrap = ITEM_NAMES.gearScrap, cores = ITEM_NAMES.voidCores;
+    setText(document.getElementById('bag-stock'), `${scrap.icon} ${this.fmtNum(Math.floor(inv.gearScrap || 0), 0)}  ${cores.icon} ${this.fmtNum(Math.floor(inv.voidCores || 0), 0)}`);
     setText(document.getElementById('bag-ticker'), this.gs.loot?.salvaged ? t('bag.ticker', { n: this.gs.loot.salvaged }) : '');
 
     if (this.sheet && !this.sheet.hidden) this.renderSheet();

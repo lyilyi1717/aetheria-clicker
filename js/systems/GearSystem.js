@@ -5,12 +5,12 @@
 import { BigNum } from '../engine/BigNum.js';
 import { rewards } from '../ui/rewards.js';
 import { t } from '../i18n/index.js';
-import { gearStat, getGearLevel, getIndexFloor, MONSTER_FLOOR_BASE, MONSTER_NAMES } from './CombatSystem.js';
+import { gearStat, getIndexFloor, MONSTER_FLOOR_BASE, MONSTER_NAMES } from './CombatSystem.js';
 import {
   SLOTS, MAIN_KEYS, RARITIES, RARITY_NAMES, rarityIndex, rarityDef, MOB_DROP_CHANCE, MOB_RARITY_WEIGHTS,
   BOSS_RARITY_WEIGHTS, BOSS_ILVL_BONUS, LEGENDARY_PITY, SIGNATURE_CHANCE, FORTUNE_CAP, UNIQUES, UNIQUE_FX,
   signatureForBoss, makeItem, withItemLevel, sanitizeItem, sanitizeBag, sanitizeLoot, affixTotals,
-  SALVAGE_BONES, SALVAGE_CORES, SELL_GOLD, RETEMPER_MIN_RARITY, RETEMPER_GOLD_KILLS, RETEMPER_CORES, mainStat
+  SALVAGE_SCRAP, SALVAGE_CORES, SELL_GOLD, RETEMPER_MIN_RARITY, RETEMPER_GOLD_KILLS, RETEMPER_CORES, mainStat
 } from './gearItems.js';
 
 // A rating change smaller than this is not an upgrade (no ▲ for rounding noise)
@@ -127,7 +127,7 @@ export class GearSystem {
     const g = this.hero.gear;
     const saved = g[item.slot];
     if (!item || saved === item) return 0;
-    g[item.slot] = { ...item, level: getGearLevel(saved) };   // the level belongs to the slot (R34)
+    g[item.slot] = item;
     let after;
     try { after = this.ratingLog(); } finally { g[item.slot] = saved; }
     return Math.exp(after - base) - 1;
@@ -197,14 +197,14 @@ export class GearSystem {
   }
 
   salvageValue(item) {
-    return { bones: SALVAGE_BONES[item.rarity] || 0, cores: SALVAGE_CORES[item.rarity] || 0 };
+    return { scrap: SALVAGE_SCRAP[item.rarity] || 0, cores: SALVAGE_CORES[item.rarity] || 0 };
   }
 
-  grant({ bones, cores }) {
+  grant({ scrap, cores }) {
     const inv = this.gs.inventory;
-    if (bones) inv.monsterBones = (inv.monsterBones || 0) + bones;
+    if (scrap) inv.gearScrap = (inv.gearScrap || 0) + scrap;
     if (cores) inv.voidCores = (inv.voidCores || 0) + cores;
-    this.loot.salvaged += bones;
+    this.loot.salvaged += scrap;
   }
 
   equip(uid) {
@@ -213,9 +213,7 @@ export class GearSystem {
     if (idx < 0) return false;
     const item = bag.items[idx];
     const old = g[item.slot];
-    item.level = getGearLevel(old);   // levels belong to the slot
     if (old) {
-      old.level = 0;
       if (!old.uid) old.uid = bag.nextUid++;
       bag.items[idx] = old;
     } else {
@@ -280,11 +278,11 @@ export class GearSystem {
   salvageBulk(maxRarity, commit = true) {
     const limit = Math.min(2, rarityIndex(maxRarity));   // never Legendary+ in bulk
     const base = this.ratingLog();
-    const out = { count: 0, bones: 0, cores: 0 };
+    const out = { count: 0, scrap: 0, cores: 0 };
     const doomed = this.bag.items.filter(i => !i.locked && rarityIndex(i.rarity) <= limit && !(this.ratingDelta(i, base) > UPGRADE_EPS));
     for (const item of doomed) {
       const v = this.salvageValue(item);
-      out.count++; out.bones += v.bones; out.cores += v.cores;
+      out.count++; out.scrap += v.scrap; out.cores += v.cores;
     }
     if (commit && doomed.length) {
       this.bag.items = this.bag.items.filter(i => !doomed.includes(i));
@@ -397,6 +395,18 @@ export class GearSystem {
     this.hero.shield = Math.min(cap, (this.hero.shield || 0) + overflow);
   }
 
+  // One-time notice after migration v11 retired Monster Bones and gear levels: say what they became
+  flushNotice() {
+    const n = this.loot?.notice;
+    if (!n) return;
+    this.loot.notice = null;
+    rewards.notify({
+      tier: 'medium', kind: 'bones-converted', icon: '🔩', color: '#cbd5e1',
+      title: t('bag.converted', { scrap: n.scrap }),
+      detail: t('bag.converted_detail', { items: n.items, cores: n.cores })
+    });
+  }
+
   // --- toasts ------------------------------------------------------------------------------
 
   toastFind(item, delta, equipped) {
@@ -428,7 +438,7 @@ export class GearSystem {
   toastBagFull(item, gain) {
     rewards.notify({
       tier: 'small', kind: 'bag-full', icon: '🎒', color: rarityDef(item.rarity).color,
-      title: t('bag.toast.full', { name: this.displayName(item), n: gain.bones }),
+      title: t('bag.toast.full', { name: this.displayName(item), n: gain.scrap }),
       batchTitle: t('bag.toast.full_batch')
     });
   }

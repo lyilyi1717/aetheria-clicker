@@ -384,13 +384,18 @@ export const MIGRATIONS = [
     // converted to items on the new curve: rarity multipliers 1/2/3/4/5 (was 1/2/4/8/18), a
     // recorded item level inferred from the stat, and a "Heirloom" bonus for Rare and better (one
     // affix; Legendary and Cosmic also get one free re-temper) to soften the Legendary/Cosmic
-    // cut. R34 levels are kept. The bag starts with a Welcome Bag (one Rare per slot at the
-    // Index floor); the hero is flagged so rebaseLegacyFloor steps the floor down if the new kit
-    // clears less. Saves that had auto-replace (record floor 301+) keep automation as Al-Wakeel.
+    // cut. R34 gear levels and Monster Bones are retired: each item's level multiplier (+4% per
+    // level) is baked into its stats (and kept through re-tempers as `bake`); bones spent on levels
+    // (10 x (i + 1) per level i) and banked bones become Gear Scrap (1 per 10 spent, 1 per banked
+    // bone), up to 8 extra Rare finds in the bag (1 per 1,200 spent) and up to 20 Void Cores
+    // (1 per 1,000 spent); the bones go to 0 and a one-time notice tells the player. The bag
+    // starts with a Welcome Bag (one Rare per slot at the Index floor); the hero is flagged so
+    // rebaseLegacyFloor steps the floor down if the new kit clears less. Saves that had
+    // auto-replace (record floor 301+) keep automation as Al-Wakeel.
     // Constants and formulas are inlined: this step must keep its meaning when the game changes.
     to: 11,
     migrate(data) {
-      const G = 1.1068, G_OLD = 1.11;
+      const G = 1.109, G_OLD = 1.11;
       const OLD_MULT = { Common: 1, Rare: 2, Epic: 4, Legendary: 8, Cosmic: 18 };
       const NEW = { Common: [1, 0, 0], Rare: [2, 1, 1], Epic: [3, 2, 2], Legendary: [4, 3, 2], Cosmic: [5, 4, 3] };   // [mult, tier, affixes]
       const SLOTS = ['weapon', 'armor', 'amulet', 'relic'];
@@ -418,6 +423,7 @@ export const MIGRATIONS = [
         return out;
       };
       let nextUid = 1;
+      let spentBones = 0;
       const clampIlvl = (n) => Math.max(1, Math.min(maxFloor, Math.floor(Number.isFinite(n) ? n : 1)));
       if (h && h.gear && typeof h.gear === 'object') {
         SLOTS.forEach((slot, si) => {
@@ -426,10 +432,17 @@ export const MIGRATIONS = [
           const rarity = NEW[old.rarity] ? old.rarity : 'Common';
           const key = { weapon: 'attack', armor: 'hp', amulet: 'crit', relic: 'lifesteal' }[slot];
           const raw = Number(old[key]);
-          const lv = Math.max(0, Math.floor(Number(old.level)) || 0);
+          const lv = Math.max(0, Math.min(30, Math.floor(Number(old.level)) || 0));
+          spentBones += 5 * lv * (lv + 1);
+          const bake = 1 + 0.04 * lv;
+          const cap = { weapon: Infinity, armor: Infinity, amulet: 0.5, relic: 0.3 }[slot];
           if (!Number.isFinite(raw) || raw <= 0) { delete h.gear[slot]; return; }
           if (STARTERS.includes(old.name)) {
-            h.gear[slot] = { ...old, slot, rarity: 'Common', ilvl: 1, level: lv, affixes: [], uniqueId: null, locked: false, uid: nextUid++ };
+            const starter = { ...old, slot, rarity: 'Common', ilvl: 1, affixes: [], uniqueId: null, locked: false, uid: nextUid++ };
+            delete starter.level;
+            starter[key] = Math.min(cap, slot === 'weapon' || slot === 'armor' ? Math.floor(raw * bake) : raw * bake);
+            if (lv > 0) starter.bake = bake;
+            h.gear[slot] = starter;
             return;
           }
           let ilvl;
@@ -440,12 +453,15 @@ export const MIGRATIONS = [
             const cap = slot === 'amulet' ? 0.5 : 0.3;
             ilvl = raw >= cap - 1e-9 ? clampIlvl(maxFloor) : clampIlvl((raw - 0.02) / (0.001 * OLD_MULT[rarity]));
           }
+          const base = stat(slot, rarity, ilvl);
+          base[key] = Math.min(cap, slot === 'weapon' || slot === 'armor' ? Math.floor(base[key] * bake) : base[key] * bake);
           const item = {
-            ...stat(slot, rarity, ilvl),
-            uid: nextUid++, slot, rarity, ilvl, level: lv,
+            ...base,
+            uid: nextUid++, slot, rarity, ilvl,
             name: typeof old.name === 'string' && old.name ? old.name : rarity + ' ' + slot.toUpperCase(),
             affixes: [], uniqueId: null, locked: false
           };
+          if (lv > 0) item.bake = bake;
           if (rarity !== 'Common') {
             item.affixes = affixes(rarity, ilvl + si).slice(0, 1);
             item.heirloom = true;
@@ -455,14 +471,27 @@ export const MIGRATIONS = [
         });
         h.pendingFloorRebase = true;
       }
-      const items = SLOTS.map((slot, si) => ({
+      const rare = (slot, si) => ({
         ...stat(slot, 'Rare', idxFloor),
-        uid: nextUid++, slot, rarity: 'Rare', ilvl: idxFloor, level: 0,
+        uid: nextUid++, slot, rarity: 'Rare', ilvl: idxFloor,
         name: 'Rare ' + slot.toUpperCase(), affixes: affixes('Rare', idxFloor + si + 1), uniqueId: null, locked: false
-      }));
+      });
+      const items = SLOTS.map(rare);
+      // Bones -> Gear Scrap, Rare finds and Void Cores
+      const inv = data.inventory && typeof data.inventory === 'object' ? data.inventory : (data.inventory = {});
+      const banked = Math.max(0, Math.floor(Number(inv.monsterBones)) || 0);
+      const scrap = Math.floor(spentBones / 10) + banked;
+      const extra = Math.min(8, Math.floor(spentBones / 1200));
+      const cores = Math.min(20, Math.floor(spentBones / 1000));
+      for (let i = 0; i < extra; i++) items.push(rare(SLOTS[i % 4], 4 + i));
+      if (scrap > 0 || cores > 0 || extra > 0) {
+        inv.gearScrap = (Math.max(0, Math.floor(Number(inv.gearScrap)) || 0)) + scrap;
+        inv.voidCores = (Math.max(0, Math.floor(Number(inv.voidCores)) || 0)) + cores;
+      }
+      inv.monsterBones = 0;
       const wakeel = maxFloor >= 301;
       data.bag = { items, cap: 30, nextUid, autoSalvage: 'Common', wakeel, autoEquip: wakeel };
-      data.loot = { legDry: 0, salvaged: 0, found: 0 };
+      data.loot = { legDry: 0, salvaged: 0, found: 0, notice: scrap > 0 || cores > 0 || extra > 0 ? { scrap, items: extra, cores } : null };
       return data;
     }
   }

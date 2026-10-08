@@ -2,12 +2,13 @@
 // the pure functions that build and clean items. No imports from other systems, so GameState and
 // the tests can use it without a cycle. GearSystem.js holds the bag and the actions.
 //
-// An item is { uid, slot, rarity, ilvl, name, <main stat>, level, affixes: [{ id, v }],
-// uniqueId, locked, heirloom, freeTemper }. The main stat key matches CombatSystem's
-// GEAR_MAIN_STAT (attack / hp / crit / lifesteal) so gearStat() and the R34 levels work as before.
+// An item is { uid, slot, rarity, ilvl, name, <main stat>, affixes: [{ id, v }], uniqueId, locked,
+// heirloom, freeTemper, bake }. The main stat key matches CombatSystem's GEAR_MAIN_STAT
+// (attack / hp / crit / lifesteal). `bake` (>= 1) is the old R34 gear-level multiplier an Heirloom
+// carries: it multiplies the main stat and survives a re-temper.
 
 // Gear rolls at this base per floor of item level; monsters grow 1.12^floor (CombatSystem).
-export const GEAR_FLOOR_BASE = 1.1068;
+export const GEAR_FLOOR_BASE = 1.109;
 
 export const SLOTS = ['weapon', 'armor', 'amulet', 'relic'];
 
@@ -74,8 +75,8 @@ export const UNIQUE_FX = {
 export const BAG_CAP = 30;
 export const AUTO_SALVAGE_CHOICES = ['Off', 'Common', 'Rare', 'Epic'];
 
-// Salvage and sell (§2.3), by rarity. Gold sell value is this x the item level's gold per kill.
-export const SALVAGE_BONES = { Common: 1, Rare: 2, Epic: 4, Legendary: 8, Cosmic: 16 };
+// Salvage and sell (§2.3), by rarity. Salvage pays Gear Scrap (Monster Bones were retired in R64). Gold sell value is this x the item level's gold per kill.
+export const SALVAGE_SCRAP = { Common: 1, Rare: 2, Epic: 4, Legendary: 8, Cosmic: 16 };
 export const SALVAGE_CORES = { Common: 0, Rare: 0, Epic: 1, Legendary: 3, Cosmic: 8 };
 export const SELL_GOLD = { Common: 2, Rare: 5, Epic: 15, Legendary: 60, Cosmic: 200 };
 // Re-temper (§2.4): Legendary and better only
@@ -116,7 +117,6 @@ export function makeItem({ slot, rarity, ilvl, rng = Math.random, uniqueId = nul
     uid, slot, rarity, ilvl: lvl,
     name: `${rarity} ${slot.toUpperCase()}`,
     ...mainStat(slot, rarity, lvl),
-    level: 0,
     affixes: rollAffixes(rarity, rng),
     uniqueId: null,
     locked: false
@@ -130,7 +130,17 @@ export function makeItem({ slot, rarity, ilvl, rng = Math.random, uniqueId = nul
 
 // Re-roll the main stat for a new item level (re-temper keeps rarity, affixes, unique)
 export function withItemLevel(item, ilvl) {
-  return { ...item, ilvl: Math.max(1, Math.floor(ilvl) || 1), ...mainStat(item.slot, item.rarity, ilvl) };
+  return { ...item, ilvl: Math.max(1, Math.floor(ilvl) || 1), ...bakedStat(item.slot, item.rarity, ilvl, item.bake) };
+}
+
+// Main stat with an Heirloom's baked multiplier applied (Crit and Drain stay under their caps)
+export function bakedStat(slot, rarity, ilvl, bake = 1) {
+  const stat = mainStat(slot, rarity, ilvl);
+  const key = MAIN_KEYS[slot];
+  const m = Number.isFinite(bake) && bake > 1 ? bake : 1;
+  const cap = slot === 'amulet' ? 0.5 : slot === 'relic' ? 0.3 : Infinity;
+  stat[key] = Math.min(cap, slot === 'weapon' || slot === 'armor' ? Math.floor(stat[key] * m) : stat[key] * m);
+  return stat;
 }
 
 const STARTER_NAMES = ['Rusty Shortsword', 'Tattered Tunic', 'Pebble Amulet', 'Ancient Shard'];
@@ -153,12 +163,14 @@ export function sanitizeItem(raw, slot = null, fallbackIlvl = 1) {
     slot: s, rarity, ilvl,
     name: typeof raw.name === 'string' && raw.name ? raw.name : `${rarity} ${s.toUpperCase()}`,
     [key]: Number.isFinite(stat) && stat > 0 ? stat : mainStat(s, rarity, ilvl)[key],
-    level: Math.max(0, Math.floor(Number(raw.level)) || 0),
     affixes: sanitizeAffixes(raw.affixes),
     uniqueId: UNIQUES[raw.uniqueId]?.slot === s ? raw.uniqueId : null,
     locked: raw.locked === true
   };
   delete out.color;
+  delete out.level;   // R34 gear levels are gone (baked into `bake` by migration v11)
+  const bake = Number(raw.bake);
+  if (Number.isFinite(bake) && bake > 1) out.bake = Math.min(bake, 3); else delete out.bake;
   if (raw.heirloom === true) out.heirloom = true; else delete out.heirloom;
   if (raw.freeTemper === true) out.freeTemper = true; else delete out.freeTemper;
   return out;
@@ -206,13 +218,18 @@ export function sanitizeBag(raw) {
 }
 
 export function defaultLoot() {
-  return { legDry: 0, salvaged: 0, found: 0 };
+  return { legDry: 0, salvaged: 0, found: 0, notice: null };
 }
 
 export function sanitizeLoot(raw) {
   const out = defaultLoot();
   if (!raw || typeof raw !== 'object') return out;
-  for (const k of Object.keys(out)) {
+  // One-time "your Monster Bones were converted" notice (migration v11), shown once then cleared
+  const n = raw.notice;
+  if (n && typeof n === 'object') {
+    out.notice = { scrap: Math.max(0, Math.floor(Number(n.scrap)) || 0), items: Math.max(0, Math.floor(Number(n.items)) || 0), cores: Math.max(0, Math.floor(Number(n.cores)) || 0) };
+  }
+  for (const k of ['legDry', 'salvaged', 'found']) {
     const n = Math.floor(Number(raw[k]));
     out[k] = Number.isFinite(n) && n > 0 ? n : 0;
   }

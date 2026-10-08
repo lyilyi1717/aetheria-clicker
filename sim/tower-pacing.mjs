@@ -17,8 +17,6 @@
 //     fits one hour of casual income, with income interpolated (log-linear) from the `npm run sim`
 //     casual CPS checkpoints
 //   - Gladiator Vigour talent rank and Quartermaster Hunter's Edge rank: see POWER below
-// Gear levels (R34): once a minute the hero spends Monster Bones on the cheapest level-up
-// (ties: weapon, armor, amulet, relic). `--no-gear-levels` turns that off (the pre-R34 game).
 // Gear bag (R64): loot lands in the bag and nothing equips itself, so the sim plays a bot that
 // does what an attentive player does once a minute while the game is open: salvage junk, re-temper
 // a Legendary+ (equipped, or one in the bag that would beat what is worn), then equip every
@@ -33,7 +31,6 @@ import { particles } from '../js/engine/ParticleEngine.js';
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
 
-const GEAR_LEVELS = !process.argv.includes('--no-gear-levels');
 const BAG_BOT = !process.argv.includes('--no-bag');
 const H = 3600;
 const DAY = 24 * H;
@@ -114,11 +111,6 @@ function run(profile, endT) {
     gs.talents.warlord_might = { rank: Math.round(lerp(POWER, t, 1)) };
     gs.quartermaster = { hunters_edge: { rank: Math.round(lerp(POWER, t, 2)) } };
     if (BAG_BOT) gearBot();
-    if (!GEAR_LEVELS) return;
-    for (;;) {
-      const next = GEAR_SLOTS.map(s => cs.getGearLevelInfo(s)).filter(i => !i.blocked).sort((a, b) => a.cost - b.cost)[0];
-      if (!next || !cs.levelUpGear(next.slot)) break;
-    }
   };
   applyPower();
 
@@ -156,7 +148,7 @@ function run(profile, endT) {
         towerH: towerSecs / H,
         forge: h.aetherForgeLevel,
         level: h.level,
-        gearLv: GEAR_SLOTS.map(s => h.gear[s]?.level || 0).join('/'),
+        gear: GEAR_SLOTS.map(s => (h.gear[s]?.rarity || '?')[0]).join('') + ' ' + cs.gear.bag.items.length,
         gold: gs.gold.format('scientific', 2),
         bosses, timeouts, deaths
       });
@@ -173,14 +165,14 @@ const fmt = n => Math.round(n).toLocaleString('en-US');
 const TARGETS = [['1 d', 414], ['1 w', 498], ['30 d', 560]];
 const BAND = 0.10;
 let bandMissed = false;
-const out = [`## Void Tower pacing report (sim/tower-pacing.mjs)${GEAR_LEVELS ? '' : ', gear levels off'}`];
+const out = [`## Void Tower pacing report (sim/tower-pacing.mjs)`];
 for (const [profile, endT] of [['open', 30 * DAY], ['casual', 30 * DAY]]) {
   const rows = run(profile, endT);
   out.push(`\n### profile: ${profile}\n`);
-  out.push('| time | Tower hours | best floor | floors/hour (since last row) | Forge | hero lvl | gear lvl (W/A/Am/R) | gold | bosses beaten | boss timeouts | deaths |');
+  out.push('| time | Tower hours | best floor | floors/hour (since last row) | Forge | hero lvl | gear (rarities W/A/Am/R, bag) | gold | bosses beaten | boss timeouts | deaths |');
   out.push('|---|---|---|---|---|---|---|---|---|---|---|');
   for (const r of rows) {
-    out.push(`| ${r.label} | ${r.towerH.toFixed(1)} | ${fmt(r.floor)} | ${fmt(r.perHour)} | ${r.forge} | ${r.level} | ${r.gearLv} | ${r.gold} | ${fmt(r.bosses)} | ${fmt(r.timeouts)} | ${fmt(r.deaths)} |`);
+    out.push(`| ${r.label} | ${r.towerH.toFixed(1)} | ${fmt(r.floor)} | ${fmt(r.perHour)} | ${r.forge} | ${r.level} | ${r.gear} | ${r.gold} | ${fmt(r.bosses)} | ${fmt(r.timeouts)} | ${fmt(r.deaths)} |`);
   }
   if (profile === 'open') {
     out.push('');
