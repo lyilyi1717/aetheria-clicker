@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.10.2';
+export const VERSION = '5.11.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.11.0',
+    date: '2026-10-08',
+    title: 'Registered Leaderboard & Nicknames',
+    changes: [
+      'The leaderboard now lists registered players only. Guest entries have been removed; create a free account (Settings) to join.',
+      'Creating an account asks for a nickname: that is your name on the leaderboard. Change it any time in Settings, Account.',
+      'Accounts without a nickname get a random funny one (like "Sneaky Potato 42") until you pick your own. Your email is never shown.',
+      'The old "Save & Join" name box on the leaderboard is gone; if you had picked a name there, your account keeps using it.'
+    ],
+    ar: {
+      title: 'لوحة متصدرين للمسجّلين وأسماء مستعارة',
+      changes: [
+        'لوحة المتصدرين تعرض الآن اللاعبين المسجّلين فقط. أُزيلت إدخالات الضيوف؛ أنشئ حسابًا مجانيًا من الإعدادات لتنضم.',
+        'إنشاء حساب يطلب اسمًا مستعارًا: هو اسمك في لوحة المتصدرين. غيّره متى شئت من الإعدادات، الحساب.',
+        'الحسابات بلا اسم مستعار تحصل على اسم طريف عشوائي (مثل "Sneaky Potato 42") حتى تختار اسمك. بريدك لا يظهر أبدًا.',
+        'أُزيل مربع "حفظ وانضمام" القديم من لوحة المتصدرين؛ وإذا كنت قد اخترت اسمًا هناك فسيستمر حسابك في استخدامه.'
+      ]
+    }
+  },
   {
     version: '5.10.2',
     date: '2026-10-08',
