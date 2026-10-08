@@ -7,8 +7,9 @@
 // strip; with Reduced Motion on it stands still and swaps to the next item every few seconds.
 //
 // Safety: entry text is player-written and is only ever set with textContent.
-// Shared posting (other players' entries via Supabase) is not built yet; it waits for an owner
-// decision. The pure helpers at the top are exported for tests (test_r39_news.js).
+// Shared news (headlines other players shared, via Supabase) lives in js/ui/sharedNews.js and
+// comes in through the `getShared` / `hooks` arguments, so this file stays free of network code.
+// The pure helpers at the top are exported for tests (test_r39_news.js).
 
 import { isReducedMotion } from './motion.js';
 import { t, localizeList } from '../i18n/index.js';
@@ -79,8 +80,10 @@ export function cleanEntryText(text) {
   return Array.from(flat).slice(0, NEWS_MAX_CHARS).join('').trim();
 }
 
+// showShared: false hides other players' headlines; reported: ids of shared posts this player
+// reported (never shown again); name: the name shown with their shared posts ('' = leaderboard name)
 export function defaultNewsState() {
-  return { hidden: false, entries: [] };
+  return { hidden: false, entries: [], showShared: true, reported: [], name: '' };
 }
 
 /** Accepts anything a save might hold (missing, old, hand-edited) and returns a valid news state. */
@@ -88,6 +91,11 @@ export function sanitizeNews(raw) {
   const out = defaultNewsState();
   if (!raw || typeof raw !== 'object') return out;
   out.hidden = raw.hidden === true;
+  out.showShared = raw.showShared !== false;
+  if (Array.isArray(raw.reported)) {
+    out.reported = [...new Set(raw.reported.filter(id => Number.isSafeInteger(id) && id > 0))].slice(-200);
+  }
+  if (typeof raw.name === 'string') out.name = cleanEntryText(raw.name).slice(0, 20);
   const seen = new Set();
   const list = Array.isArray(raw.entries) ? raw.entries : [];
   for (const e of list) {
@@ -135,29 +143,40 @@ export function builtInItems(changelog = []) {
   return items;
 }
 
-/** The rotation: built-in items with one player entry after every built-in one, until both run out. */
-export function buildQueue(news, changelog = []) {
+/**
+ * The rotation: each built-in item is followed by one of the player's own entries and one shared
+ * headline from other players, until all three run out. `shared` items come from
+ * sharedQueueItems() in js/ui/sharedNews.js and carry their own `dir` (from the post's text).
+ */
+export function buildQueue(news, changelog = [], shared = []) {
   const built = builtInItems(changelog);
   const own = (news?.entries || []).map(e => ({ text: e.text, kind: 'player' }));
+  const others = Array.isArray(shared) ? shared : [];
   const out = [];
-  const n = Math.max(built.length, own.length);
+  const n = Math.max(built.length, own.length, others.length);
   for (let i = 0; i < n; i++) {
     if (built[i]) out.push(built[i]);
     if (own[i]) out.push(own[i]);
+    if (others[i]) out.push(others[i]);
   }
-  return out.map(item => ({ ...item, dir: entryDir(item.text) }));
+  return out.map(item => ({ ...item, dir: item.dir || entryDir(item.text) }));
 }
 
 // ---------------------------------------------------------------------------------------------
 // DOM
 
-const KIND_ICON = { new: '✨', tip: '💡', flavour: '📰', player: '🗞️' };
+const KIND_ICON = { new: '✨', tip: '💡', flavour: '📰', player: '🗞️', shared: '📣' };
 
 export class NewsTicker {
-  /** `getNews` returns the live settings.news object; `changelog` is CHANGELOG from version.js. */
-  constructor(getNews, changelog) {
+  /**
+   * `getNews` returns the live settings.news object; `changelog` is CHANGELOG from version.js;
+   * `getShared` (optional) returns strip items for other players' headlines.
+   */
+  constructor(getNews, changelog, getShared = () => []) {
     this.getNews = getNews;
     this.changelog = changelog;
+    this.getShared = getShared;
+    this.stale = false;
     this.index = -1;
     this.anim = null;
     this.timer = null;
@@ -220,7 +239,8 @@ export class NewsTicker {
     const hidden = !!news?.hidden;
     this.el.hidden = hidden;
     this.stop();
-    this.queue = buildQueue(news, this.changelog);
+    this.queue = buildQueue(news, this.changelog, this.getShared());
+    this.stale = false;
     if (hidden || !this.queue.length) return;
     if (this.index >= this.queue.length) this.index = -1;
     this.next();
@@ -232,8 +252,17 @@ export class NewsTicker {
     this.timer = null;
   }
 
+  /** New shared headlines arrived: pick them up after the item on screen, without cutting it off. */
+  softRefresh() { this.stale = true; }
+
   next() {
-    if (!this.el || this.el.hidden || !this.queue.length) return;
+    if (!this.el || this.el.hidden) return;
+    if (this.stale) {
+      this.queue = buildQueue(this.getNews(), this.changelog, this.getShared());
+      this.stale = false;
+      if (this.index >= this.queue.length) this.index = -1;
+    }
+    if (!this.queue.length) return;
     this.index = (this.index + 1) % this.queue.length;
     const entry = this.queue[this.index];
     this.item.textContent = `${KIND_ICON[entry.kind] || ''} ${entry.text}`.trim();
@@ -266,8 +295,12 @@ export class NewsTicker {
   }
 }
 
-/** Settings → News: add box with a character counter, own-entry list with delete, show-strip toggle. */
-export function renderNewsSettings(container, settings, onChange) {
+/**
+ * Settings → News: add box with a character counter, own-entry list with delete, show-strip toggle.
+ * `hooks` (optional, from sharedNewsHooks() in js/ui/sharedNews.js) adds a Share button to each
+ * entry and the "Shared with every player" section; hooks.subscribe(fn) redraws when it changes.
+ */
+export function renderNewsSettings(container, settings, onChange, hooks = null) {
   if (!container) return;
   settings.news = sanitizeNews(settings.news);
   container.replaceChildren();
@@ -321,6 +354,14 @@ export function renderNewsSettings(container, settings, onChange) {
   note.className = 'news-note';
   note.textContent = NEWS_STRINGS.localOnly;
 
+  const shareBox = document.createElement('div');
+  shareBox.className = 'news-shared-box';
+  const say = (text, kind = 'bad') => {
+    msg.textContent = text || '';
+    msg.classList.toggle('is-ok', kind === 'ok');
+  };
+  const changed = () => { renderList(); onChange?.(); };
+
   const updateCount = () => { count.textContent = NEWS_STRINGS.counter(Array.from(input.value).length, NEWS_MAX_CHARS); };
   const renderList = () => {
     list.replaceChildren();
@@ -350,24 +391,34 @@ export function renderNewsSettings(container, settings, onChange) {
         renderList();
         onChange?.();
       });
-      li.append(text, del);
+      li.append(text);
+      const share = hooks?.entryButton(e, say, changed);
+      if (share) li.append(share);
+      li.append(del);
       list.appendChild(li);
     }
+    if (hooks) hooks.renderSection(shareBox, say, changed);
   };
 
-  input.addEventListener('input', () => { msg.textContent = ''; updateCount(); });
+  input.addEventListener('input', () => { say(''); updateCount(); });
   form.addEventListener('submit', (ev) => {
     ev.preventDefault();
     const res = addNewsEntry(settings.news, input.value);
-    if (!res.ok) { msg.textContent = res.error; return; }
+    if (!res.ok) { say(res.error); return; }
     input.value = '';
-    msg.textContent = '';
+    say('');
     updateCount();
     renderList();
     onChange?.();
   });
 
-  container.append(toggle, form, head, list, note);
+  container.append(toggle, form, head, list, note, shareBox);
   updateCount();
   renderList();
+  hooks?.subscribe?.(() => {
+    // A feed refresh must not wipe what the player is typing in the shared section
+    const active = globalThis.document?.activeElement;
+    if (active && shareBox.contains(active) && active.tagName === 'INPUT') return;
+    renderList();
+  });
 }

@@ -45,6 +45,7 @@ import { gearCard } from './ui/rarity.js';
 import { applyMotionSetting, renderMotionSettings } from './ui/motion.js';
 import { applyThemeSetting, renderThemeSettings, themeVar } from './ui/theme.js';
 import { NewsTicker, renderNewsSettings } from './ui/newsTicker.js';
+import { SharedNews, sharedQueueItems, sharedNewsHooks } from './ui/sharedNews.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
 import { Leaderboard } from './leaderboard.js';
@@ -169,6 +170,7 @@ class AetheriaApp {
     this.setupTabs();
     // Account & cloud save (R38): optional; signed out, the game saves locally as before
     this.accountUI = new AccountUI(this);
+    this.sharedNews.watchAccount(this.cloudSave);
     this.accountUI.init();
 
     // Check offline time
@@ -273,11 +275,15 @@ class AetheriaApp {
         this.saveManager.save();
       });
     }
-    this.newsTicker = new NewsTicker(() => this.gameState.settings.news, CHANGELOG);
+    this.sharedNews = new SharedNews({ getCloud: () => this.cloudSave });
+    const sharedItems = () => sharedQueueItems(this.sharedNews.posts, this.gameState.settings.news, this.sharedNews.myId);
+    this.newsTicker = new NewsTicker(() => this.gameState.settings.news, CHANGELOG, sharedItems);
     this.newsTicker.mount(document.getElementById('top-dashboard'));
+    this.sharedNews.onChange(() => this.newsTicker.softRefresh());
+    this.sharedNews.start();
     const newsChanged = () => { this.newsTicker.refresh(); this.saveManager.save(); };
     renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, newsChanged);
-    renderNewsSettings(document.getElementById('settings-news'), this.gameState.settings, newsChanged);
+    renderNewsSettings(document.getElementById('settings-news'), this.gameState.settings, newsChanged, sharedNewsHooks(this.sharedNews, this.gameState.settings));
     renderThemeSettings(document.getElementById('settings-theme'), this.gameState.settings, () => this.saveManager.save());
     renderLanguageSettings(document.getElementById('settings-language'), this.gameState.settings, () => this.saveManager.save());
   }

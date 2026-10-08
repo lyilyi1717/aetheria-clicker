@@ -59,7 +59,7 @@ console.log('--- add / delete ---');
 console.log('--- sanitize: anything a save holds becomes a valid state ---');
 {
   for (const bad of [undefined, null, 'x', 3, [], { entries: 'nope' }]) {
-    assert.deepEqual(sanitizeNews(bad), { hidden: false, entries: [] });
+    assert.deepEqual(sanitizeNews(bad), defaultNewsState());
   }
   const s = sanitizeNews({
     hidden: true,
@@ -77,14 +77,14 @@ console.log('--- sanitize: anything a save holds becomes a valid state ---');
 console.log('--- saves: old saves get defaults, entries persist ---');
 {
   const fresh = new GameState();
-  assert.deepEqual(fresh.settings.news, { hidden: false, entries: [] });
+  assert.deepEqual(fresh.settings.news, defaultNewsState());
 
   const old = new GameState();
   const data = JSON.parse(JSON.stringify(old.serialize()));
   delete data.settings.news;
   const loaded = new GameState();
   loaded.deserialize(data);
-  assert.deepEqual(loaded.settings.news, { hidden: false, entries: [] }, 'pre-R39 save loads');
+  assert.deepEqual(loaded.settings.news, defaultNewsState(), 'pre-R39 save loads');
 
   const gs = new GameState();
   addNewsEntry(gs.settings.news, 'Saved headline');
