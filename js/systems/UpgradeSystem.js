@@ -1,8 +1,10 @@
 // Upgrade shop on the Monolith (design doc 6.1 "Upgrade shop" / "Click yield", roadmap R5).
 // One-time Aether purchases that reset on Ascend (and Transcend):
-//   - tier upgrades: 5 per generator tier, available at owned >= 1/5/15/30/60 (R31; was up to 200),
-//     cost baseCost x 4^(k+1) (k = 0..4), each x1.2 that tier's output (TIER_UPGRADE_MULT). Generated for all 20 tiers;
-//     a locked tier's upgrades stay hidden.
+//   - tier upgrades: 6 per generator tier (R52; R31 had 5 at 1/5/15/30/60), available at owned
+//     >= 1/3/8/15/30/60, cost baseCost x 3^(k+1) (k = 0..5), each x1.2 that tier's output
+//     (TIER_UPGRADE_MULT). R52 added the 6th and cut the price step from 4 so a run still lands
+//     about 30 upgrades without the click chain. Generated for all 20 tiers; a locked tier's
+//     upgrades stay hidden.
 //   (The 15 click upgrades were removed in R52: a click is 0.5 s of production, see
 //   GameState.getClickBase. Save step v9 refunds the ones a save had bought.)
 //   - synergy upgrades: 8, "tier A +0.1% per tier B owned" (SYNERGY_PER_UNIT), additive.
@@ -15,18 +17,18 @@ import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js'
 import { getDeepBlueprintDivisor } from './ShardTreeSystem.js';
 import { t, localizeList } from '../i18n/index.js';
 
-export const TIER_UPGRADE_THRESHOLDS = [1, 5, 15, 30, 60];
-// Tier upgrades are x1.2 each (x2.49 for all 5), not the doc's first-draft x2 (x32): simulated
+export const TIER_UPGRADE_THRESHOLDS = [1, 3, 8, 15, 30, 60];
+// Tier upgrades are x1.2 each (x2.99 for all 6), not the doc's first-draft x2 (x32): simulated
 // on the real classes (sim/core-pacing.mjs, design doc 6.1 R3/R5 notes), x2 put the casual first
 // Transcend at day 0.2 and x1.25 / +0.3% at day 1.5; x1.2 / +0.1% puts it at day 4.2.
 export const TIER_UPGRADE_MULT = 1.2;
-export const TIER_UPGRADE_COST_STEP = 4;        // tier upgrade k (1-5) costs baseCost x 4^k (R31; was 10^k)
+export const TIER_UPGRADE_COST_STEP = 3;        // tier upgrade k (1-6) costs baseCost x 3^k (R52; R31: 4^k, before: 10^k)
 export const SYNERGY_PER_UNIT = 0.001;         // +0.1% to tier A per tier B owned (doc draft: +1%)
 export const SYNERGY_MIN_TARGET = 25;          // own 25 of tier A ...
 export const SYNERGY_MIN_SOURCE = 50;          // ... and 50 of tier B to see the synergy
 export const SYNERGY_COST_EXP = 4;             // cost: baseCost(A) x 10^4
 
-const TIER_LEVEL_NAMES = [1, 2, 3, 4, 5].map(k => t(`upg.level.${k}`));
+const TIER_LEVEL_NAMES = TIER_UPGRADE_THRESHOLDS.map((_, k) => t(`upg.level.${k + 1}`));
 
 
 // [target A, source B, name]: A gets +1% output per B owned

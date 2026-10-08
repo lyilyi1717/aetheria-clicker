@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from './js/systems/BuildingSystem.js';
-import { PrestigeSystem, MIN_RUN_SECONDS, DUST_REF } from './js/systems/PrestigeSystem.js';
+import { PrestigeSystem, MIN_RUN_SECONDS, DUST_REF, DUST_MIN_AETHER } from './js/systems/PrestigeSystem.js';
 import {
   etaSeconds, formatEta, dustRate, nextWellEta, wellsEta, sortItems, getComingUp, MAX_ITEMS
 } from './js/ui/comingUp.js';
@@ -53,12 +53,12 @@ console.log('--- formatEta: rough, friendly durations ---');
 console.log('--- New Well ETA: the Oil gate, then the 10-min minimum run ---');
 {
   const { gs, ps } = setup();
-  gs.totalAetherEarned = new BigNum(DUST_REF / 2);
-  // DUST_REF / 2 Oil missing at 10/s takes less than the 600 s minimum run
+  gs.totalAetherEarned = new BigNum(DUST_MIN_AETHER / 2);
+  // 250 Oil missing to the 500-Oil gate (R52) at 10/s = 25 s, but the run must also last 600 s
   assert.equal(nextWellEta(gs, ps, new BigNum(10), NOW), MIN_RUN_SECONDS);
-  near(nextWellEta(gs, ps, new BigNum(0.1), NOW), DUST_REF / 2 * 10, 'Oil is the slower part');
+  near(nextWellEta(gs, ps, new BigNum(0.1), NOW), DUST_MIN_AETHER / 2 * 10, 'Oil is the slower part');
   assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW), null);
-  gs.totalAetherEarned = new BigNum(DUST_REF * 64);
+  gs.totalAetherEarned = new BigNum(DUST_REF * 32);
   assert.ok(ps.getPendingCosmicDust().gt(0));
   assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW + 100_000), MIN_RUN_SECONDS - 100, 'paying run: only the clock');
   assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW + MIN_RUN_SECONDS * 1000), 0);
@@ -68,7 +68,7 @@ console.log('--- Reserve pace: pending over the run time (at least the minimum r
 {
   const { gs, ps } = setup();
   assert.equal(dustRate(gs, ps, NOW).toNumber(), 0, 'no pending Reserves, no pace');
-  gs.totalAetherEarned = new BigNum(DUST_REF * 64); // pays 20
+  gs.totalAetherEarned = new BigNum(DUST_REF * 32); // pays 20
   const pending = ps.getPendingCosmicDust().toNumber();
   assert.equal(pending, 20);
   assert.ok(Math.abs(dustRate(gs, ps, NOW + 60_000).toNumber() - pending / MIN_RUN_SECONDS) < 1e-12, 'short run counts as 10 min');
@@ -78,7 +78,7 @@ console.log('--- Reserve pace: pending over the run time (at least the minimum r
 console.log('--- several New Wells: next one, then the player\'s own wells per day ---');
 {
   const { gs, ps } = setup();
-  gs.totalAetherEarned = new BigNum(DUST_REF * 64);
+  gs.totalAetherEarned = new BigNum(DUST_REF * 32);
   const t = NOW + MIN_RUN_SECONDS * 1000;
   assert.equal(wellsEta(gs, ps, BigNum.zero(), 0, t), 0);
   assert.equal(wellsEta(gs, ps, BigNum.zero(), 1, t), 0);

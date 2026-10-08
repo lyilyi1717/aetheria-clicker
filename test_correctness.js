@@ -107,13 +107,16 @@ console.log('--- Prestige: dust and shards stay finite past 1e308 ---');
   const dust = pres.getPendingCosmicDust();
   assert.ok(dust.gt(0), 'ascension must be possible at 1e320 run Aether');
   assert.equal(pres.canAscend(), true);
-  // 10 * (1e320 / 500)^(1/6) (R52; R31 was 10 * (A / 1e4)^(1/5))
-  assert.ok(Math.abs((dust.e + Math.log10(dust.m)) - (1 + (320 - Math.log10(500)) / 6)) < 1e-6, `dust ${dust}`);
-  // The small end: 500 -> 10, 32e3 -> 20 (sixth root)
-  gs.totalAetherEarned = new BigNum(500);
+  // 10 * (1e316)^(1/5) = 10 * 10^(316/5) (R31)
+  assert.ok(Math.abs((dust.e + Math.log10(dust.m)) - (1 + 316 / 5)) < 1e-6, `dust ${dust}`);
+  // The small end: 1e4 -> 10, 32e4 -> 20 (fifth root)
+  gs.totalAetherEarned = new BigNum(1e4);
   assert.equal(pres.getPendingCosmicDust().toNumber(), 10);
-  gs.totalAetherEarned = new BigNum(32e3);
+  gs.totalAetherEarned = new BigNum(32e4);
   assert.equal(pres.getPendingCosmicDust().toNumber(), 20);
+  // R52: it pays from 500 run Aether (5 dust), on the same curve
+  gs.totalAetherEarned = new BigNum(500);
+  assert.equal(pres.getPendingCosmicDust().toNumber(), 5);
   gs.totalAetherEarned = new BigNum(499);
   assert.equal(pres.getPendingCosmicDust().toNumber(), 0);
 

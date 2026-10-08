@@ -1118,7 +1118,7 @@ export default {
 
   // Share Tree (ShardTreeSystem.js)
   "branch.foundry.name": "المسبك",
-  "branch.foundry.desc": "المخططات العميقة: واحد لكل فئة من الحقول الجديدة. ترقيات تلك الفئة الخمس تكلّف ÷10.",
+  "branch.foundry.desc": "المخططات العميقة: واحد لكل فئة من الحقول الجديدة. ترقيات تلك الفئة الست تكلّف ÷10.",
   "branch.chronos.name": "الزمن",
   "branch.chronos.desc": "الوقت يعمل لصالحك: الحفر التلقائي، وحد غياب أطول، وتسريع يومي 6 ساعات، والتفجير التلقائي.",
   "branch.tower.name": "البرج",
@@ -1199,6 +1199,7 @@ export default {
   "upg.level.3": "مبارك",
   "upg.level.4": "أسطوري",
   "upg.level.5": "أبدي",
+  "upg.level.6": "سماوي",
   "upg.tier_name": "{name} ({level})",
   "upg.tier_desc": "إنتاج {name} ×{x}",
   "upg.syn_desc": "{a} +{pct}% لكل {b} تملكه",
@@ -1629,8 +1630,8 @@ export default {
   "st.kept_free": "محفوظ مجانًا: كان لديك قبل شجرة الأسهم",
   "st.after": "بعد {list}",
   "st.fd_name": "الفئة {n}: المخطط العميق",
-  "st.fd_owned": "مملوك: ترقياتها الخمس تكلّف ÷10",
-  "st.fd_will": "ستكلّف ترقياتها الخمس ÷10",
+  "st.fd_owned": "مملوك: ترقياتها الست تكلّف ÷10",
+  "st.fd_will": "ستكلّف ترقياتها الست ÷10",
   "st.auto.off": "متوقف: تحفر كل بئر جديدة بيدك.",
   "st.auto.min_run": "بانتظار أقل مدة للجولة، 10 دقائق ({time}).",
   "st.auto.first": "بانتظار أول احتياطي خام في هذه الجولة (500 نفط في الجولة).",

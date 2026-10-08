@@ -467,23 +467,28 @@ leaderboard column. No save migration: `codex` is a new additive field.
 > | Auto-tap | dust shop, Asc 1, **5 dust**: 1 plain click/s (no combo, Frenzy or crit) whenever the player hasn't tapped for 2 s, and in offline gains (+50% of production); the Dry Well challenge turns it off | — |
 > | Combo / Frenzy | combo **×1** (feel: bar, pitch, Frenzy every 20); Frenzy **×1.25** for 4 s | ×5 / ×3 |
 > | Spells / anomalies | Burst **10 s of CPS every 60 s**; Celestial **×1.25** 30 s; Chrono Warp ×5 15 s every **10 min**; Supernova **30 s**; Mirage **×1.5** | 45 s / 45 s; ×2.5; every 60 s; 180 s; ×2 |
-> | Dust gain | `10 × (runAether / 500)^(1/6)`: pays from **500** run Oil | `10 × (A / 1e4)^(1/5)` |
+> | Dust gain | R31's `10 × (runAether / 1e4)^(1/5)`, now paid from **500** run Oil (5 dust, the price of Auto-tap) | paid from 1e4 (10 dust) |
+> | Tier upgrades | **6** per tier at owned ≥ 1/3/8/15/30/60, cost `baseCost × 3^k` (k = 1…6), ×1.2 each | 5 at 1/5/15/30/60, `baseCost × 4^k` |
 >
 > *Why.* At 0.5 s a click, the attentive model's 2 clicks/s alone add as much as the generators,
-> so the "~×2" target can't hold against generators alone. It is measured against an idle player
-> **with Auto-tap** (×1.5 generators), which every player owns from the first New Well on:
-> `sim/active-income.mjs` gives **×1.93** (clicks only ×1.46, spells only ×1.28, anomalies only
-> ×1.07; ×2.89 of generator output; R3 values measured ×6.86). Nothing much is left for the combo,
-> so it became feel only and Frenzy, Burst, Celestial, Warp and the anomalies shrank to fit.
-> The dust gate is the early-game lever: with click upgrades gone the casual first New Well needs
-> a target a 10-min first session reaches (about 1,400 run Oil), and the idle player needs one
-> reached in the first hour (671 run Oil at 1 h). A sixth root from 500 pays about the same as the
-> old fifth root from 1e4 at 1e12 run Oil (355 vs 398 dust) and a little more early (17 vs 10 at
-> 1e4), so the Transcend gates stay. `sim:check` now also asserts the idle first Ascension
-> ≤ 90 min. Result: first Ascension idle **60 min** (was 300), casual 10 min; upgrades per run
-> median idle 19, casual 23 (were 22 / 31); casual 2-month run Oil 5.6e10 (≤ 1e13 asserted;
-> the row lands just after a Transcend, the layer peaks before it are 1.9e8, 5.5e9, 7.8e10,
-> 8.7e11, 8.3e12, 7e13).
+> so "~×2" can't hold against generators alone. **It is measured against an idle player with
+> Auto-tap** (×1.5 generators), which every player owns from the first New Well on; the owner
+> accepted this (PM review of the R52 PR). `sim/active-income.mjs` gives **×1.93** (clicks only
+> ×1.46, spells only ×1.28, anomalies only ×1.07; ×2.89 of generator output; R3 values measured
+> ×6.86). Little is left for the combo, so it became feel only, and Frenzy, Burst, Celestial, Warp
+> and the anomalies shrank to fit.
+>
+> The early-game lever is where dust starts paying: the R31 curve is unchanged, but a New Well
+> pays from 500 run Oil (5 dust). A first draft moved the whole curve instead (`(A / 500)^(1/6)`);
+> that paid more dust mid-game, so Auto-Ascend fired sooner, runs got shorter and both upgrades
+> per run and 2-month Oil fell. Removing the 15 click upgrades also took about 5 purchases out of
+> every casual run (R31's 31 per run median included a median of 6 click upgrades; 26 without).
+> Neither the thresholds nor the price alone changed the median much (a casual run owns about 8
+> tiers, so 8 × 5 upgrades is the ceiling); a 6th level per tier plus the ×3 price step brings it
+> back. `sim:check` now also asserts idle first Ascension ≤ 90 min, casual 2-month run Oil ≥ 1e11
+> and a casual median of ≥ 30 upgrades per run. Result: first Ascension idle **60 min** (was 300),
+> casual 10 min; upgrades per run median casual **32**, idle **28** (R31: 31 / 22 with click
+> upgrades); 2-month run Oil casual **2.9e12**, idle **2.5e11** (R31: 7.5e11 / 4.9e11).
 
 
 | Item | Today | Proposed | Why |
@@ -791,12 +796,12 @@ per run median 31 casual (22 idle); about 106 Transcends and 11 Chronicles in th
 `sim:check` asserts the casual 2-month run Oil stays ≤ 1e13. The table below is the pre-R31
 proposal, kept for history.
 
-**R52 (v5.2.0):** with passive-first clicking (§6.1 R52 block) run Oil casual / idle reads 1 d
-3.7e4 / 9.2e4, 1 w 6.4e3 / 1.6e8, 1 mo 1.2e12 / 1.5e11, 2 mo 5.6e10 / 6e10, 3 mo 2.1e14 / 3.2e11
-(the rows swing with where a reset lands). Casual Transcends at days 2.9, 6.9, 12.3, 20.1, 31.6,
-47.8, 70.9, 103.1, first Chronicle day 110 (idle 185); about 85 Transcends and 10 Chronicles in the
-casual year. First Ascension idle 60 min, casual 10 min; longest stretch without a reset (day
-1–270) casual 6.5 days, idle 11.0 days.
+**R52 (v5.2.0):** with passive-first clicking (§6.1 R52 block) run Oil casual / idle reads 1 w
+6.1e6 / 7.8e8, 1 mo 2.4e11 / 1.4e10, **2 mo 2.9e12 / 2.5e11**, 3 mo 3.2e3 / 1.8e13 (the rows swing
+with where a reset lands). Casual Transcends at days 4.3, 9.5, 15.3, 22.8, 31.0, 41.4, 54.2, 70.3,
+first Chronicle day 77 (idle 128); 105 Transcends and 11 Chronicles in the casual year. First
+Ascension idle 60 min, casual 10 min; longest stretch without a reset (day 1–270) casual 2.4
+days, idle 4.3 days.
 
 
 Model: proposed §6.1 constants; upgrade shop; one new tier per Transcend to 30; dust-shop

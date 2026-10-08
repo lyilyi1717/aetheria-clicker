@@ -12,7 +12,7 @@
 //   casual : present 10 min of every hour (2 clicks/s, spells on cooldown, anomalies clicked),
 //            an income multiplier measured on the real spell/anomaly code (R3 block,
 //            sim/active-income.mjs); Auto-tap while away once owned
-// Ascend policy: when pending dust >= max(10, current dust) and the run is at least 10 min old,
+// Ascend policy: when pending dust >= max(5, current dust) and the run is at least 10 min old,
 // by hand only while the player is there (casual: the 10 present minutes of each hour; idle: a
 // glance once an hour) until the shard tree's Auto-Ascend is bought, then whenever the rule is met
 // (R13; see the shard-tree block below).
@@ -54,7 +54,11 @@ export const TARGETS = {
   // restarts the Transcend ladder so resets keep coming.
   gapWindowEndDay: 270,
   // R31: numbers grow slowly. Casual run Aether at the 2-month row stays at or below this.
-  casualTwoMonthAetherMax: 1e13
+  casualTwoMonthAetherMax: 1e13,
+  // R52 (passive first must not cost the upgrade rhythm or the curve): casual 2-month run Aether
+  // at least this, and a median of at least this many upgrades per casual Ascension run
+  casualTwoMonthAetherMin: 1e11,
+  casualUpgradesPerRunMin: 30
 };
 
 // --- R3 / R52 active income block ----------------------------------------------------------------
@@ -225,7 +229,7 @@ function makeDustShopModel(gs) {
 // not play challenges (their Pages would only make it faster), so this is the slow case.
 // By hand the player Ascends on the same threshold as the default Auto-Ascend rule (R31)
 const MANUAL_ASCEND_MULT = AUTO_ASCEND_RULES.find(r => r.id === AUTO_ASCEND_DEFAULT_RULE).mult;
-const MANUAL_ASCEND_MIN = 10;
+const MANUAL_ASCEND_MIN = 5;   // R52: the first New Well pays 5 (Auto-tap's price)
 const SIM_EPOCH = Date.UTC(2026, 0, 1);
 const CHRONICLE_AFTER_SLOW_DAYS = 7;
 const PAGE_BUY_ORDER = ['bookmark', 'ink', 'dog_ear', 'gilded_edges', 'margin_notes', 'second_reading'];
@@ -481,6 +485,14 @@ for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
     const twoMonth = r.rows.find(row => row.label === '2 mo');
     if (twoMonth && twoMonth.runBig.gt(TARGETS.casualTwoMonthAetherMax)) {
       failures.push(`2-month run Aether ${twoMonth.run} > ${TARGETS.casualTwoMonthAetherMax.toExponential()}`);
+    }
+    if (twoMonth && twoMonth.runBig.lt(TARGETS.casualTwoMonthAetherMin)) {
+      failures.push(`2-month run Aether ${twoMonth.run} < ${TARGETS.casualTwoMonthAetherMin.toExponential()}`);
+    }
+    const ups = [...r.upgradesPerRun].sort((a, b) => a - b);
+    const upMedian = ups.length ? ups[ups.length >> 1] : 0;
+    if (upMedian < TARGETS.casualUpgradesPerRunMin) {
+      failures.push(`median ${upMedian} upgrades per Ascension run < ${TARGETS.casualUpgradesPerRunMin}`);
     }
     if (r.maxGapDays > TARGETS.maxGapDaysAfterDay1) {
       failures.push(`${r.maxGapDays.toFixed(1)}-day stretch with no reset > ${TARGETS.maxGapDaysAfterDay1} days`);

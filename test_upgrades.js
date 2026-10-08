@@ -40,15 +40,15 @@ const make = () => {
 };
 const rich = (gs) => { gs.aether = new BigNum(1, 300); };
 
-console.log('--- Table: 5 per tier for all 20 tiers, 8 synergy, no click upgrades (R52), unique ids ---');
+console.log('--- Table: 6 per tier for all 20 tiers, 8 synergy, no click upgrades (R52), unique ids ---');
 {
   const byKind = (k) => UPGRADE_DEFINITIONS.filter(u => u.kind === k);
-  assert.equal(byKind('tier').length, 5 * MAX_TIER_COUNT);
+  assert.equal(byKind('tier').length, 6 * MAX_TIER_COUNT);
   assert.equal(byKind('click').length, 0);
-  assert.equal(UPGRADE_DEFINITIONS.length, 5 * MAX_TIER_COUNT + 8);
+  assert.equal(UPGRADE_DEFINITIONS.length, 6 * MAX_TIER_COUNT + 8);
   assert.equal(byKind('synergy').length, 8);
   assert.equal(new Set(UPGRADE_DEFINITIONS.map(u => u.id)).size, UPGRADE_DEFINITIONS.length);
-  assert.deepEqual(TIER_UPGRADE_THRESHOLDS, [1, 5, 15, 30, 60]);
+  assert.deepEqual(TIER_UPGRADE_THRESHOLDS, [1, 3, 8, 15, 30, 60]);
   // Every synergy pairs two different base tiers (visible without a Transcend)
   for (const u of byKind('synergy')) {
     assert.notEqual(u.building, u.source);
@@ -57,15 +57,15 @@ console.log('--- Table: 5 per tier for all 20 tiers, 8 synergy, no click upgrade
   console.log(`  ${UPGRADE_DEFINITIONS.length} upgrades`);
 }
 
-console.log('--- Cost: tier upgrade k = baseCost x 4^(k+1) ---');
+console.log('--- Cost: tier upgrade k = baseCost x 3^(k+1) (R52) ---');
 {
   for (const def of [BUILDING_DEFINITIONS[0], BUILDING_DEFINITIONS[13], BUILDING_DEFINITIONS[19]]) {
-    for (let k = 0; k < 5; k++) {
+    for (let k = 0; k < 6; k++) {
       const u = getUpgradeDefinition(`${def.id}_u${k + 1}`);
-      assert.ok(close(u.cost.div(def.baseCost).toNumber(), Math.pow(4, k + 1)), u.id);
+      assert.ok(close(u.cost.div(def.baseCost).toNumber(), Math.pow(3, k + 1)), u.id);
     }
   }
-  assert.equal(getUpgradeDefinition('tapper_u1').cost.toNumber(), 40);
+  assert.equal(getUpgradeDefinition('tapper_u1').cost.toNumber(), 30);
   assert.equal(getUpgradeDefinition('click_1'), undefined);
 }
 
@@ -75,20 +75,20 @@ console.log('--- Unlock thresholds and buying ---');
   assert.equal(us.isAvailable('tapper_u1'), false, 'needs 1 owned');
   gs.buildings.tapper.count = 1;
   assert.equal(us.isAvailable('tapper_u1'), true);
-  assert.equal(us.isAvailable('tapper_u2'), false, 'needs 5 owned');
-  gs.buildings.tapper.count = 4;
+  assert.equal(us.isAvailable('tapper_u2'), false, 'needs 3 owned');
+  gs.buildings.tapper.count = 2;
   assert.equal(us.isAvailable('tapper_u2'), false);
-  gs.buildings.tapper.count = 5;
+  gs.buildings.tapper.count = 3;
   assert.equal(us.isAvailable('tapper_u2'), true);
   gs.buildings.tapper.count = 200;
-  for (let k = 1; k <= 5; k++) assert.equal(us.isAvailable(`tapper_u${k}`), true);
+  for (let k = 1; k <= 6; k++) assert.equal(us.isAvailable(`tapper_u${k}`), true);
 
   // Cost is paid, can't buy twice, can't buy without the Aether
-  gs.aether = new BigNum(39);
+  gs.aether = new BigNum(29);
   assert.equal(us.buy('tapper_u1'), false);
   gs.aether = new BigNum(100);
   assert.equal(us.buy('tapper_u1'), true);
-  assert.ok(close(gs.aether.toNumber(), 60));
+  assert.ok(close(gs.aether.toNumber(), 70));
   assert.equal(us.isBought('tapper_u1'), true);
   assert.equal(us.isAvailable('tapper_u1'), false);
   assert.equal(us.buy('tapper_u1'), false);
@@ -240,12 +240,12 @@ console.log('--- BigNum safety at the top tier: finite costs and production, no 
   const top = BUILDING_DEFINITIONS[MAX_TIER_COUNT - 1];
   gs.buildings[top.id].count = 5000;
   gs.aether = new BigNum(1, 5000);
-  for (let k = 1; k <= 5; k++) assert.equal(us.buy(`${top.id}_u${k}`), true);
-  const cost = getUpgradeDefinition(`${top.id}_u5`).cost;
-  assert.ok(Number.isFinite(cost.m) && cost.e === 23, `tier 20 u5 cost ${cost.format('scientific', 2)}`);
+  for (let k = 1; k <= 6; k++) assert.equal(us.buy(`${top.id}_u${k}`), true);
+  const cost = getUpgradeDefinition(`${top.id}_u6`).cost;
+  assert.ok(Number.isFinite(cost.m) && cost.e === 22, `tier 20 u6 cost ${cost.format('scientific', 2)}`);
   const prod = bs.getBuildingProduction(top.id);
   assert.ok(Number.isFinite(prod.m) && prod.m >= 1 && prod.e > 10);
-  assert.ok(close(getTierUpgradeMult(gs, top.id), TIER_UPGRADE_MULT ** 5));
+  assert.ok(close(getTierUpgradeMult(gs, top.id), TIER_UPGRADE_MULT ** 6));
   // Huge dust and shard multipliers on top stay finite
   gs.totalCosmicDust = new BigNum(1, 400);
   gs.totalFractureShards = new BigNum(500);
@@ -261,11 +261,11 @@ console.log('--- Deep Blueprint (shard tree Foundry): that tier\'s upgrades cost
   gs.buildings[t15.id].count = 10;
   gs.fractureShards = new BigNum(5);
   const full = us.getCost(`${t15.id}_u1`);
-  assert.ok(close(full.toNumber(), t15.baseCost.toNumber() * 4));
+  assert.ok(close(full.toNumber(), t15.baseCost.toNumber() * 3));
   assert.equal(isFoundryOpen(gs), true, 'the shop being linked opens the Foundry');
   assert.equal(buyNode(gs, `foundry_t${t15.tier}`), true);
   assert.ok(close(us.getCost(`${t15.id}_u1`).toNumber(), full.toNumber() / 10));
-  assert.ok(close(us.getCost('tapper_u1').toNumber(), 40), 'other tiers keep their price');
+  assert.ok(close(us.getCost('tapper_u1').toNumber(), 30), 'other tiers keep their price');
   gs.aether = full.div(10);
   assert.equal(us.buy(`${t15.id}_u1`), true, 'affordable at the discounted price');
   assert.equal(gs.aether.toNumber(), 0);

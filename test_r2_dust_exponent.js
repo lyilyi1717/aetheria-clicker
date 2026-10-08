@@ -4,21 +4,23 @@ import { GameState } from './js/systems/GameState.js';
 import { PrestigeSystem, MIN_RUN_SECONDS } from './js/systems/PrestigeSystem.js';
 globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
 
-console.log('--- R2/R31/R52: dust is 10 x (run Aether / 500)^(1/6) ---');
+console.log('--- R2/R31: dust is 10 x (run Aether / 1e4)^(1/5), paid from 500 run Aether (R52) ---');
 {
   const gs = new GameState();
   const ps = new PrestigeSystem(gs);
   const dust = (a) => { gs.totalAetherEarned = new BigNum(a); return ps.getPendingCosmicDust().toNumber(); };
   assert.equal(dust(499), 0);
-  assert.equal(dust(500), 10);
-  assert.equal(dust(32e3), 20);      // x64 Aether doubles dust
-  assert.equal(dust(3645e2), 30);
-  assert.equal(dust(5e8), 100);
-  assert.equal(dust(5e14), 1000);
-  // Past a double: 1e330 run Aether -> 10 * (1e330 / 500)^(1/6)
+  assert.equal(dust(500), 5);         // the first New Well can pay for Auto-tap
+  assert.equal(dust(9999), 9);
+  assert.equal(dust(1e4), 10);
+  assert.equal(dust(32e4), 20);      // x32 Aether doubles dust
+  assert.equal(dust(243e4), 30);
+  assert.equal(dust(1e9), 100);
+  assert.equal(dust(1e14), 1000);
+  // Past a double: 1e330 run Aether -> 10 * 10^(326/5)
   gs.totalAetherEarned = new BigNum('1e330');
   const d = ps.getPendingCosmicDust();
-  assert.ok(Math.abs((d.e + Math.log10(d.m)) - (1 + (330 - Math.log10(500)) / 6)) < 1e-6, `dust ${d}`);
+  assert.ok(Math.abs((d.e + Math.log10(d.m)) - (1 + 326 / 5)) < 1e-6, `dust ${d}`);
 }
 
 console.log('--- R2: minimum run on Ascend ---');

@@ -10,12 +10,13 @@ import { t } from '../i18n/index.js';
 // The 7 Ascension perks are now the dust shop (R6, DustShopSystem.js; save step v5 converts them)
 
 // Dust gain = DUST_BASE * (runAether / DUST_REF)^DUST_EXPONENT (design doc 6.1, R31). Ascension
-// pays once run Aether reaches DUST_REF (DUST_BASE dust). R52 moved the gate from 1e4 to 500 and
-// the exponent from 1/5 to 1/6 (passive first: an idle player's first New Well comes within the
-// first hour, and a 1e12 run still pays about the same, 355 dust, was 398).
+// pays once run Aether reaches DUST_MIN_AETHER: R52 lowered that from DUST_REF (10 dust) to 500
+// (5 dust, the price of Auto-tap) so an idle player's first New Well comes within the first hour.
+// The curve itself is R31's, so mid- and late-game pacing is unchanged.
 export const DUST_BASE = 10;
-export const DUST_REF = 500;
-export const DUST_EXPONENT = 1 / 6;
+export const DUST_REF = 1e4;
+export const DUST_EXPONENT = 1 / 5;
+export const DUST_MIN_AETHER = 500;
 // Shortest run that may Ascend (design doc 2.1 / 6.1)
 export const MIN_RUN_SECONDS = 600;
 
@@ -78,11 +79,11 @@ export class PrestigeSystem {
   // Base dust from run Aether only, before the dust-gain links
   getBaseCosmicDust() {
     const totalAether = this.gameState.totalAetherEarned;
-    if (totalAether.lt(DUST_REF)) return BigNum.zero();
+    if (totalAether.lt(DUST_MIN_AETHER)) return BigNum.zero();
 
     // DUST_BASE * (Aether / DUST_REF)^DUST_EXPONENT, in BigNum so a huge run can't overflow a
     // double (same float epsilon as getPendingCosmicDust: 16e6 must give exactly 20, not 19)
-    return totalAether.div(DUST_REF).max(1).pow(DUST_EXPONENT).mul(DUST_BASE * (1 + 1e-12)).floor();
+    return totalAether.div(DUST_REF).pow(DUST_EXPONENT).mul(DUST_BASE * (1 + 1e-12)).floor();
   }
 
   // Seconds left until the current run is long enough to Ascend (0 = met). Wall-clock, so

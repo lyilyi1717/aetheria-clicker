@@ -14,7 +14,7 @@
 
 import { BigNum } from '../engine/BigNum.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from '../systems/BuildingSystem.js';
-import { MIN_RUN_SECONDS, DUST_REF } from '../systems/PrestigeSystem.js';
+import { MIN_RUN_SECONDS, DUST_MIN_AETHER } from '../systems/PrestigeSystem.js';
 import { getTeasers, getUnlockProgress, UNLOCK_BY_TAB, isTabUnlocked } from '../systems/UnlockSystem.js';
 import { DUST_SHOP_ITEMS, getNextShopTier } from '../systems/DustShopSystem.js';
 import { SHARD_TREE_NODES, hasNode, getShardBalance, getOpenTierCount, isFoundryOpen } from '../systems/ShardTreeSystem.js';
@@ -71,7 +71,7 @@ export function dustRate(gs, prestige, now = Date.now()) {
 export function nextWellEta(gs, prestige, rate, now = Date.now()) {
   const wait = prestige.getMinRunRemaining(now);
   if (prestige.getPendingCosmicDust().gt(0)) return wait;
-  const oil = etaSeconds(gs.totalAetherEarned, DUST_REF, rate);
+  const oil = etaSeconds(gs.totalAetherEarned, DUST_MIN_AETHER, rate);
   return oil === null ? null : Math.max(oil, wait);
 }
 

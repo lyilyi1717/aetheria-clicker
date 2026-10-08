@@ -136,7 +136,7 @@ console.log('--- Shards: 2 per Transcend, +25% Aether each, additive; no dust-ga
   assert.ok(close(gs.getNetAetherPerSecond().toNumber(), base * 3.5));
 
   gs.totalFractureShards = BigNum.zero();
-  gs.totalAetherEarned = new BigNum(32e3);
+  gs.totalAetherEarned = new BigNum(32e4);
   assert.equal(ps.getPendingCosmicDust().toNumber(), 20);
   gs.totalFractureShards = new BigNum(20);
   assert.equal(ps.getPendingCosmicDust().toNumber(), 20, 'shards no longer raise dust gain');
