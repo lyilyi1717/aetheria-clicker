@@ -3,9 +3,23 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.10.0';
+export const VERSION = '5.10.1';
 
 export const CHANGELOG = [
+  {
+    version: '5.10.1',
+    date: '2026-10-08',
+    title: 'Quieter Drill Geodes',
+    changes: [
+      'Geode Pockets your drills find on their own now show a small notice instead of the full-screen jackpot celebration, so they no longer pop up over other tabs. Geodes you dig yourself still get the full celebration.'
+    ],
+    ar: {
+      title: 'جيودات المثاقب أهدأ',
+      changes: [
+        'جيوب الجيود التي تكتشفها المثاقب وحدها تظهر الآن كإشعار صغير بدلاً من احتفال الجائزة الكبرى بملء الشاشة، فلا تظهر فوق التبويبات الأخرى. أما الجيود التي تحفرها بنفسك فما زالت تحظى بالاحتفال الكامل.'
+      ]
+    }
+  },
   {
     version: '5.10.0',
     date: '2026-10-08',

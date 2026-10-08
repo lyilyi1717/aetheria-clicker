@@ -545,7 +545,7 @@ export class MiningSystem {
     }
 
     if (block.content === 'geode_pocket') {
-      sound.playAchievement();
+      if (x && y) sound.playAchievement();
       const gold = this.getGoldCacheValue(grid.depth).mul(3);
       this.gameState.gold = this.gameState.gold.add(gold);
       const gemKeys = ['rubies', 'sapphires', 'emeralds', 'diamonds'];
@@ -558,8 +558,10 @@ export class MiningSystem {
       const oilSurge = (netCps && netCps.gt && netCps.gt(0)) ? netCps.mul(30) : new BigNum(100);
       this.gameState.aether = this.gameState.aether.add(oilSurge);
 
+      // A drill-found geode (no tap position) only gets a quiet toast, not a full-screen
+      // ceremony over whatever tab the player is on.
       rewards.notify({
-        tier: 'big', kind: 'geode', icon: '💎', color: '#f59e0b',
+        tier: x && y ? 'big' : 'small', kind: 'geode', icon: '💎', color: '#f59e0b',
         title: t('mine.fx.geode'),
         detail: `+${gold.format('standard', 0)} Gold, +${oilSurge.format('standard', 0)} Oil, 2 Gems!`
       });

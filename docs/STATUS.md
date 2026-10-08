@@ -287,6 +287,10 @@ R0–R30 and R32–R40 are done.
   its height above the bottom bar under 640px. Tests in `test_r25_toasts.js`; screenshots in
   `docs/ui/screenshots/r25/`.
 
+- #147 Bug: drill-found Geode Pockets (v5.10.0) fired the full-screen `big` reward ceremony and
+  achievement sound on whatever tab was open. `MiningSystem.revealReward` now uses tier `small`
+  and no sound when there is no tap position (drills); taps keep `big`. Test: `test_offtab_fx.js`.
+
 ## Notes for the next session
 
 - **Game feel:** `docs/game-feel-guide.md` sets feedback tiers (T0 tap to T3 peak) and a
@@ -347,6 +351,9 @@ R0–R30 and R32–R40 are done.
 - [FIXED v5.10] Arabic unlock teaser labels fraction reversal resolved with isolate wrapper.
 - [FIXED v5.10] Header Mana currency hidden until Grimoire is unlocked.
 - [FIXED v5.10] Combat floating damage text and particles confined to active Tower tab.
+- v5.10.0 strings bypass `t()`: crit labels ('CRIT!', 'SUPER CRIT!', 'HYPER CRIT!') in
+  ClickerSystem/CombatSystem/MiningSystem, the Nectar Surge '+n OIL!' text, and the geode toast detail.
+- `FRENZY_AUTO_CLICKS` is 0, so the Frenzy auto-click pulse in `ClickerSystem.update` is dead code.
 
 - Hex colours still in `CombatSystem.js`, `MiningSystem.js`, `ShardTreeSystem.js`,
   `js/ui/shardTree.js`, `js/data/names.js` (R35 maps the known ones to theme tokens at runtime).
