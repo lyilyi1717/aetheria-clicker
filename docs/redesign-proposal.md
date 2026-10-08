@@ -455,6 +455,28 @@ leaderboard column. No save migration: `codex` is a new additive field.
 > dust (Amplifier ranks refunded), Deep Blueprints for retired tiers are refunded as shards, and
 > the old default Auto-Ascend rule ×2 moves to ×1.25. Counts (New Wells, Transcends, shards,
 > Pages, Chronicles) are kept.
+>
+> **R53 (v5.2.0, issue #127): everything outside the core, repriced.**
+>
+> | Item | R53 (shipped) | Before |
+> |---|---|---|
+> | Oil achievement ladder (run Oil) | 1e5, 1e7, 1e8, 1e10, 1e11, 1e13, 1e14, 1e16 (with the originals 1e6/1e9/1e12/1e15: one goal per decade 1e5–1e16) | 1e18 … 1e72 |
+> | Oil Forge | `100 × 1.5^L` Oil | `1e5 × 5^L` |
+> | Subgame → Oil links | **one additive category, capped at +150%** (`WorldLinks.js`): Depth Resonance +0.2%/depth, Aetheric Treaty +2%/rank, High Enchanter +0.4%/level, Philosopher's Catalyst +0.2%/brew, Building Mastery +1.5%/100, Dungeon Mastery +1%/10 bosses | each its own multiplier: +2%, +25%, +5%, +2%, +1.5%, +1% |
+> | Dust links | Geode Attunement + Nectar Offering add together: +2% per 10 depth, +0.4%·√Nectar up to +20% | ×(1 + 10% per 10 depth) × min(2, 1 + 2%·√Nectar) |
+> | Chronicle goals, `ASCEND_AETHER_GATE`, contracts | unchanged: R31 already set the goals (1e6/1e5) and the gate (1e4); contracts and the Quartermaster never read Oil | — |
+>
+> *Why.* `npm run sim -- --links` sets the subgame stats from a schedule (depth from `sim:mining`,
+> bosses and gold from `sim:tower`, ~24 seals a day on the Treaty). With the old link values the
+> casual 2-month run Oil was ~4e16 (core alone ~1e12) and layer peaks reached 1e22 within the
+> year, with half of all Transcends less than 6 h apart: the links compounded to ×100+ and, through
+> the fifth-root dust formula, Geode ×2.6 was worth ×120 run Oil. Additive alone was not enough
+> (still ~1e21 at two months): the core's late Transcends run away under any steady multiplier
+> above ~×2–3 (sweep in the PR). The new values keep the links near ×2 at two months, and the
+> per-Transcend peaks with links on stay within the core's own (2e8 … 2e14 for the first eight).
+> The Forge price keeps `sim:tower` floors within ~10% of the pre-R31 report. `sim:check` now
+> takes the median of daily run-Oil samples over days 50–70 (the single day-60 row passed or
+> failed on where day 60 fell inside a layer).
 
 
 | Item | Today | Proposed | Why |
@@ -1010,6 +1032,7 @@ dependencies respected.
 | 19 | **Leaderboard Season 2** | `js/leaderboard.js`, `supabase/leaderboard_season2.sql` (new table `leaderboard_season`, keyed by season; Season 1 table frozen, never rewritten) | fairness after #8 | S–M |
 | 20 | **Chronicle layer**: Pages, Challenge runner (rule overrides on `GameState`), Chapter 1 "Sand" | new `js/systems/ChronicleSystem.js`, `main.js`, `index.html` | months 4–12 | L |
 | R31 | **Economy redesign core** (issue #67): 20-tier ladder ×10 cost / ×4 output, dust `10·(A/1e4)^(1/5)`, additive dust/shard/Page bonuses, gate `400·1.6^k`, repriced upgrade and dust shops, save step v8. Targets: ~1e12 Oil at day 60, ≤ 1e13 casual (asserted) | `BuildingSystem.js`, `PrestigeSystem.js`, `GameState.js`, `UpgradeSystem.js`, `DustShopSystem.js`, `ShardTreeSystem.js`, `ChronicleSystem.js`, `migrations.js`, `sim/core-pacing.mjs` | numbers players can read | L |
+| R53 | **Reprice outside the core** (issue #127): Oil achievement ladder 1e5–1e16, Forge `100·1.5^L`, subgame → Oil links one additive category (cap +150%), Geode/Nectar additive and smaller; `sim --links` | `AchievementSystem.js`, `CombatSystem.js`, `WorldLinks.js`, `GameState.js` (one line), `PrestigeSystem.js` (dust links), `tabBonuses.js`, sims | links can't add decades | M |
 
 **Minimum set that changes the verdict: #1–#6.** They touch only the core files, keep every
 save, and move the game from "one day" to "two to four months". #7–#12 make it feel like a
@@ -1039,7 +1062,9 @@ different game. #13–#20 are the year.
    that, stretch layer 2 instead (gate ×30, shards ×2/×2) and accept ~1e117.
 5. **Model fidelity.** `sim_core_proposed.mjs` is a float model, not the real classes, and it
    ignores subgame multipliers (Depth Resonance ×3 at a week, Enchanter, Catalysts ~×1.8).
-   Those shift the curve earlier by a few hours to a day; they do not change its shape. The
+   Those shift the curve earlier by a few hours to a day; they do not change its shape.
+   *R53:* on the R31 curve they did change it (2-month Oil ~4e16); they are now one additive
+   category capped at +150% and `npm run sim -- --links` measures them (§6.1, R53 block). The
    upgrade-shop data table should be simulated on the real classes before #5 ships.
 6. **The roadmap's Seven Seals as the Transcend gate** is in conflict with this proposal; I
    keep the Seals as a shard bonus and half of the Chronicle gate. The owner should pick one.

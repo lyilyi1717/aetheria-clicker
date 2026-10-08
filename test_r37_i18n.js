@@ -96,7 +96,7 @@ setLangForTests('ar');
 assert.equal(t('bld.buy', { n: 5 }), 'اشترِ \u2068+5\u2069', 'numbers are isolated in Arabic, with their sign');
 assert.equal(t('tb.titan', { hp: 100, atk: 25 }), '\u2068+100\u2069 صحة، \u2068+25\u2069 هجوم');
 assert.equal(t('coll.complete_detail', { n: 1 }), '\u2068+1%\u2069 نفط', 'a percent sign stays with its number');
-assert.equal(t('m.rule.golden'), '\u2068+5%\u2069 لكل مستوى', 'literal signed numbers are isolated too');
+assert.equal(t('m.rule.golden'), '\u2068+0.4%\u2069 لكل مستوى', 'literal signed numbers are isolated too');
 assert.equal(t('market.buy', { n: 'ten' }), 'اشترِ ten', 'text params are not isolated');
 assert.equal(bidi('1.5M'), '⁨1.5M⁩');
 assert.ok(t('prestige.pending', { n: '1' }).startsWith('احتياطي الخام'), 'game terms come from AR_TERMS in Arabic');

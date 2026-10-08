@@ -13,14 +13,15 @@
 //
 // Hero power from outside the Tower is a fixed schedule, identical before and after a change,
 // so the report isolates the Tower's own curves:
-//   - Aether Forge: the highest level whose cost (1e5 x 5^L) fits one hour of casual income,
-//     with income interpolated (log-linear) from the `npm run sim` casual CPS checkpoints
+//   - Aether Forge: the highest level whose cost (FORGE_BASE_COST x FORGE_COST_GROWTH^L, R53)
+//     fits one hour of casual income, with income interpolated (log-linear) from the `npm run sim`
+//     casual CPS checkpoints
 //   - Gladiator Vigour talent rank and Quartermaster Hunter's Edge rank: see POWER below
 // Gear levels (R34): once a minute the hero spends Monster Bones on the cheapest level-up
 // (ties: weapon, armor, amulet, relic). `--no-gear-levels` turns that off (the pre-R34 game).
 // Hero level, gear and floor come from the real CombatSystem (loot RNG is seeded).
 import { GameState } from '../js/systems/GameState.js';
-import { CombatSystem, GEAR_SLOTS } from '../js/systems/CombatSystem.js';
+import { CombatSystem, GEAR_SLOTS, FORGE_BASE_COST, FORGE_COST_GROWTH } from '../js/systems/CombatSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
@@ -30,8 +31,9 @@ const GEAR_LEVELS = !process.argv.includes('--no-gear-levels');
 const H = 3600;
 const DAY = 24 * H;
 
-// Casual CPS from `npm run sim` (sim/core-pacing.mjs) at the time this script was written
-const CPS = [[0, 1], [600, 10], [H, 3.6e4], [DAY, 1.19e19], [7 * DAY, 7.45e19], [30 * DAY, 1.78e20]];
+// Casual CPS from `npm run sim` (sim/core-pacing.mjs) after the R31 economy redesign (R53 update;
+// the pre-R31 table was 1 / 10 / 3.6e4 / 1.19e19 / 7.45e19 / 1.78e20 with the Forge at 1e5 x 5^L)
+const CPS = [[0, 0.05], [600, 0.1], [H, 0.23], [DAY, 21.8], [7 * DAY, 22508], [30 * DAY, 6.13e5]];
 // [time, Gladiator Vigour rank (max 10), Hunter's Edge rank (max 50)], linear in between
 const POWER = [[0, 0, 0], [H, 2, 0], [DAY, 10, 5], [7 * DAY, 10, 15], [30 * DAY, 10, 30]];
 
@@ -43,7 +45,7 @@ const lerp = (table, t, col, log = false) => {
   const [a, b] = [table[i - 1][col], table[i][col]];
   return log ? Math.exp(Math.log(a) + u * (Math.log(b) - Math.log(a))) : a + u * (b - a);
 };
-const forgeLevel = t => Math.max(0, Math.floor(Math.log(lerp(CPS, t, 1, true) * H / 1e5) / Math.log(5)));
+const forgeLevel = t => Math.max(0, Math.floor(Math.log(lerp(CPS, t, 1, true) * H / FORGE_BASE_COST) / Math.log(FORGE_COST_GROWTH)));
 
 // Seeded Math.random so before/after runs see the same loot rolls
 function seedRandom(seed) {

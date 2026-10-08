@@ -59,9 +59,12 @@ const f = (n) => (n >= 1e12 ? n.toExponential().replace('e+', 'e') : n.toLocaleS
 const LADDER_STATS = [
   { stat: 'clicks', get: gs => gs.totalClicks || 0, desc: n => t('ach.desc.clicks', { n: f(n) }), rungs: [
     [1e5, 'Tireless Tapper', '👆'], [1e6, 'Million-Touch Monk', '🖐️'], [1e7, 'Hand of Creation', '🤲'], [1e8, 'The Unblinking Finger', '☝️']] },
+  // Oil in one run (R53: repriced for the R31 curve, was 1e18 ... 1e72). With the four original
+  // Oil achievements (1e6, 1e9, 1e12, 1e15) there is one goal per decade from 1e5 to 1e16; casual
+  // runs peak ~1e9 in week one, ~1e12 at two months and 1e15-1e17 late in year one.
   { stat: 'aether', big: true, get: gs => gs.totalAetherEarned, desc: n => t('ach.desc.aether', { n: f(n) }), rungs: [
-    [1e18, 'Quintillion Quill', '📈'], [1e21, 'Sextillion Seer', '🔭'], [1e24, 'Septillion Sage', '🪐'], [1e30, 'Nonillion Nomad', '🌠'],
-    [1e36, 'Undecillion Usher', '☄️'], [1e48, 'Quindecillion Keeper', '🌑'], [1e60, 'Vigintillion Vizier', '🌗'], [1e72, 'Beyond Counting', '♾️']] },
+    [1e5, 'First Gusher', '📈'], [1e7, 'Pipeline Patron', '🔭'], [1e8, 'Tanker Fleet', '🪐'], [1e10, 'Refinery Row', '🌠'],
+    [1e11, 'Black Gold Baron', '☄️'], [1e13, 'Sea of Oil', '🌑'], [1e14, 'Desert of Derricks', '🌗'], [1e16, 'Beyond Counting', '♾️']] },
   { stat: 'floor', get: gs => Math.max(gs.hero?.maxFloor || 0, gs.hero?.floor || 0), desc: n => t('ach.desc.floor', { n: f(n) }), rungs: [
     [250, 'Warden Walker', '🚪'], [500, 'Halfway Hero', '🏹'], [1000, 'Thousand-Step Titan', '🏔️'], [2500, 'Spire Strider', '🗼'],
     [5000, 'Skybreaker', '🌩️'], [10000, 'Tower Eternal', '🏛️']] },
