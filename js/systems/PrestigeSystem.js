@@ -5,6 +5,7 @@ import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js'
 import { isChallengeActive } from './ChronicleSystem.js';
 import { resetUpgradesOnAscend, resetAllUpgrades } from './UpgradeSystem.js';
 import { applyRunStart, getDustAmplifierMult, resetDustShop, DUST_SHOP_TIERS, DUST_SHOP_ITEMS } from './DustShopSystem.js';
+import { t } from '../i18n/index.js';
 
 // The 7 Ascension perks are now the dust shop (R6, DustShopSystem.js; save step v5 converts them)
 
@@ -136,12 +137,12 @@ export class PrestigeSystem {
     checkMilestones(this.gameState);
 
     // Big tier ceremony (§5.1). Transcend calls ascend(true) and shows its own epic one instead.
-    if (!force && !quiet) rewards.notify({ tier: 'big', kind: 'ascension', icon: '✨', color: '#06b6d4', title: 'Ascended!', batchTitle: '{n} Ascensions', amount: pending, fmt: (d) => d.format('standard', 0), unit: 'Cosmic Dust' });
+    if (!force && !quiet) rewards.notify({ tier: 'big', kind: 'ascension', icon: '✨', color: '#06b6d4', title: t('prestige.toast'), batchTitle: t('prestige.toast_batch'), amount: pending, fmt: (d) => d.format('standard', 0), unit: t('prestige.unit') });
     // A new dust shop tier just opened (Ascension 1 / 3 / 5 / 10 / 20)
     const opened = DUST_SHOP_TIERS.includes(this.gameState.ascensionCount) ? this.gameState.ascensionCount : 0;
     if (opened) {
       const n = DUST_SHOP_ITEMS.filter(d => d.tier === opened).length;
-      rewards.notify({ tier: 'medium', kind: 'dust-shop-tier', icon: '🛒', color: '#c084fc', title: `Dust Shop: ${n} new feature${n === 1 ? '' : 's'}`, detail: `Ascension ${opened} opened a new shop tier` });
+      rewards.notify({ tier: 'medium', kind: 'dust-shop-tier', icon: '🛒', color: '#c084fc', title: t(n === 1 ? 'prestige.shop_tier1' : 'prestige.shop_tier', { n }), detail: t('prestige.shop_tier_detail', { n: opened }) });
     }
     return true;
   }
@@ -227,7 +228,7 @@ export class PrestigeSystem {
       hero.hp = Math.min(hero.hp, this.gameState.combatSystem.getTotalMaxHp());
     }
 
-    rewards.notify({ tier: 'epic', kind: 'transcend', icon: '🌌', color: '#ec4899', title: 'Transcended Reality', batchTitle: '{n} Transcends', amount: payout, fmt: (n) => String(n), unit: 'Fracture Shards', detail: sealShards > 0 ? `+${sealShards} more to spend (Seals)` : undefined });
+    rewards.notify({ tier: 'epic', kind: 'transcend', icon: '🌌', color: '#ec4899', title: t('transcend.toast'), batchTitle: t('transcend.toast_batch'), amount: payout, fmt: (n) => String(n), unit: t('transcend.unit'), detail: sealShards > 0 ? t('transcend.seals', { n: sealShards }) : undefined });
     return true;
   }
 }

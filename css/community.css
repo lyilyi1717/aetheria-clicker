@@ -4,7 +4,7 @@
 .cm-lead, .cm-sub, .cm-empty, .cm-note, .cm-attached { margin: 0; color: var(--text-2); font-size: var(--fs-13); line-height: var(--lh-body); }
 .cm-sub, .cm-attached { color: var(--text-3); font-size: var(--fs-12); }
 .cm-note:empty { display: none; }
-.cm-count { margin-left: var(--sp-1); padding: 0 var(--sp-2); border-radius: var(--r-pill); background: var(--bg-4); color: var(--text-2); font-size: var(--fs-12); }
+.cm-count { margin-inline-start: var(--sp-1); padding: 0 var(--sp-2); border-radius: var(--r-pill); background: var(--bg-4); color: var(--text-2); font-size: var(--fs-12); }
 
 .cm-form { display: flex; flex-direction: column; gap: var(--sp-3); }
 .cm-type { align-self: flex-start; }
@@ -25,7 +25,7 @@
 .cm-section .card-head { align-items: baseline; }
 .cm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
 .cm-row { padding: var(--sp-2) var(--sp-3); }
-.cm-rank { flex: 0 0 auto; min-width: 20px; text-align: right; color: var(--text-3); font-size: var(--fs-12); font-weight: 700; }
+.cm-rank { flex: 0 0 auto; min-width: 20px; text-align: end; color: var(--text-3); font-size: var(--fs-12); font-weight: 700; }
 .cm-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .cm-title { color: var(--text-1); font-size: var(--fs-14); text-decoration: none; overflow-wrap: anywhere; }
 .cm-title:hover, .cm-title:focus-visible { color: var(--aether); text-decoration: underline; }

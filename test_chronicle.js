@@ -101,7 +101,7 @@ console.log('--- Gate: 12 Transcends, and 24 for the first Chronicle until the S
   const { gs, cs } = climbed(CHRONICLE_TRANSCEND_GATE);
   assert.equal(getSealGate(gs).source, 'standin');
   assert.equal(cs.canChronicle(), false, '12 Transcends are not enough while the stand-in applies');
-  assert.match(getChronicleBlockReason(gs), /24 Transcends \(you: 12\)/);
+  assert.match(getChronicleBlockReason(gs), /24 New Fields \(you: 12\)/);
   gs.transcendenceCount = SEAL_STANDIN_TRANSCENDS - 1;
   assert.equal(cs.canChronicle(), false);
   gs.transcendenceCount = SEAL_STANDIN_TRANSCENDS;
@@ -112,7 +112,7 @@ console.log('--- Gate: 12 Transcends, and 24 for the first Chronicle until the S
   let lit = 6;
   s.gs.calendarSystem = { getSealSetProgress: (set) => (set === 1 ? { lit, total: 7 } : null) };
   assert.equal(getSealGate(s.gs).source, 'seals');
-  assert.match(getChronicleBlockReason(s.gs), /Seal set I \(6\/7 lit\) or 24 Transcends \(you: 12\)/);
+  assert.match(getChronicleBlockReason(s.gs), /Seal set I \(6\/7 lit\) or 24 New Fields \(you: 12\)/);
   assert.equal(getChronicleTranscendsNeeded(s.gs), SEAL_STANDIN_TRANSCENDS);
   // ... the Transcend path still opens it without the Seals (no Seal can lock the layer away)
   s.gs.transcendenceCount = SEAL_STANDIN_TRANSCENDS;
@@ -122,7 +122,7 @@ console.log('--- Gate: 12 Transcends, and 24 for the first Chronicle until the S
   assert.equal(getChronicleTranscendsNeeded(s.gs), CHRONICLE_TRANSCEND_GATE);
   assert.equal(s.cs.canChronicle(), true);
   s.gs.transcendenceCount = 11;
-  assert.match(getChronicleBlockReason(s.gs), /needs 12 Transcends \(you: 11\)/);
+  assert.match(getChronicleBlockReason(s.gs), /needs 12 New Fields \(you: 11\)/);
 
   // The real calendar system reports Seal set I (all seven Seals)
   const r = climbed(CHRONICLE_TRANSCEND_GATE);

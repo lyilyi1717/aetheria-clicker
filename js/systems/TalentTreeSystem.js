@@ -1,5 +1,6 @@
 import { sound } from '../engine/AudioEngine.js';
 import { rewards } from '../ui/rewards.js';
+import { t, localize } from '../i18n/index.js';
 
 export const TALENT_DEFINITIONS = [
   // Way of the Clicker
@@ -27,6 +28,7 @@ export const TALENT_DEFINITIONS = [
   { id: 'offline_transcendence', name: 'Timeless Presence', branch: 'chrono', maxRank: 5, desc: '+25% Offline Efficiency per rank' },
   { id: 'chrono_mastery', name: 'Temporal Siphon', branch: 'chrono', maxRank: 5, desc: '+50% Chrono Sand generation per rank' }
 ];
+localize(TALENT_DEFINITIONS, 'talents', ['name', 'desc']);
 
 export class TalentTreeSystem {
   constructor(gameState) {
@@ -90,7 +92,7 @@ export class TalentTreeSystem {
     }
 
     sound.playSpell();
-    rewards.notify({ tier: 'small', kind: 'talent-respec', icon: '🔄', color: '#38bdf8', title: 'Talents refunded' });
+    rewards.notify({ tier: 'small', kind: 'talent-respec', icon: '🔄', color: '#38bdf8', title: t('talent.refunded') });
     return true;
   }
 }

@@ -3,9 +3,83 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.10.0';
+export const VERSION = '4.15.0';
 
 export const CHANGELOG = [
+  {
+    version: '4.15.0',
+    date: '2026-10-07',
+    title: 'Community news',
+    changes: [
+      'The news strip now carries headlines from other players: the newest ones from the past week, marked 📣 and signed with the player\'s name. You see them without an account.',
+      'Signed in? Share any of your own headlines with every player from Settings → News (the new Share button). You can share up to 3 headlines a day, and pick the name shown with them; it does not put you on the leaderboard.',
+      'Delete your shared headlines any time. See one that breaks the rules? Tap Report: you won\'t see it again, and a headline reported by 3 players is hidden for everyone until it is reviewed.',
+      'Don\'t want other players\' headlines? Untick "Show headlines from other players" in Settings → News. Your own entries stay in your browser until you share them.'
+    ],
+    ar: {
+      title: 'أخبار المجتمع',
+      changes: [
+        'شريط الأخبار يحمل الآن أخبار اللاعبين الآخرين: أحدثها خلال الأسبوع الماضي، بعلامة 📣 واسم صاحبها. تراها دون حساب.',
+        'سجّلت الدخول؟ شارك أيًّا من أخبارك مع كل اللاعبين من الإعدادات ← الأخبار (زر «شارك» الجديد). يمكنك مشاركة 3 أخبار في اليوم، واختيار الاسم الظاهر معها؛ ولا يضعك ذلك في لوحة المتصدرين.',
+        'احذف أخبارك المشتركة متى شئت. رأيت خبرًا مخالفًا؟ اضغط «أبلغ»: لن تراه مجددًا، والخبر الذي يبلّغ عنه 3 لاعبين يُخفى عن الجميع حتى يُراجَع.',
+        'لا تريد أخبار اللاعبين الآخرين؟ ألغِ «أظهر أخبار اللاعبين الآخرين» في الإعدادات ← الأخبار. وتبقى أخبارك في متصفحك حتى تشاركها.'
+      ]
+    }
+  },
+  {
+    version: '4.14.0',
+    date: '2026-10-07',
+    title: 'Arabic version',
+    changes: [
+      'The game can now be played in Arabic. Pick English or العربية under Language at the top of Settings; the game saves and reloads once in the new language.',
+      'In Arabic the whole layout reads right to left, with an Arabic font a little larger than the English one. Numbers stay in the usual digits and read left to right (1.5M, x3, +12%).',
+      'On your first visit the game starts in Arabic if your browser asks for Arabic, and in English otherwise. Your choice is saved with your settings; existing saves keep English.',
+      'Older changelog entries on this tab stay in English.'
+    ],
+    ar: {
+      title: 'النسخة العربية',
+      changes: [
+        'يمكنك الآن اللعب بالعربية. اختر English أو العربية من «اللغة» أعلى الإعدادات؛ تُحفظ اللعبة وتُعاد مرة واحدة باللغة الجديدة.',
+        'بالعربية تُقرأ الواجهة كلها من اليمين إلى اليسار، بخط عربي أكبر قليلًا من الإنجليزي. وتبقى الأرقام بالأرقام المعتادة وتُقرأ من اليسار إلى اليمين (1.5M و×3 و+12%).',
+        'في أول زيارة تبدأ اللعبة بالعربية إذا كان متصفحك يطلب العربية، وبالإنجليزية فيما عدا ذلك. ويُحفظ اختيارك مع إعداداتك؛ والحفظ القديم يبقى بالإنجليزية.',
+        'إدخالات سجل التحديثات الأقدم في هذا التبويب تبقى بالإنجليزية.'
+      ]
+    }
+  },
+  {
+    version: '4.13.0',
+    date: '2026-10-07',
+    title: 'News strip',
+    changes: [
+      'A thin news strip now runs under the header: game tips, flavour headlines from the realm and what is new in this version.',
+      'Write your own headlines in Settings → News (up to 120 characters, up to 20 entries) and delete them there any time. They show up in the strip between the built-in news. For now they stay in your browser; other players do not see them.',
+      'English headlines scroll right to left; Arabic headlines scroll left to right, so each reads naturally.',
+      'Hover over the strip or tap it to pause it. With Reduce Motion on, the strip stands still and shows the next headline every 6 seconds.',
+      'Don\'t want it? Untick "Show the news strip" in Settings → News.'
+    ]
+  },
+  {
+    version: '4.12.0',
+    date: '2026-10-07',
+    title: 'Oil re-theme: the Refinery, New Wells and New Fields',
+    changes: [
+      'The clicker is now an Oil Refinery: tap it to pump Oil, which replaces Aether as the main currency. The first tab is called Refinery.',
+      'The first prestige is now called Drill a New Well (was Ascend), and it pays Crude Reserves (was Cosmic Dust). They are spent in the Reserve Shop (was the Dust Shop), and Auto-Ascend is now Auto-Well.',
+      'The second prestige is now called Open a New Oil Field (was Transcend), and it pays Field Shares (was Fracture Shards), spent in the Share Tree (was the Shard Tree). The Seals of Transcendence are now Field Seals.',
+      'A few other names follow the theme: the Oil Forge in the Void Tower, the Oil Burst spell and Oil Shale in Excavation and the Bazaar.',
+      'Only the names changed. Your save, numbers, bonuses, costs and progress are exactly as they were.'
+    ]
+  },
+  {
+    version: '4.11.0',
+    date: '2026-10-07',
+    title: 'Themes: Night, Sand and Desert Dusk',
+    changes: [
+      'New Theme setting at the top of Settings, with three themes for the whole game: Night (the original dark emerald look, still the default), Sand (a light, warm parchment theme with deep brown text and gold; not plain white) and Desert Dusk (dark plum with an orange glow).',
+      'Your choice is saved with your settings and stays after a reload. Existing saves start on Night, so nothing changes until you pick another theme.',
+      'Every theme keeps the same meaning for each colour (gold is still "you can buy this", pink is still shards), and all text meets the same readability standard in each one. Toasts, floating numbers and click sparks follow the theme too.'
+    ]
+  },
   {
     version: '4.10.0',
     date: '2026-10-07',

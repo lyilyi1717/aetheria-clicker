@@ -20,11 +20,11 @@
 
 @keyframes pulseGlow {
   from {
-    text-shadow: 0 0 4px #ef4444;
+    text-shadow: 0 0 4px var(--danger);
     transform: scale(1);
   }
   to {
-    text-shadow: 0 0 16px #ef4444, 0 0 24px #f87171;
+    text-shadow: 0 0 16px var(--danger), 0 0 24px var(--danger);
     transform: scale(1.05);
   }
 }
@@ -57,9 +57,9 @@
 }
 
 @keyframes buttonPulse {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
-  70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--life) 50%, transparent); }
+  70% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--life) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--life) 0%, transparent); }
 }
 
 @keyframes floatSmooth {
@@ -85,10 +85,10 @@ body::before {
   position: fixed;
   inset: -400px;
   background-image: 
-    radial-gradient(2px 2px at 20px 30px, rgba(251, 191, 36, 0.4), transparent),
-    radial-gradient(2px 2px at 40px 70px, rgba(251, 191, 36, 0.2), transparent),
-    radial-gradient(2px 2px at 90px 40px, rgba(251, 191, 36, 0.3), transparent),
-    radial-gradient(3px 3px at 160px 120px, rgba(251, 191, 36, 0.15), transparent);
+    radial-gradient(2px 2px at 20px 30px, color-mix(in srgb, var(--gold) 40%, transparent), transparent),
+    radial-gradient(2px 2px at 40px 70px, color-mix(in srgb, var(--gold) 20%, transparent), transparent),
+    radial-gradient(2px 2px at 90px 40px, color-mix(in srgb, var(--gold) 30%, transparent), transparent),
+    radial-gradient(3px 3px at 160px 120px, color-mix(in srgb, var(--gold) 15%, transparent), transparent);
   background-size: 200px 200px;
   animation: desertDust 50s linear infinite;
   pointer-events: none;

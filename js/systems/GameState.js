@@ -1,3 +1,4 @@
+import { getLang, normalizeLang } from '../i18n/lang.js';
 import { BigNum } from '../engine/BigNum.js';
 import { comboMultiplier, FRENZY_MULT } from './combo.js';
 import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
@@ -11,6 +12,7 @@ import { defaultCalendarState, sanitizeCalendarState } from './CalendarSystem.js
 import { getTierUpgradeMult, getClickUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
 import { defaultDustShopState, sanitizeDustShopState, getShopRank, hasShopItem, getFingerOfWastaMult } from './DustShopSystem.js';
 import { isTabUnlocked, sanitizeUnlocks, sanitizeUnlockSeen } from './UnlockSystem.js';
+import { defaultNewsState, sanitizeNews } from '../ui/newsTicker.js';
 
 // Fracture Shard effects (design doc 6.1). Kept here, not in PrestigeSystem, because
 // PrestigeSystem imports audio/particles and GameState must stay loadable on its own.
@@ -137,7 +139,10 @@ export class GameState {
     this.codex = {}; // Generator Codex high-water marks and announced entries (CollectionSystem)
     // guidesSeen: tabs whose "How It Works" banner was shown expanded once (R23, js/ui/shell.js)
     // reduceMotion: 'auto' follows the device, 'on' / 'off' override it (R24, js/ui/motion.js)
-    this.settings = { notation: 'letters', guidesSeen: {}, reduceMotion: 'auto' };
+    // theme: 'night' / 'sand' / 'dusk' colour theme (R35, js/ui/theme.js)
+    // language: 'en' / 'ar' (R37, js/i18n/); a new game takes the language the page loaded in
+    // news: the player's own news ticker entries and the hide-strip choice (R39, js/ui/newsTicker.js)
+    this.settings = { notation: 'letters', guidesSeen: {}, reduceMotion: 'auto', theme: 'night', language: getLang(), news: defaultNewsState() };
     // Progressive tab unlocking (R7, UnlockSystem.js): { [tabId]: unlockedAtMs } and the tabs
     // visited since their reveal. Never cleared by Ascension, Transcend or Chronicle.
     this.unlocks = {};
@@ -531,6 +536,12 @@ export class GameState {
       }
       // Saves from before R24 (or with an unknown value) follow the device setting
       if (!['auto', 'on', 'off'].includes(this.settings.reduceMotion)) this.settings.reduceMotion = 'auto';
+      // Saves from before R35 (or with an unknown theme) get the default Night theme
+      if (!['night', 'sand', 'dusk'].includes(this.settings.theme)) this.settings.theme = 'night';
+      // Saves from before R37 (or with an unknown language) keep the language the page loaded in
+      if (!normalizeLang(this.settings.language)) this.settings.language = getLang();
+      // Saves from before R39 have no news entries; bad or too-long entries are cleaned
+      this.settings.news = sanitizeNews(this.settings.news);
       // A challenge whose data no longer exists can't run: put the stashed run back
       if (this.chronicle.active && !this.chronicle.active.id) restoreStash(this);
       this.clampLoadedTimers();

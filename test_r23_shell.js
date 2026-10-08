@@ -79,18 +79,18 @@ console.log('--- next goal: first generator, then Ascension gate, run timer, Asc
   gs.totalAetherEarned = new BigNum(1e6);
   g = getNextGoal(gs, bs, ps, now);
   assert.equal(g.tab, 'prestige');
-  assert.match(g.text, /Ascension at/);
+  assert.match(g.text, /New Well at/);
   assert.ok(Math.abs(g.pct - 6 / 9) < 1e-9, 'log-scale progress to 1e9');
 
   // Past the gate but the run is too short: count down the minimum run
   gs.totalAetherEarned = new BigNum(1e12);
   g = getNextGoal(gs, bs, ps, now + 60_000);
-  assert.match(g.text, /Ascension in 9:00/);
+  assert.match(g.text, /New Well in 9:00/);
   assert.ok(Math.abs(g.pct - 60 / MIN_RUN_SECONDS) < 1e-9);
 
   // Ready: Ascend with the pending dust
   g = getNextGoal(gs, bs, ps, now + MIN_RUN_SECONDS * 1000 + 1);
-  assert.match(g.text, /^Ascend for \+/);
+  assert.match(g.text, /^Drill a New Well for \+/);
   assert.equal(g.pct, 1);
 
   // Huge numbers don't produce NaN

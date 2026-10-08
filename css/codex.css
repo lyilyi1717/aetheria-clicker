@@ -21,7 +21,7 @@
 .codex-gen.silhouette .cg-shape { filter: brightness(0) opacity(0.5); }
 .cg-stars { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-3); margin-top: var(--sp-1); font-size: var(--fs-12); color: var(--text-3); }
 .cg-stars .on { color: var(--gold); }
-.cg-best { margin-left: auto; }
+.cg-best { margin-inline-start: auto; }
 @media (max-width: 480px) {
   .codex-list, .codex-entries, .codex-gens { grid-template-columns: 1fr; }
   .codex-seg button { font-size: var(--fs-12); padding: 0 var(--sp-1); }

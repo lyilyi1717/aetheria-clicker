@@ -61,7 +61,7 @@ console.log('--- Spending: balance only, multipliers never drop ---');
   assert.equal(st.buy('chronos_offline'), true);
   assert.equal(getShardBalance(gs), 1);
   assert.equal(st.buy('chronos_long_warp'), false, 'cannot afford 3 with 1');
-  assert.equal(st.getBlockReason('chronos_long_warp'), 'needs 3 shards');
+  assert.equal(st.getBlockReason('chronos_long_warp'), 'needs 3 Shares');
   assert.equal(st.buy('tower_wardens'), true);
   assert.equal(getShardBalance(gs), 0);
   assert.equal(gs.getShardCount(), 5);
@@ -71,7 +71,7 @@ console.log('--- Spending: balance only, multipliers never drop ---');
 console.log('--- Prerequisites ---');
 {
   const { gs, st } = make(10);
-  assert.match(st.getBlockReason('chronos_offline'), /needs Auto-Ascend/);
+  assert.match(st.getBlockReason('chronos_offline'), /needs Auto-Well/);
   assert.match(st.getBlockReason('chronos_long_warp'), /needs Long Sleep/);
   assert.match(st.getBlockReason('tower_second_wind'), /needs Wardens/);
   assert.equal(st.buy('tower_second_wind'), false);

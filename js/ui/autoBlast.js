@@ -3,6 +3,7 @@
 // earned shards sees a one-line pointer to the node. main.js calls init() once and update(tab)
 // every frame; the row is built once and updated in place.
 import { hasAutoBlast, isAutoBlastOn, setAutoBlastEnabled, getNode } from '../systems/ShardTreeSystem.js';
+import { t } from '../i18n/index.js';
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 
@@ -21,10 +22,10 @@ export class AutoBlastUI {
     row.id = 'mining-auto-blast';
     row.style.cssText = 'display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2) var(--sp-3); margin:0 0 0.75rem;';
     row.innerHTML = `
-      <span class="eyebrow" data-ab="label">🧨 Auto-Blast</span>
-      <div class="seg" role="group" aria-label="Auto-Blast" data-ab="seg">
-        <button type="button" data-v="on" aria-pressed="false">On</button>
-        <button type="button" data-v="off" aria-pressed="false">Off</button>
+      <span class="eyebrow" data-ab="label">🧨 ${t('ab.name')}</span>
+      <div class="seg" role="group" aria-label="${t('ab.name')}" data-ab="seg">
+        <button type="button" data-v="on" aria-pressed="false">${t('ab.on')}</button>
+        <button type="button" data-v="off" aria-pressed="false">${t('ab.off')}</button>
       </div>
       <span data-ab="status" style="font-size:var(--fs-12); color:var(--text-3); min-width:0;"></span>`;
     anchor.after(row);
@@ -52,7 +53,7 @@ export class AutoBlastUI {
     if (this.el.seg.hidden === owned) this.el.seg.hidden = !owned;
     if (!owned) {
       const cost = getNode('chronos_auto_blast').cost;
-      setText(this.el.status, `Unlock in the Shard Tree (Chronos, ${cost} ◆): dynamite throws itself when ready.`);
+      setText(this.el.status, t('ab.unlock', { n: cost }));
       return;
     }
     const on = isAutoBlastOn(gs);
@@ -62,7 +63,7 @@ export class AutoBlastUI {
     }
     const cd = this.app.miningSystem?.dynamiteCooldown || 0;
     setText(this.el.status, on
-      ? (cd > 0 ? `Next blast in ${Math.ceil(cd)} s, while the game is open.` : 'Blasting…')
-      : 'Off: throw the dynamite by hand.');
+      ? (cd > 0 ? t('ab.next', { s: Math.ceil(cd) }) : t('ab.blasting'))
+      : t('ab.off_status'));
   }
 }

@@ -143,11 +143,11 @@ export class MonsterPortrait {
   }
 
   update(floor, monster) {
-    const key = `${floor}|${monster.name}`;
+    const key = `${floor}|${monster.artName ?? monster.name}`;
     if (key === this.key) return;
     this.key = key;
 
-    const path = resolveMonsterArt(floor, monster.name);
+    const path = resolveMonsterArt(floor, monster.artName ?? monster.name);
     this.fallbackEl.textContent = fallbackIcon(floor, monster.isBoss);
     this.frame.classList.toggle('is-boss', !!monster.isBoss);
 
@@ -156,7 +156,7 @@ export class MonsterPortrait {
     this.preload(resolveMonsterArt(nextBoss, MONSTER_NAMES[(nextBoss - 1) % MONSTER_NAMES.length]));
 
     // Zone boss art first, then the by-name portrait if that file is missing
-    const named = resolveMonsterArt(0, monster.name);
+    const named = resolveMonsterArt(0, monster.artName ?? monster.name);
     this.tryArt(key, [path, named !== path ? named : null].filter(Boolean));
   }
 

@@ -12,6 +12,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { BUILDING_DEFINITIONS } from './BuildingSystem.js';
 import { addAscendKeepRule } from './UpgradeSystem.js';
+import { localize } from '../i18n/index.js';
 
 // Lifetime Ascensions needed for each tier; 0 = open from the start ("any")
 export const DUST_SHOP_TIERS = [1, 3, 5, 10, 20];
@@ -36,15 +37,15 @@ export const DUST_SHOP_ITEMS = [
   { id: 'genesis', tier: 1, icon: '🏪', name: 'Cosmic Genesis', cost: 5, maxRank: 1,
     desc: `Start every run with ${GENESIS_STALLS} Shawarma Stalls and ${GENESIS_GOLD.toLocaleString('en-US')} Gold.`, see: 'Working from your next run' },
   { id: 'blueprint_memory', tier: 1, icon: '📐', name: 'Blueprint Memory', cost: 25, maxRank: 1,
-    desc: `Keep the first ${BLUEPRINT_MEMORY_LEVELS} upgrades of each generator through Ascension.`, see: 'Kept on your next Ascension' },
+    desc: `Keep the first ${BLUEPRINT_MEMORY_LEVELS} upgrades of each generator through a New Well.`, see: 'Kept on your next New Well' },
   { id: 'chrono_vault', tier: 1, icon: '⏳', name: 'Chrono Reservoir', cost: 25, growth: 1.5, maxRank: 10,
-    desc: '+4 h of offline Aether at 100% per rank, and +50% Chrono Sand bank.', see: 'Offline report and sand bank' },
+    desc: '+4 h of offline Oil at 100% per rank, and +50% Chrono Sand bank.', see: 'Offline report and sand bank' },
   { id: 'auto_buy', tier: 3, icon: '🤖', name: 'Auto-Buy', cost: 100, maxRank: 1,
-    desc: `Buys the best-value generator every ${AUTO_BUY_INTERVAL} s. Switch it on or off on the Falafel tab.`, see: 'See it: Falafel tab' },
+    desc: `Buys the best-value generator every ${AUTO_BUY_INTERVAL} s. Switch it on or off on the Refinery tab.`, see: 'See it: Refinery tab' },
   { id: 'titan_legacy', tier: 3, icon: '🛡️', name: "Titan's Legacy", cost: 30, growth: 1.5, maxRank: 10,
     desc: 'Hero gets +100 HP and +25 Attack per rank.', see: 'See it: Tower' },
   { id: 'finger_of_wasta', tier: 3, icon: '👆', name: 'Finger of Wasta', cost: 150, maxRank: 1,
-    desc: '+1% production per 100 clicks this run, up to +50%.', see: 'See it: Falafel tab bonuses' },
+    desc: '+1% production per 100 clicks this run, up to +50%.', see: 'See it: Refinery tab bonuses' },
   { id: 'astral_alchemist', tier: 5, icon: '⚗️', name: 'Astral Crucible', cost: 40, maxRank: 1,
     desc: 'Elixirs last twice as long (and can stack twice as long).', see: 'See it: Alchemy' },
   { id: 'golem_covenant', tier: 5, icon: '🗿', name: 'Golem Covenant', cost: 200, maxRank: 1,
@@ -54,12 +55,20 @@ export const DUST_SHOP_ITEMS = [
   { id: 'auto_leylines', tier: 10, icon: '🔮', name: 'Automated Leylines', cost: 500, maxRank: 1,
     desc: 'Casts your spells for you whenever Mana is full.', see: 'See it: Grimoire' },
   { id: 'blueprint_memory_2', tier: 10, icon: '🏛️', name: 'Blueprint Memory II', cost: 1000, maxRank: 1,
-    desc: `Keep every upgrade of generators 1-${BLUEPRINT_MEMORY_2_TIERS} (and click upgrades 1-${BLUEPRINT_MEMORY_2_TIERS}) through Ascension.`, see: 'Kept on your next Ascension' },
+    desc: `Keep every upgrade of generators 1-${BLUEPRINT_MEMORY_2_TIERS} (and click upgrades 1-${BLUEPRINT_MEMORY_2_TIERS}) through a New Well.`, see: 'Kept on your next New Well' },
   { id: 'resonant_start', tier: 20, icon: '🎼', name: 'Resonant Start', cost: 5000, maxRank: 1,
     desc: `Start every run with 1 of each of the first ${RESONANT_START_TIERS} generators (${BUILDING_DEFINITIONS[0].name} to ${BUILDING_DEFINITIONS[RESONANT_START_TIERS - 1].name}).`, see: 'Working from your next run' },
-  { id: 'dust_amplifier', tier: 0, icon: '✨', name: 'Dust Amplifier', cost: 100, growth: 2, maxRank: Infinity,
-    desc: '+10% Cosmic Dust from every Ascension per rank (additive). Price doubles each rank.', see: 'See it: Ascend button' }
+  { id: 'dust_amplifier', tier: 0, icon: '✨', name: 'Reserve Amplifier', cost: 100, growth: 2, maxRank: Infinity,
+    desc: '+10% Crude Reserves from every New Well per rank (additive). Price doubles each rank.', see: 'See it: Drill a New Well button' }
 ];
+
+localize(DUST_SHOP_ITEMS, 'shop', ['name', 'desc', 'see'], {
+  genesis: { n: GENESIS_STALLS, gold: GENESIS_GOLD.toLocaleString('en-US'), stall: BUILDING_DEFINITIONS[0].name },
+  blueprint_memory: { n: BLUEPRINT_MEMORY_LEVELS },
+  auto_buy: { s: AUTO_BUY_INTERVAL },
+  blueprint_memory_2: { n: BLUEPRINT_MEMORY_2_TIERS },
+  resonant_start: { n: RESONANT_START_TIERS, first: BUILDING_DEFINITIONS[0].name, last: BUILDING_DEFINITIONS[RESONANT_START_TIERS - 1].name }
+});
 
 const ITEM_BY_ID = new Map(DUST_SHOP_ITEMS.map(d => [d.id, d]));
 

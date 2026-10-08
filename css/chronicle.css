@@ -5,7 +5,7 @@
 .chr-wrap [hidden], .chr-scrim[hidden] { display: none !important; }
 
 /* Chapter poster */
-.chr-chapter { position: relative; overflow: hidden; padding: var(--sp-5); border-color: rgba(231, 195, 138, 0.5);
+.chr-chapter { position: relative; overflow: hidden; padding: var(--sp-5); border-color: color-mix(in srgb, var(--sand) 50%, transparent);
   background: linear-gradient(135deg, var(--sand-dim), var(--bg-2) 60%); }
 .chr-chapter .eyebrow { color: var(--sand); }
 .chr-chapter h1 { margin: var(--sp-1) 0 0; font-family: var(--font-display); color: var(--sand); font-size: var(--fs-32); line-height: 1.15; }
@@ -27,10 +27,10 @@
 .chr-ch { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; padding: var(--sp-3);
   border-radius: var(--r-2); background: var(--bg-1); border: 1px solid var(--line-1); }
 .chr-ch.done { border-color: var(--line-brand); }
-.chr-ch.run { border-color: var(--sand); box-shadow: 0 0 0 1px var(--sand-dim), 0 0 16px rgba(231, 195, 138, 0.2); }
+.chr-ch.run { border-color: var(--sand); box-shadow: 0 0 0 1px var(--sand-dim), 0 0 16px color-mix(in srgb, var(--sand) 20%, transparent); }
 .chr-ch.lock { opacity: 0.72; }
 .chr-ch .n { font-weight: 700; color: var(--text-1); }
-.chr-ch .n .tag { margin-left: 4px; vertical-align: 1px; }
+.chr-ch .n .tag { margin-inline-start: 4px; vertical-align: 1px; }
 .chr-ch .tag.run { background: var(--sand); color: var(--text-on-accent); }
 .chr-ch .r { font-size: var(--fs-12); color: var(--text-2); overflow-wrap: anywhere; }
 .chr-ch .best { font-size: var(--fs-11); color: var(--text-3); overflow-wrap: anywhere; }
@@ -43,11 +43,11 @@
 .chr-ptree { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--sp-2); }
 .chr-pnode { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 44px; padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-2); color: var(--text-2);
-  font: 500 var(--fs-12)/1.35 var(--font-ui); text-align: left; cursor: pointer; min-width: 0; }
+  font: 500 var(--fs-12)/1.35 var(--font-ui); text-align: start; cursor: pointer; min-width: 0; }
 .chr-pnode b { display: block; font-size: var(--fs-13); color: var(--text-1); }
 .chr-pnode .c { color: var(--sand); font-weight: 700; margin-top: auto; }
 .chr-pnode.own { border-color: var(--sand); background: var(--sand-dim); cursor: default; }
-.chr-pnode.aff { border-color: rgba(251, 191, 36, 0.6); }
+.chr-pnode.aff { border-color: color-mix(in srgb, var(--gold) 60%, transparent); }
 .chr-pnode.aff .c { color: var(--gold); }
 .chr-pnode.lock { cursor: not-allowed; }
 .chr-pnode.lock .c { color: var(--text-3); }
@@ -67,7 +67,7 @@
 .chr-note { font-size: var(--fs-12); color: var(--text-3); margin-top: var(--sp-2); }
 
 /* Confirm (epic): modal on desktop, bottom sheet on phone (style guide §5.7) */
-.chr-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(6px);
+.chr-scrim { position: fixed; inset: 0; z-index: 60; background: color-mix(in srgb, var(--shade) 72%, transparent); backdrop-filter: blur(6px);
   display: grid; place-items: center; padding: var(--gutter, 16px); }
 .chr-modal { width: min(480px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--bg-1);
   border: 1px solid var(--sand); border-radius: var(--r-3); box-shadow: var(--el-3); padding: var(--sp-5); font-family: var(--font-ui); }

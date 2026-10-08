@@ -11,6 +11,7 @@ import {
   UNLOCK_BY_TAB, checkUnlocks, grantStarterGift, getTeasers, getUnlockProgress, isTabUnlocked,
   isUnlockNew, markUnlockSeen
 } from '../systems/UnlockSystem.js';
+import { t } from '../i18n/index.js';
 
 const CHECK_SECONDS = 0.25;
 
@@ -20,10 +21,10 @@ function esc(s) {
 
 // Short progress for a bottom-bar slot ("7/10", "62%")
 export function shortProgress(p) {
-  if (!p) return 'Soon';
+  if (!p) return t('unlock.soon');
   if (p.need === 1 && p.pct !== undefined && p.pct > 0 && p.pct < 1) return `${Math.floor(p.pct * 100)}%`;
   if (p.need > 1 && Number.isInteger(p.have) && Number.isInteger(p.need)) return `${p.have}/${p.need}`;
-  return 'Soon';
+  return t('unlock.soon');
 }
 
 export class UnlocksUI {
@@ -65,7 +66,7 @@ export class UnlocksUI {
     this.revealed.add(def.tab);
     rewards.toast({
       tier: 'big', kind: `unlock-${def.tab}`, icon: def.icon, color: '#fbbf24',
-      title: `NEW: ${def.name}`, detail: gift ? `${def.flavour} 🎁 ${gift}` : def.flavour,
+      title: t('unlock.new', { name: def.name }), detail: gift ? `${def.flavour} 🎁 ${gift}` : def.flavour,
       sound: true
     });
     this.app.onUnlock?.(def.tab);
@@ -156,13 +157,13 @@ export class UnlocksUI {
           `<span class="nav-lbl">${esc(name)}<span class="nav-sub">${esc(text)}</span></span>` +
           `<span class="nav-lock-bar"><i style="width:${pct}%"></i></span>`;
       }
-      btn.setAttribute('title', `Locked: ${text}`);
+      btn.setAttribute('title', t('unlock.locked', { text }));
       return;
     }
 
     if (state === 'soon') {
-      btn.innerHTML = '<span class="nav-icon">🔒</span><span class="nav-lbl">Soon</span>';
-      btn.setAttribute('title', 'Locked: keep playing to open this');
+      btn.innerHTML = `<span class="nav-icon">🔒</span><span class="nav-lbl">${t('unlock.soon')}</span>`;
+      btn.setAttribute('title', t('unlock.locked_soon'));
     }
   }
 }

@@ -23,7 +23,7 @@
 .btn:active { transform: translateY(1px); }
 .btn:focus-visible { outline: 2px solid var(--aether); outline-offset: 2px; }
 .btn-primary { background: var(--gold); border-color: var(--gold); color: var(--text-on-accent); }
-.btn-primary:hover { background: #ffd04d; box-shadow: var(--glow-gold); }
+.btn-primary:hover { background: color-mix(in srgb, var(--gold) 85%, var(--text-1)); box-shadow: var(--glow-gold); }
 .btn-aether { background: var(--aether-dim); border-color: var(--aether); color: var(--aether); }
 .btn-aether:hover { background: var(--aether); color: var(--text-on-accent); }
 .btn-dust { background: var(--dust-dim); border-color: var(--dust); color: var(--dust); }
@@ -51,7 +51,7 @@
 .card-flat { box-shadow: none; }
 .card-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); border-radius: var(--r-2); background: var(--bg-2); border: 1px solid var(--line-1); transition: background var(--dur-1) var(--ease-out), border-color var(--dur-2) var(--ease-out); }
 .card-row:hover { background: var(--bg-3); }
-.card-row.is-affordable { border-color: rgba(251, 191, 36, 0.45); }
+.card-row.is-affordable { border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
 .card-row.is-owned { border-color: var(--line-brand); }
 .card-row.is-locked { opacity: 0.72; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-3); flex-wrap: wrap; }
@@ -67,24 +67,24 @@
 .chip.life { border-color: var(--life); color: var(--life); background: var(--life-dim); }
 .chip.sand { border-color: var(--sand); color: var(--sand); background: var(--sand-dim); }
 .chip.danger { border-color: var(--danger); color: var(--danger); background: var(--danger-dim); }
-.badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: var(--r-pill); background: var(--danger); color: #fff; font-size: var(--fs-11); font-weight: 700; }
+.badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: var(--r-pill); background: var(--danger); color: var(--text-on-accent); font-size: var(--fs-11); font-weight: 700; }
 .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 2px var(--bg-1); }
 .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; background: var(--bg-4); color: var(--text-2); }
 .tag.new { background: var(--gold); color: var(--text-on-accent); }
 .tag.tier { background: var(--dust-dim); color: var(--dust); }
 
 /* ==== Progress bars ==== */
-.bar { position: relative; height: 8px; border-radius: var(--r-pill); background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.bar { position: relative; height: 8px; border-radius: var(--r-pill); background: color-mix(in srgb, var(--tint) 8%, transparent); overflow: hidden; }
 .bar > i { display: block; height: 100%; border-radius: inherit; background: var(--aether); transition: width var(--dur-3) var(--ease-out); }
 .bar.gold > i { background: var(--gold); } .bar.dust > i { background: var(--dust); } .bar.life > i { background: var(--life); }
 .bar.danger > i { background: var(--danger); } .bar.sand > i { background: var(--sand); } .bar.shard > i { background: var(--shard); }
 .bar.lg { height: 12px; } .bar.xl { height: 18px; }
-.bar.xl > b { position: absolute; inset: 0; display: grid; place-items: center; font-size: var(--fs-11); font-weight: 700; color: var(--text-1); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); }
+.bar.xl > b { position: absolute; inset: 0; display: grid; place-items: center; font-size: var(--fs-11); font-weight: 700; color: var(--text-1); text-shadow: 0 1px 2px color-mix(in srgb, var(--bg-0) 80%, transparent); }
 .bar-row { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-12); color: var(--text-2); }
 .bar-row .bar, .bar-row .segs { flex: 1; }
-.bar-row .val { font-variant-numeric: tabular-nums; color: var(--text-1); font-weight: 600; min-width: 3.5em; text-align: right; }
+.bar-row .val { font-variant-numeric: tabular-nums; color: var(--text-1); font-weight: 600; min-width: 3.5em; text-align: end; }
 .segs { display: flex; gap: 3px; }
-.segs i { flex: 1; height: 8px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); }
+.segs i { flex: 1; height: 8px; border-radius: 2px; background: color-mix(in srgb, var(--tint) 8%, transparent); }
 .segs i.on { background: var(--gold); }
 .segs.dust i.on { background: var(--dust); }
 
@@ -93,11 +93,11 @@
 .rarity::before { content: attr(data-glyph); font-size: var(--fs-11); letter-spacing: -1px; }
 .rarity.common { color: var(--rarity-common); } .rarity.rare { color: var(--rarity-rare); } .rarity.epic { color: var(--rarity-epic); }
 .rarity.legendary { color: var(--rarity-legendary); } .rarity.cosmic { color: var(--rarity-cosmic); }
-.gear { position: relative; min-width: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-1); border-left-width: 4px; }
-.gear.common { border-left-color: var(--rarity-common); } .gear.rare { border-left-color: var(--rarity-rare); }
-.gear.epic { border-left-color: var(--rarity-epic); } .gear.legendary { border-left-color: var(--rarity-legendary); }
+.gear { position: relative; min-width: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-1); border-inline-start-width: 4px; }
+.gear.common { border-inline-start-color: var(--rarity-common); } .gear.rare { border-inline-start-color: var(--rarity-rare); }
+.gear.epic { border-inline-start-color: var(--rarity-epic); } .gear.legendary { border-inline-start-color: var(--rarity-legendary); }
 /* Only Cosmic may glow */
-.gear.cosmic { border-left-color: var(--rarity-cosmic); box-shadow: 0 0 14px rgba(255, 216, 77, 0.25); }
+.gear.cosmic { border-inline-start-color: var(--rarity-cosmic); box-shadow: 0 0 14px color-mix(in srgb, var(--rarity-cosmic) 25%, transparent); }
 .gear .slot { font-size: var(--fs-11); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
 .gear .name { font-weight: 600; font-size: var(--fs-13); overflow-wrap: anywhere; }
 .gear .stat { font-size: var(--fs-12); color: var(--text-2); }

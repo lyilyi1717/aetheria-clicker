@@ -1,7 +1,7 @@
 /* Garden cross-breeding, Herbarium and hybrid recipes (R17) */
 .breeding-panel {
-  background: rgba(244, 114, 182, 0.05);
-  border: 1px solid rgba(244, 114, 182, 0.25);
+  background: color-mix(in srgb, var(--shard) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--shard) 25%, transparent);
   border-radius: 8px;
   padding: 0.75rem;
   margin-bottom: 1rem;
@@ -10,7 +10,7 @@
 .breeding-note { font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0; }
 .breeding-pairs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0; }
 .breeding-pairs .res-badge { font-size: 0.72rem; }
-.breeding-panel .btn-action.active { border-color: var(--accent-rose); box-shadow: 0 0 8px rgba(244, 114, 182, 0.5); }
+.breeding-panel .btn-action.active { border-color: var(--accent-rose); box-shadow: 0 0 8px color-mix(in srgb, var(--shard) 50%, transparent); }
 .garden-plot.breed-selected { outline: 3px solid var(--accent-rose); }
 .garden-plot.breed-partner { outline: 3px dashed var(--accent-gold); }
 .hybrid-head { margin-top: 1.5rem; color: var(--accent-rose); }

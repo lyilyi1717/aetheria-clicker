@@ -5,6 +5,7 @@ import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from '../data/names.js';
 import { isAutoBlastOn } from './ShardTreeSystem.js';
+import { t, localize, localizeList } from '../i18n/index.js';
 
 // A new stratum every 25 depth (§5.1). Cosmetic plus drop table: each stratum adds
 // +1% Void Amethyst chance, taken from the plain-stone share.
@@ -18,6 +19,7 @@ export const STRATA = [
   { name: 'Starcore', icon: '🌟', color: '#b45309', minDepth: 126 },
   { name: 'Abyssal Heart', icon: '🖤', color: '#7f1d1d', minDepth: 151 }
 ];
+localizeList(STRATA.map(s => s.name), 'strata').forEach((name, i) => { STRATA[i].name = name; });
 
 // Strata Relics (R18; gamification-roadmap §5.3): one per stratum. Each broken tile has a
 // RELIC_CHANCE roll for the current stratum's relic; RELIC_PITY tiles without a relic
@@ -33,6 +35,7 @@ export const STRATA_RELICS = [
   { id: 'starcore_astrolabe', name: 'Starcore Astrolabe', icon: '✴️' },
   { id: 'abyssal_pearl', name: 'Pearl of the Abyssal Heart', icon: '🦪' }
 ];
+localize(STRATA_RELICS, 'relic', ['name']);
 export const RELIC_CHANCE = 1 / 200;
 export const RELIC_PITY = 400;
 export const RELIC_PICK_BONUS = 0.05;
@@ -50,6 +53,7 @@ export const PICKAXE_NAMES = [
   'Adamantite Pickaxe',
   'Celestial Void Pick'
 ];
+localizeList(PICKAXE_NAMES, 'pickaxe');
 
 // 2: v2 curves + depth compression. 3: rebase saves stranded at an undiggable depth.
 export const MINING_SCHEMA = 3;
@@ -189,8 +193,8 @@ export class MiningSystem {
     // Big tier (§5.1): ceremony + brass
     rewards.notify({
       tier: 'big', kind: 'strata-relic', icon: relic.icon, color: '#fbbf24',
-      title: `Strata Relic: ${relic.name}`, batchTitle: '{n} Strata Relics found',
-      detail: `+${Math.round(RELIC_PICK_BONUS * 100)}% pickaxe`
+      title: t('mine.relic', { name: relic.name }), batchTitle: t('mine.relic_batch'),
+      detail: t('mine.relic_detail', { n: Math.round(RELIC_PICK_BONUS * 100) })
     });
     return relic;
   }
@@ -452,7 +456,7 @@ export class MiningSystem {
 
     if (block.content === 'stairs') {
       sound.playAchievement();
-      if (x && y) particles.spawnFloatingText(x, y, 'STAIRS FOUND! DEPTH +1', '#38bdf8', true);
+      if (x && y) particles.spawnFloatingText(x, y, t('mine.fx.stairs'), '#38bdf8', true);
       const prevStratum = this.getStratumIndex(grid.depth);
       grid.depth++;
       if (grid.depth > grid.maxDepth) {
@@ -462,7 +466,7 @@ export class MiningSystem {
       if (stratum > prevStratum) {
         rewards.notify({
           tier: 'big', kind: 'stratum', icon: STRATA[stratum].icon, color: '#38bdf8',
-          title: `Entered the ${STRATA[stratum].name} strata`, detail: `Depth ${grid.depth}`
+          title: t('mine.stratum', { name: STRATA[stratum].name }), detail: t('mine.depth', { n: grid.depth })
         });
       }
       // The next grid arrives after DESCEND_DELAY sim seconds (update()). This used to be a
@@ -476,7 +480,7 @@ export class MiningSystem {
       sound.playBuy();
       const gold = this.getGoldCacheValue(grid.depth);
       this.gameState.gold = this.gameState.gold.add(gold);
-      if (x && y) particles.spawnFloatingText(x, y, `+${gold.format('standard', 0)} GOLD`, '#eab308', true);
+      if (x && y) particles.spawnFloatingText(x, y, t('mine.fx.gold', { n: gold.format('standard', 0) }), '#eab308', true);
       return;
     }
 
@@ -493,10 +497,10 @@ export class MiningSystem {
     // Default stone: yield scales with depth
     const stone = this.getStoneYield(grid.depth);
     this.gameState.inventory.stone = (this.gameState.inventory.stone || 0) + stone;
-    if (x && y && stone > 1) particles.spawnFloatingText(x, y, `+${new BigNum(stone).format('standard', 0)} STONE`, '#94a3b8');
+    if (x && y && stone > 1) particles.spawnFloatingText(x, y, t('mine.fx.stone', { n: new BigNum(stone).format('standard', 0) }), '#94a3b8');
     if (this.random() < AETHER_ORE_CHANCE) {
       this.addAetherOre(1);
-      if (x && y) particles.spawnFloatingText(x, y + 24, '+1 AETHER ORE', '#22d3ee');
+      if (x && y) particles.spawnFloatingText(x, y + 24, t('mine.fx.ore'), '#22d3ee');
     }
   }
 

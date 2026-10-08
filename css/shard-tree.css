@@ -4,7 +4,7 @@
 .st-wrap { display: flex; flex-direction: column; gap: var(--sp-3); font-family: var(--font-ui); }
 .st-wrap [hidden] { display: none !important; }
 .st-head { display: grid; grid-template-columns: 1fr minmax(180px, 260px); gap: var(--sp-4); align-items: center;
-  border-color: rgba(244, 114, 182, 0.4); background: radial-gradient(circle at 15% 50%, var(--shard-dim), transparent 55%), var(--bg-2); }
+  border-color: color-mix(in srgb, var(--shard) 40%, transparent); background: radial-gradient(circle at 15% 50%, var(--shard-dim), transparent 55%), var(--bg-2); }
 .st-big { font-size: var(--fs-32); font-weight: 800; color: var(--shard); line-height: 1; margin-top: var(--sp-1); }
 .st-sub { font-size: var(--fs-12); color: var(--text-3); margin-top: var(--sp-1); overflow-wrap: anywhere; }
 .st-head-r .bar-row { flex-wrap: wrap; }
@@ -22,7 +22,7 @@
 .st-branch h3 small { font-family: var(--font-ui); font-size: var(--fs-12); color: var(--text-3); font-weight: 500; }
 .st-nodes { display: flex; flex-direction: column; }
 .st-node { display: grid; grid-template-columns: 40px 1fr auto; gap: var(--sp-3); align-items: center; padding: var(--sp-2) 0; position: relative; }
-.st-node + .st-node::before { content: ''; position: absolute; left: 19px; top: -10px; height: 12px; width: 2px; background: var(--line-2); }
+.st-node + .st-node::before { content: ''; position: absolute; inset-inline-start: 19px; top: -10px; height: 12px; width: 2px; background: var(--line-2); }
 .st-orb { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-18); background: var(--bg-1); border: 2px solid var(--line-2); }
 .st-node.own .st-orb { border-color: var(--shard); background: var(--shard-dim); }
 .st-node.aff .st-orb { border-color: var(--gold); }
@@ -37,7 +37,7 @@
 .st-tile { position: relative; aspect-ratio: 1; min-height: 34px; display: grid; place-items: center; border-radius: var(--r-1); background: var(--bg-1);
   border: 1px solid var(--line-2); font: 700 var(--fs-12) var(--font-ui); color: var(--text-3); cursor: pointer; padding: 0; }
 .st-tile.own { border-color: var(--shard); color: var(--shard); background: var(--shard-dim); }
-.st-tile.own::after { content: '◆'; position: absolute; top: 1px; right: 3px; font-size: var(--fs-11); line-height: 1; }
+.st-tile.own::after { content: '◆'; position: absolute; top: 1px; inset-inline-end: 3px; font-size: var(--fs-11); line-height: 1; }
 .st-tile.aff { border-color: var(--gold); color: var(--gold); }
 .st-tile.lock { opacity: 0.45; }
 .st-tile.sel { outline: 2px solid var(--aether); outline-offset: 1px; opacity: 1; }

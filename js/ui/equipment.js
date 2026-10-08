@@ -3,8 +3,9 @@
 // a button is never replaced between mousedown and mouseup.
 import { GEAR_SLOTS, GEAR_MAIN_STAT, GEAR_LEVEL_MAX, GEAR_LEVEL_STEP, GEAR_LEVEL_RESOURCE } from '../systems/CombatSystem.js';
 import { ITEM_NAMES, itemName } from '../data/names.js';
+import { t } from '../i18n/index.js';
 
-const SLOT_LABELS = { weapon: 'Weapon', armor: 'Armor', amulet: 'Amulet', relic: 'Relic' };
+const SLOT_LABELS = { weapon: t('gear.slot.weapon'), armor: t('gear.slot.armor'), amulet: t('gear.slot.amulet'), relic: t('gear.slot.relic') };
 const SLOT_ICONS = { weapon: '⚔️', armor: '🛡️', amulet: '📿', relic: '🔮' };
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
@@ -24,9 +25,9 @@ export class EquipmentUI {
     const key = GEAR_MAIN_STAT[slot].key;
     // Early gear is small: one decimal so a +4% step is visible (5 -> 5.2, not 5 -> 5)
     const num = v < 1000 ? String(Math.round(v * 10) / 10) : this.combat.fmt(v);
-    if (key === 'attack') return `${num} Atk`;
-    if (key === 'hp') return `${num} HP`;
-    return `${(v * 100).toFixed(1)}% ${key === 'crit' ? 'Crit' : 'Drain'}`;
+    if (key === 'attack') return t('gl.atk', { n: num });
+    if (key === 'hp') return t('gl.hp', { n: num });
+    return t(key === 'crit' ? 'gl.crit' : 'gl.drain', { n: (v * 100).toFixed(1) });
   }
 
   build() {
@@ -39,11 +40,10 @@ export class EquipmentUI {
     panel.className = 'card gl-panel';
     panel.innerHTML = `
       <div class="card-head">
-        <strong class="gl-title">⚒️ Gear Levels</strong>
+        <strong class="gl-title">${t('gl.title')}</strong>
         <span class="chip" id="gl-stock">${bone.icon} 0 ${esc(bone.plural)}</span>
       </div>
-      <p class="gl-note">Each level adds +${Math.round(GEAR_LEVEL_STEP * 100)}% to the item's main stat, up to +${GEAR_LEVEL_MAX}.
-        Paid in ${esc(bone.plural)} from Tower loot. A better drop keeps the slot's level.</p>
+      <p class="gl-note">${t('gl.note', { pct: Math.round(GEAR_LEVEL_STEP * 100), max: GEAR_LEVEL_MAX, item: esc(bone.plural) })}</p>
       <div class="gl-list">
         ${GEAR_SLOTS.map(slot => `
           <div class="card-row gl-row" id="gl-row-${slot}">
@@ -53,7 +53,7 @@ export class EquipmentUI {
               <div class="gl-stat num" id="gl-stat-${slot}"></div>
             </div>
             <button class="btn btn-buy btn-sm" id="gl-btn-${slot}" data-gear-slot="${slot}">
-              <span class="lbl" id="gl-lbl-${slot}">Level up</span>
+              <span class="lbl" id="gl-lbl-${slot}">${t('gl.level_up')}</span>
               <span class="cost num" id="gl-cost-${slot}"></span>
             </button>
           </div>`).join('')}
@@ -88,14 +88,14 @@ export class EquipmentUI {
       const done = info.blocked === 'max' || info.blocked === 'capped' || info.blocked === 'empty';
       setText(document.getElementById(`gl-stat-${slot}`), done
         ? this.statText(slot, info.stat)
-        : `${this.statText(slot, info.stat)} → ${this.statText(slot, info.nextStat)}`);
+        : `${this.statText(slot, info.stat)} ${t('bb.arrow')} ${this.statText(slot, info.nextStat)}`);
 
-      let lbl = `Level +${info.level + 1}`;
+      let lbl = t('gl.level', { n: info.level + 1 });
       let cost = `${bone.icon} ${this.fmtNum(info.cost, 0)}`;
-      if (info.blocked === 'max') { lbl = 'Max level'; cost = '—'; }
-      else if (info.blocked === 'capped') { lbl = 'Stat at cap'; cost = '—'; }
-      else if (info.blocked === 'empty') { lbl = 'No item'; cost = '—'; }
-      else if (info.blocked === 'cost') lbl = `Need ${this.fmtNum(info.cost - have, 0)} more`;
+      if (info.blocked === 'max') { lbl = t('gl.max'); cost = '—'; }
+      else if (info.blocked === 'capped') { lbl = t('gl.capped'); cost = '—'; }
+      else if (info.blocked === 'empty') { lbl = t('gl.empty'); cost = '—'; }
+      else if (info.blocked === 'cost') lbl = t('gl.need', { n: this.fmtNum(info.cost - have, 0) });
       setText(document.getElementById(`gl-lbl-${slot}`), lbl);
       setText(document.getElementById(`gl-cost-${slot}`), cost);
 

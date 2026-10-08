@@ -6,7 +6,7 @@
 .upgrade-shop { padding: var(--sp-4); }
 .upg-head { margin-bottom: var(--sp-3); }
 .upg-head h3 { margin: 0; font-size: var(--fs-18); }
-.upg-sub { font-family: var(--font-ui); font-weight: 500; font-size: var(--fs-13); color: var(--text-3); margin-left: var(--sp-1); }
+.upg-sub { font-family: var(--font-ui); font-weight: 500; font-size: var(--fs-13); color: var(--text-3); margin-inline-start: var(--sp-1); }
 
 /* Tile row: scrolls inside its own container, never the page */
 .upg-row { display: flex; gap: var(--sp-2); overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; }
@@ -21,8 +21,8 @@
 .upg.aff { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-dim), 0 0 12px var(--gold-dim); }
 .upg.lock { opacity: 0.5; filter: grayscale(1); }
 .upg.is-selected { background: var(--bg-4); outline: 2px solid var(--aether); outline-offset: 1px; }
-.upg .p { position: absolute; left: 0; bottom: -1px; height: 3px; width: 0; background: var(--gold); border-radius: 0 0 6px 6px; transition: width var(--dur-3) var(--ease-out); }
-.upg .upg-mark { position: absolute; right: 3px; top: 2px; font-size: var(--fs-11); color: var(--gold); line-height: 1; }
+.upg .p { position: absolute; inset-inline-start: 0; bottom: -1px; height: 3px; width: 0; background: var(--gold); border-radius: 0 0 6px 6px; transition: width var(--dur-3) var(--ease-out); }
+.upg .upg-mark { position: absolute; inset-inline-end: 3px; top: 2px; font-size: var(--fs-11); color: var(--gold); line-height: 1; }
 .upg.lock .upg-mark { color: var(--text-3); }
 .upg-more { font-size: var(--fs-13); font-weight: 700; color: var(--text-2); font-family: var(--font-ui); }
 
@@ -34,7 +34,7 @@
   transition: border-color var(--dur-2) var(--ease-out);
 }
 .upcard[hidden] { display: none; }
-.upcard.aff { border-color: rgba(251, 191, 36, 0.5); }
+.upcard.aff { border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
 .upcard.is-locked { opacity: 0.85; }
 .upcard-text { min-width: 0; }
 .upcard .n { font-weight: 700; font-size: var(--fs-13); color: var(--text-1); }

@@ -4,6 +4,7 @@
 // their own row.
 import { getIndexFloor } from './systems/CombatSystem.js';
 import { getLifetimeTranscends } from './systems/ChronicleSystem.js';
+import { t } from './i18n/index.js';
 
 const SUPABASE_URL = 'https://hutjfgbjjagqdjjeszqj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_mxWGt9Ul4V2q4Wb0DEmV9Q_UhBH6T-f';
@@ -18,21 +19,21 @@ export const SEASON_PROBE_MS = 10 * 60 * 1000;  // how often to look for the Sea
 // public.leaderboard_season, one row per (season, player), and rank the post-R8 floor
 // (hero.indexFloor). Until the owner runs supabase/leaderboard_season2.sql that table does
 // not exist, and the client keeps writing to and showing Season 1 as before.
-const floorBoard = { id: 'floor', label: 'Max Floor', column: 'max_floor', value: r => `Floor ${r.max_floor.toLocaleString()}` };
-const aetherBoard = { id: 'aether', label: 'Best Run Aether', column: 'aether_log10', value: r => r.aether_text };
-const ascBoard = { id: 'ascensions', label: 'Ascensions', column: 'ascensions', value: r => r.ascensions.toLocaleString() };
-const transcendBoard = { id: 'transcends', label: 'Transcends', column: 'transcends', value: r => (r.transcends || 0).toLocaleString() };
-const depthBoard = { id: 'depth', label: 'Max Depth', column: 'max_depth', value: r => `Depth ${r.max_depth.toLocaleString()}` };
+const floorBoard = { id: 'floor', label: t('lb.board.floor'), column: 'max_floor', value: r => t('coll.floor', { n: r.max_floor.toLocaleString('en-US') }) };
+const aetherBoard = { id: 'aether', label: t('lb.board.oil'), column: 'aether_log10', value: r => r.aether_text };
+const ascBoard = { id: 'ascensions', label: t('lb.board.wells'), column: 'ascensions', value: r => r.ascensions.toLocaleString('en-US') };
+const transcendBoard = { id: 'transcends', label: t('lb.board.fields'), column: 'transcends', value: r => (r.transcends || 0).toLocaleString('en-US') };
+const depthBoard = { id: 'depth', label: t('lb.board.depth'), column: 'max_depth', value: r => t('mine.depth', { n: r.max_depth.toLocaleString('en-US') }) };
 
 export const CURRENT_SEASON = 2;
 export const SEASONS = {
   1: {
-    id: 1, label: 'Season 1 · Hall of Fame', table: 'leaderboard', filter: '', conflict: 'user_id',
+    id: 1, label: t('lb.season1'), short: t('lb.season', { n: 1 }), table: 'leaderboard', filter: '', conflict: 'user_id',
     boards: [floorBoard, aetherBoard, ascBoard, depthBoard],
     cols: 'user_id,display_name,aether_log10,aether_text,max_floor,ascensions,max_depth,last_seen'
   },
   2: {
-    id: 2, label: 'Season 2', table: 'leaderboard_season', filter: 'season=eq.2&', conflict: 'season,user_id',
+    id: 2, label: t('lb.season', { n: 2 }), short: t('lb.season', { n: 2 }), table: 'leaderboard_season', filter: 'season=eq.2&', conflict: 'season,user_id',
     boards: [floorBoard, aetherBoard, ascBoard, transcendBoard, depthBoard],
     cols: 'user_id,display_name,aether_log10,aether_text,max_floor,ascensions,transcends,max_depth,last_seen'
   }
@@ -46,14 +47,14 @@ export async function isMissingTable(res) {
   try { const b = await res.clone().json(); return ['PGRST205', '42P01'].includes(b?.code); } catch { return false; }
 }
 
-const BLOCKED_WORDS = ['fuck', 'shit', 'cunt', 'nigg', 'fag', 'bitch', 'rape', 'nazi', 'hitler', 'whore', 'slut', 'retard'];
+export const BLOCKED_WORDS = ['fuck', 'shit', 'cunt', 'nigg', 'fag', 'bitch', 'rape', 'nazi', 'hitler', 'whore', 'slut', 'retard'];
 
 export function validateName(name) {
   const n = (name || '').trim();
-  if (n.length < 3 || n.length > 20) return 'Name must be 3–20 characters.';
-  if (!/^[A-Za-z0-9 _-]+$/.test(n)) return 'Use only letters, numbers, spaces, _ and -.';
+  if (n.length < 3 || n.length > 20) return t('lb.err.length');
+  if (!/^[A-Za-z0-9 _-]+$/.test(n)) return t('lb.err.chars');
   const flat = n.toLowerCase().replace(/[^a-z]/g, '');
-  if (BLOCKED_WORDS.some(w => flat.includes(w))) return 'Please choose a different name.';
+  if (BLOCKED_WORDS.some(w => flat.includes(w))) return t('lb.err.blocked');
   return null;
 }
 
@@ -270,7 +271,7 @@ export class Leaderboard {
         if (needFetch) await this.fetchBoard();
         this.status = '';
       } catch (e) {
-        this.status = `Leaderboard offline (${e.message}). Retrying shortly.`;
+        this.status = t('lb.offline', { msg: e.message });
         this.lastPush = this.lastFetch = now - Math.max(PUSH_INTERVAL_MS, BOARD_REFRESH_MS) + 15000;
       } finally {
         this.busy = false;
@@ -284,7 +285,7 @@ export class Leaderboard {
     if (err) { this.status = err; this.render(); return; }
     this.gs.settings.lbName = name.trim();
     this.app.saveManager.save();
-    this.status = 'Saving…';
+    this.status = t('lb.saving');
     this.render();
     this.lastPush = 0;
     this.lastFetch = 0;
@@ -296,9 +297,9 @@ export class Leaderboard {
     if (!root) return;
     root.innerHTML = `
       <div class="lb-name-row">
-        <label for="lb-name-input">Your display name</label>
-        <input id="lb-name-input" type="text" maxlength="20" placeholder="3–20 letters, numbers, _ -" autocomplete="off">
-        <button id="lb-name-save" class="btn-action">Save &amp; Join</button>
+        <label for="lb-name-input">${t('lb.name_label')}</label>
+        <input id="lb-name-input" type="text" maxlength="20" placeholder="${t('lb.name_ph')}" autocomplete="off" dir="ltr">
+        <button id="lb-name-save" class="btn-action">${t('lb.join')}</button>
         <span id="lb-online" class="lb-online"></span>
       </div>
       <div id="lb-status" class="lb-status"></div>
@@ -350,21 +351,21 @@ export class Leaderboard {
 
     const statusEl = document.getElementById('lb-status');
     statusEl.textContent = this.status
-      || (shown.id < live ? `${shown.label.split(' · ')[0]} has ended. These are its final standings.`
-        : this.name ? `Playing as ${this.name}. Your stats update every minute.` : 'Pick a display name to join the leaderboard.');
+      || (shown.id < live ? t('lb.ended', { season: shown.short })
+        : this.name ? t('lb.playing_as', { name: this.name }) : t('lb.pick_name'));
     const onlineEl = document.getElementById('lb-online');
-    onlineEl.textContent = this.online == null ? '' : `🟢 ${this.online} playing now`;
+    onlineEl.textContent = this.online == null ? '' : t('lb.online', { n: this.online });
 
     const me = this.session?.user_id;
     if (!this.rows.length || this.rowsSeason !== shown.id) {
-      table.innerHTML = `<div class="lb-empty">${this.lastFetch && this.rowsSeason === shown.id ? 'No players yet. Be the first!' : 'Loading…'}</div>`;
+      table.innerHTML = `<div class="lb-empty">${this.lastFetch && this.rowsSeason === shown.id ? t('lb.empty') : t('lb.loading')}</div>`;
       return;
     }
     const onlineCut = Date.now() - ONLINE_WINDOW_MS;
     table.innerHTML = this.rows.map((r, i) => `
       <div class="lb-row ${r.user_id === me ? 'me' : ''}">
         <span class="lb-rank">${i + 1}</span>
-        <span class="lb-name">${new Date(r.last_seen).getTime() >= onlineCut ? '<span class="lb-dot" title="Playing now"></span>' : ''}${escapeHtml(r.display_name)}</span>
+        <span class="lb-name" dir="auto">${new Date(r.last_seen).getTime() >= onlineCut ? `<span class="lb-dot" title="${t('lb.playing_now')}"></span>` : ''}${escapeHtml(r.display_name)}</span>
         <span class="lb-value">${escapeHtml(board.value(r))}</span>
       </div>
     `).join('');

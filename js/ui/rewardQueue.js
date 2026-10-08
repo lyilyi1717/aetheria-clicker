@@ -11,6 +11,7 @@
 // `kind` is what coalesces: same kind on screen or waiting = one entry with a count and a summed
 // amount ("Contract complete ×4", "+1.2e6 gold"). `batchTitle` may use {n} for the count.
 
+import { bidi } from '../i18n/index.js';
 export const TIERS = ['small', 'medium', 'big', 'epic'];
 
 export const REWARD_CONFIG = {
@@ -44,14 +45,14 @@ export function rewardTitle(entry) {
   const n = entry.count || 1;
   if (n <= 1) return entry.title || '';
   if (entry.batchTitle) return entry.batchTitle.replace('{n}', String(n));
-  return `${entry.title} ×${n}`;
+  return `${entry.title} ${bidi(`×${n}`)}`;
 }
 
 // Value line ("+1.2M gold"), or '' when the event carries no amount
 export function rewardValue(entry) {
   if (entry.amount === undefined || entry.amount === null) return '';
   const text = typeof entry.fmt === 'function' ? entry.fmt(entry.amount) : String(entry.amount);
-  return `+${text}${entry.unit ? ' ' + entry.unit : ''}`;
+  return `${bidi(`+${text}`)}${entry.unit ? ' ' + entry.unit : ''}`;
 }
 
 let nextId = 1;

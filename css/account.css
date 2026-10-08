@@ -27,7 +27,7 @@
 .acct-sub { font-size: var(--fs-12); color: var(--text-3); }
 
 /* Keep this device / Keep cloud: modal on desktop, bottom sheet on phone (style guide §5.7) */
-.acct-scrim { position: fixed; inset: 0; z-index: 10002; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(6px);
+.acct-scrim { position: fixed; inset: 0; z-index: 10002; background: color-mix(in srgb, var(--shade) 72%, transparent); backdrop-filter: blur(6px);
   display: grid; place-items: center; padding: var(--gutter); }
 .acct-modal { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--bg-1);
   border: 1px solid var(--line-2); border-radius: var(--r-3); box-shadow: var(--el-3); padding: var(--sp-5);
@@ -41,7 +41,7 @@
 .acct-side-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
 .acct-side dl { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-1) var(--sp-3); font-size: var(--fs-13); }
 .acct-side dt { color: var(--text-3); }
-.acct-side dd { margin: 0; color: var(--text-1); text-align: right; overflow-wrap: anywhere; }
+.acct-side dd { margin: 0; color: var(--text-1); text-align: end; overflow-wrap: anywhere; }
 .acct-side .btn { margin-top: auto; }
 
 @media (max-width: 639px) {

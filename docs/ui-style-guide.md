@@ -152,6 +152,40 @@ ladder chosen to stay distinct under common colour blindness.
 
 Only Cosmic may glow. Gear cards show rarity as a 4px left border plus the glyph label.
 
+### 2.5 Themes (R35)
+
+The game ships three themes, picked in Settings → Theme (`settings.theme`, default `night`;
+`js/ui/theme.js`). Night is the plain `:root` block in `css/tokens.css` (the values in §2.1);
+each other theme is a `:root[data-theme="…"]` block below it that overrides the **colour
+tokens only** (surfaces, lines, text, accents, rarity, `--tint`, `--shade`, `--art-blend`,
+and the elevation shadows for the light theme). Sizes, fonts, motion and layout are shared.
+
+| Theme | `data-theme` | Look |
+|---|---|---|
+| Night | (none) / `night` | dark emerald, neon currencies (default) |
+| Sand | `sand` | light: parchment surfaces (cream card, never `#fff`), deep brown text, darkened accents so they read as text on cream |
+| Desert Dusk | `dusk` | dark plum surfaces, orange brand line, slightly lifted accents |
+
+Rules that keep every theme working:
+
+- **No colour literals in `css/*.css`.** Use a token. For a translucent accent write
+  `color-mix(in srgb, var(--gold) 30%, transparent)`, not `rgba(251,191,36,0.3)`. The `-dim`
+  tints and `--glow-*` derive from the accents this way, so a theme only sets the accents.
+- **Overlays:** `--tint` is the "lighter" wash (subtle fills and hovers), `--shade` the "darker"
+  one (wells, scrims), both through `color-mix`. Sand flips `--tint` to brown so a raised fill
+  still reads on cream. Plain black/white is allowed only inside `box-shadow` / `text-shadow`
+  and masks.
+- **Art** drawn on black (the Falafel) blends with `mix-blend-mode: var(--art-blend)`: `screen`
+  on dark themes, `normal` on Sand.
+- **JS colours:** toasts (`--toast-accent`), floating text and canvas sparks still pass Night hex
+  values; `themeVar()` (for CSS) and `themeColor()` (for canvas) in `js/ui/theme.js` map known
+  accent hexes to the active theme's token. Under Night they return the value unchanged. New
+  inline colours in JS should be `var(--token)` strings instead.
+- `index.html` sets `data-theme` from `localStorage.AETHERIA_THEME` before the CSS loads, so a
+  reload on Sand doesn't flash dark.
+- A new theme sets every colour token (`test_r35_themes.js` checks the set) and passes the
+  contrast check below.
+
 ---
 
 ## 3. Type
@@ -318,19 +352,48 @@ stays available but never pushes the action below the fold again.
   the page there (two columns once each row gets 440px) and scrolls in its own box below that.
 - **Phone bottom stack:** bottom nav (60px + safe area); the buff bar sits directly above it;
   content gets matching bottom padding so nothing hides under either.
+- **Rewards and feedback:** how strongly an action or reward should react (feedback tiers
+  T0–T3, build-up, escalation, honest juice) is in `docs/game-feel-guide.md`.
 - **No horizontal page scroll at 375px.** Wide content (tables, trees) either reflows or
   scrolls inside its own container with a visible edge fade.
+
+### 7.1 Arabic and right to left (R37)
+
+The game runs in English or Arabic (Settings → Language). Arabic sets `<html lang="ar" dir="rtl">`
+and the whole layout mirrors, so:
+
+- **Text:** every player-facing string goes through `t('key', params)` (`js/i18n/`). English lives
+  in `en.js`, Arabic in `ar.js`; data tables (generators, spells, achievements…) keep their
+  English where they are defined and call `localize(rows, prefix, fields)`, with the Arabic in
+  `ar.js` as `<prefix>.<id>.<field>`. `test_r37_i18n.js` fails on a key with no Arabic.
+  Static markup in `index.html` uses `data-i18n="key"` (or `data-i18n-html`, `-title`,
+  `-aria-label`, `-hint`).
+- **CSS:** logical properties only: `margin-inline-start`, `padding-inline-end`,
+  `border-inline-start`, `inset-inline-start`, `text-align: start/end`. No `left`/`right`
+  except for centring (`left: 50%`). A slide-in animation multiplies its x offset by `var(--dir)`.
+- **Numbers:** Western digits, read left to right. `t()` wraps numeric params (with their sign
+  and `%`) in an isolate; for a number built outside `t()` use `bidi(text)` or `<bdi>`, and give
+  number cells `.num` (in Arabic it takes its direction from its first letter). Never format
+  with `toLocaleString()` without `'en-US'`.
+- **Type:** Arabic uses Cairo (UI) and Noto Kufi Arabic (display) with a larger `--fs-root`;
+  letter spacing and uppercase are off. Check Arabic at 375px too: words run longer than English.
 
 ---
 
 ## 8. Checklist for a UI PR
 
-- [ ] Uses tokens, no new hex values (except new art)
+- [ ] Uses tokens, no new hex values (except new art); translucent colours via `color-mix`
+- [ ] Contrast in every theme (Night, Sand, Desert Dusk): text and accent tokens ≥ 4.5:1 on
+      `--bg-1`/`--bg-2`/`--bg-3`, `--text-on-accent` ≥ 4.5:1 on `--gold` (`test_r35_themes.js`
+      checks the tokens; look at the screen in each theme for anything drawn in JS)
 - [ ] One filled (gold) button per card at most; affordable = gold
 - [ ] The tab's action is above the fold at 1280×800 and 375×812
 - [ ] Tap targets ≥ 44px on touch; no hover-only information
 - [ ] Rarity / state not by colour alone
 - [ ] Changing numbers use `.num`
 - [ ] Works with reduced motion
+- [ ] Actions and rewards pass the game-feel checklist (`docs/game-feel-guide.md` §7)
 - [ ] Screenshots at desktop and 375px in the PR
 - [ ] Matches the mockup in `docs/ui/mockups/` if there is one, or says why not
+- [ ] New text goes through `t()` with Arabic in `js/i18n/ar.js`, and the tab reads right in
+      Arabic (logical CSS properties, numbers left to right; §7.1)

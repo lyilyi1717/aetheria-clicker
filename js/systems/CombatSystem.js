@@ -4,6 +4,8 @@ import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { hasWardensNode, hasSecondWind } from './ShardTreeSystem.js';
 import { getShopRank } from './DustShopSystem.js';
+import { t, localizeList } from '../i18n/index.js';
+import { gearName } from '../ui/rarity.js';
 
 export const ZONES = [
   { name: 'Thumama Dunes', minFloor: 1, maxFloor: 50, color: '#f59e0b', icon: '🏜️' },
@@ -14,12 +16,15 @@ export const ZONES = [
   { name: 'Boulevard World', minFloor: 751, maxFloor: 1000, color: '#a855f7', icon: '🎡' },
   { name: 'The Wasta Dimension', minFloor: 1001, maxFloor: 999999, color: '#06b6d4', icon: '🌌' }
 ];
+localizeList(ZONES.map(z => z.name), 'zone').forEach((name, i) => { ZONES[i].name = name; });
 
 export const MONSTER_NAMES = [
   'Desert Dhabb', 'Abu Sarwal Wa Fanila', 'Karak Addict', 'Drifting Camry',
   'Iftar Samosa', 'Giant Kabsa Monster', 'Snapchat Celebrity', 'Saher Camera',
   'Angry Shayeb', 'Rukbah Soda', 'Dallah of Doom', 'Al-Modir'
 ];
+// MONSTER_NAMES stays English: portraits are keyed by it (js/bossArt.js). Players see these.
+const MONSTER_DISPLAY = localizeList([...MONSTER_NAMES], 'monster');
 
 // Floor exponent cap for 1.12^(floor-1) on monster stats and gear. 1.12^6000 ~ 1e295, so
 // 400 x that (boss HP) and 180 x that (Cosmic gear) stay finite; Math.pow hit Infinity at ~6,220.
@@ -62,6 +67,7 @@ export const WARDEN_NAMES = [
   'The Falcon Tax Collector',
   'Ghost of the Old Souq'
 ];
+localizeList(WARDEN_NAMES, 'warden');
 
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
@@ -209,7 +215,7 @@ export class CombatSystem {
     m.timer = m.maxTimer;
     m.attackCooldown = 1.2;
     this.gameState.hero.hp = this.getTotalMaxHp();
-    rewards.notify({ tier: 'small', kind: 'second-wind', icon: '💨', color: '#38bdf8', title: 'Second Wind! The fight goes on' });
+    rewards.notify({ tier: 'small', kind: 'second-wind', icon: '💨', color: '#38bdf8', title: t('combat.second_wind') });
     return true;
   }
 
@@ -271,8 +277,10 @@ export class CombatSystem {
     const isBoss = floor % 10 === 0;
 
     const nameIdx = (floor - 1) % MONSTER_NAMES.length;
-    const prefix = isBoss ? '⚡ BOSS: ' : '';
-    const name = isWarden ? `🛡️ WARDEN: ${getWardenName(floor)}` : prefix + MONSTER_NAMES[nameIdx];
+    const name = isWarden ? t('combat.warden_name', { name: getWardenName(floor) })
+      : isBoss ? t('combat.boss_name', { name: MONSTER_DISPLAY[nameIdx] }) : MONSTER_DISPLAY[nameIdx];
+    // Portrait lookup key (English, with the boss prefix bossArt.js strips)
+    const artName = isWarden ? '' : (isBoss ? '⚡ BOSS: ' : '') + MONSTER_NAMES[nameIdx];
 
     // Scaling HP & Attack based on floor
     const scale = combatFloorScale(floor);
@@ -282,6 +290,7 @@ export class CombatSystem {
 
     this.monster = {
       name,
+      artName,
       isBoss,
       isWarden,
       floor,
@@ -417,7 +426,7 @@ export class CombatSystem {
       this.gameState.hero.hp = this.getTotalMaxHp(); // Heal to new max
       rewards.notify({
         tier: 'medium', kind: 'aether-forge', icon: '🔥', color: '#38bdf8',
-        title: `Aether Forge Lv ${this.gameState.hero.aetherForgeLevel}`, detail: 'Max HP up, hero healed'
+        title: t('combat.forge_toast', { n: this.gameState.hero.aetherForgeLevel }), detail: t('combat.forge_detail')
       });
       return true;
     }
@@ -524,7 +533,7 @@ export class CombatSystem {
       h.hp = this.getTotalMaxHp();
       rewards.notify({
         tier: 'medium', kind: 'hero-level', icon: '⬆️', color: '#fbbf24',
-        title: `Hero level ${h.level}`, batchTitle: `Hero level ${h.level} (+{n} levels)`
+        title: t('combat.hero_level', { lv: h.level }), batchTitle: t('combat.hero_level_batch', { lv: h.level })
       });
     }
 
@@ -568,8 +577,8 @@ export class CombatSystem {
     // Epic tier (§5.1): ceremony + choir
     rewards.notify({
       tier: 'epic', kind: 'warden-trophy', icon: '🏆', color: '#fbbf24',
-      title: `Warden Trophy: ${getWardenName(floor)}`, batchTitle: '{n} Warden Trophies',
-      detail: `+${Math.round(WARDEN_TROPHY_GOLD * 100)}% Tower gold`
+      title: t('combat.trophy', { name: getWardenName(floor) }), batchTitle: t('combat.trophy_batch'),
+      detail: t('combat.trophy_detail', { n: Math.round(WARDEN_TROPHY_GOLD * 100) })
     });
     return true;
   }
@@ -610,7 +619,7 @@ export class CombatSystem {
   notifyGear(label, item) {
     rewards.notify({
       tier: 'small', kind: 'gear', icon: '⚔️', color: item.color,
-      title: `${label}: ${item.name}`, batchTitle: '{n} gear upgrades'
+      title: `${label}: ${gearName(item)}`, batchTitle: t('gear.batch')
     });
   }
 
@@ -658,8 +667,8 @@ export class CombatSystem {
       const level = getGearLevel(current);
       if (level > 0) newItem.level = level;
       gear[slot] = newItem;
-      if (slot === 'weapon') this.notifyGear('New weapon', newItem);
-      else if (slot === 'armor') this.notifyGear('New armor', newItem);
+      if (slot === 'weapon') this.notifyGear(t('gear.new_weapon'), newItem);
+      else if (slot === 'armor') this.notifyGear(t('gear.new_armor'), newItem);
     }
 
     // Material drops
@@ -707,12 +716,12 @@ export class CombatSystem {
         if (this.trySecondWind()) return;
         if (this.wardenChallenge) {
           // A lost challenge costs nothing: the hero returns to his climb floor
-          this.notifySetback('The Warden holds! Back to the climb');
+          this.notifySetback(t('combat.warden_holds'));
           this.endWardenChallenge();
           return;
         }
         // Failed boss timer -> retreat 1 floor
-        this.notifySetback('Boss timeout: retreating 1 floor');
+        this.notifySetback(t('combat.boss_timeout'));
         h.floor = Math.max(1, h.floor - 1);
         this.initMonster();
         return;
@@ -743,12 +752,12 @@ export class CombatSystem {
           h.hp = this.getTotalMaxHp();
           if (this.trySecondWind()) return;
           if (this.wardenChallenge) {
-            this.notifySetback('The Warden holds! Back to the climb');
+            this.notifySetback(t('combat.warden_holds'));
             this.endWardenChallenge();
             return;
           }
           // Hero died -> retreat 1 floor and restore HP
-          this.notifySetback('Defeated: retreating 1 floor');
+          this.notifySetback(t('combat.defeated'));
           h.floor = Math.max(1, h.floor - 1);
           this.initMonster();
         }

@@ -17,6 +17,7 @@
 // Sounds and notices live in js/ui/shardTree.js.
 import { BigNum } from '../engine/BigNum.js';
 import { isChallengeActive } from './ChronicleSystem.js';
+import { t, localize } from '../i18n/index.js';
 
 // Same ladder as BuildingSystem.getUnlockedTierCount (14 base tiers + 1 per Transcend, max 30).
 // Repeated here so this module stays free of BuildingSystem's audio import; test_shard_tree.js
@@ -38,32 +39,34 @@ export const LONG_WARP_COOLDOWN_MS = 24 * 3600 * 1000;
 export const AUTO_ASCEND_CHECK_MS = 1000;
 
 export const SHARD_TREE_BRANCHES = [
-  { id: 'foundry', name: 'Foundry', icon: '🏭', desc: 'Deep Blueprints: one per Transcend tier. That tier\'s 5 upgrades cost ÷10.' },
-  { id: 'chronos', name: 'Chronos', icon: '⏳', desc: 'Time works for you: Auto-Ascend, a longer offline cap, a daily 6 h Fast Forward, Auto-Blast.' },
+  { id: 'foundry', name: 'Foundry', icon: '🏭', desc: 'Deep Blueprints: one per New Field tier. That tier\'s 5 upgrades cost ÷10.' },
+  { id: 'chronos', name: 'Chronos', icon: '⏳', desc: 'Time works for you: Auto-Well, a longer offline cap, a daily 6 h Fast Forward, Auto-Blast.' },
   { id: 'tower', name: 'Tower', icon: '🗼', desc: 'The Void Tower: Wardens every 250 floors, and a Second Wind against bosses.' }
 ];
+localize(SHARD_TREE_BRANCHES, 'branch', ['name', 'desc']);
 
 // Auto-Ascend rules. "×m" Ascends once the Ascension would multiply this layer's lifetime dust by
 // at least m (pending >= (m - 1) x lifetime). "timer" Ascends every N minutes of run time.
 export const AUTO_ASCEND_RULES = [
-  { id: 'x1.2', label: '×1.2 dust', mult: 1.2 },
-  { id: 'x1.5', label: '×1.5 dust', mult: 1.5 },
-  { id: 'x2', label: '×2 dust', mult: 2 },
+  { id: 'x1.2', label: '×1.2 Reserves', mult: 1.2 },
+  { id: 'x1.5', label: '×1.5 Reserves', mult: 1.5 },
+  { id: 'x2', label: '×2 Reserves', mult: 2 },
   { id: 'timer', label: 'Timer' }
 ];
+localize(AUTO_ASCEND_RULES, 'autorule', ['label']);
 export const AUTO_ASCEND_TIMER_OPTIONS = [10, 30, 60, 240]; // minutes; 10 = the minimum run
 export const AUTO_ASCEND_DEFAULT_RULE = 'x2';
 export const AUTO_ASCEND_DEFAULT_TIMER = 30;
 
-const romanTier = (t) => `Tier ${t}`;
+const romanTier = (n) => t('tree.tier', { n });
 
 function foundryNodes() {
   const nodes = [];
   for (let tier = FOUNDRY_FIRST_TIER; tier <= FOUNDRY_LAST_TIER; tier++) {
     nodes.push({
       id: `foundry_t${tier}`, branch: 'foundry', tier, cost: 1, icon: '📐',
-      name: `Deep Blueprint: ${romanTier(tier)}`,
-      desc: `${romanTier(tier)}'s 5 shop upgrades cost ÷${DEEP_BLUEPRINT_DIVISOR}.`,
+      name: t('tree.deep_name', { tier: romanTier(tier) }),
+      desc: t('tree.deep_desc', { tier: romanTier(tier), n: DEEP_BLUEPRINT_DIVISOR }),
       requires: []
     });
   }
@@ -73,18 +76,18 @@ function foundryNodes() {
 export const SHARD_TREE_NODES = [
   ...foundryNodes(),
   {
-    id: 'chronos_auto_ascend', branch: 'chronos', cost: 2, icon: '♾️', name: 'Auto-Ascend',
-    desc: 'Ascends for you by your rule (dust ×1.2 / ×1.5 / ×2, or a timer), never before the 10-min minimum run. Uses held Sidr Honey like a manual Ascend.',
+    id: 'chronos_auto_ascend', branch: 'chronos', cost: 2, icon: '♾️', name: 'Auto-Well',
+    desc: 'Drills a New Well for you by your rule (Reserves ×1.2 / ×1.5 / ×2, or a timer), never before the 10-min minimum run. Uses held Sidr Honey like a New Well drilled by hand.',
     requires: []
   },
   {
     id: 'chronos_offline', branch: 'chronos', cost: 2, icon: '🛌', name: 'Long Sleep',
-    desc: 'Offline Aether: +8 h at 100% (the 24 h cap moves out by 8 h too).',
+    desc: 'Offline Oil: +8 h at 100% (the 24 h cap moves out by 8 h too).',
     requires: ['chronos_auto_ascend']
   },
   {
     id: 'chronos_long_warp', branch: 'chronos', cost: 3, icon: '⏩', name: 'Hourglass',
-    desc: 'Once a day: Fast Forward 6 h (6 h of Aether production and Garden growth, instantly).',
+    desc: 'Once a day: Fast Forward 6 h (6 h of Oil production and Garden growth, instantly).',
     requires: ['chronos_offline']
   },
   {
@@ -102,7 +105,8 @@ export const SHARD_TREE_NODES = [
     desc: 'Once per boss fight, losing (timeout or defeat) refills your HP and the timer instead of pushing you back. The boss keeps its damage.',
     requires: ['tower_wardens']
   }
-];
+];localize(SHARD_TREE_NODES.filter(n => n.branch !== 'foundry'), 'node', ['name', 'desc']);
+
 
 const NODE_BY_ID = new Map(SHARD_TREE_NODES.map(n => [n.id, n]));
 export function getNode(id) { return NODE_BY_ID.get(id) || null; }
@@ -186,16 +190,16 @@ export function isFoundryOpen(gameState) {
 // Why a node can't be bought right now (null = it can). Owned nodes return 'owned'.
 export function getBlockReason(gameState, id) {
   const node = getNode(id);
-  if (!node) return 'unknown node';
+  if (!node) return t('chron.block.unknown');
   if (hasNode(gameState, id)) return 'owned';
   for (const req of node.requires) {
-    if (!hasNode(gameState, req)) return `needs ${getNode(req).name}`;
+    if (!hasNode(gameState, req)) return t('chron.block.needs', { what: getNode(req).name });
   }
   if (node.branch === 'foundry') {
-    if (getOpenTierCount(gameState) < node.tier) return `opens with Tier ${node.tier} (Transcend ${node.tier - BASE_TIERS})`;
-    if (!isFoundryOpen(gameState)) return 'opens with the upgrade shop';
+    if (getOpenTierCount(gameState) < node.tier) return t('tree.block.tier', { n: node.tier, f: node.tier - BASE_TIERS });
+    if (!isFoundryOpen(gameState)) return t('tree.block.shop');
   }
-  if (getShardBalance(gameState) < node.cost) return `needs ${node.cost} shard${node.cost === 1 ? '' : 's'}`;
+  if (getShardBalance(gameState) < node.cost) return t(node.cost === 1 ? 'tree.block.share1' : 'tree.block.shares', { n: node.cost });
   return null;
 }
 

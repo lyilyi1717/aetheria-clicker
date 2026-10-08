@@ -6,15 +6,16 @@
 import { CloudSave, AUTO_SYNC_MS, summarizeSave, cleanCallbackUrl } from '../engine/CloudSave.js';
 import { formatDuration } from './offlineModal.js';
 import { rewards } from './rewards.js';
+import { t, getLang } from '../i18n/index.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 // "5 min ago" for the status line and the conflict prompt
 export function agoText(ms, now = Date.now()) {
-  if (!ms) return 'never';
+  if (!ms) return t('acct.never');
   const s = (now - ms) / 1000;
-  if (s < 45) return 'just now';
-  return `${formatDuration(s)} ago`;
+  if (s < 45) return t('cm.just_now');
+  return t('acct.ago', { d: formatDuration(s) });
 }
 
 // Rows of the conflict prompt for one side: [label, value]. Pure, for tests.
@@ -22,13 +23,13 @@ export function conflictRows(data, now = Date.now()) {
   const p = summarizeSave(data);
   const when = p.savedAt ? new Date(p.savedAt) : null;
   return [
-    ['Saved', when ? `${agoText(p.savedAt, now)} (${when.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })})` : 'unknown'],
-    ['Ascensions', p.ascensions.toLocaleString()],
-    ['Transcends', p.transcends.toLocaleString()],
-    ['Tower floor', p.floor.toLocaleString()],
-    ['Max depth', p.depth.toLocaleString()],
-    ['Cosmic Dust earned', p.dust.format('standard', 2)],
-    ['Aether this run', p.runAether.format('standard', 2)]
+    [t('acct.row.saved'), when ? `${agoText(p.savedAt, now)} (${when.toLocaleString(getLang() === 'ar' ? 'ar-SA-u-nu-latn' : undefined, { dateStyle: 'medium', timeStyle: 'short' })})` : t('acct.unknown')],
+    [t('lb.board.wells'), p.ascensions.toLocaleString('en-US')],
+    [t('lb.board.fields'), p.transcends.toLocaleString('en-US')],
+    [t('acct.row.floor'), p.floor.toLocaleString('en-US')],
+    [t('lb.board.depth'), p.depth.toLocaleString('en-US')],
+    [t('acct.row.dust'), p.dust.format('standard', 2)],
+    [t('acct.row.oil'), p.runAether.format('standard', 2)]
   ];
 }
 
@@ -57,7 +58,7 @@ export class AccountUI {
     if (cb) {
       try { history.replaceState(null, '', cleanCallbackUrl(location.href)); } catch { /* file:// */ }
       if (cb.error) this.say(cb.error, 'bad');
-      else if (cb.recovery) { this.say('Choose a new password below.', 'ok'); this.app.switchTab?.('settings'); }
+      else if (cb.recovery) { this.say(t('acct.choose_pw'), 'ok'); this.app.switchTab?.('settings'); }
       this.render();
     }
 
@@ -77,7 +78,7 @@ export class AccountUI {
 
   // --- flows ---
   async afterSignIn(fresh) {
-    if (fresh) rewards.notify({ tier: 'small', kind: 'account', icon: '☁️', title: `Signed in as ${this.cloud.email}`, color: 'var(--aether)' });
+    if (fresh) rewards.notify({ tier: 'small', kind: 'account', icon: '☁️', title: t('acct.signed_in_as', { email: this.cloud.email }), color: 'var(--aether)' });
     if (this.app.leaderboard) this.app.leaderboard.lastPush = 0;   // move the leaderboard row to the account now
     const d = await this.cloud.sync('login');
     this.afterSync(d);
@@ -85,7 +86,7 @@ export class AccountUI {
 
   afterSync(decision) {
     if (this.cloud.downloaded) {
-      this.say('Loaded your cloud save. Restarting…', 'ok');
+      this.say(t('acct.loaded'), 'ok');
       setTimeout(() => location.reload(), 600);
     } else if (decision === 'conflict') {
       this.showConflict();
@@ -96,7 +97,7 @@ export class AccountUI {
     if (!this.cloud.signedIn) return;
     if (this.cloud.paused) return;   // only "Choose which save to keep" reopens the prompt
     const d = await this.cloud.sync(reason);
-    if (d === 'upload' && reason === 'manual-cloud') rewards.notify({ tier: 'small', kind: 'cloud-saved', icon: '☁️', title: 'Saved to the cloud', color: 'var(--aether)' });
+    if (d === 'upload' && reason === 'manual-cloud') rewards.notify({ tier: 'small', kind: 'cloud-saved', icon: '☁️', title: t('acct.saved_cloud'), color: 'var(--aether)' });
     this.afterSync(d);
   }
 
@@ -117,7 +118,7 @@ export class AccountUI {
     if (this.busy) return;
     this.busy = true;
     this.root.querySelectorAll('button').forEach(b => { b.setAttribute('aria-disabled', 'true'); });
-    try { await fn(); } catch (e) { this.say(e.message || 'Something went wrong. Please try again.', 'bad'); }
+    try { await fn(); } catch (e) { this.say(e.message || t('acct.err'), 'bad'); }
     finally {
       this.busy = false;
       this.root.querySelectorAll('button').forEach(b => b.removeAttribute('aria-disabled'));
@@ -127,28 +128,28 @@ export class AccountUI {
   onSubmit(act) {
     const { email, password } = this.fields();
     if (act === 'newpass') {
-      if (password.length < 6) return this.say('Please use at least 6 characters.', 'bad');
+      if (password.length < 6) return this.say(t('acct.pw_min'), 'bad');
       return this.withBusy(async () => {
         await this.cloud.setNewPassword(password);
-        this.say('Password changed.', 'ok');
+        this.say(t('acct.pw_changed'), 'ok');
         await this.afterSignIn(false);
       });
     }
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return this.say('Please enter your email address.', 'bad');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return this.say(t('acct.enter_email'), 'bad');
     if (act === 'reset') {
       return this.withBusy(async () => {
         await this.cloud.resetPassword(email);
-        this.say(`If ${email} has an account, a reset link is on its way. Open it on this device.`, 'ok');
+        this.say(t('acct.reset_sent', { email }), 'ok');
       });
     }
-    if (password.length < 6) return this.say('Passwords have at least 6 characters.', 'bad');
+    if (password.length < 6) return this.say(t('acct.pw_min2'), 'bad');
     return this.withBusy(async () => {
       if (act === 'signup') {
-        this.say('Creating your account…');
+        this.say(t('acct.creating'));
         if (await this.cloud.signUp(email, password)) { this.say(''); await this.afterSignIn(true); }
-        else this.say(`Almost there: we sent a link to ${email}. Open it to confirm your account and you will come back here signed in.`, 'ok');
+        else this.say(t('acct.confirm_sent', { email }), 'ok');
       } else {
-        this.say('Signing in…');
+        this.say(t('acct.signing_in'));
         await this.cloud.signIn(email, password);
         this.say('');
         await this.afterSignIn(true);
@@ -161,7 +162,7 @@ export class AccountUI {
     if (!btn || btn.type === 'submit') return;
     const act = btn.dataset.act;
     if (act === 'google') {
-      if (this.googleOn === false) return this.say('Google sign-in is not switched on yet. Use email and password for now.', 'bad');
+      if (this.googleOn === false) return this.say(t('acct.google_off'), 'bad');
       return this.withBusy(async () => {
         this.app.saveManager.save();   // the page leaves for Google and comes back
         location.href = await this.cloud.googleUrl();
@@ -174,7 +175,7 @@ export class AccountUI {
       return this.withBusy(async () => {
         await this.cloud.sync('manual');
         await this.cloud.signOut();
-        this.say('Signed out. This device keeps your progress and saves locally as before.', 'ok');
+        this.say(t('acct.signed_out'), 'ok');
         this.app.leaderboard && (this.app.leaderboard.lastPush = 0);
         this.cloud.providers().then(p => { this.googleOn = p ? p.google : null; this.render(); });
       });
@@ -201,25 +202,25 @@ export class AccountUI {
     this.mode = mode;
     if (mode === 'out') {
       this.root.innerHTML = `
-        <p class="acct-lead">Optional. Sign in to keep your progress in the cloud and continue on any device. Without an account the game saves in this browser, as always.</p>
-        <button type="button" class="btn btn-block acct-google ${this.googleOn === false ? 'is-locked' : ''}" data-act="google">${GOOGLE_G}<span>Sign in with Google</span></button>
-        <div class="acct-or"><span>or with email</span></div>
+        <p class="acct-lead">${t('acct.lead')}</p>
+        <button type="button" class="btn btn-block acct-google ${this.googleOn === false ? 'is-locked' : ''}" data-act="google">${GOOGLE_G}<span>${t('acct.google')}</span></button>
+        <div class="acct-or"><span>${t('acct.or_email')}</span></div>
         <form class="acct-form" novalidate>
-          <label class="acct-field"><span>Email</span><input name="email" type="email" autocomplete="email" inputmode="email" spellcheck="false"></label>
-          <label class="acct-field"><span>Password</span><input name="password" type="password" autocomplete="current-password" minlength="6"></label>
+          <label class="acct-field"><span>${t('acct.email')}</span><input name="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" dir="ltr"></label>
+          <label class="acct-field"><span>${t('acct.password')}</span><input name="password" type="password" autocomplete="current-password" minlength="6" dir="ltr"></label>
           <div class="acct-actions">
-            <button type="submit" class="btn btn-primary" data-act="login">Log in</button>
-            <button type="button" class="btn" data-act="signup">Create account</button>
+            <button type="submit" class="btn btn-primary" data-act="login">${t('acct.login')}</button>
+            <button type="button" class="btn" data-act="signup">${t('acct.signup')}</button>
           </div>
-          <button type="button" class="btn btn-ghost btn-sm acct-forgot" data-act="reset">Forgot password?</button>
+          <button type="button" class="btn btn-ghost btn-sm acct-forgot" data-act="reset">${t('acct.forgot')}</button>
         </form>
         <p class="acct-status" role="status" aria-live="polite"></p>`;
     } else if (mode === 'newpass') {
       this.root.innerHTML = `
-        <p class="acct-lead">Signed in as <strong>${esc(c.email)}</strong>. Choose a new password.</p>
+        <p class="acct-lead">${t('acct.newpass_lead', { email: `<strong dir="ltr">${esc(c.email)}</strong>` })}</p>
         <form class="acct-form" novalidate>
-          <label class="acct-field"><span>New password</span><input name="password" type="password" autocomplete="new-password" minlength="6"></label>
-          <div class="acct-actions"><button type="submit" class="btn btn-primary" data-act="newpass">Save password</button></div>
+          <label class="acct-field"><span>${t('acct.new_password')}</span><input name="password" type="password" autocomplete="new-password" minlength="6" dir="ltr"></label>
+          <div class="acct-actions"><button type="submit" class="btn btn-primary" data-act="newpass">${t('acct.save_password')}</button></div>
         </form>
         <p class="acct-status" role="status" aria-live="polite"></p>`;
     } else {
@@ -227,16 +228,16 @@ export class AccountUI {
         <div class="card-row is-owned acct-who">
           <div class="icon-tile sm" aria-hidden="true">☁️</div>
           <div class="acct-who-text">
-            <div class="acct-email">${esc(c.email || 'Signed in')}</div>
-            <div class="acct-sub">${c.provider === 'google' ? 'Google account' : 'Email account'} · <span class="acct-cloud"></span></div>
+            <div class="acct-email" dir="auto">${esc(c.email || t('acct.signed_in'))}</div>
+            <div class="acct-sub">${c.provider === 'google' ? t('acct.google_account') : t('acct.email_account')} · <span class="acct-cloud"></span></div>
           </div>
         </div>
         <div class="acct-actions">
-          <button type="button" class="btn btn-primary" data-act="sync">Save to cloud now</button>
-          <button type="button" class="btn" data-act="choose" hidden>Choose which save to keep</button>
-          <button type="button" class="btn btn-ghost" data-act="signout">Sign out</button>
+          <button type="button" class="btn btn-primary" data-act="sync">${t('acct.sync_now')}</button>
+          <button type="button" class="btn" data-act="choose" hidden>${t('acct.choose')}</button>
+          <button type="button" class="btn btn-ghost" data-act="signout">${t('acct.signout')}</button>
         </div>
-        <p class="acct-note">Saves to the cloud every few minutes, when you press Save Game and when you leave the page. Your leaderboard entry belongs to this account too.</p>
+        <p class="acct-note">${t('acct.note')}</p>
         <p class="acct-status" role="status" aria-live="polite"></p>`;
     }
   }
@@ -254,8 +255,8 @@ export class AccountUI {
     const cloudEl = this.root.querySelector('.acct-cloud');
     if (cloudEl) {
       cloudEl.textContent = c.status === 'syncing' ? c.message
-        : c.paused ? 'cloud saving paused'
-        : c.lastCloudAt ? `cloud saved ${agoText(c.lastCloudAt)}` : 'cloud save on';
+        : c.paused ? t('acct.paused')
+        : c.lastCloudAt ? t('acct.cloud_saved', { ago: agoText(c.lastCloudAt) }) : t('acct.cloud_on');
     }
     const choose = this.root.querySelector('[data-act=choose]');
     if (choose) choose.hidden = !c.paused;
@@ -271,20 +272,20 @@ export class AccountUI {
     const newer = (Number(local.savedAt) || 0) >= (Number(cloud.savedAt) || 0) ? 'local' : 'cloud';
     const side = (key, title, data) => `
       <section class="acct-side ${newer === key ? 'is-newer' : ''}">
-        <div class="acct-side-head"><span class="eyebrow">${title}</span>${newer === key ? '<span class="tag new">Newer</span>' : ''}</div>
+        <div class="acct-side-head"><span class="eyebrow">${title}</span>${newer === key ? `<span class="tag new">${t('acct.newer')}</span>` : ''}</div>
         <dl>${conflictRows(data).map(([k, v]) => `<dt>${k}</dt><dd class="num">${esc(v)}</dd>`).join('')}</dl>
-        <button type="button" class="btn btn-block" data-choice="${key}">${key === 'local' ? 'Keep this device' : 'Keep cloud'}</button>
+        <button type="button" class="btn btn-block" data-choice="${key}">${key === 'local' ? t('acct.keep_device') : t('acct.keep_cloud')}</button>
       </section>`;
     const scrim = document.createElement('div');
     scrim.className = 'acct-scrim';
     scrim.innerHTML = `
       <div class="acct-modal" role="dialog" aria-modal="true" aria-labelledby="acct-cf-title">
-        <h2 id="acct-cf-title">Which save do you want to keep?</h2>
-        <p>This device and your cloud save (${esc(this.cloud.email)}) have different progress. The one you keep replaces the other. Nothing changes until you choose.</p>
-        <div class="acct-compare">${side('local', 'This device', local)}${side('cloud', 'Cloud', cloud)}</div>
+        <h2 id="acct-cf-title">${t('acct.cf.title')}</h2>
+        <p>${t('acct.cf.body', { email: esc(this.cloud.email) })}</p>
+        <div class="acct-compare">${side('local', t('acct.cf.device'), local)}${side('cloud', t('acct.cf.cloud'), cloud)}</div>
         <p class="acct-status" role="status" data-kind="bad" hidden></p>
-        <p class="acct-note">Tip: Export Save (Settings) copies this device's save as a backup before you choose.</p>
-        <button type="button" class="btn btn-ghost btn-block" data-choice="later">Decide later (cloud saving pauses)</button>
+        <p class="acct-note">${t('acct.cf.tip')}</p>
+        <button type="button" class="btn btn-ghost btn-block" data-choice="later">${t('acct.cf.later')}</button>
       </div>`;
     document.body.appendChild(scrim);
     scrim.querySelector('[data-choice=local]').focus();
@@ -297,8 +298,8 @@ export class AccountUI {
       this.resolving = false;
       if (choice === 'later' || ok) scrim.remove();
       else { const st = scrim.querySelector('.acct-status'); st.textContent = this.cloud.message; st.hidden = false; }
-      if (ok && choice === 'cloud') { this.say('Loaded your cloud save. Restarting…', 'ok'); setTimeout(() => location.reload(), 400); }
-      else if (ok) rewards.notify({ tier: 'small', kind: 'cloud-saved', icon: '☁️', title: 'Cloud save replaced with this device', color: 'var(--aether)' });
+      if (ok && choice === 'cloud') { this.say(t('acct.loaded'), 'ok'); setTimeout(() => location.reload(), 400); }
+      else if (ok) rewards.notify({ tier: 'small', kind: 'cloud-saved', icon: '☁️', title: t('acct.replaced'), color: 'var(--aether)' });
       this.render();
     });
   }

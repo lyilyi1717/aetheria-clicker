@@ -5,6 +5,7 @@ import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { COMBO_FULL, FRENZY_AUTO_CLICKS, FRENZY_EVERY, FRENZY_DURATION, FRENZY_MAX_TIMER } from './combo.js';
 import { itemName } from '../data/names.js';
+import { t } from '../i18n/index.js';
 
 // --- R3 Golden Anomalies (docs/redesign-proposal.md §5.2) ---
 // Spawn every 60-120 s after the last click (50-90 s after one escapes). Weights are out of 60:
@@ -94,7 +95,7 @@ export class ClickerSystem {
     // Spawn visual feedback
     if (clientX && clientY) {
       particles.spawnClickSparks(clientX, clientY, isCrit ? 20 : 10, isCrit ? '#f59e0b' : '#38bdf8');
-      const text = (isCrit ? 'CRIT! +' : '+') + yieldAmount.format('standard', 1);
+      const text = (isCrit ? t('fx.crit') + ' +' : '+') + yieldAmount.format('standard', 1);
       particles.spawnFloatingText(clientX, clientY, text, isCrit ? '#fbbf24' : '#67e8f9', isCrit);
     }
 
@@ -190,30 +191,30 @@ export class ClickerSystem {
       const payout = cps.mul(SUPERNOVA_CPS_SECONDS).max(this.gameState.getClickYield().mul(SUPERNOVA_MIN_CLICKS));
       this.gameState.aether = this.gameState.aether.add(payout);
       this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(payout);
-      rewards.notify({ ...note, kind: 'anomaly-supernova', icon: '💥', title: 'Supernova!', amount: payout, fmt: fmtStd, unit: 'Aether' });
+      rewards.notify({ ...note, kind: 'anomaly-supernova', icon: '💥', title: t('anomaly.supernova'), amount: payout, fmt: fmtStd, unit: t('unit.oil') });
     } else if (this.anomalyType === 'time_flux') {
       this.triggerFrenzy(25);
-      rewards.notify({ ...note, kind: 'anomaly-flux', icon: '⏱️', title: 'Time Flux!', detail: '25 s of Frenzy' });
+      rewards.notify({ ...note, kind: 'anomaly-flux', icon: '⏱️', title: t('anomaly.flux'), detail: t('anomaly.flux_detail') });
     } else if (this.anomalyType === 'mana_cache') {
       this.gameState.mana = this.gameState.maxMana;
       this.gameState.addChronoSand(120);
-      rewards.notify({ ...note, kind: 'anomaly-cache', icon: '💠', title: 'Cosmic Cache!', detail: 'Full Mana and 120 s of Chrono Sand' });
+      rewards.notify({ ...note, kind: 'anomaly-cache', icon: '💠', title: t('anomaly.cache'), detail: t('anomaly.cache_detail') });
     } else if (this.anomalyType === 'mirage') {
       this.applyMirage();
-      rewards.notify({ ...note, kind: 'anomaly-mirage', icon: '🌫️', color: '#c084fc', title: 'Mirage!', detail: `x${MIRAGE_MULT} Aether and gold for ${MIRAGE_DURATION} s` });
+      rewards.notify({ ...note, kind: 'anomaly-mirage', icon: '🌫️', color: '#c084fc', title: t('anomaly.mirage'), detail: t('anomaly.mirage_detail', { x: MIRAGE_MULT, s: MIRAGE_DURATION }) });
     } else if (this.anomalyType === 'caravan_star') {
       const res = this.applyCaravanStar();
       rewards.notify({
-        ...note, kind: 'anomaly-caravan', icon: '🐪', color: '#fbbf24', title: 'Caravan Star!',
-        detail: res.dispatched ? `A free large caravan sets out (back in ${res.minutes} min)` : 'A free caravan arrives at once',
-        ...(res.dispatched ? {} : { amount: res.payout, fmt: (a) => a.format('standard', 0), unit: 'gold' })
+        ...note, kind: 'anomaly-caravan', icon: '🐪', color: '#fbbf24', title: t('anomaly.caravan'),
+        detail: res.dispatched ? t('anomaly.caravan_out', { n: res.minutes }) : t('anomaly.caravan_now'),
+        ...(res.dispatched ? {} : { amount: res.payout, fmt: (a) => a.format('standard', 0), unit: t('unit.gold') })
       });
     } else {
       const gems = ['rubies', 'sapphires', 'emeralds', 'diamonds'];
       const gem = gems[Math.floor(this.rng() * gems.length)];
       const amount = 3 + Math.floor(this.rng() * 5);
       this.gameState.inventory[gem] = (this.gameState.inventory[gem] || 0) + amount;
-      rewards.notify({ ...note, kind: 'anomaly-vein', icon: '💎', title: 'Ancient Vein!', detail: `+${amount} ${itemName(gem, amount)}` });
+      rewards.notify({ ...note, kind: 'anomaly-vein', icon: '💎', title: t('anomaly.vein'), detail: `+${amount} ${itemName(gem, amount)}` });
     }
   }
 
@@ -223,8 +224,8 @@ export class ClickerSystem {
     const gs = this.gameState;
     gs.activeBuffs = gs.activeBuffs.filter(b => b.id !== 'mirage' && b.id !== 'mirage_gold');
     gs.activeBuffs.push(
-      { id: 'mirage', name: 'Mirage (Aether)', type: 'aether_mult', value: MIRAGE_MULT, duration: MIRAGE_DURATION, maxDuration: MIRAGE_DURATION },
-      { id: 'mirage_gold', name: 'Mirage (Gold)', type: 'gold_mult', value: MIRAGE_MULT, duration: MIRAGE_DURATION, maxDuration: MIRAGE_DURATION }
+      { id: 'mirage', name: t('buff.mirage'), type: 'aether_mult', value: MIRAGE_MULT, duration: MIRAGE_DURATION, maxDuration: MIRAGE_DURATION },
+      { id: 'mirage_gold', name: t('buff.mirage_gold'), type: 'gold_mult', value: MIRAGE_MULT, duration: MIRAGE_DURATION, maxDuration: MIRAGE_DURATION }
     );
   }
 

@@ -1,4 +1,5 @@
 // High-performance Particle and Floating Text Engine
+import { themeColor } from '../ui/theme.js';
 
 // "Reduce motion" (R24, js/ui/motion.js writes data-motion on <html>): no sparks, and floating
 // numbers fade where they appear instead of drifting
@@ -43,7 +44,7 @@ export class ParticleEngine {
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         size: 2 + Math.random() * 4,
-        color,
+        color: themeColor(color),
         alpha: 1,
         decay: 0.02 + Math.random() * 0.03
       });
@@ -57,7 +58,7 @@ export class ParticleEngine {
       x: x + (Math.random() - 0.5) * 30,
       y: y + (Math.random() - 0.5) * 20,
       text,
-      color,
+      color: themeColor(color),
       isCrit,
       size: isCrit ? 22 : 16,
       vy: still ? 0 : (isCrit ? -2.2 : -1.4),
@@ -118,9 +119,9 @@ export class ParticleEngine {
         this.ctx.save();
         this.ctx.globalAlpha = Math.max(0, t.alpha);
         this.ctx.fillStyle = t.color;
-        this.ctx.font = t.isCrit ? `bold ${t.size}px 'Cinzel', 'Segoe UI', sans-serif` : `${t.size}px 'Segoe UI', sans-serif`;
+        this.ctx.font = t.isCrit ? `bold ${t.size}px 'Cinzel', 'Noto Kufi Arabic', 'Segoe UI', sans-serif` : `${t.size}px 'Segoe UI', 'Cairo', sans-serif`;
         this.ctx.textAlign = 'center';
-        this.ctx.shadowColor = t.isCrit ? '#f59e0b' : '#38bdf8';
+        this.ctx.shadowColor = themeColor(t.isCrit ? '#f59e0b' : '#38bdf8');
         this.ctx.shadowBlur = t.isCrit ? 12 : 6;
         this.ctx.fillText(t.text, t.x, t.y);
         this.ctx.restore();

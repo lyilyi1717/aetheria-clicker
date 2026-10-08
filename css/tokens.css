@@ -1,7 +1,10 @@
 /* Aetheria design tokens (docs/ui-style-guide.md §2.1). Linked first in index.html.
    Every colour, size and duration in new UI comes from here; the old names in
-   css/style.css alias to these (style guide §2.3). */
+   css/style.css alias to these (style guide §2.3). Themes (R35, style guide §2.5): this first
+   block is Night, the default; each :root[data-theme="…"] block below overrides the colour
+   tokens (js/ui/theme.js sets data-theme). The -dim tints and glows derive from the accents. */
 :root {
+  color-scheme: dark;
   /* Surfaces */
   --bg-0: #050a07;            /* page */
   --bg-1: #0a140f;            /* header, nav, modal */
@@ -18,14 +21,14 @@
   --text-3: #8795a6;          /* tertiary / captions 5.7:1 on bg-2, 5.1:1 on bg-3 */
   --text-on-accent: #0b1308;
   /* Accents (one per currency / system) */
-  --aether: #38bdf8;  --aether-dim: rgba(56, 189, 248, 0.14);
-  --gold: #fbbf24;    --gold-dim: rgba(251, 191, 36, 0.14);
-  --dust: #c084fc;    --dust-dim: rgba(192, 132, 252, 0.14);
-  --shard: #f472b6;   --shard-dim: rgba(244, 114, 182, 0.14);
-  --life: #34d399;    --life-dim: rgba(52, 211, 153, 0.14);
-  --mana: #60a5fa;    --mana-dim: rgba(96, 165, 250, 0.14);
-  --sand: #e7c38a;    --sand-dim: rgba(231, 195, 138, 0.14);   /* Chrono Sand, Chronicle, Souq */
-  --danger: #f87171;  --danger-dim: rgba(248, 113, 113, 0.14);
+  --aether: #38bdf8;  --aether-dim: color-mix(in srgb, var(--aether) 14%, transparent);
+  --gold: #fbbf24;    --gold-dim: color-mix(in srgb, var(--gold) 14%, transparent);
+  --dust: #c084fc;    --dust-dim: color-mix(in srgb, var(--dust) 14%, transparent);
+  --shard: #f472b6;   --shard-dim: color-mix(in srgb, var(--shard) 14%, transparent);
+  --life: #34d399;    --life-dim: color-mix(in srgb, var(--life) 14%, transparent);
+  --mana: #60a5fa;    --mana-dim: color-mix(in srgb, var(--mana) 14%, transparent);
+  --sand: #e7c38a;    --sand-dim: color-mix(in srgb, var(--sand) 14%, transparent);   /* Chrono Sand, Chronicle, Souq */
+  --danger: #f87171;  --danger-dim: color-mix(in srgb, var(--danger) 14%, transparent);
   --ok: #34d399; --warn: #fbbf24; --bad: #f87171;
   /* Rarity (colour-blind safe: lightness ladder + glyph + label, never colour alone) */
   --rarity-common: #9aa5b1;
@@ -33,6 +36,13 @@
   --rarity-epic: #b388ff;
   --rarity-legendary: #ef8a3c;
   --rarity-cosmic: #ffd84d;
+  /* Overlays: --tint is the "lighter" wash (subtle fills, hover), --shade the "darker" one
+     (wells, scrims). Use them through color-mix(in srgb, var(--tint) 6%, transparent). */
+  --tint: #ffffff;
+  --shade: #000000;
+  /* Art on a black backdrop (the Falafel) blends with "screen" on dark themes; a light theme
+     shows it as drawn, since "screen" on cream washes it out to white. */
+  --art-blend: screen;
   /* Type */
   --font-display: 'Cinzel', Georgia, serif;
   --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -53,8 +63,8 @@
   --el-1: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 16px rgba(0,0,0,0.35);
   --el-2: 0 1px 0 rgba(255,255,255,0.06) inset, 0 12px 32px rgba(0,0,0,0.5);
   --el-3: 0 24px 64px rgba(0,0,0,0.65);
-  --glow-gold: 0 0 0 1px var(--gold), 0 0 18px rgba(251,191,36,0.45);
-  --glow-dust: 0 0 0 1px var(--dust), 0 0 18px rgba(192,132,252,0.45);
+  --glow-gold: 0 0 0 1px var(--gold), 0 0 18px color-mix(in srgb, var(--gold) 45%, transparent);
+  --glow-dust: 0 0 0 1px var(--dust), 0 0 18px color-mix(in srgb, var(--dust) 45%, transparent);
   /* Motion */
   --dur-1: 120ms; --dur-2: 200ms; --dur-3: 320ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -66,6 +76,76 @@
   --buff-bar-h: 36px; /* js/buffBar.js writes the measured height while the bar shows */
 }
 :root { font-size: var(--fs-root); }
+
+/* Sand (light): warm parchment, deep brown text, gold. Not white: the card is the lightest
+   surface and is still cream. Accents are darkened so they read as text on cream (§8). */
+:root[data-theme="sand"] {
+  color-scheme: light;
+  --bg-0: #e9dcc3;
+  --bg-1: #f3e8d3;
+  --bg-2: #f9f1e2;
+  --bg-3: #f0e3cb;
+  --bg-4: #e4d1af;
+  --line-1: rgba(92, 64, 32, 0.18);
+  --line-2: rgba(92, 64, 32, 0.34);
+  --line-brand: rgba(15, 110, 76, 0.45);
+  --text-1: #2b1d10;
+  --text-2: #55402b;
+  --text-3: #6e5940;
+  --text-on-accent: #fffaf0;
+  --aether: #0b6a93;
+  --gold: #855400;
+  --dust: #7a3db3;
+  --shard: #ad2c6b;
+  --life: #0f6e4c;
+  --mana: #2d5bbd;
+  --sand: #845422;
+  --danger: #b02222;
+  --ok: #0f6e4c; --warn: #855400; --bad: #b02222;
+  --rarity-common: #5f6770;
+  --rarity-rare: #1a689c;
+  --rarity-epic: #7044c0;
+  --rarity-legendary: #9a460c;
+  --rarity-cosmic: #806000;
+  --tint: #4a3218;
+  --shade: #5c4124;
+  --art-blend: normal;
+  --el-1: 0 1px 0 rgba(255,255,255,0.5) inset, 0 4px 14px rgba(92,64,32,0.14);
+  --el-2: 0 1px 0 rgba(255,255,255,0.6) inset, 0 12px 28px rgba(92,64,32,0.22);
+  --el-3: 0 24px 64px rgba(60,40,20,0.35);
+}
+/* Desert Dusk (dark): plum sky after sunset, orange glow on the brand line. */
+:root[data-theme="dusk"] {
+  color-scheme: dark;
+  --bg-0: #110a1a;
+  --bg-1: #191025;
+  --bg-2: #221632;
+  --bg-3: #2b1d3f;
+  --bg-4: #37264f;
+  --line-1: rgba(221, 196, 240, 0.14);
+  --line-2: rgba(221, 196, 240, 0.28);
+  --line-brand: rgba(251, 146, 60, 0.42);
+  --text-1: #f7effc;
+  --text-2: #d2c3e0;
+  --text-3: #a995bd;
+  --text-on-accent: #1a0f08;
+  --aether: #5ccdf6;
+  --gold: #fdba4d;
+  --dust: #d6a4ff;
+  --shard: #ff8cc6;
+  --life: #4ade9a;
+  --mana: #8fb4ff;
+  --sand: #f2c98e;
+  --danger: #ff7a6b;
+  --ok: #4ade9a; --warn: #fdba4d; --bad: #ff7a6b;
+  --rarity-common: #aaa3b5;
+  --rarity-rare: #62bdf0;
+  --rarity-epic: #c09bff;
+  --rarity-legendary: #ff9a4d;
+  --rarity-cosmic: #ffe066;
+  --tint: #fff4ff;
+  --shade: #07020d;
+}
 /* Reduced motion (§6): the device setting applies until js/ui/motion.js writes data-motion on
    <html>; after that the in-game "Reduce motion" setting decides ("full" opts out). */
 @media (prefers-reduced-motion: reduce) {
@@ -76,3 +156,27 @@
 :root[data-motion="reduced"] { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
 :root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before,
 :root[data-motion="reduced"] *::after { animation: none !important; transition: none !important; }
+
+/* Arabic (R37): an Arabic UI font with a size bump (Arabic glyphs read smaller at the same size).
+   Cinzel has no Arabic, so display text uses Noto Kufi Arabic. Letter spacing breaks Arabic
+   joining, so it is off everywhere in Arabic. */
+:root[lang="ar"] {
+  --font-display: 'Noto Kufi Arabic', 'Cairo', Tahoma, sans-serif;
+  --font-ui: 'Cairo', 'Noto Kufi Arabic', Tahoma, system-ui, sans-serif;
+  --fs-root: clamp(18px, 17px + 0.25vw, 20px);
+  --lh-body: 1.6;
+  --header-h: 64px;
+  /* Monospace fonts have no Arabic; Arabic words next to numbers ("25 مانا") use Cairo */
+  --font-mono: 'Cairo', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+:root[lang="ar"] body, :root[lang="ar"] body * { letter-spacing: normal !important; }
+/* Numbers and notations (1.5M, 2.0e12, +12%, x3) keep their left-to-right order */
+:root[dir="rtl"] bdi { unicode-bidi: isolate; }
+/* A .num cell takes its direction from its own first letter: "+3", "1.5M / 2M" read left to right,
+   a cell that starts with an Arabic word stays right to left */
+:root[dir="rtl"] .num { unicode-bidi: plaintext; }
+/* Settings samples are left to right for number notations only; text samples follow their words */
+:root[dir="rtl"] .settings-sample { direction: inherit; unicode-bidi: plaintext; }
+/* Cairo has tall ascenders: the header grows a little so the currency labels are not clipped */
+:root[lang="ar"] .res { line-height: 1.1; }
+:root[lang="ar"] .res .k { line-height: 1.5; }

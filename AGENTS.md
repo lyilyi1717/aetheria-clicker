@@ -108,10 +108,16 @@ Allowed, with these limits:
    components in `docs/ui-style-guide.md` and matches its mockup in `docs/ui/mockups/` when one
    exists (open the `.html` in a browser; say in the PR if you deviate and why). Check it at
    ~375px wide as well as desktop and run the checklist in the style guide's §8.
+   Actions, rewards and ceremonies also follow `docs/game-feel-guide.md` (feedback tiers and
+   its §7 checklist): the moment should feel good before the player reads the number.
 8. **No dark patterns.** No punishing absence, no fake scarcity, no pay-to-skip.
 9. Don't put AI model names in commits, code, or docs (agent config under `.claude/` is the
    one exception).
 10. **Every player-visible change gets a changelog entry.** See "Version and changelog" below.
+11. **Text goes through `t()` and has Arabic.** The game also runs in Arabic, right to left. New
+    player-facing text is a key in `js/i18n/en.js` with its Arabic in `js/i18n/ar.js` (ask in the
+    PR for the owner to review new Arabic); use logical CSS properties. See
+    `docs/ui-style-guide.md` §7.1. `test_r37_i18n.js` fails on missing Arabic.
 
 ## Version and changelog
 

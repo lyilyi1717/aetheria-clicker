@@ -3,6 +3,7 @@
 import { SEED_TYPES, HYBRIDS, GOLDEN_CHANCE, GOLDEN_ESSENCE_MULT } from '../systems/GardenSystem.js';
 import { HYBRID_RECIPES } from '../systems/AlchemySystem.js';
 import { itemName } from '../data/names.js';
+import { t } from '../i18n/index.js';
 
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
@@ -36,8 +37,8 @@ export class GardenBreedingUI {
     panel.className = 'breeding-panel';
     panel.innerHTML = `
       <div class="breeding-head">
-        <strong>🧬 Cross-Breeding</strong>
-        <button id="btn-breed-mode" class="btn-action">Breed mode: off</button>
+        <strong>${t('breed.title')}</strong>
+        <button id="btn-breed-mode" class="btn-action">${t('breed.mode', { s: t('breed.off') })}</button>
       </div>
       <div id="breeding-status" class="breeding-note"></div>
       <div id="breeding-pairs" class="breeding-pairs"></div>
@@ -77,8 +78,8 @@ export class GardenBreedingUI {
       if (res.ok) {
         const h = HYBRIDS[res.hybrid];
         this.flash = res.amount > 0
-          ? `Hybrid! +${res.amount} ${h.name}.`
-          : `No hybrid this time (${pct(res.chance)} chance). Both plants were harvested as normal.`;
+          ? t('breed.hit', { n: res.amount, name: h.name })
+          : t('breed.miss', { p: pct(res.chance) });
       }
       this.app.updateGardenUI();
     } else if (g.isPlotMature(plots[idx])) {
@@ -93,7 +94,7 @@ export class GardenBreedingUI {
     const sec = document.createElement('div');
     sec.id = 'alchemy-hybrid-section';
     sec.innerHTML = `
-      <h3 class="hybrid-head">🧬 Hybrid Recipes</h3>
+      <h3 class="hybrid-head">🧬 ${t('coll.recipes')}</h3>
       <div id="alchemy-hybrid-note" class="breeding-note"></div>
       <div id="alchemy-hybrid-list" class="alchemy-grid"></div>
     `;
@@ -108,7 +109,7 @@ export class GardenBreedingUI {
 
   costStr(r) {
     return Object.entries(this.alchemy.getRecipeCost(r)).map(([k, v]) =>
-      `${v}x ${itemName(k)} (<span id="hyb-own-${r.id}-${k}">0</span>)`).join(', ');
+      `<bdi>${v}x</bdi> ${itemName(k)} (<span id="hyb-own-${r.id}-${k}">0</span>)`).join(t('list.sep'));
   }
 
   have(k) {
@@ -126,19 +127,19 @@ export class GardenBreedingUI {
     btn.classList.toggle('disabled', !unlocked);
     if (!unlocked) { this.breedMode = false; this.selected = null; }
     btn.classList.toggle('active', this.breedMode);
-    setText(btn, `Breed mode: ${this.breedMode ? 'on' : 'off'}`);
+    setText(btn, t('breed.mode', { s: this.breedMode ? t('breed.on') : t('breed.off') }));
 
     let text;
     if (!unlocked) {
-      text = '🔒 Unlocks at your first Transcend. Cross two neighbouring mature plants for a chance at a hybrid essence.';
+      text = t('breed.locked');
     } else if (!this.breedMode) {
-      text = 'Turn on Breed mode, then click two neighbouring mature plants of a matching pair. Both are harvested as normal, so a miss costs nothing. Golem rows harvest instantly, so breed on manual rows.';
+      text = t('breed.howto');
     } else if (this.flash && this.selected === null) {
       text = this.flash;
     } else if (this.selected === null) {
-      text = 'Pick a mature plant, then a neighbour to cross it with.';
+      text = t('breed.pick1');
     } else {
-      text = 'Now pick a highlighted neighbour (click the same plant again to cancel).';
+      text = t('breed.pick2');
     }
     setText(document.getElementById('breeding-status'), text);
 
@@ -157,7 +158,7 @@ export class GardenBreedingUI {
     const found = ids.filter(id => golden[id] > 0).length;
     const total = ids.reduce((a, id) => a + (golden[id] || 0), 0);
     setText(document.getElementById('breeding-herbarium'),
-      `✨ Herbarium: ${found}/${ids.length} golden plants found (${total} total). Every harvest has a ${pct(GOLDEN_CHANCE)} chance to be golden: x${GOLDEN_ESSENCE_MULT} essence.`);
+      t('breed.herbarium', { a: found, b: ids.length, n: total, p: pct(GOLDEN_CHANCE), x: GOLDEN_ESSENCE_MULT }));
 
     for (const p of gs.garden.plots) {
       const el = document.getElementById(`garden-plot-${p.id}`);
@@ -178,18 +179,18 @@ export class GardenBreedingUI {
           <div class="alc-info">
             <div class="alc-name">${r.name}</div>
             <div class="alc-desc">${r.desc}</div>
-            <div class="alc-cost">Cost: ${this.costStr(r)}</div>
+            <div class="alc-cost">${t('alc.cost')} ${this.costStr(r)}</div>
           </div>
-          <button class="btn-brew" id="hyb-brew-${r.id}" data-hybrid-recipe="${r.id}">🧪 Brew</button>
+          <button class="btn-brew" id="hyb-brew-${r.id}" data-hybrid-recipe="${r.id}">${t('alc.brew')}</button>
         </div>`).join('');
     }
     for (const r of visible) {
-      for (const k of Object.keys(r.cost)) setText(document.getElementById(`hyb-own-${r.id}-${k}`), `have ${this.fmtNum(this.have(k))}`);
+      for (const k of Object.keys(r.cost)) setText(document.getElementById(`hyb-own-${r.id}-${k}`), t('alc.have', { n: this.fmtNum(this.have(k)) }));
       const can = this.alchemy.canBrew(r.id);
       const b = document.getElementById(`hyb-brew-${r.id}`);
       if (b) { b.classList.toggle('active', can); b.classList.toggle('disabled', !can); }
     }
     setText(document.getElementById('alchemy-hybrid-note'),
-      `${visible.length}/${HYBRID_RECIPES.length} discovered. A hybrid recipe appears the first time you hold both of its ingredients; hybrid essences come from Garden cross-breeding.`);
+      t('breed.recipes_note', { a: visible.length, b: HYBRID_RECIPES.length }));
   }
 }

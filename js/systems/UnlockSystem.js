@@ -6,6 +6,7 @@
 
 import { BigNum } from '../engine/BigNum.js';
 import { RECIPES, HYBRID_RECIPES } from './AlchemySystem.js';
+import { t } from '../i18n/index.js';
 
 // Always open, never stored. Community (R40) too: a new player can hit a bug on day one.
 export const ALWAYS_UNLOCKED = ['monolith', 'settings', 'about', 'community'];
@@ -47,56 +48,56 @@ function log10(b) {
 // trigger(gs) -> { have, need, done, pct? }; label(p) is the teaser line; gift(gs) the starter gift
 export const UNLOCKS = [
   {
-    tab: 'codex', icon: '🏆', name: 'Codex',
+    tab: 'codex', icon: '🏆', name: t('nav.codex'),
     trigger: (gs) => ({ have: Math.min(3, achievementCount(gs)), need: 3, done: achievementCount(gs) >= 3 }),
-    label: (p) => `Unlock 3 achievements · ${p.have}/3`,
-    flavour: 'Your Teta started a scrapbook. Each achievement is +1.5% Aether.'
+    label: (p) => t('unlock.codex.label', { n: p.have }),
+    flavour: t('unlock.codex.flavour')
   },
   {
-    tab: 'combat', icon: '🩴', name: 'Void Tower',
+    tab: 'combat', icon: '🩴', name: t('nav.void_tower'),
     trigger: (gs) => { const c = n(gs.buildings?.tapper?.count); return { have: Math.min(10, c), need: 10, done: c >= 10 }; },
-    label: (p) => `Own 10 Shawarma Stalls · ${p.have}/10`,
-    flavour: 'Your 10th stall hired a bouncer. He wants a fight.'
+    label: (p) => t('unlock.combat.label', { n: p.have }),
+    flavour: t('unlock.combat.flavour')
   },
   {
-    tab: 'mining', icon: '🛻', name: 'Excavation',
+    tab: 'mining', icon: '🛻', name: t('nav.excavation'),
     trigger: bossTrigger(20),
-    label: (p) => `Defeat the floor-20 boss · floor ${p.have}/20`,
-    flavour: "Grandpa's old shovel fell from the boss!",
-    gift: (gs) => { gs.inventory.stone = n(gs.inventory.stone) + 30; return '+30 stone'; }
+    label: (p) => t('unlock.mining.label', { n: p.have }),
+    flavour: t('unlock.mining.flavour'),
+    gift: (gs) => { gs.inventory.stone = n(gs.inventory.stone) + 30; return t('unlock.mining.gift'); }
   },
   {
-    tab: 'spells', icon: '🦅', name: 'Grimoire',
+    tab: 'spells', icon: '🦅', name: t('nav.grimoire'),
     trigger: bossTrigger(40),
-    label: (p) => `Defeat the floor-40 boss · floor ${p.have}/40`,
-    flavour: 'The floor-40 boss dropped a dusty grimoire.',
-    gift: (gs) => { gs.mana = Math.max(n(gs.mana), n(gs.maxMana)); return 'Mana refilled'; }
+    label: (p) => t('unlock.spells.label', { n: p.have }),
+    flavour: t('unlock.spells.flavour'),
+    gift: (gs) => { gs.mana = Math.max(n(gs.mana), n(gs.maxMana)); return t('unlock.spells.gift'); }
   },
   {
-    tab: 'bounties', icon: '📜', name: 'Bounties',
+    tab: 'bounties', icon: '📜', name: t('nav.bounties'),
     trigger: (gs) => ({ have: Math.min(10, maxDepth(gs)), need: 10, done: maxDepth(gs) >= 10 }),
-    label: (p) => `Reach depth 10 in Excavation · ${p.have}/10`,
-    flavour: 'The guild noticed your digging. They have chores.'
+    label: (p) => t('unlock.bounties.label', { n: p.have }),
+    flavour: t('unlock.bounties.flavour')
   },
   {
-    tab: 'garden', icon: '🌴', name: 'Garden',
+    tab: 'garden', icon: '🌴', name: t('nav.garden'),
     trigger: (gs) => ({ have: Math.min(15, maxDepth(gs)), need: 15, done: maxDepth(gs) >= 15 }),
-    label: (p) => `Reach depth 15 in Excavation · ${p.have}/15`,
-    flavour: 'Hasawi seeds in the sand!',
+    label: (p) => t('unlock.garden.label', { n: p.have }),
+    flavour: t('unlock.garden.flavour'),
     gift: (gs) => {
       if (!gs.garden?.inventory) return null;
       gs.garden.inventory.spore = n(gs.garden.inventory.spore) + 2;
-      return '+2 Mint seeds';
+      return t('unlock.garden.gift');
     }
   },
   {
-    tab: 'alchemy', icon: '☕', name: 'Alchemy',
+    tab: 'alchemy', icon: '☕', name: t('nav.alchemy'),
     trigger: (gs) => { const ok = canBrewAny(gs); return { have: ok ? 1 : 0, need: 1, done: ok }; },
-    label: () => 'Hold a gem and 2 essences of one recipe',
-    flavour: 'Khalti found her old Vimto pot. Time to brew.'
+    label: () => t('unlock.alchemy.label'),
+    flavour: t('unlock.alchemy.flavour')
   },
   {
-    tab: 'prestige', icon: '🚀', name: 'Ascension',
+    tab: 'prestige', icon: '🚀', name: t('nav.new_well'),
     // Gate decided in R7: open when Ascension pays dust (or after one), not the roadmap's
     // floor 100 + depth 25, which would push a casual first Ascension past the 30-min target
     trigger: (gs) => {
@@ -104,47 +105,47 @@ export const UNLOCKS = [
       const pct = done ? 1 : Math.max(0, Math.min(1, log10(gs.totalAetherEarned) / Math.log10(ASCEND_AETHER_GATE)));
       return { have: pct, need: 1, pct, done };
     },
-    label: () => `Earn ${new BigNum(ASCEND_AETHER_GATE).format('standard', 0)} Aether in one run`,
-    flavour: 'The stars are listening. Rebirth for Cosmic Dust.'
+    label: () => t('unlock.prestige.label', { n: new BigNum(ASCEND_AETHER_GATE).format('standard', 0) }),
+    flavour: t('unlock.prestige.flavour')
   },
   {
-    tab: 'talents', icon: '🌙', name: 'Constellations',
+    tab: 'talents', icon: '🌙', name: t('nav.constellations'),
     trigger: (gs) => ({ have: Math.min(1, ascensions(gs)), need: 1, done: ascensions(gs) >= 1 }),
-    label: () => 'Ascend once',
-    flavour: 'Your first Talent Point is waiting in the stars.'
+    label: () => t('unlock.once'),
+    flavour: t('unlock.talents.flavour')
   },
   {
-    tab: 'leaderboard', icon: '🏅', name: 'Leaderboard',
+    tab: 'leaderboard', icon: '🏅', name: t('nav.leaderboard'),
     trigger: (gs) => ({ have: Math.min(1, ascensions(gs)), need: 1, done: ascensions(gs) >= 1 }),
-    label: () => 'Ascend once',
-    flavour: 'The whole diwaniya wants to know your floor.'
+    label: () => t('unlock.once'),
+    flavour: t('unlock.leaderboard.flavour')
   },
   {
-    tab: 'calendar', icon: '☕', name: 'Dallah',
+    tab: 'calendar', icon: '☕', name: t('nav.dallah'),
     // R7 pick (not in the roadmap table): with the first Ascension, as the day-2 return hook
     trigger: (gs) => ({ have: Math.min(1, ascensions(gs)), need: 1, done: ascensions(gs) >= 1 }),
-    label: () => 'Ascend once',
-    flavour: 'Teta poured you a cup. Come back tomorrow for another.'
+    label: () => t('unlock.once'),
+    flavour: t('unlock.calendar.flavour')
   },
   {
-    tab: 'market', icon: '🐪', name: 'Bazaar',
+    tab: 'market', icon: '🐪', name: t('nav.bazaar'),
     trigger: (gs) => {
       const a = Math.min(2, ascensions(gs)), f = Math.min(150, maxFloor(gs));
       return { have: a + f / 75, need: 4, pct: (a / 2 + f / 150) / 2, done: ascensions(gs) >= 2 && maxFloor(gs) >= 150 };
     },
-    label: (gs) => `Ascend twice (${Math.min(2, ascensions(gs))}/2) and reach floor 150 (${Math.min(150, maxFloor(gs))}/150)`,
+    label: (gs) => t('unlock.market.label', { a: Math.min(2, ascensions(gs)), f: Math.min(150, maxFloor(gs)) }),
     labelUsesState: true,
-    flavour: 'The camel traders let you into the souq.'
+    flavour: t('unlock.market.flavour')
   },
   {
-    tab: 'chronicle', icon: '📖', name: 'Chronicle',
+    tab: 'chronicle', icon: '📖', name: t('nav.chronicle'),
     // R7 pick: shown from the first Transcend (the next layer up), like Transcend from Ascension 1
     trigger: (gs) => {
       const done = n(gs.transcendenceCount) >= 1 || n(gs.chronicle?.count) > 0;
       return { have: done ? 1 : 0, need: 1, done };
     },
-    label: () => 'Transcend once',
-    flavour: 'An old book opens itself. The third layer begins.'
+    label: () => t('unlock.chronicle.label'),
+    flavour: t('unlock.chronicle.flavour')
   }
 ];
 
