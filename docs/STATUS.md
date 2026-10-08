@@ -10,8 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Wave 9, run by the R31 coordinator session: R55 #129 in progress; R56 #130 next; R57 #139
-  follows R56.
+- Wave 9, run by the R31 coordinator session: R55 #129 in progress; R57 #139 follows R55 (both
+  touch `PrestigeSystem` and the sim).
 
 ## Next up
 
@@ -20,7 +20,6 @@ R0–R30 and R32–R40 are done.
 - Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
   enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
   `accepted`, `wontfix`, `duplicate` (PR #97). Game title after the oil re-theme (question in #23).
-- Chapter 2 of the Chronicle is one more `CHAPTERS` entry (no issue yet).
 
 ## Plan
 
@@ -261,6 +260,11 @@ R0–R30 and R32–R40 are done.
   x3 cost steps). A New Well pays from 500 run Oil. `sim:check` asserts idle first Ascension
   <= 90 min (60), casual median upgrades per run >= 30 (32), casual median run Oil over days
   50–70 >= 1e11 (4.1e12; idle 4.4e10).
+- R56 #130 Challenge rewards and Chapter 2 (PR #141, 5.4.0): each Chronicle challenge pays one
+  permanent reward on first clear (`chronicle.rewards`; old clears are paid on load). Oil rewards
+  total +35%, additive with Margin Notes; also offline +10% x2, Small Souq start, Sandstorm +1
+  Page, Still Water +25% dig. Chapter 2 is the Chapter of Salt (4 challenges, Excavation x2); the
+  comboCap rules became noAutoTap. Save v10 is still free.
 - R53 #127 Reprice outside-core (PR #134, 5.2.0): Oil achievement rungs at 1e5–1e16 (ids kept);
   Forge costs 100·1.5^L; subgame→Oil links are one additive category capped at +150%
   (`js/systems/WorldLinks.js`); Geode and Nectar dust links are additive with each other.
@@ -322,6 +326,8 @@ R0–R30 and R32–R40 are done.
 
 - After R31: Talent S2 gives ~10 stars/yr.
 - After R52: the Aetherial Strike talent can push active play past x2 over idle.
+- After R56: the Salt stamp pays 0 Pages (a paying stamp would move the sim around day 210);
+  since R52, Sandstorm takes ~31 h on a fresh idle run.
 - Arabic unlock teaser labels show fractions reversed (e.g. "20/0"); seen in R54.
 
 - Hex colours still in `CombatSystem.js`, `MiningSystem.js`, `ShardTreeSystem.js`,
