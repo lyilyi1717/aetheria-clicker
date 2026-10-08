@@ -20,8 +20,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 R0–R30 and R32–R40 are done (R39: local ticker only).
 
-- R39 shared part: PR #123. Owner action after merge: run `supabase/news.sql` (until then the
-  strip shows local news only and Settings says shared news is not switched on yet).
+- R39 shared part: PR #123. `supabase/news.sql` is already applied to the live project
+  (2026-10-08), so shared news goes live as soon as the PR merges.
 - Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
   enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
   `accepted`, `wontfix`, `duplicate` (PR #97). Game title after the oil re-theme (question in #23).

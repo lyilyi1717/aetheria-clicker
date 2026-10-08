@@ -1,5 +1,6 @@
 -- Aetheria shared news (roadmap R39, shared part).
 -- Paste into Supabase Dashboard -> SQL Editor -> New query -> Run. Safe to re-run.
+-- Applied to the AETHERIA project on 2026-10-08; re-run only to repair or after a reset.
 -- Needs nothing else from this folder: works whether or not the other files have been run.
 --
 -- Signed-in players (email or Google, not guest sessions) can share a headline from
@@ -60,36 +61,36 @@ alter table public.news_posts    enable row level security;
 alter table public.news_post_log enable row level security;
 alter table public.news_reports  enable row level security;
 
-drop policy if exists "shown news is public"          on public.news_posts;
-drop policy if exists "players post their own news"   on public.news_posts;
-drop policy if exists "players delete their own news" on public.news_posts;
-drop policy if exists "players report news"           on public.news_reports;
-drop policy if exists "players see their own reports" on public.news_reports;
+drop policy if exists news_public_read on public.news_posts;
+drop policy if exists news_insert_own on public.news_posts;
+drop policy if exists news_delete_own on public.news_posts;
+drop policy if exists news_report_insert on public.news_reports;
+drop policy if exists news_report_read_own on public.news_reports;
 
-create policy "shown news is public"
+create policy news_public_read
   on public.news_posts for select
   to anon, authenticated
   using (not hidden);
 
 -- Guest (anonymous) sessions carry is_anonymous = true in their token and are refused.
-create policy "players post their own news"
+create policy news_insert_own
   on public.news_posts for insert
   to authenticated
   with check ((select auth.uid()) = user_id
               and coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false) = false);
 
-create policy "players delete their own news"
+create policy news_delete_own
   on public.news_posts for delete
   to authenticated
   using ((select auth.uid()) = user_id);
 
-create policy "players report news"
+create policy news_report_insert
   on public.news_reports for insert
   to authenticated
   with check ((select auth.uid()) = user_id
               and coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, false) = false);
 
-create policy "players see their own reports"
+create policy news_report_read_own
   on public.news_reports for select
   to authenticated
   using ((select auth.uid()) = user_id);
