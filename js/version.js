@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.12.1';
+export const VERSION = '5.12.2';
 
 export const CHANGELOG = [
+  {
+    version: '5.12.2',
+    date: '2026-10-08',
+    title: 'Pickaxe Visual Upgrades & Electric Zap',
+    changes: [
+      'Visual Pickaxe Progression: Your pickaxe now evolves its appearance as you upgrade it through 6 custom vector tiers, from chipped rusty iron to forged steel, glowing mithril, dragon adamantite, and celestial void.',
+      'Electric Chain Lightning: Arc Conduction strikes now discharge true branching electric bolts across hit blocks with glowing cyan auras, white-hot cores, and tile reaction flashes.'
+    ],
+    ar: {
+      title: 'ترقيات مظهر الفأس وصاعقة البرق المتسلسلة',
+      changes: [
+        'مظهر متطور للفأس: يتغير مظهر الفأس الآن بصرياً عبر 6 مستويات متقنة، من الفأس الحديدي الصدئ إلى الفولاذ المطروق والميثريل المشع وصخر التنين حتى فراغ الأجرام السماوية.',
+        'برق متسلسل متوهج: يُطلق توصيل الصدمات الآن صواعق كهربائية متفرعة حقيقية تقفز بين الكتل مع هالات متوهجة ونواة بيضاء ساطعة.'
+      ]
+    }
+  },
   {
     version: '5.12.1',
     date: '2026-10-08',

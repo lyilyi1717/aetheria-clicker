@@ -115,6 +115,18 @@ function flashTiles(ids) {
     setTimeout(() => el.classList.remove('blast-flash'), 700);
   }
 }
+
+// Outline the zapped tiles with electric cyan flash when hit by Chain Lightning
+function zapTiles(ids) {
+  for (const id of ids) {
+    const el = tileEl(id);
+    if (!el) continue;
+    el.classList.remove('zap-flash');
+    void el.offsetWidth;
+    el.classList.add('zap-flash');
+    setTimeout(() => el.classList.remove('zap-flash'), 600);
+  }
+}
 // Schema 3 rebase: a save whose kit needs more than STUCK seconds per tile moves up to the
 // deepest depth it digs in TARGET seconds per tile. maxDepth is kept.
 const REBASE_STUCK_SECONDS = 12 * 3600;
@@ -133,6 +145,20 @@ export function compressDepth(d) {
 export function getPickaxeName(level) {
   const last = PICKAXE_NAMES.length - 1;
   return level <= last ? PICKAXE_NAMES[level] : `${PICKAXE_NAMES[last]} +${level - last}`;
+}
+
+export const PICKAXE_ICONS = [
+  'assets/generated/mining/pick_0_rusty.svg',
+  'assets/generated/mining/pick_1_bronze.svg',
+  'assets/generated/mining/pick_2_steel.svg',
+  'assets/generated/mining/pick_3_mithril.svg',
+  'assets/generated/mining/pick_4_adamantite.svg',
+  'assets/generated/mining/pick_5_celestial_void.svg'
+];
+
+export function getPickaxeIcon(level) {
+  const index = Math.min(Math.max(0, Math.floor(Number(level) || 0)), PICKAXE_ICONS.length - 1);
+  return PICKAXE_ICONS[index];
 }
 
 export class MiningSystem {
@@ -641,11 +667,15 @@ export class MiningSystem {
           const targets = [...unrevealed].sort(() => this.random() - 0.5).slice(0, count);
           const chainDmg = Math.max(1, Math.floor(power * 0.6));
           sound.playLightning();
+          zapTiles(targets.map(t => t.id));
+          let prevPos = tileScreenPos(index) || (clientX && clientY ? { x: clientX, y: clientY } : null);
           for (const target of targets) {
             const pos = tileScreenPos(target.id);
-            if (clientX && clientY && pos) {
-              particles.spawnLightningArc(clientX, clientY, pos.x, pos.y, '#38bdf8');
+            if (prevPos && pos) {
+              particles.spawnLightningArc(prevPos.x, prevPos.y, pos.x, pos.y, '#38bdf8');
+              particles.spawnClickSparks(pos.x, pos.y, 8, '#38bdf8');
             }
+            prevPos = pos || prevPos;
             this.damageBlock(target, chainDmg, pos?.x, pos?.y);
           }
           if (clientX && clientY) {
