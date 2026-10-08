@@ -3,9 +3,23 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.16.0';
+export const VERSION = '5.16.1';
 
 export const CHANGELOG = [
+  {
+    version: '5.16.1',
+    date: '2026-10-08',
+    title: 'Smooth Excavation Frenzy',
+    changes: [
+      'Excavation board stability: Removed the pulsing scale animation from the excavation grid during Frenzy mode. Rapid digging now keeps the board completely smooth and stationary with its golden glow intact, eliminating lag and jitter (reported by players).'
+    ],
+    ar: {
+      title: 'تحسين سلاسة حفر الحماس',
+      changes: [
+        'استقرار لوحة التنقيب: إزالة حركة الاهتزاز والنبض التكبيري من شبكة الحفر أثناء وضع الحماس. أصبح الحفر السريع سلساً تماماً وثابتاً في مكانه مع الحفاظ على التوهج الذهبي، مما يقضي على البطء والتقطيع (بناءً على ملاحظات اللاعبين).'
+      ]
+    }
+  },
   {
     version: '5.16.0',
     date: '2026-10-08',
