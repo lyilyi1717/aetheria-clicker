@@ -85,17 +85,18 @@ export function getPageUpgrade(id) { return UPGRADE_BY_ID.get(id) || null; }
 //   aetherMult       x Aether production (multiplies across sources)
 //   excavationMult   x pickaxe power (and so Auto-Drills)
 //   layerBonusesOff  dust, shard and Page multipliers count as x1 on Aether
-//   comboCap         the click combo multiplier is capped at this (x1 .. x5)
+//   comboCap         the click combo multiplier is capped at this (unused since R52: the combo is x1)
 //   noFrenzy         Frenzy never starts
+//   noAutoTap        Auto-tap (dust shop) rests
 //   noSpells         spells can't be cast (Automated Leylines rests too)
 //   maxTiers         only the first n generator tiers are open
 export const RULE_KEYS = {
   aetherMult: 'mult', excavationMult: 'mult', layerBonusesOff: 'flag', comboCap: 'cap',
-  noFrenzy: 'flag', noSpells: 'flag', maxTiers: 'cap'
+  noFrenzy: 'flag', noAutoTap: 'flag', noSpells: 'flag', maxTiers: 'cap'
 };
 export const NO_RULES = Object.freeze({
   aetherMult: 1, excavationMult: 1, layerBonusesOff: false, comboCap: Infinity,
-  noFrenzy: false, noSpells: false, maxTiers: Infinity
+  noFrenzy: false, noAutoTap: false, noSpells: false, maxTiers: Infinity
 });
 
 // Short player-facing chips for a rule set (Chapter poster, challenge cards)
@@ -107,6 +108,7 @@ export function describeRules(rules) {
     else if (k === 'layerBonusesOff' && v) out.push({ text: t('rule.bonuses_off'), good: false });
     else if (k === 'comboCap') out.push({ text: t('rule.combo_cap', { x: v }), good: false });
     else if (k === 'noFrenzy' && v) out.push({ text: t('rule.no_frenzy'), good: false });
+    else if (k === 'noAutoTap' && v) out.push({ text: t('rule.no_auto_tap'), good: false });
     else if (k === 'noSpells' && v) out.push({ text: t('rule.no_spells'), good: false });
     else if (k === 'maxTiers') out.push({ text: t('rule.max_tiers', { n: v }), good: false });
   }
@@ -124,8 +126,8 @@ export const CHAPTERS = [
     rules: { excavationMult: 3, aetherMult: 0.5 },
     challenges: [
       { id: 'sand_dry_well', name: 'Dry Well', icon: '🧯', pages: 3, requires: 0,
-        desc: 'Combo caps at ×2 and Frenzy never starts.',
-        rules: { layerBonusesOff: true, comboCap: 2, noFrenzy: true }, goal: { runAether: 1e6 } },
+        desc: 'Frenzy never starts, and Auto-tap rests.',
+        rules: { layerBonusesOff: true, noFrenzy: true, noAutoTap: true }, goal: { runAether: 1e6 } },
       { id: 'sand_lights_out', name: 'Lights Out', icon: '🌑', pages: 3, requires: 0,
         desc: 'Spells can\'t be cast, and Automated Leylines rests.',
         rules: { layerBonusesOff: true, noSpells: true }, goal: { runAether: 1e6 } },

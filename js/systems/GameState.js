@@ -1,6 +1,6 @@
 import { getLang, normalizeLang } from '../i18n/lang.js';
 import { BigNum } from '../engine/BigNum.js';
-import { comboMultiplier, FRENZY_MULT } from './combo.js';
+import { comboMultiplier, FRENZY_MULT, CLICK_CPS_SECONDS, AUTO_TAP_PER_SEC } from './combo.js';
 import { defaultFastForwardState, sanitizeFastForwardState } from './FastForwardSystem.js';
 import { migrateSave, SAVE_VERSION } from '../engine/migrations.js';
 import { defaultRecords, sanitizeRecords, serializeRecords, seedRecords } from './TalentSources.js';
@@ -9,7 +9,7 @@ import {
   defaultChronicleState, sanitizeChronicleState, restoreStash, getActiveRules, getPageAetherMult
 } from './ChronicleSystem.js';
 import { defaultCalendarState, sanitizeCalendarState } from './CalendarSystem.js';
-import { getTierUpgradeMult, getClickUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
+import { getTierUpgradeMult, sanitizeUpgrades, serializeUpgrades } from './UpgradeSystem.js';
 import { defaultDustShopState, sanitizeDustShopState, getShopRank, hasShopItem, getFingerOfWastaMult } from './DustShopSystem.js';
 import { isTabUnlocked, sanitizeUnlocks, sanitizeUnlockSeen } from './UnlockSystem.js';
 import { defaultNewsState, sanitizeNews } from '../ui/newsTicker.js';
@@ -200,24 +200,29 @@ export class GameState {
     return getTierUpgradeMult(this, buildingId);
   }
 
-  // Base click before the CPS share: clickPower x 2^(click upgrades bought) (design doc 6.1)
+  // Base click (R52, design doc 6.1): 0.5 s of current production, at least clickPower (1).
+  // Resonant Flow adds 0.02 s per rank. Combo, Frenzy, talents and buffs apply in getClickYield.
   getClickBase() {
-    return this.clickPower.mul(getClickUpgradeMult(this));
+    let seconds = CLICK_CPS_SECONDS;
+    if (this.talents?.click_synergy?.rank > 0) seconds += this.talents.click_synergy.rank * 0.02;
+    return this.getNetAetherPerSecond().mul(seconds).max(this.clickPower);
+  }
+
+  // Auto-tap (dust shop, R52): Oil per second from its taps, 1 plain click per second (no combo,
+  // Frenzy or crits). Counted while the player isn't tapping and in offline gains.
+  getAutoTapPerSecond() {
+    if (!this.hasAutoTap()) return BigNum.zero();
+    return this.getClickBase().mul(AUTO_TAP_PER_SEC);
+  }
+
+  // Auto-tap owned and not switched off by a Chronicle challenge (Dry Well)
+  hasAutoTap() {
+    return hasShopItem(this, 'auto_tap') && !getActiveRules(this).noAutoTap;
   }
 
   // Calculate current click damage/yield
   getClickYield() {
     let base = this.getClickBase();
-
-    // Add % of passive CPS to click
-    const cps = this.getNetAetherPerSecond();
-    if (cps.gt(0)) {
-      let clickPercentOfCps = 0.03; // Base 3%
-      if (this.talents && this.talents['click_synergy']) {
-        clickPercentOfCps += this.talents['click_synergy'].rank * 0.02;
-      }
-      base = base.add(cps.mul(clickPercentOfCps));
-    }
 
     // Aetherial Strike talent: +25% click yield per rank
     if (this.talents?.click_power?.rank > 0) {

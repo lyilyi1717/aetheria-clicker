@@ -114,7 +114,10 @@ console.log('--- Prestige: dust and shards stay finite past 1e308 ---');
   assert.equal(pres.getPendingCosmicDust().toNumber(), 10);
   gs.totalAetherEarned = new BigNum(32e4);
   assert.equal(pres.getPendingCosmicDust().toNumber(), 20);
-  gs.totalAetherEarned = new BigNum(9999);
+  // R52: it pays from 500 run Aether (5 dust), on the same curve
+  gs.totalAetherEarned = new BigNum(500);
+  assert.equal(pres.getPendingCosmicDust().toNumber(), 5);
+  gs.totalAetherEarned = new BigNum(499);
   assert.equal(pres.getPendingCosmicDust().toNumber(), 0);
 
   // Past 1e308 lifetime dust the dust multiplier stays a finite BigNum and Transcend still works

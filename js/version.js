@@ -3,9 +3,37 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.2.0';
+export const VERSION = '5.3.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.3.0',
+    date: '2026-10-08',
+    title: 'Your generators do the work',
+    changes: [
+      'Clicking is weaker now, on purpose: your generators drive progress and tapping is a small extra. Each tap pays half a second of your current production (at least 1 Oil), instead of a flat amount plus 3% of production.',
+      'The 15 click upgrades are gone. If you bought any, their Oil has been refunded to you.',
+      'Only 5 taps a second pay. Faster tapping still sparkles, but pays nothing extra.',
+      'New in the Reserve Shop: Auto-tap (5 Reserves, after your first New Well). It taps the Refinery once a second whenever you aren\'t tapping, and keeps going while you\'re away: +50% Oil on top of your generators.',
+      'Your first New Well comes much sooner: it now pays from 500 Oil in a run (was 10,000), and 500 Oil pays 5 Reserves, just enough for Auto-tap. Bigger runs pay the same as before.',
+      'Each generator now has 6 upgrades (was 5), at 1, 3, 8, 15, 30 and 60 owned (was 1, 5, 15, 30 and 60), and they are cheaper: each costs 3× the one before it (was 4×), starting at 3× the generator\'s base price. With the click upgrades gone, a run still offers about as many upgrades as before.',
+      'Active play is toned down so idle play keeps up. Playing actively now earns about twice what an idle player with Auto-tap earns (was about 7×). The combo still builds and triggers Frenzy, but no longer multiplies taps (was up to ×5). Frenzy is +25% tap yield (was ×3). Oil Burst pays 10 s of production every 60 s (was 45 s every 45 s). Celestial Alignment is +25% (was +150%). Chrono Warp can be cast every 10 min (was every minute). Supernova pays 30 s of production (was 3 min). Mirage is ×1.5 Oil and gold (was ×2).',
+      'Chronicle challenge Dry Well: Frenzy still never starts, and Auto-tap now rests instead of the old combo cap.'
+    ],
+    ar: {
+      title: 'مولّداتك تقوم بالعمل',
+      changes: [
+        'النقر أضعف الآن عن قصد: مولّداتك هي ما يدفع تقدّمك، والنقر إضافة صغيرة. كل نقرة تدفع نصف ثانية من إنتاجك الحالي (نفط واحد على الأقل)، بدلًا من مقدار ثابت مع 3% من الإنتاج.',
+        'أُزيلت ترقيات النقر الخمس عشرة. إن كنت اشتريت شيئًا منها فقد أُعيد إليك نفطها.',
+        'خمس نقرات فقط في الثانية تُحتسب. النقر الأسرع ما زال يلمع، لكنه لا يدفع شيئًا إضافيًا.',
+        'جديد في متجر الاحتياطي: النقر التلقائي (5 احتياطي، بعد بئرك الجديدة الأولى). ينقر المصفاة مرة كل ثانية حين لا تنقر أنت، ويستمر وأنت غائب: +50% نفط فوق مولّداتك.',
+        'بئرك الجديدة الأولى تأتي أبكر بكثير: صارت تدفع ابتداءً من 500 نفط في الجولة (كانت 10,000)، و500 نفط تدفع 5 احتياطي، وهي بالضبط ثمن النقر التلقائي. الجولات الأكبر تدفع كما كانت.',
+        'لكل مولّد الآن 6 ترقيات (كانت 5)، عند امتلاك 1 و3 و8 و15 و30 و60 (كانت 1 و5 و15 و30 و60)، وهي أرخص: كل ترقية تكلّف 3× التي قبلها (كانت 4×)، بدءًا من 3× السعر الأساسي للمولّد. ومع إزالة ترقيات النقر، ما زالت الجولة تقدّم عددًا من الترقيات قريبًا مما كان.',
+        'خُفّف اللعب النشط حتى يواكبه اللعب الخامل. اللعب النشط يكسب الآن نحو ضعف ما يكسبه لاعب خامل يملك النقر التلقائي (كان نحو 7×). الكومبو ما زال يتراكم ويُطلق الهيجان، لكنه لم يعد يضاعف النقرات (كان حتى ×5). الهيجان +25% من عائد النقر (كان ×3). انفجار النفط يدفع 10 ث من الإنتاج كل 60 ث (كان 45 ث كل 45 ث). الاصطفاف السماوي +25% (كان +150%). طيّ الزمن يُلقى كل 10 دقائق (كان كل دقيقة). المستعر الأعظم يدفع 30 ث من الإنتاج (كان 3 دقائق). السراب ×1.5 نفط وذهب (كان ×2).',
+        'تحدي الملحمة «البئر الجافة»: الهيجان ما زال لا يبدأ، والنقر التلقائي يستريح الآن بدلًا من حدّ الكومبو القديم.'
+      ]
+    }
+  },
   {
     version: '5.2.0',
     date: '2026-10-08',

@@ -6,12 +6,12 @@
 
 import { BigNum } from '../engine/BigNum.js';
 import { BUILDING_DEFINITIONS } from '../systems/BuildingSystem.js';
-import { MIN_RUN_SECONDS, DUST_REF } from '../systems/PrestigeSystem.js';
+import { MIN_RUN_SECONDS, DUST_MIN_AETHER } from '../systems/PrestigeSystem.js';
 import { SPELL_TABS } from '../tabBonuses.js';
 import { t } from '../i18n/index.js';
 
 export const PHONE_QUERY = '(max-width: 639px)';
-const ASCEND_GATE = DUST_REF; // run Aether before Ascension pays dust (PrestigeSystem)
+const ASCEND_GATE = DUST_MIN_AETHER; // run Aether before Ascension pays dust (PrestigeSystem)
 
 // Header currencies per tab, hero first. Aether, Gold and Dust always show; Mana only where
 // spells are cast, Sand and Seals only where they are spent.

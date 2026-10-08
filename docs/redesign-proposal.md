@@ -423,7 +423,7 @@ leaderboard column. No save migration: `codex` is a new additive field.
 > | Cost growth | ×1.15 | same |
 > | Milestones | ×2 at 10/25/50/100/150/200/250/300 (×256 in all) | ×2,2,2,2,3,3,4,5,10 to 1,000 |
 > | Tier upgrades | at owned ≥ 1/5/15/30/60, cost `baseCost × 4^k` (k = 1…5), ×1.2 each; synergies additive within their tier (+0.1% per source owned) | at 1/10/50/100/200, `baseCost × 10^k`; synergies multiplied |
-> | Dust gain | `10 × (runAether / 1e4)^(1/5)`, pays from 1e4 run Oil (10 dust) × Geode × Nectar × Amplifier | `150 × (A/1e9)^(1/3)` × … × shards |
+> | Dust gain | `10 × (runAether / 1e4)^(1/5)`, pays from 1e4 run Oil (10 dust; R52: from 500, 5 dust) × Geode × Nectar × Amplifier | `150 × (A/1e9)^(1/3)` × … × shards |
 > | Dust multiplier | `1 + 0.01 × lifetime dust` (this layer) | `1 + 0.02 ×` |
 > | Transcend gate | `400 × 1.6^k`, ×3 per step from the 9th Transcend (`TRANSCEND_SLOW_FROM = 9`) | `1e9 × 10^k` |
 > | Shards | 2 per Transcend; each lifetime shard **+25% production, additive**; no dust-gain bonus | ×1.5 Aether and ×1.5 dust each |
@@ -477,6 +477,42 @@ leaderboard column. No save migration: `codex` is a new additive field.
 > The Forge price keeps `sim:tower` floors within ~10% of the pre-R31 report. `sim:check` now
 > takes the median of daily run-Oil samples over days 50–70 (the single day-60 row passed or
 > failed on where day 60 fell inside a layer).
+
+> **R52 passive-first clicking (v5.3.0, issue #126).** The owner wants progress passive-driven:
+> clicking is a small optional boost. Shipped values (replace the rows above where they differ):
+>
+> | Item | R52 (shipped) | Before R52 |
+> |---|---|---|
+> | Click yield | **0.5 s of current production**, at least `clickPower` (1); Resonant Flow +0.02 s per rank (`GameState.getClickBase`) | `clickPower × 2^n + 3% CPS` |
+> | Click upgrades | **removed**; save step v9 refunds the ones bought (10 × base cost of tier i each) | 15, ×2 each |
+> | Click rate | at most **5 paid clicks/s** (token bucket on real time); faster taps animate and pay nothing | unlimited |
+> | Auto-tap | dust shop, Asc 1, **5 dust**: 1 plain click/s (no combo, Frenzy or crit) whenever the player hasn't tapped for 2 s, and in offline gains (+50% of production); the Dry Well challenge turns it off | — |
+> | Combo / Frenzy | combo **×1** (feel: bar, pitch, Frenzy every 20); Frenzy **×1.25** for 4 s | ×5 / ×3 |
+> | Spells / anomalies | Burst **10 s of CPS every 60 s**; Celestial **×1.25** 30 s; Chrono Warp ×5 15 s every **10 min**; Supernova **30 s**; Mirage **×1.5** | 45 s / 45 s; ×2.5; every 60 s; 180 s; ×2 |
+> | Dust gain | R31's `10 × (runAether / 1e4)^(1/5)`, now paid from **500** run Oil (5 dust, the price of Auto-tap) | paid from 1e4 (10 dust) |
+> | Tier upgrades | **6** per tier at owned ≥ 1/3/8/15/30/60, cost `baseCost × 3^k` (k = 1…6), ×1.2 each | 5 at 1/5/15/30/60, `baseCost × 4^k` |
+>
+> *Why.* At 0.5 s a click, the attentive model's 2 clicks/s alone add as much as the generators,
+> so "~×2" can't hold against generators alone. **It is measured against an idle player with
+> Auto-tap** (×1.5 generators), which every player owns from the first New Well on; the owner
+> accepted this (PM review of the R52 PR). `sim/active-income.mjs` gives **×1.93** (clicks only
+> ×1.46, spells only ×1.28, anomalies only ×1.07; ×2.89 of generator output; R3 values measured
+> ×6.86). Little is left for the combo, so it became feel only, and Frenzy, Burst, Celestial, Warp
+> and the anomalies shrank to fit.
+>
+> The early-game lever is where dust starts paying: the R31 curve is unchanged, but a New Well
+> pays from 500 run Oil (5 dust). A first draft moved the whole curve instead (`(A / 500)^(1/6)`);
+> that paid more dust mid-game, so Auto-Ascend fired sooner, runs got shorter and both upgrades
+> per run and 2-month Oil fell. Removing the 15 click upgrades also took about 5 purchases out of
+> every casual run (R31's 31 per run median included a median of 6 click upgrades; 26 without).
+> Neither the thresholds nor the price alone changed the median much (a casual run owns about 8
+> tiers, so 8 × 5 upgrades is the ceiling); a 6th level per tier plus the ×3 price step brings it
+> back. `sim:check` now also asserts idle first Ascension ≤ 90 min, a casual median run Oil over
+> days 50–70 (R53's measure) of at least 1e11, and a casual median of ≥ 30 upgrades per run.
+> Result: first Ascension idle **60 min** (was 300), casual 10 min; upgrades per run median casual
+> **32**, idle **28** (R31: 31 / 22 with click upgrades); median run Oil over days 50–70 casual
+> **4.1e12**, idle **4.4e10** (main before R52: idle 7.2e9); 2-month row casual 2.5e12, idle
+> 5.7e11.
 
 
 | Item | Today | Proposed | Why |
@@ -658,6 +694,7 @@ count (1 / 3 / 5 / 10 / 20) so the shop grows with the player.
 | Tier | Feature | Cost |
 |---|---|---|
 | Asc 1 | Cosmic Genesis (start with 15 Stalls, 1,000 gold) — keep | 5 |
+| Asc 1 | **Auto-tap** (1 click/s while you're not tapping, and offline; R52) | 5 |
 | Asc 1 | **Blueprint Memory**: keep the first 2 upgrades of each tier through Ascension | 25 |
 | Asc 1 | Chrono Reservoir I–X (+4 h offline at 100% per rank) | 25 × 1.5^r |
 | Asc 3 | **Auto-Buy** (best generator every 10 s) | 100 |
@@ -782,6 +819,13 @@ Highest run Oil per layer before each Transcend (casual): 3.7e8, 1.1e10, 4.2e10,
 per run median 31 casual (22 idle); about 106 Transcends and 11 Chronicles in the casual year.
 `sim:check` asserts the casual 2-month run Oil stays ≤ 1e13. The table below is the pre-R31
 proposal, kept for history.
+
+**R52 (v5.3.0):** with passive-first clicking (§6.1 R52 block) run Oil casual / idle reads 1 w
+2.1e7 / 8.4e8, 1 mo 6.3e11 / 7e8, **2 mo 2.5e12 / 5.7e11**, 3 mo 1.5e9 / 8.5e13 (the rows swing
+with where a reset lands; the median over days 50–70 is 4.1e12 / 4.4e10). Casual Transcends at
+days 4.3, 9.4, 15.0, 22.1, 30.9, 41.3, 54.1, 69.9, first Chronicle day 77 (idle 125); 106
+Transcends and 11 Chronicles in the casual year. First Ascension idle 60 min, casual 10 min;
+longest stretch without a reset (day 1–270) casual 2.3 days, idle 4.1 days.
 
 
 Model: proposed §6.1 constants; upgrade shop; one new tier per Transcend to 30; dust-shop
