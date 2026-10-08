@@ -5,7 +5,7 @@ import { GameState } from './js/systems/GameState.js';
 import { GardenSystem, DEWDROP_CPS_SECONDS } from './js/systems/GardenSystem.js';
 import { ClickerSystem } from './js/systems/ClickerSystem.js';
 import { CLICK_MAX_PER_SEC } from './js/systems/combo.js';
-import { measureGardenTapping, DESIGNED_ENVELOPE } from './sim/garden-tap.mjs';
+import { measureGardenTapping, TAP_UPLIFT_CEILING } from './sim/garden-tap.mjs';
 
 globalThis.window ??= { innerWidth: 800, innerHeight: 600 };
 
@@ -44,7 +44,7 @@ console.log('--- Taps share the click bucket: over the cap pays and grows nothin
   p.progress = 0;   // starter plots begin almost grown
   for (let i = 0; i < 12; i++) garden.tapPlot(0);
   assert.equal(gs.aether.toNumber(), CLICK_MAX_PER_SEC * 1000, '5 of 12 instant taps pay');
-  assert.equal(p.progress, CLICK_MAX_PER_SEC * 6, 'only paid taps grow the plant (2% of 300 s)');
+  assert.equal(p.progress, CLICK_MAX_PER_SEC * 15, 'only paid taps grow the plant (5% of 300 s)');
   // Monolith clicks draw from the same bucket
   clicker.update(0, 1);
   const before = gs.totalClicks;
@@ -58,7 +58,7 @@ console.log('--- Sim: tapping at 5 and 20 taps/s stays inside the designed envel
   const idle = measureGardenTapping({ tapsPerSec: 0, seconds: 1800 });
   for (const r of [5, 20]) {
     const up = measureGardenTapping({ tapsPerSec: r, seconds: 1800 }) - idle;
-    assert.ok(up <= DESIGNED_ENVELOPE, `${r} taps/s uplift x${up.toFixed(2)}`);
+    assert.ok(up <= TAP_UPLIFT_CEILING, `${r} taps/s uplift x${up.toFixed(2)}`);
   }
 }
 console.log('R59 garden tap tests passed');
