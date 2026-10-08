@@ -74,13 +74,13 @@ console.log('--- next goal: first generator, then Ascension gate, run timer, Asc
   assert.match(g.text, new RegExp(BUILDING_DEFINITIONS[0].name));
   assert.ok(g.pct >= 0 && g.pct <= 1);
 
-  // Every unlocked tier bought once: the goal moves to Ascension's 1e9 gate
+  // Every unlocked tier bought once: the goal moves to Ascension's 1e4 gate (R31)
   for (const d of BUILDING_DEFINITIONS) if (bs.isTierUnlocked(d.id)) gs.buildings[d.id].count = 1;
-  gs.totalAetherEarned = new BigNum(1e6);
+  gs.totalAetherEarned = new BigNum(1e3);
   g = getNextGoal(gs, bs, ps, now);
   assert.equal(g.tab, 'prestige');
   assert.match(g.text, /New Well at/);
-  assert.ok(Math.abs(g.pct - 6 / 9) < 1e-9, 'log-scale progress to 1e9');
+  assert.ok(Math.abs(g.pct - 3 / 4) < 1e-9, 'log-scale progress to 1e4');
 
   // Past the gate but the run is too short: count down the minimum run
   gs.totalAetherEarned = new BigNum(1e12);

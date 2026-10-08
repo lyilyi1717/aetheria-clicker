@@ -3,9 +3,37 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '4.15.0';
+export const VERSION = '5.0.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.0.0',
+    date: '2026-10-08',
+    title: 'Smaller numbers, steadier growth',
+    changes: [
+      'The whole Oil economy has been rescaled. Numbers used to explode into the dozens of digits within weeks, so a new building or upgrade barely mattered. Now they grow slowly: about a trillion Oil after two months and the low quadrillions after a year, so every purchase is something you notice.',
+      'Your progress is kept. Your New Well, New Field and Chronicle counts, Field Shares, Pages, Reserve Shop features, talents and everything outside the Refinery stay. Your current run is refunded: generators and upgrades go back to 0 and the run\'s Oil comes back on the new scale to rebuy them. Your Crude Reserves keep the same place on the way to your next New Field.',
+      'Generators: 8 tiers are open at the start (was 14) and each New Field opens one more, up to 20 (was 30). Each tier costs 10× the one below and makes 4× as much. The top 10 generators of the old ladder are retired. Milestone bonuses are ×2 at 10, 25, 50, 100, 150, 200, 250 and 300 owned.',
+      'Prestige bonuses now add up instead of multiplying: +1% production per Crude Reserve (was +2%), +25% per Field Share (was ×1.5 each, and Shares no longer raise Reserve gain) and +20% per Chronicle Page (was ×1.4 each).',
+      'Drilling a New Well pays from 10,000 Oil in a run: 10 Reserves, doubling for every 32× more Oil. Your first New Field needs 400 lifetime Reserves, then ×1.6 more each time (×3 per step from the 9th Field on).',
+      'Generator upgrades open sooner (at 1, 5, 15, 30 and 60 owned) and cost less, so they keep landing every run. Reserve Shop prices are lower to match the new Reserve amounts; Reserve Amplifier ranks are refunded so you can rebuy them at the new price.',
+      'Auto-Well has a new ×1.25 rule and it is the default (saves on the old ×2 default move to it); the Reserve rules now wait for a run of at least 30 minutes. A Chronicle opens after 6 New Fields (8 for your first one without Seal set I), and challenge goals are rescaled.',
+      'Talent stars for a record New Well now come at every doubling of your best single New Well (from 16 Reserves). The Stars Seal asks for 500 Reserves in one New Well.'
+    ],
+    ar: {
+      title: 'أرقام أصغر ونمو أثبت',
+      changes: [
+        'أُعيد ضبط اقتصاد النفط كله. كانت الأرقام تنفجر إلى عشرات الخانات خلال أسابيع، فلا يكاد يُلاحظ مبنى جديد أو ترقية. الآن تنمو ببطء: نحو ترليون نفط بعد شهرين وبضعة كوادريليونات بعد سنة، فتشعر بكل شراء.',
+        'تقدّمك محفوظ. عدد الآبار الجديدة والحقول الجديدة والملاحم، وأسهم الحقل، والصفحات، وميزات متجر الاحتياطي، والمواهب، وكل ما خارج المصفاة يبقى. جولتك الحالية تُسترد: تعود المولّدات والترقيات إلى 0 ويعود نفط الجولة على المقياس الجديد لتشتريها من جديد. ويبقى احتياطيك الخام في المكان نفسه على الطريق إلى حقلك الجديد التالي.',
+        'المولّدات: 8 فئات مفتوحة في البداية (كانت 14) وكل حقل جديد يفتح فئة أخرى حتى 20 (كانت 30). كل فئة تكلّف 10× التي تحتها وتنتج 4× أكثر. أُحيلت أعلى 10 مولّدات من السلّم القديم إلى التقاعد. مكافآت المعالم ×2 عند امتلاك 10 و25 و50 و100 و150 و200 و250 و300.',
+        'مكافآت الهيبة تُجمع الآن بدل أن تتضاعف: +1% إنتاج لكل وحدة احتياطي خام (كانت +2%)، و+25% لكل سهم حقل (كان ×1.5 لكل سهم، ولم تعد الأسهم تزيد كسب الاحتياطي)، و+20% لكل صفحة ملحمة (كانت ×1.4 لكل صفحة).',
+        'حفر بئر جديدة يدفع ابتداءً من 10,000 نفط في الجولة: 10 احتياطي، تتضاعف مع كل 32× نفطًا أكثر. أول حقل جديد يحتاج 400 احتياطي إجمالًا، ثم ×1.6 أكثر كل مرة (×3 لكل خطوة ابتداءً من الحقل التاسع).',
+        'ترقيات المولّدات تُفتح أبكر (عند امتلاك 1 و5 و15 و30 و60) وتكلّف أقل، فتصل في كل جولة. أسعار متجر الاحتياطي أقل لتناسب كميات الاحتياطي الجديدة، ورُدّت رتب مضخّم الاحتياطي لتشتريها بالسعر الجديد.',
+        'للحفر التلقائي قاعدة جديدة ×1.25 وهي الافتراضية (الحفظ على الافتراضية القديمة ×2 ينتقل إليها)، وقواعد الاحتياطي تنتظر الآن جولة من 30 دقيقة على الأقل. تُفتح الملحمة بعد 6 حقول جديدة (8 لأولى ملاحمك دون مجموعة الأختام الأولى)، وأُعيد ضبط أهداف التحديات.',
+        'نجوم المواهب للبئر القياسية تأتي الآن مع كل تضاعف لأفضل بئر واحدة لك (ابتداءً من 16 احتياطي). وختم النجوم يطلب 500 احتياطي في بئر جديدة واحدة.'
+      ]
+    }
+  },
   {
     version: '4.15.0',
     date: '2026-10-07',

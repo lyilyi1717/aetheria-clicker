@@ -99,7 +99,6 @@ export class TranscendPanel {
       t('tr.g.shares', { n: tp.shardsGained, a: tp.shardsBefore, b: tp.shardsAfter }),
       ...(tp.sealShards > 0 ? [t('tr.g.seals', { n: tp.sealShards })] : []),
       t('tr.g.oil', { a: fmtBigMult(tp.shardBefore), b: fmtBigMult(tp.shardAfter) }),
-      t('tr.g.reserves', { a: fmtBigMult(tp.dustGainBefore), b: fmtBigMult(tp.dustGainAfter) }),
       tp.newTier ? t('tr.g.tier', { icon: tp.newTier.icon, name: tp.newTier.name, n: tp.newTier.tier })
         : t('tr.g.ladder', { n: MAX_TIER_COUNT })
     ];
@@ -117,7 +116,7 @@ export class TranscendPanel {
     const { gain, lose } = this.tradeLines(tp);
     const msg = t('tr.confirm.q') + '\n\n' + t('tr.gain') + ':\n- ' + gain.join('\n- ') +
       '\n\n' + t('tr.lose') + ':\n- ' + lose.join('\n- ') +
-      '\n\n' + t('tr.confirm.after', { a: fmtBigMult(tp.before), b: fmtBigMult(tp.after), x: fmtBigMult(tp.dustGainAfter) }) +
+      '\n\n' + t('tr.confirm.after', { a: fmtBigMult(tp.before), b: fmtBigMult(tp.after) }) +
       '\n' + t('tr.confirm.next', { n: tp.nextGate.format('standard', 0) });
     if (!confirm(msg)) return;
     this.ps.transcend();

@@ -292,7 +292,10 @@ export class BigNum {
     if (this.m === 0) return '0';
     if (this.e < 3) {
       const val = this.toNumber();
-      return Math.abs(val) < 0.001 ? '0' : BigNum.localeFormatter(precision).format(val);
+      if (Math.abs(val) < 0.001) return '0';
+      // Below 1, keep at least one significant digit (R31: tier 1 makes 0.005/s, not "0")
+      const digits = Math.abs(val) < 1 ? Math.max(precision, Math.min(3, Math.ceil(-Math.log10(Math.abs(val))) + 1)) : precision;
+      return BigNum.localeFormatter(digits).format(val);
     }
 
     // Scientific/engineering keep plain digits below a million (e.g. 45,210)

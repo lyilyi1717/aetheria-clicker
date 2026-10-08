@@ -289,7 +289,7 @@ finished overnight. A Codex row filled.
 the player's own typical play (R33), Seals + a Codex stamp.
 Souq Rotation: one gentle world modifier that returns later (Truffle Season, Falcon Week).
 A Seal of Transcendence lights roughly weekly through month 2 (depth 100, floor 501, 25
-Catalysts, Guild Rank 7, bestRunDust 1e8, 40% Codex, 15 Ascensions).
+Catalysts, Guild Rank 7, bestRunDust 500 (R31; was 1e8), 40% Codex, 15 Ascensions).
 
 **Every month.** A new generator tier reaches the top of the ladder (Transcend count). A new
 shard-tree branch becomes affordable. Month 1: Garden breeding opens. Month 2: Tower Wardens
@@ -411,6 +411,51 @@ leaderboard column. No save migration: `codex` is a new additive field.
 ## 6. Economy redesign
 
 ### 6.1 Core formulas, before and after
+
+> **R31 economy redesign (v5.0.0, issue #67) replaces the numbers below where they differ.** The
+> owner chose small numbers (about 1e12 Oil at day 60, low quadrillions at a year) with every
+> prestige bonus additive. The table rows marked *R31* show the shipped values; the R4/R5/R13
+> notes further down are the history of how the old curve was tuned.
+>
+> | Item | R31 (shipped) | Before R31 |
+> |---|---|---|
+> | Ladder | 8 tiers at the start, +1 per Transcend, cap 20. Tier k: cost `10 × 10^(k−1)`, output `0.005 × 4^(k−1)`/s (payback ×2.5 per tier). Ids unchanged; old tiers 21–30 retired (`RETIRED_BUILDING_IDS`) | 14 + 1 per Transcend to 30; ×18 cost, ×7 CPS |
+> | Cost growth | ×1.15 | same |
+> | Milestones | ×2 at 10/25/50/100/150/200/250/300 (×256 in all) | ×2,2,2,2,3,3,4,5,10 to 1,000 |
+> | Tier upgrades | at owned ≥ 1/5/15/30/60, cost `baseCost × 4^k` (k = 1…5), ×1.2 each; synergies additive within their tier (+0.1% per source owned) | at 1/10/50/100/200, `baseCost × 10^k`; synergies multiplied |
+> | Dust gain | `10 × (runAether / 1e4)^(1/5)`, pays from 1e4 run Oil (10 dust) × Geode × Nectar × Amplifier | `150 × (A/1e9)^(1/3)` × … × shards |
+> | Dust multiplier | `1 + 0.01 × lifetime dust` (this layer) | `1 + 0.02 ×` |
+> | Transcend gate | `400 × 1.6^k`, ×3 per step from the 9th Transcend (`TRANSCEND_SLOW_FROM = 9`) | `1e9 × 10^k` |
+> | Shards | 2 per Transcend; each lifetime shard **+25% production, additive**; no dust-gain bonus | ×1.5 Aether and ×1.5 dust each |
+> | Chronicle Pages | **+20% production each, additive** | ×1.4 each |
+> | Chronicle gate | 6 Transcends + Seal set I, or 8 without the Seals; challenge goals 1e6 / 1e5 run Oil | 12 (+Seals) or 24; 1e11 / 1e10 |
+> | Auto-Ascend | default rule ×1.25 lifetime dust; the ×m rules also wait for a 30-min run | default ×2, 10-min minimum only |
+> | Dust shop | prices ÷2–÷20 (§6.2 table): Genesis 5, Blueprint Memory 10, Chrono 10 (×1.5), Auto-Buy 30, Titan 10 (×1.5), Finger 50, Crucible 15, Golems 30, Hourglass 40, Leylines 60, Blueprint Memory II 50, Resonant Start 250, Amplifier 50 (×2) | 5 … 5,000 |
+> | Talent S2 (Record New Well) | one star per doubling of the best single New Well, from 16 dust | per decade from 1e4 |
+> | Seal "Stars" | 500 dust in one New Well | 1e8 |
+>
+> *Why these values (sim study, `npm run sim`).* Run Oil ≈ decades of the ladder plus decades of
+> every multiplier, and with ×1.15 cost growth a run's Oil is roughly time × top-tier output, so
+> the numbers are set by how long runs are and how many tiers are open. Keeping 2-month Oil near
+> 1e12 means about 6–7 tiers above the start by then. With ×5 output per tier (the issue's first
+> draft) each Transcend added about 1.3 decades and Transcends kept speeding up until the tier cap,
+> then stalled; ×4 output per tier, a slow base output (0.005/s for tier 1) and gate growth ×1.6
+> give Transcends whose spacing grows steadily (casual: days 3.5, 8, 13, 20, 27, 38, 49, 64) at
+> about 1 decade each. The ×3 late gate makes Transcends past the Chronicle gate slow down, so the
+> player begins a Chronicle (layers restart at 8 tiers) instead of climbing to 1e20+. The upgrade
+> shop thresholds and prices came down because runs now hold tens, not hundreds, of each
+> generator: with the old 10^k prices the casual median fell to ~20 upgrades per run.
+> Shorter alternatives tried and rejected are in the issue #67 comments (uniform rescale runs
+> away, moving bonuses into dust stalls, a price discount shows fractional prices).
+>
+> *Save step v8* moves old saves to the matching point: the run is refunded (generators and
+> upgrades to 0, run Oil mapped on a log scale with old 1e9 → new 1e4 and 0.2 new decades per old
+> decade), lifetime dust keeps its log position between the first New Well (old 150 → new 10)
+> and the next gate, dust-shop features are kept and paid at the new prices from the converted
+> dust (Amplifier ranks refunded), Deep Blueprints for retired tiers are refunded as shards, and
+> the old default Auto-Ascend rule ×2 moves to ×1.25. Counts (New Wells, Transcends, shards,
+> Pages, Chronicles) are kept.
+
 
 | Item | Today | Proposed | Why |
 |---|---|---|---|
@@ -701,6 +746,22 @@ the day-to-week rhythm. The Seals are weekly content; they should not hold the e
 
 ### 6.4 The simulated curve (proposed, casual: 2 × 45 min/day; `sim_core_proposed.mjs`, variant D2)
 
+**R31 curve (shipped, `npm run sim`, real classes).** Run Oil, casual / idle:
+
+| | 1 h | 1 d | 1 w | 1 mo | 2 mo | 3 mo | 6 mo |
+|---|---|---|---|---|---|---|---|
+| casual run Oil | 635 | 8.5e4 | 1.1e9 | 1.4e10 | **7.5e11** | 9.9e10 | 5.6e14 |
+| idle run Oil | 671 | 3.6e4 | 8.1e7 | 5.2e8 | **4.9e11** | 3.6e9 | 1.4e12 |
+| casual Transcends (tiers) | 0 (8) | 0 (8) | 1 (9) | 5 (13) | 7 (15) | Chronicle I day 70 | 8 (16) |
+
+Highest run Oil per layer before each Transcend (casual): 3.7e8, 1.1e10, 4.2e10, 5.8e11,
+2e12, 1.9e13, 7e13, 7.5e14; later Chronicle cycles peak around 1e15–1e17. First Ascension
+10 min; longest stretch without a reset (day 1–270) 2.0 days casual, 7.3 days idle; upgrades
+per run median 31 casual (22 idle); about 106 Transcends and 11 Chronicles in the casual year.
+`sim:check` asserts the casual 2-month run Oil stays ≤ 1e13. The table below is the pre-R31
+proposal, kept for history.
+
+
 Model: proposed §6.1 constants; upgrade shop; one new tier per Transcend to 30; dust-shop
 spend modelled as 60% of the pile per Ascension; Auto-Buy from Ascension 3; auto-Ascend from
 Transcend 1 at rule "pending ≥ 0.3 × lifetime dust, run ≥ 15 min"; active ×3 while present
@@ -948,6 +1009,7 @@ dependencies respected.
 | 18 | **Wardens + Strata Relics + Aether Ore + Gem Polishing** | `CombatSystem.js`, `MiningSystem.js`, `AlchemySystem.js` | month-2 content | M |
 | 19 | **Leaderboard Season 2** | `js/leaderboard.js`, `supabase/leaderboard_season2.sql` (new table `leaderboard_season`, keyed by season; Season 1 table frozen, never rewritten) | fairness after #8 | S–M |
 | 20 | **Chronicle layer**: Pages, Challenge runner (rule overrides on `GameState`), Chapter 1 "Sand" | new `js/systems/ChronicleSystem.js`, `main.js`, `index.html` | months 4–12 | L |
+| R31 | **Economy redesign core** (issue #67): 20-tier ladder ×10 cost / ×4 output, dust `10·(A/1e4)^(1/5)`, additive dust/shard/Page bonuses, gate `400·1.6^k`, repriced upgrade and dust shops, save step v8. Targets: ~1e12 Oil at day 60, ≤ 1e13 casual (asserted) | `BuildingSystem.js`, `PrestigeSystem.js`, `GameState.js`, `UpgradeSystem.js`, `DustShopSystem.js`, `ShardTreeSystem.js`, `ChronicleSystem.js`, `migrations.js`, `sim/core-pacing.mjs` | numbers players can read | L |
 
 **Minimum set that changes the verdict: #1–#6.** They touch only the core files, keep every
 save, and move the game from "one day" to "two to four months". #7–#12 make it feel like a
@@ -961,6 +1023,8 @@ different game. #13–#20 are the year.
    shard variant). BigNum handles it, but the Saudi-meme naming of magnitudes runs out
    (standard notation past 1e63 is nonsense). Decide: scientific by default past 1e30, or
    invent 30 meme magnitude names.
+   *Resolved by R31 (v5.0.0):* run Oil now sits near 1e12 at two months and peaks around
+   1e15–1e17 late in year one (§6.1 R31 block, §6.4).
 2. **Auto-Ascend cadence.** With auto-Ascend from Transcend I, the sim shows ~100–200
    Ascensions/week. Each is a ceremony; the ceremony must be skippable/aggregated
    ("12 Ascensions while you were away: +3.1e7 dust") or it becomes noise.

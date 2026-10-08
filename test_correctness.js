@@ -107,24 +107,24 @@ console.log('--- Prestige: dust and shards stay finite past 1e308 ---');
   const dust = pres.getPendingCosmicDust();
   assert.ok(dust.gt(0), 'ascension must be possible at 1e320 run Aether');
   assert.equal(pres.canAscend(), true);
-  // 150 * (1e311)^(1/3) = 150 * 10^(311/3)
-  assert.ok(Math.abs((dust.e + Math.log10(dust.m)) - (Math.log10(150) + 311 / 3)) < 1e-6, `dust ${dust}`);
-  // The small end: 1e9 -> 150, 8e9 -> 300 (cube root)
-  gs.totalAetherEarned = new BigNum(1e9);
-  assert.equal(pres.getPendingCosmicDust().toNumber(), 150);
-  gs.totalAetherEarned = new BigNum(8e9);
-  assert.equal(pres.getPendingCosmicDust().toNumber(), 300);
-  gs.totalAetherEarned = new BigNum(999999999);
+  // 10 * (1e316)^(1/5) = 10 * 10^(316/5) (R31)
+  assert.ok(Math.abs((dust.e + Math.log10(dust.m)) - (1 + 316 / 5)) < 1e-6, `dust ${dust}`);
+  // The small end: 1e4 -> 10, 32e4 -> 20 (fifth root)
+  gs.totalAetherEarned = new BigNum(1e4);
+  assert.equal(pres.getPendingCosmicDust().toNumber(), 10);
+  gs.totalAetherEarned = new BigNum(32e4);
+  assert.equal(pres.getPendingCosmicDust().toNumber(), 20);
+  gs.totalAetherEarned = new BigNum(9999);
   assert.equal(pres.getPendingCosmicDust().toNumber(), 0);
 
   // Past 1e308 lifetime dust the dust multiplier stays a finite BigNum and Transcend still works
   gs.totalCosmicDust = new BigNum('1e310');
   gs.totalAetherEarned = BigNum.zero();
   const dm = gs.getDustMultiplierBig();
-  assert.ok(Math.abs(dm.e + Math.log10(dm.m) - (310 + Math.log10(0.02))) < 1e-9, `dust mult ${dm}`);
+  assert.ok(Math.abs(dm.e + Math.log10(dm.m) - (310 + Math.log10(0.01))) < 1e-9, `dust mult ${dm}`);
   gs.buildingSystem = new BuildingSystem(gs);
   gs.buildings.tapper.count = 1;
-  assert.ok(gs.getNetAetherPerSecond().gt(new BigNum('1e300')), 'production uses the BigNum dust multiplier');
+  assert.ok(gs.getNetAetherPerSecond().gt(new BigNum('1e297')), 'production uses the BigNum dust multiplier');
   assert.equal(pres.transcend(), true);
   assert.equal(gs.fractureShards.toNumber(), 2, 'R4: 2 shards per Transcend, whatever the dust');
 }

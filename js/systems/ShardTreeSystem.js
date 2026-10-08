@@ -1,14 +1,14 @@
 // Shard tree (prestige layer 2 spend, docs/redesign-proposal.md §6.3, roadmap R13).
 //
 // Fracture Shards are spent here from gameState.fractureShards (the spendable balance). The
-// x1.5 Aether / x1.5 dust multipliers read totalFractureShards (lifetime), which spending never
+// +25% production per shard reads totalFractureShards (lifetime), which spending never
 // touches, so buying a node can never lower production. The tree is permanent: Transcend does
 // not reset or refund it.
 //
 // First three branches:
-//   Foundry  16 "Deep Blueprint" nodes (1 shard each), one per Transcend tier (15-30): that tier's 5 shop
+//   Foundry  12 "Deep Blueprint" nodes (1 shard each), one per Transcend tier (9-20): that tier's 5 shop
 //            upgrades cost /10. Read by the upgrade shop through getDeepBlueprintDivisor().
-//   Chronos  Auto-Ascend (2; rule: x1.2 / x1.5 / x2 lifetime dust, or a timer) -> Long Sleep
+//   Chronos  Auto-Ascend (2; rule: x1.2 / x1.25 / x1.5 / x2 lifetime dust, or a timer) -> Long Sleep
 //            (2; offline cap +8 h) -> Hourglass (3; a 6 h Fast Forward once per day). Auto-Blast (1)
 //            stands alone: Excavation dynamite fires itself whenever it is off cooldown (R32).
 //   Tower    Wardens (1; every 250th floor) -> Second Wind (2; one free retry per boss fight).
@@ -19,18 +19,18 @@ import { BigNum } from '../engine/BigNum.js';
 import { isChallengeActive } from './ChronicleSystem.js';
 import { t, localize } from '../i18n/index.js';
 
-// Same ladder as BuildingSystem.getUnlockedTierCount (14 base tiers + 1 per Transcend, max 30).
+// Same ladder as BuildingSystem.getUnlockedTierCount (8 base tiers + 1 per Transcend, max 20).
 // Repeated here so this module stays free of BuildingSystem's audio import; test_shard_tree.js
 // checks the two agree.
-const BASE_TIERS = 14;
-const MAX_TIERS = 30;
+const BASE_TIERS = 8;
+const MAX_TIERS = 20;
 export function getOpenTierCount(gameState) {
   const t = Math.max(0, Math.floor(Number(gameState?.transcendenceCount) || 0));
   return Math.min(MAX_TIERS, BASE_TIERS + t);
 }
 
-export const FOUNDRY_FIRST_TIER = 15;
-export const FOUNDRY_LAST_TIER = 30;
+export const FOUNDRY_FIRST_TIER = BASE_TIERS + 1;
+export const FOUNDRY_LAST_TIER = MAX_TIERS;
 export const DEEP_BLUEPRINT_DIVISOR = 10;      // a tier's 5 upgrades cost /10
 export const OFFLINE_SHARD_BONUS = 8 * 3600;   // seconds added to both offline bands
 export const LONG_WARP_SECONDS = 6 * 3600;     // Hourglass of Eternity: 6 h of production
@@ -49,14 +49,18 @@ localize(SHARD_TREE_BRANCHES, 'branch', ['name', 'desc']);
 // at least m (pending >= (m - 1) x lifetime). "timer" Ascends every N minutes of run time.
 export const AUTO_ASCEND_RULES = [
   { id: 'x1.2', label: '×1.2 Reserves', mult: 1.2 },
+  { id: 'x1.25', label: '×1.25 Reserves', mult: 1.25 },
   { id: 'x1.5', label: '×1.5 Reserves', mult: 1.5 },
   { id: 'x2', label: '×2 Reserves', mult: 2 },
   { id: 'timer', label: 'Timer' }
 ];
 localize(AUTO_ASCEND_RULES, 'autorule', ['label']);
 export const AUTO_ASCEND_TIMER_OPTIONS = [10, 30, 60, 240]; // minutes; 10 = the minimum run
-export const AUTO_ASCEND_DEFAULT_RULE = 'x2';
+export const AUTO_ASCEND_DEFAULT_RULE = 'x1.25';
 export const AUTO_ASCEND_DEFAULT_TIMER = 30;
+// The ×m rules also wait for a run this long (R31): with small dust numbers a fresh layer meets
+// ×1.25 within minutes, and runs that short never reach the upgrade shop.
+export const AUTO_ASCEND_MIN_RUN_SECONDS = 30 * 60;
 
 const romanTier = (n) => t('tree.tier', { n });
 
@@ -77,7 +81,7 @@ export const SHARD_TREE_NODES = [
   ...foundryNodes(),
   {
     id: 'chronos_auto_ascend', branch: 'chronos', cost: 2, icon: '♾️', name: 'Auto-Well',
-    desc: 'Drills a New Well for you by your rule (Reserves ×1.2 / ×1.5 / ×2, or a timer), never before the 10-min minimum run. Uses held Sidr Honey like a New Well drilled by hand.',
+    desc: 'Drills a New Well for you by your rule (Reserves ×1.2 / ×1.25 / ×1.5 / ×2, or a timer). The Reserves rules wait for a run of at least 30 min. Uses held Sidr Honey like a New Well drilled by hand.',
     requires: []
   },
   {
@@ -264,7 +268,7 @@ export function autoAscendRuleMet(settings, pending, lifetimeDust, runSeconds) {
     const min = AUTO_ASCEND_TIMER_OPTIONS.includes(settings?.timerMin) ? settings.timerMin : AUTO_ASCEND_DEFAULT_TIMER;
     return runSeconds >= min * 60;
   }
-  return pending.gte(lifetimeDust.mul(rule.mult - 1));
+  return runSeconds >= AUTO_ASCEND_MIN_RUN_SECONDS && pending.gte(lifetimeDust.mul(rule.mult - 1));
 }
 
 export class ShardTreeSystem {

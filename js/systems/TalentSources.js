@@ -2,7 +2,9 @@
 // Points come from three sources, all tracked in `gameState.records` (lifetime: neither Ascension
 // nor Transcend resets it):
 //   S1 Milestone Stars   one-off, finite, log-paced (STAR_DEFS + the Transcend ladder)
-//   S2 Record Ascension  magnitudeStars = max(0, floor(log10(bestRunDust)) - 3), grant the difference
+//   S2 Record Ascension  magnitudeStars = max(0, floor(log2(bestRunDust)) - 3), grant the difference
+//                        (R31: one star per doubling from 16 dust; was per decade from 1e4, when
+//                        dust ran to 1e45)
 //   S3 Guild Rank        rank = floor((C / 8)^(1/1.4)), C = lifetime contracts claimed
 //                        (BountySystem.claimBounty calls recordContractClaim once per claim)
 // Pure data and functions, no audio or particle imports, so GameState can import it.
@@ -10,6 +12,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { getLifetimeTranscends } from './ChronicleSystem.js';
 import { t, tOr } from '../i18n/index.js';
 
+export const RECORD_DUST_STEP = 2;       // S2: one star per x2 of the best single New Well
 export const RECORD_DUST_OFFSET = 3;     // S2 calibration knob
 export const GUILD_EXPONENT = 1.4;       // S3 calibration knob (lower is faster)
 export const GUILD_BASE = 8;             // contracts for rank 1
@@ -64,7 +67,12 @@ export function bigLog10(b) {
 }
 
 export function magnitudeStarsFor(bestRunDust) {
-  return Math.max(0, Math.floor(bigLog10(bestRunDust) + 1e-9) - RECORD_DUST_OFFSET);
+  return Math.max(0, Math.floor(bigLog10(bestRunDust) / Math.log10(RECORD_DUST_STEP) + 1e-9) - RECORD_DUST_OFFSET);
+}
+
+// Best-run dust that pays S2 star number `stars`
+export function recordDustFor(stars) {
+  return new BigNum(RECORD_DUST_STEP).pow(stars + RECORD_DUST_OFFSET);
 }
 
 export function guildRankFor(contracts) {
@@ -142,7 +150,7 @@ export function recordAscensionDust(gs, pendingDust) {
   if (stars <= rec.magnitudeStars) return 0;
   const gained = stars - rec.magnitudeStars;
   rec.magnitudeStars = stars;
-  return grantTalentPoints(gs, gained, 'record', t('stars.record', { e: stars + RECORD_DUST_OFFSET }));
+  return grantTalentPoints(gs, gained, 'record', t('stars.record', { n: recordDustFor(stars).format('standard', 0) }));
 }
 
 // S3: BountySystem.claimBounty calls this once per claimed contract that should count toward Guild Rank.
@@ -244,11 +252,11 @@ export function getNextStars(gs, limit = 3, transcendGate = null) {
       tp: tc === 0 ? TRANSCEND_FIRST_STAR : 1, progress: p, text: `${Math.round(p * 100)}%` });
   }
 
-  // S2: progress through the next order of magnitude of the best run
+  // S2: progress through the next doubling of the best run
   const nextExp = rec.magnitudeStars + RECORD_DUST_OFFSET + 1;
-  const best = bigLog10(rec.bestRunDust);
+  const best = bigLog10(rec.bestRunDust) / Math.log10(RECORD_DUST_STEP);
   const p2 = clamp01(best - (nextExp - 1));
-  out.push({ id: 'record', source: 'record', label: t('stars.record', { e: nextExp }), tp: 1,
+  out.push({ id: 'record', source: 'record', label: t('stars.record', { n: recordDustFor(rec.magnitudeStars + 1).format('standard', 0) }), tp: 1,
     progress: p2, text: `${Math.round(p2 * 100)}%` });
 
   // S3
