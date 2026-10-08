@@ -146,3 +146,20 @@ for (const profile of ['active', 'casual-tap', 'idle', 'idle-no-blast']) {
   out.push('', `- hours open per stratum (25 depth): ${r.strataHours.map(h => fmt(h, 1)).join(', ')}`, '');
 }
 console.log(out.join('\n'));
+
+// Depth band (R32 curve: 5th stratum ~1 week, long tail ~1 month). A manual-tap technique that
+// ignores tile HP (the v5.12 Shatter break) reached depth ~1,777 by day 60 and fails this.
+const BANDS = { 7: [80, 190], 30: [110, 260], 60: [130, 280] };
+const failures = [];
+for (const [profile, r] of Object.entries(RESULTS)) {
+  for (const [day, [lo, hi]] of Object.entries(BANDS)) {
+    const d = r.at[day].depth;
+    if (d < lo || d > hi) failures.push(`${profile} day ${day}: depth ${d} outside ${lo}-${hi}`);
+  }
+}
+if (failures.length) {
+  console.error('\nDEPTH BAND FAILED:\n' + failures.join('\n'));
+  process.exitCode = 1;
+} else {
+  console.log('Depth band: ok (day 7 / 30 / 60 within R32 targets)');
+}

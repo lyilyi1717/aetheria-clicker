@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.12.2';
+export const VERSION = '5.12.3';
 
 export const CHANGELOG = [
+  {
+    version: '5.12.3',
+    date: '2026-10-08',
+    title: 'Shatter Nerf: Digging Keeps Its Pace',
+    changes: [
+      'Nerf: Seismic Fracture (Shatter) no longer breaks a tile outright. A proc now hits for x10 pickaxe damage, so a tile still has to be worn down; it was skipping tile HP and let manual diggers drop through the strata far faster than intended.',
+      'Excavation depth now follows its intended curve for hands-on players too (about depth 170 after two months of daily play, was over 1,700).'
+    ],
+    ar: {
+      title: 'تخفيف التحطيم: الحفر يحافظ على وتيرته',
+      changes: [
+        'تخفيف: لم يعد التحطيم (الكسر الزلزالي) يكسر المربع فوراً. أصبحت الضربة تُحدث ضرراً بقوة ×10 بدل تجاوز صلابة المربع، فقد كان يسمح للحفارين اليدويين بالنزول عبر الطبقات أسرع بكثير من المقصود.',
+        'عمق التنقيب يتبع الآن منحناه المقصود للاعبين النشطين أيضاً (نحو عمق 170 بعد شهرين من اللعب اليومي بدل أكثر من 1,700).'
+      ]
+    }
+  },
   {
     version: '5.12.2',
     date: '2026-10-08',
