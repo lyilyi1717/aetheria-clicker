@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.10.2';
+export const VERSION = '5.11.1';
 
 export const CHANGELOG = [
   {
-    version: '5.10.2',
+    version: '5.11.1',
     date: '2026-10-08',
     title: 'Tidier Floating Numbers',
     changes: [
@@ -21,6 +21,42 @@ export const CHANGELOG = [
         'لم تعد الأرقام العائمة تتكدّس: النقرات السريعة على المصفاة تُجمع في رقم "+n" واحد يكبر قليلاً بدلاً من عشرات الأرقام فوق بعضها، وكذلك أرقام النقر التلقائي.',
         'للشرارات والنصوص العائمة الآن حدّ أقصى (250 شرارة، و150 على الهواتف، و40 نصاً). عندما تزدحم الشاشة تتلاشى أقدم المؤثرات أسرع، فتظهر نقرتك الأحدث دائماً. كما ترسم الهواتف شرارات أقل قليلاً لكل مؤثر، مما يساعد على بقاء الجهاز أبرد في الجلسات الطويلة.',
         'صار بين أصوات الضربات الحرجة فاصل قصير (ربع ثانية) حتى لا تزعج السلاسل السريعة منها؛ والنقرات بينها ما زالت تُصدر صوت النقر العادي.'
+      ]
+    }
+  },
+  {
+    version: '5.11.0',
+    date: '2026-10-08',
+    title: 'Registered Leaderboard & Nicknames',
+    changes: [
+      'The leaderboard now lists registered players only. Guest entries have been removed; create a free account (Settings) to join.',
+      'Creating an account asks for a nickname: that is your name on the leaderboard. Change it any time in Settings, Account.',
+      'Accounts without a nickname get a random funny one (like "Sneaky Potato 42") until you pick your own. Your email is never shown.',
+      'The old "Save & Join" name box on the leaderboard is gone; if you had picked a name there, your account keeps using it.'
+    ],
+    ar: {
+      title: 'لوحة متصدرين للمسجّلين وأسماء مستعارة',
+      changes: [
+        'لوحة المتصدرين تعرض الآن اللاعبين المسجّلين فقط. أُزيلت إدخالات الضيوف؛ أنشئ حسابًا مجانيًا من الإعدادات لتنضم.',
+        'إنشاء حساب يطلب اسمًا مستعارًا: هو اسمك في لوحة المتصدرين. غيّره متى شئت من الإعدادات، الحساب.',
+        'الحسابات بلا اسم مستعار تحصل على اسم طريف عشوائي (مثل "Sneaky Potato 42") حتى تختار اسمك. بريدك لا يظهر أبدًا.',
+        'أُزيل مربع "حفظ وانضمام" القديم من لوحة المتصدرين؛ وإذا كنت قد اخترت اسمًا هناك فسيستمر حسابك في استخدامه.'
+      ]
+    }
+  },
+  {
+    version: '5.10.2',
+    date: '2026-10-08',
+    title: 'Clearer Account Email Links',
+    changes: [
+      'Opening a confirmation or password-reset email now takes you to Settings and tells you what happened: "Email confirmed, you are signed in", or why the link did not work.',
+      'An expired or already-used link now explains what to do next instead of failing silently.'
+    ],
+    ar: {
+      title: 'روابط بريد الحساب أوضح',
+      changes: [
+        'فتح رسالة التأكيد أو إعادة تعيين كلمة المرور ينقلك الآن إلى الإعدادات ويخبرك بما حدث: "تم تأكيد بريدك وأنت مسجّل الدخول"، أو سبب عدم عمل الرابط.',
+        'الرابط المنتهي أو المستخدم سابقًا يشرح الآن ما عليك فعله بدلًا من الفشل بصمت.'
       ]
     }
   },

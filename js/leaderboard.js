@@ -1,14 +1,15 @@
-// Online leaderboard (Supabase REST, no SDK). Players sign in anonymously; the
-// publishable key below is public by design. Database rules
-// (supabase/leaderboard.sql, supabase/leaderboard_season2.sql) only let each player write
-// their own row.
+// Online leaderboard (Supabase REST, no SDK). Only registered players are listed: a row is
+// written with the player's account session (js/engine/CloudSave.js) under their nickname, and
+// guests only read. The publishable key below is public by design. Database rules
+// (supabase/leaderboard.sql, supabase/leaderboard_season2.sql, supabase/leaderboard_registered.sql)
+// only let each account write its own row and refuse anonymous sessions.
 import { getIndexFloor } from './systems/CombatSystem.js';
 import { getLifetimeTranscends } from './systems/ChronicleSystem.js';
+import { funnyName } from './data/funnyNames.js';
 import { t } from './i18n/index.js';
 
 const SUPABASE_URL = 'https://hutjfgbjjagqdjjeszqj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_mxWGt9Ul4V2q4Wb0DEmV9Q_UhBH6T-f';
-const SESSION_KEY = 'AETHERIA_LB_SESSION';
 const PUSH_INTERVAL_MS = 60000;   // stats + heartbeat
 const BOARD_REFRESH_MS = 30000;   // while the tab is open
 const ONLINE_WINDOW_MS = 2 * 60 * 1000;
@@ -58,14 +59,16 @@ export function validateName(name) {
   return null;
 }
 
-const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// The name a signed-in account plays under: its nickname; else the name this save picked on the
+// old guest leaderboard; else a funny default from the account id. Never the email.
+export function accountName(cloud, legacyName = '') {
+  if (!cloud?.signedIn) return '';
+  if (cloud.nickname && !validateName(cloud.nickname)) return cloud.nickname;
+  if (legacyName && !validateName(legacyName)) return legacyName.trim();
+  return funnyName(cloud.session?.user_id || cloud.email || '');
+}
 
-function loadSession() {
-  try { return JSON.parse(localStorage.getItem(SESSION_KEY)) || null; } catch { return null; }
-}
-function saveSession(s) {
-  try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch { /* private mode: session lasts this page load */ }
-}
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function bigLog10(b) {
   if (!b || b.m <= 0) return 0;
@@ -76,7 +79,7 @@ export class Leaderboard {
   constructor(app) {
     this.app = app;
     this.gs = app.gameState;
-    this.session = loadSession();
+    this.session = null;        // the account's session while signed in
     this.board = 'floor';
     this.rows = [];
     this.online = null;
@@ -89,7 +92,7 @@ export class Leaderboard {
     this.viewSeason = null;     // season on screen; null follows the live one
   }
 
-  get name() { return this.gs.settings.lbName || ''; }
+  get name() { return accountName(this.app.cloudSave, this.gs.settings.lbName); }
 
   // Season shown: the one picked in the switcher, never newer than the live one
   get shownSeason() {
@@ -98,57 +101,11 @@ export class Leaderboard {
   }
 
   // --- Auth -------------------------------------------------------------------------
-  async auth(path, body) {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
-      method: 'POST',
-      headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) throw new Error(`auth ${res.status}`);
-    const d = await res.json();
-    this.session = {
-      access_token: d.access_token,
-      refresh_token: d.refresh_token,
-      expires_at: Date.now() + (d.expires_in || 3600) * 1000,
-      user_id: d.user?.id
-    };
-    saveSession(this.session);
-  }
-
+  // The signed-in account's session, or null for a guest (guests can't post).
   async ensureSession() {
-    // Signed in to a player account (R38, js/engine/CloudSave.js): the row is the account's,
-    // so it follows the player to every device. Signing out goes back to the guest player.
     const acct = await this.app.cloudSave?.activeSession();
-    if (acct) {
-      if (this.session?.user_id !== acct.user_id) await this.retireGuestRow(acct.user_id);
-      this.session = { access_token: acct.access_token, user_id: acct.user_id, expires_at: acct.expires_at, account: true };
-      return;
-    }
-    if (this.session?.account) this.session = loadSession();
-    await this.ensureGuest();
-  }
-
-  async ensureGuest() {
-    const s = this.session;
-    if (s && s.access_token && Date.now() < s.expires_at - 60000) return;
-    if (s && s.refresh_token) {
-      try { await this.auth('token?grant_type=refresh_token', { refresh_token: s.refresh_token }); return; } catch { /* fall through to a fresh anonymous user */ }
-    }
-    await this.auth('signup', {});
-  }
-
-  // The guest row this browser posted before the player signed in would list them twice:
-  // delete it (current season only; Season 1 is a frozen record). Needs the delete policy in
-  // supabase/cloud_saves.sql; without it this is a no-op and the old row just stops updating.
-  async retireGuestRow(accountId) {
-    const guest = loadSession();
-    if (!this.name || !guest?.refresh_token || guest.user_id === accountId) return;
-    try {
-      this.session = guest;
-      if (Date.now() >= guest.expires_at - 60000) await this.auth('token?grant_type=refresh_token', { refresh_token: guest.refresh_token });
-      const s = SEASONS[CURRENT_SEASON];
-      await this.rest(`${s.table}?${s.filter}user_id=eq.${this.session.user_id}`, { method: 'DELETE', auth: true });
-    } catch { /* best effort */ }
+    this.session = acct ? { access_token: acct.access_token, user_id: acct.user_id, expires_at: acct.expires_at } : null;
+    return this.session;
   }
 
   // --- REST -------------------------------------------------------------------------
@@ -215,8 +172,7 @@ export class Leaderboard {
   }
 
   async push(version) {
-    if (!this.name) return;
-    await this.ensureSession();
+    if (!this.name || !await this.ensureSession()) return;
     let season = await this.resolveSeason();
     let res = await this.postRow(season, version);
     if (!res.ok && season !== 1 && await isMissingTable(res)) {
@@ -280,26 +236,13 @@ export class Leaderboard {
     })();
   }
 
-  async setName(name, version) {
-    const err = validateName(name);
-    if (err) { this.status = err; this.render(); return; }
-    this.gs.settings.lbName = name.trim();
-    this.app.saveManager.save();
-    this.status = t('lb.saving');
-    this.render();
-    this.lastPush = 0;
-    this.lastFetch = 0;
-  }
-
   // --- UI ---------------------------------------------------------------------------
   build() {
     const root = document.getElementById('leaderboard-root');
     if (!root) return;
     root.innerHTML = `
       <div class="lb-name-row">
-        <label for="lb-name-input">${t('lb.name_label')}</label>
-        <input id="lb-name-input" type="text" maxlength="20" placeholder="${t('lb.name_ph')}" autocomplete="off" dir="ltr">
-        <button id="lb-name-save" class="btn-action">${t('lb.join')}</button>
+        <button id="lb-account" class="btn-action"></button>
         <span id="lb-online" class="lb-online"></span>
       </div>
       <div id="lb-status" class="lb-status"></div>
@@ -307,12 +250,13 @@ export class Leaderboard {
       <div id="lb-board-tabs" class="lb-board-tabs"></div>
       <div id="lb-table" class="lb-table"></div>
     `;
-    document.getElementById('lb-name-input').value = this.name;
     root.addEventListener('click', (e) => {
       const btn = e.target.closest('button');
       if (!btn) return;
-      if (btn.id === 'lb-name-save') {
-        this.setName(document.getElementById('lb-name-input').value, this.app.version);
+      if (btn.id === 'lb-account') {
+        // Nickname and sign-up live in Settings -> Account
+        this.app.switchTab?.('settings');
+        document.getElementById('settings-account')?.scrollIntoView?.({ block: 'start' });
       } else if (btn.dataset.season) {
         const season = Number(btn.dataset.season);
         if (season === this.shownSeason) return;
@@ -325,9 +269,6 @@ export class Leaderboard {
         this.lastFetch = 0;
         this.render();
       }
-    });
-    document.getElementById('lb-name-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') document.getElementById('lb-name-save').click();
     });
     this.render();
   }
@@ -352,11 +293,14 @@ export class Leaderboard {
     const statusEl = document.getElementById('lb-status');
     statusEl.textContent = this.status
       || (shown.id < live ? t('lb.ended', { season: shown.short })
-        : this.name ? t('lb.playing_as', { name: this.name }) : t('lb.pick_name'));
+        : this.name ? t('lb.playing_as', { name: this.name }) : t('lb.need_account'));
+    const acctBtn = document.getElementById('lb-account');
+    const acctLabel = this.name ? t('lb.change_name') : t('lb.create_account');
+    if (acctBtn && acctBtn.textContent !== acctLabel) acctBtn.textContent = acctLabel;
     const onlineEl = document.getElementById('lb-online');
     onlineEl.textContent = this.online == null ? '' : t('lb.online', { n: this.online });
 
-    const me = this.session?.user_id;
+    const me = this.app.cloudSave?.signedIn ? this.app.cloudSave.session?.user_id : null;
     if (!this.rows.length || this.rowsSeason !== shown.id) {
       table.innerHTML = `<div class="lb-empty">${this.lastFetch && this.rowsSeason === shown.id ? t('lb.empty') : t('lb.loading')}</div>`;
       return;

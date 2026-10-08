@@ -80,7 +80,7 @@ export function parseAuthCallback(href) {
   const hash = new URLSearchParams(u.hash.replace(/^#/, ''));
   const query = u.searchParams;
   const err = hash.get('error_description') || query.get('error_description') || hash.get('error') || query.get('error');
-  if (err) return { kind: 'error', error: err.replace(/\+/g, ' ') };
+  if (err) return { kind: 'error', error: err.replace(/\+/g, ' '), code: hash.get('error_code') || query.get('error_code') || '' };
   if (hash.get('access_token')) {
     return {
       kind: 'tokens',
@@ -112,7 +112,8 @@ const AUTH_MESSAGES = {
   over_request_rate_limit: t('cloud.request_rate'),
   validation_failed: t('cloud.check_email'),
   signup_disabled: t('cloud.signup_disabled'),
-  provider_disabled: t('acct.google_off')
+  provider_disabled: t('acct.google_off'),
+  otp_expired: t('cloud.link_expired')
 };
 
 // Player-readable text for a Supabase Auth error body
@@ -212,6 +213,7 @@ export class CloudSave {
       user_id: user.id || this.session?.user_id,
       email: user.email || this.session?.email || '',
       provider: user.app_metadata?.provider || this.session?.provider || 'email',
+      nickname: user.user_metadata?.nickname || this.session?.nickname || '',
       ...extra
     };
     this.write(SESSION_KEY, this.session);
@@ -243,8 +245,10 @@ export class CloudSave {
   }
 
   // Returns true when the account is signed in now; false when the player must confirm by email.
-  async signUp(email, password) {
-    const d = await this.authFetch(`signup?redirect_to=${encodeURIComponent(this.redirectUrl())}`, { body: { email, password } });
+  // The nickname (leaderboard name) is kept in the account's user_metadata.
+  async signUp(email, password, nickname = '') {
+    const body = nickname ? { email, password, data: { nickname } } : { email, password };
+    const d = await this.authFetch(`signup?redirect_to=${encodeURIComponent(this.redirectUrl())}`, { body });
     if (d?.access_token) { this.setSession(d); return true; }
     // Email confirmation is on. Supabase answers "success" for an existing confirmed address
     // too (no identities) so it doesn't leak which emails have accounts.
@@ -257,6 +261,17 @@ export class CloudSave {
 
   async resetPassword(email) {
     await this.authFetch(`recover?redirect_to=${encodeURIComponent(this.redirectUrl())}`, { body: { email } });
+  }
+
+  get nickname() { return this.session?.nickname || ''; }
+
+  async setNickname(nickname) {
+    const s = await this.activeSession();
+    if (!s) throw new AuthError(t('cloud.signin_failed', { s: 401 }));
+    const user = await this.authFetch('user', { method: 'PUT', token: s.access_token, body: { data: { nickname } } });
+    this.session.nickname = user?.user_metadata?.nickname || nickname;
+    this.write(SESSION_KEY, this.session);
+    this.emit();
   }
 
   async setNewPassword(password) {
@@ -279,7 +294,7 @@ export class CloudSave {
   async handleCallback(href) {
     const cb = parseAuthCallback(href);
     if (!cb) return null;
-    if (cb.kind === 'error') return { error: authErrorMessage({ msg: cb.error }) };
+    if (cb.kind === 'error') return { error: authErrorMessage({ msg: cb.error, error_code: cb.code }) };
     try {
       if (cb.kind === 'code') {
         const verifier = this.read(PKCE_KEY);
@@ -292,6 +307,7 @@ export class CloudSave {
         this.session.user_id = user.id;
         this.session.email = user.email || '';
         this.session.provider = user.app_metadata?.provider || 'email';
+        this.session.nickname = user.user_metadata?.nickname || '';
         this.write(SESSION_KEY, this.session);
         if (cb.type === 'recovery') this.needsNewPassword = true;
       }

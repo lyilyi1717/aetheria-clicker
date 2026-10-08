@@ -280,7 +280,7 @@ R0–R30, R32–R40 and R41 are done.
 - R54 #128 Coming up panel (PR #135, 5.1.0): logic in `js/ui/comingUp.js`, styles in
   `css/coming-up.css`. Desktop opens it from a header-chip dropdown; under 1024px it is a bottom
   sheet opened from the Refinery card. Reserve-based ETAs use this run's pace, so they're rough.
-- R41 #113 Feedback-tier helper (5.10.2): `js/ui/feedback.js` (`fire(tier, opts)`, `countUp`,
+- R41 #113 Feedback-tier helper (PR #155, 5.11.1): `js/ui/feedback.js` (`fire(tier, opts)`, `countUp`,
   `hitStop`, `shake`; no-op without a DOM) on top of pure `js/ui/feedbackBudget.js` (budgets,
   chains, sound cooldowns, caps, merge rule); `ParticleEngine` caps 250/150 sparks and 40 texts and
   merges "+n" texts by key. Click/crit/anomaly, combat hits, dig hits and Auto-tap go through it.
@@ -299,6 +299,15 @@ R0–R30, R32–R40 and R41 are done.
 - #149 Bug: account confirmation emails linked to http://localhost:3000. Supabase's Site URL
   was the default and the game's URL wasn't in Redirect URLs, so `redirect_to` was ignored. Fixed
   in the Supabase dashboard (2026-10-08); the required settings are now in `supabase/cloud_saves.sql`'s header.
+
+- #151 Bug: email confirmation/reset links gave no visible result. `AccountUI.init` now opens
+  Settings, scrolls to Account and shows the outcome; `otp_expired` maps to `cloud.link_expired`.
+
+- #152 Leaderboard: registered players only. No guest sign-in; `Leaderboard.ensureSession` uses
+  the account session. Name = account `user_metadata.nickname` (`CloudSave.setNickname`, asked at
+  sign-up) > old `settings.lbName` > `funnyName(user_id)` (`js/data/funnyNames.js`). Server rules
+  and guest-row cleanup: `supabase/leaderboard_registered.sql` (handles Season 1 live or frozen;
+  re-run it after `leaderboard_season2.sql`).
 
 ## Notes for the next session
 

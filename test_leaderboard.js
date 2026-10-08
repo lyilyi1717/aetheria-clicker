@@ -3,8 +3,9 @@
 import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
 import {
-  Leaderboard, SEASONS, CURRENT_SEASON, SEASON_PROBE_MS, BOARDS, isMissingTable, validateName
+  Leaderboard, SEASONS, CURRENT_SEASON, SEASON_PROBE_MS, BOARDS, isMissingTable, validateName, accountName
 } from './js/leaderboard.js';
+import { funnyName, FUNNY_ADJECTIVES, FUNNY_NOUNS } from './js/data/funnyNames.js';
 
 // --- A small fake of the Supabase project ------------------------------------------------
 // s2: whether supabase/leaderboard_season2.sql has been run (it creates the season table and
@@ -62,6 +63,11 @@ function legacyGame() {
       miningGrid: { maxDepth: 900 }
     },
     saveManager: { save() {} },
+    // Signed in to an account: only accounts post to the leaderboard (guests only read)
+    cloudSave: {
+      signedIn: true, nickname: '', email: 'v@example.com', session: { user_id: 'me' },
+      activeSession: async () => ({ access_token: 'tok', user_id: 'me', expires_at: Infinity })
+    },
     version: 'test'
   };
 }
@@ -188,6 +194,29 @@ console.log('--- Network down: errors surface (tick shows "offline"), state unch
   await assert.rejects(lb4.fetchBoard(), /Failed to fetch/);
   assert.equal(lb4.liveSeason, null);
   db.down = false;
+}
+
+console.log('--- Registered players only; names ---');
+{
+  const before = db.log.length;
+  const g = legacyGame();
+  g.cloudSave = { signedIn: false, activeSession: async () => null };
+  const guest = new Leaderboard(g);
+  assert.equal(guest.name, '', 'a guest has no leaderboard name');
+  await guest.push('t');
+  assert.equal(db.log.length, before, 'a guest never signs in anonymously or posts');
+
+  // Name: nickname, else the old guest-board name, else a funny default (never the email)
+  const acct = { signedIn: true, nickname: 'Oil Baron', email: 'x@example.com', session: { user_id: 'u1' } };
+  assert.equal(accountName(acct, 'Veteran'), 'Oil Baron');
+  assert.equal(accountName({ ...acct, nickname: '' }, 'Veteran'), 'Veteran');
+  const d1 = accountName({ ...acct, nickname: '' }, '');
+  assert.equal(d1, funnyName('u1'), 'stable per account');
+  assert.ok(!d1.includes('@') && !d1.includes('example'));
+  assert.equal(accountName({ signedIn: false }, 'Veteran'), '');
+  // Every funny name passes the leaderboard name rules
+  for (const a of FUNNY_ADJECTIVES) for (const n of FUNNY_NOUNS) assert.equal(validateName(`${a} ${n} 99`), null, `${a} ${n}`);
+  for (let i = 0; i < 200; i++) assert.equal(validateName(funnyName(`id-${i}`)), null);
 }
 
 console.log('--- Helpers ---');
