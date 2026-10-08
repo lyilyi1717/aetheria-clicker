@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.16.2';
+export const VERSION = '5.17.1';
 
 export const CHANGELOG = [
   {
-    version: '5.16.2',
+    version: '5.17.1',
     date: '2026-10-08',
     title: 'Shatter Nerf: Digging Keeps Its Pace',
     changes: [
@@ -19,6 +19,26 @@ export const CHANGELOG = [
       changes: [
         'تخفيف: لم يعد التحطيم (الكسر الزلزالي) يكسر المربع فوراً. أصبحت الضربة تُحدث ضرراً بقوة ×10 بدل تجاوز صلابة المربع، فقد كان يسمح للحفارين اليدويين بالنزول عبر الطبقات أسرع بكثير من المقصود.',
         'عمق التنقيب يتبع الآن منحناه المقصود للاعبين النشطين أيضاً (نحو عمق 170 بعد شهرين من اللعب اليومي بدل أكثر من 1,700).'
+      ]
+    }
+  },
+  {
+    version: '5.17.0',
+    date: '2026-10-08',
+    title: 'Boss Kills Feel Like a Win',
+    changes: [
+      'Defeating a boss or Warden in the Void Tower is now a real moment: the portrait freezes for a split second and flashes, the card shakes, a deep thud and a short fanfare play, and "BOSS DOWN!" (or "WARDEN DOWN!") appears with the gold you won counting up.',
+      'The gold from your last boss stays readable above the portrait until the next boss arrives.',
+      'The enrage timer now stays calm until the last 10 seconds, then turns red and ticks softly once a second; in the last 3 seconds it grows a little.',
+      'With Reduce Motion on there is no shake, flash or growing timer; the colours, callout and sounds stay.'
+    ],
+    ar: {
+      title: 'هزيمة الزعيم تبدو كانتصار',
+      changes: [
+        'هزيمة زعيم أو حارس في برج الفراغ صارت لحظة حقيقية: تتجمد الصورة لجزء من الثانية وتومض، وتهتز البطاقة، وتُسمع ضربة عميقة ولحن قصير، ويظهر "سقط الزعيم!" (أو "سقط الحارس!") مع عدّ الذهب الذي ربحته.',
+        'يبقى ذهب آخر زعيم ظاهراً فوق الصورة حتى يصل الزعيم التالي.',
+        'مؤقت الغضب يبقى هادئاً حتى آخر 10 ثوانٍ، ثم يصبح أحمر ويدق بهدوء كل ثانية؛ وفي آخر 3 ثوانٍ يكبر قليلاً.',
+        'عند تفعيل تقليل الحركة لا يوجد اهتزاز أو وميض أو تكبير للمؤقت؛ وتبقى الألوان والإعلان والأصوات.'
       ]
     }
   },
