@@ -1139,6 +1139,7 @@ export default {
   "branch.tower.name": "البرج",
   "branch.tower.desc": "برج الفراغ: حرّاس كل 250 طابقًا، ونَفَس ثانٍ أمام الزعماء.",
   "autorule.x1.2.label": "×1.2 احتياطي",
+  "autorule.x1.25.label": "×1.25 احتياطي",
   "autorule.x1.5.label": "×1.5 احتياطي",
   "autorule.x2.label": "×2 احتياطي",
   "autorule.timer.label": "مؤقّت",

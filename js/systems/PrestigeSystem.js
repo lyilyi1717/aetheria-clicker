@@ -9,22 +9,25 @@ import { t } from '../i18n/index.js';
 
 // The 7 Ascension perks are now the dust shop (R6, DustShopSystem.js; save step v5 converts them)
 
-// Dust gain = 150 * (runAether / 1e9)^DUST_EXPONENT (design doc 6.1: cube root, was 0.25)
-export const DUST_EXPONENT = 1 / 3;
+// Dust gain = DUST_BASE * (runAether / DUST_REF)^DUST_EXPONENT (design doc 6.1, R31). Ascension
+// pays once run Aether reaches DUST_REF (DUST_BASE dust).
+export const DUST_BASE = 10;
+export const DUST_REF = 1e4;
+export const DUST_EXPONENT = 1 / 5;
 // Shortest run that may Ascend (design doc 2.1 / 6.1)
 export const MIN_RUN_SECONDS = 600;
 
 // Transcend (layer 2, design doc 6.1 / roadmap R4)
-// Gate for the next Transcend, in lifetime dust of the current layer: 1e9 x 10^k, k = Transcends
-// so far. The two-regime knob from issue #23 (default 2: x30 per step from Transcend X onward)
-// is kept but off: re-simulated in R4, any x30 regime stalls layer 2 weeks to months earlier
-// (design doc 10, risk 3). Set TRANSCEND_SLOW_FROM to n to make Transcend n the first x30 step.
-export const TRANSCEND_BASE_GATE = 1e9;
-export const TRANSCEND_GATE_GROWTH = 10;
-export const TRANSCEND_GATE_GROWTH_LATE = 30;
-export const TRANSCEND_SLOW_FROM = Infinity;
+// Gate for the next Transcend, in lifetime dust of the current layer: 400 x 1.6^k, k = Transcends
+// so far, and x3 per step from Transcend TRANSCEND_SLOW_FROM on (R31, the two-regime knob from
+// issue #23). The late steps make Transcends past the Chronicle gate slow down, so a Chronicle is
+// the better move there and numbers stay in the low quadrillions through year one.
+export const TRANSCEND_BASE_GATE = 400;
+export const TRANSCEND_GATE_GROWTH = 1.6;
+export const TRANSCEND_GATE_GROWTH_LATE = 3;
+export const TRANSCEND_SLOW_FROM = 9;
 export const TRANSCEND_SHARDS = 2;        // shards paid per Transcend
-export { SHARD_AETHER_MULT, SHARD_DUST_MULT } from './GameState.js'; // x1.5 each per lifetime shard
+export { SHARD_AETHER_PER_SHARD } from './GameState.js'; // +25% production per lifetime shard
 
 // Dust-gain links (design doc §5.3). Each is its own multiplicative category on pending dust.
 // Geode Attunement (Excavation -> Dust): x(1 + 0.10 * floor(maxDepth / 10))
@@ -48,41 +51,36 @@ export class PrestigeSystem {
     this.gameState = gameState;
   }
 
-  // Breakdown of the dust-gain multipliers shown on the Ascend button
+  // Breakdown of the dust-gain multipliers shown on the Ascend button. Shards no longer raise
+  // dust gain (R31).
   getDustMultipliers() {
-    const shards = this.gameState.getShardCount();
     return {
       depth: this.gameState.miningGrid?.maxDepth || 0,
       geode: getGeodeAttunementMult(this.gameState),
       nectar: getNectarHeld(this.gameState),
       nectarMult: getNectarOfferingMult(this.gameState),
-      shards,
-      shardMult: this.gameState.getShardDustMult(shards),
       amplifier: getDustAmplifierMult(this.gameState)   // dust shop Dust Amplifier
     };
   }
 
   // Calculate pending Cosmic Dust upon Ascension
-  // (base x Geode Attunement x Nectar Offering x Dust Amplifier x shards)
+  // (base x Geode Attunement x Nectar Offering x Dust Amplifier)
   getPendingCosmicDust() {
     const base = this.getBaseCosmicDust();
     if (base.lte(0)) return base;
     const m = this.getDustMultipliers();
     // tiny epsilon so float noise (e.g. 150 x 1.2 = 179.999...) never floors a whole dust away
-    return base.mul(new BigNum(m.geode * m.nectarMult * m.amplifier * (1 + 1e-12))).mul(m.shardMult).floor();
+    return base.mul(new BigNum(m.geode * m.nectarMult * m.amplifier * (1 + 1e-12))).floor();
   }
 
   // Base dust from run Aether only, before the dust-gain links
   getBaseCosmicDust() {
     const totalAether = this.gameState.totalAetherEarned;
-    const threshold = new BigNum(1000000000); // 1 Billion
+    if (totalAether.lt(DUST_REF)) return BigNum.zero();
 
-    if (totalAether.lt(threshold)) return BigNum.zero();
-
-    // 150 * (Aether / 1e9)^(1/3), in BigNum: past 1e317 run Aether the ratio no longer fits
-    // a double, and Math.pow(Infinity) -> new BigNum(Infinity) -> 0 made Ascension impossible
-    // (same float epsilon as getPendingCosmicDust: 16e9 must give exactly 300, not 299)
-    return totalAether.div(threshold).max(1).pow(DUST_EXPONENT).mul(150 * (1 + 1e-12)).floor();
+    // DUST_BASE * (Aether / DUST_REF)^DUST_EXPONENT, in BigNum so a huge run can't overflow a
+    // double (same float epsilon as getPendingCosmicDust: 16e6 must give exactly 20, not 19)
+    return totalAether.div(DUST_REF).max(1).pow(DUST_EXPONENT).mul(DUST_BASE * (1 + 1e-12)).floor();
   }
 
   // Seconds left until the current run is long enough to Ascend (0 = met). Wall-clock, so
@@ -163,9 +161,9 @@ export class PrestigeSystem {
   }
 
   // Shards the next Transcend pays (R15, §6.1). `base` (2) raises both counters, so it is in the
-  // x1.5 multipliers. `seals` (+1 per lit Seal of Transcendence, up to +3) is spendable only: it
-  // goes to fractureShards (the shard tree) and never to totalFractureShards, because every
-  // multiplier shard compounds and any extra one per Transcend runs the layer away (doc §6.1).
+  // +25% production bonus. `seals` (+1 per lit Seal of Transcendence, up to +3) is spendable only:
+  // it goes to fractureShards (the shard tree) and never to totalFractureShards, so the
+  // production bonus per Transcend stays the same for every player (doc §6.1).
   getTranscendShards() {
     this.gameState.calendarSystem?.updateSeals?.();
     return { base: TRANSCEND_SHARDS, seals: this.gameState.calendarSystem?.getSealShardBonus?.() || 0 };
@@ -173,7 +171,7 @@ export class PrestigeSystem {
 
   // What Transcend trades, for the confirm dialog and the panel. Lifetime dust of this layer (and
   // so the dust multiplier) goes back to 0; the run, dust and the dust shop reset. In return: +2 shards
-  // (x1.5 Aether and x1.5 dust gain each, permanent) and the next generator tier.
+  // (+25% production each, permanent) and the next generator tier.
   // before/after compare the dust x shard Aether multipliers right before and right after.
   getTranscendPreview() {
     const gs = this.gameState;
@@ -194,8 +192,6 @@ export class PrestigeSystem {
       shardsBefore, shardsAfter,
       dustBefore, dustAfter,
       shardBefore, shardAfter,
-      dustGainBefore: gs.getShardDustMult(shardsBefore),
-      dustGainAfter: gs.getShardDustMult(shardsAfter),
       tiersBefore, tiersAfter,
       newTier: tiersAfter > tiersBefore ? BUILDING_DEFINITIONS[tiersAfter - 1] : null,
       before: dustBefore.mul(shardBefore),

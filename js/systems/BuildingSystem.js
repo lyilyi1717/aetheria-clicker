@@ -8,138 +8,101 @@ export const BUILDING_DEFINITIONS = [
     id: 'tapper',
     name: 'Shawarma Stall',
     desc: 'Extracts delicious rotisserie vapor directly from the ether.',
-    icon: '🌯',
-    baseCost: new BigNum(15),
-    baseCps: new BigNum(1),
-    costMult: 1.15
+    icon: '🌯'
   },
   {
     id: 'resonator',
     name: 'Bakhour Burner',
     desc: 'Harmonizes incense frequencies to catalyze good vibes.',
-    icon: '🪵',
-    baseCost: new BigNum(100),
-    baseCps: new BigNum(8),
-    costMult: 1.15
+    icon: '🪵'
   },
   {
     id: 'siphon',
     name: 'Foul & Tamees Shop',
     desc: 'Channels subterranean bean energy into glowing reservoirs.',
-    icon: '🫘',
-    baseCost: new BigNum(1100),
-    baseCps: new BigNum(48),
-    costMult: 1.15
+    icon: '🫘'
   },
   {
     id: 'workshop',
     name: 'Mandi Restaurant',
     desc: 'Autonomous chefs continuously cook pure underground rice.',
-    icon: '🍚',
-    baseCost: new BigNum(12000),
-    baseCps: new BigNum(260),
-    costMult: 1.15
+    icon: '🍚'
   },
   {
     id: 'crucible',
     name: 'Kaboos Workshop',
     desc: 'Transmutes raw earthly matter into intense drifting horsepower.',
-    icon: '🏎️',
-    baseCost: new BigNum(130000),
-    baseCps: new BigNum(1400),
-    costMult: 1.15
+    icon: '🏎️'
   },
   {
     id: 'obelisk',
     name: 'Giant Dallah',
     desc: 'Bends spacetime with pure caffeine to harvest future yields.',
-    icon: '🫖',
-    baseCost: new BigNum(1400000),
-    baseCps: new BigNum(7800),
-    costMult: 1.15
+    icon: '🫖'
   },
   {
     id: 'harvester',
     name: 'Boulevard World Kiosk',
     desc: 'Extracts riyals and Oil from wandering tourists.',
-    icon: '🎡',
-    baseCost: new BigNum(20000000),
-    baseCps: new BigNum(44000),
-    costMult: 1.15
+    icon: '🎡'
   },
   {
     id: 'observatory',
     name: 'Riyadh Season Ticket',
     desc: 'Captures solar flare photons and massive crowd energy.',
-    icon: '🎟️',
-    baseCost: new BigNum(330000000),
-    baseCps: new BigNum(260000),
-    costMult: 1.15
+    icon: '🎟️'
   },
   {
     id: 'gateway',
     name: 'King Fahd Causeway',
     desc: 'Interstellar conduit importing matter from distant radiant islands.',
-    icon: '🌉',
-    baseCost: new BigNum(5100000000),
-    baseCps: new BigNum(1600000),
-    costMult: 1.15
+    icon: '🌉'
   },
   {
     id: 'foundry',
     name: 'Ghawar Oil Rig',
     desc: 'Smelts deep ancient fossils into ultra-dense black gold.',
-    icon: '🛢️',
-    baseCost: new BigNum(75000000000),
-    baseCps: new BigNum(10000000),
-    costMult: 1.15
+    icon: '🛢️'
   },
   {
     id: 'anchor',
     name: 'SABIC Factory',
     desc: 'Pins parallel universes in place to draw infinite petrochemical power.',
-    icon: '🏭',
-    baseCost: new BigNum(1200000000000),
-    baseCps: new BigNum(65000000),
-    costMult: 1.15
+    icon: '🏭'
   },
   {
     id: 'dynamo',
     name: 'Aramco Headquarters',
     desc: 'Orbits a miniature artificial black hole of infinite wealth.',
-    icon: '🏢',
-    baseCost: new BigNum(20000000000000),
-    baseCps: new BigNum(430000000),
-    costMult: 1.15
+    icon: '🏢'
   },
   {
     id: 'loom',
     name: 'NEOM The Line',
     desc: 'Weaves the fabric of string theory into a perfectly straight city.',
-    icon: '🏙️',
-    baseCost: new BigNum(350000000000000),
-    baseCps: new BigNum(2900000000),
-    costMult: 1.15
+    icon: '🏙️'
   },
   {
     id: 'matrix',
     name: 'Vision 2030',
     desc: 'A transcendent hyper-computational lattice that calculates the future.',
-    icon: '🇸🇦',
-    baseCost: new BigNum(6200000000000000),
-    baseCps: new BigNum(21000000000),
-    costMult: 1.15
+    icon: '🇸🇦'
   }
 ];
 
-// Generator ladder (design doc 6.1, roadmap R4): the 14 hand-written tiers above, then one new
-// tier per Transcend up to 30. Tier n costs x18 and yields x7 over tier n-1 (the hand-written
-// ladder's own average ratios). Generated from fixed data so every build makes the same ids,
-// costs and yields: saves key buildings by id, so ids here must never change or be reordered.
-export const BASE_TIER_COUNT = 14;
-export const MAX_TIER_COUNT = 30;
-export const TIER_COST_RATIO = 18;
-export const TIER_CPS_RATIO = 7;
+// Generator ladder (design doc 6.1, roadmaps R4 and R31). Tier k costs TIER1_COST x 10^(k-1) and
+// yields TIER1_CPS x 4^(k-1) per second, so each tier takes 2.5x as long to pay for itself as the
+// one below (sim-tuned: x5 output per tier made every Transcend too big a jump, see doc 6.1). BASE_TIER_COUNT tiers are open at the start, one more per Transcend, up to
+// MAX_TIER_COUNT. Saves key buildings by id, so ids here must never change or be reordered.
+// Tiers 21-30 of the old 30-tier ladder are retired (RETIRED_BUILDING_IDS): their ids stay
+// reserved, the save step v8 clears them, and they are never offered again.
+export const BASE_TIER_COUNT = 8;
+export const MAX_TIER_COUNT = 20;
+export const TIER1_COST = 10;
+export const TIER1_CPS = 0.005;
+export const TIER_COST_RATIO = 10;
+export const TIER_CPS_RATIO = 4;
+export const BUILDING_COST_GROWTH = 1.15;
 
 const GENERATED_TIERS = [
   ['falcon_club', 'Falcon Racing Club', '🦅', 'Trains hyperspace falcons to fetch Oil from passing comets.'],
@@ -147,40 +110,31 @@ const GENERATED_TIERS = [
   ['date_vault', 'Date Palm Vault', '🌴', 'Ages sukkari dates until they collapse into sugar stars.'],
   ['kabsa_reactor', 'Kabsa Fusion Reactor', '🍲', 'Fuses rice and saffron at the core of a captive sun.'],
   ['oud_engine', 'Oud Resonance Engine', '🎶', 'Every strummed note splits into a thousand paying echoes.'],
-  ['dune_array', 'Dune Solar Array', '☀️', 'Turns the whole Rub al Khali into one shimmering collector.'],
-  ['mirage_forge', 'Mirage Forge', '🏜️', 'Hammers heat-shimmer mirages into solid, sellable reality.'],
-  ['qahwa_nebula', 'Qahwa Nebula', '☕', 'A cardamom cloud where new galaxies are brewed and poured.'],
-  ['sadu_loom', 'Sadu Star Loom', '🧶', 'Weaves constellations into rugs that pay rent across dimensions.'],
-  ['oasis_gate', 'Oasis Wormhole', '🌀', 'Every spring in the desert opens onto a richer universe.'],
-  ['cosmic_majlis', 'Cosmic Majlis', '🛋️', 'Elder gods drop by for coffee and leave tips the size of planets.'],
-  ['thobe_singularity', 'Thobe Singularity', '👘', 'A perfectly ironed thobe so crisp it bends spacetime.'],
-  ['hejaz_hyperrail', 'Hejaz Hyperrail', '🚄', 'The old railway, rebuilt to run between parallel timelines.'],
-  ['empty_quarter_engine', 'Empty Quarter Engine', '🌌', 'Harvests the nothing between grains of sand. There is a lot of it.'],
-  ['pearl_dyson', 'Pearl-Diver Dyson Sphere', '🦪', 'Divers wrap a star in nacre and harvest its glow.'],
-  ['eternal_dallah', 'The Eternal Dallah', '🏺', 'Pours a coffee that never ends, and so neither does the Oil.']
+  ['dune_array', 'Dune Solar Array', '☀️', 'Turns the whole Rub al Khali into one shimmering collector.']
+];
+export const RETIRED_BUILDING_IDS = [
+  'mirage_forge', 'qahwa_nebula', 'sadu_loom', 'oasis_gate', 'cosmic_majlis', 'thobe_singularity',
+  'hejaz_hyperrail', 'empty_quarter_engine', 'pearl_dyson', 'eternal_dallah'
 ];
 
-{
-  const top = BUILDING_DEFINITIONS[BASE_TIER_COUNT - 1];
-  GENERATED_TIERS.forEach(([id, name, icon, desc], i) => {
-    const step = i + 1;
-    BUILDING_DEFINITIONS.push({
-      id, name, desc, icon,
-      baseCost: top.baseCost.mul(new BigNum(TIER_COST_RATIO).pow(step)),
-      baseCps: top.baseCps.mul(new BigNum(TIER_CPS_RATIO).pow(step)),
-      costMult: 1.15
-    });
-  });
-  BUILDING_DEFINITIONS.forEach((def, i) => { def.tier = i + 1; });
-}
+for (const [id, name, icon, desc] of GENERATED_TIERS) BUILDING_DEFINITIONS.push({ id, name, desc, icon });
+BUILDING_DEFINITIONS.forEach((def, i) => {
+  def.tier = i + 1;
+  def.baseCost = new BigNum(TIER1_COST * TIER_COST_RATIO ** i);
+  def.baseCps = new BigNum(TIER_CPS_RATIO ** i / (1 / TIER1_CPS));
+  def.costMult = BUILDING_COST_GROWTH;
+});
 localize(BUILDING_DEFINITIONS, 'building', ['name', 'desc']);
 
-// Tiers open to the player: the 14 base tiers plus one per Transcend, capped at 30
+// Tiers open to the player: the base tiers plus one per Transcend, capped at MAX_TIER_COUNT
 export function getUnlockedTierCount(gameState) {
   const t = Math.max(0, Math.floor(Number(gameState?.transcendenceCount) || 0));
   // A Chronicle challenge may close the upper tiers (Small Souq, R20)
   return Math.min(MAX_TIER_COUNT, BASE_TIER_COUNT + t, getActiveRules(gameState).maxTiers);
 }
+
+export const MILESTONES = [10, 25, 50, 100, 150, 200, 250, 300];
+export const MILESTONE_MULT = 2;
 
 // id -> definition; the per-frame building UI used to linear-search this list per call
 const BUILDING_BY_ID = new Map(BUILDING_DEFINITIONS.map(d => [d.id, d]));
@@ -303,14 +257,11 @@ export class BuildingSystem {
     return false;
   }
 
+  // x2 at each of MILESTONES owned (R31: 8 steps, x256 in all; was 9 steps up to 1,000)
   getMilestoneMultiplier(count) {
     let mult = 1;
-    const milestones = [10, 25, 50, 100, 150, 200, 250, 500, 1000];
-    const boosts = [2, 2, 2, 2, 3, 3, 4, 5, 10];
-    for (let i = 0; i < milestones.length; i++) {
-      if (count >= milestones[i]) {
-        mult *= boosts[i];
-      }
+    for (const need of MILESTONES) {
+      if (count >= need) mult *= MILESTONE_MULT;
     }
     // Harmonic Array talent: +15% milestone multipliers per rank
     if (mult > 1) mult *= 1 + (this.gameState.talents?.synergy_resonance?.rank || 0) * 0.15;

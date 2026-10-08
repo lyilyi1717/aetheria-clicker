@@ -4,6 +4,7 @@
 //
 //   node sim/core-pacing.mjs            # print the report
 //   node sim/core-pacing.mjs --assert   # also fail (exit 1) if the year-one targets are missed
+//   node sim/core-pacing.mjs --only=casual   # one profile only (faster while tuning)
 //
 // Profiles:
 //   idle   : taps 1/s for the first 3 min of every run, never casts; greedy-buys every 5 s
@@ -26,13 +27,13 @@
 // so it still models what a real player would do, and paste the before/after report in the PR.
 import { BigNum } from '../js/engine/BigNum.js';
 import { GameState } from '../js/systems/GameState.js';
-import { BuildingSystem, BUILDING_DEFINITIONS, MAX_TIER_COUNT } from '../js/systems/BuildingSystem.js';
+import { BuildingSystem, BUILDING_DEFINITIONS } from '../js/systems/BuildingSystem.js';
 import { PrestigeSystem } from '../js/systems/PrestigeSystem.js';
 import { DUST_SHOP_ITEMS, buyShopItem } from '../js/systems/DustShopSystem.js';
 import { AchievementSystem } from '../js/systems/AchievementSystem.js';
 import { UpgradeSystem, TIER_UPGRADE_MULT, SYNERGY_PER_UNIT, UPGRADE_DEFINITIONS, getUpgradeDefinition } from '../js/systems/UpgradeSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
-import { ShardTreeSystem, autoAscendRuleMet, getDeepBlueprintDivisor, canBuyNode } from '../js/systems/ShardTreeSystem.js';
+import { ShardTreeSystem, autoAscendRuleMet, AUTO_ASCEND_RULES, AUTO_ASCEND_DEFAULT_RULE, getDeepBlueprintDivisor, canBuyNode, FOUNDRY_FIRST_TIER, FOUNDRY_LAST_TIER } from '../js/systems/ShardTreeSystem.js';
 import { ChronicleSystem, chronicleClock, PAGE_UPGRADES } from '../js/systems/ChronicleSystem.js';
 import { measureActiveIncome } from './active-income.mjs'; // R3 block below
 
@@ -48,7 +49,9 @@ export const TARGETS = {
   maxGapDaysAfterDay1: 14,       // never more than 14 days without a reset (days 1..gapWindowEndDay)
   // The doc's goal (day 270). Layer 2 alone stalls ~day 185 (doc §6.4); the Chronicle (R20)
   // restarts the Transcend ladder so resets keep coming.
-  gapWindowEndDay: 270
+  gapWindowEndDay: 270,
+  // R31: numbers grow slowly. Casual run Aether at the 2-month row stays at or below this.
+  casualTwoMonthAetherMax: 1e13
 };
 
 // --- R3 active income block --------------------------------------------------------------------
@@ -74,6 +77,7 @@ const CHECKPOINTS = [
 //   shop.onBuilding(id)      after a generator purchase: its upgrades/synergies may have opened
 //   shop.best(budget, rate)  -> { id, ratio } | null, the best affordable available upgrade
 //   shop.buy(id)             buys it and updates the candidate list
+//   shop.buyCheap()          buys every available upgrade costing <= 1% of run Aether (R31)
 // Only the available ones are scored, so a pass costs a handful of checks, not 173.
 function makeUpgradeShopBuyer(gs, bs, us) {
   const lg = (x) => Math.log10(Math.abs(x.m)) + x.e;
@@ -103,6 +107,15 @@ function makeUpgradeShopBuyer(gs, bs, us) {
     },
     onBuilding(id) {
       for (const uid of byBuilding.get(id) || []) if (!candidates.has(uid) && us.isAvailable(uid)) candidates.add(uid);
+    },
+    // R31: an upgrade that costs at most CHEAP_UPGRADE_SHARE of this run's Aether is bought on sight,
+    // whatever it adds (a player doesn't weigh a 1% purchase). Returns true if anything was bought.
+    buyCheap() {
+      let any = false;
+      for (const id of [...candidates]) {
+        if (us.getCost(id).lte(gs.totalAetherEarned.mul(CHEAP_UPGRADE_SHARE)) && this.buy(id)) any = true;
+      }
+      return any;
     },
     buy(id) {
       if (!us.buy(id)) return false;
@@ -138,6 +151,7 @@ function makeUpgradeShopBuyer(gs, bs, us) {
     }
   };
 }
+const CHEAP_UPGRADE_SHARE = 0.01;
 // --- end R5 block ------------------------------------------------------------------------------
 
 // synergy source building -> target buildings (a source purchase changes the target's multiplier)
@@ -160,7 +174,7 @@ function makeShardTreeModel(gs, ps) {
     buyNodes() {
       if (!tree.has('chronos_auto_ascend')) tree.buy('chronos_auto_ascend');
       if (!tree.has('chronos_auto_ascend')) return;   // saving for Auto-Ascend first
-      for (let tier = 15; tier <= MAX_TIER_COUNT; tier++) {
+      for (let tier = FOUNDRY_FIRST_TIER; tier <= FOUNDRY_LAST_TIER; tier++) {
         const id = `foundry_t${tier}`;
         if (!tree.has(id) && canBuyNode(gs, id)) tree.buy(id);
       }
@@ -177,8 +191,8 @@ function makeShardTreeModel(gs, ps) {
 
 // ---- Dust shop (R6) ---------------------------------------------------------------------------
 // Called after each Ascension and Transcend (the only times dust changes). Spending never lowers
-// the dust multiplier (it reads lifetime dust), so the player buys every open item in shop order
-// (ranked items up to their max), then pours what is left into Dust Amplifier (+10% dust gain per
+// the dust multiplier (it reads lifetime dust), so the player buys every open one-time item,
+// cheapest first, then ranked items up to their max, then pours what is left into Dust Amplifier (+10% dust gain per
 // rank, price x2 each). What the sim models of the items:
 //   - Cosmic Genesis, Resonant Start: PrestigeSystem.ascend applies them to the new run;
 //   - Blueprint Memory I/II: the upgrade shop's keep rules (real UpgradeSystem reset);
@@ -187,7 +201,10 @@ function makeShardTreeModel(gs, ps) {
 // Auto-Buy changes nothing here (the sim already greedy-buys every 5 s in both profiles); Chrono
 // Reservoir, Hourglass, Golems, Titan, Crucible and Leylines touch nothing the core sim models.
 function makeDustShopModel(gs) {
-  const items = DUST_SHOP_ITEMS.filter(d => d.id !== 'dust_amplifier');
+  // One-time features first, cheapest first, then ranked items (R31: dust is scarce enough that the
+  // order matters)
+  const items = DUST_SHOP_ITEMS.filter(d => d.id !== 'dust_amplifier')
+    .sort((a, b) => (a.maxRank > 1) - (b.maxRank > 1) || (a.maxRank > 1 ? 0 : a.cost - b.cost));
   const firstBuy = new Map();   // item id -> day first bought (report)
   return {
     buyAll(t) {
@@ -209,6 +226,9 @@ function makeDustShopModel(gs) {
 // CHRONICLE_AFTER_SLOW_DAYS old), which is when a player would trade the Transcend ladder for
 // Pages. Pages go to Page upgrades in PAGE_BUY_ORDER as soon as they are affordable. The sim does
 // not play challenges (their Pages would only make it faster), so this is the slow case.
+// By hand the player Ascends on the same threshold as the default Auto-Ascend rule (R31)
+const MANUAL_ASCEND_MULT = AUTO_ASCEND_RULES.find(r => r.id === AUTO_ASCEND_DEFAULT_RULE).mult;
+const MANUAL_ASCEND_MIN = 10;
 const SIM_EPOCH = Date.UTC(2026, 0, 1);
 const CHRONICLE_AFTER_SLOW_DAYS = 7;
 const PAGE_BUY_ORDER = ['bookmark', 'ink', 'dog_ear', 'gilded_edges', 'margin_notes', 'second_reading'];
@@ -272,6 +292,7 @@ function run(profile) {
       return v;
     };
     shop.refresh();
+    if (shop.buyCheap()) multLog.clear();
     for (let k = 0; k < 50; k++) {
       if (gs.aether.m <= 0) return;
       const budget = lg(gs.aether);
@@ -302,6 +323,8 @@ function run(profile) {
   let runStart = 0, ci = 0;
   const resets = [];
   const transcends = [];
+  const transcendAether = [];   // highest run Aether of each Transcend's layer (R31)
+  let layerPeak = BigNum.zero();
   const upgradesPerRun = []; // R5: upgrades bought by the end of each Ascension run
   const regainDays = [];   // days after each Transcend until CPS is back to its pre-Transcend level
   let regainFrom = null;
@@ -319,6 +342,7 @@ function run(profile) {
     gs.aether = gs.aether.add(income);
     gs.totalAetherEarned = gs.totalAetherEarned.add(income);
     lifetimeAether = lifetimeAether.add(income);
+    if (gs.totalAetherEarned.gt(layerPeak)) layerPeak = gs.totalAetherEarned;
     t += dt;
     if (Math.floor(t / 5) !== Math.floor((t - dt) / 5) || dt >= 5) greedyBuy();
     ach.checkAchievements();
@@ -328,7 +352,7 @@ function run(profile) {
       // By hand while present (casual: up to the moment they leave; idle: one glance an hour), or by
       // Auto-Ascend once it is owned
       const here = profile === 'casual' ? t % 3600 <= presence : t % 3600 < dt;
-      const manual = here && t - runStart >= 600 && pending.gte(gs.totalCosmicDust.max(10));
+      const manual = here && t - runStart >= 600 && pending.gte(gs.totalCosmicDust.mul(MANUAL_ASCEND_MULT - 1).max(MANUAL_ASCEND_MIN));
       if (manual || shardTree.autoAscendDue(pending, t - runStart)) {
         resets.push(t);
         upgradesPerRun.push(us.getBoughtCount());
@@ -346,6 +370,8 @@ function run(profile) {
       if (!regainFrom) regainFrom = { t, cps: gs.getNetAetherPerSecond() };
       else regainFrom.cps = regainFrom.cps.max(gs.getNetAetherPerSecond());
       transcends.push(t);
+      transcendAether.push(layerPeak);
+      layerPeak = BigNum.zero();
       resets.push(t);
       ps.transcend();
       runStart = t;
@@ -365,6 +391,7 @@ function run(profile) {
         label: CHECKPOINTS[ci][0],
         cps: gs.getNetAetherPerSecond().format('scientific', 2),
         run: gs.totalAetherEarned.format('scientific', 2),
+        runBig: gs.totalAetherEarned,
         life: lifetimeAether.format('scientific', 2),
         asc: gs.ascensionCount,
         dust: gs.totalCosmicDust.format('scientific', 2),
@@ -399,6 +426,7 @@ function run(profile) {
     resetsDay0: resets.filter(r => r < DAY).length,
     resetsYear: resets.length,
     transcendDays: transcends.map(x => x / DAY),
+    transcendAether,
     regainDays,
     maxGapDays: maxGap / DAY,
     upgradesPerRun,
@@ -413,7 +441,8 @@ function run(profile) {
 const assertMode = process.argv.includes('--assert');
 const failures = [];
 const out = [];
-for (const profile of ['idle', 'casual']) {
+const only = process.argv.find(a => a.startsWith('--only='))?.slice(7);   // --only=casual: one profile (tuning)
+for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
   const r = run(profile);
   out.push(`\n### profile: ${profile}\n`);
   out.push('| time | CPS | run Aether | lifetime Aether | Ascensions | lifetime dust (this layer) | Transcends (this Chronicle) | tiers | upgrades (this run) | Chronicles | Pages earned |');
@@ -433,6 +462,7 @@ for (const profile of ['idle', 'casual']) {
   out.push(`- Auto-Ascend bought: ${r.autoAscendDay === null ? 'never' : `day ${r.autoAscendDay.toFixed(1)}`}`);
   out.push(`- dust shop, first bought (day): ${[...r.shopFirstBuy].map(([id, d]) => `${id} ${d.toFixed(2)}`).join(', ') || 'nothing'}; Dust Amplifier rank at year end ${r.amplifierRank}`);
   out.push(`- Transcends at day: ${r.transcendDays.length ? r.transcendDays.map(d => d.toFixed(1)).join(', ') : 'none'}`);
+  out.push(`- highest run Aether before each Transcend (first 12): ${r.transcendAether.length ? r.transcendAether.slice(0, 12).map(a => a.format('scientific', 1)).join(', ') : 'none'}`);
   out.push(`- Chronicles at day: ${r.chronicles.length ? r.chronicles.map(c => {
     const next = r.transcendDays.find(d => d > c.day);
     return `${c.day.toFixed(1)} (CPS before it ${c.cps}, +${c.pages} Pages, first Transcend after it ${next === undefined ? 'never' : `+${(next - c.day).toFixed(1)} d`})`;
@@ -445,6 +475,10 @@ for (const profile of ['idle', 'casual']) {
   if (profile === 'casual') {
     if (r.firstResetMin > TARGETS.firstAscensionMaxMin) {
       failures.push(`first Ascension at ${r.firstResetMin.toFixed(1)} min > ${TARGETS.firstAscensionMaxMin} min`);
+    }
+    const twoMonth = r.rows.find(row => row.label === '2 mo');
+    if (twoMonth && twoMonth.runBig.gt(TARGETS.casualTwoMonthAetherMax)) {
+      failures.push(`2-month run Aether ${twoMonth.run} > ${TARGETS.casualTwoMonthAetherMax.toExponential()}`);
     }
     if (r.maxGapDays > TARGETS.maxGapDaysAfterDay1) {
       failures.push(`${r.maxGapDays.toFixed(1)}-day stretch with no reset > ${TARGETS.maxGapDaysAfterDay1} days`);
