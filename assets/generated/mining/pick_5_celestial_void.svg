@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Celestial Void Pick">
+  <defs>
+    <linearGradient id="void-shaft" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0f0728"/>
+      <stop offset="40%" stop-color="#2e1065"/>
+      <stop offset="70%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="void-blade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5d0fe"/>
+      <stop offset="25%" stop-color="#c084fc"/>
+      <stop offset="55%" stop-color="#7e22ce"/>
+      <stop offset="85%" stop-color="#3b0764"/>
+      <stop offset="100%" stop-color="#090514"/>
+    </linearGradient>
+    <linearGradient id="celestial-gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="40%" stop-color="#fbbf24"/>
+      <stop offset="80%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+    <radialGradient id="nebula-eye" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="30%" stop-color="#ec4899"/>
+      <stop offset="70%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </radialGradient>
+    <filter id="cosmic-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#a855f7" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#fbbf24" flood-opacity="0.6"/>
+      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#cosmic-glow)">
+    <!-- Astral Nebula Shaft -->
+    <path d="M 22 110 L 16 104 L 82 38 L 88 44 Z" fill="url(#void-shaft)" stroke="url(#celestial-gold)" stroke-width="1.8"/>
+
+    <!-- Celestial Void Starburst Pommel -->
+    <polygon points="12,106 18,112 10,126 4,118" fill="url(#void-blade)" stroke="url(#celestial-gold)" stroke-width="1.5"/>
+    <circle cx="12" cy="116" r="2.5" fill="url(#nebula-eye)"/>
+
+    <!-- Gold Filigree Wrappings along Shaft -->
+    <path d="M 24 102 Q 32 96, 36 90 M 40 86 Q 48 80, 52 74 M 56 70 Q 64 64, 68 58" stroke="url(#celestial-gold)" stroke-width="1.8" fill="none"/>
+
+    <!-- Golden Astronavigator Ring Collar -->
+    <circle cx="85" cy="43" r="14" fill="none" stroke="url(#celestial-gold)" stroke-width="2"/>
+    <circle cx="85" cy="43" r="8" fill="url(#nebula-eye)"/>
+
+    <!-- Dual Astral Crescent Void Blades -->
+    <!-- Forward Astral Curved Pick -->
+    <path d="M 40 12 
+             C 66 22, 86 34, 96 42 
+             C 112 48, 122 66, 128 92 
+             C 122 86, 114 74, 104 64 
+             C 98 56, 88 50, 82 48 
+             C 70 38, 52 24, 42 16 
+             Z" 
+          fill="url(#void-blade)" stroke="url(#celestial-gold)" stroke-width="2" stroke-linejoin="round"/>
+
+    <!-- Rear Celestial Starlight Scythe -->
+    <path d="M 40 12 
+             C 24 2, 14 6, 8 2 
+             C 14 16, 22 26, 42 16 
+             Z" 
+          fill="url(#void-blade)" stroke="url(#celestial-gold)" stroke-width="2" stroke-linejoin="round"/>
+
+    <!-- Golden Celestial Edge Filigree Trim -->
+    <path d="M 8 2 Q 24 14, 40 12 Q 72 26, 96 42 Q 116 54, 128 92" 
+          fill="none" stroke="url(#celestial-gold)" stroke-width="1.8" stroke-linecap="round"/>
+
+    <!-- Constellation Stars & Sparkles inside the Void Blades -->
+    <!-- Star 1 -->
+    <polygon points="128,92 124,87 128,82 132,87" fill="#ffffff"/>
+    <circle cx="128" cy="87" r="1.5" fill="#fde047"/>
+    <!-- Star 2 -->
+    <polygon points="8,2 6,0 8,-2 10,0" fill="#ffffff"/>
+    <!-- Star 3 -->
+    <polygon points="112,68 110,65 112,62 114,65" fill="#fbcfe8"/>
+    <!-- Star 4 -->
+    <polygon points="98,50 96,47 98,44 100,47" fill="#c084fc"/>
+    <!-- Star 5 -->
+    <polygon points="62,26 60,23 62,20 64,23" fill="#ffffff"/>
+    <!-- Constellation Lines connecting stars -->
+    <path d="M 62 23 L 98 47 L 112 65 L 128 87" fill="none" stroke="#bae6fd" stroke-width="0.8" opacity="0.75" stroke-dasharray="2,2"/>
+
+    <!-- Orbiting Cosmic Energy Sparks -->
+    <circle cx="74" cy="30" r="1.5" fill="#fde047"/>
+    <circle cx="102" cy="34" r="1.8" fill="#ec4899"/>
+    <circle cx="94" cy="62" r="1.5" fill="#38bdf8"/>
+    <circle cx="85" cy="43" r="3" fill="#ffffff"/>
+  </g>
+</svg>

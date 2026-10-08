@@ -135,6 +135,9 @@ console.log('--- no DOM: the moment is a no-op ---');
 {
   assert.equal(playBossDown(null, null, { gold: 1 }), false);
   assert.equal(playBossDown({ isConnected: true, offsetParent: null }, {}, { gold: 1 }), false, 'Tower hidden');
+  const fx = read('./js/ui/combatFx.js');
+  assert.match(fx, /if \(particles\.suppressed\) return false;/, 'Fast Forward kills stay quiet');
+  assert.match(fx, /fallbackSound: 'defeat'/, 'a kill inside the cooldown is never silent');
   const cs = {};
   initCombatFx(cs, null, null);
   assert.equal(cs.onBossDefeated, undefined, 'nothing hooked without the elements');

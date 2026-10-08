@@ -10,7 +10,7 @@ import { GameState } from './systems/GameState.js';
 import { ClickerSystem } from './systems/ClickerSystem.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from './systems/BuildingSystem.js';
 import { CombatSystem, gearStat, getGearLevel } from './systems/CombatSystem.js';
-import { MiningSystem, getPickaxeName } from './systems/MiningSystem.js';
+import { MiningSystem, getPickaxeName, getPickaxeIcon } from './systems/MiningSystem.js';
 import { GardenSystem, SEED_TYPES, ESSENCE_NAMES, WATER_BOOST, MAX_GOLEMS } from './systems/GardenSystem.js';
 import { AlchemySystem, RECIPES, GEM_LADDER } from './systems/AlchemySystem.js';
 import { SpellSystem, SPELLS } from './systems/SpellSystem.js';
@@ -110,6 +110,7 @@ class AetheriaApp {
     this.gameState.combatSystem = this.combatSystem;
     this.gameState.miningSystem = this.miningSystem;
     this.gameState.gardenSystem = this.gardenSystem;
+    this.gameState.clickerSystem = this.clickerSystem;   // shared paid-click budget (R59)
     this.gameState.bountySystem = this.bountySystem;
     this.gameState.achievementSystem = this.achievementSystem;
     this.gameState.collectionSystem = this.collectionSystem;
@@ -941,7 +942,7 @@ class AetheriaApp {
       if (!this.$('btn-buy-drill')) {
         pickaxeEl.innerHTML = `
           <div style="display:flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-            <img loading="lazy" decoding="async" src="cosmic_shovel.webp" alt="${t('mine.tool_alt')}" style="width: 64px; height: 64px; border-radius: 8px; border: 2px solid var(--accent-purple); box-shadow: 0 0 10px color-mix(in srgb, var(--dust) 50%, transparent);">
+            <img id="mining-pickaxe-img" loading="lazy" decoding="async" src="${getPickaxeIcon(grid.pickaxeTier || 0)}" alt="${t('mine.tool_alt')}" style="width: 64px; height: 64px; border-radius: 8px; border: 2px solid var(--accent-purple); box-shadow: 0 0 10px color-mix(in srgb, var(--dust) 50%, transparent); object-fit: contain; background: color-mix(in srgb, var(--tint) 4%, transparent);">
             <div>
               <div>${t('mine.pickaxe_line')}</div>
               <div>${t('mine.drills_line')}</div>
@@ -972,6 +973,12 @@ class AetheriaApp {
       const stone = this.gameState.inventory.stone || 0;
       const inv = this.gameState.inventory;
       const level = grid.pickaxeTier || 0;
+
+      const pickImg = this.$('mining-pickaxe-img');
+      const pickSrc = getPickaxeIcon(level);
+      if (pickImg && pickImg.getAttribute('src') !== pickSrc) {
+        pickImg.setAttribute('src', pickSrc);
+      }
 
       setTextById('mining-pick-name', getPickaxeName(level));
       setTextById('mining-pick-level', String(level));

@@ -1033,6 +1033,16 @@ button, input, select, textarea {
   to { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--rarity-legendary) 0%, transparent), inset 0 0 18px color-mix(in srgb, var(--rarity-legendary) 0%, transparent); }
 }
 
+/* Chain Lightning: the zapped tiles flash electric cyan */
+.mine-tile.zap-flash {
+  animation: zap-flash 0.5s ease-out;
+}
+
+@keyframes zap-flash {
+  from { box-shadow: inset 0 0 0 2px var(--aether), inset 0 0 20px color-mix(in srgb, var(--aether) 75%, transparent); border-color: var(--aether); }
+  to { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aether) 0%, transparent), inset 0 0 20px color-mix(in srgb, var(--aether) 0%, transparent); }
+}
+
 .tile-hp-bar {
   position: absolute;
   bottom: 0;

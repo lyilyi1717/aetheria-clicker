@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Mithril Pickaxe">
+  <defs>
+    <linearGradient id="mithril-shaft" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="40%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="mithril-blade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#bae6fd"/>
+      <stop offset="60%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="rune-glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <filter id="mithril-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#38bdf8" flood-opacity="0.8"/>
+      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.7"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#mithril-glow)">
+    <!-- Silvery-Cyan Reinforced Shaft -->
+    <path d="M 22 110 L 16 104 L 82 38 L 88 44 Z" fill="url(#mithril-shaft)" stroke="#0284c7" stroke-width="1.8"/>
+
+    <!-- Mithril Pommel Gem -->
+    <polygon points="12,108 18,114 14,120 8,114" fill="#38bdf8" stroke="#ffffff" stroke-width="1.2"/>
+
+    <!-- Arcane Silver Ribbons along shaft -->
+    <path d="M 24 102 L 32 94 M 36 90 L 44 82 M 48 78 L 56 70 M 60 66 L 68 58" stroke="#bae6fd" stroke-width="1.5"/>
+
+    <!-- Winged Mithril Collar -->
+    <path d="M 70 42 L 84 28 L 98 42 L 86 56 Z" fill="url(#mithril-blade)" stroke="#0369a1" stroke-width="2"/>
+    <polygon points="84,36 88,42 84,48 80,42" fill="#ffffff"/>
+
+    <!-- Elegant Curved Mithril Pickaxe Head -->
+    <path d="M 36 16 
+             C 62 26, 84 36, 94 44 
+             C 108 50, 118 68, 124 90 
+             C 120 86, 112 76, 104 68 
+             C 98 60, 88 54, 82 52 
+             C 70 42, 52 28, 42 20 
+             Z" 
+          fill="url(#mithril-blade)" stroke="#0369a1" stroke-width="2" stroke-linejoin="round"/>
+
+    <!-- Luminous Arcane Runes Carved in Blade -->
+    <g stroke="url(#rune-glow)" stroke-width="1.8" stroke-linecap="round" fill="none">
+      <!-- Rune 1 -->
+      <path d="M 64 34 L 70 38 L 66 42"/>
+      <!-- Rune 2 -->
+      <path d="M 78 42 L 84 46 L 80 50"/>
+      <!-- Rune 3 -->
+      <path d="M 94 52 L 100 58 L 96 64"/>
+      <!-- Rune 4 (near tip) -->
+      <path d="M 106 66 L 112 74"/>
+    </g>
+
+    <!-- Rear Crescent Spike -->
+    <path d="M 36 16 C 28 8, 22 10, 18 6 C 24 18, 30 24, 42 20 Z" fill="url(#mithril-blade)" stroke="#0369a1" stroke-width="1.8"/>
+
+    <!-- Brilliant Radiant Sparkles -->
+    <polygon points="124,90 120,85 124,80 128,85" fill="#ffffff"/>
+    <polygon points="18,6 16,3 18,0 20,3" fill="#38bdf8"/>
+    <circle cx="94" cy="44" r="2" fill="#ffffff"/>
+    <circle cx="118" cy="80" r="1.5" fill="#e0f2fe"/>
+  </g>
+</svg>

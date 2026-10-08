@@ -8,6 +8,7 @@ import { feedback } from './feedback.js';
 import { isReducedMotion } from './motion.js';
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
+import { particles } from '../engine/ParticleEngine.js';
 import { t } from '../i18n/index.js';
 
 export const HITSTOP_MS = 90;
@@ -58,11 +59,16 @@ export function initCombatFx(combat, card, portrait, timerEl) {
   };
 }
 
-/** The T2 moment. Returns false (and plays nothing) when the Tower isn't on screen. */
+/**
+ * The T2 moment. Returns false (and plays nothing) when the Tower isn't on screen or the kill
+ * was simulated by Fast Forward (the gold line still updates).
+ */
 export function playBossDown(card, portrait, { isWarden = false, gold } = {}) {
   if (typeof document === 'undefined' || !card?.isConnected || !card.offsetParent) return false;
+  if (particles.suppressed) return false;
   const reduced = isReducedMotion();
-  feedback.fire(2, { kind: 'boss-down', sound: 'boss-down', target: card });
+  // Back-to-back kills inside the 1 s cooldown still answer with the old defeat blip
+  feedback.fire(2, { kind: 'boss-down', sound: 'boss-down', fallbackSound: 'defeat', target: card });
   feedback.hitStop(portrait, HITSTOP_MS);
   if (!reduced) {
     portrait.classList.remove('fx-flash');

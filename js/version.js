@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.13.0';
+export const VERSION = '5.15.0';
 
 export const CHANGELOG = [
   {
-    version: '5.13.0',
+    version: '5.15.0',
     date: '2026-10-08',
     title: 'Boss Kills Feel Like a Win',
     changes: [
@@ -23,6 +23,58 @@ export const CHANGELOG = [
         'يبقى ذهب آخر زعيم ظاهراً فوق الصورة حتى يصل الزعيم التالي.',
         'مؤقت الغضب يبقى هادئاً حتى آخر 10 ثوانٍ، ثم يصبح أحمر ويدق بهدوء كل ثانية؛ وفي آخر 3 ثوانٍ يكبر قليلاً.',
         'عند تفعيل تقليل الحركة لا يوجد اهتزاز أو وميض أو تكبير للمؤقت؛ وتبقى الألوان والإعلان والأصوات.'
+      ]
+    }
+  },
+  {
+    version: '5.14.0',
+    date: '2026-10-08',
+    title: 'A Steadier Climb up the Void Tower',
+    changes: [
+      'Gear now grows a little slower per Tower floor (x1.105 per floor, was x1.11), so the Tower climb keeps its intended pace: about 380 floors after a day, 510 after a week and 520 after a month of play with the game open, instead of racing past 700.',
+      'This is a nerf to new gear drops. Gear you already own keeps its stats.',
+      'Old saves may move down a floor band: if your Tower floor is higher than your gear can clear now, you restart at the highest floor it can. Your record floor is kept.'
+    ],
+    ar: {
+      title: 'تسلق أكثر ثباتا في برج الفراغ',
+      changes: [
+        'ينمو العتاد الآن أبطأ قليلا مع كل طابق في البرج (×1.105 لكل طابق بدلا من ×1.11)، فيحافظ التسلق على وتيرته المقصودة: نحو 380 طابقا بعد يوم، و510 بعد أسبوع، و520 بعد شهر من اللعب والمتصفح مفتوح، بدلا من تجاوز 700.',
+        'هذا تخفيف لعتاد الغنائم الجديد. العتاد الذي تملكه بالفعل يحتفظ بإحصاءاته.',
+        'قد تنزل الحفظات القديمة طابقا أو أكثر: إذا كان طابقك في البرج أعلى مما يستطيع عتادك تجاوزه الآن، تبدأ من أعلى طابق يستطيع تجاوزه. يبقى رقمك القياسي محفوظا.'
+      ]
+    }
+  },
+  {
+    version: '5.13.0',
+    date: '2026-10-08',
+    title: 'Garden Taps Share the Click Limit',
+    changes: [
+      'Tapping growing crops now counts toward the same 5 paid taps a second as the monolith. Faster taps still splash and sound, but grow nothing and pay nothing. This is a nerf: fast tapping through the Garden no longer multiplies your Oil.',
+      'A Dewdrop now pays 0.25 s of production (was 1 s), and each tap grows the crop by 2% of its grow time (was 5%).',
+      'Fixed a crash when tapping a crop while you produce no Oil yet (reported by players).'
+    ],
+    ar: {
+      title: 'نقرات الحديقة تشارك حد النقرات',
+      changes: [
+        'النقر على المحاصيل النامية يُحتسب الآن ضمن حد 5 نقرات مدفوعة في الثانية نفسه مع المونوليث. تظل النقرات الأسرع تُصدر الرذاذ والصوت لكنها لا تُنمّي شيئاً ولا تمنح شيئاً. هذا تخفيف: النقر السريع في الحديقة لم يعد يضاعف نفطك.',
+        'قطرة الندى تمنح الآن 0.25 ثانية من الإنتاج (كانت ثانية واحدة)، وكل نقرة تُنمّي المحصول بنسبة 2% من زمن نموه (كانت 5%).',
+        'إصلاح انهيار عند النقر على محصول قبل أن تبدأ بإنتاج النفط.'
+      ]
+    }
+  },
+  {
+    version: '5.12.2',
+    date: '2026-10-08',
+    title: 'Pickaxe Visual Upgrades & Electric Zap',
+    changes: [
+      'Visual Pickaxe Progression: Your pickaxe now evolves its appearance as you upgrade it through 6 custom vector tiers, from chipped rusty iron to forged steel, glowing mithril, dragon adamantite, and celestial void.',
+      'Electric Chain Lightning: Arc Conduction strikes now discharge true branching electric bolts across hit blocks with glowing cyan auras, white-hot cores, and tile reaction flashes.'
+    ],
+    ar: {
+      title: 'ترقيات مظهر الفأس وصاعقة البرق المتسلسلة',
+      changes: [
+        'مظهر متطور للفأس: يتغير مظهر الفأس الآن بصرياً عبر 6 مستويات متقنة، من الفأس الحديدي الصدئ إلى الفولاذ المطروق والميثريل المشع وصخر التنين حتى فراغ الأجرام السماوية.',
+        'برق متسلسل متوهج: يُطلق توصيل الصدمات الآن صواعق كهربائية متفرعة حقيقية تقفز بين الكتل مع هالات متوهجة ونواة بيضاء ساطعة.'
       ]
     }
   },
