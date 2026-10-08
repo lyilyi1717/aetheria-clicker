@@ -2,7 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { rewards } from '../ui/rewards.js';
 import { recordAscensionDust, checkMilestones } from './TalentSources.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from './BuildingSystem.js';
-import { isChallengeActive } from './ChronicleSystem.js';
+import { isChallengeActive, applyChallengeRunStart } from './ChronicleSystem.js';
 import { resetUpgradesOnAscend, resetAllUpgrades } from './UpgradeSystem.js';
 import { applyRunStart, getDustAmplifierMult, resetDustShop, DUST_SHOP_TIERS, DUST_SHOP_ITEMS } from './DustShopSystem.js';
 import { t } from '../i18n/index.js';
@@ -142,6 +142,8 @@ export class PrestigeSystem {
 
     // Dust shop: Cosmic Genesis, Resonant Start; Finger of Wasta's click count starts again
     applyRunStart(this.gameState);
+    // Challenge reward (R56): tier-1 generators to start with
+    applyChallengeRunStart(this.gameState);
 
     // Talent points (R9): no flat grant. S2 pays Record Ascension stars, S1 the first Ascension and
     // (via transcend(), which calls this with force) the Transcend ladder.

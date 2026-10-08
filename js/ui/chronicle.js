@@ -10,7 +10,8 @@ import { sound } from '../engine/AudioEngine.js';
 import { rewards } from './rewards.js';
 import {
   ChronicleSystem, CHAPTERS, PAGE_UPGRADES, pageAetherMultFor, CHRONICLE_TRANSCEND_GATE, SEAL_STANDIN_TRANSCENDS,
-  getChallenge, describeRules, getSealGate, getChronicleTranscendsNeeded
+  getChallenge, describeRules, getSealGate, getChronicleTranscendsNeeded,
+  describeReward, getChallengeRewardTotal, takeRewardBackfill, REWARD_KINDS
 } from '../systems/ChronicleSystem.js';
 import { t, bidi } from '../i18n/index.js';
 
@@ -73,8 +74,18 @@ export class ChronicleUI {
     }
     this.gs.chronicleSystem = this.app.chronicleSystem;
     this.build();
+    this.toastBackfill();
     this.tick();
     if (!this.timer) this.timer = setInterval(() => this.tick(), 1000);
+  }
+
+  // A save from before challenge rewards: its old clears were just paid their rewards (once)
+  toastBackfill() {
+    const ids = takeRewardBackfill();
+    if (!ids.length) return;
+    const list = ids.map(id => getChallenge(id)).filter(Boolean).map(c => describeReward(c.reward)).join(' · ');
+    rewards.notify({ tier: 'big', kind: 'challenge-rewards', icon: '🏆', color: SAND,
+      title: t(ids.length === 1 ? 'chr.backfill1' : 'chr.backfill', { n: ids.length }), detail: list });
   }
 
   // Challenge goal and Chapter turnover (also in background tabs)
@@ -82,7 +93,7 @@ export class ChronicleUI {
     const { stamps, cleared } = this.sys.tick();
     for (const ch of stamps) {
       rewards.notify({ tier: 'big', kind: 'chapter-stamp', icon: ch.icon, color: SAND, title: t('chr.stamped_toast', { name: ch.name }),
-        amount: ch.stampPages, fmt: (n) => String(n), unit: t('hdr.pages'), detail: t('chr.stamped_detail') });
+        amount: ch.stampPages || undefined, fmt: (n) => String(n), unit: ch.stampPages ? t('hdr.pages') : undefined, detail: t('chr.stamped_detail') });
     }
     if (cleared) {
       const c = cleared.challenge;
@@ -90,7 +101,8 @@ export class ChronicleUI {
         tier: cleared.first ? 'big' : 'medium', kind: `challenge-${c.id}`, icon: c.icon, color: SAND,
         title: cleared.first ? t('chr.cleared', { name: c.name }) : `${c.name}: ${cleared.best ? t('chr.new_best') : t('chr.cleared_again')}`,
         amount: cleared.pages || undefined, fmt: (n) => String(n), unit: cleared.pages ? t('hdr.pages') : undefined,
-        detail: t('chr.cleared_detail', { time: fmtDuration(cleared.seconds) })
+        detail: t('chr.cleared_detail', { time: fmtDuration(cleared.seconds) }) +
+          (cleared.reward ? ' ' + t('chr.reward_paid', { what: describeReward(cleared.reward) }) : '')
       });
       this.app.updateBuildingsUI?.();
     }
@@ -104,6 +116,7 @@ export class ChronicleUI {
           <div class="n">${esc(c.name)} <span class="tag run" data-run hidden>${t('chron.block.running')}</span></div>
           <div class="r">${esc(c.desc)} ${t('chr.goal', { n: fmtBig(c.goal.runAether) })}</div>
           <div class="chr-ch-rules">${describeRules(c.rules).map(chipHtml).join('')}</div>
+          <div class="chr-reward" data-reward><span class="chip gold">🏆 ${esc(t('chr.reward', { what: describeReward(c.reward) }))}</span></div>
           <div class="bar sand" data-bar hidden><i></i></div>
           <div class="best num" data-best></div>
         </div>
@@ -119,7 +132,6 @@ export class ChronicleUI {
     const cont = document.getElementById('chronicle-section');
     if (!cont || cont.dataset.built) return;
     cont.dataset.built = '1';
-    const chapter = CHAPTERS[0];
     const challenges = CHAPTERS.flatMap(ch => ch.challenges);
 
     cont.innerHTML = `
@@ -138,7 +150,10 @@ export class ChronicleUI {
           <section class="card">
             <div class="card-head"><h2>${t('chr.challenges')}</h2><span class="chr-hint">${t('chr.challenges_hint')}</span></div>
             <p class="chr-note" data-c="chNote" style="margin:0 0 var(--sp-2)"></p>
-            <div class="chr-stack">${challenges.map(c => this.challengeHtml(c)).join('')}</div>
+            <div class="chr-reward-sum" data-c="rewardSum" hidden></div>
+            ${CHAPTERS.map(ch => `
+            <h3 class="chr-chapter-h">${ch.icon} ${esc(ch.name)}</h3>
+            <div class="chr-stack">${ch.challenges.map(c => this.challengeHtml(c)).join('')}</div>`).join('')}
           </section>
           <section class="card">
             <div class="card-head"><h2>${t('hdr.pages')}</h2><span class="chr-hint num" data-c="pagesHint"></span></div>
@@ -166,7 +181,7 @@ export class ChronicleUI {
     for (const c of challenges) {
       const row = q(`[data-ch="${c.id}"]`);
       this.chEls.set(c.id, {
-        row, run: row.querySelector('[data-run]'), bar: row.querySelector('[data-bar]'), fill: row.querySelector('[data-bar] i'),
+        row, reward: row.querySelector('[data-reward]'), run: row.querySelector('[data-run]'), bar: row.querySelector('[data-bar]'), fill: row.querySelector('[data-bar] i'),
         best: row.querySelector('[data-best]'), done: row.querySelector('[data-done]'),
         start: row.querySelector('[data-start]'), abandon: row.querySelector('[data-abandon]')
       });
@@ -177,7 +192,6 @@ export class ChronicleUI {
     }
     this.setList(this.el.keeps, this.sys.getPreview().keeps);
     this.setList(this.el.resets, this.sys.getPreview().resets);
-    this.el.rules.innerHTML = describeRules(chapter.rules).map(chipHtml).join('');
 
     cont.addEventListener('click', (e) => {
       const tgt = e.target;
@@ -326,6 +340,10 @@ export class ChronicleUI {
     setText(el.eyebrow, t('chr.eyebrow', { a: ch.number, b: Math.max(4, CHAPTERS.length) }));
     setText(el.title, ch.name);
     setText(el.blurb, ch.blurb);
+    if (el.rules.dataset.ch !== ch.id) {
+      el.rules.dataset.ch = ch.id;
+      el.rules.innerHTML = describeRules(ch.rules).map(chipHtml).join('');
+    }
     let week, left, pct;
     if (!st) { week = t('chr.begins_first'); left = t('chr.weeks', { n: ch.weeks }); pct = 0; }
     else if (st.running) { week = t('chr.week_of', { a: st.week, b: ch.weeks }); left = weeksLeft(st.msLeft); pct = st.pct; }
@@ -352,6 +370,9 @@ export class ChronicleUI {
       const running = active === id;
       const done = !!rec?.done;
       refs.row.classList.toggle('run', running);
+      const paid = c.rewards?.[id] === true;
+      refs.reward.classList.toggle('paid', paid);
+      setText(refs.reward.firstElementChild, `🏆 ${t(paid ? 'chr.reward_have' : 'chr.reward', { what: describeReward(def.reward) })}`);
       refs.row.classList.toggle('done', done && !running);
       refs.row.classList.toggle('lock', !running && !!reason && !done && reason !== t('chron.block.other_running'));
       setHidden(refs.run, !running);
@@ -378,6 +399,12 @@ export class ChronicleUI {
       }
       setText(refs.best, best);
     }
+
+    // Rewards earned so far, one total per kind
+    const sum = Object.keys(REWARD_KINDS).map(kind => ({ kind, v: getChallengeRewardTotal(gs, kind) })).filter(x => x.v > 0)
+      .map(x => describeReward({ kind: x.kind }, x.v)).join(' · ');
+    setText(el.rewardSum, sum ? `🏆 ${t('chr.rewards_sum', { list: sum })}` : '');
+    setHidden(el.rewardSum, !sum);
 
     // Pages tree
     setText(el.pagesHint, t(c.pages === 1 ? 'chr.pages_hint1' : 'chr.pages_hint', { n: c.pages }));

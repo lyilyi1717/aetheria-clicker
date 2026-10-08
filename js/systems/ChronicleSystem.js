@@ -115,6 +115,23 @@ export function describeRules(rules) {
   return out;
 }
 
+// ---- Challenge rewards (R56) ---------------------------------------------------------------------
+// Each challenge pays one permanent reward on its first clear, recorded in chronicle.rewards.
+// Rewards of one kind add together (one additive category each), and none compounds:
+//   oil       +x Oil production, in the same category as Margin Notes (getPageAetherMult)
+//   offline   +x offline efficiency, added to talents and Chronos Contract (SaveManager)
+//   startGen  every run (after an Ascension) starts with this many tier-1 generators
+//   pages     +n Pages from every Chronicle (getPendingPages)
+//   dig       +x pickaxe power (MiningSystem.getPickaxePower)
+export const REWARD_KINDS = { oil: 'pct', offline: 'pct', startGen: 'count', pages: 'count', dig: 'pct' };
+
+// Player-facing text for one reward ("+10% Oil", "+1 Page from every Chronicle")
+export function describeReward(reward, value = reward?.value) {
+  if (!reward || !REWARD_KINDS[reward.kind]) return '';
+  const n = REWARD_KINDS[reward.kind] === 'pct' ? Math.round(value * 100) : value;
+  return t(`chr.reward.${reward.kind}`, { n });
+}
+
 // ---- Chapters (data) ----------------------------------------------------------------------------
 // A new Chapter is one more entry here. validateChapters() (run by the tests) checks the shape.
 // Challenge goal: run Aether (this challenge run) to reach. requires: challenges of this Chapter
@@ -127,16 +144,45 @@ export const CHAPTERS = [
     challenges: [
       { id: 'sand_dry_well', name: 'Dry Well', icon: '🧯', pages: 3, requires: 0,
         desc: 'Frenzy never starts, and Auto-tap rests.',
-        rules: { layerBonusesOff: true, noFrenzy: true, noAutoTap: true }, goal: { runAether: 1e6 } },
+        rules: { layerBonusesOff: true, noFrenzy: true, noAutoTap: true }, goal: { runAether: 1e6 },
+        reward: { kind: 'oil', value: 0.1 } },
       { id: 'sand_lights_out', name: 'Lights Out', icon: '🌑', pages: 3, requires: 0,
         desc: 'Spells can\'t be cast, and Automated Leylines rests.',
-        rules: { layerBonusesOff: true, noSpells: true }, goal: { runAether: 1e6 } },
+        rules: { layerBonusesOff: true, noSpells: true }, goal: { runAether: 1e6 },
+        reward: { kind: 'offline', value: 0.1 } },
       { id: 'sand_small_souq', name: 'Small Souq', icon: '🐪', pages: 4, requires: 1,
         desc: 'Only the first 6 generators open.',
-        rules: { layerBonusesOff: true, maxTiers: 6 }, goal: { runAether: 1e5 } },
+        rules: { layerBonusesOff: true, maxTiers: 6 }, goal: { runAether: 1e5 },
+        reward: { kind: 'startGen', value: 10 } },
       { id: 'sand_sandstorm', name: 'Sandstorm', icon: '🌪️', pages: 5, requires: 3,
         desc: 'The storm takes nine tenths of all Oil.',
-        rules: { layerBonusesOff: true, aetherMult: 0.1 }, goal: { runAether: 1e5 } }
+        rules: { layerBonusesOff: true, aetherMult: 0.1 }, goal: { runAether: 1e5 },
+        reward: { kind: 'pages', value: 1 } }
+    ]
+  },
+  {
+    // Chapter 2 (R56). Its world rule only touches the dig, and its stamp pays no Pages: a stamp
+    // lands inside the core sim's year, which plays no challenges and must not move (§6.6).
+    id: 'salt', number: 2, name: 'Chapter of Salt', icon: '🧂', weeks: 10, stampPages: 0,
+    blurb: 'The salt flats are soft ground: for ten weeks the dig hits twice as hard. Four new challenges, each harder than the last, stay open after the Chapter ends.',
+    rules: { excavationMult: 2 },
+    challenges: [
+      { id: 'salt_still_water', name: 'Still Water', icon: '🫗', pages: 4, requires: 0,
+        desc: 'Auto-tap rests, and spells can\'t be cast.',
+        rules: { layerBonusesOff: true, noAutoTap: true, noSpells: true }, goal: { runAether: 3e6 },
+        reward: { kind: 'dig', value: 0.25 } },
+      { id: 'salt_dark_flats', name: 'Dark Flats', icon: '🌘', pages: 4, requires: 0,
+        desc: 'No spells, and only the first 8 generators open.',
+        rules: { layerBonusesOff: true, noSpells: true, maxTiers: 8 }, goal: { runAether: 2e6 },
+        reward: { kind: 'oil', value: 0.1 } },
+      { id: 'salt_caravan', name: 'Narrow Caravan', icon: '🐫', pages: 5, requires: 1,
+        desc: 'Only the first 5 generators open, and they pay half.',
+        rules: { layerBonusesOff: true, maxTiers: 5, aetherMult: 0.5 }, goal: { runAether: 1e5 },
+        reward: { kind: 'offline', value: 0.1 } },
+      { id: 'salt_dead_sea', name: 'Dead Sea', icon: '🌊', pages: 6, requires: 3,
+        desc: 'Nine tenths of all Oil sinks, Frenzy never starts, and Auto-tap rests.',
+        rules: { layerBonusesOff: true, aetherMult: 0.1, noFrenzy: true, noAutoTap: true }, goal: { runAether: 1e5 },
+        reward: { kind: 'oil', value: 0.15 } }
     ]
   }
 ];
@@ -193,6 +239,12 @@ export function validateChapters(chapters = CHAPTERS) {
       checkRules(cw, c.rules);
       const g = c.goal?.runAether;
       if (!(typeof g === 'number' && Number.isFinite(g) && g >= 1e4)) errs.push(`${cw}: goal.runAether must be a number >= 1e4`);
+      const rw = c.reward;
+      const rk = REWARD_KINDS[rw?.kind];
+      if (!rk) errs.push(`${cw}: reward.kind must be one of ${Object.keys(REWARD_KINDS).join(', ')}`);
+      else if (!(typeof rw.value === 'number' && rw.value > 0 && (rk === 'pct' ? rw.value <= 0.5 : Number.isInteger(rw.value)))) {
+        errs.push(`${cw}: reward.value must be a positive ${rk === 'pct' ? 'fraction up to 0.5' : 'whole number'}`);
+      }
     });
     // At least one challenge must be open from the start
     if (!ch.challenges.some(c => c.requires === 0)) errs.push(`${w}: no challenge is open from the start`);
@@ -215,7 +267,8 @@ export function defaultChronicleState() {
     chapter: null,        // { id, startedAt } of the current Chapter, null before Chronicle I
     stamps: {},           // chapter id -> true once its weeks have passed
     challenges: {},       // challenge id -> { done, best (s), clears }
-    active: null,         // running challenge: { id, startedAt, stash }
+    rewards: {},          // challenge id -> true once its permanent reward is paid (R56)
+    active: null,        // running challenge: { id, startedAt, stash }
     lastChronicleAt: 0
   };
 }
@@ -270,6 +323,17 @@ export function sanitizeChronicleState(raw) {
       s.challenges[id] = { done: r.done === true, best: Number.isFinite(best) && best > 0 ? best : null, clears: nonNegInt(r.clears) };
     }
   }
+  // Rewards (R56): kept for known challenges, and every cleared challenge has its reward. A save
+  // from before R56 (no rewards field) gets the rewards of its old clears here, once: they are
+  // recorded, so the next load finds them paid. The ids are queued for one toast (takeRewardBackfill).
+  if (raw.rewards && typeof raw.rewards === 'object') {
+    for (const id of Object.keys(raw.rewards)) if (raw.rewards[id] === true && CHALLENGE_BY_ID.has(id)) s.rewards[id] = true;
+  }
+  const backfill = [];
+  for (const [id, r] of Object.entries(s.challenges)) {
+    if (r.done && !s.rewards[id]) { s.rewards[id] = true; backfill.push(id); }
+  }
+  rewardBackfill = backfill;
   if (raw.active && typeof raw.active === 'object') {
     const stash = sanitizeStash(raw.active.stash);
     if (stash) {
@@ -279,6 +343,15 @@ export function sanitizeChronicleState(raw) {
   }
   s.lastChronicleAt = posTime(raw.lastChronicleAt);
   return s;
+}
+
+// Challenge ids whose rewards the last sanitizeChronicleState backfilled; the UI reads and clears
+// it once after load to toast them
+let rewardBackfill = [];
+export function takeRewardBackfill() {
+  const out = rewardBackfill;
+  rewardBackfill = [];
+  return out;
 }
 
 function stateOf(gs) {
@@ -346,11 +419,33 @@ export function getClearedCount(gs) {
 
 function pagesEarned(gs) { return nonNegInt(gs?.chronicle?.totalPages); }
 
-// +20% Aether per Page ever earned, x(1 + 0.25 per clear) with Margin Notes
+// Sum of the paid challenge rewards of one kind (R56; 0 before any clear)
+export function getChallengeRewardTotal(gs, kind) {
+  let sum = 0;
+  for (const id of Object.keys(gs?.chronicle?.rewards || {})) {
+    const r = gs.chronicle.rewards[id] === true ? getChallenge(id)?.reward : null;
+    if (r && r.kind === kind) sum += r.value;
+  }
+  return sum;
+}
+
+// Challenge category: Margin Notes (+25% per clear) and the Oil rewards (R56) add together
+export function getChallengeAetherBonus(gs) {
+  return (hasPageUpgrade(gs, 'margin_notes') ? MARGIN_NOTES_PER_CLEAR * getClearedCount(gs) : 0) + getChallengeRewardTotal(gs, 'oil');
+}
+
+// +20% Aether per Page ever earned, x(1 + the challenge category)
 export function getPageAetherMult(gs) {
-  let m = pageAetherMultFor(pagesEarned(gs));
-  if (hasPageUpgrade(gs, 'margin_notes')) m = m.mul(1 + MARGIN_NOTES_PER_CLEAR * getClearedCount(gs));
-  return m;
+  const m = pageAetherMultFor(pagesEarned(gs));
+  const bonus = getChallengeAetherBonus(gs);
+  return bonus > 0 ? m.mul(1 + bonus) : m;
+}
+
+// Tier-1 generators a fresh run starts with (R56 reward; PrestigeSystem.ascend calls this)
+export function applyChallengeRunStart(gs) {
+  const n = getChallengeRewardTotal(gs, 'startGen');
+  const b = gs?.buildings?.tapper;
+  if (n > 0 && b) b.count = Math.max(b.count || 0, n);
 }
 
 // ---- Gate ---------------------------------------------------------------------------------------
@@ -384,7 +479,7 @@ export function getPendingPages(gs, transcends = gs?.transcendenceCount || 0) {
   const t = nonNegInt(transcends);
   if (t < CHRONICLE_TRANSCEND_GATE) return 0;
   return CHRONICLE_BASE_PAGES + Math.floor((t - CHRONICLE_TRANSCEND_GATE) / CHRONICLE_PAGES_STEP) +
-    (hasPageUpgrade(gs, 'gilded_edges') ? GILDED_EXTRA_PAGES : 0);
+    (hasPageUpgrade(gs, 'gilded_edges') ? GILDED_EXTRA_PAGES : 0) + getChallengeRewardTotal(gs, 'pages');
 }
 
 // Why a Chronicle can't begin now (null = it can)
@@ -604,7 +699,7 @@ export class ChronicleSystem {
     return { challenge: ch, goal, have, pct: Math.max(0, Math.min(1, have.div(goal).toNumber())), done: have.gte(goal) };
   }
 
-  // Completes the running challenge if its goal is met. Returns { challenge, pages, seconds, first, best } or null.
+  // Completes the running challenge if its goal is met. Returns { challenge, pages, seconds, first, best, reward } or null.
   checkChallenge(now = this.now()) {
     const p = this.getChallengeProgress();
     if (!p || !p.done) return null;
@@ -623,8 +718,14 @@ export class ChronicleSystem {
     rec.done = true;
     rec.clears++;
     if (best) rec.best = seconds;
+    // Permanent reward, paid once (R56)
+    let reward = null;
+    if (!c.rewards) c.rewards = {};
+    if (!c.rewards[ch.id]) { c.rewards[ch.id] = true; reward = ch.reward; }
     restoreStash(this.gameState);
-    return { challenge: ch, pages, seconds, first, best };
+    // A startGen reward also tops up the restored run's tier-1 generators
+    if (reward?.kind === 'startGen') applyChallengeRunStart(this.gameState);
+    return { challenge: ch, pages, seconds, first, best, reward };
   }
 
   // Once per frame/second: Chapter turnover and challenge goal
