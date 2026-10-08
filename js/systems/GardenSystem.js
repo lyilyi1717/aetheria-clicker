@@ -23,7 +23,7 @@ export const WATER_COOLDOWN = 60;
 
 // R59: a Dewdrop tap pays this many seconds of net production (was 1; a plain click pays 0.5)
 export const DEWDROP_CPS_SECONDS = 0.25;
-export const TAP_GROWTH_FRACTION = 0.02;   // of a plot's grow time per tap (was 0.05)
+export const TAP_GROWTH_FRACTION = 0.05;   // of a plot's grow time per tap (owner decision: keep 5%)
 
 // Garden Golems (§5.6): golem k automates row k (plots 4k..4k+3)
 export const MAX_GOLEMS = 4;
