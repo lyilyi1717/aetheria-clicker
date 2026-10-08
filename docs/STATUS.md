@@ -10,6 +10,10 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
+- Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: R58 #156, R59 #157,
+  R63 #161 in progress. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
+  economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
+
 - Wave 9, run by the R31 coordinator session: R57 #139 in progress (also takes on the
   attunement pacing below).
 
@@ -83,6 +87,14 @@ R0–R30, R32–R40 and R41 are done.
 | 9 | R55 Ascension attunements | #129 | R31, R52 |
 | 9 | R56 Challenge rewards and Chapter 2 | #130 | R31 |
 | 9 | R57 Tame the late-year Chronicle/Page loop | #139 | R52, R56 |
+| 10 | R58 Shatter damages tiles, not breaks them | #156 | – |
+| 10 | R59 Garden taps share the click cap; Dewdrop crash | #157 | R52 |
+| 10 | R60 Nectar Surge only on hand harvests | #158 | R59 |
+| 10 | R61 Minimum Ascension run; honest sim cadence | #159 | R57 |
+| 10 | R62 Super-Crits and mining shockwave never trigger | #160 | R58 |
+| 10 | R63 Tower gear base 1.105 | #161 | R8, R34 |
+| 10 | R64 Gear bag, rare finds, re-temper | #162 | R63 |
+| 10 | R65 Mythics, Barakah meter, boss telegraphs | #163 | R64 |
 
 ## Done
 
