@@ -161,6 +161,9 @@ export function getPickaxeIcon(level) {
   return PICKAXE_ICONS[index];
 }
 
+// Shatter proc: damage multiplier on the pickaxe hit (it used to break the tile outright)
+export const SHATTER_DAMAGE_MULT = 10;
+
 export class MiningSystem {
   constructor(gameState) {
     this.gameState = gameState;
@@ -604,6 +607,7 @@ export class MiningSystem {
     if (!silent) sound.playDig();
 
     const isManual = clientX !== undefined || clientY !== undefined;
+    let shatterMult = 1;
 
     if (isManual) {
       // Rapid digging streak activates Excavation Frenzy
@@ -625,17 +629,15 @@ export class MiningSystem {
         if (clientX && clientY) particles.spawnClickSparks(clientX, clientY, 8, '#fbbf24');
       }
 
-      // 1-Hit Shatter (Seismic Fracture) check
+      // Shatter (Seismic Fracture): a proc hits for x10 pickaxe damage. It is a damage
+      // multiplier on tile HP, never an instant break, so the depth curve keeps its pacing.
       if (this.random() < this.getShatterChance()) {
+        shatterMult = SHATTER_DAMAGE_MULT;
         if (!silent) sound.playShatter();
         if (clientX && clientY) {
           particles.spawnDebris(clientX, clientY, 14, '#38bdf8');
           particles.spawnFloatingText(clientX, clientY, t('mine.fx.shatter'), '#38bdf8', true);
         }
-        block.hp = 0;
-        block.revealed = true;
-        this.revealReward(block, clientX, clientY);
-        return;
       }
 
       // Quarry Cleave (chance to hit side blocks)
@@ -701,6 +703,8 @@ export class MiningSystem {
       label = '⚡ SUPER CRIT! ';
       this.triggerMiningShockwave(index, Math.max(1, Math.floor(power * 0.3)));
     }
+
+    power = Math.floor(power * shatterMult);
 
     feedback.fire(critTier > 0 ? 1 : 0, {
       kind: 'dig-hit', at: { x: clientX, y: clientY }, sound: critTier > 0 && !silent ? 'crit' : false,

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
-import { MiningSystem, compressDepth, getPickaxeName, MINING_SCHEMA, EXPLOSIVE_HITS,
+import { MiningSystem, compressDepth, getPickaxeName, MINING_SCHEMA, EXPLOSIVE_HITS, SHATTER_DAMAGE_MULT,
   STRATA_RELICS, RELIC_CHANCE, RELIC_PITY, AETHER_ORE_CHANCE } from './js/systems/MiningSystem.js';
 import { MarketSystem } from './js/systems/MarketSystem.js';
 import { AlchemySystem, GEM_LADDER, POLISH_RATIO } from './js/systems/AlchemySystem.js';
@@ -387,17 +387,30 @@ console.log('--- Excavation Abilities, Workshop & Machinery ---');
   assert.equal(g.miningGrid.seismicRigs, 1);
   assert.equal(g.inventory.sapphires, 6);
 
-  // 1-Hit Shatter execution
+  // Shatter is x10 damage on tile HP, never an instant break (R58)
   m.generateNewGrid();
   m.descending = false;
   const testTile = g.miningGrid.blocks[0];
   testTile.content = 'stone';
-  testTile.hp = 1000;
-  testTile.maxHp = 1000;
-  m.random = () => 0.001; // definitely passes shatter check (chance >= 0.02)
+  testTile.hp = 1e12;
+  testTile.maxHp = 1e12;
+  const shatterPower = m.getPickaxePower();
+  m.random = () => 0.001; // passes the shatter check (chance >= 0.02)
   m.mineBlock(0, 100, 100);
-  assert.equal(testTile.revealed, true);
-  assert.equal(testTile.hp, 0);
+  assert.equal(testTile.revealed, false, 'Shatter must not break a tile outright');
+  assert.ok(testTile.maxHp - testTile.hp >= shatterPower * SHATTER_DAMAGE_MULT, 'Shatter deals x10 pickaxe damage');
+  // a tile with HP below the hit still breaks, through damage
+  const weakTile = g.miningGrid.blocks[2];
+  weakTile.content = 'stone';
+  weakTile.hp = 1;
+  weakTile.maxHp = 1;
+  m.mineBlock(2, 100, 100);
+  assert.equal(weakTile.revealed, true);
+  // the same random roll with Shatter off (level 0 chance 2%, roll 0.5) does less damage
+  testTile.hp = 1e12;
+  m.random = () => 0.5;
+  m.mineBlock(0, 100, 100);
+  assert.ok(testTile.maxHp - testTile.hp < shatterPower * SHATTER_DAMAGE_MULT);
 
   // Manual Dig Streak activates Frenzy
   m.frenzyTimer = 0;
