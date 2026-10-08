@@ -10,8 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: R58 #156, R60 #158,
-  R64 #162 in progress. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
+- Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: R62 #160 and
+  R64 #162 in progress (R64 also removes Monster Bones and R34 gear levels, owner scope add). From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
 
 - Wave 9, run by the R31 coordinator session: R57 #139 in progress (also takes on the
@@ -21,9 +21,9 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 R0–R30, R32–R40, R41 and R42 are done.
 
-- Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
-  enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
-  `accepted`, `wontfix`, `duplicate` (PR #97). Game title after the oil re-theme (question in #23).
+- Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
+  re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
+  `leaderboard_registered.sql` applied to the live project (0 guest rows deleted); repo labels exist.
 
 ## Plan
 
@@ -95,8 +95,21 @@ R0–R30, R32–R40, R41 and R42 are done.
 | 10 | R63 Tower gear base 1.105 | #161 | R8, R34 |
 | 10 | R64 Gear bag, rare finds, re-temper | #162 | R63 |
 | 10 | R65 Mythics, Barakah meter, boss telegraphs | #163 | R64 |
+| 10 | R66 Garden tap growth back to 5% (owner decision) | #172 | R59 |
 
 ## Done
+
+- R58 #156 (PR #171, v5.17.1): Shatter is x10 pickaxe damage, no instant break
+  (`SHATTER_DAMAGE_MULT`). `sim/mining-pacing.mjs` taps through the manual path (active 5/s,
+  casual 1.5/s) and asserts the depth band (day 7 80-190, day 30 110-260, day 60 130-280); active
+  depth day 7/30/60 went 247/909/1777 -> 116/153/171. The sim takes ~9 min. Mining taps don't yet
+  spend from the R52 paid-tap bucket (candidate follow-up).
+- R60 #158 (PR #169, v5.15.0): Nectar Surge pays on hand harvests only (`harvestPlot(..., auto)`,
+  Golems/offline pass `auto`). `sim:check` now also runs `sim/garden-tap.mjs --assert` (Golems
+  x1.01 cap, offline 0 Oil).
+- R66 #172 (PR #173, v5.17.2): owner decision, tap growth back to 5%; tap uplift ~+x5 under the owner
+  ceiling `TAP_UPLIFT_CEILING` x5.5 (designed envelope x2.89 kept for reference). Hand-harvest
+  Garden x3.42 over generators is accepted by the owner.
 
 - R59 #157 (PR #165, v5.13.0): Garden taps share the R52 paid-click bucket
   (`ClickerSystem.spendPaidTap()`), Dewdrop pays 0.25 s, tap growth 2% of grow time (was 5%; needed
@@ -383,6 +396,10 @@ R0–R30, R32–R40, R41 and R42 are done.
   - Polish & Bug Fixes: Suppressed Tower combat particles/floats when combat tab is hidden; hid Mana from header until Grimoire is unlocked; isolated Arabic unlock teaser fractions so they read left-to-right (`0/10`); stabilized `test_r52_clicks.js` timing race.
 
 ## Noticed (not yet an issue)
+
+- Never use `git stash` in this repo: the stack is shared by every worktree and other tools; an
+  agent popped another tool's art work into the wrong worktree on 2026-10-08.
+- Owner: Arabic text doesn't need owner review; don't ask for it in PRs.
 
 - Untapped Garden is ~x3.42 of generator output from Nectar Surge on hand harvests (R60's area).
 - Tower 1 h floor is ~65% of target (97 vs 149); starting-kit tuning could fix it.
