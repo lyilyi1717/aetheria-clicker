@@ -139,6 +139,11 @@ export class MiningSystem {
     this.gameState = gameState;
     this.gridSize = 6;
     this.autoDrillTimer = 0;
+    this.steamDrillTimer = 0;
+    this.seismicTimer = 0;
+    this.digStreak = 0;
+    this.digStreakTimer = 0;
+    this.frenzyTimer = 0;
     this.drillTargetId = -1;
     this.descending = false; // stairs found, new grid pending
     this.descendTimer = 0;
@@ -157,7 +162,124 @@ export class MiningSystem {
     grid.relicPity = Number.isFinite(pity) && pity > 0 ? Math.floor(pity) : 0;
     const ore = Number(grid.oreFound);
     grid.oreFound = Number.isFinite(ore) && ore > 0 ? Math.floor(ore) : 0;
+    this.ensureSkillState();
     return grid;
+  }
+
+  ensureSkillState() {
+    const grid = this.gameState.miningGrid;
+    if (!grid) return null;
+    if (!grid.skills || typeof grid.skills !== 'object') {
+      grid.skills = { shatter: 0, chain: 0, cleave: 0, frenzy: 0 };
+    } else {
+      grid.skills.shatter = Math.max(0, Math.floor(Number(grid.skills.shatter) || 0));
+      grid.skills.chain = Math.max(0, Math.floor(Number(grid.skills.chain) || 0));
+      grid.skills.cleave = Math.max(0, Math.floor(Number(grid.skills.cleave) || 0));
+      grid.skills.frenzy = Math.max(0, Math.floor(Number(grid.skills.frenzy) || 0));
+    }
+    const steam = Number(grid.steamDrills);
+    grid.steamDrills = Number.isFinite(steam) && steam > 0 ? Math.floor(steam) : 0;
+    const seismic = Number(grid.seismicRigs);
+    grid.seismicRigs = Number.isFinite(seismic) && seismic > 0 ? Math.floor(seismic) : 0;
+    return grid;
+  }
+
+  // Skills (Stone Workshop)
+  getShatterChance() {
+    const lv = this.ensureSkillState()?.skills?.shatter || 0;
+    return Math.round((0.02 + lv * 0.01) * 1000) / 1000; // 2% up to 10%
+  }
+
+  getChainChance() {
+    const lv = this.ensureSkillState()?.skills?.chain || 0;
+    return Math.round((0.05 + lv * 0.025) * 1000) / 1000; // 5% up to 25%
+  }
+
+  getCleaveChance() {
+    const lv = this.ensureSkillState()?.skills?.cleave || 0;
+    return Math.round((0.10 + lv * 0.035) * 1000) / 1000; // 10% up to 38%
+  }
+
+  getFrenzyDuration() {
+    const lv = this.ensureSkillState()?.skills?.frenzy || 0;
+    return 6.0 + lv * 1.0; // 6s up to 14s
+  }
+
+  isFrenzyActive() {
+    return this.frenzyTimer > 0;
+  }
+
+  getSkillCost(skillId) {
+    const grid = this.ensureSkillState();
+    const lv = grid?.skills?.[skillId] || 0;
+    if (lv >= 8) return Infinity;
+    switch (skillId) {
+      case 'shatter': return Math.ceil(150 * Math.pow(2.0, lv));
+      case 'chain': return Math.ceil(200 * Math.pow(2.0, lv));
+      case 'cleave': return Math.ceil(120 * Math.pow(1.9, lv));
+      case 'frenzy': return Math.ceil(250 * Math.pow(2.0, lv));
+      default: return Infinity;
+    }
+  }
+
+  upgradeSkill(skillId) {
+    const grid = this.ensureSkillState();
+    if (!grid?.skills || grid.skills[skillId] >= 8) return false;
+    const cost = this.getSkillCost(skillId);
+    if ((this.gameState.inventory.stone || 0) >= cost) {
+      this.gameState.inventory.stone -= cost;
+      grid.skills[skillId] = (grid.skills[skillId] || 0) + 1;
+      sound.playBuy();
+      return true;
+    }
+    return false;
+  }
+
+  // Advanced Machinery
+  getSteamDrillCost() {
+    const grid = this.ensureSkillState();
+    const n = grid?.steamDrills || 0;
+    return {
+      stone: Math.ceil(500 * Math.pow(1.7, n)),
+      rubies: Math.min(50, 3 + n * 2)
+    };
+  }
+
+  buySteamDrill() {
+    const grid = this.ensureSkillState();
+    const cost = this.getSteamDrillCost();
+    const inv = this.gameState.inventory;
+    if ((inv.stone || 0) >= cost.stone && (inv.rubies || 0) >= cost.rubies) {
+      inv.stone -= cost.stone;
+      inv.rubies -= cost.rubies;
+      grid.steamDrills = (grid.steamDrills || 0) + 1;
+      sound.playBuy();
+      return true;
+    }
+    return false;
+  }
+
+  getSeismicRigCost() {
+    const grid = this.ensureSkillState();
+    const n = grid?.seismicRigs || 0;
+    return {
+      stone: Math.ceil(2000 * Math.pow(1.8, n)),
+      sapphires: Math.min(50, 4 + n * 2)
+    };
+  }
+
+  buySeismicRig() {
+    const grid = this.ensureSkillState();
+    const cost = this.getSeismicRigCost();
+    const inv = this.gameState.inventory;
+    if ((inv.stone || 0) >= cost.stone && (inv.sapphires || 0) >= cost.sapphires) {
+      inv.stone -= cost.stone;
+      inv.sapphires -= cost.sapphires;
+      grid.seismicRigs = (grid.seismicRigs || 0) + 1;
+      sound.playBuy();
+      return true;
+    }
+    return false;
   }
 
   hasRelic(index) {
@@ -234,6 +356,9 @@ export class MiningSystem {
         maxDepth: 1,
         pickaxeTier: 0,
         autoDrills: 0,
+        steamDrills: 0,
+        seismicRigs: 0,
+        skills: { shatter: 0, chain: 0, cleave: 0, frenzy: 0 },
         dynamiteCooldown: 0,
         relics: {},
         relicPity: 0,
@@ -244,6 +369,7 @@ export class MiningSystem {
       return;
     }
     this.ensureRelicState();
+    this.ensureSkillState();
     const grid = this.gameState.miningGrid;
     const cd = Number(grid.dynamiteCooldown);
     grid.dynamiteCooldown = Number.isFinite(cd) ? Math.max(0, Math.min(DYNAMITE_COOLDOWN, cd)) : 0;
@@ -353,18 +479,20 @@ export class MiningSystem {
       if (i === stairIndex) {
         content = 'stairs';
       } else if (rand < 0.03) {
+        content = 'bomb';
+      } else if (rand < 0.06) {
         content = 'geode_pocket';
-      } else if (rand < 0.04 + extra) {
+      } else if (rand < 0.07 + extra) {
         content = 'voidAmethyst';
-      } else if (rand < 0.10 + extra) {
+      } else if (rand < 0.13 + extra) {
         content = 'diamond';
-      } else if (rand < 0.20 + extra) {
+      } else if (rand < 0.23 + extra) {
         content = 'emerald';
-      } else if (rand < 0.32 + extra) {
+      } else if (rand < 0.35 + extra) {
         content = 'sapphire';
-      } else if (rand < 0.45 + extra) {
+      } else if (rand < 0.48 + extra) {
         content = 'ruby';
-      } else if (rand < 0.55 + extra) {
+      } else if (rand < 0.58 + extra) {
         content = 'gold_cache';
       }
 
@@ -448,8 +576,85 @@ export class MiningSystem {
     let power = this.getPickaxePower();
     if (!silent) sound.playDig();
 
-    // Mining Crit System applies to manual player clicks (Base 10% + half of player's crit chance)
     const isManual = clientX !== undefined || clientY !== undefined;
+
+    if (isManual) {
+      // Rapid digging streak activates Excavation Frenzy
+      this.digStreakTimer = 1.4;
+      this.digStreak = (this.digStreak || 0) + 1;
+      if (this.digStreak >= 7 && this.frenzyTimer <= 0) {
+        this.frenzyTimer = this.getFrenzyDuration();
+        this.digStreak = 0;
+        sound.playFrenzyTrigger();
+        if (clientX && clientY) {
+          particles.spawnFloatingText(clientX, clientY, t('mine.fx.frenzy'), '#fbbf24', true);
+          particles.spawnClickSparks(clientX, clientY, 20, '#fbbf24');
+        }
+      }
+
+      // Frenzy doubles manual digging power
+      if (this.frenzyTimer > 0) {
+        power = Math.floor(power * 2);
+        if (clientX && clientY) particles.spawnClickSparks(clientX, clientY, 8, '#fbbf24');
+      }
+
+      // 1-Hit Shatter (Seismic Fracture) check
+      if (this.random() < this.getShatterChance()) {
+        if (!silent) sound.playShatter();
+        if (clientX && clientY) {
+          particles.spawnDebris(clientX, clientY, 14, '#38bdf8');
+          particles.spawnFloatingText(clientX, clientY, t('mine.fx.shatter'), '#38bdf8', true);
+        }
+        block.hp = 0;
+        block.revealed = true;
+        this.revealReward(block, clientX, clientY);
+        return;
+      }
+
+      // Quarry Cleave (chance to hit side blocks)
+      if (this.random() < this.getCleaveChance()) {
+        const col = index % this.gridSize;
+        const leftIdx = col > 0 ? index - 1 : -1;
+        const rightIdx = col < this.gridSize - 1 ? index + 1 : -1;
+        const cleaveDmg = Math.max(1, Math.floor(power * 0.5));
+        for (const sideIdx of [leftIdx, rightIdx]) {
+          if (sideIdx >= 0) {
+            const sideBlock = this.gameState.miningGrid.blocks[sideIdx];
+            if (sideBlock && !sideBlock.revealed) {
+              const pos = tileScreenPos(sideIdx);
+              if (pos) particles.spawnDebris(pos.x, pos.y, 4, '#94a3b8');
+              this.damageBlock(sideBlock, cleaveDmg, pos?.x, pos?.y);
+            }
+          }
+        }
+        if (clientX && clientY) {
+          particles.spawnFloatingText(clientX, clientY - 14, t('mine.fx.cleave'), '#38bdf8');
+        }
+      }
+
+      // Arc Conduction (Chain Lightning)
+      if (this.random() < this.getChainChance()) {
+        const unrevealed = this.gameState.miningGrid.blocks.filter(b => !b.revealed && b.id !== index);
+        if (unrevealed.length > 0) {
+          const count = Math.min(unrevealed.length, 2 + Math.floor(this.random() * 3)); // 2 to 4
+          const targets = [...unrevealed].sort(() => this.random() - 0.5).slice(0, count);
+          const chainDmg = Math.max(1, Math.floor(power * 0.6));
+          sound.playLightning();
+          for (const target of targets) {
+            const pos = tileScreenPos(target.id);
+            if (clientX && clientY && pos) {
+              particles.spawnLightningArc(clientX, clientY, pos.x, pos.y, '#38bdf8');
+            }
+            this.damageBlock(target, chainDmg, pos?.x, pos?.y);
+          }
+          if (clientX && clientY) {
+            particles.spawnFloatingText(clientX, clientY + 14, t('mine.fx.chain'), '#38bdf8');
+          }
+        }
+      }
+    }
+
+    // Mining Crit System applies to manual player clicks (Base 10% + half of player's crit chance)
     const critChance = isManual ? (0.10 + (this.gameState.critChance || 0) * 0.5) : 0;
     const critTier = resolveCritTier(critChance);
 
@@ -479,6 +684,7 @@ export class MiningSystem {
   damageBlock(block, amount, x, y) {
     if (!block || block.revealed) return false;
     block.hp = Math.max(0, block.hp - amount);
+    if (x && y) particles.spawnDebris(x, y, 4, '#94a3b8');
     if (block.hp > 0) return false;
     block.revealed = true;
     this.revealReward(block, x, y);
@@ -513,6 +719,19 @@ export class MiningSystem {
     // Every broken tile (stairs included) rolls for a Strata Relic, before the stairs move
     // the depth on
     this.rollRelic(x, y);
+
+    if (block.content === 'bomb') {
+      sound.playExplosion();
+      if (x && y) {
+        particles.spawnDebris(x, y, 18, '#ef4444');
+        particles.spawnClickSparks(x, y, 16, '#f97316');
+        particles.spawnFloatingText(x, y, t('mine.fx.bomb'), '#ef4444', true);
+      }
+      const area = getBlastArea(block.id, this.gridSize);
+      const targets = area.filter(i => i !== block.id).map(i => grid.blocks[i]).filter(b => b && !b.revealed);
+      this.blastBlocks(targets, x, y, area);
+      return;
+    }
 
     if (block.content === 'stairs') {
       sound.playAchievement();
@@ -684,11 +903,22 @@ export class MiningSystem {
       this.useDynamite({ auto: true });
     }
 
+    // Decay manual dig streak and frenzy duration
+    if (this.digStreakTimer > 0) {
+      this.digStreakTimer -= dt;
+      if (this.digStreakTimer <= 0) this.digStreak = 0;
+    }
+    if (this.frenzyTimer > 0) {
+      this.frenzyTimer = Math.max(0, this.frenzyTimer - dt);
+    }
+
     // Leyline Overflow: drills run x1.25 while mana is full
     const timeProgress = dt * (this.gameState.getLeylineDrillMult?.() || 1);
+    const grid = this.gameState.miningGrid;
+    if (!grid) return;
 
     // Auto-drill mining (B2): accumulate fractional hits and carry the remainder.
-    const drills = this.gameState.miningGrid.autoDrills;
+    const drills = grid.autoDrills || 0;
     if (drills > 0) {
       this.autoDrillTimer += timeProgress * DRILL_HITS_PER_SEC * drills;
       let hits = 0;
@@ -701,6 +931,56 @@ export class MiningSystem {
       }
       // Keep a bounded backlog (e.g. while the next grid is generating).
       this.autoDrillTimer = Math.min(this.autoDrillTimer, MAX_DRILL_HITS_PER_TICK);
+    }
+
+    // Steam Jackhammer: 2.0 hits/s each, targets lowest HP unrevealed tile
+    const steam = grid.steamDrills || 0;
+    if (steam > 0 && !this.descending && grid.blocks) {
+      this.steamDrillTimer += timeProgress * 2.0 * steam;
+      let sHits = 0;
+      while (this.steamDrillTimer >= 1 && sHits < MAX_DRILL_HITS_PER_TICK && !this.descending) {
+        const unrevealed = grid.blocks.filter(b => !b.revealed);
+        if (unrevealed.length === 0) break;
+        let lowest = unrevealed[0];
+        for (let i = 1; i < unrevealed.length; i++) {
+          if (unrevealed[i].hp < lowest.hp) lowest = unrevealed[i];
+        }
+        this.steamDrillTimer -= 1;
+        sHits++;
+        this.mineBlock(lowest.id, undefined, undefined, true);
+      }
+      this.steamDrillTimer = Math.min(this.steamDrillTimer, MAX_DRILL_HITS_PER_TICK);
+    }
+
+    // Seismic Pulverizer: shockwave across a row every (8.0 - 0.5 * rigs) seconds (min 2.5s)
+    const seismic = grid.seismicRigs || 0;
+    if (seismic > 0 && !this.descending && grid.blocks) {
+      const cd = Math.max(2.5, 8.0 - seismic * 0.5);
+      this.seismicTimer += timeProgress;
+      if (this.seismicTimer >= cd) {
+        this.seismicTimer = 0;
+        const unrevealed = grid.blocks.filter(b => !b.revealed);
+        if (unrevealed.length > 0) {
+          const rows = [...new Set(unrevealed.map(b => Math.floor(b.id / this.gridSize)))];
+          const targetRow = rows[Math.floor(this.random() * rows.length)];
+          const rowBlocks = [];
+          const rowIds = [];
+          for (let c = 0; c < this.gridSize; c++) {
+            const id = targetRow * this.gridSize + c;
+            rowIds.push(id);
+            const b = grid.blocks[id];
+            if (b && !b.revealed) rowBlocks.push(b);
+          }
+          flashTiles(rowIds);
+          sound.playHit();
+          const dmg = Math.max(1, Math.floor(this.getPickaxePower() * 1.5));
+          for (const b of rowBlocks) {
+            const pos = tileScreenPos(b.id);
+            if (pos) particles.spawnClickSparks(pos.x, pos.y, 6, '#eab308');
+            this.damageBlock(b, dmg, pos?.x, pos?.y);
+          }
+        }
+      }
     }
   }
 }

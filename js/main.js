@@ -484,6 +484,10 @@ class AetheriaApp {
         if (tile) {
           const idx = parseInt(tile.dataset.index, 10);
           sound.ensureContext();
+          tile.classList.remove('tile-hit');
+          void tile.offsetWidth;
+          tile.classList.add('tile-hit');
+          setTimeout(() => tile.classList.remove('tile-hit'), 140);
           this.miningSystem.mineBlock(idx, e.clientX, e.clientY);
           this.updateMiningUI();
         }
@@ -499,7 +503,10 @@ class AetheriaApp {
         sound.ensureContext();
         if (btn.id === 'btn-upgrade-pick') this.miningSystem.upgradePickaxe();
         else if (btn.id === 'btn-buy-drill') this.miningSystem.buyAutoDrill();
+        else if (btn.id === 'btn-buy-steam-jack') this.miningSystem.buySteamDrill();
+        else if (btn.id === 'btn-buy-seismic-rig') this.miningSystem.buySeismicRig();
         else if (btn.id === 'btn-mining-dynamite') this.miningSystem.useDynamite();
+        else if (btn.dataset.skill) this.miningSystem.upgradeSkill(btn.dataset.skill);
         else return;
         this.updateMiningUI();
       });
@@ -941,52 +948,115 @@ class AetheriaApp {
             <div>
               <div>${t('mine.pickaxe_line')}</div>
               <div>${t('mine.drills_line')}</div>
+              <div>${t('mine.jackhammer_line')}</div>
+              <div>${t('mine.seismic_line')}</div>
               <div class="mining-stats-line">${t('mine.stats_line')}</div>
             </div>
           </div>
           <div class="mining-btn-group">
             <button id="btn-upgrade-pick" class="btn-action"></button>
             <button id="btn-buy-drill" class="btn-action"></button>
+            <button id="btn-buy-steam-jack" class="btn-action"></button>
+            <button id="btn-buy-seismic-rig" class="btn-action"></button>
             <button id="btn-mining-dynamite" class="btn-action"></button>
+          </div>
+          <div style="margin-top: 0.75rem;">
+            <h4 style="font-size: 0.85rem; margin-bottom: 0.35rem; color: var(--accent-purple);">${t('mine.skills_title')}</h4>
+            <div class="mining-skills-grid">
+              <button class="btn-action btn-mine-skill" data-skill="shatter" id="btn-skill-shatter"></button>
+              <button class="btn-action btn-mine-skill" data-skill="chain" id="btn-skill-chain"></button>
+              <button class="btn-action btn-mine-skill" data-skill="cleave" id="btn-skill-cleave"></button>
+              <button class="btn-action btn-mine-skill" data-skill="frenzy" id="btn-skill-frenzy"></button>
+            </div>
           </div>
         `;
       }
 
       const stone = this.gameState.inventory.stone || 0;
+      const inv = this.gameState.inventory;
       const level = grid.pickaxeTier || 0;
 
       setTextById('mining-pick-name', getPickaxeName(level));
       setTextById('mining-pick-level', String(level));
       setTextById('mining-pick-power', fmt(this.miningSystem.getPickaxePower(), 1));
-      setTextById('mining-drill-count', fmtNum(grid.autoDrills));
+      setTextById('mining-drill-count', fmtNum(grid.autoDrills || 0));
       setTextById('mining-drill-rate', this.miningSystem.getAutoDrillRate().toFixed(1));
+      setTextById('mining-jack-count', fmtNum(grid.steamDrills || 0));
+      setTextById('mining-jack-rate', ((grid.steamDrills || 0) * 2.0).toFixed(1));
+      setTextById('mining-seismic-count', fmtNum(grid.seismicRigs || 0));
+      const sCd = Math.max(2.5, 8.0 - (grid.seismicRigs || 0) * 0.5);
+      setTextById('mining-seismic-cd', sCd.toFixed(1));
       setTextById('mining-tile-hp', fmt(strata.maxHp, 1));
       setTextById('mining-stone-yield', fmt(this.miningSystem.getStoneYield(), 1));
 
       const pickCost = this.miningSystem.getPickaxeCost();
       setTextById('btn-upgrade-pick', t('mine.upgrade_pick', { name: getPickaxeName(level + 1), n: fmt(pickCost, 2) }));
-      this.$('btn-upgrade-pick').classList.toggle('disabled', stone < pickCost);
+      this.$('btn-upgrade-pick')?.classList.toggle('disabled', stone < pickCost);
 
       const drillCost = this.miningSystem.getAutoDrillCost();
       setTextById('btn-buy-drill', t('mine.buy_drill', { n: fmt(drillCost, 2) }));
-      this.$('btn-buy-drill').classList.toggle('disabled', stone < drillCost);
+      this.$('btn-buy-drill')?.classList.toggle('disabled', stone < drillCost);
+
+      const steamCost = this.miningSystem.getSteamDrillCost();
+      setTextById('btn-buy-steam-jack', t('mine.buy_jackhammer', { stone: fmt(steamCost.stone, 2), rubies: steamCost.rubies }));
+      this.$('btn-buy-steam-jack')?.classList.toggle('disabled', stone < steamCost.stone || (inv.rubies || 0) < steamCost.rubies);
+
+      const seismicCost = this.miningSystem.getSeismicRigCost();
+      setTextById('btn-buy-seismic-rig', t('mine.buy_seismic', { stone: fmt(seismicCost.stone, 2), sapphires: seismicCost.sapphires }));
+      this.$('btn-buy-seismic-rig')?.classList.toggle('disabled', stone < seismicCost.stone || (inv.sapphires || 0) < seismicCost.sapphires);
 
       const cd = this.miningSystem.dynamiteCooldown;
       setTextById('btn-mining-dynamite', t('mine.dynamite', { state: cd > 0 ? t('u.sec', { n: Math.ceil(cd) }) : t('mine.ready') }));
-      this.$('btn-mining-dynamite').classList.toggle('disabled', cd > 0);
+      this.$('btn-mining-dynamite')?.classList.toggle('disabled', cd > 0);
+
+      // Stone Workshop Skills
+      const skills = grid.skills || {};
+      const shatterLv = skills.shatter || 0;
+      const shatterCost = this.miningSystem.getSkillCost('shatter');
+      const shatterName = shatterLv >= 8 ? t('mine.skill.shatter', { lv: t('mine.max_level') }) : t('mine.skill_upgrade', { name: t('mine.skill.shatter', { lv: shatterLv + 1 }), cost: fmt(shatterCost, 2) });
+      setTextById('btn-skill-shatter', `${shatterName} · ${t('mine.skill.shatter_desc', { chance: (this.miningSystem.getShatterChance() * 100).toFixed(0) })}`);
+      this.$('btn-skill-shatter')?.classList.toggle('disabled', shatterLv >= 8 || stone < shatterCost);
+
+      const chainLv = skills.chain || 0;
+      const chainCost = this.miningSystem.getSkillCost('chain');
+      const chainName = chainLv >= 8 ? t('mine.skill.chain', { lv: t('mine.max_level') }) : t('mine.skill_upgrade', { name: t('mine.skill.chain', { lv: chainLv + 1 }), cost: fmt(chainCost, 2) });
+      setTextById('btn-skill-chain', `${chainName} · ${t('mine.skill.chain_desc', { chance: (this.miningSystem.getChainChance() * 100).toFixed(1) })}`);
+      this.$('btn-skill-chain')?.classList.toggle('disabled', chainLv >= 8 || stone < chainCost);
+
+      const cleaveLv = skills.cleave || 0;
+      const cleaveCost = this.miningSystem.getSkillCost('cleave');
+      const cleaveName = cleaveLv >= 8 ? t('mine.skill.cleave', { lv: t('mine.max_level') }) : t('mine.skill_upgrade', { name: t('mine.skill.cleave', { lv: cleaveLv + 1 }), cost: fmt(cleaveCost, 2) });
+      setTextById('btn-skill-cleave', `${cleaveName} · ${t('mine.skill.cleave_desc', { chance: (this.miningSystem.getCleaveChance() * 100).toFixed(1) })}`);
+      this.$('btn-skill-cleave')?.classList.toggle('disabled', cleaveLv >= 8 || stone < cleaveCost);
+
+      const frenzyLv = skills.frenzy || 0;
+      const frenzyCost = this.miningSystem.getSkillCost('frenzy');
+      const frenzyName = frenzyLv >= 8 ? t('mine.skill.frenzy', { lv: t('mine.max_level') }) : t('mine.skill_upgrade', { name: t('mine.skill.frenzy', { lv: frenzyLv + 1 }), cost: fmt(frenzyCost, 2) });
+      setTextById('btn-skill-frenzy', `${frenzyName} · ${t('mine.skill.frenzy_desc', { dur: this.miningSystem.getFrenzyDuration().toFixed(0) })}`);
+      this.$('btn-skill-frenzy')?.classList.toggle('disabled', frenzyLv >= 8 || stone < frenzyCost);
     }
 
     const tileContent = (b) => {
       let icon = '⛏️'; let label = itemName('stone');
       if (b.content === 'stairs') { icon = '🪜'; label = t('mine.tile.stairs'); }
+      else if (b.content === 'bomb') { icon = '💣'; label = t('mine.tile.bomb'); }
       else if (b.content === 'gold_cache') { icon = '💰'; label = t('res.gold'); }
       else if (b.content === 'geode_pocket') { icon = '✨💎'; label = t('mine.tile.geode'); }
       else if (TILE_ITEM_KEY[b.content]) { const e = ITEM_NAMES[TILE_ITEM_KEY[b.content]]; icon = e.icon; label = e.name; }
       return `<span class="m-icon">${icon}</span><span class="m-lbl">${label}</span>`;
     };
 
+    const getCrackClass = (b) => {
+      if (b.hp >= b.maxHp) return '';
+      const ratio = b.hp / b.maxHp;
+      if (ratio <= 0.33) return 'cracked-3';
+      if (ratio <= 0.66) return 'cracked-2';
+      return 'cracked-1';
+    };
+
     const container = this.$('mining-grid-board');
     if (container) {
+      container.classList.toggle('frenzy-active', this.miningSystem.isFrenzyActive());
       // Key the rebuild on the blocks array itself: a new grid is generated 400ms after
       // the depth changes, so keying on depth left stale revealed tiles over the new grid.
       if (forceRebuildGrid || container.children.length === 0 || this.lastMiningBlocks !== grid.blocks) {
@@ -994,7 +1064,7 @@ class AetheriaApp {
         container.innerHTML = grid.blocks.map(b => b.revealed ? `
           <div class="mine-tile revealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${themeVar(strata.color)}">${tileContent(b)}</div>
         ` : `
-          <div class="mine-tile unrevealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${themeVar(strata.color)}">
+          <div class="mine-tile unrevealed strata-${strata.index} ${getCrackClass(b)}" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${themeVar(strata.color)}">
             <div class="tile-hp-bar" id="tile-bar-${b.id}" style="width: ${(b.hp / b.maxHp) * 100}%"></div>
             <span class="tile-hp-text" id="tile-text-${b.id}">${fmt(b.hp, 1)}</span>
           </div>
@@ -1012,12 +1082,15 @@ class AetheriaApp {
           const tile = refs?.tile;
           if (!tile) continue;
           if (b.revealed && !tile.classList.contains('revealed')) {
-            tile.classList.remove('unrevealed');
+            tile.classList.remove('unrevealed', 'cracked-1', 'cracked-2', 'cracked-3');
             tile.classList.add('revealed');
             tile.innerHTML = tileContent(b);
           } else if (!b.revealed) {
             setWidth(refs.bar, `${(b.hp / b.maxHp) * 100}%`);
             setText(refs.txt, fmt(b.hp, 1)); // max HP is in the stats line; "a/b" overflowed small tiles
+            const crack = getCrackClass(b);
+            tile.classList.remove('cracked-1', 'cracked-2', 'cracked-3');
+            if (crack) tile.classList.add(crack);
           }
         }
       }

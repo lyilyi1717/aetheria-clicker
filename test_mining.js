@@ -350,5 +350,82 @@ console.log('--- R18: Gem Polishing ---');
   assert.equal(h.alchemy.gemsPolished, 125 + 25 + 5 + 1);
 }
 
+console.log('--- Excavation Abilities, Workshop & Machinery ---');
+{
+  const g = new GameState();
+  const m = new MiningSystem(g);
+
+  // Skill costs and upgrades
+  assert.equal(m.getShatterChance(), 0.02);
+  assert.equal(m.getChainChance(), 0.05);
+  assert.equal(m.getCleaveChance(), 0.10);
+  assert.equal(m.getFrenzyDuration(), 6.0);
+
+  g.inventory.stone = 50000;
+  assert.equal(m.upgradeSkill('shatter'), true);
+  assert.equal(g.miningGrid.skills.shatter, 1);
+  assert.equal(m.getShatterChance(), 0.03);
+
+  assert.equal(m.upgradeSkill('chain'), true);
+  assert.equal(m.getChainChance(), 0.075);
+
+  assert.equal(m.upgradeSkill('cleave'), true);
+  assert.equal(m.getCleaveChance(), 0.135);
+
+  assert.equal(m.upgradeSkill('frenzy'), true);
+  assert.equal(m.getFrenzyDuration(), 7.0);
+
+  // Steam Jackhammer purchase & targeting
+  g.inventory.rubies = 10;
+  assert.equal(m.buySteamDrill(), true);
+  assert.equal(g.miningGrid.steamDrills, 1);
+  assert.equal(g.inventory.rubies, 7);
+
+  // Seismic Pulverizer purchase
+  g.inventory.sapphires = 10;
+  assert.equal(m.buySeismicRig(), true);
+  assert.equal(g.miningGrid.seismicRigs, 1);
+  assert.equal(g.inventory.sapphires, 6);
+
+  // 1-Hit Shatter execution
+  m.generateNewGrid();
+  m.descending = false;
+  const testTile = g.miningGrid.blocks[0];
+  testTile.content = 'stone';
+  testTile.hp = 1000;
+  testTile.maxHp = 1000;
+  m.random = () => 0.001; // definitely passes shatter check (chance >= 0.02)
+  m.mineBlock(0, 100, 100);
+  assert.equal(testTile.revealed, true);
+  assert.equal(testTile.hp, 0);
+
+  // Manual Dig Streak activates Frenzy
+  m.frenzyTimer = 0;
+  m.digStreak = 0;
+  for (let i = 0; i < 7; i++) {
+    m.random = () => 0.999; // no shatter, chain, or cleave
+    const t = g.miningGrid.blocks[1];
+    t.content = 'stone';
+    t.hp = 99999;
+    t.maxHp = 99999;
+    m.mineBlock(1, 100, 100);
+  }
+  assert.ok(m.isFrenzyActive(), 'Frenzy should be active after 7 rapid manual hits');
+  assert.ok(m.frenzyTimer > 0);
+
+  // Hidden bomb detonation
+  m.generateNewGrid();
+  m.descending = false;
+  g.miningGrid.blocks.forEach(b => { b.content = 'stone'; b.revealed = false; b.hp = 500; b.maxHp = 500; });
+  const bombTile = g.miningGrid.blocks[7]; // row 1, col 1
+  bombTile.content = 'bomb';
+  bombTile.revealed = true;
+  const nTile = g.miningGrid.blocks[8];
+  m.revealReward(bombTile, 100, 100);
+  // Bomb should have blasted 3x3 tiles, damaging or breaking nTile
+  assert.ok(nTile.hp < 500 || nTile.revealed, 'Bomb should damage neighbor blocks');
+}
+
 console.log('✅ MINING TESTS PASSED');
 setTimeout(() => process.exit(0), 0);
+

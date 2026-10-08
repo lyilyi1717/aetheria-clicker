@@ -67,7 +67,7 @@ export const HEX_TOKEN = {
 };
 
 function activeTheme() {
-  return typeof document === 'undefined' ? DEFAULT_THEME : normalizeTheme(document.documentElement.dataset.theme);
+  return (typeof document === 'undefined' || !document.documentElement) ? DEFAULT_THEME : normalizeTheme(document.documentElement.dataset?.theme);
 }
 
 /** For CSS (inline styles, custom properties): a known Night hex becomes var(--token). */

@@ -886,6 +886,13 @@ button, input, select, textarea {
   gap: 8px;
   max-width: 520px;
   margin: 1.5rem auto;
+  transition: box-shadow 0.3s ease;
+}
+
+.mining-grid-board.frenzy-active {
+  box-shadow: 0 0 25px color-mix(in srgb, var(--gold) 45%, transparent), inset 0 0 15px color-mix(in srgb, var(--gold) 25%, transparent);
+  border-radius: 12px;
+  animation: pulseGlow 0.5s 6 alternate;
 }
 
 .mine-tile {
@@ -900,10 +907,54 @@ button, input, select, textarea {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  transition: transform 0.08s ease, filter 0.15s ease;
+  user-select: none;
+}
+
+.mine-tile.tile-hit {
+  transform: scale(0.92);
+}
+
+/* Strata Visual Themes */
+.mine-tile.strata-0 { background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--tint) 14%, var(--bg-3)) 0%, var(--bg-1) 100%); }
+.mine-tile.strata-1 { background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--tint) 20%, var(--bg-3)) 0%, var(--bg-2) 100%); }
+.mine-tile.strata-2 { background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--shade) 50%, var(--bg-3)) 0%, var(--bg-0) 100%); }
+.mine-tile.strata-3 { background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--dust) 35%, var(--bg-3)) 0%, var(--bg-0) 100%); }
+.mine-tile.strata-4 { background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--aether) 35%, var(--bg-3)) 0%, var(--bg-0) 100%); }
+.mine-tile.strata-5 { background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--gold) 35%, var(--bg-3)) 0%, var(--bg-0) 100%); }
+.mine-tile.strata-6 { background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--danger) 35%, var(--bg-3)) 0%, var(--bg-0) 100%); }
+
+/* Damage Cracks Overlays */
+.mine-tile.cracked-1::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle, transparent 65%, color-mix(in srgb, var(--tint) 8%, transparent) 100%);
+  box-shadow: inset 0 0 6px color-mix(in srgb, var(--shade) 40%, transparent);
+}
+
+.mine-tile.cracked-2::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(45deg, transparent, transparent 10px, color-mix(in srgb, var(--shade) 30%, transparent) 10px, color-mix(in srgb, var(--shade) 30%, transparent) 12px);
+  box-shadow: inset 0 0 10px color-mix(in srgb, var(--shade) 60%, transparent);
+}
+
+.mine-tile.cracked-3::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(45deg, transparent, transparent 8px, color-mix(in srgb, var(--danger) 30%, transparent) 8px, color-mix(in srgb, var(--danger) 30%, transparent) 10px),
+              repeating-linear-gradient(-45deg, transparent, transparent 8px, color-mix(in srgb, var(--shade) 45%, transparent) 8px, color-mix(in srgb, var(--shade) 45%, transparent) 10px);
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--danger) 50%, transparent);
 }
 
 .mine-tile.revealed {
-  background: color-mix(in srgb, var(--aether) 10%, transparent);
+  background: color-mix(in srgb, var(--aether) 10%, transparent) !important;
   border-color: color-mix(in srgb, var(--aether) 30%, transparent);
   cursor: default;
 }
@@ -942,6 +993,20 @@ button, input, select, textarea {
   gap: 0.5rem;
   margin-top: 0.75rem;
   flex-wrap: wrap;
+}
+
+.mining-skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.btn-mine-skill {
+  text-align: start;
+  font-size: 0.75rem;
+  padding: 0.5rem 0.65rem;
+  line-height: 1.35;
 }
 
 .res-badge {

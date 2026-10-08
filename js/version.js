@@ -3,9 +3,31 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.11.0';
+export const VERSION = '5.12.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.12.0',
+    date: '2026-10-08',
+    title: 'Excavation Overhaul: Techniques, Machinery & Explosives',
+    changes: [
+      'Visual overhaul: Excavation tiles now reflect the distinct rock strata of your depth with progressive fracture cracks as tile durability drops.',
+      'Stone Workshop: Upgrade powerful techniques using Stone: Seismic Fracture (2% to 10% chance to obliterate a block in 1 hit), Arc Conduction (chain lightning hitting 2-4 nearby tiles), Quarry Cleave (hits side blocks for 50% damage), and Excavation Frenzy duration.',
+      'Excavation Frenzy: Rapid manual digging chains (7 hits within 1.4s) trigger a fiery Frenzy that doubles digging power.',
+      'Hidden Bombs: Subterranean explosive tiles now spawn in the rock strata. Detonating a bomb blasts a 3x3 radius and chains into neighboring bombs.',
+      'Excavation Machinery: Deploy Steam Jackhammers that focus on the lowest-HP blocks and Seismic Pulverizers that periodically unleash row-clearing shockwaves.'
+    ],
+    ar: {
+      title: 'تطوير شامل للحفر: تقنيات وآلات ومتفجرات',
+      changes: [
+        'تطوير بصري: مربعات الحفر تعكس الآن طبقات الصخور الخاصة بالعمق مع شقوق تصدع تدريجية مع انخفاض صلابة المربع.',
+        'ورشة الأحجار: طوّر تقنيات قوية باستخدام الحجر: صدع زلزالي (فرصة 2% إلى 10% لتحطيم المربع بضربة واحدة)، وتوصيل القوس (برق متسلسل يصيب 2-4 مربعات مجاورة)، وشق المحجر (ضرب المربعات الجانبية بـ 50% ضرر)، وزيادة مدة جنون الحفر.',
+        'جنون الحفر: الضربات السريعة المتتالية (7 ضربات خلال 1.4 ث) تُفعّل حالة جنون الحفر وتضاعف قوة الحفر.',
+        'قنابل مخفية: قنابل متفجرة تحت الأرض تظهر في الشبكة؛ تفجير القنبلة يدمر مساحة 3×3 ويفجر القنابل المجاورة في سلسلة انفجارات.',
+        'آلات الحفر: اشترِ مطارق بخارية تستهدف المربعات الأقل صلابة ومطاحن زلزالية تطلق موجات زلزالية تدمر صفوفًا كاملة بشكل دوري.'
+      ]
+    }
+  },
   {
     version: '5.11.0',
     date: '2026-10-08',
