@@ -10,9 +10,11 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R31 #67 Slower number growth (PR #102, draft): paused for an owner decision between option 1
-  (full economy redesign, its own item) and option 2 (prestige discount: identical pacing, about
-  1e16-1e19 at day 60). Details in the #67 comment.
+- R31 #67 Economy redesign core (PR #102): owner chose option 1 (full redesign, ~1e12 at day 60,
+  additive prestige). A separate R31 coordinator session runs it and the wave-9 follow-ups.
+  Until R31 merges, other items avoid: `BuildingSystem.js`, `PrestigeSystem.js`, `GameState.js`,
+  `UpgradeSystem.js`, `DustShopSystem.js`, `ShardTreeSystem.js`, `ChronicleSystem.js`,
+  `ClickerSystem.js`, `js/engine/migrations.js`, `sim/core-pacing.mjs`.
 
 ## Next up
 
@@ -79,6 +81,11 @@ R0–R30 and R32–R40 are done.
 | 8 | R49 Reduced-motion colour cues | #121 | R41 |
 | 8 | R50 Game-feel polish (skills, digs, Dallah, Seals, Frenzy end) | #122 | R41 (best after R46) |
 | 8 | R51 Yield gain and best value on generator buttons | #124 | – |
+| 9 | R52 Passive-first clicking (click = 0.5 s of production, Auto-tap) | #126 | R31 |
+| 9 | R53 Reprice everything outside the core | #127 | R31 |
+| 9 | R54 "Coming up" panel | #128 | R31 |
+| 9 | R55 Ascension attunements | #129 | R31, R52 |
+| 9 | R56 Challenge rewards and Chapter 2 | #130 | R31 |
 
 ## Done
 
