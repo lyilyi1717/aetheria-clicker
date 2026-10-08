@@ -11,6 +11,11 @@ const L = (v, p = 2) => new BigNum(v).format('letters', p);
 console.log('--- letters: K, M, B, T, then aa..zz, then aaa ---');
 {
   assert.equal(L(0), '0');
+  // Small values keep a significant digit (R31: tier-1 output is 0.005/s)
+  assert.equal(new BigNum(0.005).format('standard', 1), '0.005');
+  assert.equal(new BigNum(0.02).format('standard', 0), '0.02');
+  assert.equal(new BigNum(0.5).format('standard', 1), '0.5');
+  assert.equal(new BigNum(0.0004).format('standard', 2), '0');
   assert.equal(L(999), '999');
   assert.equal(L(1000), '1.00K');
   assert.equal(L(45210), '45.21K');
