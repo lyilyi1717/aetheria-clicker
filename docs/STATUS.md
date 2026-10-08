@@ -295,6 +295,9 @@ R0–R30 and R32–R40 are done.
   was the default and the game's URL wasn't in Redirect URLs, so `redirect_to` was ignored. Fixed
   in the Supabase dashboard (2026-10-08); the required settings are now in `supabase/cloud_saves.sql`'s header.
 
+- #151 Bug: email confirmation/reset links gave no visible result. `AccountUI.init` now opens
+  Settings, scrolls to Account and shows the outcome; `otp_expired` maps to `cloud.link_expired`.
+
 ## Notes for the next session
 
 - **Game feel:** `docs/game-feel-guide.md` sets feedback tiers (T0 tap to T3 peak) and a
