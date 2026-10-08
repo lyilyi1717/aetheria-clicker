@@ -109,6 +109,7 @@ class AetheriaApp {
     this.gameState.combatSystem = this.combatSystem;
     this.gameState.miningSystem = this.miningSystem;
     this.gameState.gardenSystem = this.gardenSystem;
+    this.gameState.clickerSystem = this.clickerSystem;   // shared paid-click budget (R59)
     this.gameState.bountySystem = this.bountySystem;
     this.gameState.achievementSystem = this.achievementSystem;
     this.gameState.collectionSystem = this.collectionSystem;
