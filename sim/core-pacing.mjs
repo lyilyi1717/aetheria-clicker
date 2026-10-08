@@ -252,6 +252,32 @@ function makeChronicleModel(gs, ps, clock) {
   };
 }
 if (PAGE_BUY_ORDER.length !== PAGE_UPGRADES.length) throw new Error('sim: PAGE_BUY_ORDER is missing a Page upgrade');
+// --- R53 subgame links block (--links) -----------------------------------------------------------
+// By default the sim runs with the subgames off. `--links` sets the subgame stats that feed Oil or
+// dust (Depth Resonance and Geode Attunement from max depth, Dungeon Mastery from bosses, Aetheric
+// Treaty ranks, High Enchanter level, catalysts) from a fixed schedule, so the report shows how much
+// the links add on top of the core. Depth: `npm run sim:mining` (active); bosses and gold (Enchanter
+// level = what the held gold buys at 1e6 x 2.5^L): `npm run sim:tower` (casual); Treaty: ~12
+// contracts a day (24 seals) spent on Treaty ranks; catalysts: about one every two days.
+// [day, maxDepth, bosses, treaty rank, enchanter level, catalysts], linear in between, flat after.
+const LINKS = process.argv.includes('--links');
+const LINK_SCHEDULE = [
+  [0, 0, 0, 0, 0, 0], [1, 54, 39, 2, 41, 0], [7, 104, 69, 9, 82, 3], [14, 123, 75, 14, 90, 7],
+  [30, 145, 81, 20, 98, 15], [60, 166, 90, 29, 105, 30], [180, 200, 110, 50, 120, 90], [365, 220, 130, 50, 130, 180]
+];
+function applyLinks(gs, t) {
+  const d = t / DAY;
+  let i = 1;
+  while (i < LINK_SCHEDULE.length - 1 && LINK_SCHEDULE[i][0] < d) i++;
+  const [a, b] = [LINK_SCHEDULE[i - 1], LINK_SCHEDULE[i]];
+  const u = Math.max(0, Math.min(1, (d - a[0]) / (b[0] - a[0])));
+  const at = (col) => Math.floor(a[col] + u * (b[col] - a[col]));
+  gs.miningGrid = { ...(gs.miningGrid || {}), maxDepth: at(1) };
+  gs.stats.totalBossesSlain = at(2);
+  gs.quartermaster = { ...(gs.quartermaster || {}), aether_treaty: { rank: at(3) } };
+  gs.market = { ...(gs.market || {}), goldenSynergy: at(4) };
+  gs.alchemy = { ...(gs.alchemy || {}), catalysts: at(5) };
+}
 // ---------------------------------------------------------------------------------------------
 
 function run(profile) {
@@ -331,6 +357,7 @@ function run(profile) {
   const rows = [];
   while (t < YEAR) {
     const dt = dtFor(t);
+    if (LINKS && (t % 3600 < dt || dt >= 3600)) applyLinks(gs, t);
     const cps = gs.getNetAetherPerSecond();
     const present = t % 3600 < presence;
     const clicksPerSec = present ? 2 : (t - runStart < 180 ? 1 : 0);
@@ -442,6 +469,7 @@ const assertMode = process.argv.includes('--assert');
 const failures = [];
 const out = [];
 const only = process.argv.find(a => a.startsWith('--only='))?.slice(7);   // --only=casual: one profile (tuning)
+if (LINKS) out.push('(--links: subgame links on, schedule in the R53 block)');
 for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
   const r = run(profile);
   out.push(`\n### profile: ${profile}\n`);

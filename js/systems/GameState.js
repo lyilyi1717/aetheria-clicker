@@ -13,6 +13,7 @@ import { getTierUpgradeMult, getClickUpgradeMult, sanitizeUpgrades, serializeUpg
 import { defaultDustShopState, sanitizeDustShopState, getShopRank, hasShopItem, getFingerOfWastaMult } from './DustShopSystem.js';
 import { isTabUnlocked, sanitizeUnlocks, sanitizeUnlockSeen } from './UnlockSystem.js';
 import { defaultNewsState, sanitizeNews } from '../ui/newsTicker.js';
+import { getWorldLinkMult } from './WorldLinks.js';
 
 // Prestige bonuses (design doc 6.1, R31). All additive, none compounding. Kept here, not in
 // PrestigeSystem, because PrestigeSystem imports audio/particles and GameState must stay loadable
@@ -167,9 +168,6 @@ export class GameState {
     // Legacy compounding Catalyst multiplier; migrated to alchemy.catalysts and kept at 1
     let mult = this.stats.globalMultiplier || 1;
 
-    // Philosopher's Catalyst: +2% Aether per brew, additive within its own category
-    mult *= this.getCatalystMult();
-
     // Achievement ladder (+1.5% per original achievement, +0.5% per rung) and completed
     // Codex sets (+1% each), one additive category (R14)
     if (this.achievementSystem) {
@@ -179,34 +177,12 @@ export class GameState {
     // Dust shop Finger of Wasta: +1% per 100 clicks this run, up to +50%
     mult *= getFingerOfWastaMult(this);
 
-    // Universal Mastery: Building Mastery (+1.5% Global Aether per 100 total buildings)
-    if (this.buildingSystem) {
-      const totalBldgs = this.buildingSystem.getTotalBuildingsCount();
-      const bldgMasteryRank = Math.floor(totalBldgs / 100);
-      mult *= (1 + bldgMasteryRank * 0.015);
-    }
-    
-    // Universal Mastery: Dungeon Mastery (+1.0% Global Aether per 10 bosses slain)
-    if (this.stats && this.stats.totalBossesSlain > 0) {
-      const dungeonMasteryRank = Math.floor(this.stats.totalBossesSlain / 10);
-      mult *= (1 + dungeonMasteryRank * 0.01);
-    }
-    
-    // Depth Resonance: +2% Aether per max depth reached
-    mult *= this.getDepthResonanceMult();
-    
-    // High Enchanter (Golden Synergy)
-    if (this.market && this.market.goldenSynergy) {
-      mult *= (1 + this.market.goldenSynergy * 0.05);
-    }
+    // Subgame links (Building and Dungeon Mastery, Depth Resonance, High Enchanter, Aetheric
+    // Treaty, Philosopher's Catalyst) add into one category (R53, WorldLinks.js)
+    mult *= getWorldLinkMult(this);
 
     // Active Aether buffs add together within one category (Celestial +300% & Philter +200% = x6)
     mult *= this.getAetherBuffMult();
-
-    // Multiply by Quartermaster Aetheric Treaty
-    if (this.quartermaster && this.quartermaster['aether_treaty']) {
-      mult *= (1 + this.quartermaster['aether_treaty'].rank * 0.25);
-    }
 
     // Chronicle rules (R20): the Chapter's world rules and a running challenge's overrides
     const rules = getActiveRules(this);

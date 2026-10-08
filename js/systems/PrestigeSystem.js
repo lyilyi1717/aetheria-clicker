@@ -29,11 +29,14 @@ export const TRANSCEND_SLOW_FROM = 9;
 export const TRANSCEND_SHARDS = 2;        // shards paid per Transcend
 export { SHARD_AETHER_PER_SHARD } from './GameState.js'; // +25% production per lifetime shard
 
-// Dust-gain links (design doc §5.3). Each is its own multiplicative category on pending dust.
-// Geode Attunement (Excavation -> Dust): x(1 + 0.10 * floor(maxDepth / 10))
+// Dust-gain links (design doc §5.3). Geode Attunement and Nectar Offering add into one category
+// (R53: dust is a fifth root of run Oil, so x2 dust is worth x32 run Oil; compounding them with
+// each other made Transcends come in storms, `npm run sim -- --links`).
+// Geode Attunement (Excavation -> Dust): +2% per 10 max depth (R53; was +10%)
+export const GEODE_PER_10_DEPTH = 0.02;
 export function getGeodeAttunementMult(gameState) {
   const depth = gameState.miningGrid?.maxDepth || 0;
-  return 1 + 0.10 * Math.floor(depth / 10);
+  return 1 + GEODE_PER_10_DEPTH * Math.floor(depth / 10);
 }
 
 // Celestial Nectar currently held (all of it is consumed on Ascend)
@@ -41,9 +44,17 @@ export function getNectarHeld(gameState) {
   return Math.max(0, Math.floor(gameState.garden?.essences?.starNectar || 0));
 }
 
-// Nectar Offering (Garden -> Dust): x min(2, 1 + 0.02 * sqrt(nectar))
+// Nectar Offering (Garden -> Dust): +0.4% x sqrt(nectar), at most +20% (R53; was +2%, max x2).
+// Same 2,500 Nectar to reach the cap as before.
+export const NECTAR_PER_SQRT = 0.004;
+export const NECTAR_MAX_BONUS = 0.2;
 export function getNectarOfferingMult(gameState) {
-  return Math.min(2, 1 + 0.02 * Math.sqrt(getNectarHeld(gameState)));
+  return 1 + Math.min(NECTAR_MAX_BONUS, NECTAR_PER_SQRT * Math.sqrt(getNectarHeld(gameState)));
+}
+
+// Geode Attunement + Nectar Offering together: 1 + both bonuses (R53)
+export function getDustLinkMult(gameState) {
+  return getGeodeAttunementMult(gameState) + getNectarOfferingMult(gameState) - 1;
 }
 
 export class PrestigeSystem {
@@ -64,13 +75,13 @@ export class PrestigeSystem {
   }
 
   // Calculate pending Cosmic Dust upon Ascension
-  // (base x Geode Attunement x Nectar Offering x Dust Amplifier)
+  // (base x (Geode Attunement + Nectar Offering, one additive category) x Dust Amplifier)
   getPendingCosmicDust() {
     const base = this.getBaseCosmicDust();
     if (base.lte(0)) return base;
     const m = this.getDustMultipliers();
     // tiny epsilon so float noise (e.g. 150 x 1.2 = 179.999...) never floors a whole dust away
-    return base.mul(new BigNum(m.geode * m.nectarMult * m.amplifier * (1 + 1e-12))).floor();
+    return base.mul(new BigNum(getDustLinkMult(this.gameState) * m.amplifier * (1 + 1e-12))).floor();
   }
 
   // Base dust from run Aether only, before the dust-gain links
