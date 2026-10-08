@@ -16,6 +16,8 @@ globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
 
 export const DESIGNED_ENVELOPE = 2.89;   // R52 active play over generators alone
+export const AUTOMATED_MAX_RATIO = 1.01;  // R60: Golem and offline harvests add no Nectar Surge
+export const HAND_HARVEST_MAX_RATIO = 3.5; // R60: an idealised bot harvesting every plot the instant it matures (x3.42)
 
 export function measureGardenTapping({ tapsPerSec = 5, seconds = 3600, baseCps = 1e9, dt = 0.05, seed = 'spore' } = {}) {
   const gs = new GameState();
@@ -49,6 +51,42 @@ export function measureGardenTapping({ tapsPerSec = 5, seconds = 3600, baseCps =
   return gs.aether.toNumber() / (baseCps * seconds);
 }
 
+// Golems on every row, nobody at the screen: Oil earned over generators alone. Hand harvests are
+// off (only golemTend runs), so the surge must not pay at all (R60).
+export function measureGolems({ golems = 4, seconds = 3600, baseCps = 1e9, dt = 0.5, seed = 'spore' } = {}) {
+  const gs = new GameState();
+  const base = new BigNum(baseCps);
+  gs.buildingSystem = { getTotalProduction: () => base, getTotalBuildingsCount: () => 0 };
+  const garden = new GardenSystem(gs);
+  garden.rng = () => 0.5;
+  gs.gardenSystem = garden;
+  gs.garden.golems = golems;
+  gs.garden.inventory[seed] = 1e6;
+  let harvests = 0;
+  const before = gs.stats.totalPlantsHarvested;
+  for (let t = 0; t < seconds; t += dt) {
+    gs.aether = gs.aether.add(base.mul(dt));
+    garden.update(dt);
+  }
+  harvests = gs.stats.totalPlantsHarvested - before;
+  return { ratio: gs.aether.toNumber() / (baseCps * seconds), harvests };
+}
+
+// The same rows after 12 h away: applyOfflineTime harvests with the golems. Returns the Oil the
+// harvests added and how many there were.
+export function measureOffline({ golems = 4, seconds = 12 * 3600, baseCps = 1e9, seed = 'spore' } = {}) {
+  const gs = new GameState();
+  const base = new BigNum(baseCps);
+  gs.buildingSystem = { getTotalProduction: () => base, getTotalBuildingsCount: () => 0 };
+  const garden = new GardenSystem(gs);
+  garden.rng = () => 0.5;
+  gs.gardenSystem = garden;
+  gs.garden.golems = golems;
+  gs.garden.inventory[seed] = 1e6;
+  const r = garden.applyOfflineTime(seconds);
+  return { oil: gs.aether.toNumber(), harvests: r.harvests };
+}
+
 if (process.argv[1]?.endsWith("garden-tap.mjs")) {
   // The untouched Garden (plant, wait, harvest by hand with Nectar Surge) is R60's business; the
   // tap uplift is what the taps add on top of it, and it must fit the designed active envelope.
@@ -61,5 +99,17 @@ if (process.argv[1]?.endsWith("garden-tap.mjs")) {
     if (up > DESIGNED_ENVELOPE) bad = true;
     console.log(`  ${String(tapsPerSec).padStart(2)} taps/s: +x${up.toFixed(2)}${up > DESIGNED_ENVELOPE ? '  OVER' : ''}`);
   }
-  if (process.argv.includes('--assert') && bad) process.exit(1);
+  const golem = measureGolems();
+  const off = measureOffline();
+  console.log(`4 Golems, no hand harvests (1 h): x${golem.ratio.toFixed(3)} of generators over ${golem.harvests} harvests (limit x${AUTOMATED_MAX_RATIO})`);
+  console.log(`4 Golems offline (12 h): ${off.harvests} harvests added ${off.oil} Oil (must be 0)`);
+  const failures = [];
+  if (bad) failures.push('tap uplift over the designed envelope');
+  if (idle > HAND_HARVEST_MAX_RATIO) failures.push(`hand-harvest garden x${idle.toFixed(2)} over x${HAND_HARVEST_MAX_RATIO}`);
+  if (golem.harvests < 50) failures.push('golem sim did not harvest (test is not measuring anything)');
+  if (golem.ratio > AUTOMATED_MAX_RATIO) failures.push(`golem harvests pay Nectar Surge (x${golem.ratio.toFixed(2)})`);
+  if (off.harvests < 50) failures.push('offline sim did not harvest');
+  if (off.oil > 0) failures.push('offline harvests pay Nectar Surge');
+  for (const f of failures) console.log('FAIL: ' + f);
+  if (process.argv.includes('--assert') && failures.length) process.exit(1);
 }

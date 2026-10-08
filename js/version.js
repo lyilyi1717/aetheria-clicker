@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.14.0';
+export const VERSION = '5.15.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.15.0',
+    date: '2026-10-08',
+    title: 'Nectar Surge Rewards Your Own Hands',
+    changes: [
+      'The Nectar Surge Oil windfall (15 seconds of production per harvest) now pays only when you harvest a plot yourself. Golem harvests and harvests while you are away no longer pay it.',
+      'This is a nerf for Golem and offline gardening: those harvests had been multiplying total Oil income by about 3x to 5x, far faster than the rest of the game is paced for. They still give essences and seeds as before.',
+      'Harvesting by hand is unchanged.'
+    ],
+    ar: {
+      title: 'دفعة الرحيق تكافئ يديك',
+      changes: [
+        'دفعة الزيت من الرحيق (١٥ ثانية من الإنتاج لكل حصاد) تُدفع الآن فقط عندما تحصد أنت النبتة بنفسك. حصاد الغولم والحصاد أثناء غيابك لم يعد يمنحها.',
+        'هذا تخفيف للبستنة بالغولم وأثناء الغياب: كان هذا الحصاد يضاعف دخل الزيت الكلي من ٣ إلى ٥ أضعاف تقريبا، أسرع بكثير من وتيرة اللعبة. ما زال يعطي الجواهر والبذور كما كان.',
+        'الحصاد باليد بلا تغيير.'
+      ]
+    }
+  },
   {
     version: '5.14.0',
     date: '2026-10-08',
