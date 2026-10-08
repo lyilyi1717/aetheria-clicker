@@ -72,6 +72,49 @@ export class ParticleEngine {
     this.enforceCap(this.particles, particleCap(this.isPhone()));
   }
 
+  spawnDebris(x, y, count = 8, color = '#94a3b8') {
+    if (this.suppressed || motionReduced()) return;
+    for (let i = 0; i < count; i++) {
+      const angle = -Math.PI * 0.8 + Math.random() * Math.PI * 0.6; // upward arc
+      const speed = 3 + Math.random() * 7;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 3 + Math.random() * 5,
+        color: themeColor(color),
+        alpha: 1,
+        decay: 0.015 + Math.random() * 0.02
+      });
+    }
+    this.enforceCap(this.particles, particleCap(this.isPhone()));
+  }
+
+  spawnLightningArc(x1, y1, x2, y2, color = '#38bdf8') {
+    if (this.suppressed || motionReduced()) return;
+    const steps = 6;
+    let prevX = x1, prevY = y1;
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const targetX = x1 + (x2 - x1) * t + (i < steps ? (Math.random() - 0.5) * 24 : 0);
+      const targetY = y1 + (y2 - y1) * t + (i < steps ? (Math.random() - 0.5) * 24 : 0);
+      this.particles.push({
+        x: targetX,
+        y: targetY,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: (Math.random() - 0.5) * 1.5,
+        size: 2.5 + Math.random() * 2,
+        color: themeColor(color),
+        alpha: 1,
+        decay: 0.06 // fast zap
+      });
+      prevX = targetX;
+      prevY = targetY;
+    }
+    this.enforceCap(this.particles, particleCap(this.isPhone()));
+  }
+
   // `merge` ({ key, amount, prefix, fmt }) makes a "+n" text add into the last one with the same
   // key spawned within 150 ms and 40 px, growing a little (16 -> 22 px) instead of piling up.
   // Crits never merge.

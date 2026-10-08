@@ -229,6 +229,108 @@ export class AudioEngine {
     osc.stop(t + 0.06);
   }
 
+  // Sound: Subterranean Bomb / Massive Explosion
+  playExplosion() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(140, t);
+    osc.frequency.exponentialRampToValueAtTime(25, t + 0.4);
+
+    gain.gain.setValueAtTime(0.5, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.4);
+  }
+
+  // Sound: Chain Lightning / Arc Conduction
+  playLightning() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    [0, 0.04, 0.08].forEach((delay) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(800 + Math.random() * 400, t + delay);
+      osc.frequency.exponentialRampToValueAtTime(150, t + delay + 0.06);
+
+      gain.gain.setValueAtTime(0.25, t + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.06);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(t + delay);
+      osc.stop(t + delay + 0.06);
+    });
+  }
+
+  // Sound: Block Shatter / Fracture
+  playShatter() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    [1200, 1600, 2200].forEach((freq) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.exponentialRampToValueAtTime(80, t + 0.12);
+
+      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(t);
+      osc.stop(t + 0.12);
+    });
+  }
+
+  // Sound: Excavation Frenzy Digging Rush
+  playFrenzyTrigger() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    [300, 500, 750, 1100].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t + idx * 0.04);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.5, t + idx * 0.04 + 0.1);
+
+      gain.gain.setValueAtTime(0.3, t + idx * 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.04 + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(t + idx * 0.04);
+      osc.stop(t + idx * 0.04 + 0.12);
+    });
+  }
+
   // Sound: Gem / Relic Uncovered (Arpeggio)
   playGem() {
     if (this.muted || this.quiet) return;

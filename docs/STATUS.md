@@ -280,7 +280,7 @@ R0–R30, R32–R40 and R41 are done.
 - R54 #128 Coming up panel (PR #135, 5.1.0): logic in `js/ui/comingUp.js`, styles in
   `css/coming-up.css`. Desktop opens it from a header-chip dropdown; under 1024px it is a bottom
   sheet opened from the Refinery card. Reserve-based ETAs use this run's pace, so they're rough.
-- R41 #113 Feedback-tier helper (PR #155, 5.11.1): `js/ui/feedback.js` (`fire(tier, opts)`, `countUp`,
+- R41 #113 Feedback-tier helper (PR #155, 5.12.1): `js/ui/feedback.js` (`fire(tier, opts)`, `countUp`,
   `hitStop`, `shake`; no-op without a DOM) on top of pure `js/ui/feedbackBudget.js` (budgets,
   chains, sound cooldowns, caps, merge rule); `ParticleEngine` caps 250/150 sparks and 40 texts and
   merges "+n" texts by key. Click/crit/anomaly, combat hits, dig hits and Auto-tap go through it.
