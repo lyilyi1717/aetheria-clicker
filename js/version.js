@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.12.2';
+export const VERSION = '5.13.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.13.0',
+    date: '2026-10-08',
+    title: 'Garden Taps Share the Click Limit',
+    changes: [
+      'Tapping growing crops now counts toward the same 5 paid taps a second as the monolith. Faster taps still splash and sound, but grow nothing and pay nothing. This is a nerf: fast tapping through the Garden no longer multiplies your Oil.',
+      'A Dewdrop now pays 0.25 s of production (was 1 s), and each tap grows the crop by 2% of its grow time (was 5%).',
+      'Fixed a crash when tapping a crop while you produce no Oil yet (reported by players).'
+    ],
+    ar: {
+      title: 'نقرات الحديقة تشارك حد النقرات',
+      changes: [
+        'النقر على المحاصيل النامية يُحتسب الآن ضمن حد 5 نقرات مدفوعة في الثانية نفسه مع المونوليث. تظل النقرات الأسرع تُصدر الرذاذ والصوت لكنها لا تُنمّي شيئاً ولا تمنح شيئاً. هذا تخفيف: النقر السريع في الحديقة لم يعد يضاعف نفطك.',
+        'قطرة الندى تمنح الآن 0.25 ثانية من الإنتاج (كانت ثانية واحدة)، وكل نقرة تُنمّي المحصول بنسبة 2% من زمن نموه (كانت 5%).',
+        'إصلاح انهيار عند النقر على محصول قبل أن تبدأ بإنتاج النفط.'
+      ]
+    }
+  },
   {
     version: '5.12.2',
     date: '2026-10-08',
