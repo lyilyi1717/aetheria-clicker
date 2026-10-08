@@ -299,7 +299,7 @@ export class BagUI {
     const dis = (cond) => (cond ? ' aria-disabled="true" class="btn is-locked"' : ' class="btn"');
     let retemper = '';
     if (info.eligible) {
-      const cost = info.free ? t('bag.free') : `${esc(this.fmtNum(info.gold))} 🪙 ${info.cores ? cores.icon + info.cores : ''}`;
+      const cost = info.free ? t('bag.free') : `${esc(this.fmtNum(info.gold))} 💰 ${info.cores ? cores.icon + info.cores : ''}`;
       retemper = `<button data-act="retemper"${dis(!info.canAfford)} type="button"><span>${t('bag.retemper', { n: info.target })}</span> <span class="num bag-cost">${cost}</span></button>`;
     }
     const sig = [item.uid, item.ilvl, locked, f.equipped, Math.round(delta * 1000), info.eligible, info.canAfford, info.target, this.confirmKind, this.confirmUid, item.freeTemper].join('|');
@@ -318,7 +318,7 @@ export class BagUI {
         ${f.equipped ? '' : `<button data-act="equip" class="btn ${delta > 0 ? 'btn-primary' : ''}" type="button">${t('bag.equip')}</button>`}
         <button data-act="lock" class="btn" aria-pressed="${locked}" type="button">${locked ? '🔓 ' + t('bag.unlock') : '🔒 ' + t('bag.lock')}</button>
         ${f.equipped ? '' : `<button data-act="salvage"${dis(locked)} type="button">${salvageLbl} <span class="num bag-cost">${scrap.icon}${val.scrap}${coreTxt}</span></button>
-        <button data-act="sell"${dis(locked)} type="button">${sellLbl} <span class="num bag-cost">${esc(this.fmtNum(sell))} 🪙</span></button>`}
+        <button data-act="sell"${dis(locked)} type="button">${sellLbl} <span class="num bag-cost">${esc(this.fmtNum(sell))} 💰</span></button>`}
         ${retemper}
         <button data-act="close" class="btn btn-ghost" type="button">${t('bag.close')}</button>
       </div>

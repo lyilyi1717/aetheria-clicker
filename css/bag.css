@@ -11,7 +11,7 @@
 .bag-kashta-actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
 .bag-kashta .btn[aria-pressed="true"] { border-color: var(--life); color: var(--life); }
 
-.bag-equipped { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.bag-equipped { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-3); }
 .bag-controls { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-3); }
 .bag-ctl { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
 .bag-ctl-label { font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); min-width: 72px; }
@@ -22,8 +22,8 @@
 .bag-bulk-confirm { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-3); padding: var(--sp-2) var(--sp-3);
   border: 1px solid var(--danger); border-radius: var(--r-2); font-size: var(--fs-13); color: var(--text-1); }
 
-/* 5 tiles per row on a phone (375px minus gutters leaves ~64px each) */
-.bag-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-2); }
+/* Tiles are at least 48px wide, so a narrow phone column gets 4 per row and desktop gets more */
+.bag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: var(--sp-2); }
 .bag-tile { position: relative; min-height: 64px; padding: var(--sp-1); border-radius: var(--r-1); background: var(--bg-1);
   border: 1px solid var(--line-1); border-inline-start-width: 4px; color: var(--text-1); cursor: pointer; font: inherit;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }

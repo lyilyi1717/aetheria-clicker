@@ -401,7 +401,7 @@ export class GearSystem {
     if (!n) return;
     this.loot.notice = null;
     rewards.notify({
-      tier: 'medium', kind: 'bones-converted', icon: '🔩', color: '#cbd5e1',
+      tier: 'medium', kind: 'bones-converted', icon: '⚙️', color: '#cbd5e1',
       title: t('bag.converted', { scrap: n.scrap }),
       detail: t('bag.converted_detail', { items: n.items, cores: n.cores })
     });
