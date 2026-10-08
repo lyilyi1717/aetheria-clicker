@@ -16,6 +16,9 @@ globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
 
 export const DESIGNED_ENVELOPE = 2.89;   // R52 active play over generators alone
+// Owner decision (R66): Garden taps keep 5% growth per tap, so the tap uplift sits above the
+// x2.89 envelope (~x5). The click cap still bounds it: 20 taps/s must not beat 5 taps/s.
+export const TAP_UPLIFT_CEILING = 5.5;
 export const AUTOMATED_MAX_RATIO = 1.01;  // R60: Golem and offline harvests add no Nectar Surge
 export const HAND_HARVEST_MAX_RATIO = 3.5; // R60: an idealised bot harvesting every plot the instant it matures (x3.42)
 
@@ -92,12 +95,12 @@ if (process.argv[1]?.endsWith("garden-tap.mjs")) {
   // tap uplift is what the taps add on top of it, and it must fit the designed active envelope.
   const idle = measureGardenTapping({ tapsPerSec: 0 });
   console.log(`Garden without taps: x${idle.toFixed(2)} of generators (Nectar Surge on hand harvests)`);
-  console.log(`Tap uplift over that (designed active-play envelope x${DESIGNED_ENVELOPE}):`);
+  console.log(`Tap uplift over that (owner ceiling x${TAP_UPLIFT_CEILING}; designed envelope x${DESIGNED_ENVELOPE}):`);
   let bad = false;
   for (const tapsPerSec of [5, 20]) {
     const up = measureGardenTapping({ tapsPerSec }) - idle;
-    if (up > DESIGNED_ENVELOPE) bad = true;
-    console.log(`  ${String(tapsPerSec).padStart(2)} taps/s: +x${up.toFixed(2)}${up > DESIGNED_ENVELOPE ? '  OVER' : ''}`);
+    if (up > TAP_UPLIFT_CEILING) bad = true;
+    console.log(`  ${String(tapsPerSec).padStart(2)} taps/s: +x${up.toFixed(2)}${up > TAP_UPLIFT_CEILING ? '  OVER' : ''}`);
   }
   const golem = measureGolems();
   const off = measureOffline();

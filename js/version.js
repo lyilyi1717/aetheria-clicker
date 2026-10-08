@@ -3,9 +3,23 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.17.1';
+export const VERSION = '5.17.2';
 
 export const CHANGELOG = [
+  {
+    version: '5.17.2',
+    date: '2026-10-08',
+    title: 'Garden Taps Grow Faster Again',
+    changes: [
+      'Each paid tap on a growing crop grows it by 5% of its grow time again (was 2% since the last update). The 5 paid taps a second limit stays.'
+    ],
+    ar: {
+      title: 'نقرات الحديقة تنمّي المحاصيل أسرع مجددًا',
+      changes: [
+        'كل نقرة مدفوعة على محصول نامٍ تنمّيه الآن بنسبة 5% من وقت نموه من جديد (كانت 2% منذ التحديث الأخير). يبقى حد 5 نقرات مدفوعة في الثانية.'
+      ]
+    }
+  },
   {
     version: '5.17.1',
     date: '2026-10-08',
