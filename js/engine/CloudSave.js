@@ -80,7 +80,7 @@ export function parseAuthCallback(href) {
   const hash = new URLSearchParams(u.hash.replace(/^#/, ''));
   const query = u.searchParams;
   const err = hash.get('error_description') || query.get('error_description') || hash.get('error') || query.get('error');
-  if (err) return { kind: 'error', error: err.replace(/\+/g, ' ') };
+  if (err) return { kind: 'error', error: err.replace(/\+/g, ' '), code: hash.get('error_code') || query.get('error_code') || '' };
   if (hash.get('access_token')) {
     return {
       kind: 'tokens',
@@ -112,7 +112,8 @@ const AUTH_MESSAGES = {
   over_request_rate_limit: t('cloud.request_rate'),
   validation_failed: t('cloud.check_email'),
   signup_disabled: t('cloud.signup_disabled'),
-  provider_disabled: t('acct.google_off')
+  provider_disabled: t('acct.google_off'),
+  otp_expired: t('cloud.link_expired')
 };
 
 // Player-readable text for a Supabase Auth error body
@@ -279,7 +280,7 @@ export class CloudSave {
   async handleCallback(href) {
     const cb = parseAuthCallback(href);
     if (!cb) return null;
-    if (cb.kind === 'error') return { error: authErrorMessage({ msg: cb.error }) };
+    if (cb.kind === 'error') return { error: authErrorMessage({ msg: cb.error, error_code: cb.code }) };
     try {
       if (cb.kind === 'code') {
         const verifier = this.read(PKCE_KEY);

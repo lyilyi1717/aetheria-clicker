@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.10.1';
+export const VERSION = '5.10.2';
 
 export const CHANGELOG = [
+  {
+    version: '5.10.2',
+    date: '2026-10-08',
+    title: 'Clearer Account Email Links',
+    changes: [
+      'Opening a confirmation or password-reset email now takes you to Settings and tells you what happened: "Email confirmed, you are signed in", or why the link did not work.',
+      'An expired or already-used link now explains what to do next instead of failing silently.'
+    ],
+    ar: {
+      title: 'روابط بريد الحساب أوضح',
+      changes: [
+        'فتح رسالة التأكيد أو إعادة تعيين كلمة المرور ينقلك الآن إلى الإعدادات ويخبرك بما حدث: "تم تأكيد بريدك وأنت مسجّل الدخول"، أو سبب عدم عمل الرابط.',
+        'الرابط المنتهي أو المستخدم سابقًا يشرح الآن ما عليك فعله بدلًا من الفشل بصمت.'
+      ]
+    }
+  },
   {
     version: '5.10.1',
     date: '2026-10-08',

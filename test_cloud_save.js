@@ -69,6 +69,10 @@ const U = 'user-1';
   const e = parseAuthCallback(`${page}?error=invalid_request&error_code=bad_oauth_state&error_description=Unsupported+provider%3A+provider+is+not+enabled`);
   assert.equal(e.kind, 'error');
   assert.match(authErrorMessage({ msg: e.error }), /Google sign-in is not switched on yet/);
+  // An expired or already-used email link says what to do next
+  const x = parseAuthCallback(`${page}#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired`);
+  assert.equal(x.code, 'otp_expired');
+  assert.match(authErrorMessage({ msg: x.error, error_code: x.code }), /expired or was already used/);
   assert.equal(cleanCallbackUrl(`${page}?code=abc&x=1#access_token=1`), `${page}?x=1`);
   assert.equal(authErrorMessage({ error_code: 'invalid_credentials', msg: 'Invalid login credentials' }, 400), 'Wrong email or password.');
   assert.equal(authErrorMessage(null, 500), 'Sign-in failed (500).');

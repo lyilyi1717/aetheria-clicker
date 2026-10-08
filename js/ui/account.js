@@ -57,9 +57,15 @@ export class AccountUI {
     const cb = await this.cloud.handleCallback(location.href);
     if (cb) {
       try { history.replaceState(null, '', cleanCallbackUrl(location.href)); } catch { /* file:// */ }
-      if (cb.error) this.say(cb.error, 'bad');
-      else if (cb.recovery) { this.say(t('acct.choose_pw'), 'ok'); this.app.switchTab?.('settings'); }
+      // Show the outcome where the player can see it: open Settings -> Account
+      if (cb.error) {
+        this.say(cb.error, 'bad');
+        rewards.notify({ tier: 'medium', kind: 'account', icon: '⚠️', title: t('acct.link_failed'), detail: cb.error, color: 'var(--danger)' });
+      } else if (cb.recovery) this.say(t('acct.choose_pw'), 'ok');
+      else if (cb.signedIn) this.say(t('acct.link_ok', { email: this.cloud.email }), 'ok');
+      this.app.switchTab?.('settings');
       this.render();
+      this.root?.scrollIntoView?.({ block: 'start' });
     }
 
     // Uploads: every few minutes, on manual save, and when the page is hidden
@@ -70,15 +76,15 @@ export class AccountUI {
     window.addEventListener('pagehide', () => this.cloud.sync('hide'));
     setInterval(() => this.renderStatus(), 30000);
 
-    if (this.cloud.signedIn && !this.cloud.needsNewPassword) await this.afterSignIn(!!cb?.signedIn);
+    if (this.cloud.signedIn && !this.cloud.needsNewPassword) await this.afterSignIn(!!cb?.signedIn, cb?.signedIn ? 'medium' : 'small');
     else if (!this.cloud.signedIn) this.cloud.providers().then(p => { this.googleOn = p ? p.google : null; this.render(); });
   }
 
   say(text, kind = '') { this.note = text; this.noteKind = kind; this.renderStatus(); }
 
   // --- flows ---
-  async afterSignIn(fresh) {
-    if (fresh) rewards.notify({ tier: 'small', kind: 'account', icon: '☁️', title: t('acct.signed_in_as', { email: this.cloud.email }), color: 'var(--aether)' });
+  async afterSignIn(fresh, tier = 'small') {
+    if (fresh) rewards.notify({ tier, kind: 'account', icon: '☁️', title: t('acct.signed_in_as', { email: this.cloud.email }), color: 'var(--aether)' });
     if (this.app.leaderboard) this.app.leaderboard.lastPush = 0;   // move the leaderboard row to the account now
     const d = await this.cloud.sync('login');
     this.afterSync(d);
