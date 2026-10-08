@@ -865,6 +865,23 @@ export default {
   "goal.wait": "{reset1Noun} in {time}",
   "guide.less": "Less ▴",
   "guide.more": "More ▾",
+  // comingUp.js (R54)
+  "comingup.title": "Coming up",
+  "comingup.hint": "Your next unlocks. Times are rough, at your current pace, and nothing is lost if you take longer.",
+  "comingup.none": "Everything here is open. More arrives with your next {reset2Noun}.",
+  "comingup.eta.ready": "Ready",
+  "comingup.eta.soon": "< 1 min",
+  "comingup.eta.min": "~{n} min",
+  "comingup.eta.hours": "~{n} h",
+  "comingup.eta.days": "~{n} days",
+  "comingup.tab": "New tab {name}: {what}",
+  "comingup.shop1": "{reset1Shop}: 1 new item at {reset1Noun} {k} ({frac})",
+  "comingup.shop": "{reset1Shop}: {n} new items at {reset1Noun} {k} ({frac})",
+  "comingup.field_gen": "{reset2Noun} opens {name}: {frac} {reset1Short}",
+  "comingup.field": "Next {reset2Noun}: {frac} {reset1Short}",
+  "comingup.node": "{shareTree}: {name} ({frac} {reset2Short})",
+  "comingup.seal": "Seal {name}: {what}",
+  "comingup.chronicle": "Chronicle: {frac} {reset2Plural}",
 
   // theme.js
   "theme.night": "Night",

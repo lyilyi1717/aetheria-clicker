@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.0.0';
+export const VERSION = '5.1.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.1.0',
+    date: '2026-10-08',
+    title: 'Coming up',
+    changes: [
+      'New "Coming up" panel: tap the goal chip in the header (or the Coming up button under the Refinery on phones and tablets) to see your next 5 unlocks: the next generator, new tabs, Reserve Shop tiers, your next New Field and the generator it opens, Share Tree nodes, Seals and the Chronicle.',
+      'Each shows how close you are and, where your income allows a guess, roughly when it lands ("~2 h", "~3 days"). The times are only a guide at your current pace: nothing expires and nothing is lost if you take longer. Tap a row to go to its tab.'
+    ],
+    ar: {
+      title: 'القادم',
+      changes: [
+        'لوحة جديدة "القادم": اضغط شارة الهدف في الأعلى (أو زر القادم تحت المصفاة على الهاتف والجهاز اللوحي) لترى أقرب 5 أشياء ستُفتح لك: المولّد التالي، والتبويبات الجديدة، وفئات متجر الاحتياطي، وحقلك الجديد التالي والمولّد الذي يفتحه، وعُقد شجرة الأسهم، والأختام، والملحمة.',
+        'يُظهر كل منها مدى قربك منه، ومتى سيصل تقريبًا حين يسمح دخلك بالتقدير ("نحو ساعتين"، "نحو 3 أيام"). الأوقات مجرد دليل بحسب وتيرتك الحالية: لا شيء ينتهي ولا تخسر شيئًا إن تأخرت. اضغط أي سطر لتنتقل إلى تبويبه.'
+      ]
+    }
+  },
   {
     version: '5.0.0',
     date: '2026-10-08',
