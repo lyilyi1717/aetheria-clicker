@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <!-- Oud Wood of Emerald -->
+  <defs>
+    <linearGradient id="oudWood" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#78350f"/>
+      <stop offset="50%" stop-color="#451a03"/>
+      <stop offset="100%" stop-color="#1c1917"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6ee7b7"/>
+      <stop offset="50%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+    <radialGradient id="emeraldGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="64" cy="64" r="50" fill="url(#emeraldGlow)"/>
+  <!-- Natural Carved Sacred Agarwood Branch -->
+  <path d="M30 96 C40 80, 36 60, 48 42 C56 30, 68 22, 84 18 C80 32, 70 42, 74 58 C78 72, 94 82, 98 104 C84 108, 62 100, 48 108 Z" fill="url(#oudWood)" stroke="#1c1917" stroke-width="3"/>
+  <!-- Natural Bark Veins -->
+  <path d="M46 54 Q56 68 58 88" fill="none" stroke="#92400e" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M64 36 Q68 52 76 68" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round"/>
+  <!-- Growing Emerald Crystal Clusters on Wood -->
+  <polygon points="58,40 66,24 72,38 64,50" fill="url(#emeraldGrad)" stroke="#065f46" stroke-width="1.5"/>
+  <polygon points="74,56 86,46 90,62 80,70" fill="url(#emeraldGrad)" stroke="#065f46" stroke-width="1.5"/>
+  <polygon points="46,74 54,64 60,78 50,88" fill="url(#emeraldGrad)" stroke="#065f46" stroke-width="1.5"/>
+  <polygon points="68,80 80,72 84,90 72,96" fill="url(#emeraldGrad)" stroke="#065f46" stroke-width="1.5"/>
+  <!-- Resin Essence Droplet -->
+  <path d="M64 96 C64 96 70 106 70 110 C70 113 67 116 64 116 C61 116 58 113 58 110 C58 106 64 96 64 96 Z" fill="#34d399" stroke="#047857" stroke-width="1.5"/>
+</svg>

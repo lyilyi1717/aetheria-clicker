@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <!-- Mabkhara of Cosmic Void (Void Amethyst) -->
+  <defs>
+    <radialGradient id="voidGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#3b0764" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="amethystStone" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e9d5ff"/>
+      <stop offset="50%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#3b0764"/>
+    </linearGradient>
+    <linearGradient id="goldAcc" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#facc15"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="50" fill="url(#voidGlow)"/>
+  <!-- Billowing Astral Violet Smoke -->
+  <path d="M64 48 Q54 36 60 22 Q66 10 58 6 M64 48 Q74 34 70 20 Q66 8 74 4" fill="none" stroke="#d8b4fe" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+  <!-- 4-Pillar Mabkhara Burner Cup -->
+  <polygon points="34,48 94,48 84,76 44,76" fill="url(#amethystStone)" stroke="url(#goldAcc)" stroke-width="3"/>
+  <!-- Corner Pyramids (The 4 Peaks of Mabkhara) -->
+  <polygon points="34,48 28,34 38,44" fill="url(#goldAcc)"/>
+  <polygon points="94,48 100,34 90,44" fill="url(#goldAcc)"/>
+  <polygon points="46,48 44,36 50,46" fill="url(#goldAcc)"/>
+  <polygon points="82,48 84,36 78,46" fill="url(#goldAcc)"/>
+  <!-- Glowing Embers & Cosmic Amethyst Eye inside burner -->
+  <ellipse cx="64" cy="52" rx="20" ry="6" fill="#581c87"/>
+  <circle cx="64" cy="52" r="6" fill="#f0abfc"/>
+  <!-- Mid Waist Section -->
+  <path d="M52 76 L76 76 L70 94 L58 94 Z" fill="url(#goldAcc)" stroke="#713f12" stroke-width="2"/>
+  <!-- Ornate Flared Base -->
+  <polygon points="40,114 88,114 74,94 54,94" fill="url(#amethystStone)" stroke="url(#goldAcc)" stroke-width="3"/>
+  <rect x="36" y="112" width="56" height="6" rx="2" fill="url(#goldAcc)"/>
+</svg>

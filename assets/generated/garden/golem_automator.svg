@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <radialGradient id="golemGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#047857" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="golemStone" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#94a3b8"/>
+      <stop offset="50%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="50" fill="url(#golemGlow)"/>
+  <!-- Heavy Stone Automator Shoulders & Torso -->
+  <path d="M30 68 L98 68 L88 116 L40 116 Z" fill="url(#golemStone)" stroke="#1e293b" stroke-width="4"/>
+  <!-- Massive Monolith Head -->
+  <polygon points="46,24 82,24 88,68 40,68" fill="url(#golemStone)" stroke="#1e293b" stroke-width="4"/>
+  <!-- Glowing Verdant Emerald Eye -->
+  <ellipse cx="64" cy="46" rx="14" ry="7" fill="#047857" stroke="#10b981" stroke-width="2"/>
+  <circle cx="64" cy="46" r="4.5" fill="#a7f3d0"/>
+  <!-- Overgrown Garden Moss / Vines on Stone -->
+  <path d="M42 30 Q54 36 46 50" fill="none" stroke="#22c55e" stroke-width="4" stroke-linecap="round"/>
+  <path d="M84 72 Q78 86 86 100" fill="none" stroke="#22c55e" stroke-width="4" stroke-linecap="round"/>
+  <!-- Ancient Rune Carving on Chest -->
+  <polygon points="64,80 72,88 64,96 56,88" fill="none" stroke="#34d399" stroke-width="2.5"/>
+</svg>

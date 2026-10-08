@@ -3,9 +3,31 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.15.0';
+export const VERSION = '5.16.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.16.0',
+    date: '2026-10-08',
+    title: 'Comprehensive Visual Asset Overhaul',
+    changes: [
+      'Void Tower Gear Art: All 20 equipment tiers (weapons, armor, amulets, and relics across common, rare, epic, legendary, and cosmic) now display rich, full-color RPG item illustrations with rarity borders.',
+      'Hero & Boss Portraits: The Astral Champion now has a custom starlight helmet portrait, and iconic dungeon bosses (Abu Sarwal, Rukbah Soda, Mutawa, Karak Addict) feature unique character art.',
+      'Excavation Relics & Gems: Uncovered underground tiles now display custom vector assets for the Ancient Stairs, overflowing Gold Caches, and the 5 cultural gemstone relics (Fawanees, Dallah, Oud Wood, Misbaha, and Mabkhara).',
+      'Alchemy & Grimoire Icons: The Alchemical Crucible cards now display custom brewed elixir flasks, and Grimoire spells feature glowing arcane runic sigils.',
+      'Botanical Nexus & Anomaly: Plant plots now visually progress through distinct sprout and blooming stages before maturity, Garden Golems carry stone sentry badges, and the Golden Anomaly shines as an orbiting celestial star.'
+    ],
+    ar: {
+      title: 'تحديث شامل للرسومات والأصول البصرية',
+      changes: [
+        'رسومات العتاد في برج الفراغ: تعرض الآن جميع درجات المعدات العشرين (الأسلحة والدروع والتمائم والآثار من الشائع إلى الكوني) رسومات ملونة بالكامل مع إطارات ندرة مميزة.',
+        'صور البطل والزعماء: حصل بطل الأجرام السماوية على صورة شخصية ملحمية، وتتميز زعماء الأبراج (أبو سروال وفنيلة، ركبة صودا، المطوع، مدمن كرك) برسومات كرتونية ساخرة فريدة.',
+        'كنوز الحفر والآثار: تكشف بلاطات التنقيب الآن عن رسومات متجهة للدرج القديم وكنوز الذهب والآثار الخمسة (الفوانيس، الدلة، خشب العود، المسبحة، والمبخرة).',
+        'رموز الكيمياء والتعاويذ: بطاقات الخيمياء تعرض الآن قوارير الإكسير المتقنة، كما تضيء تعاويذ المخطوطة برموز سحرية متوهجة.',
+        'الحديقة والظاهرة الكونية: تنمو النباتات الآن بصرياً عبر مراحل البرعم والإزهار، ويحمل غولم الحديقة شارة الحارس الحجري، وتتألق الظاهرة الكونية كجرم سماوي مداري.'
+      ]
+    }
+  },
   {
     version: '5.15.0',
     date: '2026-10-08',

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <linearGradient id="pouchGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="60%" stop-color="#166534"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+    <radialGradient id="pouchGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#86efac" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="64" cy="64" r="50" fill="url(#pouchGlow)"/>
+  <!-- Embroidered Magical Seed Pouch -->
+  <path d="M42 40 L86 40 L96 102 Q96 112 64 112 Q32 112 32 102 Z" fill="url(#pouchGrad)" stroke="#14532d" stroke-width="3.5"/>
+  <!-- Tied Cord String & Golden Tassels -->
+  <ellipse cx="64" cy="40" rx="22" ry="6" fill="#facc15" stroke="#854d0e" stroke-width="2"/>
+  <line x1="64" y1="40" x2="64" y2="58" stroke="#facc15" stroke-width="3"/>
+  <circle cx="64" cy="60" r="4" fill="#ca8a04"/>
+  <!-- Sprouting Leaf Emblem on Pouch -->
+  <path d="M64 92 C64 92, 48 84, 52 70 C56 60, 68 62, 64 92 Z" fill="#86efac" stroke="#166534" stroke-width="1.5"/>
+  <path d="M64 92 C64 92, 80 84, 76 70 C72 60, 60 62, 64 92 Z" fill="#4ade80" stroke="#166534" stroke-width="1.5"/>
+</svg>
