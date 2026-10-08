@@ -456,6 +456,35 @@ leaderboard column. No save migration: `codex` is a new additive field.
 > the old default Auto-Ascend rule ×2 moves to ×1.25. Counts (New Wells, Transcends, shards,
 > Pages, Chronicles) are kept.
 
+> **R52 passive-first clicking (v5.2.0, issue #126).** The owner wants progress passive-driven:
+> clicking is a small optional boost. Shipped values (replace the rows above where they differ):
+>
+> | Item | R52 (shipped) | Before R52 |
+> |---|---|---|
+> | Click yield | **0.5 s of current production**, at least `clickPower` (1); Resonant Flow +0.02 s per rank (`GameState.getClickBase`) | `clickPower × 2^n + 3% CPS` |
+> | Click upgrades | **removed**; save step v9 refunds the ones bought (10 × base cost of tier i each) | 15, ×2 each |
+> | Click rate | at most **5 paid clicks/s** (token bucket on real time); faster taps animate and pay nothing | unlimited |
+> | Auto-tap | dust shop, Asc 1, **5 dust**: 1 plain click/s (no combo, Frenzy or crit) whenever the player hasn't tapped for 2 s, and in offline gains (+50% of production); the Dry Well challenge turns it off | — |
+> | Combo / Frenzy | combo **×1** (feel: bar, pitch, Frenzy every 20); Frenzy **×1.25** for 4 s | ×5 / ×3 |
+> | Spells / anomalies | Burst **10 s of CPS every 60 s**; Celestial **×1.25** 30 s; Chrono Warp ×5 15 s every **10 min**; Supernova **30 s**; Mirage **×1.5** | 45 s / 45 s; ×2.5; every 60 s; 180 s; ×2 |
+> | Dust gain | `10 × (runAether / 500)^(1/6)`: pays from **500** run Oil | `10 × (A / 1e4)^(1/5)` |
+>
+> *Why.* At 0.5 s a click, the attentive model's 2 clicks/s alone add as much as the generators,
+> so the "~×2" target can't hold against generators alone. It is measured against an idle player
+> **with Auto-tap** (×1.5 generators), which every player owns from the first New Well on:
+> `sim/active-income.mjs` gives **×1.93** (clicks only ×1.46, spells only ×1.28, anomalies only
+> ×1.07; ×2.89 of generator output; R3 values measured ×6.86). Nothing much is left for the combo,
+> so it became feel only and Frenzy, Burst, Celestial, Warp and the anomalies shrank to fit.
+> The dust gate is the early-game lever: with click upgrades gone the casual first New Well needs
+> a target a 10-min first session reaches (about 1,400 run Oil), and the idle player needs one
+> reached in the first hour (671 run Oil at 1 h). A sixth root from 500 pays about the same as the
+> old fifth root from 1e4 at 1e12 run Oil (355 vs 398 dust) and a little more early (17 vs 10 at
+> 1e4), so the Transcend gates stay. `sim:check` now also asserts the idle first Ascension
+> ≤ 90 min. Result: first Ascension idle **60 min** (was 300), casual 10 min; upgrades per run
+> median idle 19, casual 23 (were 22 / 31); casual 2-month run Oil 5.6e10 (≤ 1e13 asserted;
+> the row lands just after a Transcend, the layer peaks before it are 1.9e8, 5.5e9, 7.8e10,
+> 8.7e11, 8.3e12, 7e13).
+
 
 | Item | Today | Proposed | Why |
 |---|---|---|---|
@@ -636,6 +665,7 @@ count (1 / 3 / 5 / 10 / 20) so the shop grows with the player.
 | Tier | Feature | Cost |
 |---|---|---|
 | Asc 1 | Cosmic Genesis (start with 15 Stalls, 1,000 gold) — keep | 5 |
+| Asc 1 | **Auto-tap** (1 click/s while you're not tapping, and offline; R52) | 5 |
 | Asc 1 | **Blueprint Memory**: keep the first 2 upgrades of each tier through Ascension | 25 |
 | Asc 1 | Chrono Reservoir I–X (+4 h offline at 100% per rank) | 25 × 1.5^r |
 | Asc 3 | **Auto-Buy** (best generator every 10 s) | 100 |
@@ -760,6 +790,13 @@ Highest run Oil per layer before each Transcend (casual): 3.7e8, 1.1e10, 4.2e10,
 per run median 31 casual (22 idle); about 106 Transcends and 11 Chronicles in the casual year.
 `sim:check` asserts the casual 2-month run Oil stays ≤ 1e13. The table below is the pre-R31
 proposal, kept for history.
+
+**R52 (v5.2.0):** with passive-first clicking (§6.1 R52 block) run Oil casual / idle reads 1 d
+3.7e4 / 9.2e4, 1 w 6.4e3 / 1.6e8, 1 mo 1.2e12 / 1.5e11, 2 mo 5.6e10 / 6e10, 3 mo 2.1e14 / 3.2e11
+(the rows swing with where a reset lands). Casual Transcends at days 2.9, 6.9, 12.3, 20.1, 31.6,
+47.8, 70.9, 103.1, first Chronicle day 110 (idle 185); about 85 Transcends and 10 Chronicles in the
+casual year. First Ascension idle 60 min, casual 10 min; longest stretch without a reset (day
+1–270) casual 6.5 days, idle 11.0 days.
 
 
 Model: proposed §6.1 constants; upgrade shop; one new tier per Transcend to 30; dust-shop

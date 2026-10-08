@@ -54,11 +54,11 @@ console.log('--- New Well ETA: the Oil gate, then the 10-min minimum run ---');
 {
   const { gs, ps } = setup();
   gs.totalAetherEarned = new BigNum(DUST_REF / 2);
-  // 5,000 Oil missing at 10/s = 500 s, but the run must also last 600 s
+  // DUST_REF / 2 Oil missing at 10/s takes less than the 600 s minimum run
   assert.equal(nextWellEta(gs, ps, new BigNum(10), NOW), MIN_RUN_SECONDS);
-  near(nextWellEta(gs, ps, new BigNum(1), NOW), DUST_REF / 2, 'Oil is the slower part');
+  near(nextWellEta(gs, ps, new BigNum(0.1), NOW), DUST_REF / 2 * 10, 'Oil is the slower part');
   assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW), null);
-  gs.totalAetherEarned = new BigNum(DUST_REF * 32);
+  gs.totalAetherEarned = new BigNum(DUST_REF * 64);
   assert.ok(ps.getPendingCosmicDust().gt(0));
   assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW + 100_000), MIN_RUN_SECONDS - 100, 'paying run: only the clock');
   assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW + MIN_RUN_SECONDS * 1000), 0);
@@ -68,7 +68,7 @@ console.log('--- Reserve pace: pending over the run time (at least the minimum r
 {
   const { gs, ps } = setup();
   assert.equal(dustRate(gs, ps, NOW).toNumber(), 0, 'no pending Reserves, no pace');
-  gs.totalAetherEarned = new BigNum(DUST_REF * 32); // pays 20
+  gs.totalAetherEarned = new BigNum(DUST_REF * 64); // pays 20
   const pending = ps.getPendingCosmicDust().toNumber();
   assert.equal(pending, 20);
   assert.ok(Math.abs(dustRate(gs, ps, NOW + 60_000).toNumber() - pending / MIN_RUN_SECONDS) < 1e-12, 'short run counts as 10 min');
@@ -78,7 +78,7 @@ console.log('--- Reserve pace: pending over the run time (at least the minimum r
 console.log('--- several New Wells: next one, then the player\'s own wells per day ---');
 {
   const { gs, ps } = setup();
-  gs.totalAetherEarned = new BigNum(DUST_REF * 32);
+  gs.totalAetherEarned = new BigNum(DUST_REF * 64);
   const t = NOW + MIN_RUN_SECONDS * 1000;
   assert.equal(wellsEta(gs, ps, BigNum.zero(), 0, t), 0);
   assert.equal(wellsEta(gs, ps, BigNum.zero(), 1, t), 0);

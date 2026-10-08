@@ -5,7 +5,7 @@
 //
 // Purely informational (rule 8): nothing here expires, counts down against the player or costs
 // anything. ETAs assume the player keeps the current pace:
-//   - Oil targets: what's missing / Oil per second (clicks not counted, so it is an upper bound).
+//   - Oil targets: what's missing / Oil per second (Auto-tap counted, manual clicks not: an upper bound).
 //   - Reserve targets: this run's Reserves per second (pending / run time, at least the 10-min
 //     minimum run), the pace of drilling runs like this one again and again.
 //   - New Well counts (Reserve Shop tiers): the next New Well, then the player's own New Wells
@@ -219,7 +219,9 @@ function nextChronicle(gs) {
  * ctx = { buildings, prestige, now? }. Returns at most `max` items.
  */
 export function getComingUp(gs, { buildings, prestige, now = Date.now() }, max = MAX_ITEMS) {
-  const rate = gs.getNetAetherPerSecond ? gs.getNetAetherPerSecond() : BigNum.zero();
+  // Production plus Auto-tap (R52), which taps on its own while the player is away
+  const prod = gs.getNetAetherPerSecond ? gs.getNetAetherPerSecond() : BigNum.zero();
+  const rate = gs.getAutoTapPerSecond ? prod.add(gs.getAutoTapPerSecond()) : prod;
   const field = nextField(gs, prestige, rate, now);
   const items = [
     nextGenerator(gs, buildings, rate),
