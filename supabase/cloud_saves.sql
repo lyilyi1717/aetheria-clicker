@@ -8,6 +8,14 @@
 -- The client (js/engine/CloudSave.js) uploads the same JSON the game keeps in localStorage
 -- (GameState.serialize()), so loading a cloud save goes through deserialize + migrations
 -- exactly like a local one.
+--
+-- Auth URL setup (Dashboard -> Authentication -> URL Configuration), not SQL. Without it the
+-- confirmation and password-reset emails link to the default Site URL, http://localhost:3000:
+--   Site URL:      https://lyilyi1717.github.io/aetheria-clicker/
+--   Redirect URLs: https://lyilyi1717.github.io/aetheria-clicker/**
+--                  http://localhost:8101/**            (npm start)
+-- CloudSave sends redirect_to = the page's own URL; Supabase ignores it unless it matches a
+-- Redirect URL and falls back to the Site URL.
 
 create table if not exists public.saves (
   user_id     uuid primary key default auth.uid() references auth.users (id) on delete cascade,
