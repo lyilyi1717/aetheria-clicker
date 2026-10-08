@@ -281,7 +281,7 @@ export class GardenSystem {
     let lastSeed = null;
     if (plot.seed && plot.progress >= plot.maxTime) {
       lastSeed = plot.seed;
-      harvested = this.harvestPlot(plotIndex, undefined, undefined, true);
+      harvested = this.harvestPlot(plotIndex, undefined, undefined, true, true);
     }
     if (!plot.seed) {
       const seed = this.getRowPlantSeed(this.getRowOfPlot(plotIndex), lastSeed);
@@ -391,7 +391,7 @@ export class GardenSystem {
     return count;
   }
 
-  harvestPlot(plotIndex, clientX, clientY, silent = false) {
+  harvestPlot(plotIndex, clientX, clientY, silent = false, auto = false) {
     const plot = this.gameState.garden.plots[plotIndex];
     if (!plot || !plot.seed || (plot.stage !== 'mature' && plot.progress < plot.maxTime)) return false;
 
@@ -422,8 +422,10 @@ export class GardenSystem {
       }
     }
 
-    // Nectar Surge: harvesting yields immediate active Oil windfall (15s of net CPS, min 10 Oil)
-    const netCps = this.gameState.getNetAetherPerSecond?.();
+    // Nectar Surge: a harvest by hand pays an immediate Oil windfall (15s of net CPS, min 10 Oil).
+    // Golem and offline harvests (auto) pay none: the surge sits outside the subgame-link cap, so
+    // automated rows would multiply the whole economy (R60).
+    const netCps = auto ? null : this.gameState.getNetAetherPerSecond?.();
     if (netCps && netCps.gt && netCps.gt(0)) {
       const oilSurge = netCps.mul(15).max(10);
       this.gameState.aether = this.gameState.aether.add(oilSurge);
