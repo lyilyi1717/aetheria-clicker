@@ -37,3 +37,17 @@
   .cm-submit { align-self: stretch; }
 }
 @media (pointer: coarse) { #community-root .btn, .cm-field input { min-height: var(--tap); } }
+
+/* Requests posted in the game (js/ui/communityVotes.js): vote list and form buttons */
+.cm-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.cm-actions [hidden] { display: none; }
+.cm-row-actions { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-1); }
+.cm-like.is-on { border-color: var(--aether); background: var(--aether-dim); color: var(--aether); }
+.cm-like[aria-disabled="true"] { cursor: not-allowed; opacity: 0.72; }
+.cm-votes { border-color: var(--line-brand); }
+@media (max-width: 639px) {
+  .cm-actions .cm-submit { flex: 1 1 100%; }
+  .cm-votes .cm-row { flex-wrap: wrap; }
+  .cm-votes .cm-text { flex: 1 1 calc(100% - 40px); }
+  .cm-votes .cm-row-actions { flex: 1 1 100%; justify-content: flex-end; }
+}

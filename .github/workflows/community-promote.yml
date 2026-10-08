@@ -1,0 +1,33 @@
+name: Community promote
+
+# Requests posted in the game without a GitHub account (supabase/community.sql) become GitHub
+# issues labelled `community` once they have 2 likes; posted issues get their in-game like count
+# refreshed. Every 6 hours to stay well inside the Supabase free tier; or run it by hand.
+# Needs the repository secret SUPABASE_SERVICE_KEY (Supabase → Project Settings → API keys →
+# secret / service_role). It never leaves this workflow; the game only has the public key.
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: community-promote
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/github-script@v7
+        env:
+          SUPABASE_URL: https://hutjfgbjjagqdjjeszqj.supabase.co
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        with:
+          script: |
+            const { promote } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/community-promote.mjs`);
+            await promote({ github, context, core, url: process.env.SUPABASE_URL, key: process.env.SUPABASE_SERVICE_KEY });

@@ -3,9 +3,20 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.5.0';
+export const VERSION = '5.6.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.6.0',
+    date: '2026-10-08',
+    title: 'Vote for bugs and ideas, no GitHub needed',
+    changes: [
+      'You no longer need a GitHub account to report a bug or suggest an idea: sign in with your game account (Settings → Account) and press Post in the Community tab.',
+      'New Vote list in the Community tab: requests from players show up there right away. Like the ones you want (one like per player, not on your own). When a request has 2 likes it goes to the build queue on GitHub within a few hours, and its likes keep counting there.',
+      'You can post 3 requests a day, delete your own while they are still in the Vote list, and report spam or abuse: 3 reports hide a request for everyone.',
+      'The GitHub way still works for players who prefer it.'
+    ]
+  },
   {
     version: '5.5.0',
     date: '2026-10-08',
