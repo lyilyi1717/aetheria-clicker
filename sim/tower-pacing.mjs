@@ -134,6 +134,11 @@ function run(profile, endT) {
 }
 
 const fmt = n => Math.round(n).toLocaleString('en-US');
+// Target band (docs/gear-and-boss-design.md, R63): open profile, best floor, +-10%. The 1 h row is
+// reported but not asserted (the first hour rides on starting gear luck and reads ~35% low).
+const TARGETS = [['1 d', 414], ['1 w', 498], ['30 d', 560]];
+const BAND = 0.10;
+let bandMissed = false;
 const out = [`## Void Tower pacing report (sim/tower-pacing.mjs)${GEAR_LEVELS ? '' : ', gear levels off'}`];
 for (const [profile, endT] of [['open', 30 * DAY], ['casual', 30 * DAY]]) {
   const rows = run(profile, endT);
@@ -142,6 +147,15 @@ for (const [profile, endT] of [['open', 30 * DAY], ['casual', 30 * DAY]]) {
   out.push('|---|---|---|---|---|---|---|---|---|---|---|');
   for (const r of rows) {
     out.push(`| ${r.label} | ${r.towerH.toFixed(1)} | ${fmt(r.floor)} | ${fmt(r.perHour)} | ${r.forge} | ${r.level} | ${r.gearLv} | ${r.gold} | ${fmt(r.bosses)} | ${fmt(r.timeouts)} | ${fmt(r.deaths)} |`);
+  }
+  if (profile === 'open') {
+    out.push('');
+    for (const [label, target] of TARGETS) {
+      const got = rows.find(r => r.label === label)?.floor ?? 0;
+      const ok = Math.abs(got / target - 1) <= BAND;
+      if (!ok) bandMissed = true;
+      out.push(`target ${label}: ${fmt(got)} vs ${target} (${((got / target - 1) * 100).toFixed(1)}%) ${ok ? 'ok' : 'OUT OF BAND'}`);
+    }
   }
 }
 console.log(out.join('\n'));
