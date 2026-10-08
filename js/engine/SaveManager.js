@@ -138,7 +138,8 @@ export class SaveManager {
     const bands = computeOfflineBands(elapsedSeconds, reservoirRank, getOfflineBonusSeconds(this.gameState));
     const effectiveSecs = bands.paidSecs * offlineEfficiency;
 
-    const gainedAether = prodPerSec.mul(effectiveSecs);
+    // Auto-tap (dust shop, R52) keeps tapping while you're away, paid like production
+    const gainedAether = prodPerSec.add(this.gameState.getAutoTapPerSecond()).mul(effectiveSecs);
     this.gameState.aether = this.gameState.aether.add(gainedAether);
     this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(gainedAether);
 

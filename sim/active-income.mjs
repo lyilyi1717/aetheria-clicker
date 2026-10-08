@@ -1,8 +1,12 @@
 // Active vs idle income on the real SpellSystem / ClickerSystem (R3, docs/redesign-proposal.md
 // §5.2, §6.1). Plays `seconds` of attentive play at a fixed generator output and returns the
-// Aether earned divided by what the same time earns idle (generators only).
+// Aether earned divided by what the same time earns idle.
 //
-// The attentive player: clicks 2/s (combo x5 after 20 clicks, Frenzy every 20), casts Celestial
+// Idle (R52): generators plus Auto-tap, the early dust-shop feature every idle player owns after
+// the first New Well (1 plain click a second, each 0.5 s of production): x1.5 generators.
+// autoTap: false compares against generators alone (a run before Auto-tap).
+//
+// The attentive player: clicks 2/s (combo after 20 clicks, Frenzy every 20), casts Celestial
 // Alignment, Chrono Warp and Aether Burst whenever ready and affordable (in that order, so a
 // Burst lands inside Celestial when it can), and clicks every Golden Anomaly as it appears.
 // Midas, Void Cataclysm and Astral Renewal don't make Aether and are left out. Chrono Warp's x5
@@ -15,6 +19,7 @@ import { GameState } from '../js/systems/GameState.js';
 import { SpellSystem } from '../js/systems/SpellSystem.js';
 import { ClickerSystem } from '../js/systems/ClickerSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
+import { CLICK_CPS_SECONDS, AUTO_TAP_PER_SEC } from '../js/systems/combo.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
@@ -37,7 +42,7 @@ const ROTATION = ['celestial_alignment', 'chrono_warp', 'aether_burst'];
 // play: which parts the player does ({ clicks, spells, warp, anomalies }, all true by default;
 // the switches are for breaking the ratio down; warp: false leaves Chrono Warp out of the rotation).
 export function measureActiveIncome({
-  seconds = 3600 * 6, rng = seededRng(7), baseCps = 1e9, dt = 0.1, play = {}
+  seconds = 3600 * 6, rng = seededRng(7), baseCps = 1e9, dt = 0.1, play = {}, autoTap = true
 } = {}) {
   const { clicks = true, spells: cast = true, warp = true, anomalies = true } = play;
   const rotation = warp ? ROTATION : ROTATION.filter(id => id !== 'chrono_warp');
@@ -51,6 +56,7 @@ export function measureActiveIncome({
     const spells = new SpellSystem(gs, loop);
     const clicker = new ClickerSystem(gs, rng);
     gs.mana = 0;
+    if (autoTap) gs.dustShop.ranks.auto_tap = 1;   // taps whenever the player doesn't
 
     let clickAcc = 0;
     let prod = 0;
@@ -70,7 +76,7 @@ export function measureActiveIncome({
       if (cast) for (const id of rotation) if (spells.canCast(id)) spells.castSpell(id);
       if (anomalies && clicker.anomalyActive) clicker.clickAnomaly(0, 0);
 
-      clicker.update(gameDt);
+      clicker.update(gameDt, dt);
       spells.update(gameDt, dt);
       // Buffs run on real time (AlchemySystem.update)
       for (let k = gs.activeBuffs.length - 1; k >= 0; k--) {
@@ -78,9 +84,9 @@ export function measureActiveIncome({
         if (gs.activeBuffs[k].duration <= 0) gs.activeBuffs.splice(k, 1);
       }
     }
-    const idle = baseCps * seconds;
+    const idle = baseCps * seconds * (autoTap ? 1 + AUTO_TAP_PER_SEC * CLICK_CPS_SECONDS : 1);
     const total = gs.aether.toNumber();
-    return { ratio: total / idle, generators: prod / idle, other: (total - prod) / idle };
+    return { ratio: total / idle, vsGenerators: total / (baseCps * seconds), generators: prod / idle, other: (total - prod) / idle };
   } finally {
     Math.random = realRandom;
   }
@@ -91,5 +97,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   for (const [name, play] of [['clicks only', { spells: false, anomalies: false }], ['spells only', { clicks: false, anomalies: false }], ['anomalies only', { clicks: false, spells: false }]]) {
     console.log(`${name}: x${measureActiveIncome({ play }).ratio.toFixed(2)}`);
   }
-  console.log(`active / idle: x${r.ratio.toFixed(2)} (generators incl. buffs and Chrono Warp x${r.generators.toFixed(2)}, spells/clicks/anomalies +${r.other.toFixed(2)})`);
+  console.log(`no active play (Auto-tap only): x${measureActiveIncome({ play: { clicks: false, spells: false, anomalies: false } }).ratio.toFixed(2)}`);
+  console.log(`active / idle: x${r.ratio.toFixed(2)} (generators incl. buffs and Chrono Warp x${r.generators.toFixed(2)}, spells/clicks/anomalies/Auto-tap +${r.other.toFixed(2)}; x${r.vsGenerators.toFixed(2)} generators alone)`);
+  console.log(`before Auto-tap (first run): x${measureActiveIncome({ autoTap: false }).ratio.toFixed(2)} generators alone`);
 }

@@ -691,10 +691,8 @@ export default {
   "upg.level.5": "Eternal",
   "upg.tier_name": "{level} {name}",
   "upg.tier_desc": "{name} output ×{x}",
-  "upg.click_desc": "Base click ×{x}",
   "upg.syn_desc": "{a} +{pct}% per {b} owned",
   "upg.req.tier": "Own {n} {name}",
-  "upg.req.click": "Buy {name}",
   "upg.req.syn": "Own {a} {an} and {b} {bn}",
 
   // tabBonuses.js
@@ -963,7 +961,6 @@ export default {
   "upgui.locked": "locked",
   "upgui.not_enough": "not enough Oil",
   "upgui.req.tier": "Tier upgrade {a}/{b} · needs {n} {name} (have {have}) · now ×{x}",
-  "upgui.req.click": "Click upgrade {a}/{b} · base click now ×{x}",
   "upgui.req.syn": "Synergy {a}/{b} · needs {n1} {name1} (have {h1}) and {n2} {name2} (have {h2})",
   "upgui.to_go": "{n} to go",
   "upgui.prev": "buy the previous one",

@@ -328,6 +328,37 @@ export const MIGRATIONS = [
       }
       return data;
     }
+  },
+  {
+    // v8 -> v9 (R52, passive-first clicking): the 15 click upgrades (click_1 .. click_15) are
+    // gone; a click is now half a second of production. Each one a save had bought is refunded
+    // as Oil at its price (10 x the base cost of generator tier i = 10^(i+1)) and its id removed,
+    // in the run and in a stashed Chronicle-challenge run. Constants inlined (see step 3).
+    to: 9,
+    migrate(data) {
+      const isBig = (v) => v && typeof v === 'object' && Number.isFinite(Number(v.m)) && Number.isFinite(Number(v.e));
+      const refundInto = (holder, field) => {
+        const ids = holder?.upgrades;
+        if (!Array.isArray(ids)) return;
+        let refund = 0;
+        holder.upgrades = ids.filter(id => {
+          const m = /^click_(\d+)$/.exec(id);
+          if (!m) return true;
+          const i = Number(m[1]);
+          if (i >= 1 && i <= 15) refund += Math.pow(10, i + 1);
+          return false;
+        });
+        if (refund <= 0) return;
+        const have = isBig(holder[field]) ? Number(holder[field].m) * Math.pow(10, Number(holder[field].e)) : 0;
+        if (!Number.isFinite(have)) return;   // too large for the refund to show
+        const total = Math.max(0, have) + refund;
+        const e = Math.floor(Math.log10(total));
+        holder[field] = { m: total / Math.pow(10, e), e };
+      };
+      refundInto(data, 'aether');
+      refundInto(data.chronicle?.active?.stash, 'aether');
+      return data;
+    }
   }
 ];
 

@@ -1765,7 +1765,7 @@ class AetheriaApp {
 
   // Simulation tick (fixed rate)
   onSimTick(dt, realDt = dt) {
-    this.clickerSystem.update(dt);
+    this.clickerSystem.update(dt, realDt);
     // The Tower starts climbing when its tab opens (R7)
     if (this.gameState.isTabUnlocked('combat')) this.combatSystem.update(dt);
     this.miningSystem.update(dt);
