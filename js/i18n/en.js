@@ -259,7 +259,7 @@ export default {
   "mine.ready": "Ready",
   "mine.skills_title": "Stone Workshop (Techniques)",
   "mine.skill.shatter": "Seismic Fracture (Lv {lv})",
-  "mine.skill.shatter_desc": "{chance}% chance to instantly shatter a block in 1 hit",
+  "mine.skill.shatter_desc": "{chance}% chance for a hit to deal x10 damage",
   "mine.skill.chain": "Arc Conduction (Lv {lv})",
   "mine.skill.chain_desc": "{chance}% chance to arc lightning to 2-4 nearby blocks",
   "mine.skill.cleave": "Quarry Cleave (Lv {lv})",

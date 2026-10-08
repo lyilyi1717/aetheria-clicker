@@ -307,7 +307,7 @@ export default {
   "mine.ready": "جاهز",
   "mine.skills_title": "ورشة الأحجار (التقنيات)",
   "mine.skill.shatter": "صدع زلزالي (مستوى {lv})",
-  "mine.skill.shatter_desc": "فرصة {chance}% لتحطيم المربع فوريًا بضربة واحدة",
+  "mine.skill.shatter_desc": "فرصة {chance}% لتوجيه ضربة بقوة ×10",
   "mine.skill.chain": "توصيل القوس (مستوى {lv})",
   "mine.skill.chain_desc": "فرصة {chance}% لإطلاق برق متسلسل إلى 2-4 مربعات مجاورة",
   "mine.skill.cleave": "شق المحجر (مستوى {lv})",

@@ -23,7 +23,9 @@ particles.suppressed = true;
 
 const H = 3600;
 const DAY = 24 * H;
-const CLICKS_PER_SEC = 5;
+// Manual taps go through mineBlock with coordinates (like a real click), so Shatter, Chain,
+// Cleave, Frenzy and crits all fire. Casual taps lightly, active hammers the rate cap.
+const TAP_RATES = { casual: 1.5, active: 5 };
 const SESSION = 45 * 60;
 // Casual core sim (`npm run sim`): first Transcend day 3.5 buys Auto-Ascend, the second (day 4.4)
 // leaves a shard for Auto-Blast
@@ -61,14 +63,14 @@ function buyBest(ms, gs) {
 const WINDOWS = [['new (first 2 h of digging)', 0, 0], ['week 2 (days 7-14)', 7, 14], ['month 2 (days 30-60)', 30, 60]];
 const CHECKPOINTS = [1, 7, 14, 30, 60];
 
-function run(profile, endDay = 60) {
+function run(profile, endDay = 60, tapRate = TAP_RATES.active) {
   seedRandom(4242);
   const gs = new GameState();
   const ms = new MiningSystem(gs);
   ms.random = Math.random;
   gs.miningSystem = ms;
   const grid = gs.miningGrid;
-  const active = profile === 'active';  // 'idle-no-blast' is idle without Auto-Blast
+  const active = profile === 'active' || profile === 'casual-tap';  // 'idle-no-blast' is idle without Auto-Blast
   const inSession = t => (t % DAY) < SESSION || ((t % DAY) >= 12 * H && (t % DAY) < 12 * H + SESSION);
   const isOpen = t => !active || inSession(t);
   const isPlaying = t => (active ? inSession(t) : t < SESSION);
@@ -87,11 +89,11 @@ function run(profile, endDay = 60) {
     if (isOpen(t)) {
       if (isPlaying(t)) {
         if (ms.useDynamite()) blasts++;
-        clickAcc += CLICKS_PER_SEC * dt;
+        clickAcc += tapRate * dt;
         while (clickAcc >= 1) {
           clickAcc -= 1;
           const target = ms.pickDrillTarget();
-          if (target) ms.mineBlock(target.id, undefined, undefined, true);
+          if (target) ms.mineBlock(target.id, 0, 0, true);
         }
       }
       ms.update(dt);
@@ -129,8 +131,10 @@ function fmt(n, d = 1) {
 }
 
 const out = ['## Excavation pacing (`npm run sim:mining`)', ''];
-for (const profile of ['active', 'idle', 'idle-no-blast']) {
-  const r = run(profile);
+const RESULTS = {};
+for (const profile of ['active', 'casual-tap', 'idle', 'idle-no-blast']) {
+  const r = run(profile, 60, profile === 'casual-tap' ? TAP_RATES.casual : TAP_RATES.active);
+  RESULTS[profile] = r;
   out.push(`### profile: ${profile}`, '');
   out.push('| day | depth | pickaxe lv | drills | tiles broken | hours open |', '|---|---|---|---|---|---|');
   for (const d of CHECKPOINTS) {
