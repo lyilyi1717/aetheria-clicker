@@ -10,8 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Wave 9, run by the R31 coordinator session: R55 #129 in progress; R57 #139 follows R55 (both
-  touch `PrestigeSystem` and the sim).
+- Wave 9, run by the R31 coordinator session: R57 #139 in progress (also takes on the
+  attunement pacing below).
 
 ## Next up
 
@@ -260,6 +260,12 @@ R0–R30 and R32–R40 are done.
   x3 cost steps). A New Well pays from 500 run Oil. `sim:check` asserts idle first Ascension
   <= 90 min (60), casual median upgrades per run >= 30 (32), casual median run Oil over days
   50–70 >= 1e11 (4.1e12; idle 4.4e10).
+- R55 #129 Ascension attunements (PR #143, 5.5.0): pick 1 of 3 per run, one additive category.
+  Idle (default) +30% while the last hand tap is >= 60 s old (Auto-tap doesn't count); Steady
+  makes tier upgrades x1.26 each instead of x1.2; Focus +15% per subgame milestone, capped at
+  +40%. The pick locks at the first generator bought; a later pick is queued for the next New
+  Well. Old saves get Idle. Pacing is phase-sensitive: default casual days 50–70 median is 2.4e11;
+  Steady starts a Chronicle around day 58 and would fail `sim:check` (in R57's scope).
 - R56 #130 Challenge rewards and Chapter 2 (PR #141, 5.4.0): each Chronicle challenge pays one
   permanent reward on first clear (`chronicle.rewards`; old clears are paid on load). Oil rewards
   total +35%, additive with Margin Notes; also offline +10% x2, Small Souq start, Sandstorm +1
@@ -328,6 +334,8 @@ R0–R30 and R32–R40 are done.
 - After R52: the Aetherial Strike talent can push active play past x2 over idle.
 - After R56: the Salt stamp pays 0 Pages (a paying stamp would move the sim around day 210);
   since R52, Sandstorm takes ~31 h on a fresh idle run.
+- `test_r52_clicks.js` is flaky (about 2 in 30 runs fail on `Date.now` timing in the offline
+  test); worth a small fix item if CI starts flaking.
 - Arabic unlock teaser labels show fractions reversed (e.g. "20/0"); seen in R54.
 
 - Hex colours still in `CombatSystem.js`, `MiningSystem.js`, `ShardTreeSystem.js`,
