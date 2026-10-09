@@ -798,6 +798,8 @@ export default {
   "contract.complete": "عقد منجز: {name}",
   "contract.complete_batch": "أُنجزت {n} عقود",
   "contract.claim_on_board": "استلمه من اللوحة",
+  "contract.claimed": "تم استلام العقد",
+  "contract.claimed_detail": "+{gold} ذهب · +{seals} أختام · +{sand} رمل الزمن",
   "contract.word": "عقد",
   "qm.acquired": "حصلت على ميثاق النقابة",
   "qm.acquired_batch": "حصلت على {n} مواثيق للنقابة",

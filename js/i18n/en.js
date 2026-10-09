@@ -495,6 +495,8 @@ export default {
   "contract.complete": "Contract complete: {name}",
   "contract.complete_batch": "{n} contracts complete",
   "contract.claim_on_board": "Claim it on the board",
+  "contract.claimed": "Contract claimed",
+  "contract.claimed_detail": "+{gold} gold · +{seals} Seals · +{sand} Chrono Sand",
   "contract.word": "Contract",
   "qm.acquired": "Guild charter acquired",
   "qm.acquired_batch": "{n} guild charters acquired",

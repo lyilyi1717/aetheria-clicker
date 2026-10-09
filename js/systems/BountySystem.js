@@ -206,12 +206,20 @@ export class BountySystem {
     if (!b.completed || b.claimed) return false;
 
     b.claimed = true;
-    sound.playBuy();
+    sound.playCoins();
 
     // Grant rewards
     gs.gold = gs.gold.add(b.rewards.gold);
     gs.guildSeals = (gs.guildSeals || 0) + b.rewards.seals;
     gs.addChronoSand(b.rewards.chrono);
+    // A small toast keeps the amounts readable after the click (silent: the claim made its sound)
+    rewards.notify({
+      tier: 'small', kind: 'contract-claim', icon: '📜', color: '#fbbf24', sound: false,
+      title: t('contract.claimed'),
+      detail: t('contract.claimed_detail', {
+        gold: new BigNum(b.rewards.gold).format('standard', 0), seals: b.rewards.seals, sand: b.rewards.chrono
+      })
+    });
 
     // Every claim counts toward Guild Rank (S3); a rank-up pays its talent point and seals itself
     recordContractClaim(gs, 1);

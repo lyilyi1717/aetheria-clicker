@@ -1,6 +1,6 @@
 import { BigNum } from '../engine/BigNum.js';
 import { getActiveRules } from './ChronicleSystem.js';
-import { sound } from '../engine/AudioEngine.js';
+import { sound, SPELL_INTERVAL_BY_ID } from '../engine/AudioEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { hasShopItem } from './DustShopSystem.js';
 import { t, localize } from '../i18n/index.js';
@@ -117,7 +117,9 @@ export class SpellSystem {
     this.gameState.mana -= s.manaCost;
     state.cd = s.cooldown;
     this.gameState.stats.totalSpellsCast++;
-    sound.playSpell();
+    // Cast family: each spell has its own interval; Void Cataclysm is a Boom instead
+    if (spellId === 'void_strike') sound.playBlast();
+    else sound.playSpell(SPELL_INTERVAL_BY_ID[spellId]);
 
     const x = window.innerWidth / 2;
     const y = window.innerHeight / 2;

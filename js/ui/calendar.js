@@ -114,7 +114,7 @@ export class CalendarUI {
 
   onClaim() {
     const r = this.sys.claimDaily();
-    if (r) sound.playBuy?.();
+    if (r) sound.playCoins?.();   // the pour toast stays silent: one sound for the Dallah
     this.update(this.app.currentTab, 0);
   }
 

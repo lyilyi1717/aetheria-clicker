@@ -67,6 +67,8 @@ export const DRILL_HITS_PER_SEC = 0.5;
 // against stone x1.07 per depth: a slow, steady slowdown instead of a wall (R32, §6.5).
 export const PICKAXE_COST_BASE = 100;
 export const PICKAXE_COST_GROWTH = 1.6;
+// Find-family rarity of each gem tile (R46): how rich its sound is
+const GEM_RARITY = { ruby: 'common', sapphire: 'common', emerald: 'common', diamond: 'rare', voidAmethyst: 'epic' };
 const MAX_DRILL_HITS_PER_TICK = 200;
 // Pause between finding the stairs and the next grid, in sim seconds. It runs in update(),
 // so it works under Time Warp and in background tabs, and it is never saved.
@@ -796,7 +798,7 @@ export class MiningSystem {
     }
 
     if (block.content === 'gold_cache') {
-      sound.playBuy();
+      sound.playCoins();
       const gold = this.getGoldCacheValue(grid.depth);
       this.gameState.gold = this.gameState.gold.add(gold);
       if (x && y) particles.spawnFloatingText(x, y, t('mine.fx.gold', { n: gold.format('standard', 0) }), '#eab308', true);
@@ -832,7 +834,7 @@ export class MiningSystem {
     }
 
     if (TILE_ITEM_KEY[block.content]) {
-      sound.playGem();
+      sound.playGem(GEM_RARITY[block.content]);
       const gemKey = TILE_ITEM_KEY[block.content];
       this.gameState.inventory[gemKey] = (this.gameState.inventory[gemKey] || 0) + 1;
       if (x && y) {
@@ -847,6 +849,7 @@ export class MiningSystem {
     if (x && y && stone > 1) particles.spawnFloatingText(x, y, t('mine.fx.stone', { n: new BigNum(stone).format('standard', 0) }), '#94a3b8');
     if (this.random() < AETHER_ORE_CHANCE) {
       this.addAetherOre(1);
+      sound.playGem('rare');
       if (x && y) particles.spawnFloatingText(x, y + 24, t('mine.fx.ore'), '#22d3ee');
     }
   }
@@ -897,7 +900,7 @@ export class MiningSystem {
     const unrevealed = blocks.filter(b => !b.revealed);
     if (unrevealed.length === 0) return false;
     this.dynamiteCooldown = DYNAMITE_COOLDOWN;
-    if (!auto) sound.playHit();
+    if (!auto) sound.playBlast();
 
     // Blast a 3x3 area centred on a random unrevealed block (clipped at the grid edges).
     // Effects used to spawn at the middle of the window, which looked like a miss.

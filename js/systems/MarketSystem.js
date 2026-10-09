@@ -200,7 +200,7 @@ export class MarketSystem {
     const payout = this.getSellPrice(id).mul(new BigNum(amount));
     item.owned -= amount;
     this.gameState.gold = this.gameState.gold.add(payout);
-    sound.playGem();
+    sound.playCoins();
     rewards.notify({
       tier: 'small', kind: 'market-sell', icon: '🪙', color: '#eab308',
       title: t('market.sold'), amount: payout, fmt: fmtGold, unit: t('unit.gold')
@@ -268,6 +268,7 @@ export class MarketSystem {
         caravan.active = false;
         const returnPayout = caravan.payout ? new BigNum(caravan.payout) : caravan.investment.mul(caravan.expectedProfit);
         this.gameState.gold = this.gameState.gold.add(returnPayout);
+        sound.playCoins();
         rewards.notify({
           tier: 'medium', kind: 'caravan-back', icon: '🐪', color: '#4ade80',
           title: t('caravan.returned'), batchTitle: t('caravan.returned_batch'), amount: returnPayout, fmt: fmtGold, unit: t('unit.gold')
