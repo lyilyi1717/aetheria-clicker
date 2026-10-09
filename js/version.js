@@ -3,9 +3,23 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.21.0';
+export const VERSION = '5.21.1';
 
 export const CHANGELOG = [
+  {
+    version: '5.21.1',
+    date: '2026-10-09',
+    title: 'Colour Cues Without Motion',
+    changes: [
+      'With Reduce motion on, flashes that used to disappear now show as a steady colour instead: a gold outline around the source of a reward (0.9 s), an orange edge on tiles hit by Dynamite or Void Cataclysm (0.6 s), and a red border on the boss portrait when you land the killing blow.'
+    ],
+    ar: {
+      title: 'إشارات لونية بلا حركة',
+      changes: [
+        'مع تفعيل «تقليل الحركة»، صارت الومضات التي كانت تختفي تظهر لوناً ثابتاً: إطار ذهبي حول مصدر المكافأة (0.9 ث)، وحافة برتقالية على المربعات التي يصيبها الديناميت أو إعصار الفراغ (0.6 ث)، وإطار أحمر على صورة الزعيم عند الضربة القاضية.'
+      ]
+    }
+  },
   {
     version: '5.21.0',
     date: '2026-10-09',
