@@ -7,6 +7,7 @@
 // - The "Tap to pump Oil!" tooltip is removed after the first tap of the session.
 // Reduced motion: no ring, sparks or scale; the callout text, colours and sounds stay.
 import { feedback } from './feedback.js';
+import { rewards } from './rewards.js';
 import { isReducedMotion } from './motion.js';
 import { getActiveRules } from '../systems/ChronicleSystem.js';
 import { comboStep, isWindup } from '../systems/combo.js';
@@ -48,6 +49,15 @@ export function initComboFx(clicker, orb) {
       void bar.offsetWidth;   // restart the pulse on a repeat
       bar.classList.add('is-ring');
       setTimeout(() => bar.classList.remove('is-ring'), RING_MS);
+      return;
+    }
+    if (ev.type === 'frenzyEnd') {
+      // P8: celebrate the end. A quiet summary toast; skipped when the taps paid nothing
+      if (!ev.oil || ev.oil.lte?.(0)) return;
+      rewards.toast({
+        tier: 'small', kind: 'frenzy-end', icon: '🔥', color: '#f97316',
+        title: t('combo.frenzy_end', { n: ev.oil.format('standard', 1) })
+      });
       return;
     }
     if (ev.type !== 'frenzy') return;

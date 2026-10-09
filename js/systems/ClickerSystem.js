@@ -72,9 +72,11 @@ export class ClickerSystem {
     this.sinceManualClick = Infinity;
     this.autoTapAcc = 0;
     this.onAutoTap = null;   // UI hook (js/ui/autoTap.js): (amount) => void
-    // R44 UI hook (js/ui/comboFx.js): ({ type: 'step', step } | { type: 'frenzy', extended, seconds })
+    // R44 UI hook (js/ui/comboFx.js): ({ type: 'step', step } | { type: 'frenzy', extended, seconds } | { type: 'frenzyEnd', oil })
     this.onComboFx = null;
     this.frenzyHold = 0;     // seconds the combo bar still holds full after a Frenzy starts
+    // R50: Oil the taps paid while Frenzy ran, for the "Frenzy: +n Oil" summary. Memory only.
+    this.frenzyOil = BigNum.zero();
   }
 
   // True when Auto-tap is owned and the player hasn't tapped for AUTO_TAP_IDLE_AFTER seconds
@@ -152,6 +154,7 @@ export class ClickerSystem {
       this.gameState.gold = this.gameState.gold.add(clickGold);
     }
     this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(yieldAmount);
+    if (this.gameState.frenzyActive) this.frenzyOil = this.frenzyOil.add(yieldAmount);
     this.gameState.totalClicks++;
 
     // Increment combo (frenzy auto-clicks don't count)
@@ -215,6 +218,7 @@ export class ClickerSystem {
     } else {
       gs.frenzyActive = true;
       gs.frenzyTimer = duration;
+      this.frenzyOil = BigNum.zero();
     }
     this.frenzyHold = FRENZY_HOLD_SECONDS;
     this.onComboFx?.({ type: 'frenzy', extended, seconds: duration });
@@ -260,6 +264,9 @@ export class ClickerSystem {
         // The combo carries on (R28): only a pause in clicking drains it
         this.gameState.frenzyActive = false;
         this.gameState.frenzyTimer = 0;
+        const earned = this.frenzyOil;
+        this.frenzyOil = BigNum.zero();
+        this.onComboFx?.({ type: 'frenzyEnd', oil: earned });
       }
     }
 

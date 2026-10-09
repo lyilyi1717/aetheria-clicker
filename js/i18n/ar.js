@@ -1400,6 +1400,7 @@ export default {
   "combo.text": "كومبو ×{n}!",
   "combo.frenzy_callout": "الهيجان!",
   "combo.frenzy_extend": "+{s} ث",
+  "combo.frenzy_end": "الهيجان: +{n} نفط",
   "combo.text_boost": "كومبو ×{n}! (تعزيز ×{x})",
 
   // motion.js

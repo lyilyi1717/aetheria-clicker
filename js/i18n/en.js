@@ -872,6 +872,7 @@ export default {
   "combo.text": "{n}x Combo!",
   "combo.frenzy_callout": "FRENZY!",
   "combo.frenzy_extend": "+{s} s",
+  "combo.frenzy_end": "Frenzy: +{n} Oil",
   "combo.text_boost": "{n}x Combo! ({x}x boost)",
 
   // motion.js

@@ -480,7 +480,7 @@ export class CalendarSystem {
         const count = this.getLitSealCount();
         const bonus = this.getSealShardBonus();
         this.notify({
-          tier: 'medium', kind: 'seal-lit', icon: seal.icon, color: '#fbbf24',
+          tier: 'big', force: true, kind: 'seal-lit', icon: seal.icon, color: '#fbbf24',
           title: t('seal.lit', { name: seal.name }), batchTitle: t('seal.lit_batch'),
           detail: t(bonus === 1 ? 'seal.lit_detail1' : 'seal.lit_detail', { count, total: SEALS.length, n: bonus })
         });
