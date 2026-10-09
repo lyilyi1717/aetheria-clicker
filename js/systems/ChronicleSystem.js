@@ -40,9 +40,14 @@ export const CHRONICLE_TRANSCEND_GATE = 6;
 // the layer away; the sim, which doesn't model Seals, takes this path (~day 90 casual, about when
 // the doc's calendar completes Seal set I). After the first Chronicle the Seal half is met for good.
 export const SEAL_STANDIN_TRANSCENDS = 8;
-// Pages paid by a Chronicle: base + 1 per PAGES_STEP Transcends past the gate
+// Pages paid by a Chronicle: base + 1 per PAGES_STEP Transcends past the gate, counting Transcends
+// up to CHRONICLE_PAGES_MAX_TRANSCENDS. R57: that is the 9th, the first of the x3 gates
+// (PrestigeSystem TRANSCEND_SLOW_FROM; test_r57_late_year.js checks they agree), so the Pages are
+// full where layer 2 slows down. Before R57 every second Transcend kept adding a Page, which paid
+// players to sit in the slow gates, where run Oil climbed to 1e20+ late in the year.
 export const CHRONICLE_BASE_PAGES = 3;
 export const CHRONICLE_PAGES_STEP = 2;
+export const CHRONICLE_PAGES_MAX_TRANSCENDS = 9;
 // Every Page ever earned: +PAGE_AETHER_PER_PAGE Aether, additive (R31; was x1.4 compounding)
 export const PAGE_AETHER_PER_PAGE = 0.2;
 export function pageAetherMultFor(pages) { return new BigNum(1 + PAGE_AETHER_PER_PAGE * nonNegInt(pages)); }
@@ -478,7 +483,8 @@ export function getChronicleTranscendsNeeded(gs) {
 export function getPendingPages(gs, transcends = gs?.transcendenceCount || 0) {
   const t = nonNegInt(transcends);
   if (t < CHRONICLE_TRANSCEND_GATE) return 0;
-  return CHRONICLE_BASE_PAGES + Math.floor((t - CHRONICLE_TRANSCEND_GATE) / CHRONICLE_PAGES_STEP) +
+  const counted = Math.min(t, CHRONICLE_PAGES_MAX_TRANSCENDS);
+  return CHRONICLE_BASE_PAGES + Math.floor((counted - CHRONICLE_TRANSCEND_GATE) / CHRONICLE_PAGES_STEP) +
     (hasPageUpgrade(gs, 'gilded_edges') ? GILDED_EXTRA_PAGES : 0) + getChallengeRewardTotal(gs, 'pages');
 }
 

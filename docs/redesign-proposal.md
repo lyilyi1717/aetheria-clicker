@@ -544,6 +544,39 @@ leaderboard column. No save migration: `codex` is a new additive field.
 > window measure is sensitive to where a layer boundary lands, which `sim:check` asserts only for
 > the default pick.
 
+> **R57 late-year Chronicle/Page loop (v5.30.0, issue #139).** *Where the late-year growth came
+> from (measured on v5.19.0).* Months 1–3 sat near the target, but the highest run Oil over days
+> 180–365 reached 9e20 casual and 2.6e24 with `--links` (months 6–12 median 1.7e14 / 6.5e17). In
+> every Chronicle cycle the per-Transcend peaks for Transcends 1–8 are about the same (~4e9 …
+> 6e14). The run-away is the 9th to 12th Transcend of the later cycles, about ×100 run Oil each.
+> The default Auto-Ascend rule ends a run once it pays 25% of lifetime dust, and dust is the fifth
+> root of run Oil, so a run's Oil grows with about (lifetime dust)^5, and lifetime dust tracks the
+> Transcend gate (`1e4 × (L / 40·amp)^5`). The highest gate a cycle reaches sets its peak; Pages,
+> links and Page upgrades only decide how fast it gets there. Before R57, Pages kept growing by 1
+> for every 2 Transcends, so the sim player (and a Page-hungry real one) sat in the ×3 gates for
+> Pages: later cycles reached 11–12 Transcends, and 11 days of waiting after the last one.
+>
+> | Item | R57 (shipped) | Before |
+> |---|---|---|
+> | Chronicle Pages | 3 + 1 per 2 Transcends past 6, counting Transcends **up to the 9th** (`CHRONICLE_PAGES_MAX_TRANSCENDS = TRANSCEND_SLOW_FROM`): at most 4, plus Gilded Edges and challenge rewards | no limit (6 at 12 Transcends) |
+> | Sim Chronicle rule | the first Chronicle as before (allowed and 11 days after the last Transcend); **every later one once the 9th Transcend is done** (Pages full; each further gate is ×3 again) | always the 11-day rule |
+> | `sim:check` | also runs `--links` and every attunement; asserts months 6–12 (days 180–365, a sample a day) median run Oil ≤ **1e17** and highest ≤ 1e18, casual and idle, links on and off, and the 1e11–1e13 2-month band for Idle, Steady and Focus | default pick only |
+>
+> *Tried and rejected* (sweeps in the PR): a steeper late gate (×6) or a Transcend cap per
+> Chronicle with the wait kept made it hotter, because waiting at a high gate is where run Oil
+> grows; capping or flattening the Page bonus (+5% each, √Pages, +20% to 16 then √) helped without
+> links but left the links median at 1e17–3e17, and every version cost 2–4 upgrades per run (the
+> ≥ 30 floor failed for Focus); Chronicling at 8 Transcends from the first Chronicle on moved the
+> first one into the 2-month window (median 2e8). The Page bonus (+20% each) is unchanged.
+>
+> *Result:* casual months 6–12 median **8.4e9** (was 1.7e14), highest 7.8e16 (was 9.2e20); with
+> links 3.9e9 / 2.5e15 (were 6.5e17 / 2.6e24); idle 2e11 / 1e17 (8.6e12 / 1.2e19). The 2-month
+> median is unchanged (casual 6.9e11; Steady 3.9e12, Focus 3.8e12, in band for all three).
+> Upgrades per run casual 32 (34), idle 30 (30). Chronicles per year casual **28** (was 9), idle 14
+> (8); with links **94** (12): with links a cycle's nine Transcends take 3–4 days late in the year.
+> The late median now sits below the 2-month band (frequent resets), and the per-cycle peaks are
+> 1e16–1e17, the R31 target.
+
 
 | Item | Today | Proposed | Why |
 |---|---|---|---|
@@ -857,6 +890,11 @@ days 4.3, 9.4, 15.0, 22.1, 30.9, 41.3, 54.1, 69.9, first Chronicle day 77 (idle 
 Transcends and 11 Chronicles in the casual year. First Ascension idle 60 min, casual 10 min;
 longest stretch without a reset (day 1–270) casual 2.3 days, idle 4.1 days.
 
+**R57 (v5.30.0):** later Chronicles begin at the 9th Transcend (§6.1 R57 block). Months 6–12
+run Oil casual / idle: median 8.4e9 / 2e11, highest 7.8e16 / 1e17 (v5.19.0: 1.7e14 / 8.6e12 and
+9.2e20 / 1.2e19); with `--links` 3.9e9 / 1.7e10 and 2.5e15 / 1.2e16 (were 6.5e17 / 9.5e17 and
+2.6e24 / 3.5e23). 28 Chronicles in the casual year (136 Pages), 14 idle; 94 with links.
+
 
 Model: proposed §6.1 constants; upgrade shop; one new tier per Transcend to 30; dust-shop
 spend modelled as 60% of the pile per Ascension; Auto-Buy from Ascension 3; auto-Ascend from
@@ -993,7 +1031,8 @@ After the first Chronicle the Seal half counts as met.
   Wardens and Garden breeding (as free unlocks). Lifetime Transcends
   (`pastTranscends + transcendenceCount`) feed the talent ladder, achievements and leaderboard,
   so nothing pays twice and no record goes backwards.
-- **Pages:** 3 + 1 per 2 Transcends past 12 per Chronicle. Every Page ever earned is **×1.4
+- **Pages:** 3 + 1 per 2 Transcends past 12 per Chronicle (R31: past 6; R57: counting Transcends
+  only up to the 9th, so at most 4 from Transcends). Every Page ever earned is **×1.4
   Aether** (BigNum). Measured: ×1.5, or a dust-gain bonus per Page, bunched Transcends into
   storms (several within hours) after the second Chronicle; ×1.4 keeps every Transcend at least
   6 h apart in the sim.
@@ -1035,7 +1074,7 @@ After the first Chronicle the Seal half counts as met.
 - **Chapter 2, Salt (R56).** Starts where Sand ends (10 weeks). World rule: Excavation ×2, no
   Oil change. Stamp pays **0 Pages** (deviation from Chapter 1's 3): the core sim reaches the
   Salt stamp (casual Chronicle I at day ~70, Salt ends ~day 210) and plays no challenges, so
-  a Page stamp would move the year-one report (late-year pacing is already hot, R57). The
+  a Page stamp would move the year-one report (late-year pacing was hot then; R57 has since tamed it). The
   stamp stays a collection keepsake. Challenges (layer bonuses off): Still Water (no Auto-tap, no
   spells, 3e6, 4 Pages), Dark Flats (no spells, 8 tiers, 2e6, 4), Narrow Caravan (5 tiers, Oil
   ÷2, 1e5, 5, after 1 clear), Dead Sea (Oil ÷10, no Frenzy, no Auto-tap, 1e5, 6, after 3). Goals

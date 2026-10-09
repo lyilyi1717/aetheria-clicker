@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.29.0';
+export const VERSION = '5.30.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.30.0',
+    date: '2026-10-09',
+    title: 'Chronicle Pages stop at the 9th New Field',
+    changes: [
+      'A Chronicle now pays at most 4 Pages from New Fields: 3 at 6 New Fields and 4 from 8. New Fields after the 9th no longer add Pages (they used to add 1 for every 2). Gilded Edges and challenge rewards still add theirs on top.',
+      'This slows late-game growth on purpose: New Fields after the 9th cost 3 times the dust of the one before, and staying there for Pages pushed Oil into the hundreds of quintillions late in the year. Once you have your 9 New Fields, beginning the next Chronicle is the better move.',
+      'Pages you have already earned are kept, and each still gives +20% Oil.',
+      'The Chronicle tab\'s guide now says how Pages are counted, and its hint gives the right number of New Fields (6, or 8 for your first Chronicle; it said 12).'
+    ],
+    ar: {
+      title: 'صفحات الملحمة تتوقف عند الحقل الجديد التاسع',
+      changes: [
+        'الملحمة تمنح الآن 4 صفحات على الأكثر من الحقول الجديدة: 3 عند 6 حقول جديدة و4 من الحقل الثامن. الحقول الجديدة بعد التاسع لم تعد تضيف صفحات (كانت تضيف صفحة لكل حقلين). ويبقى ما تضيفه الحواف المذهّبة ومكافآت التحديات فوق ذلك.',
+        'هذا يبطئ النمو في آخر اللعبة عن قصد: كل حقل جديد بعد التاسع يكلّف 3 أضعاف غبار الحقل الذي قبله، والبقاء هناك من أجل الصفحات كان يدفع النفط إلى مئات الكوينتليونات في آخر السنة. بعد حقولك الجديدة التسعة، بدء الملحمة التالية هو الخيار الأفضل.',
+        'الصفحات التي كسبتها تبقى لك، وكل واحدة ما زالت تمنح +20% نفط.',
+        'دليل تبويب الملحمة يشرح الآن كيف تُحسب الصفحات، وتلميحه يذكر العدد الصحيح من الحقول الجديدة (6، أو 8 لأول ملحمة؛ كان يقول 12).'
+      ]
+    }
+  },
   {
     version: '5.29.0',
     date: '2026-10-09',
