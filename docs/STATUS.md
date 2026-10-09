@@ -10,7 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R45 #117 New Well / New Field ceremonies (sub-agent, branch `r45-well-field-ceremonies`).
+- R47 #119 First-time unlocks and rare events (sub-agent, branch `r47-unlocks-rare-events`). R50 #122
+  goes after it (same files).
 
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
@@ -21,7 +22,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40, R41–R44, R46, R48, R49, R51 and R68 are done.
+R0–R30, R32–R40, R41–R46, R48, R49, R51 and R68 are done.
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
   re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
@@ -102,6 +103,13 @@ R0–R30, R32–R40, R41–R44, R46, R48, R49, R51 and R68 are done.
 | 10 | R68 Auto-Drills use the manual dig abilities | #183 | – |
 
 ## Done
+
+- R45 #117 (PR #193, v5.26.0): `confirm()` gone from New Well / New Field; in-game sheet with an
+  800 ms hold (`playAscension` returns `stop()`), release 3.5 s skippable, New Well amber / New Field
+  purple `signature` on `rewards.ceremony` (also `force`, `durationMs`). `playRelease` / `runPrestige`
+  in `js/ui/prestigeCeremony.js` are reusable for other T3 moments. New setting `tapToConfirm`
+  (default off; reduced motion = tap). Not checked: 375 px, a real end-to-end Ascend/Transcend,
+  the amber/purple card styling.
 
 - R44 #116 (PR #190, v5.25.0): combo pitch climbs a scale step per 4 clicks (cap 5) and follows the
   drain (derived from `comboCount`); Frenzy moment (wind-up at 18-19, callout, ring burst,
@@ -456,6 +464,9 @@ R0–R30, R32–R40, R41–R44, R46, R48, R49, R51 and R68 are done.
   - Polish & Bug Fixes: Suppressed Tower combat particles/floats when combat tab is hidden; hid Mana from header until Grimoire is unlocked; isolated Arabic unlock teaser fractions so they read left-to-right (`0/10`); stabilized `test_r52_clicks.js` timing race.
 
 ## Noticed (not yet an issue)
+
+- `confirm()` still used in `js/main.js` (save wipe, talent respec) and `js/ui/chronicle.js`
+  (challenge abandon etc.).
 
 - `monolith-orb` `data-combo-step` box-shadow rules override the `:active` / `.pulse` glow (same
   specificity, later rule wins).
