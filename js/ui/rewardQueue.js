@@ -70,6 +70,7 @@ function makeEntry(ev, now) {
     fmt: ev.fmt || null,
     unit: ev.unit || '',
     source: ev.source || null,
+    look: ev.look || null,                 // R47: a toast's own look ('legendary')
     signature: ev.signature || null,       // R45: 'well' / 'field' give the ceremony its own look
     force: !!ev.force,                     // R45: a moment the player chose skips the big cooldown
     durationMs: ev.durationMs || null,     // R45: shorter than the tier default (full motion only)
