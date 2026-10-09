@@ -18,8 +18,19 @@ export const DUST_BASE = 10;
 export const DUST_REF = 1e4;
 export const DUST_EXPONENT = 1 / 5;
 export const DUST_MIN_AETHER = 500;
-// Shortest run that may Ascend: cooldown removed so players can Ascend as soon as pending dust > 0
-export const MIN_RUN_SECONDS = 0;
+// Shortest run that may Ascend (R61). v5.10 dropped it to 0, and with the concave dust curve a
+// stream of tiny runs beat every real run (docs/economy-impact-check.md §5.4). 120 s is the top
+// of the 60-120 s band; the dust ramp below does the real work.
+export const MIN_RUN_SECONDS = 120;
+// Dust ramp (R61): a New Well pays its dust x min(1, run seconds / DUST_RAMP_SECONDS)^POWER: a
+// 2-minute run pays 0.4%, 10 minutes 11%, 15 minutes 25%, 30 minutes or more all of it. The
+// minimum run alone left a stream of 2-minute runs 57x ahead of normal play (dust is a fifth root
+// of run Oil, so short runs win per hour). Auto-Ascend, Transcend and the Ascend sheet all pay the
+// ramped dust; the first New Well is exempt (DUST_RAMP_GRACE) so a new player's 5 dust still comes
+// at the first Ascension.
+export const DUST_RAMP_SECONDS = 1800;
+export const DUST_RAMP_POWER = 2;
+export const DUST_RAMP_GRACE = 1;   // the first New Well is never ramped
 
 // Transcend (layer 2, design doc 6.1 / roadmap R4)
 // Gate for the next Transcend, in lifetime dust of the current layer: 400 x 1.6^k, k = Transcends
@@ -98,19 +109,50 @@ export class PrestigeSystem {
     return totalAether.div(DUST_REF).pow(DUST_EXPONENT).mul(DUST_BASE * (1 + 1e-12)).floor();
   }
 
-  // Seconds left until the current run is long enough to Ascend (0 = met). Cooldown removed.
+  // Seconds left until the current run is long enough to Ascend (0 = met). A save without a run
+  // start (0) or one stamped in the future (clock change) never waits longer than MIN_RUN_SECONDS.
   getMinRunRemaining(now = Date.now()) {
-    return 0;
+    const start = this.gameState.runStartedAt;
+    if (!(start > 0)) return 0;
+    const left = MIN_RUN_SECONDS - (now - start) / 1000;
+    return Math.max(0, Math.min(MIN_RUN_SECONDS, left));
+  }
+
+  // Seconds the current run has lasted (0 for a save with no run start)
+  getRunSeconds(now = Date.now()) {
+    const start = this.gameState.runStartedAt;
+    return start > 0 ? Math.max(0, (now - start) / 1000) : DUST_RAMP_SECONDS;
+  }
+
+  // 0..1: how much of the full dust this run pays now (R61)
+  getDustRamp(now = Date.now()) {
+    if (this.gameState.ascensionCount < DUST_RAMP_GRACE) return 1;   // onboarding: no ramp
+    return Math.pow(Math.min(1, this.getRunSeconds(now) / DUST_RAMP_SECONDS), DUST_RAMP_POWER);
+  }
+
+  // Seconds until the ramp is full (0 = full)
+  getDustRampRemaining(now = Date.now()) {
+    if (this.gameState.ascensionCount < DUST_RAMP_GRACE) return 0;
+    return Math.max(0, DUST_RAMP_SECONDS - this.getRunSeconds(now));
+  }
+
+  // What an Ascension pays right now: the pending dust x the ramp. getPendingCosmicDust stays the
+  // full value (the "gate reached" checks and the dust pace read it).
+  getAscendCosmicDust(now = Date.now()) {
+    const full = this.getPendingCosmicDust();
+    const ramp = this.getDustRamp(now);
+    return ramp >= 1 ? full : full.mul(new BigNum(ramp * (1 + 1e-12))).floor();
   }
 
   canAscend(now = Date.now()) {
     // A Chronicle challenge (R20) is a side run: no Ascending until it ends
-    return !isChallengeActive(this.gameState) && this.getPendingCosmicDust().gt(0);
+    return !isChallengeActive(this.gameState) && this.getPendingCosmicDust().gt(0) &&
+      this.getMinRunRemaining(now) <= 0;
   }
 
   // quiet: skip the ceremony; auto-Ascend (shard tree, R13) announces its own batched toast
   ascend(force = false, { quiet = false, chosen = false } = {}) {
-    const pending = this.getPendingCosmicDust();
+    const pending = this.getAscendCosmicDust();
     if (!force && !this.canAscend()) return false;
 
     this.gameState.cosmicDust = this.gameState.cosmicDust.add(pending);

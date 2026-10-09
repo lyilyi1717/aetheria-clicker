@@ -1814,7 +1814,7 @@ class AetheriaApp {
         runPrestige({
           kind: 'well',
           question: t('prestige.confirm'),
-          gain: [t('prestige.sheet_gain', { n: ps.getPendingCosmicDust().format('standard', 0) })],
+          gain: [t('prestige.sheet_gain', { n: ps.getAscendCosmicDust().format('standard', 0) })],
           lose: [t('prestige.sheet_lose')],
           notes: [t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtBonus(dm.nectarMult) })],
           settings: this.gameState.settings
@@ -1867,7 +1867,18 @@ class AetheriaApp {
     const pendEl = this.$('pending-dust-display');
     const ascBtn = this.$('btn-do-ascend');
 
-    setText(pendEl, t('prestige.pending', { n: pending.format('standard', 0) }));
+    // R61: the dust ramp. Text only; the line shows the ramped gain and when it is full.
+    const ramp = this.prestigeSystem.getDustRamp();
+    if (pending.gt(0) && ramp < 1) {
+      const left = Math.ceil(this.prestigeSystem.getDustRampRemaining());
+      setText(pendEl, t('prestige.pending_ramp', {
+        n: this.prestigeSystem.getAscendCosmicDust().format('standard', 0),
+        pct: Math.floor(ramp * 100),
+        time: `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`
+      }));
+    } else {
+      setText(pendEl, t('prestige.pending', { n: pending.format('standard', 0) }));
+    }
     if (ascBtn) {
       const wait = this.prestigeSystem.getMinRunRemaining();
       const inChallenge = !!this.gameState.chronicle?.active;   // R20: no Ascending mid-challenge

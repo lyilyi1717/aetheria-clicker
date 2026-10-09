@@ -310,7 +310,7 @@ export class ShardTreeSystem {
     const ps = this.prestigeSystem;
     if (!ps || ps.getMinRunRemaining(now) > 0) return false;
     const runSeconds = (now - (this.gameState.runStartedAt || 0)) / 1000;
-    return autoAscendRuleMet(this.state.autoAscend, ps.getPendingCosmicDust(), this.gameState.totalCosmicDust, runSeconds);
+    return autoAscendRuleMet(this.state.autoAscend, ps.getAscendCosmicDust(now), this.gameState.totalCosmicDust, runSeconds);
   }
 
   // Called on a timer (also in background tabs). Ascends at most once per call, quietly, and adds
@@ -319,7 +319,7 @@ export class ShardTreeSystem {
     if (now - this.lastCheckAt < AUTO_ASCEND_CHECK_MS && now >= this.lastCheckAt) return false;
     this.lastCheckAt = now;
     if (!this.shouldAutoAscend(now)) return false;
-    const pending = this.prestigeSystem.getPendingCosmicDust();
+    const pending = this.prestigeSystem.getAscendCosmicDust();
     if (!this.prestigeSystem.ascend(false, { quiet: true })) return false;
     if (!this.batch) this.batch = { count: 0, dust: BigNum.zero(), since: now };
     this.batch.count++;

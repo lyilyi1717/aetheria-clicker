@@ -370,6 +370,7 @@ export default {
   "prestige.nectar_note": "Honey Offering: all {n} {item} will be consumed ({mult} Reserves).",
   "prestige.confirm": "{reset1} now? This resets Oil and Buildings to grant {reset1Currency} to spend in the {reset1Shop}!",
   "prestige.pending": "Pending {reset1Currency}: +{n}",
+  "prestige.pending_ramp": "Pending {reset1Currency}: +{n} ({pct}%, full in {time})",
   "prestige.btn_challenge": "🛢️ {reset1} after your Chronicle challenge",
   "prestige.btn_wait": "🛢️ {reset1} in {time} (min. run)",
   "prestige.bd.depth": "{x} from Depth {n}",
