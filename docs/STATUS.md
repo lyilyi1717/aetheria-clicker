@@ -10,6 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
+- Issue #196: Open New Field ReferenceError on New Well page (missing runPrestige import in prestige.js).
+
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
