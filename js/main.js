@@ -22,6 +22,7 @@ import { DUST_SHOP_ITEMS } from './systems/DustShopSystem.js';
 import { DustShopUI } from './ui/dustShop.js';
 import { AttunementUI } from './ui/attunements.js';
 import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
+import { runPrestige, renderConfirmSettings } from './ui/prestigeCeremony.js';
 import { TalentSourcesPanel } from './ui/talents.js';
 import { buildContractsBoard, updateContractsBoard, bindContracts } from './ui/contracts.js';
 import { AchievementSystem } from './systems/AchievementSystem.js';
@@ -291,6 +292,7 @@ class AetheriaApp {
     this.sharedNews.start();
     const newsChanged = () => { this.newsTicker.refresh(); this.saveManager.save(); };
     renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, newsChanged);
+    renderConfirmSettings(document.getElementById('settings-confirm'), this.gameState.settings, () => this.saveManager.save());
     renderNewsSettings(document.getElementById('settings-news'), this.gameState.settings, newsChanged, sharedNewsHooks(this.sharedNews, this.gameState.settings));
     renderThemeSettings(document.getElementById('settings-theme'), this.gameState.settings, () => this.saveManager.save());
     renderLanguageSettings(document.getElementById('settings-language'), this.gameState.settings, () => this.saveManager.save());
@@ -1805,13 +1807,21 @@ class AetheriaApp {
     const ascBtn = document.getElementById('btn-do-ascend');
     if (ascBtn) {
       ascBtn.onclick = () => {
-        const dm = this.prestigeSystem.getDustMultipliers();
-        const nectarNote = '\n\n' + t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtBonus(dm.nectarMult) });
-        if (confirm(t('prestige.confirm') + nectarNote)) {
-          this.prestigeSystem.ascend();
+        const ps = this.prestigeSystem;
+        if (!ps.canAscend()) return;
+        const dm = ps.getDustMultipliers();
+        runPrestige({
+          kind: 'well',
+          question: t('prestige.confirm'),
+          gain: [t('prestige.sheet_gain', { n: ps.getPendingCosmicDust().format('standard', 0) })],
+          lose: [t('prestige.sheet_lose')],
+          notes: [t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtBonus(dm.nectarMult) })],
+          settings: this.gameState.settings
+        }, () => {
+          ps.ascend(false, { chosen: true });
           this.updateBuildingsUI();
           this.updatePrestigeUI();
-        }
+        }, ascBtn);
       };
     }
 
