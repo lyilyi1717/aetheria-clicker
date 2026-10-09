@@ -140,7 +140,7 @@ console.log('--- Gate: 6 Transcends, and 8 for the first Chronicle until the Sea
   assert.equal(c2.canChronicle(), true);
 }
 
-console.log('--- Page payout: 3, +1 per 2 Transcends past 6, +1 with Gilded Edges ---');
+console.log('--- Page payout: 3, +1 per 2 Transcends past 6 up to the 9th (R57), +1 with Gilded Edges ---');
 {
   const gs = new GameState();
   assert.equal(CHRONICLE_TRANSCEND_GATE, 6);
@@ -148,9 +148,10 @@ console.log('--- Page payout: 3, +1 per 2 Transcends past 6, +1 with Gilded Edge
   assert.equal(getPendingPages(gs, 6), CHRONICLE_BASE_PAGES);
   assert.equal(getPendingPages(gs, 7), 3);
   assert.equal(getPendingPages(gs, 8), 4);
-  assert.equal(getPendingPages(gs, 18), 9);
+  assert.equal(getPendingPages(gs, 9), 4);
+  assert.equal(getPendingPages(gs, 18), 4, 'R57: Transcends past the 9th add no Pages');
   gs.chronicle.upgrades.gilded_edges = true;
-  assert.equal(getPendingPages(gs, 18), 9 + GILDED_EXTRA_PAGES);
+  assert.equal(getPendingPages(gs, 18), 4 + GILDED_EXTRA_PAGES);
   // Pages add +20% Aether each, from every Page ever earned (spending never lowers it; R31: was x1.4)
   gs.chronicle.totalPages = 10;
   gs.chronicle.pages = 0;
@@ -166,7 +167,7 @@ console.log('--- Chronicle reset: exactly what the preview lists resets, the res
   const before = clone(gs.serialize());
   const pv = cs.getPreview();
   assert.equal(pv.number, 1);
-  assert.equal(pv.pages, 10);
+  assert.equal(pv.pages, 4, 'R57: Pages count Transcends up to the 9th');
   assert.equal(pv.transcends, 20);
   assert.equal(pv.startsChapter.id, 'sand');
   assert.equal(pv.resets, CHRONICLE_RESETS);
@@ -174,7 +175,7 @@ console.log('--- Chronicle reset: exactly what the preview lists resets, the res
   assert.equal(pv.blockReason, null);
 
   const res = cs.chronicle(now);
-  assert.deepEqual({ pages: res.pages, number: res.number }, { pages: 10, number: 1 });
+  assert.deepEqual({ pages: res.pages, number: res.number }, { pages: 4, number: 1 });
   // Resets
   assert.ok(gs.aether.eq(0) && gs.totalAetherEarned.eq(0), 'run Aether');
   assert.deepEqual(gs.upgrades, {}, 'upgrade shop');
@@ -204,8 +205,8 @@ console.log('--- Chronicle reset: exactly what the preview lists resets, the res
   assert.deepEqual(gs.shardTree.autoAscend, { enabled: true, rule: 'x1.5', timerMin: 30 }, 'Auto-Ascend settings remembered');
   // Layer 3
   assert.equal(gs.chronicle.count, 1);
-  assert.equal(gs.chronicle.pages, 10);
-  assert.equal(gs.chronicle.totalPages, 10);
+  assert.equal(gs.chronicle.pages, 4);
+  assert.equal(gs.chronicle.totalPages, 4);
   assert.equal(gs.chronicle.pastTranscends, 20);
   assert.equal(getLifetimeTranscends(gs), 20, 'lifetime Transcends kept for records');
   assert.deepEqual(gs.chronicle.chapter, { id: 'sand', startedAt: now }, 'Chapter 1 begins');
@@ -238,7 +239,7 @@ console.log('--- Page upgrades: Bookmark, Dog-Ear, Ink of Memory, Gilded Edges, 
   assert.equal(cs.getUpgradeBlockReason('second_reading'), 'needs 5 Pages');
 
   const res = cs.chronicle(now);
-  assert.equal(res.pages, CHRONICLE_BASE_PAGES + (24 - CHRONICLE_TRANSCEND_GATE) / 2 + GILDED_EXTRA_PAGES);
+  assert.equal(res.pages, CHRONICLE_BASE_PAGES + 1 + GILDED_EXTRA_PAGES, 'R57: Pages count Transcends up to the 9th');
   assert.ok(gs.fractureShards.eq(INK_SHARDS) && gs.totalFractureShards.eq(INK_SHARDS), 'Ink: starts with 2 shards');
   for (const id of ['chronos_auto_ascend', 'chronos_offline', 'chronos_long_warp']) {
     assert.equal(gs.shardTree.owned[id], true, `${id} kept`);

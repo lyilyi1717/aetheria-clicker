@@ -5,6 +5,7 @@
 //   node sim/core-pacing.mjs            # print the report
 //   node sim/core-pacing.mjs --assert   # also fail (exit 1) if the year-one targets are missed
 //   node sim/core-pacing.mjs --only=casual   # one profile only (faster while tuning)
+//   With --assert it also runs --links and each other --attune= (R57) and checks their targets.
 //
 // Profiles:
 //   idle   : taps 1/s for the first 3 min of every run until it owns Auto-tap (dust shop, R52),
@@ -22,7 +23,7 @@
 // per Aether spent (see makeUpgradeShopBuyer below).
 // Dust shop (R6): after every reset the player buys every open shop item, then Dust Amplifier ranks
 // with the dust left (see the dust shop block below).
-// Chronicle policy (R20, layer 3): see the Chronicle block below.
+// Chronicle policy (R20, layer 3; R57): see the Chronicle block below.
 //
 // When an economy PR changes the core (new prestige layer, shop, formulas), update this script
 // so it still models what a real player would do, and paste the before/after report in the PR.
@@ -35,7 +36,7 @@ import { AchievementSystem } from '../js/systems/AchievementSystem.js';
 import { UpgradeSystem, TIER_UPGRADE_MULT, SYNERGY_PER_UNIT, UPGRADE_DEFINITIONS, getUpgradeDefinition } from '../js/systems/UpgradeSystem.js';
 import { particles } from '../js/engine/ParticleEngine.js';
 import { ShardTreeSystem, autoAscendRuleMet, AUTO_ASCEND_RULES, AUTO_ASCEND_DEFAULT_RULE, getDeepBlueprintDivisor, canBuyNode, FOUNDRY_FIRST_TIER, FOUNDRY_LAST_TIER } from '../js/systems/ShardTreeSystem.js';
-import { ChronicleSystem, chronicleClock, PAGE_UPGRADES } from '../js/systems/ChronicleSystem.js';
+import { ChronicleSystem, chronicleClock, PAGE_UPGRADES, CHRONICLE_PAGES_MAX_TRANSCENDS } from '../js/systems/ChronicleSystem.js';
 import { measureActiveIncome } from './active-income.mjs'; // R3 block below
 import { CLICK_CPS_SECONDS } from '../js/systems/combo.js';
 import { ATTUNEMENT_IDS, DEFAULT_ATTUNEMENT } from '../js/systems/AttunementSystem.js';
@@ -64,10 +65,13 @@ export const TARGETS = {
   // this, and a median of at least this many upgrades per casual Ascension run
   casualTwoMonthAetherMin: 1e11,
   casualUpgradesPerRunMin: 30,
-  // R57: months 6-12 (days 180-365) keep the slow curve: the highest run Aether in that window (one
-  // sample a day) stays at or below this, with or without --links, for the casual and idle player
+  // R57: the slow curve holds all year. Over months 6-12 (one sample a day over these days) the
+  // median run Aether stays at or below lateMedianAetherMax (the issue's "1-year run Oil <= 1e17")
+  // and the highest at or below latePeakAetherMax, for the casual and the idle player, with the
+  // subgame links on and off. The 2-month band above holds for every attunement (casual).
   lateWindowDays: [180, 365],
-  latePeakAetherMax: 1e17
+  lateMedianAetherMax: 1e17,
+  latePeakAetherMax: 1e18
 };
 
 // --- R3 / R52 active income block ----------------------------------------------------------------
@@ -233,11 +237,15 @@ function makeDustShopModel(gs) {
 // ---------------------------------------------------------------------------------------------
 
 // ---- Chronicle (R20) ------------------------------------------------------------------------
-// The Chapter's 10-week window runs on the sim clock (chronicleClock). Policy: begin a Chronicle
-// once it is allowed and layer 2 has slowed down (the last Transcend is at least
+// The Chapter's 10-week window runs on the sim clock (chronicleClock). Policy: the first Chronicle
+// begins once it is allowed and layer 2 has slowed down (the last Transcend is at least
 // CHRONICLE_AFTER_SLOW_DAYS old), which is when a player would trade the Transcend ladder for
-// Pages. Pages go to Page upgrades in PAGE_BUY_ORDER as soon as they are affordable. The sim does
-// not play challenges (their Pages would only make it faster), so this is the slow case.
+// Pages. R57: after that the player knows the loop, and a Chronicle's Pages are full at
+// CHRONICLE_PAGES_MAX_TRANSCENDS (the 9th Transcend, where the x3 gates begin), so each later
+// Chronicle begins there. Waiting longer only grows run Oil (the ~1e20 late-year peaks before
+// R57) and pays no more Pages. Pages go to Page upgrades in PAGE_BUY_ORDER as soon as they are
+// affordable. The sim does not play challenges (their Pages would only make it faster), so this
+// is the slow case.
 // By hand the player Ascends on the same threshold as the default Auto-Ascend rule (R31)
 const MANUAL_ASCEND_MULT = AUTO_ASCEND_RULES.find(r => r.id === AUTO_ASCEND_DEFAULT_RULE).mult;
 const MANUAL_ASCEND_MIN = 5;   // R52: the first New Well pays 5 (Auto-tap's price)
@@ -253,7 +261,9 @@ function makeChronicleModel(gs, ps, clock) {
     // Returns true if a Chronicle began (the run, dust, shards, tree and Transcends reset)
     maybeChronicle(t, lastTranscendAt) {
       sys.advanceChapters();
-      if (!sys.canChronicle() || t - lastTranscendAt < CHRONICLE_AFTER_SLOW_DAYS * DAY) return false;
+      const slowed = t - lastTranscendAt >= CHRONICLE_AFTER_SLOW_DAYS * DAY;
+      const pagesFull = log.length > 0 && gs.transcendenceCount >= CHRONICLE_PAGES_MAX_TRANSCENDS;
+      if (!sys.canChronicle() || !(slowed || pagesFull)) return false;
       const cps = gs.getNetAetherPerSecond();
       const res = sys.chronicle();
       if (!res) return false;
@@ -302,10 +312,12 @@ if (!ATTUNEMENT_IDS.includes(ATTUNEMENT)) throw new Error(`sim: unknown attuneme
 // ---------------------------------------------------------------------------------------------
 
 const medianBig = (xs) => [...xs].sort((a, b) => (a.gt(b) ? 1 : a.lt(b) ? -1 : 0))[xs.length >> 1] || BigNum.zero();
+// One sample a day while t is inside [d0, d1] days
+const dailyIn = (t, dt, [d0, d1]) => t >= d0 * DAY && t <= d1 * DAY + dt && Math.floor(t / DAY) !== Math.floor((t - dt) / DAY);
 
-function run(profile) {
+function run(profile, cfg = { links: LINKS, attune: ATTUNEMENT }) {
   const gs = new GameState();
-  gs.attunement.id = ATTUNEMENT;   // R55 attunement block
+  gs.attunement.id = cfg.attune;   // R55 attunement block
   const bs = new BuildingSystem(gs);
   const ps = new PrestigeSystem(gs);
   const ach = new AchievementSystem(gs);
@@ -376,15 +388,15 @@ function run(profile) {
   let layerPeak = BigNum.zero();
   const upgradesPerRun = []; // R5: upgrades bought by the end of each Ascension run
   const twoMonthSamples = []; // run Aether once a day over TARGETS.twoMonthWindowDays (R53)
-  const monthPeak = [];       // R57: highest run Aether in each 30-day month (index 0..12)
-  const lateSamples = [];     // R57: run Aether once a day over TARGETS.lateWindowDays
+  const lateSamples = [];     // R57: the same over TARGETS.lateWindowDays
+  const monthPeak = [];       // R57: highest run Aether in each 30-day month
   const regainDays = [];   // days after each Transcend until CPS is back to its pre-Transcend level
   let regainFrom = null;
   const rows = [];
   let lastManualAscendHour = -1;
   while (t < YEAR) {
     const dt = dtFor(t);
-    if (LINKS && (t % 3600 < dt || dt >= 3600)) applyLinks(gs, t);
+    if (cfg.links && (t % 3600 < dt || dt >= 3600)) applyLinks(gs, t);
     const present = t % 3600 < presence;
     // R52: Auto-tap (dust shop) taps 1/s whenever the player isn't tapping. Before it, the idle
     // player taps by hand for the first 3 min of a run.
@@ -402,8 +414,8 @@ function run(profile) {
     gs.totalAetherEarned = gs.totalAetherEarned.add(income);
     lifetimeAether = lifetimeAether.add(income);
     if (gs.totalAetherEarned.gt(layerPeak)) layerPeak = gs.totalAetherEarned;
-    const mi = Math.floor(t / (30 * DAY));
-    if (!monthPeak[mi] || gs.totalAetherEarned.gt(monthPeak[mi])) monthPeak[mi] = gs.totalAetherEarned;
+    const month = Math.floor(t / (30 * DAY));
+    if (!monthPeak[month] || gs.totalAetherEarned.gt(monthPeak[month])) monthPeak[month] = gs.totalAetherEarned;
     t += dt;
     if (Math.floor(t / 5) !== Math.floor((t - dt) / 5) || dt >= 5) greedyBuy();
     ach.checkAchievements();
@@ -450,14 +462,8 @@ function run(profile) {
       regainFrom = null;
     }
 
-    const [w0, w1] = TARGETS.twoMonthWindowDays;
-    if (t >= w0 * DAY && t <= w1 * DAY + dt && Math.floor(t / DAY) !== Math.floor((t - dt) / DAY)) {
-      twoMonthSamples.push(gs.totalAetherEarned);
-    }
-    const [l0, l1] = TARGETS.lateWindowDays;
-    if (t >= l0 * DAY && t <= l1 * DAY + dt && Math.floor(t / DAY) !== Math.floor((t - dt) / DAY)) {
-      lateSamples.push(gs.totalAetherEarned);
-    }
+    if (dailyIn(t, dt, TARGETS.twoMonthWindowDays)) twoMonthSamples.push(gs.totalAetherEarned);
+    if (dailyIn(t, dt, TARGETS.lateWindowDays)) lateSamples.push(gs.totalAetherEarned);
     while (ci < CHECKPOINTS.length && t >= CHECKPOINTS[ci][1]) {
       rows.push({
         label: CHECKPOINTS[ci][0],
@@ -520,6 +526,28 @@ const out = [];
 const only = process.argv.find(a => a.startsWith('--only='))?.slice(7);   // --only=casual: one profile (tuning)
 if (LINKS) out.push('(--links: subgame links on, schedule in the R53 block)');
 out.push(`Attunement every run (R55): ${ATTUNEMENT}`);
+const describeCfg = (cfg) => `${cfg.links ? 'links on' : 'links off'}, ${cfg.attune}`;
+const upgradesMedian = (r) => { const u = [...r.upgradesPerRun].sort((a, b) => a - b); return u.length ? u[u.length >> 1] : 0; };
+// R57 targets, checked for every configuration the run covers
+function checkR57(r, profile, cfg) {
+  const tag = `${profile}, ${describeCfg(cfg)}`;
+  const [l0, l1] = TARGETS.lateWindowDays;
+  if (r.lateMedian.gt(TARGETS.lateMedianAetherMax)) {
+    failures.push(`${tag}: median run Aether over days ${l0}-${l1} ${r.lateMedian.format('scientific', 2)} > ${TARGETS.lateMedianAetherMax.toExponential()}`);
+  }
+  if (r.latePeak.gt(TARGETS.latePeakAetherMax)) {
+    failures.push(`${tag}: highest run Aether over days ${l0}-${l1} ${r.latePeak.format('scientific', 2)} > ${TARGETS.latePeakAetherMax.toExponential()}`);
+  }
+  if (profile === 'casual' && !cfg.links) {
+    const [w0, w1] = TARGETS.twoMonthWindowDays;
+    if (r.twoMonthMedian.gt(TARGETS.casualTwoMonthAetherMax)) {
+      failures.push(`${tag}: median run Aether over days ${w0}-${w1} ${r.twoMonthMedian.format('scientific', 2)} > ${TARGETS.casualTwoMonthAetherMax.toExponential()}`);
+    }
+    if (r.twoMonthMedian.lt(TARGETS.casualTwoMonthAetherMin)) {
+      failures.push(`${tag}: median run Aether over days ${w0}-${w1} ${r.twoMonthMedian.format('scientific', 2)} < ${TARGETS.casualTwoMonthAetherMin.toExponential()}`);
+    }
+  }
+}
 for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
   const r = run(profile);
   out.push(`\n### profile: ${profile}\n`);
@@ -529,8 +557,7 @@ for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
   out.push('');
   out.push(`- first Ascension: ${r.firstResetMin.toFixed(1)} min`);
   if (r.upgradesPerRun.length) {
-    const u = [...r.upgradesPerRun].sort((a, b) => a - b);
-    out.push(`- upgrades bought per Ascension run: median ${u[u.length >> 1]}, max ${u.at(-1)} (first run ${r.upgradesPerRun[0]})`);
+    out.push(`- upgrades bought per Ascension run: median ${upgradesMedian(r)}, max ${Math.max(...r.upgradesPerRun)} (first run ${r.upgradesPerRun[0]})`);
   }
   out.push(`- resets (Ascensions + Transcends) on day 0: ${r.resetsDay0}; in the year: ${r.resetsYear}`);
   if (r.regainDays.length) {
@@ -557,23 +584,34 @@ for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
   if (profile === 'idle' && r.firstResetMin > TARGETS.idleFirstAscensionMaxMin) {
     failures.push(`idle first Ascension at ${r.firstResetMin.toFixed(1)} min > ${TARGETS.idleFirstAscensionMaxMin} min`);
   }
+  checkR57(r, profile, { links: LINKS, attune: ATTUNEMENT });
   if (profile === 'casual') {
     if (r.firstResetMin > TARGETS.firstAscensionMaxMin) {
       failures.push(`first Ascension at ${r.firstResetMin.toFixed(1)} min > ${TARGETS.firstAscensionMaxMin} min`);
     }
-    if (r.twoMonthMedian.gt(TARGETS.casualTwoMonthAetherMax)) {
-      failures.push(`median run Aether over days ${TARGETS.twoMonthWindowDays.join('-')} ${r.twoMonthMedian.format('scientific', 2)} > ${TARGETS.casualTwoMonthAetherMax.toExponential()}`);
-    }
-    if (r.twoMonthMedian.lt(TARGETS.casualTwoMonthAetherMin)) {
-      failures.push(`median run Aether over days ${TARGETS.twoMonthWindowDays.join('-')} ${r.twoMonthMedian.format('scientific', 2)} < ${TARGETS.casualTwoMonthAetherMin.toExponential()}`);
-    }
-    const ups = [...r.upgradesPerRun].sort((a, b) => a - b);
-    const upMedian = ups.length ? ups[ups.length >> 1] : 0;
+    const upMedian = upgradesMedian(r);
     if (upMedian < TARGETS.casualUpgradesPerRunMin) {
       failures.push(`median ${upMedian} upgrades per Ascension run < ${TARGETS.casualUpgradesPerRunMin}`);
     }
     if (r.maxGapDays > TARGETS.maxGapDaysAfterDay1) {
       failures.push(`${r.maxGapDays.toFixed(1)}-day stretch with no reset > ${TARGETS.maxGapDaysAfterDay1} days`);
+    }
+  }
+}
+
+// R57: with --assert, also run the other configurations (links on, each other attunement) and
+// check their targets; one summary line each
+if (assertMode) {
+  const extra = [{ links: true, attune: DEFAULT_ATTUNEMENT }, ...ATTUNEMENT_IDS.map(attune => ({ links: false, attune }))]
+    .filter(c => c.links !== LINKS || c.attune !== ATTUNEMENT);
+  out.push('\n### other configurations (--assert, R57)\n');
+  out.push(`| configuration | profile | median run Aether days ${TARGETS.twoMonthWindowDays.join('-')} | median / highest days ${TARGETS.lateWindowDays.join('-')} | Chronicles / Pages | upgrades per run (median) |`);
+  out.push('|---|---|---|---|---|---|');
+  for (const cfg of extra) {
+    for (const profile of ['idle', 'casual'].filter(p => !only || p === only)) {
+      const r = run(profile, cfg);
+      out.push(`| ${describeCfg(cfg)} | ${profile} | ${r.twoMonthMedian.format('scientific', 2)} | ${r.lateMedian.format('scientific', 2)} / ${r.latePeak.format('scientific', 2)} | ${r.chronicles.length} / ${r.rows.at(-1).pages} | ${upgradesMedian(r)} |`);
+      checkR57(r, profile, cfg);
     }
   }
 }
