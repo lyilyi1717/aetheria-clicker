@@ -11,7 +11,7 @@ export const CHANGELOG = [
     date: '2026-10-09',
     title: 'Rare Things Look Rare',
     changes: [
-      'Opening a new tab for the first time is now a short celebration: a choir swell and a card that lasts two seconds (tap or press Esc to skip). Then the tab's button pulses gold three times. Several tabs opening at once share one card ("2 new places").',
+      'Opening a new tab for the first time is now a short celebration: a choir swell and a card that lasts two seconds (tap or press Esc to skip). Then the button of the new tab pulses gold three times. Several tabs opening at once share one card ("2 new places").',
       'Big pop-ups now play the brass fanfare instead of the bell.',
       'Golden Anomalies appear with a soft pluck and a quick shimmer. A Mirage tints the screen edges purple for its 60 seconds and has its own sound. A Caravan Star sends a camel across the top of the screen. A Supernova rolls your Oil counter up instead of jumping it.',
       'A golden harvest bursts in a gold ring with a short brass note. A mutant seed chimes like a rare find. A Legendary item drop gets a gold sweep on its pop-up and its own sound.',
