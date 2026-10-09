@@ -5,12 +5,14 @@
 // motion needs no special case; notices go through rewards.notify (which does honour it).
 import { rewards } from './rewards.js';
 import { sound } from '../engine/AudioEngine.js';
+import { feedback } from './feedback.js';
 import {
   CalendarSystem, SEALS, SEAL_SHARD_BONUS_MAX, DALLAH_BANK_MAX, DALLAH_SAND, LEDGER_WEEK_DAYS
 } from '../systems/CalendarSystem.js';
 import { t } from '../i18n/index.js';
 
 const TICK_SECONDS = 1;
+const POUR_MS = 1000;      // the Dallah pour (R50)
 const STAMP_CHIPS = 8;     // most recent weeks shown as stamps
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 const setAttr = (el, k, v) => { if (el && el.getAttribute(k) !== v) el.setAttribute(k, v); };
@@ -54,7 +56,7 @@ export class CalendarUI {
         <div class="cal-col">
           <section class="card cal-dallah" aria-labelledby="cal-dallah-h">
             <div class="cal-dallah-top">
-              <div class="cal-cup" aria-hidden="true">☕</div>
+              <div class="cal-cup" data-c="cup" aria-hidden="true"><span class="cal-cup-fill"></span><span class="cal-cup-icon">☕</span></div>
               <div>
                 <div class="eyebrow">${t('cal.daily')}</div>
                 <h2 id="cal-dallah-h" data-c="dallahTitle"></h2>
@@ -114,7 +116,11 @@ export class CalendarUI {
 
   onClaim() {
     const r = this.sys.claimDaily();
-    if (r) sound.playCoins?.();   // the pour toast stays silent: one sound for the Dallah
+    if (r) {
+      sound.playCoins?.();   // the pour toast stays silent: one sound for the Dallah
+      const cup = this.el.cup;
+      if (cup) feedback.cue(cup, 'is-pouring', POUR_MS);   // 1 s pour; reduced motion: full at once
+    }
     this.update(this.app.currentTab, 0);
   }
 
