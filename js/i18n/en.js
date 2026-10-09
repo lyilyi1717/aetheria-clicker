@@ -163,7 +163,7 @@ export default {
   "tab.about.changelog": "Changelog",
   "offline.welcome_back_traveler": "WELCOME BACK, TRAVELER!",
   "offline.aria.how_offline_oil_was": "How offline Oil was paid",
-  "offline.claim_continue": "Claim & Continue",
+  "offline.collect": "Collect",
   "hdr.edition": "Saudi Edition",
   "tab.combat.forge_level": "Forge Level <span id=\"forge-level\">0</span>",
   "tab.combat.awaken": "Awaken (<span id=\"forge-cost\">100</span> {currency})",

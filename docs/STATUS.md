@@ -19,7 +19,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40, R41 and R42 are done.
+R0–R30, R32–R40 and R41–R43 are done.
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
   re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
@@ -100,6 +100,10 @@ R0–R30, R32–R40, R41 and R42 are done.
 
 ## Done
 
+- R43 #115 (v5.20.0): Welcome Back modal celebrates (`startCelebration` in `js/ui/offlineModal.js`):
+  bell, 1.2 s count-up via `feedback.countUp` (tap skips), rows stagger in, 24 gold sparks, Collect
+  plucks and pulses `stat-aether`. The particle canvas rises above the modal only while it is open.
+  The bell can be muted by the browser on a cold load (no user gesture yet); the Collect pluck always plays.
 - R65 #163 (PR #177, v5.19.0): boss telegraphs SMASH/FEAST/WARD (`js/systems/bossFights.js`,
   `js/ui/bossFx.js`), phase 2 at 50%, misses free below floor 150; Sheikhs every 50 floors;
   Guardians at 50/150/300/500/750/1000 (merged with R18 Wardens); 4 Mythics (Wasta Strike every 30th
