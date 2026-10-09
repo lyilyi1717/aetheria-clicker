@@ -55,6 +55,7 @@ import { initCombatFx, renderBossTimer } from './ui/combatFx.js';
 import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
+import { gainLabel, gainTip } from './ui/buyGain.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
 import { t, tOr, getLang, buffName, bidi, isolateSigns, applyLanguageToDocument, syncLanguageSetting, renderLanguageSettings } from './i18n/index.js';
@@ -744,6 +745,7 @@ class AetheriaApp {
         <div class="b-info">
           <div class="b-header">
             <span class="b-name">${def.name}</span>
+            <span class="chip b-best" id="b-best-${def.id}" hidden></span>
             <span class="b-count num" id="b-count-${def.id}">0</span>
           </div>
           <div class="b-desc">${def.desc}</div>
@@ -752,6 +754,7 @@ class AetheriaApp {
         <button class="btn-buy-building btn btn-buy" id="btn-buy-${def.id}" data-id="${def.id}">
           <span class="lbl" id="buy-lbl-${def.id}"></span>
           <span class="cost num" id="cost-lbl-${def.id}">💎 0</span>
+          <span class="gain num" id="gain-lbl-${def.id}"></span>
         </button>
       </div>
     `).join('');
@@ -760,7 +763,7 @@ class AetheriaApp {
   }
 
   updateBuildingsUI() {
-    const buyAmt = this.buildingSystem.buyAmount;
+    const bestId = this.buildingSystem.getBestValueId();
 
     for (const def of BUILDING_DEFINITIONS) {
       // Tiers 15-30 open one per Transcend (R4); locked ones stay hidden
@@ -770,22 +773,7 @@ class AetheriaApp {
       if (cardEl && cardEl.style.display !== display) cardEl.style.display = display;
       if (!unlocked) continue;
       const state = this.gameState.buildings[def.id] || { count: 0 };
-      let cost = BigNum.zero();
-      let buyCount = 1;
-
-      if (buyAmt === 'max') {
-        const maxInfo = this.buildingSystem.getMaxBuyable(def.id);
-        if (maxInfo.count > 0) {
-          cost = maxInfo.cost;
-          buyCount = maxInfo.count;
-        } else {
-          cost = this.buildingSystem.getBuildingCost(def.id, 1);
-          buyCount = 1;
-        }
-      } else {
-        buyCount = buyAmt;
-        cost = this.buildingSystem.getBuildingCost(def.id, buyCount);
-      }
+      const { count: buyCount, cost } = this.buildingSystem.getBuyPlan(def.id);
 
       const canAfford = this.gameState.aether.gte(cost) && buyCount > 0;
       const currentCps = this.buildingSystem.getBuildingProduction(def.id);
@@ -798,11 +786,19 @@ class AetheriaApp {
         ? `💎 ${cost.format('standard', 1)}`
         : t('bld.need', { n: cost.sub(this.gameState.aether).format('standard', 1) }));
 
+      // R51: marginal gain of this buy, shown even when unaffordable; one Best value badge
+      const gain = this.buildingSystem.getBuyGain(def.id, buyCount);
+      setText(this.$(`gain-lbl-${def.id}`), gainLabel(gain));
+      const bestEl = this.$(`b-best-${def.id}`);
+      if (bestEl) { setText(bestEl, t('bld.best')); bestEl.hidden = def.id !== bestId; }
+
       const card = this.$(`b-card-${def.id}`);
       if (card) card.classList.toggle('is-affordable', canAfford);
 
       const btn = this.$(`btn-buy-${def.id}`);
       if (btn) {
+        const tip = gainTip(gain, cost);
+        if (btn.dataset.tip !== tip) btn.dataset.tip = tip;
         btn.classList.toggle('btn-primary', canAfford);
         btn.classList.toggle('is-locked', !canAfford);
         btn.setAttribute('aria-disabled', String(!canAfford));

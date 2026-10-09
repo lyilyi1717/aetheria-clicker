@@ -275,10 +275,11 @@ export class BuildingSystem {
     return 1 - (this.gameState.talents?.cost_reduction?.rank || 0) * 0.04;
   }
 
-  getBuildingProduction(id) {
+  // countOverride: production as if the tier had that many (R51 buy gain); default = owned
+  getBuildingProduction(id, countOverride) {
     const def = BUILDING_BY_ID.get(id);
     if (!def) return BigNum.zero();
-    const count = this.gameState.buildings[id].count;
+    const count = countOverride ?? this.gameState.buildings[id].count;
     if (count <= 0) return BigNum.zero();
 
     let prod = def.baseCps.mul(count);
@@ -295,6 +296,38 @@ export class BuildingSystem {
     }
 
     return prod;
+  }
+
+  // R51: what the current buy amount would be. MAX with nothing affordable shows the next one.
+  getBuyPlan(id) {
+    let count = this.buyAmount;
+    if (count === 'max') {
+      const m = this.getMaxBuyable(id);
+      if (m.count > 0) return { count: m.count, cost: m.cost };
+      count = 1;
+    }
+    return { count, cost: this.getBuildingCost(id, count) };
+  }
+
+  // R51: marginal CPS of buying `n` more (milestones, upgrades and talents included)
+  getBuyGain(id, n = 1) {
+    const have = this.gameState.buildings[id].count;
+    return this.getBuildingProduction(id, have + n).sub(this.getBuildingProduction(id, have));
+  }
+
+  // R51: unlocked tier with the best affordable gain per cost for the current buy amount, or null.
+  // Ties go to the lower tier (definitions are in tier order, strict > keeps the first).
+  getBestValueId() {
+    let bestId = null;
+    let best = -1;
+    for (const def of BUILDING_DEFINITIONS) {
+      if (!this.isTierUnlocked(def.id)) continue;
+      const { count, cost } = this.getBuyPlan(def.id);
+      if (count <= 0 || this.gameState.aether.lt(cost)) continue;
+      const ratio = this.getBuyGain(def.id, count).div(cost).toNumber();
+      if (ratio > best) { best = ratio; bestId = def.id; }
+    }
+    return bestId;
   }
 
   getTotalProduction() {
