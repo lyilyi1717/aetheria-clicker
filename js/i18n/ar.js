@@ -1440,6 +1440,7 @@ export default {
   // unlocks.js
   "unlock.soon": "قريبًا",
   "unlock.new": "جديد: {name}",
+  "unlock.many": "{n} أماكن جديدة",
   "unlock.locked": "مقفل: {text}",
   "unlock.locked_soon": "مقفل: واصل اللعب لتفتحه",
 

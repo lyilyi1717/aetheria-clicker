@@ -3,9 +3,31 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.26.0';
+export const VERSION = '5.27.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.27.0',
+    date: '2026-10-09',
+    title: 'Rare Things Look Rare',
+    changes: [
+      'Opening a new tab for the first time is now a short celebration: a choir swell and a card that lasts two seconds (tap or press Esc to skip). Then the button of the new tab pulses gold three times. Several tabs opening at once share one card ("2 new places").',
+      'Big pop-ups now play the brass fanfare instead of the bell.',
+      'Golden Anomalies appear with a soft pluck and a quick shimmer. A Mirage tints the screen edges purple for its 60 seconds and has its own sound. A Caravan Star sends a camel across the top of the screen. A Supernova rolls your Oil counter up instead of jumping it.',
+      'A golden harvest bursts in a gold ring with a short brass note. A mutant seed chimes like a rare find. A Legendary item drop gets a gold sweep on its pop-up and its own sound.',
+      'With Reduce motion on, the haze, camel and count-up are off, and the flashes become still gold outlines. Sounds stay.'
+    ],
+    ar: {
+      title: 'النادر يبدو نادرًا',
+      changes: [
+        'فتح تبويب جديد لأول مرة صار احتفالًا قصيرًا: ترنيمة جوقة وبطاقة تدوم ثانيتين (انقر أو اضغط Esc للتخطي). ثم يومض زر التبويب بالذهبي ثلاث مرات. وإذا فُتحت عدة تبويبات معًا تشاركت بطاقة واحدة («٢ أماكن جديدة»).',
+        'النوافذ الكبيرة تعزف الآن نفير النحاس بدلًا من الجرس.',
+        'تظهر الشذوذات الذهبية بنقرة ناعمة ولمعة سريعة. السراب يصبغ حواف الشاشة بالبنفسجي طوال 60 ثانية وله صوته الخاص. نجمة القافلة ترسل جملًا يعبر أعلى الشاشة. والمستعر الأعظم يرفع عداد النفط تدريجيًا بدل القفز.',
+        'الحصاد الذهبي ينفجر بحلقة ذهبية ونغمة نحاس قصيرة. والبذرة الطافرة تُرنّ كاكتشاف نادر. وغنيمة الأسطورية تحصل على لمعة ذهبية في نافذتها وصوت خاص.',
+        'مع تفعيل تقليل الحركة يختفي الضباب والجمل والعدّ التصاعدي، وتتحول الومضات إلى إطارات ذهبية ثابتة. تبقى الأصوات.'
+      ]
+    }
+  },
   {
     version: '5.26.0',
     date: '2026-10-09',

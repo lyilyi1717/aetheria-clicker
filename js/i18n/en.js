@@ -912,6 +912,7 @@ export default {
   // unlocks.js
   "unlock.soon": "Soon",
   "unlock.new": "NEW: {name}",
+  "unlock.many": "{n} new places",
   "unlock.locked": "Locked: {text}",
   "unlock.locked_soon": "Locked: keep playing to open this",
 

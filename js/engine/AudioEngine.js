@@ -663,6 +663,57 @@ export class AudioEngine {
     this._voice('triangle', 990, t0 + 0.08, 0.16, 0.08);
   }
 
+  // Rare events (R47). Each has its own voice so it is not mistaken for a routine toast.
+  // Mirage: a slow, detuned shimmer that sinks (two sines with vibrato), about 1.4 s.
+  playMirage() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const s = this._scale();
+    this._voice('sine', s[4] * 2, t, 1.4, 0.1, { attack: 0.25, detune: 12, vibrato: 0.012 });
+    this._voice('sine', s[4] * 2, t, 1.4, 0.1, { attack: 0.25, detune: -12, vibrato: 0.012 });
+    this._voice('triangle', s[2] * 2, t + 0.3, 1.0, 0.07, { attack: 0.2, vibrato: 0.01 });
+  }
+
+  // Caravan Star: two low drum beats, then a rising pair of plucks.
+  playCaravan() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const s = this._scale();
+    this._voice('sine', 110, t, 0.18, 0.3);
+    this._voice('sine', 110, t + 0.22, 0.18, 0.3);
+    this._voice('triangle', s[2] * 2, t + 0.46, 0.16, 0.2);
+    this._voice('triangle', s[4] * 2, t + 0.58, 0.3, 0.2);
+  }
+
+  // Golden harvest: the first two notes of the brass phrase, short.
+  playBrassShort() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const s = this._scale();
+    [[s[0], 0, 0.12], [s[2], 0.13, 0.3]].forEach(([f, off, dur]) => {
+      this._voice('sawtooth', f, t + off, dur, 0.12, { attack: 0.02 });
+      this._voice('square', f / 2, t + off, dur, 0.05, { attack: 0.02 });
+    });
+  }
+
+  // Legendary gear: a warm chord with a bell partial on top, not a brass fanfare or a bell run.
+  playLegendary() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const s = this._scale();
+    for (const f of [s[0], s[2], s[4]]) this._voice('triangle', f * 2, t, 0.9, 0.12, { attack: 0.04 });
+    this._voice('sine', s[4] * 4, t + 0.12, 0.9, 0.1);
+    this._voice('sine', s[4] * 4 * 2.76, t + 0.12, 0.6, 0.05);
+  }
+
   // One entry point for the reward system (js/ui/rewards.js)
   playTier(tier) {
     if (tier === 'small') this.playPluck();
@@ -695,7 +746,7 @@ export const SOUND_IDS = {
   click: 'playClick', frenzy: 'playFrenzy', crit: 'playCrit', buy: 'playBuy', coins: 'playCoins', blast: 'playBlast', hit: 'playHit', defeat: 'playDefeat',
   dig: 'playDig', gem: 'playGem', 'gem-rare': 'playGemRare', 'gem-epic': 'playGemEpic', 'gem-legendary': 'playGemLegendary', spell: 'playSpell', achievement: 'playAchievement',
   ascension: 'playAscension', pluck: 'playPluck', bell: 'playBell', brass: 'playBrass',
-  choir: 'playChoir', 'boss-down': 'playBossDown', tick: 'playTick', warn: 'playWarn', counter: 'playCounter'
+  choir: 'playChoir', mirage: 'playMirage', caravan: 'playCaravan', 'brass-short': 'playBrassShort', legendary: 'playLegendary', 'boss-down': 'playBossDown', tick: 'playTick', warn: 'playWarn', counter: 'playCounter'
 };
 
 export const sound = new AudioEngine();

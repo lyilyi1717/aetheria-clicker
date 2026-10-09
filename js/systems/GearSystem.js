@@ -4,6 +4,7 @@
 // and the items themselves (hero.gear holds the four equipped ones). Item model: gearItems.js.
 import { BigNum } from '../engine/BigNum.js';
 import { rewards } from '../ui/rewards.js';
+import { sound } from '../engine/AudioEngine.js';
 import { t } from '../i18n/index.js';
 import { gearStat, getIndexFloor, MONSTER_FLOOR_BASE, MONSTER_NAMES } from './CombatSystem.js';
 import { getShopRank } from './DustShopSystem.js';
@@ -549,7 +550,9 @@ export class GearSystem {
     } else if (ri >= 4) {
       rewards.notify({ tier: 'big', kind: 'bag-cosmic', icon: '★', color: def.color, title: t('bag.toast.cosmic', { name }), detail: this.deltaText(delta) });
     } else if (ri === 3) {
-      rewards.notify({ tier: 'medium', kind: 'bag-legendary', icon: '◆', color: def.color, title: t('bag.toast.legendary', { name }), detail: this.deltaText(delta) });
+      // R47: its own look (gold sweep on the toast) and sound, not the routine bell
+      sound.play('legendary');
+      rewards.notify({ tier: 'medium', kind: 'bag-legendary', icon: '◆', color: def.color, look: 'legendary', sound: false, title: t('bag.toast.legendary', { name }), detail: this.deltaText(delta) });
     } else if (delta > UPGRADE_EPS) {
       rewards.notify({
         tier: 'small', kind: 'bag-upgrade', icon: '▲', color: def.color,

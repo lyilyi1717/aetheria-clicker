@@ -1,3 +1,4 @@
+import { isCountingUp } from './ui/rareEvents.js';
 import { BigNum } from './engine/BigNum.js';
 import { sound } from './engine/AudioEngine.js';
 import { particles } from './engine/ParticleEngine.js';
@@ -2063,7 +2064,8 @@ class AetheriaApp {
   }
 
   updateHeaderStats() {
-    setText(this.$('stat-aether'), this.gameState.aether.format('standard', 2));
+    const oilEl = this.$('stat-aether');
+    if (!isCountingUp(oilEl)) setText(oilEl, this.gameState.aether.format('standard', 2));   // Supernova rolls it up (R47)
 
     const aetherRateEl = this.$('stat-aether-rate');
     if (aetherRateEl) {
