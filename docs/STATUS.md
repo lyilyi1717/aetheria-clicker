@@ -11,11 +11,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 ## In progress
 
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
-  R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
+  R61 #159 (ready now that R57 is merged). From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
-
-- Wave 9, run by the R31 coordinator session: R57 #139 in progress (also takes on the
-  attunement pacing below).
 
 ## Next up
 
@@ -329,6 +326,13 @@ R0–R30, R32–R40 and R41–R43 are done.
   x3 cost steps). A New Well pays from 500 run Oil. `sim:check` asserts idle first Ascension
   <= 90 min (60), casual median upgrades per run >= 30 (32), casual median run Oil over days
   50–70 >= 1e11 (4.1e12; idle 4.4e10).
+- R57 #139 Tame the late-year Chronicle/Page loop (PR #146, 5.30.0; closes wave 9): Pages count
+  Transcends only up to the 9th (`CHRONICLE_PAGES_MAX_TRANSCENDS = 9`); in the sim later
+  Chronicles begin at the 9th Transcend. `sim:check` also runs `--links` and all three
+  attunements and asserts months 6–12 median <= 1e17, highest <= 1e18, and the 2-month band per
+  attunement. Late-year peak 9.2e20 → 7.8e16 (links on: 2.6e24 → 2.5e15); 2-month medians
+  unchanged; upgrades per run 32. Owner call: Chronicles are now 28 a year casual (~90 with
+  links) and the late median sits below the 2-month band.
 - R55 #129 Ascension attunements (PR #143, 5.5.0): pick 1 of 3 per run, one additive category.
   Idle (default) +30% while the last hand tap is >= 60 s old (Auto-tap doesn't count); Steady
   makes tier upgrades x1.26 each instead of x1.2; Focus +15% per subgame milestone, capped at
@@ -449,7 +453,6 @@ R0–R30, R32–R40 and R41–R43 are done.
 
 - Untapped Garden is ~x3.42 of generator output from Nectar Surge on hand harvests (R60's area).
 - Tower 1 h floor is ~65% of target (97 vs 149); starting-kit tuning could fix it.
-- Save step v10 is taken by R63: R57 (#146) must renumber its step to v11.
 - `test_mining.js` has a flaky random-hits assertion; `sim/core-pacing.mjs` has no Garden profile.
 - Floating texts and sparks spawned outside `feedback.fire` (Garden, Mining finds, combat
   shield/heal, golem row) still bypass the helper; the caps cover them, routing them is R46/R47 work.
