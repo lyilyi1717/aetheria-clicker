@@ -10,8 +10,6 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R68 #183: Auto-Drills use the manual dig abilities (owner request).
-
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
@@ -103,6 +101,10 @@ R0–R30, R32–R40, R41 and R42 are done.
 
 ## Done
 
+- R68 #183 (PR #184, v5.21.0): owner request, drill hits (Auto-Drill, Steam Jackhammer) roll Shatter,
+  Cleave, Chain and mining crits / Super-Crit shockwave like a tap (`mineBlock`); Frenzy stays manual
+  (streak and x2). Drill procs are silent. Mining sim (skills at Lv 0): idle depth day 1/7/60
+  95/158/229 -> 112/169/240, active day 7/30/60 116/154/170 -> 118/158/176; band still ok.
 - R65 #163 (PR #177, v5.19.0): boss telegraphs SMASH/FEAST/WARD (`js/systems/bossFights.js`,
   `js/ui/bossFx.js`), phase 2 at 50%, misses free below floor 150; Sheikhs every 50 floors;
   Guardians at 50/150/300/500/750/1000 (merged with R18 Wardens); 4 Mythics (Wasta Strike every 30th
