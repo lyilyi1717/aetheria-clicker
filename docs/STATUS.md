@@ -10,6 +10,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
+- R45 #117 New Well / New Field ceremonies (sub-agent, branch `r45-well-field-ceremonies`).
 
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
@@ -20,11 +21,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-<<<<<<< HEAD
-R0–R30, R32–R40, R41–R44, R46, R48, R49 and R51 are done.
-=======
-R0–R30, R32–R40 and R41–R43 are done.
->>>>>>> origin/main
+R0–R30, R32–R40, R41–R44, R46, R48, R49, R51 and R68 are done.
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
   re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
@@ -117,7 +114,6 @@ R0–R30, R32–R40 and R41–R43 are done.
   denied click + outline. Not done: buy pitch per size (needs a pitch arg on `playBuy`), chips for
   Enchanter/Golem buys.
 
-<<<<<<< HEAD
 - R49 #121 (PR #188, stub #187, v5.21.1): under reduced motion, one-shot flashes swap to a static
   colour held for the same time via `feedback.cue(el, cls, ms)` (`STATIC_CUES`: reward-pulse -> gold
   outline 900 ms, blast-flash -> orange inset 600 ms, boss `fx-flash` -> red border 150 ms). Any new
@@ -134,7 +130,6 @@ R0–R30, R32–R40 and R41–R43 are done.
   by eye: Best value chip, 375 px and RTL layout. The milestone case in `test_r51_buy_gain.js` is weak
   (compares a call with itself).
 
-=======
 - R68 #183 (PR #184, v5.23.0): owner request, drill hits (Auto-Drill, Steam Jackhammer) roll Shatter,
   Cleave, Chain and mining crits / Super-Crit shockwave like a tap (`mineBlock`); Frenzy stays manual
   (streak and x2). Drill procs are silent. Mining sim (skills at Lv 0): idle depth day 1/7/60
@@ -143,7 +138,6 @@ R0–R30, R32–R40 and R41–R43 are done.
   bell, 1.2 s count-up via `feedback.countUp` (tap skips), rows stagger in, 24 gold sparks, Collect
   plucks and pulses `stat-aether`. The particle canvas rises above the modal only while it is open.
   The bell can be muted by the browser on a cold load (no user gesture yet); the Collect pluck always plays.
->>>>>>> origin/main
 - R65 #163 (PR #177, v5.19.0): boss telegraphs SMASH/FEAST/WARD (`js/systems/bossFights.js`,
   `js/ui/bossFx.js`), phase 2 at 50%, misses free below floor 150; Sheikhs every 50 floors;
   Guardians at 50/150/300/500/750/1000 (merged with R18 Wardens); 4 Mythics (Wasta Strike every 30th
@@ -467,14 +461,11 @@ R0–R30, R32–R40 and R41–R43 are done.
   specificity, later rule wins).
 - Toasts are batched while the tab is hidden: toast checks need a foreground tab.
 
-<<<<<<< HEAD
 - Port 8101 may already be held by another worktree's dev server, so `npm start` "works" but serves
   the wrong checkout. Check which checkout is serving before trusting a UI check.
-=======
 - `test_mining.js` "Frenzy should be active after 7 rapid manual hits" is flaky (about 1 run in 8
   locally, also seen in CI on PR #186); the manual Dig Streak loop depends on something random or
   timing-based.
->>>>>>> origin/main
 
 - `test_mining.js` is flaky (random hits per tick; once 28 vs ~5); fix the seed.
 - R64 follow-ups: Al-Wakeel as a Dust-shop item (now only free at record floor 301+), stale i18n
