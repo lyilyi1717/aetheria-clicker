@@ -10,8 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: R62 #160 and
-  R64 #162 in progress (R64 also removes Monster Bones and R34 gear levels, owner scope add). From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
+- Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: R65 #163 in progress.
+  R61 #159 waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
 
 - Wave 9, run by the R31 coordinator session: R57 #139 in progress (also takes on the
@@ -98,6 +98,16 @@ R0–R30, R32–R40, R41 and R42 are done.
 | 10 | R66 Garden tap growth back to 5% (owner decision) | #172 | R59 |
 
 ## Done
+
+- R62 #160 (PR #174, v5.17.3): 20% of crits become Super-Crits (`SUPER_CRIT_SHARE`): refinery x5
+  click (inside R52), mining crit adds a 0.15x shockwave to 4 neighbours on manual digs only.
+  Hyper-Crits still dormant (need >200% crit). Active income x2.89 -> x2.91; depth within +-3%.
+- R64 #162 (PR #168, v5.18.0): gear bag (30 slots), `js/systems/gearItems.js` + `GearSystem.js`,
+  `js/ui/bag.js`; rarity x1-5, 6 affixes, 6 boss signatures, mob drops 8%, Legendary pity 600,
+  re-temper, Kashta camp, Void Cataclysm Tower cap 10x Attack. Monster Bones and R34 gear levels
+  removed (owner); salvage pays Gear Scrap. Migration v11: equipped gear -> Heirlooms keeping exact
+  stats (`keep` floor), bones -> Scrap / up to 8 Rare finds / up to 20 Void Cores, Welcome Bag.
+  `GEAR_FLOOR_BASE` 1.109 (gear levels gone): tower 400/520/610 vs 414/498/560.
 
 - R58 #156 (PR #171, v5.17.1): Shatter is x10 pickaxe damage, no instant break
   (`SHATTER_DAMAGE_MULT`). `sim/mining-pacing.mjs` taps through the manual path (active 5/s,
@@ -396,6 +406,11 @@ R0–R30, R32–R40, R41 and R42 are done.
   - Polish & Bug Fixes: Suppressed Tower combat particles/floats when combat tab is hidden; hid Mana from header until Grimoire is unlocked; isolated Arabic unlock teaser fractions so they read left-to-right (`0/10`); stabilized `test_r52_clicks.js` timing race.
 
 ## Noticed (not yet an issue)
+
+- `test_mining.js` is flaky (random hits per tick; once 28 vs ~5); fix the seed.
+- R64 follow-ups: Al-Wakeel as a Dust-shop item (now only free at record floor 301+), stale i18n
+  keys `gear.batch`, `gear.new_weapon`, `gear.new_armor`, rare-find toast spam with auto-salvage Off.
+- Mining taps don't spend from the R52 paid-tap bucket yet.
 
 - Never use `git stash` in this repo: the stack is shared by every worktree and other tools; an
   agent popped another tool's art work into the wrong worktree on 2026-10-08.
