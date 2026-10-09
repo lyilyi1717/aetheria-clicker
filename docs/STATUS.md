@@ -10,6 +10,9 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
+- R49 #121 Reduced-motion colour cues: worktree `../clicker-wt/r49` (branch `r49-motion-colour-cues`)
+  ready, not started yet (sub-agent launch blocked by a permission check).
+
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
@@ -19,7 +22,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40, R41 and R42 are done.
+R0–R30, R32–R40, R41, R42, R46 and R51 are done.
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
   re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
@@ -99,6 +102,17 @@ R0–R30, R32–R40, R41 and R42 are done.
 | 10 | R67 Core sim skips Tower-only Al-Wakeel | #178 | R65 |
 
 ## Done
+
+- R46 #118 (PR #182, v5.21.0): sound families. `playCoins` (collect: contract claim, Dallah, gold
+  cache, caravan, Bazaar sell), `playBlast` (Dynamite, Void Cataclysm), `playGem(rarity)` 2/3/4 voices
+  (`GEM_RARITY` in MiningSystem; ids `gem-rare|epic|legendary` since `Feedback.fire` takes no rarity),
+  per-spell pitch (`SPELL_INTERVALS`). Contract claim toast shows amounts; Dallah plays one sound.
+  Not done: Bazaar sell-at-gain (waits on owner reference-price call), mutant seed / gear drop find
+  sounds, per-skill pitch for hero skills, garden harvest + alchemy polish still common gem.
+- R51 #124 (PR #181, v5.20.0): gain line under each generator buy button + Best value chip.
+  `BuildingSystem.getBuyPlan/getBuyGain/getBestValueId`, strings in `js/ui/buyGain.js`. Not checked
+  by eye: Best value chip, 375 px and RTL layout. The milestone case in `test_r51_buy_gain.js` is weak
+  (compares a call with itself).
 
 - R65 #163 (PR #177, v5.19.0): boss telegraphs SMASH/FEAST/WARD (`js/systems/bossFights.js`,
   `js/ui/bossFx.js`), phase 2 at 50%, misses free below floor 150; Sheikhs every 50 floors;
@@ -418,6 +432,9 @@ R0–R30, R32–R40, R41 and R42 are done.
   - Polish & Bug Fixes: Suppressed Tower combat particles/floats when combat tab is hidden; hid Mana from header until Grimoire is unlocked; isolated Arabic unlock teaser fractions so they read left-to-right (`0/10`); stabilized `test_r52_clicks.js` timing race.
 
 ## Noticed (not yet an issue)
+
+- Port 8101 may already be held by another worktree's dev server, so `npm start` "works" but serves
+  the wrong checkout. Check which checkout is serving before trusting a UI check.
 
 - `test_mining.js` is flaky (random hits per tick; once 28 vs ~5); fix the seed.
 - R64 follow-ups: Al-Wakeel as a Dust-shop item (now only free at record floor 301+), stale i18n
