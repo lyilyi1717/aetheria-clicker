@@ -4,6 +4,8 @@ import { SEED_TYPES, HYBRIDS, GOLDEN_CHANCE, GOLDEN_ESSENCE_MULT } from '../syst
 import { HYBRID_RECIPES } from '../systems/AlchemySystem.js';
 import { itemName } from '../data/names.js';
 import { t } from '../i18n/index.js';
+import { sound } from '../engine/AudioEngine.js';
+import { rewards } from './rewards.js';
 
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
@@ -80,6 +82,11 @@ export class GardenBreedingUI {
         this.flash = res.amount > 0
           ? t('breed.hit', { n: res.amount, name: h.name })
           : t('breed.miss', { p: pct(res.chance) });
+        // R48: a failed cross answers neutrally (no chime, no "so close")
+        if (res.amount <= 0) {
+          sound.playPluck();
+          rewards.notify({ tier: 'small', kind: 'breed-none', icon: '🌱', color: 'var(--text-dim)', title: t('breed.none') });
+        }
       }
       this.app.updateGardenUI();
     } else if (g.isPlotMature(plots[idx])) {

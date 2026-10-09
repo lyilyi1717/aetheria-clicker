@@ -58,3 +58,24 @@
   :root:not([data-motion="full"]) .upg .p,
   :root:not([data-motion="full"]) .upcard { transition: none; }
 }
+
+/* R48: purchase feedback (js/ui/buyFx.js). Chip rises from the Buy button; the count pops. */
+.buy-chip {
+  position: fixed; z-index: 60; transform: translate(-50%, -100%); pointer-events: none;
+  font-family: var(--font-ui); font-weight: 800; color: var(--gold); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  white-space: nowrap; animation: buy-chip-rise 700ms var(--ease-out) both;
+}
+.buy-chip.size-1 { font-size: var(--fs-13); }
+.buy-chip.size-2 { font-size: var(--fs-16); }
+.buy-chip.size-3 { font-size: var(--fs-18); }
+@keyframes buy-chip-rise {
+  0% { opacity: 0; margin-top: 0; }
+  15% { opacity: 1; }
+  100% { opacity: 0; margin-top: -34px; }
+}
+.count-pop { display: inline-block; animation: count-pop 120ms var(--ease-pop); }
+@keyframes count-pop { 0% { transform: scale(1); } 50% { transform: scale(1.25); } 100% { transform: scale(1); } }
+/* A tap that did nothing: a dim outline, no motion, held briefly (also under reduced motion) */
+.tap-denied { outline: 2px solid var(--text-3); outline-offset: -2px; }
+/* Reduced motion: the global rule in tokens.css drops the animations, so the chip shows in place
+   for its 700 ms and the count changes without a pop. */

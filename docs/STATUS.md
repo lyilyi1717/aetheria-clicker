@@ -20,7 +20,11 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40, R41, R42, R46, R49 and R51 are done.
+<<<<<<< HEAD
+R0–R30, R32–R40, R41–R44, R46, R48, R49 and R51 are done.
+=======
+R0–R30, R32–R40 and R41–R43 are done.
+>>>>>>> origin/main
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
   re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
@@ -98,9 +102,22 @@ R0–R30, R32–R40, R41, R42, R46, R49 and R51 are done.
 | 10 | R65 Mythics, Barakah meter, boss telegraphs | #163 | R64 |
 | 10 | R66 Garden tap growth back to 5% (owner decision) | #172 | R59 |
 | 10 | R67 Core sim skips Tower-only Al-Wakeel | #178 | R65 |
+| 10 | R68 Auto-Drills use the manual dig abilities | #183 | – |
 
 ## Done
 
+- R44 #116 (PR #190, v5.25.0): combo pitch climbs a scale step per 4 clicks (cap 5) and follows the
+  drain (derived from `comboCount`); Frenzy moment (wind-up at 18-19, callout, ring burst,
+  `playFrenzy`, 400 ms bar hold `frenzyHold`). Visuals in `js/ui/comboFx.js` via
+  `ClickerSystem.onComboFx`; orb floating texts capped at 12. Time Flux anomaly also gets the moment.
+  Not checked by eye (throttled tab): wind-up flare, orb tint, "+4 s" chip, 375 px, reduced motion.
+- R48 #120 (PR #189, v5.24.0): Bazaar sale is a "gain" (coins + green toast) only at >= +1% over
+  base price after the 0.95 markdown (#23 default, no save field), else click + plain toast; failed
+  breeding answers with a pluck + toast; "+n" buy chip (`js/ui/buyFx.js`); unaffordable taps get a
+  denied click + outline. Not done: buy pitch per size (needs a pitch arg on `playBuy`), chips for
+  Enchanter/Golem buys.
+
+<<<<<<< HEAD
 - R49 #121 (PR #188, stub #187, v5.21.1): under reduced motion, one-shot flashes swap to a static
   colour held for the same time via `feedback.cue(el, cls, ms)` (`STATIC_CUES`: reward-pulse -> gold
   outline 900 ms, blast-flash -> orange inset 600 ms, boss `fx-flash` -> red border 150 ms). Any new
@@ -117,6 +134,16 @@ R0–R30, R32–R40, R41, R42, R46, R49 and R51 are done.
   by eye: Best value chip, 375 px and RTL layout. The milestone case in `test_r51_buy_gain.js` is weak
   (compares a call with itself).
 
+=======
+- R68 #183 (PR #184, v5.23.0): owner request, drill hits (Auto-Drill, Steam Jackhammer) roll Shatter,
+  Cleave, Chain and mining crits / Super-Crit shockwave like a tap (`mineBlock`); Frenzy stays manual
+  (streak and x2). Drill procs are silent. Mining sim (skills at Lv 0): idle depth day 1/7/60
+  95/158/229 -> 112/169/240, active day 7/30/60 116/154/170 -> 118/158/176; band still ok.
+- R43 #115 (v5.22.0): Welcome Back modal celebrates (`startCelebration` in `js/ui/offlineModal.js`):
+  bell, 1.2 s count-up via `feedback.countUp` (tap skips), rows stagger in, 24 gold sparks, Collect
+  plucks and pulses `stat-aether`. The particle canvas rises above the modal only while it is open.
+  The bell can be muted by the browser on a cold load (no user gesture yet); the Collect pluck always plays.
+>>>>>>> origin/main
 - R65 #163 (PR #177, v5.19.0): boss telegraphs SMASH/FEAST/WARD (`js/systems/bossFights.js`,
   `js/ui/bossFx.js`), phase 2 at 50%, misses free below floor 150; Sheikhs every 50 floors;
   Guardians at 50/150/300/500/750/1000 (merged with R18 Wardens); 4 Mythics (Wasta Strike every 30th
@@ -436,8 +463,18 @@ R0–R30, R32–R40, R41, R42, R46, R49 and R51 are done.
 
 ## Noticed (not yet an issue)
 
+- `monolith-orb` `data-combo-step` box-shadow rules override the `:active` / `.pulse` glow (same
+  specificity, later rule wins).
+- Toasts are batched while the tab is hidden: toast checks need a foreground tab.
+
+<<<<<<< HEAD
 - Port 8101 may already be held by another worktree's dev server, so `npm start` "works" but serves
   the wrong checkout. Check which checkout is serving before trusting a UI check.
+=======
+- `test_mining.js` "Frenzy should be active after 7 rapid manual hits" is flaky (about 1 run in 8
+  locally, also seen in CI on PR #186); the manual Dig Streak loop depends on something random or
+  timing-based.
+>>>>>>> origin/main
 
 - `test_mining.js` is flaky (random hits per tick; once 28 vs ~5); fix the seed.
 - R64 follow-ups: Al-Wakeel as a Dust-shop item (now only free at record floor 301+), stale i18n

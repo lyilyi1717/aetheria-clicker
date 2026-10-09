@@ -212,7 +212,7 @@ export default {
   "tab.about.changelog": "سجل التحديثات",
   "offline.welcome_back_traveler": "أهلًا بعودتك أيها المسافر!",
   "offline.aria.how_offline_oil_was": "كيف حُسب نفط الغياب",
-  "offline.claim_continue": "استلم وتابع",
+  "offline.collect": "استلم",
   "hdr.edition": "النسخة السعودية",
   "tab.combat.forge_level": "مستوى الفرن <span id=\"forge-level\">0</span>",
   "tab.combat.awaken": "أيقِظ (<span id=\"forge-cost\">100</span> نفط)",
@@ -771,6 +771,9 @@ export default {
   "market.bought": "اشتريت {name}",
   "unit.units": "وحدة",
   "market.sold": "بيع في السوق",
+  "market.sold_gain": "+{p}٪ فوق السعر المعتاد",
+  "market.sold_plain": "بيع مقابل {n} ذهب",
+  "breed.none": "لا هجين هذه المرة",
   "caravan.dispatched": "انطلقت القافلة",
   "caravan.returned": "عادت القافلة",
   "caravan.returned_batch": "عادت {n} قوافل",
@@ -1385,6 +1388,8 @@ export default {
   "combo.ready_frenzy": "الكومبو جاهز · هيجان كل {n} نقرة",
   "combo.frenzy_in": "الهيجان بعد {n}",
   "combo.text": "كومبو ×{n}!",
+  "combo.frenzy_callout": "الهيجان!",
+  "combo.frenzy_extend": "+{s} ث",
   "combo.text_boost": "كومبو ×{n}! (تعزيز ×{x})",
 
   // motion.js

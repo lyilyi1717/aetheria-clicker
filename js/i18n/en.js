@@ -163,7 +163,7 @@ export default {
   "tab.about.changelog": "Changelog",
   "offline.welcome_back_traveler": "WELCOME BACK, TRAVELER!",
   "offline.aria.how_offline_oil_was": "How offline Oil was paid",
-  "offline.claim_continue": "Claim & Continue",
+  "offline.collect": "Collect",
   "hdr.edition": "Saudi Edition",
   "tab.combat.forge_level": "Forge Level <span id=\"forge-level\">0</span>",
   "tab.combat.awaken": "Awaken (<span id=\"forge-cost\">100</span> {currency})",
@@ -474,6 +474,9 @@ export default {
   "market.bought": "Bought {name}",
   "unit.units": "units",
   "market.sold": "Sold at the Bazaar",
+  "market.sold_gain": "+{p}% over the usual price",
+  "market.sold_plain": "Sold for {n} gold",
+  "breed.none": "No hybrid this time",
   "caravan.dispatched": "Caravan dispatched",
   "caravan.returned": "Caravan returned",
   "caravan.returned_batch": "{n} caravans returned",
@@ -857,6 +860,8 @@ export default {
   "combo.ready_frenzy": "Combo Ready · Frenzy every {n} clicks",
   "combo.frenzy_in": "Frenzy in {n}",
   "combo.text": "{n}x Combo!",
+  "combo.frenzy_callout": "FRENZY!",
+  "combo.frenzy_extend": "+{s} s",
   "combo.text_boost": "{n}x Combo! ({x}x boost)",
 
   // motion.js
