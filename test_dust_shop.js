@@ -52,7 +52,7 @@ const make = (ascensions = 0, dust = 0) => {
 console.log('--- Table matches design doc 6.2 (R31 prices, R52 Auto-tap) ---');
 {
   const want = {
-    genesis: [1, 5], auto_tap: [1, 5], blueprint_memory: [1, 10], chrono_vault: [1, 10], auto_buy: [3, 30],
+    genesis: [1, 5], auto_tap: [1, 5], blueprint_memory: [1, 10], chrono_vault: [1, 10], auto_buy: [3, 30], drill_mastery: [3, 35],
     titan_legacy: [3, 10], finger_of_wasta: [3, 50], astral_alchemist: [5, 15],
     golem_covenant: [5, 30], hourglass: [5, 40], al_wakeel: [5, 40], auto_leylines: [10, 60],
     blueprint_memory_2: [10, 50], resonant_start: [20, 250], dust_amplifier: [0, 50]

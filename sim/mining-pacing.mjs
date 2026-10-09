@@ -30,6 +30,9 @@ const SESSION = 45 * 60;
 // Casual core sim (`npm run sim`): first Transcend day 3.5 buys Auto-Ascend, the second (day 4.4)
 // leaves a shard for Auto-Blast
 export const AUTO_BLAST_DAY = 4.4;
+// Drill Mastery (35 Reserves, tier 3): the casual core sim buys the 30-40 Reserve items on days
+// 1.2-1.7. Every profile owns it from this day; Transcend resets are left out (it is rebought at once).
+export const DRILL_MASTERY_DAY = 1.5;
 
 // Seeded Math.random so before/after runs see the same grids
 function seedRandom(seed) {
@@ -86,6 +89,7 @@ function run(profile, endDay = 60, tapRate = TAP_RATES.active) {
   const endT = endDay * DAY;
   while (t < endT) {
     if (t >= buyAutoBlastAt) gs.shardTree.owned.chronos_auto_blast = true;
+    if (t >= DRILL_MASTERY_DAY * DAY) gs.dustShop.ranks.drill_mastery = 1;
     if (isOpen(t)) {
       if (isPlaying(t)) {
         if (ms.useDynamite()) blasts++;
