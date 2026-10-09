@@ -10,8 +10,6 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R49 #121 Reduced-motion colour cues: worktree `../clicker-wt/r49` (branch `r49-motion-colour-cues`)
-  ready, not started yet (sub-agent launch blocked by a permission check).
 
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
@@ -22,7 +20,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40, R41, R42, R46 and R51 are done.
+R0–R30, R32–R40, R41, R42, R46, R49 and R51 are done.
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
   re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
@@ -102,6 +100,11 @@ R0–R30, R32–R40, R41, R42, R46 and R51 are done.
 | 10 | R67 Core sim skips Tower-only Al-Wakeel | #178 | R65 |
 
 ## Done
+
+- R49 #121 (PR #188, stub #187, v5.21.1): under reduced motion, one-shot flashes swap to a static
+  colour held for the same time via `feedback.cue(el, cls, ms)` (`STATIC_CUES`: reward-pulse -> gold
+  outline 900 ms, blast-flash -> orange inset 600 ms, boss `fx-flash` -> red border 150 ms). Any new
+  flash class needs a `STATIC_CUES` entry. `Feedback` reads `rewards` lazily (import cycle).
 
 - R46 #118 (PR #182, v5.21.0): sound families. `playCoins` (collect: contract claim, Dallah, gold
   cache, caravan, Bazaar sell), `playBlast` (Dynamite, Void Cataclysm), `playGem(rarity)` 2/3/4 voices
