@@ -22,6 +22,7 @@ import { DUST_SHOP_ITEMS } from './systems/DustShopSystem.js';
 import { DustShopUI } from './ui/dustShop.js';
 import { AttunementUI } from './ui/attunements.js';
 import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
+import { runPrestige, renderConfirmSettings } from './ui/prestigeCeremony.js';
 import { TalentSourcesPanel } from './ui/talents.js';
 import { buildContractsBoard, updateContractsBoard, bindContracts } from './ui/contracts.js';
 import { AchievementSystem } from './systems/AchievementSystem.js';
@@ -50,6 +51,7 @@ import { NewsTicker, renderNewsSettings } from './ui/newsTicker.js';
 import { SharedNews, sharedQueueItems, sharedNewsHooks } from './ui/sharedNews.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
+import { initComboFx, renderComboFx } from './ui/comboFx.js';
 import { initAutoTap, renderAutoTap } from './ui/autoTap.js';
 import { initCombatFx, renderBossTimer } from './ui/combatFx.js';
 import { Leaderboard } from './leaderboard.js';
@@ -290,6 +292,7 @@ class AetheriaApp {
     this.sharedNews.start();
     const newsChanged = () => { this.newsTicker.refresh(); this.saveManager.save(); };
     renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, newsChanged);
+    renderConfirmSettings(document.getElementById('settings-confirm'), this.gameState.settings, () => this.saveManager.save());
     renderNewsSettings(document.getElementById('settings-news'), this.gameState.settings, newsChanged, sharedNewsHooks(this.sharedNews, this.gameState.settings));
     renderThemeSettings(document.getElementById('settings-theme'), this.gameState.settings, () => this.saveManager.save());
     renderLanguageSettings(document.getElementById('settings-language'), this.gameState.settings, () => this.saveManager.save());
@@ -325,6 +328,7 @@ class AetheriaApp {
     // Monolith Click
     const monolith = document.getElementById('monolith-orb');
     initAutoTap(this.clickerSystem, monolith);
+    initComboFx(this.clickerSystem, monolith);
     if (monolith) {
       monolith.addEventListener('pointerdown', (e) => {
         sound.ensureContext();
@@ -1803,13 +1807,21 @@ class AetheriaApp {
     const ascBtn = document.getElementById('btn-do-ascend');
     if (ascBtn) {
       ascBtn.onclick = () => {
-        const dm = this.prestigeSystem.getDustMultipliers();
-        const nectarNote = '\n\n' + t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtBonus(dm.nectarMult) });
-        if (confirm(t('prestige.confirm') + nectarNote)) {
-          this.prestigeSystem.ascend();
+        const ps = this.prestigeSystem;
+        if (!ps.canAscend()) return;
+        const dm = ps.getDustMultipliers();
+        runPrestige({
+          kind: 'well',
+          question: t('prestige.confirm'),
+          gain: [t('prestige.sheet_gain', { n: ps.getPendingCosmicDust().format('standard', 0) })],
+          lose: [t('prestige.sheet_lose')],
+          notes: [t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtBonus(dm.nectarMult) })],
+          settings: this.gameState.settings
+        }, () => {
+          ps.ascend(false, { chosen: true });
           this.updateBuildingsUI();
           this.updatePrestigeUI();
-        }
+        }, ascBtn);
       };
     }
 
@@ -2099,6 +2111,7 @@ class AetheriaApp {
 
     renderAutoTap(this.$('auto-tap-line'), this.gameState, this.clickerSystem);
     renderCombo(this.$('combo-bar-fill'), this.$('combo-text'), this.gameState, this.clickerSystem);
+    renderComboFx(this.$('monolith-orb'), this.gameState, this.clickerSystem);
 
     const frenzyBadge = this.$('frenzy-badge');
     if (frenzyBadge) {

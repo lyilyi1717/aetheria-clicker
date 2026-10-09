@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.25.0';
+export const VERSION = '5.27.0';
 
 export const CHANGELOG = [
   {
-    version: '5.25.0',
+    version: '5.27.0',
     date: '2026-10-09',
     title: 'Drill Mastery',
     changes: [
@@ -19,6 +19,46 @@ export const CHANGELOG = [
       changes: [
         'جديد في متجر الاحتياطي: إتقان المثاقب (35 احتياطيا، يُفتح بعد 3 آبار جديدة، شراء مرة واحدة). معه تستخدم مثاقبك الآلية ومطارقك البخارية تقنيات ورشة الأحجار والضربات الحرجة، فكل ضربة مثقاب قد تُحدث الصدع والشق والقوس والضربة الحرجة مثل نقرتك.',
         'هذا إضعاف إن لم تشتره بعد: حتى تشتريه تعود ضربات المثاقب ضربات معول عادية كما كانت قبل التحديث السابق. أما نقراتك فتستخدم تقنياتك دائما. ومثل بقية المتجر، يُعاد ضبطه عند فتح حقل نفط جديد.'
+      ]
+    }
+  },
+  {
+    version: '5.26.0',
+    date: '2026-10-09',
+    title: 'A Well Worth Drilling',
+    changes: [
+      'Drilling a New Well and opening a New Oil Field no longer use a pop-up box from your browser. A sheet inside the game shows exactly what you gain and what resets, with Not yet and a confirm button you hold for a moment while a tone rises.',
+      'Let go early and nothing happens. Hold it all the way and the screen dims, the orb sinks, a gusher of 60 sparks bursts out and NEW WELL! or NEW FIELD! flashes before the reward card counts up. The whole thing takes 3.5 seconds at most, and a tap or Esc skips straight to the result.',
+      'A New Field has its own look and sound: a purple sweep across the screen and the choir. A New Well you choose to drill always gets its celebration, even if another big moment happened in the last minute.',
+      'New Settings option, Tap to confirm, replaces the hold with a single tap. With Reduce motion on the button is always a tap, there is no sinking orb or sparks, and the reward card is the short one. What you gain and lose is unchanged.'
+    ],
+    ar: {
+      title: 'بئر تستحق الحفر',
+      changes: [
+        'لم يعد حفر بئر جديدة أو فتح حقل نفط جديد يستخدم نافذة المتصفح. تعرض ورقة داخل اللعبة بالضبط ما تكسبه وما يُعاد ضبطه، مع «ليس الآن» وزر تأكيد تضغطه مطولًا لحظة بينما ترتفع نغمة.',
+        'إن رفعت إصبعك مبكرًا فلن يحدث شيء. وإن أكملت الضغط يخفت الشاشة وتغوص الكرة وينفجر نبع من 60 شرارة ويومض «بئر جديدة!» أو «حقل جديد!» قبل أن تعدّ بطاقة المكافأة. تستغرق العملية 3.5 ثانية كحد أقصى، والنقر أو Esc ينتقل مباشرة إلى النتيجة.',
+        'للحقل الجديد شكله وصوته: كنسة بنفسجية عبر الشاشة والجوقة. والبئر الجديدة التي تختار حفرها تحصل دائمًا على احتفالها حتى لو حدثت لحظة كبيرة أخرى في الدقيقة الماضية.',
+        'خيار جديد في الإعدادات «النقر للتأكيد» يستبدل الضغط المطول بنقرة واحدة. مع تفعيل تقليل الحركة يكون الزر نقرة دائمًا، بلا غوص للكرة ولا شرر، وبطاقة المكافأة هي القصيرة. ما تكسبه وما تخسره لم يتغير.'
+      ]
+    }
+  },
+  {
+    version: '5.25.0',
+    date: '2026-10-09',
+    title: 'The Climb to Frenzy',
+    changes: [
+      'Tapping the Refinery now builds toward something. The tap sound rises one note for every 4 combo taps (five notes at most) and steps back down when you pause. At 5, 10, 15 and 20 combo a ring pulses on the combo bar and the orb glows brighter.',
+      'Taps 18 and 19 wind up: the orb flares, then at 20 Frenzy hits with its own sound, a FRENZY! callout, a ring of sparks and a tinted orb for as long as it lasts. The combo bar stays full and glowing for a moment before it shows progress to the next Frenzy, and a Frenzy that gets extended shows a +4 s chip.',
+      'A crit now pops CRIT! at the tap and the number floats up from under it. The Oil numbers from fast tapping are capped at 12 on screen so they stay readable on a phone.',
+      'The Tap to pump Oil! hint goes away after your first tap. With Reduce motion on there is no ring, sparks or scale, but the callout, colours and sounds stay. Frenzy pays the same as before.'
+    ],
+    ar: {
+      title: 'الصعود نحو الهيجان',
+      changes: [
+        'صارت نقرات المصفاة تبني نحو لحظة كبيرة. ترتفع نغمة النقر درجة واحدة كل 4 نقرات متتالية (خمس درجات كحد أقصى) وتنزل مجددا حين تتوقف. عند 5 و10 و15 و20 تنبض حلقة على شريط الكومبو ويزداد توهّج الكرة.',
+        'النقرتان 18 و19 تمهّدان للحظة: تلتهب الكرة، ثم عند 20 يبدأ الهيجان بصوته الخاص ونص «الهيجان!» وحلقة من الشرر وتلوّن الكرة طوال مدته. يبقى شريط الكومبو ممتلئا ومتوهجا لحظة قبل أن يعرض التقدم نحو الهيجان التالي، وعند تمديد الهيجان تظهر شارة +4 ث.',
+        'النقرة الحرجة تُظهر «CRIT!» عند موضع النقر ويطفو الرقم من تحتها. أرقام النفط الناتجة عن النقر السريع لا تزيد عن 12 على الشاشة لتبقى مقروءة على الهاتف.',
+        'يختفي تلميح «انقر لتضخّ النفط!» بعد أول نقرة. عند تفعيل تقليل الحركة لا حلقة ولا شرر ولا تكبير، وتبقى الكلمة والألوان والأصوات. الهيجان يمنح المقدار نفسه كما كان.'
       ]
     }
   },

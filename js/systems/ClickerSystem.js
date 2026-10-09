@@ -1,11 +1,11 @@
 import { BigNum } from '../engine/BigNum.js';
 import { getActiveRules } from './ChronicleSystem.js';
-import { sound } from '../engine/AudioEngine.js';
 import { rewards } from '../ui/rewards.js';
 import { feedback } from '../ui/feedback.js';
 import {
   COMBO_FULL, FRENZY_AUTO_CLICKS, FRENZY_EVERY, FRENZY_DURATION, FRENZY_MAX_TIMER,
-  CLICK_MAX_PER_SEC, AUTO_TAP_PER_SEC, AUTO_TAP_IDLE_AFTER
+  CLICK_MAX_PER_SEC, AUTO_TAP_PER_SEC, AUTO_TAP_IDLE_AFTER,
+  COMBO_STEP_AT, FRENZY_HOLD_SECONDS, comboPitch
 } from './combo.js';
 import { itemName } from '../data/names.js';
 import { t } from '../i18n/index.js';
@@ -71,6 +71,9 @@ export class ClickerSystem {
     this.sinceManualClick = Infinity;
     this.autoTapAcc = 0;
     this.onAutoTap = null;   // UI hook (js/ui/autoTap.js): (amount) => void
+    // R44 UI hook (js/ui/comboFx.js): ({ type: 'step', step } | { type: 'frenzy', extended, seconds })
+    this.onComboFx = null;
+    this.frenzyHold = 0;     // seconds the combo bar still holds full after a Frenzy starts
   }
 
   // True when Auto-tap is owned and the player hasn't tapped for AUTO_TAP_IDLE_AFTER seconds
@@ -96,9 +99,9 @@ export class ClickerSystem {
     return true;
   }
 
-  // Click pitch climbs with the combo (R44 turns this into scale steps)
+  // Click pitch climbs one scale step per 4 combo clicks (cap 5); it falls as the combo drains
   clickPitch() {
-    return 1 + (this.gameState.comboCount % FRENZY_EVERY) * 0.03;
+    return comboPitch(this.gameState.comboCount);
   }
 
   handleClick(clientX, clientY, isAutoClick = false) {
@@ -159,6 +162,8 @@ export class ClickerSystem {
       // Every 20th combo click starts (or extends) Frenzy
       // (a Chronicle challenge may forbid Frenzy, R20)
       const combo = this.gameState.comboCount;
+      const stepIdx = COMBO_STEP_AT.indexOf(combo);
+      if (stepIdx >= 0) this.onComboFx?.({ type: 'step', step: stepIdx + 1 });
       if (combo % FRENZY_EVERY === 0 && combo > this.lastFrenzyAt && !getActiveRules(this.gameState).noFrenzy) {
         this.lastFrenzyAt = combo;
         this.triggerFrenzy(FRENZY_DURATION);
@@ -179,12 +184,15 @@ export class ClickerSystem {
       feedback.fire(1, {
         kind: 'crit', at, sound: 'crit', fallbackSound: 'click', soundPitch: pitch,
         sparks: 20, color: '#f59e0b',
-        text: t('fx.crit') + ' +' + yieldAmount.format('standard', 1), textColor: '#fbbf24', isCrit: true
+        // "CRIT!" pops at the click and the number floats from under it (R44); tiers 2+ already
+        // carry their own label above
+        label: critTier === 1 ? t('fx.crit') : undefined, labelColor: '#fbbf24', labelOffset: -26,
+        text: '+' + yieldAmount.format('standard', 1), textColor: '#fbbf24', isCrit: true, group: 'orb'
       });
     } else {
       feedback.fire(0, {
         kind: 'click', at, sound: 'click', soundPitch: pitch, sparks: 10, color: '#38bdf8',
-        amount: yieldAmount, textColor: '#67e8f9', merge: true
+        amount: yieldAmount, textColor: '#67e8f9', merge: true, group: 'orb'
       });
     }
 
@@ -200,13 +208,15 @@ export class ClickerSystem {
   // current timer if it is already longer, e.g. after a Time Flux)
   triggerFrenzy(duration = FRENZY_DURATION) {
     const gs = this.gameState;
-    if (gs.frenzyActive && gs.frenzyTimer > 0) {
+    const extended = gs.frenzyActive && gs.frenzyTimer > 0;
+    if (extended) {
       gs.frenzyTimer = Math.max(gs.frenzyTimer, Math.min(FRENZY_MAX_TIMER, gs.frenzyTimer + duration));
     } else {
       gs.frenzyActive = true;
       gs.frenzyTimer = duration;
     }
-    sound.playSpell();
+    this.frenzyHold = FRENZY_HOLD_SECONDS;
+    this.onComboFx?.({ type: 'frenzy', extended, seconds: duration });
   }
 
   // dt: game time (Chrono Warp speeds it up); realDt: wall-clock time for the click limit and
@@ -214,6 +224,7 @@ export class ClickerSystem {
   update(dt, realDt = dt) {
     this.clickTokens = Math.min(CLICK_MAX_PER_SEC, this.clickTokens + CLICK_MAX_PER_SEC * realDt);
     this.sinceManualClick += realDt;
+    if (this.frenzyHold > 0) this.frenzyHold = Math.max(0, this.frenzyHold - realDt);
     this.gameState.secondsSinceTap = (this.gameState.secondsSinceTap ?? Infinity) + realDt;
     if (this.isAutoTapping()) {
       this.autoTapAcc += AUTO_TAP_PER_SEC * realDt;

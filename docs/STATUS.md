@@ -10,8 +10,6 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R69 #191: Drill Mastery Reserve shop item gates the R68 drill abilities (owner request).
-
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
@@ -104,6 +102,10 @@ R0–R30, R32–R40 and R41–R43 are done.
 
 ## Done
 
+- R69 #191 (PR #192, v5.27.0): owner request, the R68 drill abilities need the Reserve shop's
+  `drill_mastery` (tier 3, 35, one-time; gate `procs` in `mineBlock`). Core sim skips it (like
+  `al_wakeel`); mining sim owns it from `DRILL_MASTERY_DAY` 1.5. Idle depth day 1/7/60 112/169/240 (R68)
+  -> 95/168/241; band ok, core pacing unchanged.
 - R68 #183 (PR #184, v5.23.0): owner request, drill hits (Auto-Drill, Steam Jackhammer) roll Shatter,
   Cleave, Chain and mining crits / Super-Crit shockwave like a tap (`mineBlock`); Frenzy stays manual
   (streak and x2). Drill procs are silent. Mining sim (skills at Lv 0): idle depth day 1/7/60

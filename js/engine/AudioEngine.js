@@ -339,6 +339,22 @@ export class AudioEngine {
     });
   }
 
+  // Sound: Frenzy (R44): a fast rising scale run up an octave and a held bright fifth, about
+  // 0.6 s. The payoff of the combo climb, richer than any single click or crit.
+  playFrenzy() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const s = this._scale();
+    [s[0], s[1], s[2], s[3], s[4], s[5]].forEach((f, i) => {
+      this._voice('triangle', f * 2, t + i * 0.045, 0.16, 0.22);
+    });
+    const top = t + 6 * 0.045;
+    this._voice('sine', s[0] * 4, top, 0.45, 0.2);
+    this._voice('sine', s[3] * 4, top, 0.45, 0.14);
+  }
+
   // Sound: Find (R46). Rarity sets how rich it is: common 2 notes, rare 3, epic 4 + shimmer,
   // legendary 4 + a bell partial. Unknown rarities sound like common.
   playGem(rarity = 'common') {
@@ -473,10 +489,11 @@ export class AudioEngine {
   }
 
   // Sound: Ascension / Cosmic Shift
+  // Returns a stop() that fades it out (the hold-to-drill build-up is cancelled by letting go)
   playAscension() {
-    if (this.muted || this.quiet) return;
+    if (this.muted || this.quiet) return () => {};
     this.ensureContext();
-    if (!this.ctx) return;
+    if (!this.ctx) return () => {};
 
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -496,6 +513,14 @@ export class AudioEngine {
 
     osc.start(t);
     osc.stop(t + 1.6);
+    return () => {
+      const n = this.ctx.currentTime;
+      try {
+        gain.gain.cancelScheduledValues(n);
+        gain.gain.setValueAtTime(Math.max(0.001, gain.gain.value), n);
+        gain.gain.exponentialRampToValueAtTime(0.001, n + 0.12);
+      } catch { /* already finished */ }
+    };
   }
 
   // ---- Reward tiers (redesign §5.1): small = pluck, medium = bell, big = brass, epic = choir.
@@ -667,7 +692,7 @@ export const SPELL_INTERVAL_BY_ID = {
 
 // Sound ids the feedback helper accepts (R41)
 export const SOUND_IDS = {
-  click: 'playClick', crit: 'playCrit', buy: 'playBuy', coins: 'playCoins', blast: 'playBlast', hit: 'playHit', defeat: 'playDefeat',
+  click: 'playClick', frenzy: 'playFrenzy', crit: 'playCrit', buy: 'playBuy', coins: 'playCoins', blast: 'playBlast', hit: 'playHit', defeat: 'playDefeat',
   dig: 'playDig', gem: 'playGem', 'gem-rare': 'playGemRare', 'gem-epic': 'playGemEpic', 'gem-legendary': 'playGemLegendary', spell: 'playSpell', achievement: 'playAchievement',
   ascension: 'playAscension', pluck: 'playPluck', bell: 'playBell', brass: 'playBrass',
   choir: 'playChoir', 'boss-down': 'playBossDown', tick: 'playTick', warn: 'playWarn', counter: 'playCounter'

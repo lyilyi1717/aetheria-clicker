@@ -1,7 +1,7 @@
 // High-performance Particle and Floating Text Engine
 import { themeColor } from '../ui/theme.js';
 import {
-  MAX_TEXTS, FAST_DECAY, MERGE_SIZE_STEP, MERGE_SIZE_MAX,
+  MAX_TEXTS, MAX_ORB_TEXTS, FAST_DECAY, MERGE_SIZE_STEP, MERGE_SIZE_MAX,
   particleCap, isPhoneWidth, overCap, shouldMerge, addAmounts
 } from '../ui/feedbackBudget.js';
 
@@ -52,6 +52,34 @@ export class ParticleEngine {
     for (let i = 0; i < fade - drop && i < list.length; i++) {
       if (list[i].decay < FAST_DECAY) list[i].decay = FAST_DECAY;
     }
+  }
+
+  // R44: at most `cap` live texts of one group (the orb's "+n" and crit numbers); past it the
+  // oldest fade fast, past twice the cap they go at once
+  enforceGroupCap(group, cap) {
+    const live = this.texts.filter((tx) => tx.group === group);
+    const { fade, drop } = overCap(live.length, cap);
+    for (let i = 0; i < fade && i < live.length; i++) {
+      if (live[i].decay < FAST_DECAY) live[i].decay = FAST_DECAY;
+    }
+    if (drop > 0) {
+      const gone = new Set(live.slice(0, drop));
+      this.texts = this.texts.filter((tx) => !gone.has(tx));
+    }
+  }
+
+  // R44: `count` sparks leaving a point evenly in a ring (the Frenzy burst). Motion on only.
+  spawnRingBurst(x, y, count = 30, color = '#f97316') {
+    if (this.suppressed || motionReduced()) return;
+    const n = this.isPhone() ? Math.round(count * 0.6) : count;
+    for (let i = 0; i < n; i++) {
+      const angle = (i / n) * Math.PI * 2;
+      this.particles.push({
+        x, y, vx: Math.cos(angle) * 6, vy: Math.sin(angle) * 6,
+        size: 3 + Math.random() * 2, color: themeColor(color), alpha: 1, decay: 0.03
+      });
+    }
+    this.enforceCap(this.particles, particleCap(this.isPhone()));
   }
 
   spawnClickSparks(x, y, count = 12, color = '#38bdf8') {
@@ -161,7 +189,7 @@ export class ParticleEngine {
   // `merge` ({ key, amount, prefix, fmt }) makes a "+n" text add into the last one with the same
   // key spawned within 150 ms and 40 px, growing a little (16 -> 22 px) instead of piling up.
   // Crits never merge.
-  spawnFloatingText(x, y, text, color = '#67e8f9', isCrit = false, merge = null) {
+  spawnFloatingText(x, y, text, color = '#67e8f9', isCrit = false, merge = null, group = null) {
     if (this.suppressed) return;
     const now = performance.now();
     if (merge?.key && !isCrit) {
@@ -186,7 +214,8 @@ export class ParticleEngine {
       vy: still ? 0 : (isCrit ? -2.2 : -1.4),
       vx: still ? 0 : (Math.random() - 0.5) * 0.8,
       alpha: 1,
-      decay: isCrit ? 0.012 : 0.018
+      decay: isCrit ? 0.012 : 0.018,
+      group
     };
     if (merge?.key && !isCrit) {
       Object.assign(entry, {
@@ -196,6 +225,7 @@ export class ParticleEngine {
     }
     this.texts.push(entry);
     this.enforceCap(this.texts, MAX_TEXTS);
+    if (group) this.enforceGroupCap(group, MAX_ORB_TEXTS);
     return entry;
   }
 
