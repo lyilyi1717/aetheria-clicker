@@ -1,10 +1,22 @@
 {
  "version": 1,
  "bosses": [
-  { "id": "zone1_boss1", "path": "assets/generated/bosses/boss_rukbah_soda.svg" },
-  { "id": "zone1_boss2", "path": "assets/generated/bosses/boss_mutawa.svg" },
-  { "id": "zone1_boss5", "path": "assets/generated/bosses/boss_abu_sarwal.svg" },
-  { "id": "zone2_boss1", "path": "assets/generated/bosses/boss_karak_addict.svg" }
+  {
+   "id": "zone1_boss1",
+   "path": "assets/generated/bosses/boss_rukbah_soda.svg"
+  },
+  {
+   "id": "zone1_boss2",
+   "path": "assets/generated/bosses/boss_mutawa.svg"
+  },
+  {
+   "id": "zone1_boss5",
+   "path": "assets/generated/bosses/boss_abu_sarwal.svg"
+  },
+  {
+   "id": "zone2_boss1",
+   "path": "assets/generated/bosses/boss_karak_addict.svg"
+  }
  ],
  "assets": [
   {
@@ -446,6 +458,150 @@
     "steps": 22,
     "guidance": 3.5
    }
+  },
+  {
+   "id": "ui/tele_smash",
+   "category": "ui",
+   "prompt": "Tele Smash",
+   "file": "assets/generated/ui/tele_smash.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4216,
+   "generator": "agy-native"
+  },
+  {
+   "id": "ui/tele_feast",
+   "category": "ui",
+   "prompt": "Tele Feast",
+   "file": "assets/generated/ui/tele_feast.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 5584,
+   "generator": "agy-native"
+  },
+  {
+   "id": "ui/tele_ward",
+   "category": "ui",
+   "prompt": "Tele Ward",
+   "file": "assets/generated/ui/tele_ward.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4892,
+   "generator": "agy-native"
+  },
+  {
+   "id": "ui/weak_point",
+   "category": "ui",
+   "prompt": "Weak Point",
+   "file": "assets/generated/ui/weak_point.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 7924,
+   "generator": "agy-native"
+  },
+  {
+   "id": "ui/barakah_meter",
+   "category": "ui",
+   "prompt": "Barakah Meter",
+   "file": "assets/generated/ui/barakah_meter.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4204,
+   "generator": "agy-native"
+  },
+  {
+   "id": "ui/wakeel",
+   "category": "ui",
+   "prompt": "Wakeel",
+   "file": "assets/generated/ui/wakeel.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4580,
+   "generator": "agy-native"
+  },
+  {
+   "id": "gear/mythic_wasta_scepter",
+   "category": "gear",
+   "prompt": "Mythic Wasta Scepter",
+   "file": "assets/generated/gear/mythic_wasta_scepter.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 2904,
+   "generator": "agy-native"
+  },
+  {
+   "id": "gear/mythic_eternal_thobe",
+   "category": "gear",
+   "prompt": "Mythic Eternal Thobe",
+   "file": "assets/generated/gear/mythic_eternal_thobe.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 3820,
+   "generator": "agy-native"
+  },
+  {
+   "id": "gear/mythic_nazar",
+   "category": "gear",
+   "prompt": "Mythic Nazar",
+   "file": "assets/generated/gear/mythic_nazar.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4716,
+   "generator": "agy-native"
+  },
+  {
+   "id": "gear/mythic_decree_seal",
+   "category": "gear",
+   "prompt": "Mythic Decree Seal",
+   "file": "assets/generated/gear/mythic_decree_seal.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4344,
+   "generator": "agy-native"
+  },
+  {
+   "id": "gear/amulet_mythic",
+   "category": "gear",
+   "prompt": "Amulet Mythic",
+   "file": "assets/generated/gear/amulet_mythic.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4152,
+   "generator": "agy-native"
+  },
+  {
+   "id": "gear/armor_mythic",
+   "category": "gear",
+   "prompt": "Armor Mythic",
+   "file": "assets/generated/gear/armor_mythic.webp",
+   "size": [
+    128,
+    128
+   ],
+   "bytes": 4076,
+   "generator": "agy-native"
   }
  ]
 }
