@@ -13,8 +13,9 @@
 //   casual : present 10 min of every hour (2 clicks/s, spells on cooldown, anomalies clicked),
 //            an income multiplier measured on the real spell/anomaly code (R3 block,
 //            sim/active-income.mjs); Auto-tap while away once owned
-//   spam   : R61. Casual attendance, but Ascends the moment the minimum run allows, whatever the
-//            dust (an autoclicker on the Ascend button). Runs 30 days; compared with casual.
+//   spam   : R61. Casual income, but an autoclicker on the Ascend button: Ascends the moment the
+//            minimum run allows, around the clock, whatever the dust. 30 days; compared with casual.
+//            The dust ramp (PrestigeSystem DUST_RAMP_*) reads Date.now, so run() drives it from the sim clock.
 // Ascend policy: when pending dust >= max(5, current dust) and the run is at least
 // MIN_RUN_SECONDS old (R61; the button is locked until then), by hand only while the player is
 // there (casual: the 10 present minutes of each hour, as often as the rule is met; idle: a glance
@@ -33,7 +34,7 @@
 import { BigNum } from '../js/engine/BigNum.js';
 import { GameState } from '../js/systems/GameState.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from '../js/systems/BuildingSystem.js';
-import { PrestigeSystem, MIN_RUN_SECONDS } from '../js/systems/PrestigeSystem.js';
+import { PrestigeSystem, MIN_RUN_SECONDS, DUST_RAMP_SECONDS, DUST_RAMP_POWER } from '../js/systems/PrestigeSystem.js';
 import { DUST_SHOP_ITEMS, buyShopItem } from '../js/systems/DustShopSystem.js';
 import { AchievementSystem } from '../js/systems/AchievementSystem.js';
 import { UpgradeSystem, TIER_UPGRADE_MULT, SYNERGY_PER_UNIT, UPGRADE_DEFINITIONS, getUpgradeDefinition } from '../js/systems/UpgradeSystem.js';
@@ -70,12 +71,11 @@ export const TARGETS = {
   casualTwoMonthAetherMin: 1e11,
   casualUpgradesPerRunMin: 30,
   // R61: the minimum Ascension run (js/systems/PrestigeSystem.js MIN_RUN_SECONDS) stays in this
-  // band, and a spam player (casual attendance, Ascends the moment the button unlocks) earns at
-  // most this many times the dust per hour of normal play over the first 30 days. KNOWN GAP: the
-  // goal is below 1, but with dust a fifth root of run Oil no minimum run in 60-1800 s gets there
-  // (docs/economy-impact-check.md section 6); the ceiling only stops it getting worse.
+  // band, and the spam player (Ascends the moment the button unlocks, around the clock) earns at
+  // most this many times the dust per hour of normal play over the first 30 days (the min run
+  // alone left it at x57; the dust ramp brings it to ~0).
   minRunBand: [60, 120],
-  spamDustRatioMax: 60,
+  spamDustRatioMax: 1,
   // R57: the slow curve holds all year. Over months 6-12 (one sample a day over these days) the
   // median run Aether stays at or below lateMedianAetherMax (the issue's "1-year run Oil <= 1e17")
   // and the highest at or below latePeakAetherMax, for the casual and the idle player, with the
@@ -262,6 +262,7 @@ function makeDustShopModel(gs) {
 const MANUAL_ASCEND_MULT = AUTO_ASCEND_RULES.find(r => r.id === AUTO_ASCEND_DEFAULT_RULE).mult;
 const MANUAL_ASCEND_MIN = 5;   // R52: the first New Well pays 5 (Auto-tap's price)
 const SIM_EPOCH = Date.UTC(2026, 0, 1);
+let simNowMs = SIM_EPOCH;
 const CHRONICLE_AFTER_SLOW_DAYS = 11;
 const PAGE_BUY_ORDER = ['bookmark', 'ink', 'dog_ear', 'gilded_edges', 'margin_notes', 'second_reading'];
 function makeChronicleModel(gs, ps, clock) {
@@ -328,6 +329,9 @@ const medianBig = (xs) => [...xs].sort((a, b) => (a.gt(b) ? 1 : a.lt(b) ? -1 : 0
 const dailyIn = (t, dt, [d0, d1]) => t >= d0 * DAY && t <= d1 * DAY + dt && Math.floor(t / DAY) !== Math.floor((t - dt) / DAY);
 
 function run(profile, cfg = { links: LINKS, attune: ATTUNEMENT }) {
+  // R61: the dust ramp reads the run's age from Date.now, so the sim clock drives it
+  Date.now = () => simNowMs;
+  simNowMs = SIM_EPOCH;
   const gs = new GameState();
   gs.attunement.id = cfg.attune;   // R55 attunement block
   const bs = new BuildingSystem(gs);
@@ -432,16 +436,17 @@ function run(profile, cfg = { links: LINKS, attune: ATTUNEMENT }) {
     const month = Math.floor(t / (30 * DAY));
     if (!monthPeak[month] || gs.totalAetherEarned.gt(monthPeak[month])) monthPeak[month] = gs.totalAetherEarned;
     t += dt;
+    simNowMs = SIM_EPOCH + t * 1000;
     if (dustMark === null && t >= SPAM_DAYS * DAY) dustMark = dustEarned;
     if (Math.floor(t / 5) !== Math.floor((t - dt) / 5) || dt >= 5) greedyBuy();
     ach.checkAchievements();
 
-    const pending = ps.getPendingCosmicDust();
-    if (pending.gt(0)) {
+    const pending = ps.getAscendCosmicDust();   // R61: x the dust ramp
+    if (ps.getPendingCosmicDust().gt(0)) {
       // By hand while present (casual: up to the moment they leave; idle: one glance an hour), or by
       // Auto-Ascend once it is owned
       const currentHour = Math.floor(t / 3600);
-      const here = profile === 'idle' ? t % 3600 < dt : t % 3600 <= presence;
+      const here = profile === 'spam' ? true : profile === 'idle' ? t % 3600 < dt : t % 3600 <= presence;
       // R61: the Ascend button is locked for MIN_RUN_SECONDS of every run (the real
       // getMinRunRemaining), by hand and for Auto-Ascend alike.
       const runOk = t - runStart >= MIN_RUN_SECONDS;
@@ -631,18 +636,17 @@ if (!only || only === 'spam' || only === 'casual') {
   const normal = results.casual || run('casual');
   const spam = run('spam');
   const ratio = spam.dustPerHour / normal.dustPerHour;
-  const ascAt = (r) => r.resetsYear;
   out.push('\n### spam Ascend (R61)\n');
-  out.push(`Minimum run ${MIN_RUN_SECONDS} s. Casual attendance; spam Ascends as soon as the button unlocks. Dust earned by Ascensions over the first ${SPAM_DAYS} days.\n`);
+  out.push(`Minimum run ${MIN_RUN_SECONDS} s, dust ramp full at ${DUST_RAMP_SECONDS / 60} min (power ${DUST_RAMP_POWER}). Casual income; spam Ascends as soon as the button unlocks, around the clock. Dust earned by Ascensions over the first ${SPAM_DAYS} days.\n`);
   out.push('| profile | dust per hour |');
   out.push('|---|---|');
   out.push(`| casual (normal play) | ${normal.dustPerHour.toFixed(1)} |`);
   out.push(`| spam Ascend | ${spam.dustPerHour.toFixed(1)} |`);
-  out.push(`\n- spam earns x${ratio.toFixed(2)} of normal play's dust per hour (goal below 1, ceiling x${TARGETS.spamDustRatioMax}, known gap); resets in ${SPAM_DAYS} days: spam ${ascAt(spam)}`);
+  out.push(`\n- spam earns x${ratio.toFixed(2)} of normal play's dust per hour (must be at most x${TARGETS.spamDustRatioMax}); resets in ${SPAM_DAYS} days: spam ${spam.resetsYear}`);
   const [mn, mx] = TARGETS.minRunBand;
   if (MIN_RUN_SECONDS < mn || MIN_RUN_SECONDS > mx) failures.push(`minimum Ascension run ${MIN_RUN_SECONDS} s outside ${mn}-${mx} s`);
   if (ratio > TARGETS.spamDustRatioMax) {
-    failures.push(`spam Ascend earns x${ratio.toFixed(1)} of normal play's dust/h > x${TARGETS.spamDustRatioMax} (goal: below x1, see TARGETS.spamDustRatioMax)`);
+    failures.push(`spam Ascend earns x${ratio.toFixed(1)} of normal play's dust/h > x${TARGETS.spamDustRatioMax} (must be at most x${TARGETS.spamDustRatioMax})`);
   }
 }
 

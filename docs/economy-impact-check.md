@@ -185,38 +185,45 @@ therefore what moves the idle wall.
    - weight Vigor and HP more, since the AFK wall is survival-limited
 5. **Close the three branches unmerged.**
 
-### R61 result: minimum run and sim cadence
+### R61 result: minimum run, dust ramp and sim cadence
 
 - **Minimum run: 120 s** (`MIN_RUN_SECONDS`), shown on the Ascend button as a countdown and
   disabled state, and on the header goal chip. It applies to hand Ascensions and Auto-Ascend;
-  Transcend and Chronicle are not delayed. The sim's band check is 60-120 s.
+  Transcend and Chronicle are not delayed. The sim checks the band 60-120 s.
+- **Dust ramp** (`DUST_RAMP_SECONDS = 1800`, `DUST_RAMP_POWER = 2`): an Ascension pays its dust
+  x (run seconds / 1800)^2, capped at 1. A 2-minute run pays 0.4%, 10 minutes 11%, 15 minutes 25%,
+  30 minutes or more everything. The first New Well is exempt (`DUST_RAMP_GRACE = 1`) so the
+  new player's first 5 dust is not cut. Auto-Ascend, Transcend and the Ascend sheet all use the
+  ramped dust (`getAscendCosmicDust`); `getPendingCosmicDust` stays the full value for the
+  "gate reached" checks. The pending-dust line shows "+n (64%, full in 15:00)".
+- **Why a ramp:** the minimum run alone cannot work. Dust is a fifth root of run Oil and a
+  restart is cheap (Genesis, Resonant Start, kept upgrades), so dust per hour rises as runs
+  shorten. With only a minimum run, the spam player was x57 normal play (x297 around the clock);
+  even a 30-minute minimum left x17.
+- **Spam Ascend profile** (`sim/core-pacing.mjs`, `--only=spam`): casual income, an autoclicker
+  on the Ascend button that Ascends the moment it unlocks, around the clock, 30 days. Dust per
+  hour, min run 120 s:
+
+  | ramp (full at, power) | casual normal play | spam | spam / normal |
+  |---|---|---|---|
+  | none | 13.0 | 3,858.8 | x297 |
+  | 10 min, 2 | 13.0 | 25.6 | x2.0 |
+  | 15 min, 2 | 13.1 | 0.2 | x0.02 |
+  | **30 min, 2 (chosen)** | 13.4 | 0.0 | x0.00 |
+  | 60 min, 2 | 12.3 | 0.0 | x0.00 |
+
+  Over a full year: normal 214.9 dust/h, spam 0.0. 30 minutes is chosen because it is the
+  mildest ramp with a safe margin (10 minutes sits on a cliff) and the Auto-Ascend minimum run
+  is also 30 minutes, so no normal Auto-Ascend run is cut. Normal profiles barely move: casual
+  day-1 dust 135 (was 135), idle 123 (123), first Ascension 3.8 min casual / 60 min idle
+  (unchanged), upgrades per run median 32 / 30 (32 / 30). `sim:check` asserts spam dust per hour
+  <= x1 normal and the min-run band.
 - **Sim cadence, now honest:** the one-manual-Ascension-per-hour cap is gone. The casual player
   Ascends whenever the default Auto-Ascend rule is met while present and the run is old enough;
-  the idle player still glances once an hour (that is what idle means).
-- **Spam Ascend profile** (`sim/core-pacing.mjs`, `--only=spam`): casual attendance, Ascends
-  the moment the button unlocks, 30 days. Dust per hour against casual normal play (13.0):
-
-  | minimum run | spam dust per hour | x normal |
-  |---|---|---|
-  | 60 s | 832 | 64 |
-  | 120 s | 735 | 57 |
-  | 300 s | 649 | 47 |
-  | 600 s | 435 | 32 |
-  | 1,800 s | 223 | 17 |
-
-  **The "spam earns less than normal play" goal is not met, and no minimum run in the 60-120 s
-  range meets it.** Dust is a fifth root of run Oil, and a restart is cheap (Genesis, Resonant
-  Start, kept upgrades), so dust per hour keeps rising as runs get shorter; even 30 minutes
-  leaves spam at x17. The minimum run only caps the damage (an unbounded loop becomes at most
-  one New Well per 120 s, and only while the player is at the screen). `sim:check` therefore
-  asserts what is true today: the minimum run is 60-120 s and spam stays at or below
-  x60 of normal dust per hour (`TARGETS.spamDustRatioMax`), so it cannot get worse unnoticed.
-  Over a full year spam is x2.7 normal (the layers reset dust, so the month-1 gap closes).
-  Closing the gap needs a second lever (for example a dust gain that ramps with run length) and
-  is an owner decision.
+  the idle player still glances once an hour (that is what idle means). The sim drives
+  `Date.now` from its clock so the ramp sees real run ages.
 - **Chronicle trigger stays at 11 days** (`CHRONICLE_AFTER_SLOW_DAYS`). With the cadence freed
   and 7 days, `sim:check` still fails (casual median run Oil over days 50-70: 1.35e10 against
-  the 1e11 floor): a Chronicle begun that early throws away a layer that was still paying. The
-  rule is the player's choice (Chronicles are optional), so 11 is the modelled player who waits
-  until the Transcend ladder has clearly stalled. It is justified, not hidden: the year-one
-  targets are met either way for 11 and missed for 7.
+  the 1e11 floor): a Chronicle begun that early throws away a layer that was still paying. A
+  Chronicle is optional, so 11 is the modelled player who waits until the Transcend ladder has
+  clearly stalled. The year-one targets are met with 11 and missed with 7.

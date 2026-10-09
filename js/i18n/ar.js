@@ -419,6 +419,7 @@ export default {
   "prestige.nectar_note": "قربان العسل: سيُستهلك كل {item} لديك ({n}) (الاحتياطي {mult}).",
   "prestige.confirm": "{reset1} الآن؟ سيُعاد ضبط النفط والمباني مقابل {reset1Currency} تنفقه في {reset1Shop}!",
   "prestige.pending": "{reset1Currency} المنتظر: +{n}",
+  "prestige.pending_ramp": "{reset1Currency} المنتظر: +{n} ({pct}٪، يكتمل بعد {time})",
   "prestige.btn_challenge": "🛢️ {reset1} بعد انتهاء تحدي الملحمة",
   "prestige.btn_wait": "🛢️ {reset1} بعد {time} (أقل مدة للجولة)",
   "prestige.bd.depth": "{x} من العمق {n}",
