@@ -101,7 +101,7 @@ R0–R30, R32–R40, R41 and R42 are done.
 
 ## Done
 
-- R68 #183 (PR #184, v5.21.0): owner request, drill hits (Auto-Drill, Steam Jackhammer) roll Shatter,
+- R68 #183 (PR #184, v5.22.0): owner request, drill hits (Auto-Drill, Steam Jackhammer) roll Shatter,
   Cleave, Chain and mining crits / Super-Crit shockwave like a tap (`mineBlock`); Frenzy stays manual
   (streak and x2). Drill procs are silent. Mining sim (skills at Lv 0): idle depth day 1/7/60
   95/158/229 -> 112/169/240, active day 7/30/60 116/154/170 -> 118/158/176; band still ok.

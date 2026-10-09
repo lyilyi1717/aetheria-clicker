@@ -856,6 +856,8 @@ button, input, select, textarea {
 }
 @keyframes fxFlash { from { opacity: 0.6; } to { opacity: 0; } }
 :root[data-motion="reduced"] .monster-avatar.fx-flash::after { display: none; }
+/* Reduced motion (R49): feedback.cue shows a red border for the same 150 ms instead */
+.monster-avatar.cue-red-border { outline: 3px solid var(--danger); outline-offset: -3px; }
 
 /* "BOSS DOWN!" callout + gold chip over the portrait for 900 ms */
 .boss-down-callout {
@@ -1090,6 +1092,11 @@ button, input, select, textarea {
 @keyframes blast-flash {
   from { box-shadow: inset 0 0 0 2px var(--rarity-legendary), inset 0 0 18px color-mix(in srgb, var(--rarity-legendary) 55%, transparent); border-color: var(--rarity-legendary); }
   to { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--rarity-legendary) 0%, transparent), inset 0 0 18px color-mix(in srgb, var(--rarity-legendary) 0%, transparent); }
+}
+/* Reduced motion (R49): feedback.cue holds the flash's first frame, a static orange inset, 600 ms */
+.mine-tile.cue-orange-inset {
+  box-shadow: inset 0 0 0 2px var(--rarity-legendary), inset 0 0 18px color-mix(in srgb, var(--rarity-legendary) 55%, transparent);
+  border-color: var(--rarity-legendary);
 }
 
 /* Chain Lightning: the zapped tiles flash electric cyan */

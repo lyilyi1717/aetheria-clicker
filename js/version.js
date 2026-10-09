@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.21.0';
+export const VERSION = '5.22.0';
 
 export const CHANGELOG = [
   {
-    version: '5.21.0',
+    version: '5.22.0',
     date: '2026-10-09',
     title: 'Drills Use Your Techniques',
     changes: [
@@ -19,6 +19,39 @@ export const CHANGELOG = [
       changes: [
         'المثاقب الآلية والمطارق البخارية تضرب الآن مثل معولك: كل ضربة مثقاب قد تُحدث الصدع الزلزالي (ضرر عشرة أضعاف) وشق المحجر وتوصيل القوس والضربة الحرجة (ومعها موجة الضربة الحرجة الفائقة)، بنفس فرص نقرتك. فترقيات ورشة الأحجار تُسرّع الحفر وأنت غائب أيضا.',
         'جنون الحفر ما زال يأتي فقط من 7 نقرات سريعة منك، ومضاعفته تنطبق على نقراتك فقط. ضربات المثاقب الخاصة بلا صوت، فيبقى المنجم المزدحم هادئا.'
+  {
+    version: '5.21.1',
+    date: '2026-10-09',
+    title: 'Colour Cues Without Motion',
+    changes: [
+      'With Reduce motion on, flashes that used to disappear now show as a steady colour instead: a gold outline around the source of a reward (0.9 s), an orange edge on tiles hit by Dynamite or Void Cataclysm (0.6 s), and a red border on the boss portrait when you land the killing blow.'
+    ],
+    ar: {
+      title: 'إشارات لونية بلا حركة',
+      changes: [
+        'مع تفعيل «تقليل الحركة»، صارت الومضات التي كانت تختفي تظهر لوناً ثابتاً: إطار ذهبي حول مصدر المكافأة (0.9 ث)، وحافة برتقالية على المربعات التي يصيبها الديناميت أو إعصار الفراغ (0.6 ث)، وإطار أحمر على صورة الزعيم عند الضربة القاضية.'
+      ]
+    }
+  },
+  {
+    version: '5.21.0',
+    date: '2026-10-09',
+    title: 'Sounds That Mean Something',
+    changes: [
+      'You can now tell by ear what happened. Spending still makes the rising "buy" tone; collecting a reward (contract claim, Daily Dallah, gold caches, returning caravans, Bazaar sales) now makes a bright coin chime instead.',
+      'Finds sound richer the rarer they are: a ruby is two notes, a diamond three, a Void Amethyst four with a shimmer. Aether Ore and Anomalies now have a rare find sound too.',
+      'Each spell is cast at its own pitch, and Dynamite and Void Cataclysm now boom instead of making the combat hit sound.',
+      'Claiming a contract shows a small toast with the gold, Seals and Chrono Sand you received.',
+      'The Daily Dallah now plays one sound, not two.'
+    ],
+    ar: {
+      title: 'أصوات لها معنى',
+      changes: [
+        'صرت تعرف بأذنك ماذا حدث. الصرف ما زال بنغمة الشراء الصاعدة، أما استلام مكافأة (عقد، أو الدلّة اليومية، أو كنوز الذهب، أو عودة القافلة، أو بيع في السوق) فيُصدر الآن رنّة عملات ساطعة.',
+        'كلما ندر الكنز غنى صوته: الياقوت نغمتان، والألماس ثلاث، وجمشت الفراغ أربع مع لمعان. ولخام الأثير والشذوذات الآن صوت اكتشاف نادر.',
+        'لكل تعويذة نغمتها الخاصة، وأصبح للديناميت وإعصار الفراغ دويّ بدل صوت ضربة القتال.',
+        'استلام العقد يعرض إشعارا صغيرا بما نلته من ذهب وأختام ورمل الزمن.',
+        'الدلّة اليومية تُصدر صوتا واحدا لا اثنين.'
       ]
     }
   },

@@ -12,6 +12,7 @@ import { tipHtml, tipAttr, TAP_TIP_SELECTOR } from './js/ui/tooltip.js';
 import { gearCard } from './js/ui/rarity.js';
 import { BONUS_KIND_LABELS } from './js/tabBonuses.js';
 import { ParticleEngine } from './js/engine/ParticleEngine.js';
+import { Feedback, STATIC_CUES } from './js/ui/feedback.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 
@@ -148,6 +149,46 @@ console.log('--- markup: Settings has the Reduce motion group ---');
   const html = read('./index.html');
   assert.match(html, /<div id="settings-motion" class="settings-group"><\/div>/);
   assert.ok(!html.includes('buff-bar-tip'), 'buff bar uses the shared tap sheet');
+}
+
+console.log('--- R49: reduced motion swaps flash animations for static colour cues ---');
+{
+  assert.deepEqual(STATIC_CUES['reward-pulse'], { cls: 'cue-gold-outline', ms: 900 });
+  assert.deepEqual(STATIC_CUES['blast-flash'], { cls: 'cue-orange-inset', ms: 600 });
+  assert.deepEqual(STATIC_CUES['fx-flash'], { cls: 'cue-red-border', ms: 150 });
+  const mkEl = () => {
+    const set = new Set();
+    return { set, offsetWidth: 0, classList: {
+      add: (c) => set.add(c), remove: (c) => set.delete(c), contains: (c) => set.has(c) } };
+  };
+  const make = (reduced) => new Feedback({ dom: () => true, reduced: () => reduced });
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  const full = mkEl();
+  assert.equal(make(false).cue(full, 'fx-flash', 20), 'fx-flash', 'full motion keeps the animation class');
+  assert.ok(full.set.has('fx-flash') && !full.set.has('cue-red-border'));
+  await wait(40);
+  assert.equal(full.set.size, 0, 'animation class removed after its time');
+
+  const red = mkEl();
+  assert.equal(make(true).cue(red, 'fx-flash', 700), 'cue-red-border');
+  assert.ok(red.set.has('cue-red-border') && !red.set.has('fx-flash'));
+  await wait(60);
+  assert.ok(red.set.has('cue-red-border'), 'still on at 60 ms');
+  await wait(250);
+  assert.equal(red.set.size, 0, 'red border gone after 150 ms');
+
+  assert.equal(make(true).cue(mkEl(), 'reward-pulse', 1000), 'cue-gold-outline');
+  assert.equal(make(true).cue(mkEl(), 'blast-flash', 700), 'cue-orange-inset');
+  assert.equal(make(true).cue(mkEl(), 'other-anim', 50), 'other-anim', 'unknown classes pass through');
+  assert.equal(make(true).cue(null, 'fx-flash', 5), null);
+
+  const css = read('./css/rewards.css') + read('./css/style.css');
+  for (const c of ['cue-gold-outline', 'cue-orange-inset', 'cue-red-border']) {
+    assert.ok(css.includes('.' + c), c + ' has CSS');
+  }
+  const src = read('./js/ui/rewards.js') + read('./js/systems/MiningSystem.js') + read('./js/ui/combatFx.js');
+  assert.ok(!/classList\.add\('(reward-pulse|blast-flash|fx-flash)'\)/.test(src), 'callers go through feedback.cue');
 }
 
 console.log('\nAll R24 motion and tooltip tests passed.');

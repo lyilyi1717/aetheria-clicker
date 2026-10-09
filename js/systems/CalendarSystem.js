@@ -280,7 +280,7 @@ export class CalendarSystem {
     }
     this.giveCoffee();
     this.notify({
-      tier: 'medium', kind: 'dallah', icon: '☕', color: '#e7c38a',
+      tier: 'medium', kind: 'dallah', icon: '☕', color: '#e7c38a', sound: false,
       title: days > 1 ? t('dallah.poured_days', { n: days }) : t('dallah.poured'),
       detail: t('dallah.poured_sand', { n: sand }) + (contracts ? ' · ' + t(contracts > 1 ? 'dallah.poured_contracts' : 'dallah.poured_contract', { n: contracts }) : '') + ' · ' + t('dallah.poured_coffee')
     });
