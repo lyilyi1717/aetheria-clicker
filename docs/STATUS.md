@@ -98,9 +98,14 @@ R0–R30, R32–R40 and R41–R43 are done.
 | 10 | R66 Garden tap growth back to 5% (owner decision) | #172 | R59 |
 | 10 | R67 Core sim skips Tower-only Al-Wakeel | #178 | R65 |
 | 10 | R68 Auto-Drills use the manual dig abilities | #183 | – |
+| 10 | R69 Drill Mastery shop item gates drill abilities | #191 | R68 |
 
 ## Done
 
+- R69 #191 (PR #192, v5.28.0): owner request, the R68 drill abilities need the Reserve shop's
+  `drill_mastery` (tier 3, 35, one-time; gate `procs` in `mineBlock`). Core sim skips it (like
+  `al_wakeel`); mining sim owns it from `DRILL_MASTERY_DAY` 1.5. Idle depth day 1/7/60 112/169/240 (R68)
+  -> 95/168/241; band ok, core pacing unchanged.
 - R68 #183 (PR #184, v5.23.0): owner request, drill hits (Auto-Drill, Steam Jackhammer) roll Shatter,
   Cleave, Chain and mining crits / Super-Crit shockwave like a tap (`mineBlock`); Frenzy stays manual
   (streak and x2). Drill procs are silent. Mining sim (skills at Lv 0): idle depth day 1/7/60

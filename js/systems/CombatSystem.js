@@ -477,6 +477,15 @@ export class CombatSystem {
     return typeof window !== 'undefined' && (!window.gameApp || window.gameApp.currentTab === 'combat');
   }
 
+  /** Centre of the monster portrait on screen (skill text lands on the monster, not the screen centre). */
+  monsterSpot() {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return null;
+    const el = document.getElementById('monster-arena-box');
+    const r = el?.getBoundingClientRect?.();
+    if (r && r.width > 0 && r.height > 0) return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+  }
+
   castHeroSkill(skillKey) {
     const h = this.gameState.hero;
     const skill = h.skills[skillKey];
@@ -487,8 +496,9 @@ export class CombatSystem {
     this.counterTelegraph(SKILL_COUNTERS[skillKey]);   // before the hit, so the hit lands Exposed
 
     const isVis = this.isCombatVisible();
-    const spawnX = isVis && typeof window !== 'undefined' ? window.innerWidth / 2 : null;
-    const spawnY = isVis && typeof window !== 'undefined' ? window.innerHeight / 2 : null;
+    const spot = isVis ? this.monsterSpot() : null;
+    const spawnX = spot ? spot.x : null;
+    const spawnY = spot ? spot.y : null;
 
     if (skillKey === 'strike') {
       const dmg = Math.floor(this.getTotalAttack() * skill.dmgMult);

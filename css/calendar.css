@@ -13,7 +13,13 @@
 /* Daily Dallah */
 .cal-dallah { border-color: color-mix(in srgb, var(--sand) 45%, transparent); background: radial-gradient(circle at 85% 20%, var(--sand-dim), transparent 50%), var(--bg-2); }
 .cal-dallah-top { display: grid; grid-template-columns: 64px 1fr; gap: var(--sp-3); align-items: center; }
-.cal-cup { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 2rem; background: var(--sand-dim); border: 2px solid var(--sand); }
+.cal-cup { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 2rem; background: var(--sand-dim); border: 2px solid var(--sand); position: relative; overflow: hidden; }
+.cal-cup-icon { position: relative; z-index: 1; }
+/* The pour (R50): sand rises through the cup for 1 s. Reduced motion: full at once, held 1 s. */
+.cal-cup-fill { position: absolute; inset: auto 0 0 0; height: 0; background: color-mix(in srgb, var(--sand) 55%, transparent); }
+.cal-cup.is-pouring .cal-cup-fill { animation: cal-pour 1s ease-out forwards; }
+.cal-cup.cue-cup-full .cal-cup-fill { height: 100%; animation: none; }
+@keyframes cal-pour { from { height: 0; } to { height: 100%; } }
 .cal-gift { display: flex; gap: 6px; flex-wrap: wrap; margin: var(--sp-3) 0; }
 .cal-dallah-foot { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
 .cal-dallah-foot .btn:disabled { cursor: default; background: var(--bg-2); border-color: var(--line-1); color: var(--text-3); box-shadow: none; }

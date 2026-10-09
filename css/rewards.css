@@ -20,6 +20,13 @@
 @media (min-width: 640px) {
   body.has-buff-bar .reward-toasts { top: calc(var(--header-h) + var(--buff-bar-h) + 8px); }
 }
+
+/* Desktop: the guide banner's Less/More toggle sits at the top right of the tab. Start the
+   stack below the banner's first row so a toast never covers it (R50, guide P9). */
+@media (min-width: 640px) {
+  .reward-toasts { top: calc(var(--header-h) + var(--guide-clear, 96px) + 8px); }
+  body.has-buff-bar .reward-toasts { top: calc(var(--header-h) + var(--buff-bar-h) + var(--guide-clear, 96px) + 8px); }
+}
 @media (max-width: 639px) {
   body.has-buff-bar .reward-toasts {
     max-height: calc(100dvh - var(--header-h) - var(--bottom-nav-h) - var(--buff-bar-h)
@@ -249,3 +256,47 @@
 @media (prefers-reduced-motion: reduce) {
   :root:not([data-motion="full"]) .reward-ceremony.sig-field::before { animation: none; transform: none; opacity: 0.5; }
 }
+
+/* ---- First-time unlocks and rare events (R47; js/ui/unlocks.js, js/ui/rareEvents.js) ---- */
+/* The new tab's nav item: gold pulse, 3 times (style guide §6). Reduced motion: feedback.cue holds
+   a static gold outline for the same time instead. */
+.unlock-pulse { animation: unlock-nav-pulse 0.8s ease-in-out 3; }
+@keyframes unlock-nav-pulse {
+  50% { box-shadow: 0 0 0 4px var(--gold-dim), var(--glow-gold); background: var(--gold-dim); }
+}
+
+/* Golden anomaly appears: a 600 ms brightening shimmer */
+#golden-anomaly.anomaly-shimmer .golden-anomaly-img { animation: anomaly-shimmer 0.6s ease-out 1; }
+@keyframes anomaly-shimmer {
+  0% { filter: brightness(2.2) saturate(0.4); transform: scale(0.7); }
+  60% { filter: brightness(1.5); transform: scale(1.15); }
+  100% { filter: none; transform: none; }
+}
+
+/* Mirage: purple haze at the edges for the buff's 60 s. Not created under reduced motion. */
+.mirage-haze {
+  position: fixed; inset: 0; z-index: 998; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 45%, var(--dust) 100%);
+  transition: opacity 1s ease;
+}
+.mirage-haze.is-on { opacity: 0.12; }
+
+/* Caravan Star: a camel silhouette crosses the header in 1.2 s (start side follows the text direction) */
+.caravan-camel {
+  position: fixed; inset-inline-start: -48px; z-index: 9001; pointer-events: none;
+  font-size: 2rem; line-height: 1;
+  filter: brightness(0) drop-shadow(0 0 3px var(--gold)) drop-shadow(0 0 1px var(--gold));
+  animation: caravan-cross 1.2s linear 1 both;
+}
+@keyframes caravan-cross { from { transform: translateX(0); } to { transform: translateX(calc((100vw + 96px) * var(--dir, 1))); } }
+
+/* Legendary gear toast: a gold sweep across it once */
+.reward-toast.look-legendary { border-color: var(--rarity-legendary, var(--gold)); position: relative; overflow: hidden; }
+.reward-toast.look-legendary::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--rarity-legendary, var(--gold)) 45%, transparent) 50%, transparent 70%);
+  transform: translateX(-100%); animation: legendary-sweep 0.9s ease-out 0.15s 1 both;
+}
+@keyframes legendary-sweep { to { transform: translateX(100%); } }
+[dir="rtl"] .reward-toast.look-legendary::after { transform: translateX(100%); animation-name: legendary-sweep-rtl; }
+@keyframes legendary-sweep-rtl { to { transform: translateX(-100%); } }

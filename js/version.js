@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.27.0';
+export const VERSION = '5.30.0';
 
 export const CHANGELOG = [
   {
-    version: '5.27.0',
+    version: '5.30.0',
     date: '2026-10-09',
     title: 'Chronicle Pages stop at the 9th New Field',
     changes: [
@@ -23,6 +23,66 @@ export const CHANGELOG = [
         'هذا يبطئ النمو في آخر اللعبة عن قصد: كل حقل جديد بعد التاسع يكلّف 3 أضعاف غبار الحقل الذي قبله، والبقاء هناك من أجل الصفحات كان يدفع النفط إلى مئات الكوينتليونات في آخر السنة. بعد حقولك الجديدة التسعة، بدء الملحمة التالية هو الخيار الأفضل.',
         'الصفحات التي كسبتها تبقى لك، وكل واحدة ما زالت تمنح +20% نفط.',
         'دليل تبويب الملحمة يشرح الآن كيف تُحسب الصفحات، وتلميحه يذكر العدد الصحيح من الحقول الجديدة (6، أو 8 لأول ملحمة؛ كان يقول 12).'
+      ]
+    }
+  },
+  {
+    version: '5.29.0',
+    date: '2026-10-09',
+    title: 'Small Moments, Done Right',
+    changes: [
+      'Hero skills now show their numbers on the monster: the Shield, the Leech heal and the Strike and Supernova damage used to appear at the middle of the screen, which missed the monster on desktop.',
+      'Claiming the Daily Dallah pours sand into the cup for one second, with one sound instead of two. With Reduce motion on, the cup fills at once.',
+      'Lighting a Seal of Transcendence is now a full celebration card instead of a small pop-up.',
+      'When a Frenzy ends, a small toast tells you how much Oil your taps earned during it ("Frenzy: +1.2K Oil").',
+      'Pop-ups on desktop no longer cover the Less / More button at the top of each tab.'
+    ],
+    ar: {
+      title: 'لحظات صغيرة بشكلها الصحيح',
+      changes: [
+        'مهارات البطل تعرض أرقامها الآن فوق الوحش: كان الدرع وشفاء الامتصاص وضرر الضربة والمستعر الأعظم يظهر في منتصف الشاشة فيخطئ الوحش على الحاسوب.',
+        'استلام دلّة اليوم يسكب الرمل في الفنجان لمدة ثانية، بصوت واحد بدل صوتين. ومع تقليل الحركة يمتلئ الفنجان دفعة واحدة.',
+        'إضاءة ختم من أختام التسامي صارت بطاقة احتفال كاملة بدل إشعار صغير.',
+        'عند انتهاء الهيجان يخبرك إشعار صغير بكمية النفط التي جنتها نقراتك خلاله («الهيجان: +1.2K نفط»).',
+        'لم تعد الإشعارات على الحاسوب تغطي زر أقل / أكثر في أعلى كل تبويب.'
+      ]
+    }
+  },
+  {
+    version: '5.28.0',
+    date: '2026-10-09',
+    title: 'Drill Mastery',
+    changes: [
+      'New in the Reserve shop: Drill Mastery (35 Reserves, opens after 3 New Wells, one-time buy). With it, your Auto-Drills and Steam Jackhammers use your Stone Workshop techniques and crits, so every drill hit can Shatter, Cleave, Arc and crit like a tap.',
+      'This is a nerf if you have not bought it yet: until you do, drill hits are plain pickaxe hits again, as they were before the last update. Your own taps always use your techniques. Like the rest of the shop, it resets when you open a New Field.'
+    ],
+    ar: {
+      title: 'إتقان المثاقب',
+      changes: [
+        'جديد في متجر الاحتياطي: إتقان المثاقب (35 احتياطيا، يُفتح بعد 3 آبار جديدة، شراء مرة واحدة). معه تستخدم مثاقبك الآلية ومطارقك البخارية تقنيات ورشة الأحجار والضربات الحرجة، فكل ضربة مثقاب قد تُحدث الصدع والشق والقوس والضربة الحرجة مثل نقرتك.',
+        'هذا إضعاف إن لم تشتره بعد: حتى تشتريه تعود ضربات المثاقب ضربات معول عادية كما كانت قبل التحديث السابق. أما نقراتك فتستخدم تقنياتك دائما. ومثل بقية المتجر، يُعاد ضبطه عند فتح حقل نفط جديد.'
+      ]
+    }
+  },
+  {
+    version: '5.27.0',
+    date: '2026-10-09',
+    title: 'Rare Things Look Rare',
+    changes: [
+      'Opening a new tab for the first time is now a short celebration: a choir swell and a card that lasts two seconds (tap or press Esc to skip). Then the button of the new tab pulses gold three times. Several tabs opening at once share one card ("2 new places").',
+      'Big pop-ups now play the brass fanfare instead of the bell.',
+      'Golden Anomalies appear with a soft pluck and a quick shimmer. A Mirage tints the screen edges purple for its 60 seconds and has its own sound. A Caravan Star sends a camel across the top of the screen. A Supernova rolls your Oil counter up instead of jumping it.',
+      'A golden harvest bursts in a gold ring with a short brass note. A mutant seed chimes like a rare find. A Legendary item drop gets a gold sweep on its pop-up and its own sound.',
+      'With Reduce motion on, the haze, camel and count-up are off, and the flashes become still gold outlines. Sounds stay.'
+    ],
+    ar: {
+      title: 'النادر يبدو نادرًا',
+      changes: [
+        'فتح تبويب جديد لأول مرة صار احتفالًا قصيرًا: ترنيمة جوقة وبطاقة تدوم ثانيتين (انقر أو اضغط Esc للتخطي). ثم يومض زر التبويب بالذهبي ثلاث مرات. وإذا فُتحت عدة تبويبات معًا تشاركت بطاقة واحدة («٢ أماكن جديدة»).',
+        'النوافذ الكبيرة تعزف الآن نفير النحاس بدلًا من الجرس.',
+        'تظهر الشذوذات الذهبية بنقرة ناعمة ولمعة سريعة. السراب يصبغ حواف الشاشة بالبنفسجي طوال 60 ثانية وله صوته الخاص. نجمة القافلة ترسل جملًا يعبر أعلى الشاشة. والمستعر الأعظم يرفع عداد النفط تدريجيًا بدل القفز.',
+        'الحصاد الذهبي ينفجر بحلقة ذهبية ونغمة نحاس قصيرة. والبذرة الطافرة تُرنّ كاكتشاف نادر. وغنيمة الأسطورية تحصل على لمعة ذهبية في نافذتها وصوت خاص.',
+        'مع تفعيل تقليل الحركة يختفي الضباب والجمل والعدّ التصاعدي، وتتحول الومضات إلى إطارات ذهبية ثابتة. تبقى الأصوات.'
       ]
     }
   },

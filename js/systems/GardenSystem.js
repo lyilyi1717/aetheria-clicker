@@ -409,7 +409,8 @@ export class GardenSystem {
       const hb = this.gameState.garden.herbarium?.golden;
       if (hb) hb[seedId] = (hb[seedId] || 0) + 1;
       if (clientX && clientY) particles.spawnFloatingText(clientX, clientY - 75, t('garden.fx.golden', { name: SEED_TYPES[seedId].name.toUpperCase(), x: GOLDEN_ESSENCE_MULT }), '#facc15', true);
-      if (!silent) sound.playAchievement();
+      if (!silent) sound.play('brass-short');   // R47: gold ring + short brass
+      if (clientX && clientY) particles.spawnRingBurst(clientX, clientY, 30, '#facc15');
     }
 
     // Yield Essences
@@ -452,6 +453,7 @@ export class GardenSystem {
       if (clientX && clientY) {
         particles.spawnFloatingText(clientX, clientY - 30, t('garden.fx.mutant', { name: SEED_TYPES[mutatedSeed].name }), '#fbbf24', true);
       }
+      if (!silent && !golden) sound.playGem('rare');   // R47: a mutant seed is a rare find
     }
 
     // Botanical Bazaar (Garden -> Economy)

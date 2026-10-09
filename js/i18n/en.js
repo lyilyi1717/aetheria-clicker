@@ -872,6 +872,7 @@ export default {
   "combo.text": "{n}x Combo!",
   "combo.frenzy_callout": "FRENZY!",
   "combo.frenzy_extend": "+{s} s",
+  "combo.frenzy_end": "Frenzy: +{n} Oil",
   "combo.text_boost": "{n}x Combo! ({x}x boost)",
 
   // motion.js
@@ -912,6 +913,7 @@ export default {
   // unlocks.js
   "unlock.soon": "Soon",
   "unlock.new": "NEW: {name}",
+  "unlock.many": "{n} new places",
   "unlock.locked": "Locked: {text}",
   "unlock.locked_soon": "Locked: keep playing to open this",
 
