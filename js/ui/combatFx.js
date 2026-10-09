@@ -3,9 +3,8 @@
 // keeps running, owner decision 3 in #23), a white flash (150 ms), a 3 px shake of the card only
 // (decision 1), the boss-down thud + brass, a "BOSS DOWN!" callout for 900 ms and a gold "+n"
 // chip that counts up. The enrage timer turns red at <= 10 s and ticks once a second, and grows
-// at <= 3 s. Reduced motion keeps the colour, callout and sound only.
+// at <= 3 s. Reduced motion keeps the colour (a red border instead of the flash), callout and sound only.
 import { feedback } from './feedback.js';
-import { isReducedMotion } from './motion.js';
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
@@ -68,16 +67,10 @@ export function initCombatFx(combat, card, portrait, timerEl) {
 export function playBossDown(card, portrait, { isWarden = false, gold } = {}) {
   if (typeof document === 'undefined' || !card?.isConnected || !card.offsetParent) return false;
   if (particles.suppressed) return false;
-  const reduced = isReducedMotion();
   // Back-to-back kills inside the 1 s cooldown still answer with the old defeat blip
   feedback.fire(2, { kind: 'boss-down', sound: 'boss-down', fallbackSound: 'defeat', target: card });
   feedback.hitStop(portrait, HITSTOP_MS);
-  if (!reduced) {
-    portrait.classList.remove('fx-flash');
-    void portrait.offsetWidth;   // restart the flash on back-to-back kills
-    portrait.classList.add('fx-flash');
-    setTimeout(() => portrait.classList.remove('fx-flash'), FLASH_MS);
-  }
+  feedback.cue(portrait, 'fx-flash', FLASH_MS);   // reduced motion: a red border for as long
 
   // Callout + gold chip over the portrait (P7: the moment first, the number under it)
   portrait.querySelector('.boss-down-callout')?.remove();
