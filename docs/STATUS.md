@@ -10,6 +10,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
+
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
@@ -19,7 +20,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40 and R41–R43 are done.
+R0–R30, R32–R40, R41–R51, R68 and R69 are done.
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
   re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
@@ -101,6 +102,53 @@ R0–R30, R32–R40 and R41–R43 are done.
 | 10 | R69 Drill Mastery shop item gates drill abilities | #191 | R68 |
 
 ## Done
+
+- R50 #122 (PR #195, v5.29.0): hero-skill text lands on the monster portrait
+  (`CombatSystem.monsterSpot()`); Dallah cup fills over 1 s (`is-pouring`, static `cue-cup-full`
+  under reduced motion); Seal lit is a forced big ceremony; Frenzy end toast "Frenzy: +n Oil"
+  (`frenzyOil`, taps only, not saved); desktop toast stack starts 96 px lower (`--guide-clear` in
+  `css/rewards.css`, update it if the guide banner height changes). Nothing split out. Not checked:
+  the animated pour, 375 px.
+
+- R47 #119 (PR #194, v5.27.0): tab unlocks are one skippable epic ceremony (all tabs from one check,
+  "{n} new places") + gold nav pulse; big toasts play brass; toasts take `look` (e.g. `legendary`).
+  Rare-event visuals in `js/ui/rareEvents.js` (Mirage haze 12% not the spec's 6%, Caravan Star camel,
+  Supernova count-up, golden harvest burst); new sound ids `mirage`, `caravan`, `brass-short`,
+  `legendary`. Not checked: 375 px, reduced motion, camel/haze/count-up in a foreground tab.
+
+- R45 #117 (PR #193, v5.26.0): `confirm()` gone from New Well / New Field; in-game sheet with an
+  800 ms hold (`playAscension` returns `stop()`), release 3.5 s skippable, New Well amber / New Field
+  purple `signature` on `rewards.ceremony` (also `force`, `durationMs`). `playRelease` / `runPrestige`
+  in `js/ui/prestigeCeremony.js` are reusable for other T3 moments. New setting `tapToConfirm`
+  (default off; reduced motion = tap). Not checked: 375 px, a real end-to-end Ascend/Transcend,
+  the amber/purple card styling.
+
+- R44 #116 (PR #190, v5.25.0): combo pitch climbs a scale step per 4 clicks (cap 5) and follows the
+  drain (derived from `comboCount`); Frenzy moment (wind-up at 18-19, callout, ring burst,
+  `playFrenzy`, 400 ms bar hold `frenzyHold`). Visuals in `js/ui/comboFx.js` via
+  `ClickerSystem.onComboFx`; orb floating texts capped at 12. Time Flux anomaly also gets the moment.
+  Not checked by eye (throttled tab): wind-up flare, orb tint, "+4 s" chip, 375 px, reduced motion.
+- R48 #120 (PR #189, v5.24.0): Bazaar sale is a "gain" (coins + green toast) only at >= +1% over
+  base price after the 0.95 markdown (#23 default, no save field), else click + plain toast; failed
+  breeding answers with a pluck + toast; "+n" buy chip (`js/ui/buyFx.js`); unaffordable taps get a
+  denied click + outline. Not done: buy pitch per size (needs a pitch arg on `playBuy`), chips for
+  Enchanter/Golem buys.
+
+- R49 #121 (PR #188, stub #187, v5.21.1): under reduced motion, one-shot flashes swap to a static
+  colour held for the same time via `feedback.cue(el, cls, ms)` (`STATIC_CUES`: reward-pulse -> gold
+  outline 900 ms, blast-flash -> orange inset 600 ms, boss `fx-flash` -> red border 150 ms). Any new
+  flash class needs a `STATIC_CUES` entry. `Feedback` reads `rewards` lazily (import cycle).
+
+- R46 #118 (PR #182, v5.21.0): sound families. `playCoins` (collect: contract claim, Dallah, gold
+  cache, caravan, Bazaar sell), `playBlast` (Dynamite, Void Cataclysm), `playGem(rarity)` 2/3/4 voices
+  (`GEM_RARITY` in MiningSystem; ids `gem-rare|epic|legendary` since `Feedback.fire` takes no rarity),
+  per-spell pitch (`SPELL_INTERVALS`). Contract claim toast shows amounts; Dallah plays one sound.
+  Not done: Bazaar sell-at-gain (waits on owner reference-price call), mutant seed / gear drop find
+  sounds, per-skill pitch for hero skills, garden harvest + alchemy polish still common gem.
+- R51 #124 (PR #181, v5.20.0): gain line under each generator buy button + Best value chip.
+  `BuildingSystem.getBuyPlan/getBuyGain/getBestValueId`, strings in `js/ui/buyGain.js`. Not checked
+  by eye: Best value chip, 375 px and RTL layout. The milestone case in `test_r51_buy_gain.js` is weak
+  (compares a call with itself).
 
 - R69 #191 (PR #192, v5.28.0): owner request, the R68 drill abilities need the Reserve shop's
   `drill_mastery` (tier 3, 35, one-time; gate `procs` in `mineBlock`). Core sim skips it (like
@@ -433,6 +481,19 @@ R0–R30, R32–R40 and R41–R43 are done.
 
 ## Noticed (not yet an issue)
 
+- Enemy-hit floating text (`CombatSystem`, `window.innerWidth / 2 - 100`) still uses screen centre,
+  same bug class R50 fixed for skills. `castHeroSkill` passes bare `true` as `critTier` for Strike and
+  Supernova. Desktop toast offset applies on tabs with no guide banner too.
+
+- `confirm()` still used in `js/main.js` (save wipe, talent respec) and `js/ui/chronicle.js`
+  (challenge abandon etc.).
+
+- `monolith-orb` `data-combo-step` box-shadow rules override the `:active` / `.pulse` glow (same
+  specificity, later rule wins).
+- Toasts are batched while the tab is hidden: toast checks need a foreground tab.
+
+- Port 8101 may already be held by another worktree's dev server, so `npm start` "works" but serves
+  the wrong checkout. Check which checkout is serving before trusting a UI check.
 - `test_mining.js` "Frenzy should be active after 7 rapid manual hits" is flaky (about 1 run in 8
   locally, also seen in CI on PR #186); the manual Dig Streak loop depends on something random or
   timing-based.
