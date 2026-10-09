@@ -282,7 +282,7 @@ export class ClickerSystem {
     this.anomalyActive = false;
     this.anomalyTimer = 60 + this.rng() * 60;
 
-    feedback.fire(2, { kind: 'anomaly', at: { x, y }, sound: 'gem', sparks: 35, color: '#eab308' });
+    feedback.fire(2, { kind: 'anomaly', at: { x, y }, sound: 'gem-rare', sparks: 35, color: '#eab308' });
 
     const cps = this.gameState.getNetAetherPerSecond();
     const note = { tier: 'medium', icon: '✨', color: '#fde047' };

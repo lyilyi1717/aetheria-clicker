@@ -100,7 +100,7 @@ R0–R30, R32–R40 and R41–R43 are done.
 
 ## Done
 
-- R43 #115 (v5.20.0): Welcome Back modal celebrates (`startCelebration` in `js/ui/offlineModal.js`):
+- R43 #115 (v5.22.0): Welcome Back modal celebrates (`startCelebration` in `js/ui/offlineModal.js`):
   bell, 1.2 s count-up via `feedback.countUp` (tap skips), rows stagger in, 24 gold sparks, Collect
   plucks and pulses `stat-aether`. The particle canvas rises above the modal only while it is open.
   The bell can be muted by the browser on a cold load (no user gesture yet); the Collect pluck always plays.

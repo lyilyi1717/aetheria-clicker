@@ -37,7 +37,11 @@
 .btn[aria-disabled="true"], .btn.is-locked { cursor: not-allowed; background: var(--bg-2); border-color: var(--line-1); color: var(--text-3); box-shadow: none; transform: none; }
 .btn-buy { flex-direction: column; gap: 0; line-height: 1.15; min-width: 104px; padding: var(--sp-2) var(--sp-3); }
 .btn-buy .lbl { font-size: var(--fs-11); font-weight: 600; opacity: 0.85; }
-.btn-buy .cost { font-size: var(--fs-14); font-weight: 700; }
+.btn-buy .cost { font-size: var(--fs-14); font-weight: 700; white-space: nowrap; }
+.btn-buy .gain { font-size: var(--fs-11); font-weight: 600; opacity: 0.85; white-space: nowrap; }
+.building-card .b-header { flex-wrap: wrap; align-items: center; }
+.building-card .b-best { font-size: var(--fs-11); padding-block: 0; min-height: 20px; background: var(--gold-dim); color: var(--gold); border-color: var(--gold); }
+.building-card .b-best[hidden] { display: none; }
 @media (pointer: coarse) { .btn { min-height: var(--tap); } .btn-sm { min-height: 40px; } }
 
 /* Segmented control (buy amount) */

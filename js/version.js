@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.20.0';
+export const VERSION = '5.22.0';
 
 export const CHANGELOG = [
   {
-    version: '5.20.0',
+    version: '5.22.0',
     date: '2026-10-09',
     title: 'A Proper Welcome Back',
     changes: [
@@ -23,6 +23,37 @@ export const CHANGELOG = [
         'عند تفعيل تقليل الحركة يظهر المجموع فورا دون شرر، وتبقى الأصوات.'
       ]
     }
+  },
+  {
+    version: '5.21.0',
+    date: '2026-10-09',
+    title: 'Sounds That Mean Something',
+    changes: [
+      'You can now tell by ear what happened. Spending still makes the rising "buy" tone; collecting a reward (contract claim, Daily Dallah, gold caches, returning caravans, Bazaar sales) now makes a bright coin chime instead.',
+      'Finds sound richer the rarer they are: a ruby is two notes, a diamond three, a Void Amethyst four with a shimmer. Aether Ore and Anomalies now have a rare find sound too.',
+      'Each spell is cast at its own pitch, and Dynamite and Void Cataclysm now boom instead of making the combat hit sound.',
+      'Claiming a contract shows a small toast with the gold, Seals and Chrono Sand you received.',
+      'The Daily Dallah now plays one sound, not two.'
+    ],
+    ar: {
+      title: 'أصوات لها معنى',
+      changes: [
+        'صرت تعرف بأذنك ماذا حدث. الصرف ما زال بنغمة الشراء الصاعدة، أما استلام مكافأة (عقد، أو الدلّة اليومية، أو كنوز الذهب، أو عودة القافلة، أو بيع في السوق) فيُصدر الآن رنّة عملات ساطعة.',
+        'كلما ندر الكنز غنى صوته: الياقوت نغمتان، والألماس ثلاث، وجمشت الفراغ أربع مع لمعان. ولخام الأثير والشذوذات الآن صوت اكتشاف نادر.',
+        'لكل تعويذة نغمتها الخاصة، وأصبح للديناميت وإعصار الفراغ دويّ بدل صوت ضربة القتال.',
+        'استلام العقد يعرض إشعارا صغيرا بما نلته من ذهب وأختام ورمل الزمن.',
+        'الدلّة اليومية تُصدر صوتا واحدا لا اثنين.'
+      ]
+    }
+  },
+  {
+    version: '5.20.0',
+    date: '2026-10-09',
+    title: 'See What Each Generator Adds',
+    changes: [
+      'Every generator buy button now shows how much production the purchase adds (for example +45/s) under its cost, for the amount you have selected (1, 10, 25, 100 or MAX). It counts milestones, upgrades and talents, so a buy that crosses a milestone shows the full jump. It is also shown when you cannot afford it yet, so you can plan.',
+      'A small Best value badge marks the generator you can afford right now that gives the most production for its price. Hover or long-press a button for the exact ratio.'
+    ]
   },
   {
     version: '5.19.0',
