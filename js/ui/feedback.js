@@ -78,7 +78,8 @@ export class Feedback {
    *   label, labelColor, labelOffset   short callout above the point ("CRIT!"), T1+
    *   text        the floating text, or amount + fmt (+ prefix, default '+') to build it
    *   textColor, isCrit   text colour and the bold crit style
-   *   merge       true: this "+n" adds into the last one of the same kind (150 ms / 40 px)
+   *   group       'orb': counts toward the cap of live texts near the orb (MAX_ORB_TEXTS)
+   merge       true: this "+n" adds into the last one of the same kind (150 ms / 40 px)
    *   target      element to shake / hit-stop (T2, motion on)
    *   chain       true: escalate with repeated `kind` (result.chain, 0..cap)
    *   ceremony    T3 only: the rewards.ceremony event
@@ -119,7 +120,7 @@ export class Feedback {
       if (text) {
         const merge = opts.merge && opts.text === undefined
           ? { key: kind, amount: opts.amount, prefix, fmt } : null;
-        this.particles.spawnFloatingText(p.x, p.y, text, opts.textColor || opts.color, !!opts.isCrit, merge);
+        this.particles.spawnFloatingText(p.x, p.y, text, opts.textColor || opts.color, !!opts.isCrit, merge, opts.group || null);
       }
     }
 

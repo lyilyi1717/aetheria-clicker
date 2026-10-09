@@ -1388,6 +1388,8 @@ export default {
   "combo.ready_frenzy": "الكومبو جاهز · هيجان كل {n} نقرة",
   "combo.frenzy_in": "الهيجان بعد {n}",
   "combo.text": "كومبو ×{n}!",
+  "combo.frenzy_callout": "الهيجان!",
+  "combo.frenzy_extend": "+{s} ث",
   "combo.text_boost": "كومبو ×{n}! (تعزيز ×{x})",
 
   // motion.js
