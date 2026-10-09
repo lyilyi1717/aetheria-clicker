@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.23.0';
+export const VERSION = '5.24.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.24.0',
+    date: '2026-10-09',
+    title: 'Honest Feedback',
+    changes: [
+      'The Bazaar only cheers for a real profit. Sell above the usual price and you get the coin chime and a green "+gold (+x%)" note. Sell at the usual price or below it and you get a plain click and "Sold for n gold", with no chime and no green. Prices and payouts are unchanged.',
+      'A cross-breed that gives no hybrid now answers with a soft pluck and a quiet "No hybrid this time" note instead of silence.',
+      'Buying now shows: the count pops and a "+1" (or "+10", "+100") rises from the button. With Reduce motion on, the chip simply shows in place.',
+      'Tapping a buy button you cannot use (not enough resources) now gives a soft low click and a brief outline instead of nothing.'
+    ],
+    ar: {
+      title: 'ردود فعل صادقة',
+      changes: [
+        'السوق لا يحتفل إلا بالربح الحقيقي. إذا بعت بأعلى من السعر المعتاد تسمع رنين العملات وتظهر ملاحظة خضراء «+ذهب (+x٪)». وإذا بعت بالسعر المعتاد أو أقل تسمع نقرة عادية وتظهر «بيع مقابل n ذهب» دون رنين ولا لون أخضر. الأسعار والمبالغ كما هي.',
+        'التهجين الذي لا ينتج هجينا صار يردّ بنغمة خفيفة وملاحظة هادئة «لا هجين هذه المرة» بدل الصمت.',
+        'الشراء صار مرئيا: يقفز العدّاد وترتفع من الزر إشارة «+1» (أو «+10»، «+100»). مع تقليل الحركة تظهر الإشارة في مكانها فقط.',
+        'الضغط على زر شراء لا تستطيع استخدامه (موارد غير كافية) يعطي الآن نقرة منخفضة خفيفة وإطارا قصيرا بدل لا شيء.'
+      ]
+    }
+  },
   {
     version: '5.23.0',
     date: '2026-10-09',
