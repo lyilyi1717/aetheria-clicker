@@ -97,9 +97,14 @@ R0–R30, R32–R40 and R41–R43 are done.
 | 10 | R65 Mythics, Barakah meter, boss telegraphs | #163 | R64 |
 | 10 | R66 Garden tap growth back to 5% (owner decision) | #172 | R59 |
 | 10 | R67 Core sim skips Tower-only Al-Wakeel | #178 | R65 |
+| 10 | R68 Auto-Drills use the manual dig abilities | #183 | – |
 
 ## Done
 
+- R68 #183 (PR #184, v5.23.0): owner request, drill hits (Auto-Drill, Steam Jackhammer) roll Shatter,
+  Cleave, Chain and mining crits / Super-Crit shockwave like a tap (`mineBlock`); Frenzy stays manual
+  (streak and x2). Drill procs are silent. Mining sim (skills at Lv 0): idle depth day 1/7/60
+  95/158/229 -> 112/169/240, active day 7/30/60 116/154/170 -> 118/158/176; band still ok.
 - R43 #115 (v5.22.0): Welcome Back modal celebrates (`startCelebration` in `js/ui/offlineModal.js`):
   bell, 1.2 s count-up via `feedback.countUp` (tap skips), rows stagger in, 24 gold sparks, Collect
   plucks and pulses `stat-aether`. The particle canvas rises above the modal only while it is open.

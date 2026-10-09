@@ -57,6 +57,7 @@ gs.miningGrid.autoDrills = 10; // 5 hits/s
 gs.miningGrid.pickaxeTier = 0;
 ms.generateNewGrid();
 const hpBefore = gs.miningGrid.blocks.reduce((s, b) => s + b.hp, 0);
+ms.random = () => 0.999; // no Shatter, Cleave, Chain or crit on the drill hits (R68)
 ms.autoDrillTimer = 0;
 gs.mana = 0; // keep Leyline Overflow (x1.25 at full mana) out of this check
 ms.update(1.0); // one big tick: 5 hits, not 1

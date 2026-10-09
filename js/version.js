@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.22.0';
+export const VERSION = '5.23.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.23.0',
+    date: '2026-10-09',
+    title: 'Drills Use Your Techniques',
+    changes: [
+      'Auto-Drills and Steam Jackhammers now hit like your own pickaxe: every drill hit can Seismic Fracture (x10 damage), Quarry Cleave, Arc Conduction and crit (including the Super-Crit shockwave), with the same chances as a tap. Your Stone Workshop upgrades now speed up idle digging too.',
+      'Excavation Frenzy still comes only from 7 quick taps of your own, and its x2 still applies only to your taps. Drill procs make no sound, so a busy mine stays quiet.'
+    ],
+    ar: {
+      title: 'المثاقب تستخدم تقنياتك',
+      changes: [
+        'المثاقب الآلية والمطارق البخارية تضرب الآن مثل معولك: كل ضربة مثقاب قد تُحدث الصدع الزلزالي (ضرر عشرة أضعاف) وشق المحجر وتوصيل القوس والضربة الحرجة (ومعها موجة الضربة الحرجة الفائقة)، بنفس فرص نقرتك. فترقيات ورشة الأحجار تُسرّع الحفر وأنت غائب أيضا.',
+        'جنون الحفر ما زال يأتي فقط من 7 نقرات سريعة منك، ومضاعفته تنطبق على نقراتك فقط. ضربات المثاقب الخاصة بلا صوت، فيبقى المنجم المزدحم هادئا.'
+      ]
+    }
+  },
   {
     version: '5.22.0',
     date: '2026-10-09',
