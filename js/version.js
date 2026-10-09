@@ -3,9 +3,23 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.30.0';
+export const VERSION = '5.30.1';
 
 export const CHANGELOG = [
+  {
+    version: '5.30.1',
+    date: '2026-10-09',
+    title: 'Fix Open New Field button on New Well page',
+    changes: [
+      'The "Open a New Oil Field" button on the New Well tab now opens the confirmation sheet and plays the release ceremony reliably (reported by players).'
+    ],
+    ar: {
+      title: 'إصلاح زر فتح حقل نفط جديد في تبويب البئر الجديدة',
+      changes: [
+        'زر "فتح حقل نفط جديد" في تبويب البئر الجديدة يفتح الآن نافذة التأكيد ويعمل بالشكل الصحيح مع إطلاق الاحتفال (أبلغ عنه اللاعبون).'
+      ]
+    }
+  },
   {
     version: '5.30.0',
     date: '2026-10-09',

@@ -5,6 +5,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { MAX_TIER_COUNT } from '../systems/BuildingSystem.js';
 import { TERMS as T } from '../data/strings.js';
 import { t, bidi } from '../i18n/index.js';
+import { runPrestige } from './prestigeCeremony.js';
 
 const setText = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
 
