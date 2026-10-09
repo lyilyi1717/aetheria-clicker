@@ -92,14 +92,15 @@
 .rarity { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: var(--fs-12); }
 .rarity::before { content: attr(data-glyph); font-size: var(--fs-11); letter-spacing: -1px; }
 .rarity.common { color: var(--rarity-common); } .rarity.rare { color: var(--rarity-rare); } .rarity.epic { color: var(--rarity-epic); }
-.rarity.legendary { color: var(--rarity-legendary); } .rarity.cosmic { color: var(--rarity-cosmic); }
+.rarity.legendary { color: var(--rarity-legendary); } .rarity.cosmic { color: var(--rarity-cosmic); } .rarity.mythic { color: var(--rarity-mythic); }
 .gear { display: flex; align-items: center; gap: var(--sp-3); position: relative; min-width: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); background: var(--bg-1); border: 1px solid var(--line-1); border-inline-start-width: 4px; }
 .gear-art { width: 44px; height: 44px; border-radius: var(--r-1); object-fit: contain; flex-shrink: 0; background: color-mix(in srgb, var(--bg-2) 80%, transparent); border: 1px solid var(--line-1); }
 .gear-info { flex: 1; min-width: 0; }
 .gear.common { border-inline-start-color: var(--rarity-common); } .gear.rare { border-inline-start-color: var(--rarity-rare); }
 .gear.epic { border-inline-start-color: var(--rarity-epic); } .gear.legendary { border-inline-start-color: var(--rarity-legendary); }
-/* Only Cosmic may glow */
+/* Only Cosmic and Mythic may glow */
 .gear.cosmic { border-inline-start-color: var(--rarity-cosmic); box-shadow: 0 0 14px color-mix(in srgb, var(--rarity-cosmic) 25%, transparent); }
+.gear.mythic { border-inline-start-color: var(--rarity-mythic); box-shadow: 0 0 16px color-mix(in srgb, var(--rarity-mythic) 40%, transparent); }
 .gear .slot { font-size: var(--fs-11); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
 .gear .name { font-weight: 600; font-size: var(--fs-13); overflow-wrap: anywhere; }
 .gear .stat { font-size: var(--fs-12); color: var(--text-2); }

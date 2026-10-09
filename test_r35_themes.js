@@ -17,7 +17,7 @@ const COLOUR_TOKENS = [
   'bg-0', 'bg-1', 'bg-2', 'bg-3', 'bg-4', 'line-1', 'line-2', 'line-brand',
   'text-1', 'text-2', 'text-3', 'text-on-accent',
   'aether', 'gold', 'dust', 'shard', 'life', 'mana', 'sand', 'danger', 'ok', 'warn', 'bad',
-  'rarity-common', 'rarity-rare', 'rarity-epic', 'rarity-legendary', 'rarity-cosmic', 'tint', 'shade'
+  'rarity-common', 'rarity-rare', 'rarity-epic', 'rarity-legendary', 'rarity-cosmic', 'rarity-mythic', 'tint', 'shade'
 ];
 
 function block(selector) {
@@ -56,7 +56,7 @@ function contrast(a, b) {
 
 console.log('--- contrast: text and accents >= 4.5:1 on cards (bg-2, bg-3) in every theme ---');
 const TEXT_TOKENS = ['text-1', 'text-2', 'text-3', 'aether', 'gold', 'dust', 'shard', 'life', 'mana', 'sand', 'danger',
-  'rarity-common', 'rarity-rare', 'rarity-epic', 'rarity-legendary'];
+  'rarity-common', 'rarity-rare', 'rarity-epic', 'rarity-legendary', 'rarity-mythic'];
 const lowContrast = [];
 for (const id of THEME_IDS) {
   const v = themeVars[id];

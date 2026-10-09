@@ -19,18 +19,36 @@ export const RARITIES = [
   { name: 'Rare', mult: 2, tier: 1, affixes: 1, color: '#56b4e9' },
   { name: 'Epic', mult: 3, tier: 2, affixes: 2, color: '#b388ff' },
   { name: 'Legendary', mult: 4, tier: 3, affixes: 2, color: '#ef8a3c' },
-  { name: 'Cosmic', mult: 5, tier: 4, affixes: 3, color: '#ffd84d' }
+  { name: 'Cosmic', mult: 5, tier: 4, affixes: 3, color: '#ffd84d' },
+  // Mythic (R65): a named mechanic, not a bigger number: the main stat and affixes equal a Cosmic's
+  { name: 'Mythic', mult: 5, tier: 4, affixes: 3, color: '#ff5d8f' }
 ];
 export const RARITY_NAMES = RARITIES.map(r => r.name);
 export const rarityIndex = (name) => RARITY_NAMES.indexOf(name);
 export const rarityDef = (name) => RARITIES[rarityIndex(name)] || RARITIES[0];
 
-// Drop tables (§3.1): chance of an item per kill, and the rarity mix of an item. Mythic waits
-// for wave 2. Weights are percent; the first rarity takes the rest.
+// Drop tables (§3.1): chance of an item per kill, and the rarity mix of an item. Weights are
+// percent; the first rarity takes the rest. Mythic is rolled apart (see MYTHIC_CHANCE).
 export const MOB_DROP_CHANCE = 0.08;
 export const MOB_RARITY_WEIGHTS = { Rare: 24, Epic: 5.7, Legendary: 0.25, Cosmic: 0.05 };
 export const BOSS_RARITY_WEIGHTS = { Rare: 50, Epic: 38, Legendary: 10, Cosmic: 2 };
+export const SHEIKH_RARITY_WEIGHTS = { Epic: 75, Legendary: 20, Cosmic: 5 };       // Epic or better, always
+export const GUARDIAN_RARITY_WEIGHTS = { Legendary: 60, Cosmic: 40 };               // Guardians and Wardens, repeat kills
 export const BOSS_ILVL_BONUS = 5;
+
+// Mythics (R65, §3.1): chance in percent per drop of each source, only from floor 151 (zone 3) on
+export const MYTHIC_MIN_FLOOR = 151;
+export const MYTHIC_CHANCE = { mob: 0.001, boss: 0.01, sheikh: 0.02, guardian: 0.05 };
+// Cosmic pity: this many Legendaries in a row without a Cosmic and the next one is Cosmic
+export const COSMIC_PITY = 10;
+
+// Barakah meter (§3.3): points per find, first-kill points, the full meter, and the daily rest.
+// After DAILY_FULL points in a calendar day, more points count x REST_RATE (nothing is lost).
+export const BARAKAH_MAX = 20000;
+export const BARAKAH_FIND = { Common: 0, Rare: 1, Epic: 5, Legendary: 50, Cosmic: 250, Mythic: 0 };
+export const BARAKAH_FIRST_KILL = { boss: 20, sheikh: 250, guardian: 1000, warden: 1000 };
+export const BARAKAH_DAILY_FULL = 1000;
+export const BARAKAH_REST_RATE = 0.25;
 // Legendary pity (§3.3): this many drops without a Legendary or better and the next one is Legendary
 export const LEGENDARY_PITY = 600;
 // Half of the Legendaries a boss rolls are that boss's signature
@@ -61,7 +79,18 @@ export const UNIQUES = {
   sacred_fanila: { slot: 'armor', boss: 'Abu Sarwal Wa Fanila', ratingMult: 1.02 },
   wasta_stamp: { slot: 'amulet', boss: 'Al-Modir', ratingMult: 1.04 }
 };
-export const UNIQUE_IDS = Object.keys(UNIQUES);
+// Mythics (R65): one named mechanic per slot, each rated about x1.2-1.45 and never more (the
+// economy check rules out a literal x10 multiplier; the Wasta Strike is x10 as a moment).
+export const MYTHICS = {
+  wasta_scepter: { slot: 'weapon', mythic: true, ratingMult: 1.2 },
+  eternal_thobe: { slot: 'armor', mythic: true, ratingMult: 1.3 },
+  nazar_haters: { slot: 'amulet', mythic: true, ratingMult: 1.2 },
+  decree_seal: { slot: 'relic', mythic: true, ratingMult: 1.25 }
+};
+Object.assign(UNIQUES, MYTHICS);
+export const MYTHIC_IDS = Object.keys(MYTHICS);
+export const mythicForSlot = (slot) => MYTHIC_IDS.find(id => MYTHICS[id].slot === slot) || null;
+export const UNIQUE_IDS = Object.keys(UNIQUES).filter(id => !MYTHICS[id]);
 export const signatureForBoss = (bossName) => UNIQUE_IDS.find(id => UNIQUES[id].boss === bossName) || null;
 // Numbers of the effects (tuned small: no unique is worth more than ~x1.25 in its category)
 export const UNIQUE_FX = {
@@ -69,7 +98,12 @@ export const UNIQUE_FX = {
   stickBossDamage: 0.25,      // +damage to bosses (counts with Slayer)
   ladleStep: 0.02, ladleMax: 10, ladleSeconds: 20,
   fanilaHp: 0.20, fanilaBelow: 0.30, fanilaRegenMult: 10, fanilaSeconds: 5, fanilaCooldown: 60,
-  stampSeconds: 5
+  stampSeconds: 5,
+  // Mythics
+  wastaEvery: 30, wastaMult: 10,        // every 30th hit is a Wasta Strike: x10 damage
+  wastaBossCap: 0.04,                    // ... but on a boss it adds at most 4% of the boss's max HP
+  nazarCritBase: 3,                      // crits x3 (was x2); telegraphs always succeed
+  decreeStep: 0.2, decreeMax: 3          // per telegraph answered this fight, up to 3 stacks
 };
 
 // Bag
@@ -77,13 +111,13 @@ export const BAG_CAP = 30;
 export const AUTO_SALVAGE_CHOICES = ['Off', 'Common', 'Rare', 'Epic'];
 
 // Salvage and sell (§2.3), by rarity. Salvage pays Gear Scrap (Monster Bones were retired in R64). Gold sell value is this x the item level's gold per kill.
-export const SALVAGE_SCRAP = { Common: 1, Rare: 2, Epic: 4, Legendary: 8, Cosmic: 16 };
-export const SALVAGE_CORES = { Common: 0, Rare: 0, Epic: 1, Legendary: 3, Cosmic: 8 };
-export const SELL_GOLD = { Common: 2, Rare: 5, Epic: 15, Legendary: 60, Cosmic: 200 };
+export const SALVAGE_SCRAP = { Common: 1, Rare: 2, Epic: 4, Legendary: 8, Cosmic: 16, Mythic: 32 };
+export const SALVAGE_CORES = { Common: 0, Rare: 0, Epic: 1, Legendary: 3, Cosmic: 8, Mythic: 15 };
+export const SELL_GOLD = { Common: 2, Rare: 5, Epic: 15, Legendary: 60, Cosmic: 200, Mythic: 600 };
 // Re-temper (§2.4): Legendary and better only
 export const RETEMPER_MIN_RARITY = 3;
 export const RETEMPER_GOLD_KILLS = 50;
-export const RETEMPER_CORES = { Legendary: 2, Cosmic: 4 };
+export const RETEMPER_CORES = { Legendary: 2, Cosmic: 4, Mythic: 6 };
 
 const pow = (ilvl) => Math.pow(GEAR_FLOOR_BASE, Math.min(6000, Math.max(0, ilvl - 1)));
 
@@ -125,6 +159,11 @@ export function makeItem({ slot, rarity, ilvl, rng = Math.random, uniqueId = nul
   if (uniqueId && UNIQUES[uniqueId]) {
     item.uniqueId = uniqueId;
     item.name = uniqueId;
+  }
+  if (rarity === 'Mythic') {   // a Mythic always carries its slot's mechanic, and starts locked
+    item.uniqueId = mythicForSlot(slot);
+    item.name = item.uniqueId;
+    item.locked = true;
   }
   return item;
 }
@@ -169,6 +208,7 @@ export function sanitizeItem(raw, slot = null, fallbackIlvl = 1) {
     uniqueId: UNIQUES[raw.uniqueId]?.slot === s ? raw.uniqueId : null,
     locked: raw.locked === true
   };
+  if (rarity === 'Mythic') out.uniqueId = mythicForSlot(s);   // a Mythic always carries its mechanic
   delete out.color;
   delete out.level;   // R34 gear levels are gone (baked into `bake` by migration v11)
   const bake = Number(raw.bake);
@@ -204,14 +244,16 @@ export function sanitizeBag(raw) {
   const cap = Math.floor(Number(raw.cap));
   bag.cap = Number.isFinite(cap) ? Math.max(BAG_CAP, Math.min(60, cap)) : BAG_CAP;
   bag.autoSalvage = AUTO_SALVAGE_CHOICES.includes(raw.autoSalvage) ? raw.autoSalvage : 'Common';
-  // Al-Wakeel (auto-equip upgrades): granted to saves that had auto-replace; a dust-shop item later
+  // Al-Wakeel (auto-equip upgrades): granted at migration to saves that had auto-replace (record
+  // floor 301+); everyone else buys it in the Dust shop (R65, `al_wakeel`). `autoEquip` is the
+  // on/off switch; GearSystem.hasWakeel() decides whether it counts.
   bag.wakeel = raw.wakeel === true;
-  bag.autoEquip = bag.wakeel && raw.autoEquip === true;
+  bag.autoEquip = raw.autoEquip === true;
   const uids = new Set();
   let next = Math.max(1, Math.floor(Number(raw.nextUid)) || 1);
   for (const r of Array.isArray(raw.items) ? raw.items : []) {
     const item = sanitizeItem(r);
-    if (!item || bag.items.length >= bag.cap) continue;
+    if (!item || (bag.items.length >= bag.cap && item.rarity !== 'Mythic')) continue;   // a Mythic is never dropped
     if (!item.uid || uids.has(item.uid)) item.uid = next++;
     uids.add(item.uid);
     next = Math.max(next, item.uid + 1);
@@ -221,8 +263,12 @@ export function sanitizeBag(raw) {
   return bag;
 }
 
+export function defaultBarakah() {
+  return { points: 0, day: '', today: 0, full: false, mythics: 0 };
+}
+
 export function defaultLoot() {
-  return { legDry: 0, salvaged: 0, found: 0, notice: null };
+  return { legDry: 0, salvaged: 0, found: 0, notice: null, cosDry: 0, bossHigh: null, barakah: defaultBarakah() };
 }
 
 export function sanitizeLoot(raw) {
@@ -233,9 +279,24 @@ export function sanitizeLoot(raw) {
   if (n && typeof n === 'object') {
     out.notice = { scrap: Math.max(0, Math.floor(Number(n.scrap)) || 0), items: Math.max(0, Math.floor(Number(n.items)) || 0), cores: Math.max(0, Math.floor(Number(n.cores)) || 0) };
   }
-  for (const k of ['legDry', 'salvaged', 'found']) {
+  for (const k of ['legDry', 'salvaged', 'found', 'cosDry']) {
     const n = Math.floor(Number(raw[k]));
     out[k] = Number.isFinite(n) && n > 0 ? n : 0;
+  }
+  // Highest boss floor already first-killed; null = not known yet (GearSystem.ensureState sets it)
+  const bh = Math.floor(Number(raw.bossHigh));
+  out.bossHigh = Number.isFinite(bh) && bh >= 0 && raw.bossHigh !== null ? bh : null;
+  // Barakah meter (R65): visible pity to a guaranteed Mythic. Absence never takes points away.
+  const b = raw.barakah;
+  if (b && typeof b === 'object') {
+    const pts = Number(b.points);
+    out.barakah.points = Number.isFinite(pts) && pts > 0 ? Math.min(BARAKAH_MAX, Math.round(pts * 100) / 100) : 0;
+    out.barakah.day = typeof b.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(b.day) ? b.day : '';
+    const td = Number(b.today);
+    out.barakah.today = Number.isFinite(td) && td > 0 ? Math.min(BARAKAH_DAILY_FULL, td) : 0;
+    out.barakah.full = b.full === true && out.barakah.points >= BARAKAH_MAX;
+    const my = Math.floor(Number(b.mythics));
+    out.barakah.mythics = Number.isFinite(my) && my > 0 ? my : 0;
   }
   return out;
 }

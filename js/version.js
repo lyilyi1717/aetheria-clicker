@@ -3,9 +3,35 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.18.0';
+export const VERSION = '5.19.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.19.0',
+    date: '2026-10-09',
+    title: 'Mythic Finds, Barakah and Boss Telegraphs',
+    changes: [
+      'Bosses now fight back. Every 8 seconds (6 seconds in phase 2) a boss winds up for 1.5 seconds: SMASH (cast Iron Wall), FEAST (cast Heavy Strike or Supernova) or WARD (tap the glowing weak point 5 times). Answer it and the boss is Exposed for 3 seconds, taking 50% more damage. Miss it and SMASH hits you for 25% of your max HP, FEAST heals the boss 8%, WARD cuts your damage to it by 75% for 4 seconds. Up to floor 150 a miss costs nothing, so you can practise. At half HP a boss enters phase 2: it hits 50% harder and winds up sooner.',
+      'Sheikhs: every 50th floor that is not a Guardian or Warden floor is a Sheikh with 1.5x boss HP, 60 seconds and two kinds of telegraph. It always drops an Epic or better item.',
+      'Zone Guardians guard the end of each zone (floors 50, 150, 300, 500, 750 and 1,000): 3x boss HP, 60 seconds and three phases. Your first kill drops a guaranteed Legendary. Where a Guardian floor is also a Warden floor it is one fight, not two.',
+      'Mythic gear, the rarest tier: 0.001% of drops from floor 151 on (more from bosses, Sheikhs and Guardians). Four Mythics, one per slot: the Scepter of the Wasta King (every 30th hit is a WASTA STRIKE for 10x damage; on a boss the bonus is capped at 4% of its HP), the Thobe of Eternal Ironing (once per fight a lethal hit leaves you at full HP), the Nazar of the Haters (telegraphs answer themselves, normal crits hit 3x) and the Royal Decree Seal (+20% damage per telegraph you answered, up to 3). A Mythic is never salvaged by accident and arrives locked.',
+      'The Barakah meter in the bag is a visible pity timer for Mythics. Finds and first boss kills fill it; at 20,000 your next find from floor 151 on is a Mythic. After 1,000 points in a day the meter rests: more points that day count a quarter. It never drains and nothing expires, so time away costs you nothing.',
+      'Every 10th Legendary without a Cosmic is now a Cosmic. Each boss\'s first kill also gives a spare Void Core, double gold and Barakah.',
+      'Al-Wakeel (auto-equip upgrades) is now a Dust shop item (40 dust, after 5 Ascensions). Saves that already had it, from record floor 301, keep it.'
+    ],
+    ar: {
+      title: 'قطع خرافية والبركة وهجمات الزعماء المنذرة',
+      changes: [
+        'الزعماء يردّون الآن. كل 8 ثوان (6 ثوان في المرحلة الثانية) يستعد الزعيم لثانية ونصف: تحطيم (استخدم الجدار الحديدي)، أو وليمة (استخدم الضربة الثقيلة أو المستعر الأعظم)، أو حماية (انقر نقطة الضعف المتوهجة 5 مرات). إن صددتها يصبح الزعيم مكشوفا 3 ثوان ويتلقى ضررا أكثر بنسبة 50%. وإن فاتتك: يضربك التحطيم بـ25% من صحتك القصوى، وتعالج الوليمة الزعيم 8%، وتخفض الحماية ضررك عليه بنسبة 75% لمدة 4 ثوان. حتى الطابق 150 لا عقوبة على الفوات فتتدرّب بحرية. عند نصف الصحة تبدأ المرحلة الثانية: يضرب أقوى بنسبة 50% ويستعد أسرع.',
+        'الشيوخ: كل طابق يقبل القسمة على 50 وليس طابق حارس أكبر أو حارس هو شيخ بصحة تعادل 1.5 ضعف صحة الزعيم ومهلة 60 ثانية ونوعين من الهجمات المنذرة. ويُسقط دائما قطعة ملحمية فما فوق.',
+        'حرّاس المناطق عند نهاية كل منطقة (الطوابق 50 و150 و300 و500 و750 و1,000): ثلاثة أضعاف صحة الزعيم ومهلة 60 ثانية وثلاث مراحل. أول قتل لك يُسقط أسطورية مضمونة. وحيث يلتقي طابق حارس أكبر بطابق حارس يكون القتال واحدا لا اثنين.',
+        'العتاد الخرافي، أندر الفئات: 0.001% من الغنائم من الطابق 151 فما فوق (والنسبة أعلى من الزعماء والشيوخ والحرّاس). أربع قطع خرافية، واحدة لكل خانة: صولجان ملك الواسطة (كل ضربة ثلاثين هي ضربة واسطة بعشرة أضعاف الضرر، وعلى الزعيم لا تزيد المكافأة على 4% من صحته)، وثوب الكي الأبدي (مرة في كل قتال تتركك الضربة القاتلة بصحة كاملة)، ونظرة الحاسدين (تُصَدّ الهجمات المنذرة تلقائيا وتضرب الحرجة العادية ثلاثة أضعاف)، وختم المرسوم الملكي (+20% ضرر عن كل هجوم منذر صددته حتى 3 مرات). لا تُفكَّك القطعة الخرافية بالخطأ وتأتيك مقفلة.',
+        'عدّاد البركة في الحقيبة مؤقّت ضمان ظاهر للقطع الخرافية. تملؤه الغنائم وأول قتل للزعماء، وعند 20,000 تكون غنيمتك التالية من الطابق 151 فما فوق قطعة خرافية. بعد 1,000 نقطة في اليوم تستريح البركة: النقاط الإضافية في ذلك اليوم تُحسب بربعها. لا تنقص أبدا ولا تنتهي صلاحيتها، فغيابك لا يكلّفك شيئا.',
+        'كل أسطورية عاشرة دون قطعة كونية تصبح كونية. وأول قتل لأي زعيم يمنحك أيضا لبّ فراغ إضافيا وضعف الذهب وبركة.',
+        'الوكيل (تجهيز الترقيات تلقائيا) صار الآن عنصرا في متجر الغبار (40 غبارا بعد 5 صعودات). ومن كان يملكه من قبل، من الطابق القياسي 301، يحتفظ به.'
+      ]
+    }
+  },
   {
     version: '5.18.0',
     date: '2026-10-09',

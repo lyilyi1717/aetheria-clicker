@@ -10,6 +10,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { particles } from '../engine/ParticleEngine.js';
 import { t } from '../i18n/index.js';
+import { initBossFx } from './bossFx.js';
 
 export const HITSTOP_MS = 90;
 export const FLASH_MS = 150;
@@ -50,6 +51,7 @@ const fmtGold = (n) => t('combat.fx.gold', {
 // (between bosses it shows the last boss's gold, so the number can be read afterwards, P7).
 export function initCombatFx(combat, card, portrait, timerEl) {
   if (!combat || !card || !portrait) return;
+  initBossFx(combat, card, portrait);   // R65: telegraphs, phases, Wasta Strike
   combat.onBossDefeated = (ev) => {
     if (timerEl && ev?.gold !== undefined) {
       timerEl.dataset.lastReward = t(ev.isWarden ? 'combat.fx.last_warden' : 'combat.fx.last_boss',

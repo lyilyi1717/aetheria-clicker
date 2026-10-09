@@ -6,12 +6,16 @@ import { BigNum } from '../engine/BigNum.js';
 import { rewards } from '../ui/rewards.js';
 import { t } from '../i18n/index.js';
 import { gearStat, getIndexFloor, MONSTER_FLOOR_BASE, MONSTER_NAMES } from './CombatSystem.js';
+import { getShopRank } from './DustShopSystem.js';
 import {
   SLOTS, MAIN_KEYS, RARITIES, RARITY_NAMES, rarityIndex, rarityDef, MOB_DROP_CHANCE, MOB_RARITY_WEIGHTS,
-  BOSS_RARITY_WEIGHTS, BOSS_ILVL_BONUS, LEGENDARY_PITY, SIGNATURE_CHANCE, FORTUNE_CAP, UNIQUES, UNIQUE_FX,
-  signatureForBoss, makeItem, withItemLevel, sanitizeItem, sanitizeBag, sanitizeLoot, affixTotals,
-  SALVAGE_SCRAP, SALVAGE_CORES, SELL_GOLD, RETEMPER_MIN_RARITY, RETEMPER_GOLD_KILLS, RETEMPER_CORES, mainStat
+  BOSS_RARITY_WEIGHTS, SHEIKH_RARITY_WEIGHTS, GUARDIAN_RARITY_WEIGHTS, BOSS_ILVL_BONUS, LEGENDARY_PITY, SIGNATURE_CHANCE,
+  FORTUNE_CAP, UNIQUES, UNIQUE_FX, signatureForBoss, makeItem, withItemLevel, sanitizeItem, sanitizeBag, sanitizeLoot,
+  affixTotals, SALVAGE_SCRAP, SALVAGE_CORES, SELL_GOLD, RETEMPER_MIN_RARITY, RETEMPER_GOLD_KILLS, RETEMPER_CORES, mainStat,
+  MYTHIC_MIN_FLOOR, MYTHIC_CHANCE, COSMIC_PITY, BARAKAH_MAX, BARAKAH_FIND, BARAKAH_FIRST_KILL, BARAKAH_DAILY_FULL,
+  BARAKAH_REST_RATE, defaultBarakah
 } from './gearItems.js';
+import { isBigTier } from './bossFights.js';
 
 // A rating change smaller than this is not an upgrade (no ▲ for rounding noise)
 const UPGRADE_EPS = 0.0005;
@@ -23,7 +27,9 @@ export class GearSystem {
   constructor(combat) {
     this.combat = combat;
     // Runtime effects of boss signatures (not saved)
-    this.fx = { ladleStacks: 0, ladleT: 0, fanilaT: 0, fanilaCd: 0 };
+    this.fx = { ladleStacks: 0, ladleT: 0, fanilaT: 0, fanilaCd: 0, wastaHits: 0 };
+    // The calendar for the Barakah daily rest; the sim swaps it for simulated time
+    this.clock = () => Date.now();
   }
 
   get gs() { return this.combat.gameState; }
@@ -37,8 +43,11 @@ export class GearSystem {
     const gs = this.gs;
     if (!gs.bag || !Array.isArray(gs.bag.items)) gs.bag = sanitizeBag(gs.bag);
     if (!gs.loot) gs.loot = sanitizeLoot(gs.loot);
+    if (!gs.loot.barakah) gs.loot.barakah = defaultBarakah();
     const h = this.hero;
     if (!h) return;
+    // Saves from before first-kill rewards count every boss they have already passed as claimed
+    if (gs.loot.bossHigh == null) gs.loot.bossHigh = Math.max(0, Math.floor((Math.max(1, Number(h.maxFloor) || 1) - 1) / 10) * 10);
     if (!h.gear || typeof h.gear !== 'object') h.gear = {};
     const floor = Math.max(1, getIndexFloor(h));
     const used = new Set(gs.bag.items.map(i => i.uid));
@@ -72,10 +81,14 @@ export class GearSystem {
   }
 
   // One kill's drop (called from CombatSystem.onMonsterDefeated). Returns what happened or null.
-  rollDrop(floor, isBoss, rng = Math.random) {
+  // opts: { tier: 'boss' | 'sheikh' | 'guardian' | 'warden' (boss by default), first: first kill }
+  // The rng draws are: drop chance, rarity, slot, [signature], [natural Mythic], then the affixes.
+  rollDrop(floor, isBoss, rng = Math.random, opts = {}) {
     const inv = this.gs.inventory;
+    const tier = isBoss ? (opts.tier || 'boss') : 'mob';
+    const big = isBigTier(tier);
     if (isBoss) {
-      inv.voidCores = (inv.voidCores || 0) + 1;
+      inv.voidCores = (inv.voidCores || 0) + 1 + (opts.first ? 1 : 0);
       inv.bossTokens = (inv.bossTokens || 0) + 1;
     }
     const chance = isBoss ? 1 : Math.min(1, MOB_DROP_CHANCE * (1 + this.getFortune()));
@@ -83,19 +96,103 @@ export class GearSystem {
 
     const loot = this.loot;
     loot.found++;
-    let rarity = this.rollRarity(isBoss ? BOSS_RARITY_WEIGHTS : MOB_RARITY_WEIGHTS, rng);
+    // A Guardian or Warden's first kill is a guaranteed Legendary; Sheikhs always drop Epic or better
+    const weights = big ? GUARDIAN_RARITY_WEIGHTS : tier === 'sheikh' ? SHEIKH_RARITY_WEIGHTS : isBoss ? BOSS_RARITY_WEIGHTS : MOB_RARITY_WEIGHTS;
+    let rarity = big && opts.first ? 'Legendary' : this.rollRarity(weights, rng);
     if (loot.legDry >= LEGENDARY_PITY && rarityIndex(rarity) < 3) rarity = 'Legendary';
-    if (rarityIndex(rarity) >= 3) loot.legDry = 0; else loot.legDry++;
+    if (rarity === 'Legendary') {
+      // Cosmic pity: every 10th Legendary without a Cosmic is a Cosmic
+      loot.cosDry = (loot.cosDry || 0) + 1;
+      if (loot.cosDry >= COSMIC_PITY) rarity = 'Cosmic';
+    }
 
     let slot = SLOTS[Math.floor(rng() * SLOTS.length)];
     let uniqueId = null;
-    if (isBoss && rarity === 'Legendary' && rng() < SIGNATURE_CHANCE) {
+    if (isBoss && rarity === 'Legendary' && ((opts.first && big) || rng() < SIGNATURE_CHANCE)) {
       uniqueId = signatureForBoss(MONSTER_NAMES[(floor - 1) % MONSTER_NAMES.length]);
       if (uniqueId) slot = UNIQUES[uniqueId].slot;
     }
+
+    // Mythic: the full Barakah meter, else a natural 0.001% (more from tougher sources), from floor 151
+    const b = loot.barakah;
+    let mythic = false;
+    if (floor >= MYTHIC_MIN_FLOOR) {
+      if (b.points >= BARAKAH_MAX) mythic = true;
+      else if (rng() * 100 < (MYTHIC_CHANCE[big ? 'guardian' : tier] ?? MYTHIC_CHANCE.mob)) mythic = true;
+    }
+    if (mythic) { rarity = 'Mythic'; uniqueId = null; }
+
+    if (rarityIndex(rarity) >= 3) loot.legDry = 0; else loot.legDry++;
+    if (rarityIndex(rarity) >= 4) loot.cosDry = 0;
+    if (mythic) this.resetBarakah(); else this.addBarakah(BARAKAH_FIND[rarity] || 0);
+
     const ilvl = isBoss ? floor + BOSS_ILVL_BONUS : floor;
     const item = makeItem({ slot, rarity, ilvl, rng, uniqueId });
     return this.receive(item);
+  }
+
+  // --- Barakah (R65): a visible pity meter for the Mythic -----------------------------------
+  // Points come from finds and first kills. After BARAKAH_DAILY_FULL points in a calendar day the
+  // rest of that day counts a quarter (shown as "resting"); nothing decays, nothing expires.
+
+  dayKey() {
+    const d = new Date(this.clock());
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  }
+
+  // Points still earned at the full rate today
+  barakahFullLeft() {
+    const b = this.loot.barakah;
+    return b.day === this.dayKey() ? Math.max(0, BARAKAH_DAILY_FULL - b.today) : BARAKAH_DAILY_FULL;
+  }
+
+  barakahResting() { return this.barakahFullLeft() <= 0; }
+
+  addBarakah(n) {
+    const b = this.loot.barakah;
+    if (!(n > 0) || b.points >= BARAKAH_MAX) return 0;
+    const key = this.dayKey();
+    if (b.day !== key) { b.day = key; b.today = 0; }
+    const full = Math.min(n, Math.max(0, BARAKAH_DAILY_FULL - b.today));
+    const gain = full + (n - full) * BARAKAH_REST_RATE;
+    b.today = Math.min(BARAKAH_DAILY_FULL, b.today + full);
+    const before = b.points;
+    b.points = Math.min(BARAKAH_MAX, Math.round((b.points + gain) * 100) / 100);
+    if (before < BARAKAH_MAX && b.points >= BARAKAH_MAX && !b.full) {
+      b.full = true;
+      rewards.notify({
+        tier: 'medium', kind: 'barakah-full', icon: '🏺', color: '#fbbf24',
+        title: t('barakah.full'), detail: t('barakah.full_detail')
+      });
+    }
+    return gain;
+  }
+
+  resetBarakah() {
+    const b = this.loot.barakah;
+    b.points = 0; b.full = false; b.mythics = (b.mythics || 0) + 1;
+  }
+
+  // First kill of a boss floor (any tier): Barakah points. True when it was the first.
+  claimFirstKill(floor, tier) {
+    const loot = this.loot;
+    if (tier === 'mob' || floor <= (loot.bossHigh || 0)) return false;
+    loot.bossHigh = floor;
+    const pts = BARAKAH_FIRST_KILL[tier] || 0;
+    const gain = pts > 0 ? this.addBarakah(pts) : 0;
+    rewards.notify({
+      tier: tier === 'boss' ? 'small' : tier === 'sheikh' ? 'medium' : 'big', kind: 'first-kill', icon: '🏅', color: '#fbbf24',
+      title: t('combat.first_kill', { floor }), batchTitle: t('combat.first_kill_batch'),
+      detail: t('combat.first_kill_detail', { n: Math.round(gain) })
+    });
+    return true;
+  }
+
+  // Al-Wakeel (auto-equip): free at migration for saves with a record floor of 301+ (they had
+  // auto-replace before); everyone else buys it in the Dust shop (`al_wakeel`).
+  hasWakeel() {
+    return this.bag.wakeel === true || getShopRank(this.gs, 'al_wakeel') > 0;
   }
 
   // --- the bag -----------------------------------------------------------------------------
@@ -156,6 +253,11 @@ export class GearSystem {
     const upgrade = delta > UPGRADE_EPS;
     const ri = rarityIndex(item.rarity);
     const filter = rarityIndex(bag.autoSalvage);   // 'Off' -> -1
+    if (item.rarity === 'Mythic') {   // never lost: it takes a seat even in a full bag
+      bag.items.push(item);
+      if (!quiet) this.toastFind(item, delta, false);
+      return { item, kept: true, salvaged: null, upgrade };
+    }
     if (!upgrade && ri < 3 && filter >= 0 && ri <= filter) {
       const gain = this.salvageValue(item);
       this.grant(gain);
@@ -168,7 +270,7 @@ export class GearSystem {
       return { item, kept: false, salvaged: gain, upgrade };
     }
     bag.items.push(item);
-    if (upgrade && bag.autoEquip && bag.wakeel) {
+    if (upgrade && bag.autoEquip && this.hasWakeel()) {
       this.equip(item.uid);
       if (!quiet) this.toastFind(item, delta, true);
       return { item, kept: true, salvaged: null, upgrade, equipped: true };
@@ -355,7 +457,28 @@ export class GearSystem {
   // Damage multiplier of a crit tier (0 = no crit). Precision adds to the base x2.
   critMult(tier) {
     if (tier <= 0) return 1;
-    return (tier >= 2 ? 4 : 2) + this.totals().precision;
+    // Nazar of the Haters: a normal crit is x3
+    const base = tier >= 2 ? 4 : (this.hasUnique('nazar_haters') ? UNIQUE_FX.nazarCritBase : 2);
+    return base + this.totals().precision;
+  }
+
+  // --- Mythic powers (R65) ---------------------------------------------------------------
+
+  // Every hit the hero lands (auto, click or skill) passes here: the 20th is a WASTA STRIKE, x10.
+  // Returns the damage multiplier (1 or 10). Counts only while the Scepter is worn.
+  onHeroHit() {
+    if (!this.hasUnique('wasta_scepter')) { this.fx.wastaHits = 0; return 1; }
+    if (++this.fx.wastaHits < UNIQUE_FX.wastaEvery) return 1;
+    this.fx.wastaHits = 0;
+    return UNIQUE_FX.wastaMult;
+  }
+
+  // Nazar of the Haters: telegraphs answer themselves
+  telegraphsAutoSucceed() { return this.hasUnique('nazar_haters'); }
+
+  // Royal Decree Seal: +20% damage per telegraph answered this fight, up to 3 stacks
+  decreeMult(stacks) {
+    return this.hasUnique('decree_seal') ? 1 + UNIQUE_FX.decreeStep * Math.min(UNIQUE_FX.decreeMax, stacks || 0) : 1;
   }
 
   bossTimerBonus() {
@@ -413,7 +536,12 @@ export class GearSystem {
     const ri = rarityIndex(item.rarity);
     const def = rarityDef(item.rarity);
     const name = this.displayName(item);
-    if (item.uniqueId) {
+    if (item.rarity === 'Mythic') {
+      rewards.notify({
+        tier: 'epic', kind: 'bag-mythic', icon: '👑', color: def.color,
+        title: t('bag.toast.mythic', { name }), detail: t(`gear.unique.${item.uniqueId}.fx`)
+      });
+    } else if (item.uniqueId) {
       rewards.notify({
         tier: 'big', kind: 'bag-signature', icon: '⭐', color: def.color,
         title: t('bag.toast.signature', { name }), detail: t('bag.toast.signature_detail')

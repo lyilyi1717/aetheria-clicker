@@ -25,13 +25,19 @@
 // Hero level, gear and floor come from the real CombatSystem (loot RNG is seeded).
 import { GameState } from '../js/systems/GameState.js';
 import { CombatSystem, GEAR_SLOTS, FORGE_BASE_COST, FORGE_COST_GROWTH } from '../js/systems/CombatSystem.js';
-import { withItemLevel, rarityIndex } from '../js/systems/gearItems.js';
+import { withItemLevel, rarityIndex, MYTHIC_CHANCE, UNIQUE_FX } from '../js/systems/gearItems.js';
 import { particles } from '../js/engine/ParticleEngine.js';
 
 globalThis.window = globalThis.window || { innerWidth: 1000, innerHeight: 800 };
 particles.suppressed = true;
 
+const SEED = Number((process.argv.find(a => a.startsWith('--seed=')) || '--seed=12345').slice(7)) || 12345;
 const BAG_BOT = !process.argv.includes('--no-bag');
+// `--no-telegraphs`: bosses never wind up (shows what the telegraphs cost); `--no-mythic`: no Mythic can drop
+const WASTA = (process.argv.find(a => a.startsWith('--wasta=')) || '').slice(8);   // `--wasta=N`: every Nth hit (test knob)
+if (WASTA) UNIQUE_FX.wastaEvery = Number(WASTA);
+const NO_MYTHIC = process.argv.includes('--no-mythic');
+const TELEGRAPHS = !process.argv.includes('--no-telegraphs');
 const H = 3600;
 const DAY = 24 * H;
 
@@ -69,16 +75,22 @@ const CHECKPOINTS = [
 ];
 
 function run(profile, endT) {
-  seedRandom(12345);
+  seedRandom(SEED);
   const gs = new GameState();
   const cs = new CombatSystem(gs);
   gs.combatSystem = cs;
   if (process.argv.includes('--no-kashta')) gs.settings.kashtaAuto = false;
   const h = gs.hero;
+  // The Barakah daily rest reads the calendar: run it on simulated time
+  const CLOCK0 = Date.UTC(2026, 0, 1, 9);
+  let t = 0;
+  cs.gear.clock = () => CLOCK0 + t * 1000;
+  if (!TELEGRAPHS) cs.tickBoss = () => {};
+  if (NO_MYTHIC) { for (const k of Object.keys(MYTHIC_CHANCE)) MYTHIC_CHANCE[k] = 0; cs.gear.addBarakah = () => 0; }
   const isOpen = t => profile === 'open' || (t % DAY) < 45 * 60 || ((t % DAY) >= 12 * H && (t % DAY) < 12 * H + 45 * 60);
   const dt = 0.25;
   const rows = [];
-  let ci = 0, t = 0, towerSecs = 0, lastFloor = 1, lastTowerSecs = 0;
+  let ci = 0, towerSecs = 0, lastFloor = 1, lastTowerSecs = 0;
   let bosses = 0, timeouts = 0, deaths = 0, clickAcc = 0;
 
   const gearBot = () => {
@@ -121,7 +133,20 @@ function run(profile, endT) {
       const wasBoss = cs.monster.isBoss;
       const timerBefore = cs.monster.timer;
       if (profile === 'casual') {
-        for (const k of Object.keys(h.skills)) if (h.skills[k].cd <= 0) cs.castHeroSkill(k);
+        // An attentive player answers telegraphs (0.5 s after the wind-up starts) and keeps the
+        // counter skills for them; everything else is cast on cooldown
+        const boss = cs.monster.boss;
+        const tele = boss?.tele;
+        const held = new Set();
+        if (boss && TELEGRAPHS) {
+          for (const ty of boss.mech) for (const sk of (ty === 'smash' ? ['shield'] : ty === 'feast' ? ['strike', 'supernova'] : [])) held.add(sk);
+          if (tele && tele.t >= 0.5) {
+            if (tele.type === 'smash') cs.castHeroSkill('shield');
+            else if (tele.type === 'feast') cs.castHeroSkill(h.skills.strike.cd <= 0 ? 'strike' : 'supernova');
+            else for (let i = 0; i < 5; i++) cs.tapWeakPoint();
+          }
+        }
+        for (const k of Object.keys(h.skills)) if (h.skills[k].cd <= 0 && !held.has(k)) cs.castHeroSkill(k);
         clickAcc += 2 * dt;
         while (clickAcc >= 1) { clickAcc--; cs.activeClickAttack(1, 1); }
       }
@@ -150,7 +175,8 @@ function run(profile, endT) {
         level: h.level,
         gear: GEAR_SLOTS.map(s => (h.gear[s]?.rarity || '?')[0]).join('') + ' ' + cs.gear.bag.items.length,
         gold: gs.gold.format('scientific', 2),
-        bosses, timeouts, deaths
+        bosses, timeouts, deaths,
+        mythics: gs.loot.barakah.mythics, barakah: Math.floor(gs.loot.barakah.points)
       });
       lastFloor = h.maxFloor; lastTowerSecs = towerSecs;
       ci++;
@@ -169,10 +195,10 @@ const out = [`## Void Tower pacing report (sim/tower-pacing.mjs)`];
 for (const [profile, endT] of [['open', 30 * DAY], ['casual', 30 * DAY]]) {
   const rows = run(profile, endT);
   out.push(`\n### profile: ${profile}\n`);
-  out.push('| time | Tower hours | best floor | floors/hour (since last row) | Forge | hero lvl | gear (rarities W/A/Am/R, bag) | gold | bosses beaten | boss timeouts | deaths |');
-  out.push('|---|---|---|---|---|---|---|---|---|---|---|');
+  out.push('| time | Tower hours | best floor | floors/hour (since last row) | Forge | hero lvl | gear (rarities W/A/Am/R, bag) | gold | bosses beaten | boss timeouts | deaths | Barakah | Mythics |');
+  out.push('|---|---|---|---|---|---|---|---|---|---|---|---|---|');
   for (const r of rows) {
-    out.push(`| ${r.label} | ${r.towerH.toFixed(1)} | ${fmt(r.floor)} | ${fmt(r.perHour)} | ${r.forge} | ${r.level} | ${r.gear} | ${r.gold} | ${fmt(r.bosses)} | ${fmt(r.timeouts)} | ${fmt(r.deaths)} |`);
+    out.push(`| ${r.label} | ${r.towerH.toFixed(1)} | ${fmt(r.floor)} | ${fmt(r.perHour)} | ${r.forge} | ${r.level} | ${r.gear} | ${r.gold} | ${fmt(r.bosses)} | ${fmt(r.timeouts)} | ${fmt(r.deaths)} | ${fmt(r.barakah)} | ${r.mythics} |`);
   }
   if (profile === 'open') {
     out.push('');

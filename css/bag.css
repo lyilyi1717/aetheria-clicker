@@ -33,7 +33,8 @@
 .bag-tile.rare { border-inline-start-color: var(--rarity-rare); }
 .bag-tile.epic { border-inline-start-color: var(--rarity-epic); }
 .bag-tile.legendary { border-inline-start-color: var(--rarity-legendary); }
-/* Only Cosmic may glow */
+/* Only Cosmic and Mythic may glow */
+.bag-tile.mythic { border-inline-start-color: var(--rarity-mythic); box-shadow: 0 0 14px color-mix(in srgb, var(--rarity-mythic) 40%, transparent); }
 .bag-tile.cosmic { border-inline-start-color: var(--rarity-cosmic); box-shadow: 0 0 12px color-mix(in srgb, var(--rarity-cosmic) 25%, transparent); }
 .bag-tile.is-upgrade { border-top-color: var(--life); border-bottom-color: var(--life); border-inline-end-color: var(--life); }
 .bag-tile.is-unique::after { content: '⭐'; font-size: var(--fs-11); position: absolute; inset-block-end: 2px; inset-inline-start: 4px; }
@@ -61,7 +62,7 @@
   border-inline-start-width: 4px; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
 .bag-col.common { border-inline-start-color: var(--rarity-common); } .bag-col.rare { border-inline-start-color: var(--rarity-rare); }
 .bag-col.epic { border-inline-start-color: var(--rarity-epic); } .bag-col.legendary { border-inline-start-color: var(--rarity-legendary); }
-.bag-col.cosmic { border-inline-start-color: var(--rarity-cosmic); }
+.bag-col.cosmic { border-inline-start-color: var(--rarity-cosmic); } .bag-col.mythic { border-inline-start-color: var(--rarity-mythic); }
 .bag-col-title { font-size: var(--fs-11); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
 .bag-col-name { font-weight: 600; font-size: var(--fs-14); overflow-wrap: anywhere; }
 .bag-ilvl { font-size: var(--fs-12); color: var(--text-3); }
@@ -82,3 +83,14 @@
   .bag-ctl-label { min-width: 0; flex-basis: 100%; }
 }
 @media (pointer: coarse) { .bag-panel .btn, .bag-modal .btn, .bag-panel .seg button { min-height: var(--tap); } }
+
+/* Barakah meter (R65): visible pity for the Mythic. Never drains; "resting" is a calm tint, not a warning. */
+.bag-barakah { padding: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-3); border: 1px solid var(--line-1); border-radius: var(--r-2); background: var(--bg-1); }
+.bk-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); font-size: var(--fs-13); }
+.bk-bar { height: 10px; margin: var(--sp-2) 0; border-radius: 5px; background: var(--bg-3); overflow: hidden; }
+.bk-fill { height: 100%; width: 0; border-radius: 5px; background: linear-gradient(90deg, var(--gold), var(--rarity-mythic)); transition: width 0.4s ease; }
+.bag-barakah.is-resting .bk-fill { background: var(--sand); }
+.bag-barakah.is-full { border-color: var(--rarity-mythic); box-shadow: 0 0 12px color-mix(in srgb, var(--rarity-mythic) 35%, transparent); }
+.bk-note, .bk-mythics { margin: 0; font-size: var(--fs-12); color: var(--text-3); line-height: var(--lh-body); }
+.bk-mythics { margin-top: var(--sp-1); color: var(--rarity-mythic); font-weight: 700; }
+:root[data-motion="reduced"] .bk-fill { transition: none; }

@@ -36,6 +36,7 @@
   --rarity-epic: #b388ff;
   --rarity-legendary: #ef8a3c;
   --rarity-cosmic: #ffd84d;
+  --rarity-mythic: #ff5d8f;
   /* Overlays: --tint is the "lighter" wash (subtle fills, hover), --shade the "darker" one
      (wells, scrims). Use them through color-mix(in srgb, var(--tint) 6%, transparent). */
   --tint: #ffffff;
@@ -107,6 +108,7 @@
   --rarity-epic: #7044c0;
   --rarity-legendary: #9a460c;
   --rarity-cosmic: #806000;
+  --rarity-mythic: #b3204f;
   --tint: #4a3218;
   --shade: #5c4124;
   --art-blend: normal;
@@ -143,6 +145,7 @@
   --rarity-epic: #c09bff;
   --rarity-legendary: #ff9a4d;
   --rarity-cosmic: #ffe066;
+  --rarity-mythic: #ff7aa2;
   --tint: #fff4ff;
   --shade: #07020d;
 }

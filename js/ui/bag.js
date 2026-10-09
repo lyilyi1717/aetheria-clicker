@@ -2,7 +2,7 @@
 // Tiles are built once per item and patched in place (never per-frame innerHTML), so a tap is never
 // swallowed by a rebuild. A tap opens the compare sheet: modal on desktop, bottom sheet on phone.
 import {
-  SLOTS, RARITY_NAMES, rarityIndex, AUTO_SALVAGE_CHOICES, BAG_CAP
+  SLOTS, RARITY_NAMES, rarityIndex, AUTO_SALVAGE_CHOICES, BAG_CAP, BARAKAH_MAX
 } from '../systems/gearItems.js';
 import { gearStat, GEAR_MAIN_STAT } from '../systems/CombatSystem.js';
 import { ITEM_NAMES } from '../data/names.js';
@@ -73,6 +73,13 @@ export class BagUI {
         </div>
       </div>
 
+      <div class="bag-barakah" id="bag-barakah">
+        <div class="bk-head"><strong>🏺 ${t('barakah.title')}</strong><span class="num" id="bk-num"></span></div>
+        <div class="bk-bar" id="bk-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${BARAKAH_MAX}"><div class="bk-fill" id="bk-fill"></div></div>
+        <p class="bk-note" id="bk-note"></p>
+        <p class="bk-mythics" id="bk-mythics" hidden></p>
+      </div>
+
       <div class="bag-equipped" id="bag-equipped" role="group" aria-label="${esc(t('bag.equipped'))}"></div>
 
       <div class="bag-controls">
@@ -85,6 +92,7 @@ export class BagUI {
         <div class="bag-ctl" id="bag-wakeel-row" hidden>
           <button class="btn btn-sm" id="bag-autoequip" type="button" aria-pressed="false"></button>
         </div>
+        <p class="bag-hint" id="bag-wakeel-teaser" hidden>${t('bag.wakeel_teaser')}</p>
         <div class="bag-ctl">
           <span class="bag-ctl-label">${t('bag.sort')}</span>
           <div class="seg" id="bag-sort" role="group" aria-label="${esc(t('bag.sort'))}">
@@ -442,11 +450,15 @@ export class BagUI {
       }));
     }
 
+    const wakeel = g.hasWakeel();
     const wk = document.getElementById('bag-wakeel-row');
-    setHidden(wk, !bag.wakeel);
+    setHidden(wk, !wakeel);
+    setHidden(document.getElementById('bag-wakeel-teaser'), wakeel);
     const ae = document.getElementById('bag-autoequip');
     setText(ae, bag.autoEquip ? t('bag.autoequip_on') : t('bag.autoequip_off'));
     if (ae.getAttribute('aria-pressed') !== String(!!bag.autoEquip)) ae.setAttribute('aria-pressed', String(!!bag.autoEquip));
+
+    this.refreshBarakah();
 
     // Kashta
     const k = this.combat.kashta;
@@ -469,6 +481,31 @@ export class BagUI {
     setText(document.getElementById('bag-ticker'), this.gs.loot?.salvaged ? t('bag.ticker', { n: this.gs.loot.salvaged }) : '');
 
     if (this.sheet && !this.sheet.hidden) this.renderSheet();
+  }
+
+  // The Barakah meter: points / 20,000, what the rest state means, how many Mythics so far
+  refreshBarakah() {
+    const g = this.gear, b = this.gs.loot?.barakah;
+    if (!b) return;
+    const pts = Math.floor(b.points);
+    setText(document.getElementById('bk-num'), t('barakah.meter', { n: this.fmtNum(pts, 0), max: this.fmtNum(BARAKAH_MAX, 0) }));
+    const pct = Math.min(100, (b.points / BARAKAH_MAX) * 100);
+    const fill = document.getElementById('bk-fill');
+    const w = `${pct.toFixed(1)}%`;
+    if (fill && fill.style.width !== w) fill.style.width = w;
+    const bar = document.getElementById('bk-bar');
+    if (bar && bar.getAttribute('aria-valuenow') !== String(pts)) {
+      bar.setAttribute('aria-valuenow', String(pts));
+      bar.setAttribute('aria-label', t('barakah.aria', { n: pts, max: BARAKAH_MAX }));
+    }
+    const full = b.points >= BARAKAH_MAX;
+    const resting = !full && g.barakahResting();
+    document.getElementById('bag-barakah')?.classList.toggle('is-full', full);
+    document.getElementById('bag-barakah')?.classList.toggle('is-resting', resting);
+    setText(document.getElementById('bk-note'), full ? t('barakah.note_full') : resting ? t('barakah.note_resting') : t('barakah.note', { max: this.fmtNum(BARAKAH_MAX, 0) }));
+    const my = document.getElementById('bk-mythics');
+    setHidden(my, !(b.mythics > 0));
+    setText(my, t('barakah.mythics', { n: b.mythics || 0 }));
   }
 
   setEnabled(btn, enabled, primary) {

@@ -253,7 +253,8 @@ console.log('--- R18: Wardens every 250 floors (60 s, x3 boss HP) ---');
   gs.hero.floor = 250;
   cs.initMonster();
   assert.ok(cs.monster.isBoss && !cs.monster.isWarden);
-  assert.equal(cs.monster.timer, BOSS_TIMER_SECONDS);
+  assert.equal(cs.monster.tier, 'sheikh', 'R65: every 50th boss that is not a Warden is a Sheikh (x1.5 HP, 60 s)');
+  assert.equal(cs.monster.timer, 60);
 
   // R13: a Transcend alone no longer unlocks Wardens; the shard-tree node (or the
   // hero.wardensUnlocked flag) does
@@ -281,6 +282,7 @@ console.log('--- R18: Wardens every 250 floors (60 s, x3 boss HP) ---');
   cs.initMonster();
   const realAtk = cs.getTotalAttack;
   cs.getTotalAttack = () => 1;
+  cs.tickBoss = () => {};   // telegraphs are tested in test_r65_*.js
   gs.hero.hp = 1e300; gs.hero.maxHp = 1e300;
   for (let t = 0; t < 59; t += 0.25) cs.update(0.25);
   assert.ok(cs.monster.isWarden && gs.hero.floor === 250, 'Warden still up at 59 s');
@@ -299,9 +301,9 @@ console.log('--- R18: Wardens every 250 floors (60 s, x3 boss HP) ---');
   assert.equal(cs.getWardenTrophyCount(), 1);
   close(cs.getWardenGoldMult(), 1 + WARDEN_TROPHY_GOLD);
   assert.equal(gs.hero.floor, 251);
-  assert.equal(gs.inventory.voidCores, 3); // R64: a boss always drops (1 Core + 1 Token) on top of the Warden's own +2
+  assert.equal(gs.inventory.voidCores, 4); // R64: a boss drops 1 Core + 1 Token, the Warden +2; R65: a first kill adds 1 more Core
   assert.equal(gs.inventory.bossTokens, 3);
-  close(gs.gold.toNumber(), Math.floor(Math.pow(1.12, 249) * 50 * 3), 1e-6);
+  close(gs.gold.toNumber(), Math.floor(Math.pow(1.12, 249) * 50 * 3 * 2), 1e-6);   // R65: a first kill pays double gold
 
   // The trophy multiplies later Tower gold by 1.02 (an ordinary monster here)
   gs.hero.floor = 251;
@@ -377,7 +379,7 @@ console.log('--- R18: challenging a passed Warden ---');
   assert.equal(gs.hero.floor, 620);
   assert.equal(gs.hero.maxFloor, 620);
   assert.equal(cs.wardenChallenge, null);
-  close(gs.gold.toNumber(), Math.floor(Math.pow(1.12, 499) * 50 * 3), 1e-6);
+  close(gs.gold.toNumber(), Math.floor(Math.pow(1.12, 499) * 50 * 3 * 2), 1e-6);
   assert.equal(cs.canChallengeWarden(500), false, 'trophy already won');
 
   // Legacy save (maxFloor record 700k, indexFloor ~5.5k): only Wardens up to indexFloor
