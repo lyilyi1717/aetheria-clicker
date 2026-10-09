@@ -10,8 +10,6 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Issue #196: Open New Field ReferenceError on New Well page (missing runPrestige import in prestige.js).
-
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
@@ -104,6 +102,7 @@ R0–R30, R32–R40 and R41–R43 are done.
 
 ## Done
 
+- #196 (PR #197, v5.30.1): fixed Open New Field ReferenceError on New Well page. In R45, runPrestige was used in prestige.js to trigger the field ceremony without being imported. Imported runPrestige and added a regression test in test_r45_prestige_ceremony.js.
 - R69 #191 (PR #192, v5.28.0): owner request, the R68 drill abilities need the Reserve shop's
   `drill_mastery` (tier 3, 35, one-time; gate `procs` in `mineBlock`). Core sim skips it (like
   `al_wakeel`); mining sim owns it from `DRILL_MASTERY_DAY` 1.5. Idle depth day 1/7/60 112/169/240 (R68)

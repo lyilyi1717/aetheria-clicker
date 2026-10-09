@@ -9,8 +9,26 @@ import { SOUND_IDS } from './js/engine/AudioEngine.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 
-// the browser confirm() is gone from both prestige buttons
-assert.ok(!/confirm\(/.test(read('./js/ui/prestige.js')), 'prestige.js has no confirm()');
+// the browser confirm() is gone from both prestige buttons, runPrestige wired
+const prestigeJs = read('./js/ui/prestige.js');
+assert.ok(!/confirm\(/.test(prestigeJs), 'prestige.js has no confirm()');
+assert.ok(prestigeJs.includes("import { runPrestige } from './prestigeCeremony.js';"), 'prestige.js imports runPrestige');
+assert.ok(prestigeJs.includes('runPrestige('), 'prestige.js calls runPrestige');
+const { TranscendPanel } = await import('./js/ui/prestige.js');
+const panel = new TranscendPanel({
+  gameState: { settings: {} },
+  prestigeSystem: {
+    canTranscend: () => true,
+    getTranscendPreview: () => ({
+      shardsGained: 2, sealShards: 0, shardsBefore: 0, shardsAfter: 2,
+      shardBefore: 1, shardAfter: 1.5, dustBefore: 10, dustAfter: 1,
+      tiersBefore: 8, tiersAfter: 9, newTier: { icon: 'x', name: 'y', tier: 9 },
+      before: 10, after: 1.5, gate: { format: () => '400' }, nextGate: { format: () => '640' }
+    })
+  }
+});
+assert.doesNotThrow(() => panel.onTranscend(), 'calling onTranscend does not throw ReferenceError');
+
 const main = read('./js/main.js');
 const ascend = main.slice(main.indexOf("getElementById('btn-do-ascend')"), main.indexOf('this.transcendUI = new TranscendPanel'));
 assert.ok(!/confirm\(/.test(ascend), 'New Well button has no confirm()');
