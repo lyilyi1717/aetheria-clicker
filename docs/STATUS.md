@@ -423,6 +423,10 @@ R0–R30, R32–R40 and R41–R43 are done.
 
 ## Noticed (not yet an issue)
 
+- `test_mining.js` "Frenzy should be active after 7 rapid manual hits" is flaky (about 1 run in 8
+  locally, also seen in CI on PR #186); the manual Dig Streak loop depends on something random or
+  timing-based.
+
 - `test_mining.js` is flaky (random hits per tick; once 28 vs ~5); fix the seed.
 - R64 follow-ups: Al-Wakeel as a Dust-shop item (now only free at record floor 301+), stale i18n
   keys `gear.batch`, `gear.new_weapon`, `gear.new_armor`, rare-find toast spam with auto-salvage Off.
