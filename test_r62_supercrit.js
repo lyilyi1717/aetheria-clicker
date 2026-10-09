@@ -45,10 +45,10 @@ console.log('--- mining shockwave fires on Super-Crits only, a share of crits --
   const expected = N * 0.125 * MINE_SHARE;
   assert.ok(shocks > expected * 0.6 && shocks < expected * 1.4, `shockwaves ${shocks}, expected ~${expected}`);
 
-  // Auto-drill hits (not manual) never crit, so never shockwave
+  // R68: drill hits (no tap position) crit and shockwave too
   for (const idx of [center, ...nb]) { const b = gs.miningGrid.blocks[idx]; b.revealed = false; b.hp = 1e12; b.maxHp = 1e12; }
   for (let i = 0; i < 500; i++) ms.mineBlock(center);
-  assert.ok(nb.every(i2 => gs.miningGrid.blocks[i2].hp === 1e12), 'automatic hits never shockwave');
+  assert.ok(nb.every(i2 => gs.miningGrid.blocks[i2].hp < 1e12), 'drill hits shockwave too');
 }
 
 console.log('--- Refinery Super-Crits pay 5x (base 3x), and the rate matches the share ---');

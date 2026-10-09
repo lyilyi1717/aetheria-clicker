@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.23.0';
+export const VERSION = '5.25.0';
 
 export const CHANGELOG = [
   {
-    version: '5.23.0',
+    version: '5.25.0',
     date: '2026-10-09',
     title: 'The Climb to Frenzy',
     changes: [
@@ -23,6 +23,42 @@ export const CHANGELOG = [
         'النقرتان 18 و19 تمهّدان للحظة: تلتهب الكرة، ثم عند 20 يبدأ الهيجان بصوته الخاص ونص «الهيجان!» وحلقة من الشرر وتلوّن الكرة طوال مدته. يبقى شريط الكومبو ممتلئا ومتوهجا لحظة قبل أن يعرض التقدم نحو الهيجان التالي، وعند تمديد الهيجان تظهر شارة +4 ث.',
         'النقرة الحرجة تُظهر «CRIT!» عند موضع النقر ويطفو الرقم من تحتها. أرقام النفط الناتجة عن النقر السريع لا تزيد عن 12 على الشاشة لتبقى مقروءة على الهاتف.',
         'يختفي تلميح «انقر لتضخّ النفط!» بعد أول نقرة. عند تفعيل تقليل الحركة لا حلقة ولا شرر ولا تكبير، وتبقى الكلمة والألوان والأصوات. الهيجان يمنح المقدار نفسه كما كان.'
+      ]
+    }
+  },
+  {
+    version: '5.24.0',
+    date: '2026-10-09',
+    title: 'Honest Feedback',
+    changes: [
+      'The Bazaar only cheers for a real profit. Sell above the usual price and you get the coin chime and a green "+gold (+x%)" note. Sell at the usual price or below it and you get a plain click and "Sold for n gold", with no chime and no green. Prices and payouts are unchanged.',
+      'A cross-breed that gives no hybrid now answers with a soft pluck and a quiet "No hybrid this time" note instead of silence.',
+      'Buying now shows: the count pops and a "+1" (or "+10", "+100") rises from the button. With Reduce motion on, the chip simply shows in place.',
+      'Tapping a buy button you cannot use (not enough resources) now gives a soft low click and a brief outline instead of nothing.'
+    ],
+    ar: {
+      title: 'ردود فعل صادقة',
+      changes: [
+        'السوق لا يحتفل إلا بالربح الحقيقي. إذا بعت بأعلى من السعر المعتاد تسمع رنين العملات وتظهر ملاحظة خضراء «+ذهب (+x٪)». وإذا بعت بالسعر المعتاد أو أقل تسمع نقرة عادية وتظهر «بيع مقابل n ذهب» دون رنين ولا لون أخضر. الأسعار والمبالغ كما هي.',
+        'التهجين الذي لا ينتج هجينا صار يردّ بنغمة خفيفة وملاحظة هادئة «لا هجين هذه المرة» بدل الصمت.',
+        'الشراء صار مرئيا: يقفز العدّاد وترتفع من الزر إشارة «+1» (أو «+10»، «+100»). مع تقليل الحركة تظهر الإشارة في مكانها فقط.',
+        'الضغط على زر شراء لا تستطيع استخدامه (موارد غير كافية) يعطي الآن نقرة منخفضة خفيفة وإطارا قصيرا بدل لا شيء.'
+      ]
+    }
+  },
+  {
+    version: '5.23.0',
+    date: '2026-10-09',
+    title: 'Drills Use Your Techniques',
+    changes: [
+      'Auto-Drills and Steam Jackhammers now hit like your own pickaxe: every drill hit can Seismic Fracture (x10 damage), Quarry Cleave, Arc Conduction and crit (including the Super-Crit shockwave), with the same chances as a tap. Your Stone Workshop upgrades now speed up idle digging too.',
+      'Excavation Frenzy still comes only from 7 quick taps of your own, and its x2 still applies only to your taps. Drill procs make no sound, so a busy mine stays quiet.'
+    ],
+    ar: {
+      title: 'المثاقب تستخدم تقنياتك',
+      changes: [
+        'المثاقب الآلية والمطارق البخارية تضرب الآن مثل معولك: كل ضربة مثقاب قد تُحدث الصدع الزلزالي (ضرر عشرة أضعاف) وشق المحجر وتوصيل القوس والضربة الحرجة (ومعها موجة الضربة الحرجة الفائقة)، بنفس فرص نقرتك. فترقيات ورشة الأحجار تُسرّع الحفر وأنت غائب أيضا.',
+        'جنون الحفر ما زال يأتي فقط من 7 نقرات سريعة منك، ومضاعفته تنطبق على نقراتك فقط. ضربات المثاقب الخاصة بلا صوت، فيبقى المنجم المزدحم هادئا.'
       ]
     }
   },
