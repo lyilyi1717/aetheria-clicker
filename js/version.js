@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.30.1';
+export const VERSION = '5.31.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.31.0',
+    date: '2026-10-09',
+    title: 'A New Well needs a two-minute run',
+    changes: [
+      'The New Well button now unlocks after a run of at least 2 minutes and counts down the time left. This stops tapping New Well every few seconds, which paid far more Reserves per hour than playing a real run.',
+      'Opening a New Field or a Chronicle is not delayed.'
+    ],
+    ar: {
+      title: 'البئر الجديدة تحتاج جولة مدتها دقيقتان',
+      changes: [
+        'زر البئر الجديدة يُفتح الآن بعد جولة لا تقل عن دقيقتين ويعرض الوقت المتبقي. هذا يوقف الضغط على البئر الجديدة كل بضع ثوانٍ، وكان يعطي احتياطيًا في الساعة أكثر بكثير من لعب جولة حقيقية.',
+        'فتح حقل جديد أو بدء سجل جديد لا يتأخر.'
+      ]
+    }
+  },
   {
     version: '5.30.1',
     date: '2026-10-09',

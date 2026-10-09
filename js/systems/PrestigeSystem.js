@@ -18,8 +18,11 @@ export const DUST_BASE = 10;
 export const DUST_REF = 1e4;
 export const DUST_EXPONENT = 1 / 5;
 export const DUST_MIN_AETHER = 500;
-// Shortest run that may Ascend: cooldown removed so players can Ascend as soon as pending dust > 0
-export const MIN_RUN_SECONDS = 0;
+// Shortest run that may Ascend (R61). v5.10 dropped it to 0, and with the concave dust curve a
+// stream of tiny runs beat every real run (docs/economy-impact-check.md §5.4). 90 s keeps the
+// Ascend a decision without blocking a first Ascension (the sim's spam profile earns less dust/h
+// than normal play from 60 s up).
+export const MIN_RUN_SECONDS = 120;
 
 // Transcend (layer 2, design doc 6.1 / roadmap R4)
 // Gate for the next Transcend, in lifetime dust of the current layer: 400 x 1.6^k, k = Transcends
@@ -98,14 +101,19 @@ export class PrestigeSystem {
     return totalAether.div(DUST_REF).pow(DUST_EXPONENT).mul(DUST_BASE * (1 + 1e-12)).floor();
   }
 
-  // Seconds left until the current run is long enough to Ascend (0 = met). Cooldown removed.
+  // Seconds left until the current run is long enough to Ascend (0 = met). A save without a run
+  // start (0) or one stamped in the future (clock change) never waits longer than MIN_RUN_SECONDS.
   getMinRunRemaining(now = Date.now()) {
-    return 0;
+    const start = this.gameState.runStartedAt;
+    if (!(start > 0)) return 0;
+    const left = MIN_RUN_SECONDS - (now - start) / 1000;
+    return Math.max(0, Math.min(MIN_RUN_SECONDS, left));
   }
 
   canAscend(now = Date.now()) {
     // A Chronicle challenge (R20) is a side run: no Ascending until it ends
-    return !isChallengeActive(this.gameState) && this.getPendingCosmicDust().gt(0);
+    return !isChallengeActive(this.gameState) && this.getPendingCosmicDust().gt(0) &&
+      this.getMinRunRemaining(now) <= 0;
   }
 
   // quiet: skip the ceremony; auto-Ascend (shard tree, R13) announces its own batched toast

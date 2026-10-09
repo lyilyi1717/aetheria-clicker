@@ -164,8 +164,9 @@ therefore what moves the idle wall.
    - Mining and Garden taps share the click token bucket.
    - Dewdrop pays 0.25 s of CPS, and the `BigNum` import is fixed.
    - Nectar Surge pays only on hand harvests, or joins the `WorldLinks` cap.
-   - Bring back a 60–120 s minimum run.
-   - `sim:mining` passes the manual flag, and `sim:core` models spam-Ascension.
+   - Bring back a 60–120 s minimum run. Done in R61 (120 s); see "R61 result" below.
+   - `sim:mining` passes the manual flag, and `sim:core` models spam-Ascension (R61 did the
+     latter).
 2. **File "Tower gear curve" as a small R-item now:** `GEAR_FLOOR_BASE = 1.105` plus the
    rebase migration. Accept it when `sim:tower` open is within ±10% of 149 / 414 / 498 / 560
    (measured: 97 / 380 / 510 / 520).
@@ -183,3 +184,39 @@ therefore what moves the idle wall.
    - telegraphs, Sheikhs, and Guardians merged with Wardens
    - weight Vigor and HP more, since the AFK wall is survival-limited
 5. **Close the three branches unmerged.**
+
+### R61 result: minimum run and sim cadence
+
+- **Minimum run: 120 s** (`MIN_RUN_SECONDS`), shown on the Ascend button as a countdown and
+  disabled state, and on the header goal chip. It applies to hand Ascensions and Auto-Ascend;
+  Transcend and Chronicle are not delayed. The sim's band check is 60-120 s.
+- **Sim cadence, now honest:** the one-manual-Ascension-per-hour cap is gone. The casual player
+  Ascends whenever the default Auto-Ascend rule is met while present and the run is old enough;
+  the idle player still glances once an hour (that is what idle means).
+- **Spam Ascend profile** (`sim/core-pacing.mjs`, `--only=spam`): casual attendance, Ascends
+  the moment the button unlocks, 30 days. Dust per hour against casual normal play (13.0):
+
+  | minimum run | spam dust per hour | x normal |
+  |---|---|---|
+  | 60 s | 832 | 64 |
+  | 120 s | 735 | 57 |
+  | 300 s | 649 | 47 |
+  | 600 s | 435 | 32 |
+  | 1,800 s | 223 | 17 |
+
+  **The "spam earns less than normal play" goal is not met, and no minimum run in the 60-120 s
+  range meets it.** Dust is a fifth root of run Oil, and a restart is cheap (Genesis, Resonant
+  Start, kept upgrades), so dust per hour keeps rising as runs get shorter; even 30 minutes
+  leaves spam at x17. The minimum run only caps the damage (an unbounded loop becomes at most
+  one New Well per 120 s, and only while the player is at the screen). `sim:check` therefore
+  asserts what is true today: the minimum run is 60-120 s and spam stays at or below
+  x60 of normal dust per hour (`TARGETS.spamDustRatioMax`), so it cannot get worse unnoticed.
+  Over a full year spam is x2.7 normal (the layers reset dust, so the month-1 gap closes).
+  Closing the gap needs a second lever (for example a dust gain that ramps with run length) and
+  is an owner decision.
+- **Chronicle trigger stays at 11 days** (`CHRONICLE_AFTER_SLOW_DAYS`). With the cadence freed
+  and 7 days, `sim:check` still fails (casual median run Oil over days 50-70: 1.35e10 against
+  the 1e11 floor): a Chronicle begun that early throws away a layer that was still paying. The
+  rule is the player's choice (Chronicles are optional), so 11 is the modelled player who waits
+  until the Transcend ladder has clearly stalled. It is justified, not hidden: the year-one
+  targets are met either way for 11 and missed for 7.

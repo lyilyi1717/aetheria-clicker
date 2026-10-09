@@ -30,15 +30,27 @@ console.log('--- R2: no minimum run cooldown on Ascend ---');
   gs.totalAetherEarned = new BigNum(1e12);
   const t0 = 1_000_000_000_000;
   gs.runStartedAt = t0;
-  assert.equal(ps.getMinRunRemaining(t0), 0);
-  assert.equal(ps.canAscend(t0), true, 'can Ascend immediately with pending dust');
+  // R61: a run just started is locked for MIN_RUN_SECONDS, counts down, then opens
+  assert.ok(MIN_RUN_SECONDS >= 60 && MIN_RUN_SECONDS <= 120, 'minimum run is 60-120 s');
+  assert.equal(ps.getMinRunRemaining(t0), MIN_RUN_SECONDS);
+  assert.equal(ps.canAscend(t0), false, 'locked right after a reset');
+  assert.equal(ps.getMinRunRemaining(t0 + 30_000), MIN_RUN_SECONDS - 30);
+  assert.equal(ps.canAscend(t0 + MIN_RUN_SECONDS * 1000), true, 'open once the run is old enough');
+  // A clock set back never locks longer than the minimum
+  assert.equal(ps.getMinRunRemaining(t0 - 3_600_000), MIN_RUN_SECONDS);
+  gs.runStartedAt = Date.now() - (MIN_RUN_SECONDS + 1) * 1000;
   // fresh run without dust: ascend refuses; run with dust ascends and restarts the clock
   gs.totalAetherEarned = BigNum.zero();
   assert.equal(ps.ascend(), false);
   gs.totalAetherEarned = new BigNum(1e12);
+  gs.runStartedAt = Date.now() - (MIN_RUN_SECONDS + 1) * 1000;
   assert.equal(ps.ascend(), true);
   assert.ok(Date.now() - gs.runStartedAt < 5000);
   assert.equal(ps.canAscend(), false);
+  gs.totalAetherEarned = new BigNum(1e12);
+  assert.equal(ps.canAscend(), false, 'the new run is locked again');
+  assert.equal(ps.ascend(), false);
+  assert.equal(ps.ascend(true), true, 'force (Transcend, Chronicle) skips the lock');
 }
 
 console.log('--- R2: saves without runStartedAt load with no wait ---');

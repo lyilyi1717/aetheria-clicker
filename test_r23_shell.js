@@ -82,8 +82,14 @@ console.log('--- next goal: first generator, then Ascension gate, run timer, Asc
   assert.match(g.text, /New Well at/);
   assert.ok(Math.abs(g.pct - 3 / 4) < 1e-9, 'log-scale progress to 500');
 
-  // Past the gate: ready to Ascend immediately with the pending dust
+  // Past the gate on a fresh run: the minimum run (R61) counts down first
   gs.totalAetherEarned = new BigNum(1e12);
+  g = getNextGoal(gs, bs, ps, now);
+  assert.equal(g.text, 'New Well in 2:00');
+  assert.ok(g.pct >= 0 && g.pct < 0.01);
+
+  // Once the run is old enough: ready to Ascend with the pending dust
+  gs.runStartedAt = now - 121 * 1000;
   g = getNextGoal(gs, bs, ps, now);
   assert.match(g.text, /^Drill a New Well for \+/);
   assert.equal(g.pct, 1);
