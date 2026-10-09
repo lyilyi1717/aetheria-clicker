@@ -10,8 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: R65 #163 in progress.
-  R61 #159 waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
+- Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
+  R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
 
 - Wave 9, run by the R31 coordinator session: R57 #139 in progress (also takes on the
@@ -96,8 +96,20 @@ R0–R30, R32–R40, R41 and R42 are done.
 | 10 | R64 Gear bag, rare finds, re-temper | #162 | R63 |
 | 10 | R65 Mythics, Barakah meter, boss telegraphs | #163 | R64 |
 | 10 | R66 Garden tap growth back to 5% (owner decision) | #172 | R59 |
+| 10 | R67 Core sim skips Tower-only Al-Wakeel | #178 | R65 |
 
 ## Done
+
+- R65 #163 (PR #177, v5.19.0): boss telegraphs SMASH/FEAST/WARD (`js/systems/bossFights.js`,
+  `js/ui/bossFx.js`), phase 2 at 50%, misses free below floor 150; Sheikhs every 50 floors;
+  Guardians at 50/150/300/500/750/1000 (merged with R18 Wardens); 4 Mythics (Wasta Strike every 30th
+  hit, boss cap 4% max HP), Barakah meter (20,000, rests after 1,000/day), Cosmic pity every 10th
+  Legendary; Al-Wakeel is a Dust-shop item (`al_wakeel`), R64 grant grandfathered. No migration.
+  Tower sim takes `--seed`, `--no-mythic`, `--no-telegraphs`; idle cost of telegraphs ~-4% at 3 d.
+  Art needed (for the art tool) is listed in PR #177.
+- R67 #178 (PR #179): R65 broke `sim:check` (merged with pacing red by mistake): the core sim bought
+  `al_wakeel` and one 40-dust purchase moved the days 50-70 median 6.9e11 -> 1.22e13. The core sim
+  now skips that Tower-only item. Shows how chaotic that window is (R57's area).
 
 - R62 #160 (PR #174, v5.17.3): 20% of crits become Super-Crits (`SUPER_CRIT_SHARE`): refinery x5
   click (inside R52), mining crit adds a 0.15x shockwave to 4 neighbours on manual digs only.
