@@ -56,6 +56,7 @@ import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
 import { gainLabel, gainTip } from './ui/buyGain.js';
+import { afterBuy } from './ui/buyFx.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
 import { t, tOr, getLang, buffName, bidi, isolateSigns, applyLanguageToDocument, syncLanguageSetting, renderLanguageSettings } from './i18n/index.js';
@@ -441,7 +442,9 @@ class AetheriaApp {
         if (btn) {
           const id = btn.dataset.id;
           sound.ensureContext();
+          const before = this.gameState.buildings[id]?.count || 0;
           this.buildingSystem.buyBuilding(id);
+          afterBuy(btn, (this.gameState.buildings[id]?.count || 0) - before, this.$(`b-count-${id}`));
           this.updateBuildingsUI();
         }
       });
@@ -473,7 +476,9 @@ class AetheriaApp {
     const btnForge = document.getElementById('btn-forge-awaken');
     if (btnForge) {
       btnForge.addEventListener('click', () => {
-        if (this.combatSystem.upgradeAetherForge()) {
+        const forged = this.combatSystem.upgradeAetherForge();
+        afterBuy(btnForge, forged ? 1 : 0);
+        if (forged) {
           this.updateCombatUI();
           this.updateHeaderStats();
         }
@@ -505,13 +510,15 @@ class AetheriaApp {
         const btn = e.target.closest('button');
         if (!btn) return;
         sound.ensureContext();
-        if (btn.id === 'btn-upgrade-pick') this.miningSystem.upgradePickaxe();
-        else if (btn.id === 'btn-buy-drill') this.miningSystem.buyAutoDrill();
-        else if (btn.id === 'btn-buy-steam-jack') this.miningSystem.buySteamDrill();
-        else if (btn.id === 'btn-buy-seismic-rig') this.miningSystem.buySeismicRig();
+        let ok;
+        if (btn.id === 'btn-upgrade-pick') ok = this.miningSystem.upgradePickaxe();
+        else if (btn.id === 'btn-buy-drill') ok = this.miningSystem.buyAutoDrill();
+        else if (btn.id === 'btn-buy-steam-jack') ok = this.miningSystem.buySteamDrill();
+        else if (btn.id === 'btn-buy-seismic-rig') ok = this.miningSystem.buySeismicRig();
         else if (btn.id === 'btn-mining-dynamite') this.miningSystem.useDynamite();
-        else if (btn.dataset.skill) this.miningSystem.upgradeSkill(btn.dataset.skill);
+        else if (btn.dataset.skill) ok = this.miningSystem.upgradeSkill(btn.dataset.skill);
         else return;
+        if (ok !== undefined) afterBuy(btn, ok ? 1 : 0);
         this.updateMiningUI();
       });
     }
@@ -591,9 +598,11 @@ class AetheriaApp {
       marketList.addEventListener('click', (e) => {
         const id = e.target.dataset.id;
         if (!id) return;
-        if (e.target.classList.contains('btn-market-buy')) this.marketSystem.buyCommodity(id, 1);
-        else if (e.target.classList.contains('btn-market-buy10')) this.marketSystem.buyCommodity(id, 10);
-        else if (e.target.classList.contains('btn-market-sell')) this.marketSystem.sellCommodity(id, 1);
+        const owned = this.gameState.market.items[id]?.owned || 0;
+        if (e.target.classList.contains('btn-market-buy') || e.target.classList.contains('btn-market-buy10')) {
+          this.marketSystem.buyCommodity(id, e.target.classList.contains('btn-market-buy10') ? 10 : 1);
+          afterBuy(e.target, (this.gameState.market.items[id]?.owned || 0) - owned);
+        } else if (e.target.classList.contains('btn-market-sell')) this.marketSystem.sellCommodity(id, 1);
         else if (e.target.classList.contains('btn-market-sellall')) this.marketSystem.sellAll(id);
         this.updateMarketUI();
       });
