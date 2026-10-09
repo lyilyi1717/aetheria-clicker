@@ -209,7 +209,9 @@ function makeShardTreeModel(gs, ps) {
 function makeDustShopModel(gs) {
   // One-time features first, cheapest first, then ranked items (R31: dust is scarce enough that the
   // order matters)
-  const items = DUST_SHOP_ITEMS.filter(d => d.id !== 'dust_amplifier')
+  // Al-Wakeel (R65) only auto-equips Tower gear, which this sim doesn't model; buying it here only
+  // shifts the dust spend order (R67).
+  const items = DUST_SHOP_ITEMS.filter(d => d.id !== 'dust_amplifier' && d.id !== 'al_wakeel')
     .sort((a, b) => (a.maxRank > 1) - (b.maxRank > 1) || (a.maxRank > 1 ? 0 : a.cost - b.cost));
   const firstBuy = new Map();   // item id -> day first bought (report)
   return {
