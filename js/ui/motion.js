@@ -29,7 +29,7 @@ export function osPrefersReducedMotion() {
 /** What the page is doing right now (falls back to the device setting before JS applied one). */
 export function isReducedMotion() {
   if (typeof document === 'undefined') return false;
-  const attr = document.documentElement.dataset.motion;
+  const attr = document.documentElement?.dataset?.motion;
   if (attr === 'reduced') return true;
   if (attr === 'full') return false;
   return osPrefersReducedMotion();
