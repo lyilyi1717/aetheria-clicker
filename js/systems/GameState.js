@@ -156,7 +156,7 @@ export class GameState {
     // theme: 'night' / 'sand' / 'dusk' colour theme (R35, js/ui/theme.js)
     // language: 'en' / 'ar' (R37, js/i18n/); a new game takes the language the page loaded in
     // news: the player's own news ticker entries and the hide-strip choice (R39, js/ui/newsTicker.js)
-    this.settings = { notation: 'letters', guidesSeen: {}, reduceMotion: 'auto', theme: 'night', language: getLang(), news: defaultNewsState() };
+    this.settings = { notation: 'letters', guidesSeen: {}, reduceMotion: 'auto', tapToConfirm: false, theme: 'night', language: getLang(), news: defaultNewsState() };
     // Progressive tab unlocking (R7, UnlockSystem.js): { [tabId]: unlockedAtMs } and the tabs
     // visited since their reveal. Never cleared by Ascension, Transcend or Chronicle.
     this.unlocks = {};
@@ -530,6 +530,8 @@ export class GameState {
       }
       // Saves from before R24 (or with an unknown value) follow the device setting
       if (!['auto', 'on', 'off'].includes(this.settings.reduceMotion)) this.settings.reduceMotion = 'auto';
+      // Saves from before R45 confirm New Well / New Field by holding
+      this.settings.tapToConfirm = this.settings.tapToConfirm === true;
       // Saves from before R35 (or with an unknown theme) get the default Night theme
       if (!['night', 'sand', 'dusk'].includes(this.settings.theme)) this.settings.theme = 'night';
       // Saves from before R37 (or with an unknown language) keep the language the page loaded in

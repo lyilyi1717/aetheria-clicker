@@ -109,7 +109,7 @@ export class PrestigeSystem {
   }
 
   // quiet: skip the ceremony; auto-Ascend (shard tree, R13) announces its own batched toast
-  ascend(force = false, { quiet = false } = {}) {
+  ascend(force = false, { quiet = false, chosen = false } = {}) {
     const pending = this.getPendingCosmicDust();
     if (!force && !this.canAscend()) return false;
 
@@ -153,7 +153,7 @@ export class PrestigeSystem {
     checkMilestones(this.gameState);
 
     // Big tier ceremony (§5.1). Transcend calls ascend(true) and shows its own epic one instead.
-    if (!force && !quiet) rewards.notify({ tier: 'big', kind: 'ascension', icon: '✨', color: '#06b6d4', title: t('prestige.toast'), batchTitle: t('prestige.toast_batch'), amount: pending, fmt: (d) => d.format('standard', 0), unit: t('prestige.unit') });
+    if (!force && !quiet) rewards.notify({ tier: 'big', kind: 'ascension', signature: 'well', force: chosen, durationMs: chosen ? 2400 : undefined, icon: '🛢️', color: '#f59e0b', title: t('prestige.toast'), batchTitle: t('prestige.toast_batch'), amount: pending, fmt: (d) => d.format('standard', 0), unit: t('prestige.unit') });
     // A new dust shop tier just opened (Ascension 1 / 3 / 5 / 10 / 20)
     const opened = DUST_SHOP_TIERS.includes(this.gameState.ascensionCount) ? this.gameState.ascensionCount : 0;
     if (opened) {
@@ -242,7 +242,7 @@ export class PrestigeSystem {
       hero.hp = Math.min(hero.hp, this.gameState.combatSystem.getTotalMaxHp());
     }
 
-    rewards.notify({ tier: 'epic', kind: 'transcend', icon: '🌌', color: '#ec4899', title: t('transcend.toast'), batchTitle: t('transcend.toast_batch'), amount: payout, fmt: (n) => String(n), unit: t('transcend.unit'), detail: sealShards > 0 ? t('transcend.seals', { n: sealShards }) : undefined });
+    rewards.notify({ tier: 'epic', kind: 'transcend', signature: 'field', force: true, durationMs: 2400, icon: '🌌', color: '#a855f7', title: t('transcend.toast'), batchTitle: t('transcend.toast_batch'), amount: payout, fmt: (n) => String(n), unit: t('transcend.unit'), detail: sealShards > 0 ? t('transcend.seals', { n: sealShards }) : undefined });
     return true;
   }
 }
