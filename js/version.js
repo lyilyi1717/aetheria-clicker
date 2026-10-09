@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.31.0';
+export const VERSION = '5.31.1';
 
 export const CHANGELOG = [
+  {
+    version: '5.31.1',
+    date: '2026-10-09',
+    title: 'Mythic gear art',
+    changes: [
+      'Mythic amulets and armor now show their own artwork in your gear slots.',
+      'New artwork is ready for boss warnings, the weak spot, the Barakah meter, Al-Wakeel and the four Mythic items; more of it appears in coming updates.'
+    ],
+    ar: {
+      title: 'رسومات العتاد الأسطوري',
+      changes: [
+        'التمائم والدروع الأسطورية تعرض الآن رسوماتها الخاصة في خانات العتاد.',
+        'رسومات جديدة جاهزة لتحذيرات الزعماء، ونقطة الضعف، وعدّاد البركة، والوكيل، والقطع الأسطورية الأربع؛ وستظهر أكثر في التحديثات القادمة.'
+      ]
+    }
+  },
   {
     version: '5.31.0',
     date: '2026-10-09',
