@@ -489,10 +489,11 @@ export class AudioEngine {
   }
 
   // Sound: Ascension / Cosmic Shift
+  // Returns a stop() that fades it out (the hold-to-drill build-up is cancelled by letting go)
   playAscension() {
-    if (this.muted || this.quiet) return;
+    if (this.muted || this.quiet) return () => {};
     this.ensureContext();
-    if (!this.ctx) return;
+    if (!this.ctx) return () => {};
 
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -512,6 +513,14 @@ export class AudioEngine {
 
     osc.start(t);
     osc.stop(t + 1.6);
+    return () => {
+      const n = this.ctx.currentTime;
+      try {
+        gain.gain.cancelScheduledValues(n);
+        gain.gain.setValueAtTime(Math.max(0.001, gain.gain.value), n);
+        gain.gain.exponentialRampToValueAtTime(0.001, n + 0.12);
+      } catch { /* already finished */ }
+    };
   }
 
   // ---- Reward tiers (redesign §5.1): small = pluck, medium = bell, big = brass, epic = choir.

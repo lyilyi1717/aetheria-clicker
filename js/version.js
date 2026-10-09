@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.25.0';
+export const VERSION = '5.26.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.26.0',
+    date: '2026-10-09',
+    title: 'A Well Worth Drilling',
+    changes: [
+      'Drilling a New Well and opening a New Oil Field no longer use a pop-up box from your browser. A sheet inside the game shows exactly what you gain and what resets, with Not yet and a confirm button you hold for a moment while a tone rises.',
+      'Let go early and nothing happens. Hold it all the way and the screen dims, the orb sinks, a gusher of 60 sparks bursts out and NEW WELL! or NEW FIELD! flashes before the reward card counts up. The whole thing takes 3.5 seconds at most, and a tap or Esc skips straight to the result.',
+      'A New Field has its own look and sound: a purple sweep across the screen and the choir. A New Well you choose to drill always gets its celebration, even if another big moment happened in the last minute.',
+      'New Settings option, Tap to confirm, replaces the hold with a single tap. With Reduce motion on the button is always a tap, there is no sinking orb or sparks, and the reward card is the short one. What you gain and lose is unchanged.'
+    ],
+    ar: {
+      title: 'بئر تستحق الحفر',
+      changes: [
+        'لم يعد حفر بئر جديدة أو فتح حقل نفط جديد يستخدم نافذة المتصفح. تعرض ورقة داخل اللعبة بالضبط ما تكسبه وما يُعاد ضبطه، مع «ليس الآن» وزر تأكيد تضغطه مطولًا لحظة بينما ترتفع نغمة.',
+        'إن رفعت إصبعك مبكرًا فلن يحدث شيء. وإن أكملت الضغط يخفت الشاشة وتغوص الكرة وينفجر نبع من 60 شرارة ويومض «بئر جديدة!» أو «حقل جديد!» قبل أن تعدّ بطاقة المكافأة. تستغرق العملية 3.5 ثانية كحد أقصى، والنقر أو Esc ينتقل مباشرة إلى النتيجة.',
+        'للحقل الجديد شكله وصوته: كنسة بنفسجية عبر الشاشة والجوقة. والبئر الجديدة التي تختار حفرها تحصل دائمًا على احتفالها حتى لو حدثت لحظة كبيرة أخرى في الدقيقة الماضية.',
+        'خيار جديد في الإعدادات «النقر للتأكيد» يستبدل الضغط المطول بنقرة واحدة. مع تفعيل تقليل الحركة يكون الزر نقرة دائمًا، بلا غوص للكرة ولا شرر، وبطاقة المكافأة هي القصيرة. ما تكسبه وما تخسره لم يتغير.'
+      ]
+    }
+  },
   {
     version: '5.25.0',
     date: '2026-10-09',

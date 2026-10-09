@@ -114,15 +114,21 @@ export class TranscendPanel {
     if (!this.ps.canTranscend()) return;
     const tp = this.ps.getTranscendPreview();
     const { gain, lose } = this.tradeLines(tp);
-    const msg = t('tr.confirm.q') + '\n\n' + t('tr.gain') + ':\n- ' + gain.join('\n- ') +
-      '\n\n' + t('tr.lose') + ':\n- ' + lose.join('\n- ') +
-      '\n\n' + t('tr.confirm.after', { a: fmtBigMult(tp.before), b: fmtBigMult(tp.after) }) +
-      '\n' + t('tr.confirm.next', { n: tp.nextGate.format('standard', 0) });
-    if (!confirm(msg)) return;
-    this.ps.transcend();
-    // New tier cards appear; the dust shop and dust were reset
-    this.app.updateBuildingsUI();
-    this.app.updatePrestigeUI();
+    runPrestige({
+      kind: 'field',
+      question: t('tr.confirm.q'),
+      gain, lose,
+      notes: [
+        t('tr.confirm.after', { a: fmtBigMult(tp.before), b: fmtBigMult(tp.after) }),
+        t('tr.confirm.next', { n: tp.nextGate.format('standard', 0) })
+      ],
+      settings: this.gs.settings
+    }, () => {
+      this.ps.transcend();
+      // New tier cards appear; the dust shop and dust were reset
+      this.app.updateBuildingsUI();
+      this.app.updatePrestigeUI();
+    }, this.el.btn);
   }
 
   update() {
