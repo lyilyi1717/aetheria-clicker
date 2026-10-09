@@ -10,8 +10,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R47 #119 First-time unlocks and rare events (sub-agent, branch `r47-unlocks-rare-events`). R50 #122
-  goes after it (same files).
+- R50 #122 Game-feel polish (sub-agent, branch `r50-game-feel-polish`).
 
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
@@ -22,7 +21,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40, R41–R46, R48, R49, R51 and R68 are done.
+R0–R30, R32–R40, R41–R49, R51 and R68 are done.
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
   re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
@@ -103,6 +102,12 @@ R0–R30, R32–R40, R41–R46, R48, R49, R51 and R68 are done.
 | 10 | R68 Auto-Drills use the manual dig abilities | #183 | – |
 
 ## Done
+
+- R47 #119 (PR #194, v5.27.0): tab unlocks are one skippable epic ceremony (all tabs from one check,
+  "{n} new places") + gold nav pulse; big toasts play brass; toasts take `look` (e.g. `legendary`).
+  Rare-event visuals in `js/ui/rareEvents.js` (Mirage haze 12% not the spec's 6%, Caravan Star camel,
+  Supernova count-up, golden harvest burst); new sound ids `mirage`, `caravan`, `brass-short`,
+  `legendary`. Not checked: 375 px, reduced motion, camel/haze/count-up in a foreground tab.
 
 - R45 #117 (PR #193, v5.26.0): `confirm()` gone from New Well / New Field; in-game sheet with an
   800 ms hold (`playAscension` returns `stop()`), release 3.5 s skippable, New Well amber / New Field
