@@ -6,6 +6,7 @@ import { rewards } from '../ui/rewards.js';
 import { feedback } from '../ui/feedback.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from '../data/names.js';
 import { isAutoBlastOn } from './ShardTreeSystem.js';
+import { hasShopItem } from './DustShopSystem.js';
 import { resolveCritTier } from './ClickerSystem.js';
 import { t, localize, localizeList } from '../i18n/index.js';
 
@@ -631,11 +632,12 @@ export class MiningSystem {
       }
     }
 
-    // The Stone Workshop techniques and crits roll on every pickaxe hit, drills included (R68).
-    // Drill procs stay quiet: drills hit many times a second.
+    // The Stone Workshop techniques and crits roll on taps, and on drill hits once the Reserve
+    // shop's Drill Mastery is owned (R68, R69). Drill procs stay quiet: drills hit many times a second.
+    const procs = isManual || hasShopItem(this.gameState, 'drill_mastery');
     // Shatter (Seismic Fracture): a proc hits for x10 pickaxe damage. It is a damage
     // multiplier on tile HP, never an instant break, so the depth curve keeps its pacing.
-    if (this.random() < this.getShatterChance()) {
+    if (procs && this.random() < this.getShatterChance()) {
       shatterMult = SHATTER_DAMAGE_MULT;
       if (isManual && !silent) sound.playShatter();
       if (clientX && clientY) {
@@ -645,7 +647,7 @@ export class MiningSystem {
     }
 
     // Quarry Cleave (chance to hit side blocks)
-    if (this.random() < this.getCleaveChance()) {
+    if (procs && this.random() < this.getCleaveChance()) {
       const col = index % this.gridSize;
       const leftIdx = col > 0 ? index - 1 : -1;
       const rightIdx = col < this.gridSize - 1 ? index + 1 : -1;
@@ -666,7 +668,7 @@ export class MiningSystem {
     }
 
     // Arc Conduction (Chain Lightning)
-    if (this.random() < this.getChainChance()) {
+    if (procs && this.random() < this.getChainChance()) {
       const unrevealed = this.gameState.miningGrid.blocks.filter(b => !b.revealed && b.id !== index);
       if (unrevealed.length > 0) {
         const count = Math.min(unrevealed.length, 2 + Math.floor(this.random() * 3)); // 2 to 4
@@ -690,8 +692,8 @@ export class MiningSystem {
       }
     }
 
-    // Mining crit: base 10% + half of the player's crit chance, on taps and drill hits alike
-    const critChance = 0.10 + (this.gameState.critChance || 0) * 0.5;
+    // Mining crit: base 10% + half of the player's crit chance
+    const critChance = procs ? 0.10 + (this.gameState.critChance || 0) * 0.5 : 0;
     let critTier = resolveCritTier(critChance, this.random);
     // Mining crit chance tops out well under 100%, so tiers above 1 never rolled. A crit now
     // upgrades to a Super-Crit with SUPER_CRIT_SHARE odds (the shockwave).

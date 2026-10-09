@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.27.0';
+export const VERSION = '5.28.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.28.0',
+    date: '2026-10-09',
+    title: 'Drill Mastery',
+    changes: [
+      'New in the Reserve shop: Drill Mastery (35 Reserves, opens after 3 New Wells, one-time buy). With it, your Auto-Drills and Steam Jackhammers use your Stone Workshop techniques and crits, so every drill hit can Shatter, Cleave, Arc and crit like a tap.',
+      'This is a nerf if you have not bought it yet: until you do, drill hits are plain pickaxe hits again, as they were before the last update. Your own taps always use your techniques. Like the rest of the shop, it resets when you open a New Field.'
+    ],
+    ar: {
+      title: 'إتقان المثاقب',
+      changes: [
+        'جديد في متجر الاحتياطي: إتقان المثاقب (35 احتياطيا، يُفتح بعد 3 آبار جديدة، شراء مرة واحدة). معه تستخدم مثاقبك الآلية ومطارقك البخارية تقنيات ورشة الأحجار والضربات الحرجة، فكل ضربة مثقاب قد تُحدث الصدع والشق والقوس والضربة الحرجة مثل نقرتك.',
+        'هذا إضعاف إن لم تشتره بعد: حتى تشتريه تعود ضربات المثاقب ضربات معول عادية كما كانت قبل التحديث السابق. أما نقراتك فتستخدم تقنياتك دائما. ومثل بقية المتجر، يُعاد ضبطه عند فتح حقل نفط جديد.'
+      ]
+    }
+  },
   {
     version: '5.27.0',
     date: '2026-10-09',
