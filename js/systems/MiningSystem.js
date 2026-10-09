@@ -12,6 +12,8 @@ import { t, localize, localizeList } from '../i18n/index.js';
 // A new stratum every 25 depth (§5.1). Cosmetic plus drop table: each stratum adds
 // +1% Void Amethyst chance, taken from the plain-stone share.
 export const STRATA_SPAN = 25;
+export const SUPER_CRIT_SHARE = 0.2;   // share of mining crits that are Super-Crits
+const SHOCKWAVE_DMG = 0.15;            // of the crit hit, to each neighbour
 export const STRATA = [
   { name: 'Limestone', icon: '🪨', color: '#94a3b8', minDepth: 1 },
   { name: 'Granite', icon: '🧱', color: '#64748b', minDepth: 26 },
@@ -689,7 +691,10 @@ export class MiningSystem {
 
     // Mining Crit System applies to manual player clicks (Base 10% + half of player's crit chance)
     const critChance = isManual ? (0.10 + (this.gameState.critChance || 0) * 0.5) : 0;
-    const critTier = resolveCritTier(critChance);
+    let critTier = resolveCritTier(critChance, this.random);
+    // Mining crit chance tops out well under 100%, so tiers above 1 never rolled. A crit now
+    // upgrades to a Super-Crit with SUPER_CRIT_SHARE odds (the shockwave).
+    if (critTier === 1 && this.random() < SUPER_CRIT_SHARE) critTier = 2;
 
     let textColor = '#cbd5e1';
     let label = '';
@@ -698,10 +703,11 @@ export class MiningSystem {
       textColor = '#fbbf24';
       label = 'CRIT! ';
     } else if (critTier >= 2) {
-      power = Math.floor(power * 5);
+      // Same 2.5x hit as a crit; the extra is the shockwave into the four neighbours
+      power = Math.floor(power * 2.5);
       textColor = '#f97316';
       label = '⚡ SUPER CRIT! ';
-      this.triggerMiningShockwave(index, Math.max(1, Math.floor(power * 0.3)));
+      this.triggerMiningShockwave(index, Math.max(1, Math.floor(power * SHOCKWAVE_DMG)));
     }
 
     power = Math.floor(power * shatterMult);

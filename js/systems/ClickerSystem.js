@@ -39,6 +39,8 @@ export function pickAnomalyType(r) {
 
 const fmtStd = (a) => a.format('standard', 2);
 
+export const SUPER_CRIT_SHARE = 0.2;   // share of Refinery crits that are Super-Crits
+
 // Resolve critical strike tier (Stat Overflow):
 // 0 = Normal, 1 = Crit, 2 = Super-Crit (>100%), 3 = Hyper-Crit (>200%)
 export function resolveCritTier(chance, rng = Math.random) {
@@ -116,7 +118,10 @@ export class ClickerSystem {
 
     // Determine critical strike tier
     const effectiveCritChance = this.gameState.critChance || 0;
-    const critTier = resolveCritTier(effectiveCritChance, this.rng);
+    let critTier = resolveCritTier(effectiveCritChance, this.rng);
+    // Crit chance never passes 100%, so tiers above 1 never rolled. A crit upgrades to a
+    // Super-Crit (5x with the base 3x) with SUPER_CRIT_SHARE odds.
+    if (critTier === 1 && this.rng() < SUPER_CRIT_SHARE) critTier = 2;
     const isCrit = critTier > 0;
     let yieldAmount = this.gameState.getClickYield();
 
