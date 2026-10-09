@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.20.0';
+export const VERSION = '5.21.0';
 
 export const CHANGELOG = [
   {
-    version: '5.20.0',
+    version: '5.21.0',
     date: '2026-10-09',
     title: 'Sounds That Mean Something',
     changes: [
@@ -27,6 +27,15 @@ export const CHANGELOG = [
         'الدلّة اليومية تُصدر صوتا واحدا لا اثنين.'
       ]
     }
+  },
+  {
+    version: '5.20.0',
+    date: '2026-10-09',
+    title: 'See What Each Generator Adds',
+    changes: [
+      'Every generator buy button now shows how much production the purchase adds (for example +45/s) under its cost, for the amount you have selected (1, 10, 25, 100 or MAX). It counts milestones, upgrades and talents, so a buy that crosses a milestone shows the full jump. It is also shown when you cannot afford it yet, so you can plan.',
+      'A small Best value badge marks the generator you can afford right now that gives the most production for its price. Hover or long-press a button for the exact ratio.'
+    ]
   },
   {
     version: '5.19.0',
