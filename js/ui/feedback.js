@@ -28,7 +28,8 @@ export const STATIC_CUES = {
   'blast-flash': { cls: 'cue-orange-inset', ms: 600 },    // blasted mining tiles
   'fx-flash': { cls: 'cue-red-border', ms: 150 },         // boss portrait on the killing blow
   'anomaly-shimmer': { cls: 'cue-gold-outline', ms: 600 }, // a golden anomaly appears (R47)
-  'unlock-pulse': { cls: 'cue-gold-outline', ms: 2400 }   // a new tab's nav item (3 pulses, R47)
+  'unlock-pulse': { cls: 'cue-gold-outline', ms: 2400 },  // a new tab's nav item (3 pulses, R47)
+  'is-pouring': { cls: 'cue-cup-full', ms: 1000 }         // the Dallah cup fills at once (R50)
 };
 
 const hasDom = () => typeof document !== 'undefined';

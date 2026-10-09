@@ -3,9 +3,47 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.27.0';
+export const VERSION = '5.29.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.29.0',
+    date: '2026-10-09',
+    title: 'Small Moments, Done Right',
+    changes: [
+      'Hero skills now show their numbers on the monster: the Shield, the Leech heal and the Strike and Supernova damage used to appear at the middle of the screen, which missed the monster on desktop.',
+      'Claiming the Daily Dallah pours sand into the cup for one second, with one sound instead of two. With Reduce motion on, the cup fills at once.',
+      'Lighting a Seal of Transcendence is now a full celebration card instead of a small pop-up.',
+      'When a Frenzy ends, a small toast tells you how much Oil your taps earned during it ("Frenzy: +1.2K Oil").',
+      'Pop-ups on desktop no longer cover the Less / More button at the top of each tab.'
+    ],
+    ar: {
+      title: 'لحظات صغيرة بشكلها الصحيح',
+      changes: [
+        'مهارات البطل تعرض أرقامها الآن فوق الوحش: كان الدرع وشفاء الامتصاص وضرر الضربة والمستعر الأعظم يظهر في منتصف الشاشة فيخطئ الوحش على الحاسوب.',
+        'استلام دلّة اليوم يسكب الرمل في الفنجان لمدة ثانية، بصوت واحد بدل صوتين. ومع تقليل الحركة يمتلئ الفنجان دفعة واحدة.',
+        'إضاءة ختم من أختام التسامي صارت بطاقة احتفال كاملة بدل إشعار صغير.',
+        'عند انتهاء الهيجان يخبرك إشعار صغير بكمية النفط التي جنتها نقراتك خلاله («الهيجان: +1.2K نفط»).',
+        'لم تعد الإشعارات على الحاسوب تغطي زر أقل / أكثر في أعلى كل تبويب.'
+      ]
+    }
+  },
+  {
+    version: '5.28.0',
+    date: '2026-10-09',
+    title: 'Drill Mastery',
+    changes: [
+      'New in the Reserve shop: Drill Mastery (35 Reserves, opens after 3 New Wells, one-time buy). With it, your Auto-Drills and Steam Jackhammers use your Stone Workshop techniques and crits, so every drill hit can Shatter, Cleave, Arc and crit like a tap.',
+      'This is a nerf if you have not bought it yet: until you do, drill hits are plain pickaxe hits again, as they were before the last update. Your own taps always use your techniques. Like the rest of the shop, it resets when you open a New Field.'
+    ],
+    ar: {
+      title: 'إتقان المثاقب',
+      changes: [
+        'جديد في متجر الاحتياطي: إتقان المثاقب (35 احتياطيا، يُفتح بعد 3 آبار جديدة، شراء مرة واحدة). معه تستخدم مثاقبك الآلية ومطارقك البخارية تقنيات ورشة الأحجار والضربات الحرجة، فكل ضربة مثقاب قد تُحدث الصدع والشق والقوس والضربة الحرجة مثل نقرتك.',
+        'هذا إضعاف إن لم تشتره بعد: حتى تشتريه تعود ضربات المثاقب ضربات معول عادية كما كانت قبل التحديث السابق. أما نقراتك فتستخدم تقنياتك دائما. ومثل بقية المتجر، يُعاد ضبطه عند فتح حقل نفط جديد.'
+      ]
+    }
+  },
   {
     version: '5.27.0',
     date: '2026-10-09',

@@ -20,6 +20,13 @@
 @media (min-width: 640px) {
   body.has-buff-bar .reward-toasts { top: calc(var(--header-h) + var(--buff-bar-h) + 8px); }
 }
+
+/* Desktop: the guide banner's Less/More toggle sits at the top right of the tab. Start the
+   stack below the banner's first row so a toast never covers it (R50, guide P9). */
+@media (min-width: 640px) {
+  .reward-toasts { top: calc(var(--header-h) + var(--guide-clear, 96px) + 8px); }
+  body.has-buff-bar .reward-toasts { top: calc(var(--header-h) + var(--buff-bar-h) + var(--guide-clear, 96px) + 8px); }
+}
 @media (max-width: 639px) {
   body.has-buff-bar .reward-toasts {
     max-height: calc(100dvh - var(--header-h) - var(--bottom-nav-h) - var(--buff-bar-h)

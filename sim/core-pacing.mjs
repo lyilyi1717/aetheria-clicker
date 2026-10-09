@@ -210,8 +210,9 @@ function makeDustShopModel(gs) {
   // One-time features first, cheapest first, then ranked items (R31: dust is scarce enough that the
   // order matters)
   // Al-Wakeel (R65) only auto-equips Tower gear, which this sim doesn't model; buying it here only
-  // shifts the dust spend order (R67).
-  const items = DUST_SHOP_ITEMS.filter(d => d.id !== 'dust_amplifier' && d.id !== 'al_wakeel')
+  // shifts the dust spend order (R67). Drill Mastery (R69) is Excavation-only, skipped the same way.
+  const SKIP = new Set(['dust_amplifier', 'al_wakeel', 'drill_mastery']);
+  const items = DUST_SHOP_ITEMS.filter(d => !SKIP.has(d.id))
     .sort((a, b) => (a.maxRank > 1) - (b.maxRank > 1) || (a.maxRank > 1 ? 0 : a.cost - b.cost));
   const firstBuy = new Map();   // item id -> day first bought (report)
   return {

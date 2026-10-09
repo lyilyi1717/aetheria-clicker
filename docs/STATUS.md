@@ -10,7 +10,6 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R50 #122 Game-feel polish (sub-agent, branch `r50-game-feel-polish`).
 
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
@@ -21,7 +20,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40, R41–R49, R51 and R68 are done.
+R0–R30, R32–R40, R41–R51 and R68 are done.
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
   re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
@@ -100,9 +99,18 @@ R0–R30, R32–R40, R41–R49, R51 and R68 are done.
 | 10 | R66 Garden tap growth back to 5% (owner decision) | #172 | R59 |
 | 10 | R67 Core sim skips Tower-only Al-Wakeel | #178 | R65 |
 | 10 | R68 Auto-Drills use the manual dig abilities | #183 | – |
+| 10 | R69 Drill Mastery shop item gates drill abilities | #191 | R68 |
 
 ## Done
 
+- R50 #122 (PR #195, v5.29.0): hero-skill text lands on the monster portrait
+  (`CombatSystem.monsterSpot()`); Dallah cup fills over 1 s (`is-pouring`, static `cue-cup-full`
+  under reduced motion); Seal lit is a forced big ceremony; Frenzy end toast "Frenzy: +n Oil"
+  (`frenzyOil`, taps only, not saved); desktop toast stack starts 96 px lower (`--guide-clear` in
+  `css/rewards.css`, update it if the guide banner height changes). Nothing split out. Not checked:
+  the animated pour, 375 px.
+
+<<<<<<< HEAD
 - R47 #119 (PR #194, v5.27.0): tab unlocks are one skippable epic ceremony (all tabs from one check,
   "{n} new places") + gold nav pulse; big toasts play brass; toasts take `look` (e.g. `legendary`).
   Rare-event visuals in `js/ui/rareEvents.js` (Mirage haze 12% not the spec's 6%, Caravan Star camel,
@@ -143,6 +151,12 @@ R0–R30, R32–R40, R41–R49, R51 and R68 are done.
   by eye: Best value chip, 375 px and RTL layout. The milestone case in `test_r51_buy_gain.js` is weak
   (compares a call with itself).
 
+=======
+- R69 #191 (PR #192, v5.28.0): owner request, the R68 drill abilities need the Reserve shop's
+  `drill_mastery` (tier 3, 35, one-time; gate `procs` in `mineBlock`). Core sim skips it (like
+  `al_wakeel`); mining sim owns it from `DRILL_MASTERY_DAY` 1.5. Idle depth day 1/7/60 112/169/240 (R68)
+  -> 95/168/241; band ok, core pacing unchanged.
+>>>>>>> origin/main
 - R68 #183 (PR #184, v5.23.0): owner request, drill hits (Auto-Drill, Steam Jackhammer) roll Shatter,
   Cleave, Chain and mining crits / Super-Crit shockwave like a tap (`mineBlock`); Frenzy stays manual
   (streak and x2). Drill procs are silent. Mining sim (skills at Lv 0): idle depth day 1/7/60
@@ -469,6 +483,10 @@ R0–R30, R32–R40, R41–R49, R51 and R68 are done.
   - Polish & Bug Fixes: Suppressed Tower combat particles/floats when combat tab is hidden; hid Mana from header until Grimoire is unlocked; isolated Arabic unlock teaser fractions so they read left-to-right (`0/10`); stabilized `test_r52_clicks.js` timing race.
 
 ## Noticed (not yet an issue)
+
+- Enemy-hit floating text (`CombatSystem`, `window.innerWidth / 2 - 100`) still uses screen centre,
+  same bug class R50 fixed for skills. `castHeroSkill` passes bare `true` as `critTier` for Strike and
+  Supernova. Desktop toast offset applies on tabs with no guide banner too.
 
 - `confirm()` still used in `js/main.js` (save wipe, talent respec) and `js/ui/chronicle.js`
   (challenge abandon etc.).
