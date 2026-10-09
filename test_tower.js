@@ -1,4 +1,4 @@
-// Void Tower rebalance (R8): gear at 1.105, bosses x400 / 45 s, indexFloor, legacy floor rebase.
+// Void Tower rebalance (R8): gear at 1.109, bosses x400 / 45 s, indexFloor, legacy floor rebase.
 // Run: node test_tower.js
 import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
@@ -27,20 +27,20 @@ function withRandom(values, fn) {
   try { return fn(); } finally { Math.random = orig; }
 }
 
-console.log('--- Scaling: gear rolls at 1.105, monsters stay at 1.12 ---');
+console.log('--- Scaling: gear rolls at 1.109, monsters stay at 1.12 ---');
 {
   assert.equal(MONSTER_FLOOR_BASE, 1.12);
-  assert.equal(GEAR_FLOOR_BASE, 1.105);
+  assert.equal(GEAR_FLOOR_BASE, 1.109);
   assert.equal(gearFloorScale(1), 1);
-  close(gearFloorScale(101), Math.pow(1.105, 100));
+  close(gearFloorScale(101), Math.pow(1.109, 100));
   close(combatFloorScale(101), Math.pow(1.12, 100));
   // Gear lags monsters by (1.11/1.12)^(f-1): ~0.41 at floor 100, ~0.011 at floor 500
-  close(gearFloorScale(500) / combatFloorScale(500), Math.pow(1.105 / 1.12, 499));
+  close(gearFloorScale(500) / combatFloorScale(500), Math.pow(1.109 / 1.12, 499));
   // Both stay finite at absurd floors (cap at exponent 6000)
   for (const f of [6001, 700000, 1e12]) {
     assert.ok(Number.isFinite(gearFloorScale(f)) && Number.isFinite(combatFloorScale(f) * BOSS_HP_MULT));
   }
-  assert.equal(gearFloorScale(700000), Math.pow(1.105, COMBAT_SCALE_MAX_EXP));
+  assert.equal(gearFloorScale(700000), Math.pow(1.109, COMBAT_SCALE_MAX_EXP));
 }
 
 console.log('--- Bosses: x400 HP, 45 s timer ---');
@@ -73,17 +73,19 @@ console.log('--- Bosses: x400 HP, 45 s timer ---');
   assert.equal(gs.hero.floor, 9, 'timeout retreats one floor');
 }
 
-console.log('--- Loot: weapon and armor roll on the 1.105 curve ---');
+console.log('--- Loot: weapon and armor roll on the 1.109 curve ---');
 {
   const gs = new GameState();
   const cs = new CombatSystem(gs);
-  // drop roll, slot (0 -> weapon), rarity (0 -> Common), material roll
-  withRandom([0, 0, 0, 0.99], () => cs.rollLoot(101, false));
-  assert.equal(gs.hero.gear.weapon.attack, Math.floor(10 * Math.pow(1.105, 100)));
-  // slot 0.3 -> armor; rarity 99.5 -> Cosmic (x18)
-  withRandom([0, 0.3, 0.995, 0.99], () => cs.rollLoot(201, false));
-  assert.equal(gs.hero.gear.armor.rarity, 'Cosmic');
-  assert.equal(gs.hero.gear.armor.hp, Math.floor(40 * 18 * Math.pow(1.105, 200)));
+  // R64: drops go to the bag. Rolls: drop (0 -> yes), rarity (0.99 -> Common), slot (0 -> weapon)
+  withRandom([0, 0.99, 0], () => cs.rollLoot(101, false));
+  const weapon = gs.bag.items.find(i => i.slot === 'weapon' && i.rarity === 'Common');
+  assert.equal(weapon.attack, Math.floor(10 * Math.pow(1.109, 100)));
+  assert.equal(gs.hero.gear.weapon.name, 'Rusty Shortsword', 'a drop is not equipped automatically');
+  // rarity roll 29.975 -> Cosmic (x5); slot 0.3 -> armor
+  withRandom([0, 0.29975, 0.3], () => cs.rollLoot(201, false));
+  const armor = gs.bag.items.find(i => i.slot === 'armor' && i.rarity === 'Cosmic');
+  assert.equal(armor.hp, Math.floor(40 * 5 * Math.pow(1.109, 200)));
 }
 
 console.log('--- indexFloor follows the climb; the Market Index reads it ---');
@@ -141,7 +143,7 @@ const v2Save = hero => ({ version: 2, savedAt: 1750000000000, aether: { m: 1, e:
 console.log('--- Migration step 3: gear rescaled to the 1.11 curve ---');
 {
   assert.ok(SAVE_VERSION >= 3);
-  const data = migrateSave(v2Save(legacyHero({ floor: 300, rarity: 'Legendary' })));
+  const data = migrateSave(v2Save(legacyHero({ floor: 300, rarity: 'Legendary' })), MIGRATIONS.filter(s => s.to <= 10));
   const w = data.hero.gear.weapon, a = data.hero.gear.armor;
   close(w.attack, 10 * 8 * Math.pow(1.11, 299), 1e-6);
   close(a.hp, 40 * 8 * Math.pow(1.11, 299), 1e-6);
@@ -153,7 +155,7 @@ console.log('--- Migration step 3: gear rescaled to the 1.11 curve ---');
   const fresh = legacyHero({ floor: 1 });
   fresh.gear.weapon = { name: 'Rusty Shortsword', attack: 5, rarity: 'Common' };
   fresh.gear.armor = { name: 'Tattered Tunic', hp: 20, rarity: 'Common' };
-  const f = migrateSave(v2Save(fresh));
+  const f = migrateSave(v2Save(fresh), MIGRATIONS.filter(s => s.to <= 10));
   assert.equal(f.hero.gear.weapon.attack, 5);
   assert.equal(f.hero.gear.armor.hp, 20);
 
@@ -292,13 +294,13 @@ console.log('--- R18: Wardens every 250 floors (60 s, x3 boss HP) ---');
   gs.gold = new BigNum(0);
   gs.inventory.voidCores = 0;
   gs.inventory.bossTokens = 0;
-  withRandom([0.99], () => cs.dealDamageToMonster(cs.monster.maxHp + 1)); // 0.99: no loot
+  withRandom([0.99], () => cs.dealDamageToMonster(cs.monster.maxHp + 1));
   assert.ok(cs.isWardenDefeated(250));
   assert.equal(cs.getWardenTrophyCount(), 1);
   close(cs.getWardenGoldMult(), 1 + WARDEN_TROPHY_GOLD);
   assert.equal(gs.hero.floor, 251);
-  assert.equal(gs.inventory.voidCores, 2); // loot roll missed, so only the Warden's own +2
-  assert.equal(gs.inventory.bossTokens, 2);
+  assert.equal(gs.inventory.voidCores, 3); // R64: a boss always drops (1 Core + 1 Token) on top of the Warden's own +2
+  assert.equal(gs.inventory.bossTokens, 3);
   close(gs.gold.toNumber(), Math.floor(Math.pow(1.12, 249) * 50 * 3), 1e-6);
 
   // The trophy multiplies later Tower gold by 1.02 (an ordinary monster here)
@@ -408,14 +410,14 @@ console.log('--- R18: a Warden-unlocked climb still walls (rewards do not restar
 }
 
 
-console.log('--- Migration step 10 (R63): gear base 1.105, floor stepped down to what the kit clears ---');
+console.log('--- Migration step 10 (R63): gear base 1.109, floor stepped down to what the kit clears ---');
 {
   assert.ok(MIGRATIONS.some(s => s.to === 10));
   // A v9 hero on a 1.11-era kit: floor 500 but gear from floor 120 only reaches so far
   const v9 = () => ({ version: 9, savedAt: 1760000000000, aether: { m: 1, e: 30 }, gold: { m: 1, e: 46 },
     hero: legacyHero({ floor: 500, maxFloor: 640, gearFloor: 120, rarity: 'Legendary', forge: 10 }) });
-  const data = migrateSave(v9());
-  assert.equal(data.version, SAVE_VERSION);
+  const data = migrateSave(v9(), MIGRATIONS.filter(s => s.to <= 10));   // step 10 on its own (step 11 converts gear to items)
+  assert.equal(data.version, 10);
   assert.equal(data.hero.pendingFloorRebase, true);
   assert.equal(data.hero.indexFloor, 500, 'indexFloor sane until the rebase runs');
   assert.equal(data.hero.gear.weapon.attack, legacyHero({ floor: 500, gearFloor: 120, rarity: 'Legendary' }).gear.weapon.attack,

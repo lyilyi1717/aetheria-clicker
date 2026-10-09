@@ -733,3 +733,29 @@ run in parallel with non-Tower items.
    Proposed replacement: "+25% Legendary+ chance and Barakah ×1.25".
 7. **No "Equip all" before Al-Wakeel.** Keep the one-tap-per-item friction for the first
    ~2 days, or add the button from the start?
+
+---
+
+## 11. As built in R64 (gear wave 1)
+
+Where the shipped game differs from the spec above:
+
+- **Gear base 1.109** (spec: 1.105, or 1.1075). Rarity 1/2/3/4/5 plus the retirement of the R34 gear
+  levels (below) left the open-profile tower sim 8-18% under the R63 band; the bag (affixes, boss
+  ilvl +5, re-temper, Kashta) adds back only about +20 to +70 floors. 1.109 puts `npm run sim:tower`
+  at 400 / 520 / 610 (open, 1 d / 1 w / 30 d) against 414 / 498 / 560. The sim bot equips and
+  re-tempers once a minute while the game is open; an account that never opens the bag stays on the
+  starter kit unless it has Al-Wakeel.
+- **Monster Bones and gear levels (R34) are retired** (owner decision). Salvage pays **Gear Scrap**
+  (1 / 2 / 4 / 8 / 16 by rarity) and Void Cores (Epic 1, Legendary 3, Cosmic 8). Almarai Laban costs
+  Gear Scrap. Migration v11 bakes each item's level bonus into its stats as `bake` (kept through
+  re-tempers) and converts bones to Gear Scrap, up to 8 Rare finds and up to 20 Void Cores.
+- **Al-Wakeel** is not a talent yet: saves with a record floor of 301+ get the auto-equip switch
+  (`bag.wakeel`, `bag.autoEquip`); a dust-shop unlock is a follow-up.
+- **Rating** weighs Attack 0.4 and HP 0.6 (log-linear), with `ratingMult` for signature effects.
+- **Signatures** are mapped to the bosses the game really cycles (Rukbah Soda, Saher Camera, Giant
+  Kabsa Monster, Drifting Camry, Abu Sarwal Wa Fanila, Al-Modir). No telegraphs exist yet, so the
+  Stick of Discipline gives +25% boss damage, and the Samosa Buckler is the Camry Door Buckler.
+- **Heirlooms keep their exact old stats** (`keep` floors the main stat, also through re-temper); the new curve applies from the first re-temper that beats it.
+- **Not in this wave:** Sheikh tier drops, Mythics, the Barakah meter, Saddlebag upgrades,
+  Reforge, the Bisht slot, Haste and the synergy affixes.

@@ -20,7 +20,9 @@ export const ITEM_NAMES = {
   diamonds: { name: 'Misbaha', plural: 'Misbaha', icon: '💎', color: '#38bdf8' },
   voidAmethyst: { name: 'Mabkhara', plural: 'Mabkhara', icon: '🟣', color: '#a855f7' },
   // Void Tower drops
+  // Monster Bones were retired in R64 (kept so an old save still names them); gear salvage pays Gear Scrap
   monsterBones: { name: 'Monster Bone', plural: 'Monster Bones', icon: '🦴', color: '#e5e7eb' },
+  gearScrap: { name: 'Gear Scrap', plural: 'Gear Scrap', icon: '⚙️', color: '#cbd5e1' },
   voidCores: { name: 'Void Core', plural: 'Void Cores', icon: '🌀', color: '#8b5cf6' },
   bossTokens: { name: 'Boss Token', plural: 'Boss Tokens', icon: '🎖️', color: '#fbbf24' },
   // Garden essences

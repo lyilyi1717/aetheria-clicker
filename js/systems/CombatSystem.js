@@ -7,7 +7,8 @@ import { hasWardensNode, hasSecondWind } from './ShardTreeSystem.js';
 import { getShopRank } from './DustShopSystem.js';
 import { resolveCritTier } from './ClickerSystem.js';
 import { t, localizeList } from '../i18n/index.js';
-import { gearName } from '../ui/rarity.js';
+import { GearSystem } from './GearSystem.js';
+import { GEAR_FLOOR_BASE } from './gearItems.js';
 
 export const ZONES = [
   { name: 'Thumama Dunes', minFloor: 1, maxFloor: 50, color: '#f59e0b', icon: '🏜️' },
@@ -34,16 +35,22 @@ export const COMBAT_SCALE_MAX_EXP = 6000;
 
 export const COMBAT_STAT_MAX = 1e300;
 
-// Monsters, gold and the Market Index grow 1.12^(floor-1); gear rolls at 1.105^(floor-1).
+// Monsters, gold and the Market Index grow 1.12^(floor-1); gear rolls at 1.109^(floor-1).
 // Gear then lags monsters by ~1.009^floor, so the Forge, levels, talents and the Quartermaster
 // have to close the gap and the climb decelerates (docs/gamification-roadmap.md §0.2). With
 // both at 1.12 the hero out-scaled the floor for ever (~1 floor/s auto-climb).
 export const MONSTER_FLOOR_BASE = 1.12;
-export const GEAR_FLOOR_BASE = 1.105;
+// (the constant lives in gearItems.js so the item model needs no CombatSystem import)
+export { GEAR_FLOOR_BASE };
 
 // Bosses (every 10th floor) are the Tower's medium beat: x400 HP, 45 s to kill them
 export const BOSS_HP_MULT = 400;
 export const BOSS_TIMER_SECONDS = 45;
+
+// Kashta camp (R64): losses at one gate before the hero camps, minimum floor, and camp length
+export const KASHTA_FAILS = 2;
+export const KASHTA_MIN_FLOOR = 10;
+export const KASHTA_SECONDS = 300;
 
 // Wardens (R18, docs/redesign-proposal.md §6.3/§6.5): every 250th floor, once unlocked, the
 // boss is a named Warden with x3 boss HP and a 60 s timer. First kill of each = a trophy.
@@ -88,15 +95,9 @@ export function getWardenName(floor) {
   return cycle === 0 ? base : `${base} ${ROMAN[cycle + 1] || cycle + 1}`;
 }
 
-// Gear levels (R34): every equipped item can be raised +1 ... +GEAR_LEVEL_MAX with Monster Bones.
-// Each level adds GEAR_LEVEL_STEP to the item's main stat (Attack, HP, Crit, Drain), multiplied
-// in. Crit and Drain keep their drop caps. The level belongs to the slot: a better drop takes over
-// the old item's level, so a level is never lost.
-export const GEAR_LEVEL_MAX = 30;
-export const GEAR_LEVEL_STEP = 0.04;
-export const GEAR_LEVEL_RESOURCE = 'monsterBones';
+// Gear slots and the main stat each carries, with its cap (Crit and Drain). Gear levels (R34, paid
+// in Monster Bones) were retired in R64: migration v11 bakes each level into the item's stats.
 export const GEAR_SLOTS = ['weapon', 'armor', 'amulet', 'relic'];
-// Main stat per slot and its cap (Crit and Drain caps match rollLoot)
 export const GEAR_MAIN_STAT = {
   weapon: { key: 'attack', cap: Infinity },
   armor: { key: 'hp', cap: Infinity },
@@ -104,27 +105,11 @@ export const GEAR_MAIN_STAT = {
   relic: { key: 'lifesteal', cap: 0.3 }
 };
 
-// Level of a gear item; saves from before R34 (no `level`) and junk values read as 0
-export function getGearLevel(item) {
-  const n = Math.floor(Number(item?.level));
-  return Number.isFinite(n) ? Math.max(0, Math.min(GEAR_LEVEL_MAX, n)) : 0;
-}
-
-export function gearLevelMult(level) {
-  return 1 + GEAR_LEVEL_STEP * Math.max(0, Math.min(GEAR_LEVEL_MAX, Math.floor(level) || 0));
-}
-
-// Monster Bones to go from `level` to `level + 1`: 10, 20, 30, ... (+30 costs 4,650 per slot)
-export function gearLevelCost(level) {
-  return 10 * (Math.max(0, Math.floor(level) || 0) + 1);
-}
-
-// An item's main stat with its level applied (and the slot's cap)
+// An item's main stat (with the slot's cap)
 export function gearStat(slot, item) {
   const def = GEAR_MAIN_STAT[slot];
   if (!def || !item) return 0;
-  const base = Number(item[def.key]) || 0;
-  return Math.min(def.cap, base * gearLevelMult(getGearLevel(item)));
+  return Math.min(def.cap, Number(item[def.key]) || 0);
 }
 
 export function combatFloorScale(floor) {
@@ -151,6 +136,9 @@ export class CombatSystem {
     this.wardenChallenge = null;
     this.initHero();
     this.ensureWardenState();
+    this.gear = new GearSystem(this);
+    this.gear.ensureState();
+    this.kashta = { active: false, gate: 0, remaining: 0, manual: false, fails: 0, lastFail: 0, check: 0 };
     this.rebaseLegacyFloor();
     this.initMonster();
   }
@@ -178,10 +166,10 @@ export class CombatSystem {
         shield: 0,
         aetherForgeLevel: 0,
         gear: {
-          weapon: { name: 'Rusty Shortsword', attack: 5, rarity: 'Common', level: 0 },
-          armor: { name: 'Tattered Tunic', hp: 20, rarity: 'Common', level: 0 },
-          amulet: { name: 'Pebble Amulet', crit: 0.02, rarity: 'Common', level: 0 },
-          relic: { name: 'Ancient Shard', lifesteal: 0.02, rarity: 'Common', level: 0 }
+          weapon: { name: 'Rusty Shortsword', attack: 5, rarity: 'Common' },
+          armor: { name: 'Tattered Tunic', hp: 20, rarity: 'Common' },
+          amulet: { name: 'Pebble Amulet', crit: 0.02, rarity: 'Common' },
+          relic: { name: 'Ancient Shard', lifesteal: 0.02, rarity: 'Common' }
         },
         skills: {
           strike: { name: 'Heavy Strike', cd: 0, maxCd: 4, dmgMult: 2.5 },
@@ -292,7 +280,7 @@ export class CombatSystem {
     const scale = combatFloorScale(floor);
     const hp = Math.floor((isBoss ? BOSS_HP_MULT * (isWarden ? WARDEN_HP_MULT : 1) : 60) * scale);
     const attack = Math.floor((isBoss ? 15 : 6) * scale);
-    const timer = isWarden ? WARDEN_TIMER_SECONDS : (isBoss ? BOSS_TIMER_SECONDS : 0);
+    const timer = (isWarden ? WARDEN_TIMER_SECONDS : (isBoss ? BOSS_TIMER_SECONDS : 0)) + (isBoss ? this.gear.bossTimerBonus() : 0);
 
     this.monster = {
       name,
@@ -305,7 +293,8 @@ export class CombatSystem {
       attack: attack,
       attackCooldown: 1.2,
       timer,
-      maxTimer: timer
+      maxTimer: timer,
+      blocksFirstHit: this.gear.hasUnique('camry_buckler')
     };
   }
 
@@ -317,7 +306,7 @@ export class CombatSystem {
     const h = this.gameState.hero;
     const scale = combatFloorScale(floor);
     const crit = Math.min(1, Math.max(0, gearStat('amulet', h.gear.amulet)));
-    const dmg = this.getTotalAttack() * (1 + crit);
+    const dmg = this.getTotalAttack() * (1 + crit * (this.gear.critMult(1) - 1)) * this.gear.bossDamageMult();
     if (!(dmg > 0)) return false;
     const speed = h.attackSpeed > 0 ? h.attackSpeed : 1;
     const hits = Math.ceil((BOSS_HP_MULT * scale) / dmg);
@@ -391,6 +380,9 @@ export class CombatSystem {
       atk *= (1 + bldgMasteryRank * 0.01);
     }
     
+    // Gear affixes (Might) and the Ladle of Infinite Kabsa
+    atk *= this.gear.attackMult();
+
     // Aether Forge
     if (this.gameState.hero.aetherForgeLevel) {
       atk *= (1 + this.gameState.hero.aetherForgeLevel * 0.25);
@@ -409,6 +401,9 @@ export class CombatSystem {
     // Excavation -> hero Max HP: +1% per max depth, capped at +100%
     hp *= this.gameState.getDepthVitalityMult();
     
+    // Gear affixes (Vigor) and the Sacred Fanila
+    hp *= this.gear.hpMult();
+
     // Aether Forge
     if (h.aetherForgeLevel) {
       hp *= (1 + h.aetherForgeLevel * 0.25);
@@ -454,7 +449,7 @@ export class CombatSystem {
   activeClickAttack(clientX, clientY) {
     if (!this.monster || this.monster.hp <= 0) return;
     const tier = this.rollGearCritTier();
-    const mult = tier >= 2 ? 4 : tier === 1 ? 2 : 1;
+    const mult = this.gear.critMult(tier);
     const dmg = Math.max(1, Math.floor(this.getTotalAttack() * 0.75 * mult));
     this.dealDamageToMonster(dmg, clientX, clientY, tier);
     sound.playHit();
@@ -495,6 +490,8 @@ export class CombatSystem {
   }
 
   dealDamageToMonster(amount, x, y, critTier = 0) {
+    // Slayer affixes and the Stick of Discipline: more damage to bosses
+    if (this.monster.isBoss) amount = Math.floor(amount * this.gear.bossDamageMult());
     this.monster.hp -= amount;
     const isCrit = typeof critTier === 'number' ? critTier > 0 : Boolean(critTier);
     const tier = typeof critTier === 'number' ? critTier : (isCrit ? 1 : 0);
@@ -518,7 +515,9 @@ export class CombatSystem {
     const lifesteal = gearStat('relic', this.gameState.hero.gear.relic);
     if (lifesteal > 0) {
       const heal = Math.floor(amount * lifesteal);
+      const room = this.getTotalMaxHp() - this.gameState.hero.hp;
       this.gameState.hero.hp = Math.min(this.getTotalMaxHp(), this.gameState.hero.hp + heal);
+      if (heal > room) this.gear.absorbOverheal(heal - Math.max(0, room));
     }
 
     if (this.monster.hp <= 0) {
@@ -555,6 +554,8 @@ export class CombatSystem {
     goldMult *= (1 + (this.gameState.talents?.dungeon_wealth?.rank || 0) * 0.25) * this.gameState.getGoldMultiplier();
     // Warden trophies: +2% Tower gold each
     goldMult *= this.getWardenGoldMult();
+    // Greed affixes on equipped gear
+    goldMult *= this.gear.goldMult();
     // Falcon Week (Souq Rotation, R15): boss gold x1.5
     if (isBoss) goldMult *= this.gameState.calendarSystem?.getBossGoldMult?.() || 1;
     const goldEarned = new BigNum(MONSTER_FLOOR_BASE).pow(floor - 1).mul(new BigNum((isBoss ? 50 : 10) * rewardMult * goldMult)).floor();
@@ -577,6 +578,7 @@ export class CombatSystem {
 
     // Loot drops
     this.rollLoot(floor, isBoss);
+    this.gear.onKill();
 
     if (isWarden) this.onWardenDefeated(floor);
 
@@ -589,6 +591,12 @@ export class CombatSystem {
     // A challenged Warden doesn't move the climb: back to the hero's own floor
     if (this.wardenChallenge) {
       this.endWardenChallenge();
+      return;
+    }
+
+    // Kashta camp: keep farming this floor instead of climbing
+    if (this.kashta.active) {
+      this.initMonster();
       return;
     }
 
@@ -626,97 +634,81 @@ export class CombatSystem {
     rewards.notify({ tier: 'small', kind: 'tower-setback', icon: '⚠️', color: '#ef4444', title });
   }
 
-  // --- Gear levels (R34) ---
-
-  // Cost and state of the next level for one slot. `blocked` names why it can't be bought.
-  getGearLevelInfo(slot) {
-    const item = this.gameState.hero?.gear?.[slot];
-    const def = GEAR_MAIN_STAT[slot];
-    const level = getGearLevel(item);
-    const cost = gearLevelCost(level);
-    const have = Math.floor(Number(this.gameState.inventory?.[GEAR_LEVEL_RESOURCE]) || 0);
-    let blocked = null;
-    if (!item || !def) blocked = 'empty';
-    else if (level >= GEAR_LEVEL_MAX) blocked = 'max';
-    else if (gearStat(slot, item) >= def.cap) blocked = 'capped';
-    else if (have < cost) blocked = 'cost';
-    return { slot, item, level, cost, have, blocked, stat: gearStat(slot, item),
-      nextStat: def && item ? Math.min(def.cap, (Number(item[def.key]) || 0) * gearLevelMult(level + 1)) : 0 };
+  // One kill's loot (R64): the drop table, pity and bag live in GearSystem
+  rollLoot(floor, isBoss) {
+    return this.gear.rollDrop(floor, isBoss);
   }
 
-  levelUpGear(slot) {
-    const info = this.getGearLevelInfo(slot);
-    if (info.blocked) return false;
-    const inv = this.gameState.inventory;
-    inv[GEAR_LEVEL_RESOURCE] = info.have - info.cost;
-    info.item.level = info.level + 1;
+  // --- Kashta (R64, docs/gear-and-boss-design.md §2.6) ---
+  // After two losses at the same gate the hero camps on the highest non-boss floor below it for
+  // five minutes: he keeps killing and looting there, then retries the gate. Never on a boss
+  // floor. Not saved: a reload simply ends a camp.
+
+  isKashtaAuto() {
+    return this.gameState.settings?.kashtaAuto !== false;
+  }
+
+  // Highest floor below `gate` that is not a boss floor
+  kashtaFloor(gate) {
+    let f = Math.max(1, gate - 1);
+    while (f > 1 && f % 10 === 0) f--;
+    return f;
+  }
+
+  startKashta(gate, manual = false) {
+    const k = this.kashta, h = this.gameState.hero;
+    k.active = true; k.manual = manual; k.gate = gate; k.fails = 0; k.check = 0;
+    k.remaining = manual ? Infinity : KASHTA_SECONDS;
+    h.floor = manual && gate % 10 !== 0 ? gate : this.kashtaFloor(gate);
+    this.initMonster();
+  }
+
+  endKashta() {
+    const k = this.kashta, h = this.gameState.hero;
+    if (!k.active) return false;
+    k.active = false; k.manual = false; k.fails = 0; k.lastFail = 0;
+    h.floor = Math.max(1, k.gate);
+    this.initMonster();
     return true;
   }
 
-  // Gear upgrades drop often while climbing: a quiet toast, folded into "N gear upgrades"
-  notifyGear(label, item) {
-    rewards.notify({
-      tier: 'small', kind: 'gear', icon: '⚔️', color: item.color,
-      title: `${label}: ${gearName(item)}`, batchTitle: t('gear.batch')
-    });
+  // Player toggle: camp here (a boss floor camps one below) or go back to climbing
+  toggleKashta() {
+    if (this.kashta.active) return this.endKashta();
+    if (this.wardenChallenge) return false;
+    this.startKashta(this.gameState.hero.floor, true);
+    return true;
   }
 
-  rollLoot(floor, isBoss) {
-    // Fortune Favor talent: +15% drop chance per rank
-    const fortune = 1 + (this.gameState.talents?.loot_fortune?.rank || 0) * 0.15;
-    const chance = Math.min(1, (isBoss ? 0.95 : 0.25) * fortune);
-    if (Math.random() > chance) return;
-
-    const slots = ['weapon', 'armor', 'amulet', 'relic'];
-    const slot = slots[Math.floor(Math.random() * slots.length)];
-
-    const rarities = [
-      // Colours match the --rarity-* tokens in css/tokens.css (used for the loot toast)
-      { name: 'Common', color: '#9aa5b1', mult: 1, weight: 60 },      // Gray
-      { name: 'Rare', color: '#56b4e9', mult: 2, weight: 25 },        // Blue
-      { name: 'Epic', color: '#b388ff', mult: 4, weight: 10 },        // Violet
-      { name: 'Legendary', color: '#ef8a3c', mult: 8, weight: 4 },    // Orange (red means danger)
-      { name: 'Cosmic', color: '#ffd84d', mult: 18, weight: 1 }       // Gold (Highest)
-    ];
-
-    let rand = Math.random() * 100;
-    let chosenRarity = rarities[0];
-    for (const r of rarities) {
-      if (rand < r.weight) {
-        chosenRarity = r;
-        break;
+  // The hero lost the fight on `floor` (boss timer, or he died): step back, or start a camp
+  retreatFrom(floor) {
+    const h = this.gameState.hero, k = this.kashta;
+    if (k.active) {
+      h.floor = this.kashtaFloor(floor);
+    } else {
+      k.fails = k.lastFail === floor ? k.fails + 1 : 1;
+      k.lastFail = floor;
+      if (k.fails >= KASHTA_FAILS && floor >= KASHTA_MIN_FLOOR && this.isKashtaAuto()) {
+        this.startKashta(floor);
+        return;
       }
-      rand -= r.weight;
+      h.floor = Math.max(1, floor - 1);
     }
+    this.initMonster();
+  }
 
-    const scale = gearFloorScale(floor) * chosenRarity.mult;
-    let newItem = { name: `${chosenRarity.name} ${slot.toUpperCase()}`, rarity: chosenRarity.name, color: chosenRarity.color };
-
-    const gear = this.gameState.hero.gear;
-    const current = gear[slot];
-    const key = GEAR_MAIN_STAT[slot].key;
-    if (slot === 'weapon') newItem.attack = Math.max(1, Math.floor(10 * scale));
-    else if (slot === 'armor') newItem.hp = Math.max(1, Math.floor(40 * scale));
-    else if (slot === 'amulet') newItem.crit = Math.min(0.5, 0.02 + floor * 0.001 * chosenRarity.mult);
-    else newItem.lifesteal = Math.min(0.3, 0.02 + floor * 0.001 * chosenRarity.mult);
-
-    // Better base stat replaces the item; the new one keeps the slot's level (R34)
-    if (newItem[key] > (current?.[key] || 0)) {
-      const level = getGearLevel(current);
-      if (level > 0) newItem.level = level;
-      gear[slot] = newItem;
-      if (slot === 'weapon') this.notifyGear(t('gear.new_weapon'), newItem);
-      else if (slot === 'armor') this.notifyGear(t('gear.new_armor'), newItem);
+  tickKashta(dt) {
+    const k = this.kashta;
+    if (!k.active) return;
+    if (k.manual) return;
+    k.remaining -= dt;
+    k.check += dt;
+    // Retry early once the kit clearly beats a boss gate (the estimate is conservative)
+    if (k.check >= 5) {
+      k.check = 0;
+      if (k.gate % 10 === 0 && this.canClearBossFloor(k.gate)) k.remaining = 0;
     }
-
-    // Material drops
-    if (Math.random() < 0.4) {
-      this.gameState.inventory.monsterBones = (this.gameState.inventory.monsterBones || 0) + 1;
-    }
-    if (isBoss) {
-      this.gameState.inventory.voidCores = (this.gameState.inventory.voidCores || 0) + 1;
-      this.gameState.inventory.bossTokens = (this.gameState.inventory.bossTokens || 0) + 1;
-    }
+    if (k.remaining <= 0) this.endKashta();
   }
 
   update(dt) {
@@ -736,12 +728,15 @@ export class CombatSystem {
       }
     }
 
+    this.gear.tick(dt);
+    this.tickKashta(dt);
+
     // Hero Auto-Attack
     h.attackCooldown -= dt;
     if (h.attackCooldown <= 0) {
       h.attackCooldown = h.attackSpeed;
       const tier = this.rollGearCritTier();
-      const mult = tier >= 2 ? 4 : tier === 1 ? 2 : 1;
+      const mult = this.gear.critMult(tier);
       const dmg = this.getTotalAttack() * mult;
       const isVisible = this.isCombatVisible();
       this.dealDamageToMonster(dmg, isVisible && typeof window !== 'undefined' ? (window.innerWidth / 2 + 100) : null, isVisible && typeof window !== 'undefined' ? (window.innerHeight / 2) : null, tier);
@@ -761,8 +756,7 @@ export class CombatSystem {
         }
         // Failed boss timer -> retreat 1 floor
         this.notifySetback(t('combat.boss_timeout'));
-        h.floor = Math.max(1, h.floor - 1);
-        this.initMonster();
+        this.retreatFrom(h.floor);
         return;
       }
     }
@@ -772,6 +766,12 @@ export class CombatSystem {
     if (this.monster.attackCooldown <= 0) {
       this.monster.attackCooldown = 1.2;
       let dmg = this.monster.attack;
+
+      if (this.monster.blocksFirstHit) {
+        // Camry Door Buckler: the first monster hit of each fight is fully blocked
+        this.monster.blocksFirstHit = false;
+        dmg = 0;
+      }
 
       if (h.shield > 0) {
         const absorb = Math.min(h.shield, dmg);
@@ -797,8 +797,7 @@ export class CombatSystem {
           }
           // Hero died -> retreat 1 floor and restore HP
           this.notifySetback(t('combat.defeated'));
-          h.floor = Math.max(1, h.floor - 1);
-          this.initMonster();
+          this.retreatFrom(h.floor);
         }
       }
     }
