@@ -45,6 +45,8 @@ export const DUST_SHOP_ITEMS = [
     desc: '+4 h of offline Oil at 100% per rank, and +50% Chrono Sand bank.', see: 'Offline report and sand bank' },
   { id: 'auto_buy', tier: 3, icon: '🤖', name: 'Auto-Buy', cost: 30, maxRank: 1,
     desc: `Buys the best-value generator every ${AUTO_BUY_INTERVAL} s. Switch it on or off on the Refinery tab.`, see: 'See it: Refinery tab' },
+  { id: 'drill_mastery', tier: 3, icon: '⛏️', name: 'Drill Mastery', cost: 35, maxRank: 1,
+    desc: 'Auto-Drills and Steam Jackhammers use your Stone Workshop techniques and crits: every drill hit can Shatter, Cleave, Arc and crit like a tap.', see: 'See it: Excavation' },
   { id: 'titan_legacy', tier: 3, icon: '🛡️', name: "Titan's Legacy", cost: 10, growth: 1.5, maxRank: 10,
     desc: 'Hero gets +100 HP and +25 Attack per rank.', see: 'See it: Tower' },
   { id: 'finger_of_wasta', tier: 3, icon: '👆', name: 'Finger of Wasta', cost: 50, maxRank: 1,
