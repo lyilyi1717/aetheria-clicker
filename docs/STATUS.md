@@ -20,7 +20,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40, R41–R51 and R68 are done.
+R0–R30, R32–R40, R41–R51, R68 and R69 are done.
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
   re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
@@ -110,7 +110,6 @@ R0–R30, R32–R40, R41–R51 and R68 are done.
   `css/rewards.css`, update it if the guide banner height changes). Nothing split out. Not checked:
   the animated pour, 375 px.
 
-<<<<<<< HEAD
 - R47 #119 (PR #194, v5.27.0): tab unlocks are one skippable epic ceremony (all tabs from one check,
   "{n} new places") + gold nav pulse; big toasts play brass; toasts take `look` (e.g. `legendary`).
   Rare-event visuals in `js/ui/rareEvents.js` (Mirage haze 12% not the spec's 6%, Caravan Star camel,
@@ -151,12 +150,10 @@ R0–R30, R32–R40, R41–R51 and R68 are done.
   by eye: Best value chip, 375 px and RTL layout. The milestone case in `test_r51_buy_gain.js` is weak
   (compares a call with itself).
 
-=======
 - R69 #191 (PR #192, v5.28.0): owner request, the R68 drill abilities need the Reserve shop's
   `drill_mastery` (tier 3, 35, one-time; gate `procs` in `mineBlock`). Core sim skips it (like
   `al_wakeel`); mining sim owns it from `DRILL_MASTERY_DAY` 1.5. Idle depth day 1/7/60 112/169/240 (R68)
   -> 95/168/241; band ok, core pacing unchanged.
->>>>>>> origin/main
 - R68 #183 (PR #184, v5.23.0): owner request, drill hits (Auto-Drill, Steam Jackhammer) roll Shatter,
   Cleave, Chain and mining crits / Super-Crit shockwave like a tap (`mineBlock`); Frenzy stays manual
   (streak and x2). Drill procs are silent. Mining sim (skills at Lv 0): idle depth day 1/7/60
