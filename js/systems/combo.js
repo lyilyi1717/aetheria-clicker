@@ -29,3 +29,33 @@ export function clicksToNextFrenzy(count, lastFrenzyAt = 0) {
   const next = (Math.floor(Math.max(count, lastFrenzyAt) / FRENZY_EVERY) + 1) * FRENZY_EVERY;
   return next - count;
 }
+
+// --- R44: the climb toward Frenzy (docs/game-feel-opportunities.md §3 item 4) ---
+export const COMBO_STEP_AT = [5, 10, 15, 20];   // a ring pulses and the orb glow steps up at each
+export const WINDUP_FROM = 18;                  // clicks 18-19 of every 20 wind up the Frenzy
+export const FRENZY_HOLD_SECONDS = 0.4;         // the bar holds full this long when Frenzy starts
+export const PITCH_STEP_CLICKS = 4;             // the click pitch rises one scale step per 4 clicks
+export const PITCH_STEP_MAX = 5;
+// Frequency ratios of the climb: a major-pentatonic run up one octave
+export const PITCH_RATIOS = [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3, 2];
+
+// Orb glow step (0..4) for a combo count: how many of COMBO_STEP_AT it has reached (capped)
+export function comboStep(count) {
+  let step = 0;
+  for (const at of COMBO_STEP_AT) if (count >= at) step++;
+  return step;
+}
+
+// Pitch step (0..PITCH_STEP_MAX): one per 4 combo clicks, capped. It falls as the combo drains.
+export function pitchStep(count) {
+  return Math.min(PITCH_STEP_MAX, Math.floor(Math.max(0, count) / PITCH_STEP_CLICKS));
+}
+
+export function comboPitch(count) {
+  return PITCH_RATIOS[pitchStep(count)];
+}
+
+// True on clicks 18 and 19 of each 20 (the next tap or two starts Frenzy)
+export function isWindup(count) {
+  return count > 0 && count % FRENZY_EVERY >= WINDUP_FROM;
+}

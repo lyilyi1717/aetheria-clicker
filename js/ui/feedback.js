@@ -3,7 +3,8 @@
 // call it the way they call rewards.notify; the guardrails live here once:
 // - particle and text caps, "+n" merging (ParticleEngine reads js/ui/feedbackBudget.js)
 // - per-kind sound cooldowns (T1 250 ms, T2 1 s; T0 always answers) and chain escalation (P5)
-// - reduced motion (no sparks, shake, hit-stop or count-up; sound and colour stay)
+// - reduced motion (no sparks, shake, hit-stop or count-up; sound and colour stay: cue() swaps a
+//   flash animation for a static colour held as long, R49)
 // - mute/volume and Fast Forward (AudioEngine and ParticleEngine check those themselves)
 // T3 never opens a ceremony itself: it goes through rewards.ceremony, so the queue, cooldown and
 // skip rules still apply. Without a DOM (node tests) every call is a no-op.
@@ -19,6 +20,14 @@ import {
 export const COUNT_UP_MS = 800;
 const SHAKE_CLASS = 'fx-shake';
 const HITSTOP_CLASS = 'is-hitstop';
+
+// Reduced motion removes every animation (tokens.css), so a one-shot flash would vanish. cue()
+// shows these static classes instead, held for as long as the animation ran (R49, guide §5).
+export const STATIC_CUES = {
+  'reward-pulse': { cls: 'cue-gold-outline', ms: 900 },   // gold "look here" on a reward's source
+  'blast-flash': { cls: 'cue-orange-inset', ms: 600 },    // blasted mining tiles
+  'fx-flash': { cls: 'cue-red-border', ms: 150 }          // boss portrait on the killing blow
+};
 
 const hasDom = () => typeof document !== 'undefined';
 const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
@@ -44,15 +53,19 @@ function lerpAmount(from, to, p) {
 
 export class Feedback {
   constructor({
-    particles = defaultParticles, sound = defaultSound, rewards = defaultRewards,
+    particles = defaultParticles, sound = defaultSound, rewards = null,
     dom = hasDom, now = clock, reduced = isReducedMotion,
     width = () => (typeof window !== 'undefined' ? window.innerWidth : 0)
   } = {}) {
-    Object.assign(this, { particles, sound, rewards, dom, now, reduced, width });
+    Object.assign(this, { particles, sound, dom, now, reduced, width });
+    this.ownRewards = rewards;         // read lazily: rewards.js imports this module for cue()
     this.state = createFeedbackState();
     this.shaking = null;               // at most one shake at a time (opportunities §4)
     this.countUps = new WeakMap();     // element -> running count-up frame
+    this.cueTimers = new WeakMap();    // element -> Map(class -> removal timer)
   }
+
+  get rewards() { return this.ownRewards ?? defaultRewards; }
 
   /**
    * React to a moment. Options (all optional):
@@ -65,7 +78,8 @@ export class Feedback {
    *   label, labelColor, labelOffset   short callout above the point ("CRIT!"), T1+
    *   text        the floating text, or amount + fmt (+ prefix, default '+') to build it
    *   textColor, isCrit   text colour and the bold crit style
-   *   merge       true: this "+n" adds into the last one of the same kind (150 ms / 40 px)
+   *   group       'orb': counts toward the cap of live texts near the orb (MAX_ORB_TEXTS)
+   merge       true: this "+n" adds into the last one of the same kind (150 ms / 40 px)
    *   target      element to shake / hit-stop (T2, motion on)
    *   chain       true: escalate with repeated `kind` (result.chain, 0..cap)
    *   ceremony    T3 only: the rewards.ceremony event
@@ -106,7 +120,7 @@ export class Feedback {
       if (text) {
         const merge = opts.merge && opts.text === undefined
           ? { key: kind, amount: opts.amount, prefix, fmt } : null;
-        this.particles.spawnFloatingText(p.x, p.y, text, opts.textColor || opts.color, !!opts.isCrit, merge);
+        this.particles.spawnFloatingText(p.x, p.y, text, opts.textColor || opts.color, !!opts.isCrit, merge, opts.group || null);
       }
     }
 
@@ -124,6 +138,26 @@ export class Feedback {
     el.classList.add(SHAKE_CLASS);
     setTimeout(() => { el.classList.remove(SHAKE_CLASS); this.shaking = null; }, ms);
     return true;
+  }
+
+  /**
+   * One-shot flash on an element: adds `cls` (its CSS animation) for `ms`, restarting it if it is
+   * already on. Under reduced motion the animation would be removed, so the element gets the
+   * static colour from STATIC_CUES instead, held for that cue's time. Returns the class added.
+   */
+  cue(el, cls, ms) {
+    if (!this.dom() || !el?.classList) return null;
+    const fallback = this.reduced() ? STATIC_CUES[cls] : null;
+    const name = fallback ? fallback.cls : cls;
+    const hold = fallback ? fallback.ms : ms;
+    let timers = this.cueTimers.get(el);
+    if (!timers) this.cueTimers.set(el, timers = new Map());
+    clearTimeout(timers.get(name));
+    el.classList.remove(name);
+    void el.offsetWidth;               // restart the animation on a repeat
+    el.classList.add(name);
+    timers.set(name, setTimeout(() => { el.classList.remove(name); timers.delete(name); }, hold));
+    return name;
   }
 
   /** Visual freeze of an element's animations (the sim keeps running). Off under reduced motion. */

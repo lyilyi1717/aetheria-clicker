@@ -633,6 +633,33 @@ button, input, select, textarea {
   transition: width 0.1s ease;
 }
 
+/* R44: combo climb and Frenzy moment (js/ui/comboFx.js). Colour and glow steps are static, so
+   they stay under Reduce motion; only the ring, callout rise and wind-up pulse animate. */
+.monolith-orb[data-combo-step="1"] { box-shadow: 0 0 55px color-mix(in srgb, var(--gold) 58%, transparent), inset 0 0 22px rgba(255, 255, 255, 0.24); }
+.monolith-orb[data-combo-step="2"] { box-shadow: 0 0 65px color-mix(in srgb, var(--gold) 68%, transparent), inset 0 0 24px rgba(255, 255, 255, 0.28); }
+.monolith-orb[data-combo-step="3"] { box-shadow: 0 0 75px color-mix(in srgb, var(--gold) 78%, transparent), inset 0 0 26px rgba(255, 255, 255, 0.32); }
+.monolith-orb[data-combo-step="4"] { box-shadow: 0 0 85px color-mix(in srgb, var(--gold) 88%, transparent), inset 0 0 28px rgba(255, 255, 255, 0.36); }
+.monolith-orb.is-windup { box-shadow: 0 0 95px color-mix(in srgb, var(--danger) 70%, var(--gold)), inset 0 0 30px rgba(255, 255, 255, 0.45); animation: windupPulse 0.3s ease-in-out 6 alternate; }
+.monolith-orb.is-frenzy { box-shadow: 0 0 90px color-mix(in srgb, var(--danger) 85%, transparent), inset 0 0 34px color-mix(in srgb, var(--danger) 45%, transparent); }
+@keyframes windupPulse { from { filter: brightness(1); } to { filter: brightness(1.18); } }
+.combo-bar { position: relative; }
+.combo-bar.is-ring::after {
+  content: ''; position: absolute; inset: -2px; border-radius: 7px;
+  border: 2px solid var(--gold); pointer-events: none;
+  animation: comboRing 450ms ease-out forwards;
+}
+@keyframes comboRing { from { opacity: 1; transform: scaleX(1) scaleY(1); } to { opacity: 0; transform: scaleX(1.04) scaleY(1.8); } }
+.combo-bar.is-hold { box-shadow: 0 0 12px var(--gold), 0 0 4px var(--danger); }
+.frenzy-callout, .frenzy-chip {
+  position: absolute; left: 50%; pointer-events: none; z-index: 5; white-space: nowrap;
+  font-family: var(--font-display); font-weight: 800; text-align: center;
+  transform: translateX(-50%); text-shadow: 0 0 12px var(--danger), 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+.frenzy-callout { top: 50%; margin-top: -0.6em; font-size: clamp(var(--fs-24), 8vw, 2.4rem); color: var(--gold); animation: frenzyCallout 700ms ease-out forwards; }
+.frenzy-chip { bottom: -4px; font-size: var(--fs-14); color: var(--danger); background: var(--danger-dim); border: 1px solid var(--danger); border-radius: 10px; padding: 0.1rem 0.5rem; animation: frenzyChip 900ms ease-out forwards; }
+@keyframes frenzyCallout { 0% { opacity: 0; transform: translateX(-50%) scale(0.6); } 20% { opacity: 1; transform: translateX(-50%) scale(1.15); } 70% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) scale(1); } }
+@keyframes frenzyChip { 0% { opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+
 .frenzy-badge {
   margin-top: 0.5rem;
   font-weight: 800;
@@ -856,6 +883,8 @@ button, input, select, textarea {
 }
 @keyframes fxFlash { from { opacity: 0.6; } to { opacity: 0; } }
 :root[data-motion="reduced"] .monster-avatar.fx-flash::after { display: none; }
+/* Reduced motion (R49): feedback.cue shows a red border for the same 150 ms instead */
+.monster-avatar.cue-red-border { outline: 3px solid var(--danger); outline-offset: -3px; }
 
 /* "BOSS DOWN!" callout + gold chip over the portrait for 900 ms */
 .boss-down-callout {
@@ -1090,6 +1119,11 @@ button, input, select, textarea {
 @keyframes blast-flash {
   from { box-shadow: inset 0 0 0 2px var(--rarity-legendary), inset 0 0 18px color-mix(in srgb, var(--rarity-legendary) 55%, transparent); border-color: var(--rarity-legendary); }
   to { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--rarity-legendary) 0%, transparent), inset 0 0 18px color-mix(in srgb, var(--rarity-legendary) 0%, transparent); }
+}
+/* Reduced motion (R49): feedback.cue holds the flash's first frame, a static orange inset, 600 ms */
+.mine-tile.cue-orange-inset {
+  box-shadow: inset 0 0 0 2px var(--rarity-legendary), inset 0 0 18px color-mix(in srgb, var(--rarity-legendary) 55%, transparent);
+  border-color: var(--rarity-legendary);
 }
 
 /* Chain Lightning: the zapped tiles flash electric cyan */
@@ -1587,6 +1621,18 @@ button, input, select, textarea {
 .offline-breakdown tr.offline-total td { font-weight: 700; color: var(--text-main); border-bottom: 0; }
 .offline-note { color: var(--text-muted); font-size: 0.8rem; margin: 0 0 1rem; }
 .offline-close { width: 100%; padding: 0.6rem; }
+/* R43: rows fade in after the count-up; sparks draw above the modal while it is open */
+.offline-breakdown.is-pending tr { opacity: 0; }
+.offline-breakdown.is-revealed tr {
+  animation: offline-row-in 240ms ease-out both;
+  animation-delay: calc(var(--row, 0) * 120ms);
+}
+@keyframes offline-row-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+:root[data-motion="reduced"] .offline-breakdown tr { opacity: 1; animation: none; }
+body:has(#offline-modal.visible) #particle-canvas { z-index: 10001; }
 
 /* Tooltips (R24, style guide §5.8; js/ui/tooltip.js): hover tip by the cursor, bottom sheet on tap */
 #global-tooltip {

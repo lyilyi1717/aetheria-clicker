@@ -200,11 +200,24 @@ export class MarketSystem {
     const payout = this.getSellPrice(id).mul(new BigNum(amount));
     item.owned -= amount;
     this.gameState.gold = this.gameState.gold.add(payout);
-    sound.playGem();
-    rewards.notify({
-      tier: 'small', kind: 'market-sell', icon: '🪙', color: '#eab308',
-      title: t('market.sold'), amount: payout, fmt: fmtGold, unit: t('unit.gold')
-    });
+    // R48: only a real gain gets coins and green. Reference = the commodity's mean (base) price,
+    // so selling at the usual price, or lower, answers with a neutral click and a plain toast.
+    const base = COMMODITIES.find(c => c.id === id)?.basePrice || item.price;
+    const gainPct = Math.round((item.price * SELL_MARKDOWN / base - 1) * 100);
+    if (gainPct >= 1) {
+      sound.playCoins();
+      rewards.notify({
+        tier: 'small', kind: 'market-sell-gain', icon: '🪙', color: 'var(--ok)',
+        title: t('market.sold'), detail: t('market.sold_gain', { p: gainPct }),
+        amount: payout, fmt: fmtGold, unit: t('unit.gold')
+      });
+    } else {
+      sound.playClick();
+      rewards.notify({
+        tier: 'small', kind: 'market-sell-plain', icon: '🪙', color: 'var(--text-dim)',
+        title: t('market.sold_plain', { n: fmtGold(payout) })
+      });
+    }
     return true;
   }
 
@@ -268,6 +281,7 @@ export class MarketSystem {
         caravan.active = false;
         const returnPayout = caravan.payout ? new BigNum(caravan.payout) : caravan.investment.mul(caravan.expectedProfit);
         this.gameState.gold = this.gameState.gold.add(returnPayout);
+        sound.playCoins();
         rewards.notify({
           tier: 'medium', kind: 'caravan-back', icon: '🐪', color: '#4ade80',
           title: t('caravan.returned'), batchTitle: t('caravan.returned_batch'), amount: returnPayout, fmt: fmtGold, unit: t('unit.gold')

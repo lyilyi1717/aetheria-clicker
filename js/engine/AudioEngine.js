@@ -10,6 +10,14 @@ export const SCALES = {
   boss: [130.81, 138.59, 155.56, 174.61, 185.00, 207.65] // Dark / Deep
 };
 
+// Find family: note offsets into the scale and the extras per rarity
+const GEM_VOICES = {
+  common: { offsets: [0, 3] },
+  rare: { offsets: [0, 2, 4] },
+  epic: { offsets: [0, 1, 3, 5], shimmer: true },
+  legendary: { offsets: [0, 1, 3, 5], bell: true }
+};
+
 export class AudioEngine {
   constructor() {
     this.ctx = null;
@@ -331,37 +339,99 @@ export class AudioEngine {
     });
   }
 
-  // Sound: Gem / Relic Uncovered (Arpeggio)
-  playGem() {
+  // Sound: Frenzy (R44): a fast rising scale run up an octave and a held bright fifth, about
+  // 0.6 s. The payoff of the combo climb, richer than any single click or crit.
+  playFrenzy() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const s = this._scale();
+    [s[0], s[1], s[2], s[3], s[4], s[5]].forEach((f, i) => {
+      this._voice('triangle', f * 2, t + i * 0.045, 0.16, 0.22);
+    });
+    const top = t + 6 * 0.045;
+    this._voice('sine', s[0] * 4, top, 0.45, 0.2);
+    this._voice('sine', s[3] * 4, top, 0.45, 0.14);
+  }
+
+  // Sound: Find (R46). Rarity sets how rich it is: common 2 notes, rare 3, epic 4 + shimmer,
+  // legendary 4 + a bell partial. Unknown rarities sound like common.
+  playGem(rarity = 'common') {
     if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
 
+    const spec = GEM_VOICES[rarity] || GEM_VOICES.common;
     const t = this.ctx.currentTime;
     const scale = SCALES[this.rhythmScale] || SCALES.hijaz;
-    
-    [0, 1, 3, 5].forEach((offset, i) => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
 
-      const freq = scale[(this.noteIndex + offset) % scale.length] * 2;
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, t + i * 0.05);
-
-      gain.gain.setValueAtTime(0.25, t + i * 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.05 + 0.2);
-
-      osc.connect(gain);
-      gain.connect(this.masterGain);
-
-      osc.start(t + i * 0.05);
-      osc.stop(t + i * 0.05 + 0.2);
+    spec.offsets.forEach((offset, i) => {
+      const at = t + i * 0.05;
+      this._voice('sine', scale[(this.noteIndex + offset) % scale.length] * 2, at, 0.2, 0.25);
     });
-    this.noteIndex += 4;
+    const top = scale[(this.noteIndex + spec.offsets[spec.offsets.length - 1]) % scale.length] * 2;
+    const end = t + (spec.offsets.length - 1) * 0.05;
+    if (spec.shimmer) {   // two detuned high partials that beat against each other
+      this._voice('triangle', top * 2, end, 0.5, 0.09);
+      this._voice('triangle', top * 2 * 1.007, end, 0.5, 0.09);
+    }
+    if (spec.bell) this._voice('sine', top * 2.76, end, 0.7, 0.1);   // inharmonic bell partial
+    this.noteIndex += spec.offsets.length;
   }
 
-  // Sound: Spell Cast
-  playSpell() {
+  // Sound: Collect / claim (R46): 3 short bright plucks, each detuned by up to +-15 cents so
+  // repeated claims do not sound mechanical.
+  playCoins() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const s = this._scale();
+    [s[2], s[4], s[0] * 2].forEach((f, i) => {
+      const cents = (Math.random() * 2 - 1) * 15;
+      this._voice('triangle', f * 2 * Math.pow(2, cents / 1200), t + i * 0.055, 0.14, 0.22);
+    });
+  }
+
+  // Sound: Boom (R46): a noise burst over a falling low sine, about 250 ms.
+  playBlast() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const len = Math.max(1, Math.floor(this.ctx.sampleRate * 0.25));
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buf;
+    const ng = this.ctx.createGain();
+    ng.gain.setValueAtTime(0.35, t);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    noise.connect(ng);
+    ng.connect(this.masterGain);
+    noise.start(t);
+
+    const osc = this.ctx.createOscillator();
+    const og = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(110, t);
+    osc.frequency.exponentialRampToValueAtTime(35, t + 0.25);
+    og.gain.setValueAtTime(0.5, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    osc.connect(og);
+    og.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.25);
+  }
+
+  playGemRare() { this.playGem('rare'); }
+  playGemEpic() { this.playGem('epic'); }
+  playGemLegendary() { this.playGem('legendary'); }
+
+  // Sound: Cast. `interval` is a frequency ratio (SPELL_INTERVALS) so each spell has its own pitch.
+  playSpell(interval = 1) {
     if (this.muted || this.quiet) return;
     this.ensureContext();
     if (!this.ctx) return;
@@ -371,7 +441,7 @@ export class AudioEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sine';
-    const baseFreq = this.getNextFreq();
+    const baseFreq = (SCALES[this.rhythmScale] || SCALES.hijaz)[0] * (Number(interval) > 0 ? Number(interval) : 1);
     osc.frequency.setValueAtTime(baseFreq, t);
     osc.frequency.exponentialRampToValueAtTime(baseFreq * 4, t + 0.25);
 
@@ -419,10 +489,11 @@ export class AudioEngine {
   }
 
   // Sound: Ascension / Cosmic Shift
+  // Returns a stop() that fades it out (the hold-to-drill build-up is cancelled by letting go)
   playAscension() {
-    if (this.muted || this.quiet) return;
+    if (this.muted || this.quiet) return () => {};
     this.ensureContext();
-    if (!this.ctx) return;
+    if (!this.ctx) return () => {};
 
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -442,6 +513,14 @@ export class AudioEngine {
 
     osc.start(t);
     osc.stop(t + 1.6);
+    return () => {
+      const n = this.ctx.currentTime;
+      try {
+        gain.gain.cancelScheduledValues(n);
+        gain.gain.setValueAtTime(Math.max(0.001, gain.gain.value), n);
+        gain.gain.exponentialRampToValueAtTime(0.001, n + 0.12);
+      } catch { /* already finished */ }
+    };
   }
 
   // ---- Reward tiers (redesign §5.1): small = pluck, medium = bell, big = brass, epic = choir.
@@ -602,10 +681,19 @@ export class AudioEngine {
   }
 }
 
+// Frequency ratios for the Cast family: root, fourth, fifth, octave
+export const SPELL_INTERVALS = { root: 1, fourth: 4 / 3, fifth: 3 / 2, octave: 2 };
+// Which interval each spell and hero skill plays (anything else plays the root)
+export const SPELL_INTERVAL_BY_ID = {
+  aether_burst: SPELL_INTERVALS.root, midas_touch: SPELL_INTERVALS.fourth,
+  celestial_alignment: SPELL_INTERVALS.fifth, chrono_warp: SPELL_INTERVALS.fifth,
+  astral_refresh: SPELL_INTERVALS.octave
+};
+
 // Sound ids the feedback helper accepts (R41)
 export const SOUND_IDS = {
-  click: 'playClick', crit: 'playCrit', buy: 'playBuy', hit: 'playHit', defeat: 'playDefeat',
-  dig: 'playDig', gem: 'playGem', spell: 'playSpell', achievement: 'playAchievement',
+  click: 'playClick', frenzy: 'playFrenzy', crit: 'playCrit', buy: 'playBuy', coins: 'playCoins', blast: 'playBlast', hit: 'playHit', defeat: 'playDefeat',
+  dig: 'playDig', gem: 'playGem', 'gem-rare': 'playGemRare', 'gem-epic': 'playGemEpic', 'gem-legendary': 'playGemLegendary', spell: 'playSpell', achievement: 'playAchievement',
   ascension: 'playAscension', pluck: 'playPluck', bell: 'playBell', brass: 'playBrass',
   choir: 'playChoir', 'boss-down': 'playBossDown', tick: 'playTick', warn: 'playWarn', counter: 'playCounter'
 };

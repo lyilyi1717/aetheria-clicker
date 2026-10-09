@@ -544,7 +544,7 @@ leaderboard column. No save migration: `codex` is a new additive field.
 > window measure is sensitive to where a layer boundary lands, which `sim:check` asserts only for
 > the default pick.
 
-> **R57 late-year Chronicle/Page loop (v5.20.0, issue #139).** *Where the late-year growth came
+> **R57 late-year Chronicle/Page loop (v5.27.0, issue #139).** *Where the late-year growth came
 > from (measured on v5.19.0).* Months 1–3 sat near the target, but the highest run Oil over days
 > 180–365 reached 9e20 casual and 2.6e24 with `--links` (months 6–12 median 1.7e14 / 6.5e17). In
 > every Chronicle cycle the per-Transcend peaks for Transcends 1–8 are about the same (~4e9 …
@@ -890,7 +890,7 @@ days 4.3, 9.4, 15.0, 22.1, 30.9, 41.3, 54.1, 69.9, first Chronicle day 77 (idle 
 Transcends and 11 Chronicles in the casual year. First Ascension idle 60 min, casual 10 min;
 longest stretch without a reset (day 1–270) casual 2.3 days, idle 4.1 days.
 
-**R57 (v5.20.0):** later Chronicles begin at the 9th Transcend (§6.1 R57 block). Months 6–12
+**R57 (v5.27.0):** later Chronicles begin at the 9th Transcend (§6.1 R57 block). Months 6–12
 run Oil casual / idle: median 8.4e9 / 2e11, highest 7.8e16 / 1e17 (v5.19.0: 1.7e14 / 8.6e12 and
 9.2e20 / 1.2e19); with `--links` 3.9e9 / 1.7e10 and 2.5e15 / 1.2e16 (were 6.5e17 / 9.5e17 and
 2.6e24 / 3.5e23). 28 Chronicles in the casual year (136 Pages), 14 idle; 94 with links.

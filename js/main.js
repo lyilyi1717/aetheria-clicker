@@ -22,6 +22,7 @@ import { DUST_SHOP_ITEMS } from './systems/DustShopSystem.js';
 import { DustShopUI } from './ui/dustShop.js';
 import { AttunementUI } from './ui/attunements.js';
 import { TranscendPanel, fmtBigMult } from './ui/prestige.js';
+import { runPrestige, renderConfirmSettings } from './ui/prestigeCeremony.js';
 import { TalentSourcesPanel } from './ui/talents.js';
 import { buildContractsBoard, updateContractsBoard, bindContracts } from './ui/contracts.js';
 import { AchievementSystem } from './systems/AchievementSystem.js';
@@ -50,11 +51,14 @@ import { NewsTicker, renderNewsSettings } from './ui/newsTicker.js';
 import { SharedNews, sharedQueueItems, sharedNewsHooks } from './ui/sharedNews.js';
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
+import { initComboFx, renderComboFx } from './ui/comboFx.js';
 import { initAutoTap, renderAutoTap } from './ui/autoTap.js';
 import { initCombatFx, renderBossTimer } from './ui/combatFx.js';
 import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
+import { gainLabel, gainTip } from './ui/buyGain.js';
+import { afterBuy } from './ui/buyFx.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
 import { t, tOr, getLang, buffName, bidi, isolateSigns, applyLanguageToDocument, syncLanguageSetting, renderLanguageSettings } from './i18n/index.js';
@@ -288,6 +292,7 @@ class AetheriaApp {
     this.sharedNews.start();
     const newsChanged = () => { this.newsTicker.refresh(); this.saveManager.save(); };
     renderMotionSettings(document.getElementById('settings-motion'), this.gameState.settings, newsChanged);
+    renderConfirmSettings(document.getElementById('settings-confirm'), this.gameState.settings, () => this.saveManager.save());
     renderNewsSettings(document.getElementById('settings-news'), this.gameState.settings, newsChanged, sharedNewsHooks(this.sharedNews, this.gameState.settings));
     renderThemeSettings(document.getElementById('settings-theme'), this.gameState.settings, () => this.saveManager.save());
     renderLanguageSettings(document.getElementById('settings-language'), this.gameState.settings, () => this.saveManager.save());
@@ -323,6 +328,7 @@ class AetheriaApp {
     // Monolith Click
     const monolith = document.getElementById('monolith-orb');
     initAutoTap(this.clickerSystem, monolith);
+    initComboFx(this.clickerSystem, monolith);
     if (monolith) {
       monolith.addEventListener('pointerdown', (e) => {
         sound.ensureContext();
@@ -440,7 +446,9 @@ class AetheriaApp {
         if (btn) {
           const id = btn.dataset.id;
           sound.ensureContext();
+          const before = this.gameState.buildings[id]?.count || 0;
           this.buildingSystem.buyBuilding(id);
+          afterBuy(btn, (this.gameState.buildings[id]?.count || 0) - before, this.$(`b-count-${id}`));
           this.updateBuildingsUI();
         }
       });
@@ -472,7 +480,9 @@ class AetheriaApp {
     const btnForge = document.getElementById('btn-forge-awaken');
     if (btnForge) {
       btnForge.addEventListener('click', () => {
-        if (this.combatSystem.upgradeAetherForge()) {
+        const forged = this.combatSystem.upgradeAetherForge();
+        afterBuy(btnForge, forged ? 1 : 0);
+        if (forged) {
           this.updateCombatUI();
           this.updateHeaderStats();
         }
@@ -504,13 +514,15 @@ class AetheriaApp {
         const btn = e.target.closest('button');
         if (!btn) return;
         sound.ensureContext();
-        if (btn.id === 'btn-upgrade-pick') this.miningSystem.upgradePickaxe();
-        else if (btn.id === 'btn-buy-drill') this.miningSystem.buyAutoDrill();
-        else if (btn.id === 'btn-buy-steam-jack') this.miningSystem.buySteamDrill();
-        else if (btn.id === 'btn-buy-seismic-rig') this.miningSystem.buySeismicRig();
+        let ok;
+        if (btn.id === 'btn-upgrade-pick') ok = this.miningSystem.upgradePickaxe();
+        else if (btn.id === 'btn-buy-drill') ok = this.miningSystem.buyAutoDrill();
+        else if (btn.id === 'btn-buy-steam-jack') ok = this.miningSystem.buySteamDrill();
+        else if (btn.id === 'btn-buy-seismic-rig') ok = this.miningSystem.buySeismicRig();
         else if (btn.id === 'btn-mining-dynamite') this.miningSystem.useDynamite();
-        else if (btn.dataset.skill) this.miningSystem.upgradeSkill(btn.dataset.skill);
+        else if (btn.dataset.skill) ok = this.miningSystem.upgradeSkill(btn.dataset.skill);
         else return;
+        if (ok !== undefined) afterBuy(btn, ok ? 1 : 0);
         this.updateMiningUI();
       });
     }
@@ -590,9 +602,11 @@ class AetheriaApp {
       marketList.addEventListener('click', (e) => {
         const id = e.target.dataset.id;
         if (!id) return;
-        if (e.target.classList.contains('btn-market-buy')) this.marketSystem.buyCommodity(id, 1);
-        else if (e.target.classList.contains('btn-market-buy10')) this.marketSystem.buyCommodity(id, 10);
-        else if (e.target.classList.contains('btn-market-sell')) this.marketSystem.sellCommodity(id, 1);
+        const owned = this.gameState.market.items[id]?.owned || 0;
+        if (e.target.classList.contains('btn-market-buy') || e.target.classList.contains('btn-market-buy10')) {
+          this.marketSystem.buyCommodity(id, e.target.classList.contains('btn-market-buy10') ? 10 : 1);
+          afterBuy(e.target, (this.gameState.market.items[id]?.owned || 0) - owned);
+        } else if (e.target.classList.contains('btn-market-sell')) this.marketSystem.sellCommodity(id, 1);
         else if (e.target.classList.contains('btn-market-sellall')) this.marketSystem.sellAll(id);
         this.updateMarketUI();
       });
@@ -744,6 +758,7 @@ class AetheriaApp {
         <div class="b-info">
           <div class="b-header">
             <span class="b-name">${def.name}</span>
+            <span class="chip b-best" id="b-best-${def.id}" hidden></span>
             <span class="b-count num" id="b-count-${def.id}">0</span>
           </div>
           <div class="b-desc">${def.desc}</div>
@@ -752,6 +767,7 @@ class AetheriaApp {
         <button class="btn-buy-building btn btn-buy" id="btn-buy-${def.id}" data-id="${def.id}">
           <span class="lbl" id="buy-lbl-${def.id}"></span>
           <span class="cost num" id="cost-lbl-${def.id}">💎 0</span>
+          <span class="gain num" id="gain-lbl-${def.id}"></span>
         </button>
       </div>
     `).join('');
@@ -760,7 +776,7 @@ class AetheriaApp {
   }
 
   updateBuildingsUI() {
-    const buyAmt = this.buildingSystem.buyAmount;
+    const bestId = this.buildingSystem.getBestValueId();
 
     for (const def of BUILDING_DEFINITIONS) {
       // Tiers 15-30 open one per Transcend (R4); locked ones stay hidden
@@ -770,22 +786,7 @@ class AetheriaApp {
       if (cardEl && cardEl.style.display !== display) cardEl.style.display = display;
       if (!unlocked) continue;
       const state = this.gameState.buildings[def.id] || { count: 0 };
-      let cost = BigNum.zero();
-      let buyCount = 1;
-
-      if (buyAmt === 'max') {
-        const maxInfo = this.buildingSystem.getMaxBuyable(def.id);
-        if (maxInfo.count > 0) {
-          cost = maxInfo.cost;
-          buyCount = maxInfo.count;
-        } else {
-          cost = this.buildingSystem.getBuildingCost(def.id, 1);
-          buyCount = 1;
-        }
-      } else {
-        buyCount = buyAmt;
-        cost = this.buildingSystem.getBuildingCost(def.id, buyCount);
-      }
+      const { count: buyCount, cost } = this.buildingSystem.getBuyPlan(def.id);
 
       const canAfford = this.gameState.aether.gte(cost) && buyCount > 0;
       const currentCps = this.buildingSystem.getBuildingProduction(def.id);
@@ -798,11 +799,19 @@ class AetheriaApp {
         ? `💎 ${cost.format('standard', 1)}`
         : t('bld.need', { n: cost.sub(this.gameState.aether).format('standard', 1) }));
 
+      // R51: marginal gain of this buy, shown even when unaffordable; one Best value badge
+      const gain = this.buildingSystem.getBuyGain(def.id, buyCount);
+      setText(this.$(`gain-lbl-${def.id}`), gainLabel(gain));
+      const bestEl = this.$(`b-best-${def.id}`);
+      if (bestEl) { setText(bestEl, t('bld.best')); bestEl.hidden = def.id !== bestId; }
+
       const card = this.$(`b-card-${def.id}`);
       if (card) card.classList.toggle('is-affordable', canAfford);
 
       const btn = this.$(`btn-buy-${def.id}`);
       if (btn) {
+        const tip = gainTip(gain, cost);
+        if (btn.dataset.tip !== tip) btn.dataset.tip = tip;
         btn.classList.toggle('btn-primary', canAfford);
         btn.classList.toggle('is-locked', !canAfford);
         btn.setAttribute('aria-disabled', String(!canAfford));
@@ -1798,13 +1807,21 @@ class AetheriaApp {
     const ascBtn = document.getElementById('btn-do-ascend');
     if (ascBtn) {
       ascBtn.onclick = () => {
-        const dm = this.prestigeSystem.getDustMultipliers();
-        const nectarNote = '\n\n' + t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtBonus(dm.nectarMult) });
-        if (confirm(t('prestige.confirm') + nectarNote)) {
-          this.prestigeSystem.ascend();
+        const ps = this.prestigeSystem;
+        if (!ps.canAscend()) return;
+        const dm = ps.getDustMultipliers();
+        runPrestige({
+          kind: 'well',
+          question: t('prestige.confirm'),
+          gain: [t('prestige.sheet_gain', { n: ps.getPendingCosmicDust().format('standard', 0) })],
+          lose: [t('prestige.sheet_lose')],
+          notes: [t('prestige.nectar_note', { n: fmtNum(dm.nectar), item: itemName('starNectar'), mult: fmtBonus(dm.nectarMult) })],
+          settings: this.gameState.settings
+        }, () => {
+          ps.ascend(false, { chosen: true });
           this.updateBuildingsUI();
           this.updatePrestigeUI();
-        }
+        }, ascBtn);
       };
     }
 
@@ -2094,6 +2111,7 @@ class AetheriaApp {
 
     renderAutoTap(this.$('auto-tap-line'), this.gameState, this.clickerSystem);
     renderCombo(this.$('combo-bar-fill'), this.$('combo-text'), this.gameState, this.clickerSystem);
+    renderComboFx(this.$('monolith-orb'), this.gameState, this.clickerSystem);
 
     const frenzyBadge = this.$('frenzy-badge');
     if (frenzyBadge) {

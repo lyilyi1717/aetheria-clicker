@@ -70,6 +70,9 @@ function makeEntry(ev, now) {
     fmt: ev.fmt || null,
     unit: ev.unit || '',
     source: ev.source || null,
+    signature: ev.signature || null,       // R45: 'well' / 'field' give the ceremony its own look
+    force: !!ev.force,                     // R45: a moment the player chose skips the big cooldown
+    durationMs: ev.durationMs || null,     // R45: shorter than the tier default (full motion only)
     count: Math.max(1, ev.count || 1),
     createdAt: now,
     updatedAt: now,
@@ -191,7 +194,7 @@ export class CeremonyScheduler {
         return { entry: hit, action: 'merged' };
       }
     }
-    if (tier === 'big' && now - this.lastBigAt < this.config.bigCeremonyCooldownMs) {
+    if (tier === 'big' && !ev.force && now - this.lastBigAt < this.config.bigCeremonyCooldownMs) {
       return { entry: null, action: 'toast' };
     }
     const entry = makeEntry({ ...ev, tier }, now);
@@ -199,10 +202,10 @@ export class CeremonyScheduler {
       this.start(entry, now);
       return { entry, action: 'show' };
     }
-    if (tier === 'big' && this.queue.filter(e => e.tier === 'big').length >= 1) {
+    if (tier === 'big' && !ev.force && this.queue.filter(e => e.tier === 'big').length >= 1) {
       return { entry: null, action: 'toast' };   // one big waiting is plenty
     }
-    if (this.queue.length >= this.config.maxQueuedCeremonies && tier === 'big') {
+    if (this.queue.length >= this.config.maxQueuedCeremonies && tier === 'big' && !ev.force) {
       return { entry: null, action: 'toast' };
     }
     this.queue.push(entry);
@@ -225,6 +228,7 @@ export class CeremonyScheduler {
   }
 
   duration(entry, reducedMotion = false) {
+    if (!reducedMotion && entry.durationMs) return entry.durationMs;
     const table = reducedMotion ? this.config.ceremonyReducedMs : this.config.ceremonyMs;
     return table[entry.tier] || table.big;
   }

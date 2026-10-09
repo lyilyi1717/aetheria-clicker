@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.20.0';
+export const VERSION = '5.27.0';
 
 export const CHANGELOG = [
   {
-    version: '5.20.0',
+    version: '5.27.0',
     date: '2026-10-09',
     title: 'Chronicle Pages stop at the 9th New Field',
     changes: [
@@ -25,6 +25,145 @@ export const CHANGELOG = [
         'دليل تبويب الملحمة يشرح الآن كيف تُحسب الصفحات، وتلميحه يذكر العدد الصحيح من الحقول الجديدة (6، أو 8 لأول ملحمة؛ كان يقول 12).'
       ]
     }
+  },
+  {
+    version: '5.26.0',
+    date: '2026-10-09',
+    title: 'A Well Worth Drilling',
+    changes: [
+      'Drilling a New Well and opening a New Oil Field no longer use a pop-up box from your browser. A sheet inside the game shows exactly what you gain and what resets, with Not yet and a confirm button you hold for a moment while a tone rises.',
+      'Let go early and nothing happens. Hold it all the way and the screen dims, the orb sinks, a gusher of 60 sparks bursts out and NEW WELL! or NEW FIELD! flashes before the reward card counts up. The whole thing takes 3.5 seconds at most, and a tap or Esc skips straight to the result.',
+      'A New Field has its own look and sound: a purple sweep across the screen and the choir. A New Well you choose to drill always gets its celebration, even if another big moment happened in the last minute.',
+      'New Settings option, Tap to confirm, replaces the hold with a single tap. With Reduce motion on the button is always a tap, there is no sinking orb or sparks, and the reward card is the short one. What you gain and lose is unchanged.'
+    ],
+    ar: {
+      title: 'بئر تستحق الحفر',
+      changes: [
+        'لم يعد حفر بئر جديدة أو فتح حقل نفط جديد يستخدم نافذة المتصفح. تعرض ورقة داخل اللعبة بالضبط ما تكسبه وما يُعاد ضبطه، مع «ليس الآن» وزر تأكيد تضغطه مطولًا لحظة بينما ترتفع نغمة.',
+        'إن رفعت إصبعك مبكرًا فلن يحدث شيء. وإن أكملت الضغط يخفت الشاشة وتغوص الكرة وينفجر نبع من 60 شرارة ويومض «بئر جديدة!» أو «حقل جديد!» قبل أن تعدّ بطاقة المكافأة. تستغرق العملية 3.5 ثانية كحد أقصى، والنقر أو Esc ينتقل مباشرة إلى النتيجة.',
+        'للحقل الجديد شكله وصوته: كنسة بنفسجية عبر الشاشة والجوقة. والبئر الجديدة التي تختار حفرها تحصل دائمًا على احتفالها حتى لو حدثت لحظة كبيرة أخرى في الدقيقة الماضية.',
+        'خيار جديد في الإعدادات «النقر للتأكيد» يستبدل الضغط المطول بنقرة واحدة. مع تفعيل تقليل الحركة يكون الزر نقرة دائمًا، بلا غوص للكرة ولا شرر، وبطاقة المكافأة هي القصيرة. ما تكسبه وما تخسره لم يتغير.'
+      ]
+    }
+  },
+  {
+    version: '5.25.0',
+    date: '2026-10-09',
+    title: 'The Climb to Frenzy',
+    changes: [
+      'Tapping the Refinery now builds toward something. The tap sound rises one note for every 4 combo taps (five notes at most) and steps back down when you pause. At 5, 10, 15 and 20 combo a ring pulses on the combo bar and the orb glows brighter.',
+      'Taps 18 and 19 wind up: the orb flares, then at 20 Frenzy hits with its own sound, a FRENZY! callout, a ring of sparks and a tinted orb for as long as it lasts. The combo bar stays full and glowing for a moment before it shows progress to the next Frenzy, and a Frenzy that gets extended shows a +4 s chip.',
+      'A crit now pops CRIT! at the tap and the number floats up from under it. The Oil numbers from fast tapping are capped at 12 on screen so they stay readable on a phone.',
+      'The Tap to pump Oil! hint goes away after your first tap. With Reduce motion on there is no ring, sparks or scale, but the callout, colours and sounds stay. Frenzy pays the same as before.'
+    ],
+    ar: {
+      title: 'الصعود نحو الهيجان',
+      changes: [
+        'صارت نقرات المصفاة تبني نحو لحظة كبيرة. ترتفع نغمة النقر درجة واحدة كل 4 نقرات متتالية (خمس درجات كحد أقصى) وتنزل مجددا حين تتوقف. عند 5 و10 و15 و20 تنبض حلقة على شريط الكومبو ويزداد توهّج الكرة.',
+        'النقرتان 18 و19 تمهّدان للحظة: تلتهب الكرة، ثم عند 20 يبدأ الهيجان بصوته الخاص ونص «الهيجان!» وحلقة من الشرر وتلوّن الكرة طوال مدته. يبقى شريط الكومبو ممتلئا ومتوهجا لحظة قبل أن يعرض التقدم نحو الهيجان التالي، وعند تمديد الهيجان تظهر شارة +4 ث.',
+        'النقرة الحرجة تُظهر «CRIT!» عند موضع النقر ويطفو الرقم من تحتها. أرقام النفط الناتجة عن النقر السريع لا تزيد عن 12 على الشاشة لتبقى مقروءة على الهاتف.',
+        'يختفي تلميح «انقر لتضخّ النفط!» بعد أول نقرة. عند تفعيل تقليل الحركة لا حلقة ولا شرر ولا تكبير، وتبقى الكلمة والألوان والأصوات. الهيجان يمنح المقدار نفسه كما كان.'
+      ]
+    }
+  },
+  {
+    version: '5.24.0',
+    date: '2026-10-09',
+    title: 'Honest Feedback',
+    changes: [
+      'The Bazaar only cheers for a real profit. Sell above the usual price and you get the coin chime and a green "+gold (+x%)" note. Sell at the usual price or below it and you get a plain click and "Sold for n gold", with no chime and no green. Prices and payouts are unchanged.',
+      'A cross-breed that gives no hybrid now answers with a soft pluck and a quiet "No hybrid this time" note instead of silence.',
+      'Buying now shows: the count pops and a "+1" (or "+10", "+100") rises from the button. With Reduce motion on, the chip simply shows in place.',
+      'Tapping a buy button you cannot use (not enough resources) now gives a soft low click and a brief outline instead of nothing.'
+    ],
+    ar: {
+      title: 'ردود فعل صادقة',
+      changes: [
+        'السوق لا يحتفل إلا بالربح الحقيقي. إذا بعت بأعلى من السعر المعتاد تسمع رنين العملات وتظهر ملاحظة خضراء «+ذهب (+x٪)». وإذا بعت بالسعر المعتاد أو أقل تسمع نقرة عادية وتظهر «بيع مقابل n ذهب» دون رنين ولا لون أخضر. الأسعار والمبالغ كما هي.',
+        'التهجين الذي لا ينتج هجينا صار يردّ بنغمة خفيفة وملاحظة هادئة «لا هجين هذه المرة» بدل الصمت.',
+        'الشراء صار مرئيا: يقفز العدّاد وترتفع من الزر إشارة «+1» (أو «+10»، «+100»). مع تقليل الحركة تظهر الإشارة في مكانها فقط.',
+        'الضغط على زر شراء لا تستطيع استخدامه (موارد غير كافية) يعطي الآن نقرة منخفضة خفيفة وإطارا قصيرا بدل لا شيء.'
+      ]
+    }
+  },
+  {
+    version: '5.23.0',
+    date: '2026-10-09',
+    title: 'Drills Use Your Techniques',
+    changes: [
+      'Auto-Drills and Steam Jackhammers now hit like your own pickaxe: every drill hit can Seismic Fracture (x10 damage), Quarry Cleave, Arc Conduction and crit (including the Super-Crit shockwave), with the same chances as a tap. Your Stone Workshop upgrades now speed up idle digging too.',
+      'Excavation Frenzy still comes only from 7 quick taps of your own, and its x2 still applies only to your taps. Drill procs make no sound, so a busy mine stays quiet.'
+    ],
+    ar: {
+      title: 'المثاقب تستخدم تقنياتك',
+      changes: [
+        'المثاقب الآلية والمطارق البخارية تضرب الآن مثل معولك: كل ضربة مثقاب قد تُحدث الصدع الزلزالي (ضرر عشرة أضعاف) وشق المحجر وتوصيل القوس والضربة الحرجة (ومعها موجة الضربة الحرجة الفائقة)، بنفس فرص نقرتك. فترقيات ورشة الأحجار تُسرّع الحفر وأنت غائب أيضا.',
+        'جنون الحفر ما زال يأتي فقط من 7 نقرات سريعة منك، ومضاعفته تنطبق على نقراتك فقط. ضربات المثاقب الخاصة بلا صوت، فيبقى المنجم المزدحم هادئا.'
+      ]
+    }
+  },
+  {
+    version: '5.22.0',
+    date: '2026-10-09',
+    title: 'A Proper Welcome Back',
+    changes: [
+      'Coming back after time away now feels like a small celebration: a bell rings, your offline Oil counts up (1.2 seconds at most), then the breakdown rows appear and gold sparks fly. Tap anywhere to skip to the total.',
+      'The button is now called Collect: it closes the window with a soft pluck and your Oil counter in the header glows. You get exactly the same amount as before.',
+      'With Reduce motion on, the total shows at once without sparks; the sounds still play.'
+    ],
+    ar: {
+      title: 'ترحيب لائق بعودتك',
+      changes: [
+        'العودة بعد الغياب صارت احتفالا صغيرا: يرنّ جرس، ثم يرتفع عدّاد النفط الذي جمعته في غيابك (ثانية وخُمسان على الأكثر)، ثم تظهر تفاصيل الحساب ويتطاير شرر ذهبي. انقر في أي مكان لتنتقل إلى المجموع مباشرة.',
+        'صار اسم الزر «استلم»: يغلق النافذة بنغمة خفيفة ويتوهّج عدّاد النفط في الأعلى. تحصل على المقدار نفسه تماما كما في السابق.',
+        'عند تفعيل تقليل الحركة يظهر المجموع فورا دون شرر، وتبقى الأصوات.'
+      ]
+    }
+  },
+  {
+    version: '5.21.1',
+    date: '2026-10-09',
+    title: 'Colour Cues Without Motion',
+    changes: [
+      'With Reduce motion on, flashes that used to disappear now show as a steady colour instead: a gold outline around the source of a reward (0.9 s), an orange edge on tiles hit by Dynamite or Void Cataclysm (0.6 s), and a red border on the boss portrait when you land the killing blow.'
+    ],
+    ar: {
+      title: 'إشارات لونية بلا حركة',
+      changes: [
+        'مع تفعيل «تقليل الحركة»، صارت الومضات التي كانت تختفي تظهر لوناً ثابتاً: إطار ذهبي حول مصدر المكافأة (0.9 ث)، وحافة برتقالية على المربعات التي يصيبها الديناميت أو إعصار الفراغ (0.6 ث)، وإطار أحمر على صورة الزعيم عند الضربة القاضية.'
+      ]
+    }
+  },
+  {
+    version: '5.21.0',
+    date: '2026-10-09',
+    title: 'Sounds That Mean Something',
+    changes: [
+      'You can now tell by ear what happened. Spending still makes the rising "buy" tone; collecting a reward (contract claim, Daily Dallah, gold caches, returning caravans, Bazaar sales) now makes a bright coin chime instead.',
+      'Finds sound richer the rarer they are: a ruby is two notes, a diamond three, a Void Amethyst four with a shimmer. Aether Ore and Anomalies now have a rare find sound too.',
+      'Each spell is cast at its own pitch, and Dynamite and Void Cataclysm now boom instead of making the combat hit sound.',
+      'Claiming a contract shows a small toast with the gold, Seals and Chrono Sand you received.',
+      'The Daily Dallah now plays one sound, not two.'
+    ],
+    ar: {
+      title: 'أصوات لها معنى',
+      changes: [
+        'صرت تعرف بأذنك ماذا حدث. الصرف ما زال بنغمة الشراء الصاعدة، أما استلام مكافأة (عقد، أو الدلّة اليومية، أو كنوز الذهب، أو عودة القافلة، أو بيع في السوق) فيُصدر الآن رنّة عملات ساطعة.',
+        'كلما ندر الكنز غنى صوته: الياقوت نغمتان، والألماس ثلاث، وجمشت الفراغ أربع مع لمعان. ولخام الأثير والشذوذات الآن صوت اكتشاف نادر.',
+        'لكل تعويذة نغمتها الخاصة، وأصبح للديناميت وإعصار الفراغ دويّ بدل صوت ضربة القتال.',
+        'استلام العقد يعرض إشعارا صغيرا بما نلته من ذهب وأختام ورمل الزمن.',
+        'الدلّة اليومية تُصدر صوتا واحدا لا اثنين.'
+      ]
+    }
+  },
+  {
+    version: '5.20.0',
+    date: '2026-10-09',
+    title: 'See What Each Generator Adds',
+    changes: [
+      'Every generator buy button now shows how much production the purchase adds (for example +45/s) under its cost, for the amount you have selected (1, 10, 25, 100 or MAX). It counts milestones, upgrades and talents, so a buy that crosses a milestone shows the full jump. It is also shown when you cannot afford it yet, so you can plan.',
+      'A small Best value badge marks the generator you can afford right now that gives the most production for its price. Hover or long-press a button for the exact ratio.'
+    ]
   },
   {
     version: '5.19.0',

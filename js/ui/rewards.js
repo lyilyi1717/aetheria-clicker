@@ -11,6 +11,8 @@
 // ev = { tier, kind, title, batchTitle?, icon?, color?, detail?, amount?, fmt?, unit?, source? }
 //   kind        same-kind events coalesce ("Contract complete ×4"); batchTitle may use {n}
 //   amount      number or BigNum, summed when events coalesce; fmt(amount) formats it
+//   signature   'well' | 'field' (R45): the ceremony card's own look; force: skip the 60 s big cooldown;
+//               durationMs: shorter card than the tier's
 //   source      element or element id that pulses gold once ("look here")
 //   sound       true/false overrides the tier default (small toasts are silent by default:
 //               the action that caused them already made its own sound)
@@ -18,6 +20,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { isReducedMotion } from './motion.js';
+import { feedback } from './feedback.js';
 import { themeVar } from './theme.js';
 import {
   ToastQueue, CeremonyScheduler, RewardBatch, rewardTitle, rewardValue, normalizeTier
@@ -213,22 +216,19 @@ class RewardFeedback {
     if (!source || !hasDom()) return;
     const el = typeof source === 'string' ? document.getElementById(source) : source;
     if (!el || !el.classList) return;
-    el.classList.remove('reward-pulse');
-    void el.offsetWidth;
-    el.classList.add('reward-pulse');
-    setTimeout(() => el.classList.remove('reward-pulse'), 1000);
+    feedback.cue(el, 'reward-pulse', 1000);   // reduced motion: a static gold outline instead
   }
 
   // ---- ceremonies --------------------------------------------------------------------------
 
   openCeremony(entry) {
     const ov = this.overlay;
-    ov.className = `reward-ceremony tier-${entry.tier} is-open`;
+    ov.className = `reward-ceremony tier-${entry.tier} is-open` + (entry.signature ? ` sig-${entry.signature}` : '');
     if (entry.color) ov.style.setProperty('--ceremony-accent', themeVar(entry.color));
     else ov.style.removeProperty('--ceremony-accent');
     ov.setAttribute('aria-hidden', 'false');
     this.fillCeremony(entry, true);
-    sound.playTier(entry.tier);
+    sound.playTier(entry.tier);   // big = brass (New Well), epic = choir (New Field)
     clearTimeout(this.ceremonyTimer);
     this.ceremonyTimer = setTimeout(() => this.skipCeremony(), this.ceremonies.duration(entry, this.reducedMotion()));
   }
