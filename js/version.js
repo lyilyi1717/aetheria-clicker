@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.21.1';
+export const VERSION = '5.22.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.22.0',
+    date: '2026-10-09',
+    title: 'A Proper Welcome Back',
+    changes: [
+      'Coming back after time away now feels like a small celebration: a bell rings, your offline Oil counts up (1.2 seconds at most), then the breakdown rows appear and gold sparks fly. Tap anywhere to skip to the total.',
+      'The button is now called Collect: it closes the window with a soft pluck and your Oil counter in the header glows. You get exactly the same amount as before.',
+      'With Reduce motion on, the total shows at once without sparks; the sounds still play.'
+    ],
+    ar: {
+      title: 'ترحيب لائق بعودتك',
+      changes: [
+        'العودة بعد الغياب صارت احتفالا صغيرا: يرنّ جرس، ثم يرتفع عدّاد النفط الذي جمعته في غيابك (ثانية وخُمسان على الأكثر)، ثم تظهر تفاصيل الحساب ويتطاير شرر ذهبي. انقر في أي مكان لتنتقل إلى المجموع مباشرة.',
+        'صار اسم الزر «استلم»: يغلق النافذة بنغمة خفيفة ويتوهّج عدّاد النفط في الأعلى. تحصل على المقدار نفسه تماما كما في السابق.',
+        'عند تفعيل تقليل الحركة يظهر المجموع فورا دون شرر، وتبقى الأصوات.'
+      ]
+    }
+  },
   {
     version: '5.21.1',
     date: '2026-10-09',

@@ -19,7 +19,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-R0–R30, R32–R40, R41 and R42 are done.
+R0–R30, R32–R40 and R41–R43 are done.
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
   re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
@@ -100,6 +100,10 @@ R0–R30, R32–R40, R41 and R42 are done.
 
 ## Done
 
+- R43 #115 (v5.22.0): Welcome Back modal celebrates (`startCelebration` in `js/ui/offlineModal.js`):
+  bell, 1.2 s count-up via `feedback.countUp` (tap skips), rows stagger in, 24 gold sparks, Collect
+  plucks and pulses `stat-aether`. The particle canvas rises above the modal only while it is open.
+  The bell can be muted by the browser on a cold load (no user gesture yet); the Collect pluck always plays.
 - R65 #163 (PR #177, v5.19.0): boss telegraphs SMASH/FEAST/WARD (`js/systems/bossFights.js`,
   `js/ui/bossFx.js`), phase 2 at 50%, misses free below floor 150; Sheikhs every 50 floors;
   Guardians at 50/150/300/500/750/1000 (merged with R18 Wardens); 4 Mythics (Wasta Strike every 30th
@@ -418,6 +422,10 @@ R0–R30, R32–R40, R41 and R42 are done.
   - Polish & Bug Fixes: Suppressed Tower combat particles/floats when combat tab is hidden; hid Mana from header until Grimoire is unlocked; isolated Arabic unlock teaser fractions so they read left-to-right (`0/10`); stabilized `test_r52_clicks.js` timing race.
 
 ## Noticed (not yet an issue)
+
+- `test_mining.js` "Frenzy should be active after 7 rapid manual hits" is flaky (about 1 run in 8
+  locally, also seen in CI on PR #186); the manual Dig Streak loop depends on something random or
+  timing-based.
 
 - `test_mining.js` is flaky (random hits per tick; once 28 vs ~5); fix the seed.
 - R64 follow-ups: Al-Wakeel as a Dust-shop item (now only free at record floor 301+), stale i18n
