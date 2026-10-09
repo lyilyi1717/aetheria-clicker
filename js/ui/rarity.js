@@ -9,7 +9,8 @@ export const RARITY_GLYPHS = {
   rare: '●●',
   epic: '●●●',
   legendary: '◆◆◆◆',
-  cosmic: '★★★★★'
+  cosmic: '★★★★★',
+  mythic: '✦✦✦✦✦✦'
 };
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => (
@@ -36,7 +37,7 @@ export function gearName(item) {
   const name = item?.name;
   if (!name) return t('gear.empty');
   if (item.uniqueId) return tOr(`gear.unique.${item.uniqueId}`, name);
-  const m = /^(Common|Rare|Epic|Legendary|Cosmic) (WEAPON|ARMOR|AMULET|RELIC)$/.exec(name);
+  const m = /^(Common|Rare|Epic|Legendary|Cosmic|Mythic) (WEAPON|ARMOR|AMULET|RELIC)$/.exec(name);
   if (m) return t('gear.generated', { rarity: rarityWord(m[1]), slot: t(`gear.slot.${m[2].toLowerCase()}`) });
   return tOr(`gear.start.${name.toLowerCase().replace(/[^a-z]+/g, '_')}`, name);
 }

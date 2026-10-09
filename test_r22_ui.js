@@ -55,7 +55,8 @@ console.log('--- rarity: colour + glyph + word ---');
 {
   assert.equal(rarityClass('Legendary'), 'legendary');
   assert.equal(rarityClass('COSMIC'), 'cosmic');
-  assert.equal(rarityClass('Mythic'), '');
+  assert.equal(rarityClass('Mythic'), 'mythic');
+  assert.equal(rarityClass('Godly'), '');
   assert.equal(rarityClass(undefined), '');
   for (const [cls, glyph] of Object.entries(RARITY_GLYPHS)) {
     const word = cls[0].toUpperCase() + cls.slice(1);
@@ -65,7 +66,7 @@ console.log('--- rarity: colour + glyph + word ---');
     assert.ok(tag.includes(`>${word}<`), `${word}: word`);
     assert.ok(tokensCss.includes(`--rarity-${cls}:`), `${word}: token exists`);
   }
-  assert.equal(rarityTag('Mythic'), '');
+  assert.equal(rarityTag('Godly'), '');
 }
 
 console.log('--- gear card ---');

@@ -564,6 +564,26 @@ export class AudioEngine {
     this._voice('triangle', this._scale()[0] * 2, this.ctx.currentTime, 0.08, 0.06);
   }
 
+  // Boss telegraph wind-up (R65): two low square pulses, a warning that is not a hit
+  playWarn() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t0 = this.ctx.currentTime;
+    this._voice('square', 196, t0, 0.12, 0.05);
+    this._voice('square', 196, t0 + 0.2, 0.12, 0.05);
+  }
+
+  // A telegraph answered / a Wasta Strike: a bright rising two-note chime
+  playCounter() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t0 = this.ctx.currentTime;
+    this._voice('triangle', 660, t0, 0.1, 0.08);
+    this._voice('triangle', 990, t0 + 0.08, 0.16, 0.08);
+  }
+
   // One entry point for the reward system (js/ui/rewards.js)
   playTier(tier) {
     if (tier === 'small') this.playPluck();
@@ -587,7 +607,7 @@ export const SOUND_IDS = {
   click: 'playClick', crit: 'playCrit', buy: 'playBuy', hit: 'playHit', defeat: 'playDefeat',
   dig: 'playDig', gem: 'playGem', spell: 'playSpell', achievement: 'playAchievement',
   ascension: 'playAscension', pluck: 'playPluck', bell: 'playBell', brass: 'playBrass',
-  choir: 'playChoir', 'boss-down': 'playBossDown', tick: 'playTick'
+  choir: 'playChoir', 'boss-down': 'playBossDown', tick: 'playTick', warn: 'playWarn', counter: 'playCounter'
 };
 
 export const sound = new AudioEngine();

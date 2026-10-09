@@ -764,5 +764,38 @@ Where the shipped game differs from the spec above:
 
 ## 12. As built in R65 (gear wave 2)
 
-In progress. Scope: Mythic tier and the Barakah meter, boss telegraphs (SMASH / FEAST / WARD),
-Sheikhs and Zone Guardians merged into the Wardens. Al-Wakeel as a Dust-shop unlock.
+Where the shipped game differs from the spec above:
+
+- **Mythics: four, not five.** One per existing slot (there is no Bisht slot yet): Scepter of the Wasta King
+  (weapon), Thobe of Eternal Ironing (armor), Nazar of the Haters (amulet), Royal Decree Seal (relic). The
+  Flying Majlis Carpet (needs an offline combat estimator) and the Bisht slot are follow-ups. A Mythic's body
+  equals a Cosmic's (x5, tier 4); its worth is the mechanic. Drops: 0.001% mob, 0.01% boss, 0.02% Sheikh,
+  0.05% Guardian/Warden, floor 151+; a full Barakah meter forces the next one. A Mythic arrives locked and
+  is never lost to a full bag.
+- **Wasta Strike is every 30th hit (x1.30 average), not the 20th, and capped on bosses.** On a boss the x10 adds
+  at most 4% of the boss's max HP. Reason: the open-profile tower sim is gate-limited at boss floors, and
+  the plain "every 20th, uncapped" version moved the 30-day floor 600 -> 640-690 (+7% to +23% over the
+  target) in the sims where one dropped. Rated x1.2 (mobs matter, bosses barely).
+- **Barakah:** 20,000 at the Mythic, finds Rare 1 / Epic 5 / Legendary 50 / Cosmic 250, first kills boss 20 /
+  Sheikh 250 / Guardian or Warden 1,000, 1,000 points per local calendar day at full rate then x0.25, no decay.
+  Cosmic pity: every 10th Legendary without a Cosmic.
+- **Telegraphs:** as in section 5.2 (8 s / 6 s, 1.5 s wind-up). Miss costs: SMASH 25% of max HP (spec 40%), FEAST
+  heals the boss 8% (spec 10%), WARD x0.25 damage for 4 s. Softer SMASH because an untouched tab would
+  otherwise die to three misses (24 s), which punishes leaving the game open. Phase 2 attack x1.5. The
+  wind-up has a one-tap counter button under the portrait.
+- **Tiers:** Sheikh (every 50th, x1.5 HP, 60 s), Guardian (50/150/300/500/750/1000, x3 HP, 60 s, three
+  phases), Warden. A Guardian floor that is a Warden floor is the Warden fight (x3 once). First-kill
+  state is one number, `loot.bossHigh` (old saves get their passed bosses counted as claimed).
+- **Al-Wakeel** is a Dust-shop item (`al_wakeel`, tier 5, 40 dust), not a talent. Saves granted it at
+  migration v11 keep `bag.wakeel`. No migration step was needed: all new state has defaults in
+  `sanitizeLoot`.
+- **Not in this wave:** Bisht slot, Flying Majlis Carpet, mob signatures, synergy affixes, Reforge, zone sets,
+  `zone7_warden` art resolver.
+
+### Tower sim (`npm run sim:tower`, open profile, best floor, mythics at their real drop rates)
+
+| | 1 d | 1 w | 30 d |
+|---|---|---|---|
+| target | 414 | 498 | ~560 |
+| R64 (main) | 400 | 520 | 610 |
+| R65, seeds 12345 / 777 / 4242 / 31337 | 370-400 | 500-550 | 580-600 |

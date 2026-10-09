@@ -52,7 +52,7 @@ console.log('--- item model: rarity multipliers 1/2/3/4/5, bounded Amulet and Re
 
 console.log('--- affixes: count by rarity, one of each, value = roll x tier ---');
 {
-  const want = { Common: 0, Rare: 1, Epic: 2, Legendary: 2, Cosmic: 3 };
+  const want = { Common: 0, Rare: 1, Epic: 2, Legendary: 2, Cosmic: 3, Mythic: 3 };
   for (const r of RARITY_NAMES) {
     for (let i = 0; i < 40; i++) {
       const list = rollAffixes(r);
