@@ -212,7 +212,7 @@ export default {
   "tab.about.changelog": "سجل التحديثات",
   "offline.welcome_back_traveler": "أهلًا بعودتك أيها المسافر!",
   "offline.aria.how_offline_oil_was": "كيف حُسب نفط الغياب",
-  "offline.claim_continue": "استلم وتابع",
+  "offline.collect": "استلم",
   "hdr.edition": "النسخة السعودية",
   "tab.combat.forge_level": "مستوى الفرن <span id=\"forge-level\">0</span>",
   "tab.combat.awaken": "أيقِظ (<span id=\"forge-cost\">100</span> نفط)",
