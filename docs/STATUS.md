@@ -10,6 +10,8 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
+- R69 #191: Drill Mastery Reserve shop item gates the R68 drill abilities (owner request).
+
 - Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
   R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
   economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
@@ -98,6 +100,7 @@ R0–R30, R32–R40 and R41–R43 are done.
 | 10 | R66 Garden tap growth back to 5% (owner decision) | #172 | R59 |
 | 10 | R67 Core sim skips Tower-only Al-Wakeel | #178 | R65 |
 | 10 | R68 Auto-Drills use the manual dig abilities | #183 | – |
+| 10 | R69 Drill Mastery shop item gates drill abilities | #191 | R68 |
 
 ## Done
 
