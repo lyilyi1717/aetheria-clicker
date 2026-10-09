@@ -10,9 +10,7 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
-  R61 #159 (ready now that R57 is merged). From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
-  economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
+- None from the wave-10 coordinator session (wave 10 complete).
 
 ## Next up
 
@@ -119,6 +117,12 @@ R0–R30, R32–R40 and R41–R43 are done.
   Legendary; Al-Wakeel is a Dust-shop item (`al_wakeel`), R64 grant grandfathered. No migration.
   Tower sim takes `--seed`, `--no-mythic`, `--no-telegraphs`; idle cost of telegraphs ~-4% at 3 d.
   Art needed (for the art tool) is listed in PR #177.
+- R61 #159 (PR #199, v5.31.0): min Ascension run 120 s (`MIN_RUN_SECONDS`) plus a dust ramp:
+  dust x min(1, run s / 1800)^2 (`DUST_RAMP_SECONDS`/`_POWER`/`_GRACE` in `PrestigeSystem.js`); first New
+  Well exempt; Auto-Ascend/Transcend pay the ramped value (`getAscendCosmicDust`). Sim clock drives
+  `Date.now`; hourly manual-Ascend cap removed; new 24/7 spam profile: 0.0 vs 13.4 dust/h normal
+  (`sim:check` asserts spam <= 1.0x). Chronicle trigger stays 11 d (7 d fails, doc section 6).
+  Casual 1-month dust +14% (cap removal, not the ramp); day-1 dust and first Ascension unchanged.
 - R67 #178 (PR #179): R65 broke `sim:check` (merged with pacing red by mistake): the core sim bought
   `al_wakeel` and one 40-dust purchase moved the days 50-70 median 6.9e11 -> 1.22e13. The core sim
   now skips that Tower-only item. Shows how chaotic that window is (R57's area).
