@@ -756,5 +756,6 @@ Where the shipped game differs from the spec above:
 - **Signatures** are mapped to the bosses the game really cycles (Rukbah Soda, Saher Camera, Giant
   Kabsa Monster, Drifting Camry, Abu Sarwal Wa Fanila, Al-Modir). No telegraphs exist yet, so the
   Stick of Discipline gives +25% boss damage, and the Samosa Buckler is the Camry Door Buckler.
+- **Heirlooms keep their exact old stats** (`keep` floors the main stat, also through re-temper); the new curve applies from the first re-temper that beats it.
 - **Not in this wave:** Sheikh tier drops, Mythics, the Barakah meter, Saddlebag upgrades,
   Reforge, the Bisht slot, Haste and the synergy affixes.

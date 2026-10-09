@@ -6,7 +6,7 @@ import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
 import { SpellSystem } from './js/systems/SpellSystem.js';
 import {
-  CombatSystem, GEAR_FLOOR_BASE, KASHTA_SECONDS, BOSS_TIMER_SECONDS, MONSTER_NAMES
+  CombatSystem, GEAR_FLOOR_BASE, KASHTA_SECONDS, BOSS_TIMER_SECONDS, MONSTER_NAMES, gearStat
 } from './js/systems/CombatSystem.js';
 import {
   mainStat, makeItem, rollAffixes, sanitizeItem, sanitizeBag, affixTotals, signatureForBoss, UNIQUES, AFFIXES,
@@ -480,11 +480,12 @@ console.log('--- migration v10 -> v11: gear becomes items, Heirlooms, Welcome Ba
   const w = data.hero.gear.weapon, a = data.hero.gear.armor, am = data.hero.gear.amulet, rel = data.hero.gear.relic;
   assert.equal(w.rarity, 'Cosmic');
   assert.ok(Math.abs(w.ilvl - 300) <= 1, `ilvl inferred from the old stat: ${w.ilvl}`);
-  // stat recomputed with the x5 multiplier, and the +48% level bonus (12 levels x 4%) baked in
-  assert.equal(w.attack, Math.floor(mainStat('weapon', 'Cosmic', w.ilvl).attack * 1.48));
+  // no power lost: the old effective stat (level bonus included) is kept exactly
+  assert.equal(w.attack, Math.floor(10 * 18 * Math.pow(1.11, 299)) * 1.48);
+  assert.equal(w.keep, w.attack);
   assert.equal(w.bake, 1.48);
   assert.equal(w.level, undefined, 'gear levels are gone');
-  assert.equal(a.hp, Math.floor(mainStat('armor', 'Legendary', a.ilvl).hp * 1.16));
+  assert.equal(a.hp, Math.floor(40 * 8 * Math.pow(1.11, 199)) * 1.16);
   assert.equal(w.heirloom, true);
   assert.equal(w.affixes.length, 1, 'Heirloom: one affix');
   assert.equal(w.freeTemper, true, 'Legendary+ get a free re-temper');
@@ -562,6 +563,42 @@ console.log('--- a fresh game and old saves without a bag load ---');
   gs2.deserialize({ version: SAVE_VERSION, hero: clone(gs.hero) });
   assert.equal(gs2.bag.items.length, 0);
   new CombatSystem(gs2);
+}
+
+console.log('--- migration loses no power: Legendary and Cosmic kits keep Attack, HP, crit and drain ---');
+{
+  const gearOf = (rarity, lv) => ({
+    weapon: { name: rarity + ' WEAPON', attack: Math.floor(10 * (rarity === 'Cosmic' ? 18 : 8) * Math.pow(1.11, 399)), rarity, level: lv },
+    armor: { name: rarity + ' ARMOR', hp: Math.floor(40 * (rarity === 'Cosmic' ? 18 : 8) * Math.pow(1.11, 399)), rarity, level: lv },
+    amulet: { name: rarity + ' AMULET', crit: 0.5, rarity, level: lv },
+    relic: { name: rarity + ' RELIC', lifesteal: 0.3, rarity, level: lv }
+  });
+  for (const rarity of ['Legendary', 'Cosmic']) {
+    for (const lv of [0, 30]) {
+      const hero = { level: 40, xp: 0, xpNeeded: 1e9, floor: 400, maxFloor: 400, indexFloor: 400, hp: 1e9, maxHp: 100, hpRegen: 3,
+        baseAttack: 15, attackCooldown: 0, attackSpeed: 1, shield: 0, aetherForgeLevel: 0, gear: gearOf(rarity, lv), skills: {} };
+      const save = () => ({ version: 10, hero: clone(hero) });
+      const before = {
+        attack: hero.gear.weapon.attack * (1 + 0.04 * lv), hp: hero.gear.armor.hp * (1 + 0.04 * lv),
+        crit: Math.min(0.5, hero.gear.amulet.crit * (1 + 0.04 * lv)), drain: Math.min(0.3, hero.gear.relic.lifesteal * (1 + 0.04 * lv))
+      };
+      const gs = new GameState();
+      gs.deserialize(clone(migrateSave(save())));
+      const g = gs.hero.gear;
+      // Main stats are identical to the old effective stats (a Heirloom's bonus affix comes on top)
+      assert.equal(gearStat('weapon', g.weapon), before.attack, rarity + ' attack ' + lv);
+      assert.equal(gearStat('armor', g.armor), before.hp, rarity + ' hp ' + lv);
+      assert.equal(gearStat('amulet', g.amulet), before.crit, rarity + ' crit ' + lv);
+      assert.equal(gearStat('relic', g.relic), before.drain, rarity + ' drain ' + lv);
+      // And a re-temper never takes an Heirloom below its preserved value
+      const cs = new CombatSystem(gs);
+      for (const slot of ['weapon', 'armor']) {
+        const keep = gearStat(slot, g[slot]);
+        cs.gear.retemper(g[slot].uid);
+        assert.ok(gearStat(slot, g[slot]) >= keep, slot + ' not lowered by re-temper');
+      }
+    }
+  }
 }
 
 console.log('--- the conversion notice shows once ---');

@@ -419,6 +419,7 @@ console.log('--- Excavation Abilities, Workshop & Machinery ---');
     m.random = () => 0.999; // no shatter, chain, or cleave
     const t = g.miningGrid.blocks[1];
     t.content = 'stone';
+    t.revealed = false; // an earlier Super-Crit shockwave may have broken it
     t.hp = 99999;
     t.maxHp = 99999;
     m.mineBlock(1, 100, 100);

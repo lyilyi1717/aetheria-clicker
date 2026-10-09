@@ -5,7 +5,8 @@
 // An item is { uid, slot, rarity, ilvl, name, <main stat>, affixes: [{ id, v }], uniqueId, locked,
 // heirloom, freeTemper, bake }. The main stat key matches CombatSystem's GEAR_MAIN_STAT
 // (attack / hp / crit / lifesteal). `bake` (>= 1) is the old R34 gear-level multiplier an Heirloom
-// carries: it multiplies the main stat and survives a re-temper.
+// carries: it multiplies the main stat and survives a re-temper. `keep` is the main stat the old
+// item had when migration v11 converted it: an Heirloom never rates below it, re-tempered or not.
 
 // Gear rolls at this base per floor of item level; monsters grow 1.12^floor (CombatSystem).
 export const GEAR_FLOOR_BASE = 1.109;
@@ -130,16 +131,17 @@ export function makeItem({ slot, rarity, ilvl, rng = Math.random, uniqueId = nul
 
 // Re-roll the main stat for a new item level (re-temper keeps rarity, affixes, unique)
 export function withItemLevel(item, ilvl) {
-  return { ...item, ilvl: Math.max(1, Math.floor(ilvl) || 1), ...bakedStat(item.slot, item.rarity, ilvl, item.bake) };
+  return { ...item, ilvl: Math.max(1, Math.floor(ilvl) || 1), ...bakedStat(item.slot, item.rarity, ilvl, item.bake, item.keep) };
 }
 
 // Main stat with an Heirloom's baked multiplier applied (Crit and Drain stay under their caps)
-export function bakedStat(slot, rarity, ilvl, bake = 1) {
+export function bakedStat(slot, rarity, ilvl, bake = 1, keep = 0) {
   const stat = mainStat(slot, rarity, ilvl);
   const key = MAIN_KEYS[slot];
   const m = Number.isFinite(bake) && bake > 1 ? bake : 1;
   const cap = slot === 'amulet' ? 0.5 : slot === 'relic' ? 0.3 : Infinity;
   stat[key] = Math.min(cap, slot === 'weapon' || slot === 'armor' ? Math.floor(stat[key] * m) : stat[key] * m);
+  if (Number.isFinite(keep) && keep > stat[key]) stat[key] = Math.min(cap, keep);   // Heirloom floor
   return stat;
 }
 
@@ -171,6 +173,8 @@ export function sanitizeItem(raw, slot = null, fallbackIlvl = 1) {
   delete out.level;   // R34 gear levels are gone (baked into `bake` by migration v11)
   const bake = Number(raw.bake);
   if (Number.isFinite(bake) && bake > 1) out.bake = Math.min(bake, 3); else delete out.bake;
+  const keep = Number(raw.keep);
+  if (Number.isFinite(keep) && keep > 0) out.keep = keep; else delete out.keep;
   if (raw.heirloom === true) out.heirloom = true; else delete out.heirloom;
   if (raw.freeTemper === true) out.freeTemper = true; else delete out.freeTemper;
   return out;

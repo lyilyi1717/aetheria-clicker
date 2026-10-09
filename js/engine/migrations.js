@@ -462,6 +462,11 @@ export const MIGRATIONS = [
             affixes: [], uniqueId: null, locked: false
           };
           if (lv > 0) item.bake = bake;
+          // No power is lost: the old effective stat (level bonus included) is the floor. The new
+          // curve (Legendary x4, was x8; Cosmic x5, was x18; bounded Amulet/Relic) only takes over
+          // once a re-temper lifts the item above it.
+          const oldEff = Math.min(cap, raw * bake);
+          if (oldEff > item[key]) { item[key] = oldEff; item.keep = oldEff; }
           if (rarity !== 'Common') {
             item.affixes = affixes(rarity, ilvl + si).slice(0, 1);
             item.heirloom = true;

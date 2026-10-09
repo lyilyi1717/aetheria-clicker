@@ -17,7 +17,7 @@ export const CHANGELOG = [
       'Re-temper a Legendary or Cosmic item with gold and Void Cores to bring it up to the floor you are on, so a favourite never goes out of date.',
       'Kashta: after two losses at the same gate your hero camps for 5 minutes on a lower floor, farming loot and gold, then tries the gate again. You can switch it off, or camp on purpose, from the bag.',
       'Monster Bones and gear levels are gone. Every level you had is now part of your gear\'s stats (+4% per level), your bones became Gear Scrap (1 per bone banked, 1 per 10 spent on levels), and heavy spenders also get up to 8 extra Rare finds in the bag and up to 20 Void Cores. Salvaging gear now pays Gear Scrap, which Almarai Laban uses instead of bones.',
-      'Old gear became Heirlooms: it keeps a bonus affix, and Legendary and Cosmic ones get a free re-temper. Rarity bonuses are smaller than before (Legendary x4, was x8; Cosmic x5, was x18), so this is a nerf to old Legendary and Cosmic gear, balanced by the bonuses above. Players with a record above floor 300 keep automatic equipping of upgrades.',
+      'Old gear became Heirlooms: every equipped item keeps exactly the Attack, HP, Crit and Drain it had (level bonuses included), gains a bonus affix, and Legendary and Cosmic ones get a free re-temper. New drops use smaller rarity bonuses (Legendary x4, was x8; Cosmic x5, was x18). Players with a record above floor 300 keep automatic equipping of upgrades.',
       'Gear now grows x1.109 per floor (was x1.105) to make up for the flatter rarities, so the Tower climb keeps its pace. Your gear may put you on a lower floor after the update; your record floor is kept.',
       'Void Cataclysm in the Tower now deals at most 10 hits of your Attack.'
     ],
@@ -30,9 +30,27 @@ export const CHANGELOG = [
         'أعد سقي قطعة أسطورية أو كونية بالذهب ولبّ الفراغ لترتفع إلى الطابق الذي وصلت إليه، فلا يتقادم عتادك المفضّل.',
         'الكشتة: بعد خسارتين عند البوابة نفسها يخيّم بطلك 5 دقائق في طابق أدنى يجمع الغنائم والذهب، ثم يعيد المحاولة. يمكنك إيقافها أو التخييم متى شئت من الحقيبة.',
         'اختفت عظام الوحوش ومستويات العتاد. صار كل مستوى لديك جزءا من إحصاءات عتادك (+4% لكل مستوى)، وتحوّلت عظامك إلى خردة عتاد (واحدة لكل عظمة محفوظة وواحدة لكل 10 صُرفت على المستويات)، ومن أنفق كثيرا يحصل أيضا على حتى 8 قطع نادرة إضافية في الحقيبة وحتى 20 من لبّ الفراغ. يعطيك تفكيك العتاد خردة عتاد، وتستخدمها وصفة المراعي في الخيمياء بدل العظام.',
-        'صار عتادك القديم إرثا: يحتفظ بخاصية إضافية، وتحصل القطع الأسطورية والكونية على إعادة سقي مجانية. مكافآت الندرة أصغر من قبل (الأسطوري ×4 بدل ×8، والكوني ×5 بدل ×18)، فهذا تخفيف لعتاد الأسطوري والكوني القديم تعوّضه المكافآت أعلاه. من وصل رقمه القياسي فوق الطابق 300 يحتفظ بالتجهيز التلقائي للترقيات.',
+        'صار عتادك القديم إرثا: تحتفظ كل قطعة مجهّزة بالهجوم والصحة والضربة الحرجة والامتصاص كما كانت تماما (مع مكافآت المستويات)، وتكسب خاصية إضافية، وتحصل القطع الأسطورية والكونية على إعادة سقي مجانية. الغنائم الجديدة تستخدم مكافآت ندرة أصغر (الأسطوري ×4 بدل ×8، والكوني ×5 بدل ×18). من وصل رقمه القياسي فوق الطابق 300 يحتفظ بالتجهيز التلقائي للترقيات.',
         'ينمو العتاد الآن ×1.109 لكل طابق (كان ×1.105) تعويضا عن الندرة الأقل، فيحافظ تسلق البرج على وتيرته. قد يضعك عتادك بعد التحديث في طابق أدنى؛ ويبقى رقمك القياسي محفوظا.',
         'كارثة الفراغ في البرج لا تتجاوز الآن 10 أضعاف هجومك.'
+      ]
+    }
+  },
+  {
+    version: '5.17.3',
+    date: '2026-10-08',
+    title: 'Super-Crits and Shockwaves Actually Fire',
+    changes: [
+      'Fix: Super-Crits now really happen. About 1 in 5 Refinery crits is a Super-Crit that pays 5x your click (a normal crit pays 3x), with the orange SUPER CRIT! flash.',
+      'Fix: the Excavation shockwave now really happens. About 1 in 5 crits on a manual dig is a Super-Crit that also hits the four tiles around it. Auto-drills and other automatic hits never crit.',
+      'Hyper-Crits still need more than 200% crit chance, which nothing in the game reaches yet.'
+    ],
+    ar: {
+      title: 'الضربات الفائقة وموجات الصدمة تعمل فعلاً',
+      changes: [
+        'إصلاح: الضربات الفائقة تحدث الآن فعلاً. نحو واحدة من كل 5 ضربات حرجة في التكرير ضربة فائقة تعطي 5 أضعاف نقرتك (الحرجة العادية 3 أضعاف)، مع وميض «ضربة فائقة!» البرتقالي.',
+        'إصلاح: موجة الصدمة في التنقيب تحدث الآن فعلاً. نحو واحدة من كل 5 ضربات حرجة في الحفر اليدوي ضربة فائقة تصيب أيضاً المربعات الأربعة المجاورة. الحفارات الآلية والضربات التلقائية لا تُحدث ضربات حرجة أبداً.',
+        'الضربات الخارقة ما زالت تحتاج أكثر من 200% فرصة حرجة، ولا يصل إليها شيء في اللعبة حالياً.'
       ]
     }
   },

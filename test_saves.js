@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
 import { SaveManager } from './js/engine/SaveManager.js';
-import { CombatSystem, GEAR_FLOOR_BASE } from './js/systems/CombatSystem.js';
+import { CombatSystem } from './js/systems/CombatSystem.js';
 import { particles } from './js/engine/ParticleEngine.js';
 import { MIGRATIONS, SAVE_VERSION, CATALYST_MIGRATION_CAP, getSaveVersion, migrateSave } from './js/engine/migrations.js';
 
@@ -183,8 +183,8 @@ console.log('--- v2 -> v3: a deep pre-rebalance Tower save (floor 700k) is rebas
     const gs = new GameState();
     gs.deserialize(fixture);
     const w = gs.hero.gear.weapon.attack;
-    // v3 rescaled it to 1.11; v11 then turned it into an item (Cosmic x5 on the current curve, ilvl 6001)
-    assert.ok(Number.isFinite(w) && w === Math.floor(10 * Math.pow(GEAR_FLOOR_BASE, 6000) * 5), 'weapon converted to a Cosmic item');
+    // v3 rescaled it to 1.11; v11 then turned it into an Heirloom item that keeps that exact stat
+    assert.ok(Number.isFinite(w) && Math.abs(w / (180 * Math.pow(1.11, 6000)) - 1) < 1e-6, 'weapon keeps its 1.11-curve stat');
     assert.equal(gs.hero.maxFloor, 723053, 'record kept');
     assert.equal(gs.hero.indexFloor, 700000, 'provisional indexFloor until CombatSystem rebases the floor');
     assert.equal(gs.hero.pendingFloorRebase, true);
