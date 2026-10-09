@@ -18,6 +18,7 @@
 import { BigNum } from '../engine/BigNum.js';
 import { sound } from '../engine/AudioEngine.js';
 import { isReducedMotion } from './motion.js';
+import { feedback } from './feedback.js';
 import { themeVar } from './theme.js';
 import {
   ToastQueue, CeremonyScheduler, RewardBatch, rewardTitle, rewardValue, normalizeTier
@@ -213,10 +214,7 @@ class RewardFeedback {
     if (!source || !hasDom()) return;
     const el = typeof source === 'string' ? document.getElementById(source) : source;
     if (!el || !el.classList) return;
-    el.classList.remove('reward-pulse');
-    void el.offsetWidth;
-    el.classList.add('reward-pulse');
-    setTimeout(() => el.classList.remove('reward-pulse'), 1000);
+    feedback.cue(el, 'reward-pulse', 1000);   // reduced motion: a static gold outline instead
   }
 
   // ---- ceremonies --------------------------------------------------------------------------

@@ -96,6 +96,8 @@
   0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 85%, transparent); }
   100% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--gold) 0%, transparent); }
 }
+/* Reduced motion (R49): feedback.cue holds a static gold outline for 900 ms instead */
+.cue-gold-outline { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 /* ---- Ceremony: full-screen dim + radial burst + count-up; click or Esc skips ---- */
 .reward-ceremony {

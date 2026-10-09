@@ -108,15 +108,12 @@ function tileScreenPos(id) {
 }
 
 // Outline the blasted tiles with an orange flash so the 3x3 shape is visible. Restarts the
-// animation when the same tile is blasted again before it ends.
+// animation when the same tile is blasted again before it ends; reduced motion holds a static
+// orange inset instead (feedback.cue).
 function flashTiles(ids) {
   for (const id of ids) {
     const el = tileEl(id);
-    if (!el) continue;
-    el.classList.remove('blast-flash');
-    void el.offsetWidth;
-    el.classList.add('blast-flash');
-    setTimeout(() => el.classList.remove('blast-flash'), 700);
+    if (el) feedback.cue(el, 'blast-flash', 700);
   }
 }
 
