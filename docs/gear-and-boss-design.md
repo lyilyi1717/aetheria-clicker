@@ -759,3 +759,10 @@ Where the shipped game differs from the spec above:
 - **Heirlooms keep their exact old stats** (`keep` floors the main stat, also through re-temper); the new curve applies from the first re-temper that beats it.
 - **Not in this wave:** Sheikh tier drops, Mythics, the Barakah meter, Saddlebag upgrades,
   Reforge, the Bisht slot, Haste and the synergy affixes.
+
+---
+
+## 12. As built in R65 (gear wave 2)
+
+In progress. Scope: Mythic tier and the Barakah meter, boss telegraphs (SMASH / FEAST / WARD),
+Sheikhs and Zone Guardians merged into the Wardens. Al-Wakeel as a Dust-shop unlock.
