@@ -166,7 +166,8 @@ class RewardFeedback {
     const now = clock();
     if (now - this.lastSoundAt < SOUND_GAP_MS) return;
     this.lastSoundAt = now;
-    sound.playTier(entry.tier === 'small' ? 'small' : 'medium');
+    // big plays brass, not the bell (R47); epic toasts are ceremonies' fallback, also brass
+    sound.playTier(entry.tier === 'small' ? 'small' : entry.tier === 'medium' ? 'medium' : 'big');
   }
 
   tick() {
@@ -198,7 +199,7 @@ class RewardFeedback {
         this.toastEls.set(e.id, el);
         if (!e._pulsed) { e._pulsed = true; this.pulse(e.source); }
       }
-      el.className = `reward-toast tier-${e.tier}`;
+      el.className = `reward-toast tier-${e.tier}` + (e.look ? ` look-${e.look}` : '');
       if (e.color) el.style.setProperty('--toast-accent', themeVar(e.color));
       el.querySelector('.reward-toast-icon').textContent = e.icon || '';
       el.querySelector('.reward-toast-title').textContent = rewardTitle(e);

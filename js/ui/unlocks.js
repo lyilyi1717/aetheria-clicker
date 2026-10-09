@@ -7,6 +7,7 @@
 //   - hides the Quick Cast bars until the Grimoire is open.
 
 import { rewards } from './rewards.js';
+import { feedback } from './feedback.js';
 import {
   UNLOCK_BY_TAB, checkUnlocks, grantStarterGift, getTeasers, getUnlockProgress, isTabUnlocked,
   isUnlockNew, markUnlockSeen
@@ -14,6 +15,8 @@ import {
 import { t, bidi } from '../i18n/index.js';
 
 const CHECK_SECONDS = 0.25;
+export const UNLOCK_CEREMONY_MS = 2000;
+export const UNLOCK_PULSE_MS = 2400;   // 3 pulses of 0.8 s
 
 function esc(s) {
   return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -33,6 +36,7 @@ export class UnlocksUI {
     this.timer = CHECK_SECONDS;
     this.buttons = [];   // { btn, tab, where: 'side'|'bottom'|'sheet', html, title, state }
     this.revealed = new Set();
+    this.pulseTabs = [];   // tabs whose nav item pulses once the ceremony has closed
   }
 
   get gs() { return this.app.gameState; }
@@ -57,19 +61,39 @@ export class UnlocksUI {
     if (this.timer < CHECK_SECONDS) return;
     this.timer = 0;
     const fresh = checkUnlocks(this.gs);
-    for (const def of fresh) this.reveal(def);
+    if (fresh.length) this.reveal(fresh);
+    if (this.pulseTabs.length && !rewards.isCeremonyActive()) this.pulseNav();
     this.render();
   }
 
-  reveal(def) {
-    const gift = grantStarterGift(this.gs, def);
-    this.revealed.add(def.tab);
-    rewards.toast({
-      tier: 'big', kind: `unlock-${def.tab}`, icon: def.icon, color: '#fbbf24',
-      title: t('unlock.new', { name: def.name }), detail: gift ? `${def.flavour} 🎁 ${gift}` : def.flavour,
-      sound: true
+  // One ceremony for everything that opened in this check: "NEW: Garden", or "2 new places"
+  // (R47). Epic sound, 2 s, skippable (rewards.ceremony); the nav items pulse gold 3 times after.
+  reveal(defs) {
+    defs = Array.isArray(defs) ? defs : [defs];
+    const gifts = [];
+    for (const def of defs) {
+      const gift = grantStarterGift(this.gs, def);
+      this.revealed.add(def.tab);
+      this.pulseTabs.push(def.tab);
+      gifts.push(gift ? `${def.flavour} 🎁 ${gift}` : def.flavour);
+    }
+    const one = defs.length === 1 ? defs[0] : null;
+    rewards.ceremony({
+      tier: 'epic', kind: 'unlock', force: true, durationMs: UNLOCK_CEREMONY_MS, color: '#fbbf24',
+      icon: one ? one.icon : '✨',
+      title: one ? t('unlock.new', { name: one.name }) : t('unlock.many', { n: defs.length }),
+      detail: one ? gifts[0] : defs.map(d => `${d.icon} ${d.name}`).join(' · ')
     });
-    this.app.onUnlock?.(def.tab);
+    for (const def of defs) this.app.onUnlock?.(def.tab);
+  }
+
+  // The new tabs' nav items pulse gold 3 times (style guide §6: no loops beyond 3)
+  pulseNav() {
+    const tabs = new Set(this.pulseTabs);
+    this.pulseTabs = [];
+    for (const b of this.buttons) {
+      if (tabs.has(b.tab) && !b.btn.hidden && b.btn.offsetParent) feedback.cue(b.btn, 'unlock-pulse', UNLOCK_PULSE_MS);
+    }
   }
 
   // Marks the tab visited (clears its NEW tag)

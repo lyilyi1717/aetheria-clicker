@@ -2,6 +2,7 @@ import { BigNum } from '../engine/BigNum.js';
 import { getActiveRules } from './ChronicleSystem.js';
 import { rewards } from '../ui/rewards.js';
 import { feedback } from '../ui/feedback.js';
+import { anomalyAppear, mirageHaze, caravanCrossing, supernovaCount } from '../ui/rareEvents.js';
 import {
   COMBO_FULL, FRENZY_AUTO_CLICKS, FRENZY_EVERY, FRENZY_DURATION, FRENZY_MAX_TIMER,
   CLICK_MAX_PER_SEC, AUTO_TAP_PER_SEC, AUTO_TAP_IDLE_AFTER,
@@ -286,6 +287,7 @@ export class ClickerSystem {
     this.anomalyX = 15 + this.rng() * 70; // % across screen
     this.anomalyY = 20 + this.rng() * 60; // % down screen
     this.anomalyType = pickAnomalyType(this.rng());
+    anomalyAppear();   // soft pluck + shimmer, once (R47)
   }
 
   clickAnomaly(x, y) {
@@ -301,8 +303,10 @@ export class ClickerSystem {
     if (this.anomalyType === 'supernova') {
       // SUPERNOVA_CPS_SECONDS of Oil, or 500 base clicks (500 Oil) on a fresh run
       const payout = cps.mul(SUPERNOVA_CPS_SECONDS).max(this.gameState.clickPower.mul(SUPERNOVA_MIN_CLICKS));
+      const before = this.gameState.aether;
       this.gameState.aether = this.gameState.aether.add(payout);
       this.gameState.totalAetherEarned = this.gameState.totalAetherEarned.add(payout);
+      supernovaCount(before, this.gameState.aether);   // the Oil counter rolls up (R47)
       rewards.notify({ ...note, kind: 'anomaly-supernova', icon: '💥', title: t('anomaly.supernova'), amount: payout, fmt: fmtStd, unit: t('unit.oil') });
     } else if (this.anomalyType === 'time_flux') {
       this.triggerFrenzy(25);
@@ -313,9 +317,11 @@ export class ClickerSystem {
       rewards.notify({ ...note, kind: 'anomaly-cache', icon: '💠', title: t('anomaly.cache'), detail: t('anomaly.cache_detail') });
     } else if (this.anomalyType === 'mirage') {
       this.applyMirage();
+      mirageHaze(MIRAGE_DURATION);
       rewards.notify({ ...note, kind: 'anomaly-mirage', icon: '🌫️', color: '#c084fc', title: t('anomaly.mirage'), detail: t('anomaly.mirage_detail', { x: MIRAGE_MULT, s: MIRAGE_DURATION }) });
     } else if (this.anomalyType === 'caravan_star') {
       const res = this.applyCaravanStar();
+      caravanCrossing();
       rewards.notify({
         ...note, kind: 'anomaly-caravan', icon: '🐪', color: '#fbbf24', title: t('anomaly.caravan'),
         detail: res.dispatched ? t('anomaly.caravan_out', { n: res.minutes }) : t('anomaly.caravan_now'),

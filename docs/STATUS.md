@@ -102,7 +102,7 @@ R0–R30, R32–R40 and R41–R43 are done.
 
 ## Done
 
-- R69 #191 (PR #192, v5.27.0): owner request, the R68 drill abilities need the Reserve shop's
+- R69 #191 (PR #192, v5.28.0): owner request, the R68 drill abilities need the Reserve shop's
   `drill_mastery` (tier 3, 35, one-time; gate `procs` in `mineBlock`). Core sim skips it (like
   `al_wakeel`); mining sim owns it from `DRILL_MASTERY_DAY` 1.5. Idle depth day 1/7/60 112/169/240 (R68)
   -> 95/168/241; band ok, core pacing unchanged.
