@@ -9,6 +9,7 @@ export const TIERS = [0, 1, 2, 3];
 export const MAX_PARTICLES = 250;
 export const MAX_PARTICLES_PHONE = 150;
 export const MAX_TEXTS = 40;
+export const MAX_ORB_TEXTS = 12;   // live "+n" texts near the orb (R44)
 export const PHONE_MAX_WIDTH = 480;
 export const PHONE_SPARK_SCALE = 0.6;
 // Hard ceiling: past this many live items the oldest are dropped outright (a burst of spawns

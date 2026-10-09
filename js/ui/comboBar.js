@@ -25,6 +25,10 @@ export function renderCombo(barEl, textEl, gameState, clicker) {
   if (!barEl || !textEl) return;
   const rules = getActiveRules(gameState);
   const v = comboView(gameState.comboCount, clicker?.lastFrenzyAt || 0, rules);
-  setWidth(barEl, `${v.fill}%`);
+  // R44: when Frenzy starts the bar holds full (and glows) for 400 ms before it shows progress
+  const hold = (clicker?.frenzyHold || 0) > 0;
+  setWidth(barEl, hold ? '100%' : `${v.fill}%`);
+  const track = barEl.parentElement;
+  if (track && track.classList.contains('is-hold') !== hold) track.classList.toggle('is-hold', hold);
   setText(textEl, v.text);
 }

@@ -857,6 +857,8 @@ export default {
   "combo.ready_frenzy": "Combo Ready · Frenzy every {n} clicks",
   "combo.frenzy_in": "Frenzy in {n}",
   "combo.text": "{n}x Combo!",
+  "combo.frenzy_callout": "FRENZY!",
+  "combo.frenzy_extend": "+{s} s",
   "combo.text_boost": "{n}x Combo! ({x}x boost)",
 
   // motion.js

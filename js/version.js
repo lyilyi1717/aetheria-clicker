@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.22.0';
+export const VERSION = '5.23.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.23.0',
+    date: '2026-10-09',
+    title: 'The Climb to Frenzy',
+    changes: [
+      'Tapping the Refinery now builds toward something. The tap sound rises one note for every 4 combo taps (five notes at most) and steps back down when you pause. At 5, 10, 15 and 20 combo a ring pulses on the combo bar and the orb glows brighter.',
+      'Taps 18 and 19 wind up: the orb flares, then at 20 Frenzy hits with its own sound, a FRENZY! callout, a ring of sparks and a tinted orb for as long as it lasts. The combo bar stays full and glowing for a moment before it shows progress to the next Frenzy, and a Frenzy that gets extended shows a +4 s chip.',
+      'A crit now pops CRIT! at the tap and the number floats up from under it. The Oil numbers from fast tapping are capped at 12 on screen so they stay readable on a phone.',
+      'The Tap to pump Oil! hint goes away after your first tap. With Reduce motion on there is no ring, sparks or scale, but the callout, colours and sounds stay. Frenzy pays the same as before.'
+    ],
+    ar: {
+      title: 'الصعود نحو الهيجان',
+      changes: [
+        'صارت نقرات المصفاة تبني نحو لحظة كبيرة. ترتفع نغمة النقر درجة واحدة كل 4 نقرات متتالية (خمس درجات كحد أقصى) وتنزل مجددا حين تتوقف. عند 5 و10 و15 و20 تنبض حلقة على شريط الكومبو ويزداد توهّج الكرة.',
+        'النقرتان 18 و19 تمهّدان للحظة: تلتهب الكرة، ثم عند 20 يبدأ الهيجان بصوته الخاص ونص «الهيجان!» وحلقة من الشرر وتلوّن الكرة طوال مدته. يبقى شريط الكومبو ممتلئا ومتوهجا لحظة قبل أن يعرض التقدم نحو الهيجان التالي، وعند تمديد الهيجان تظهر شارة +4 ث.',
+        'النقرة الحرجة تُظهر «CRIT!» عند موضع النقر ويطفو الرقم من تحتها. أرقام النفط الناتجة عن النقر السريع لا تزيد عن 12 على الشاشة لتبقى مقروءة على الهاتف.',
+        'يختفي تلميح «انقر لتضخّ النفط!» بعد أول نقرة. عند تفعيل تقليل الحركة لا حلقة ولا شرر ولا تكبير، وتبقى الكلمة والألوان والأصوات. الهيجان يمنح المقدار نفسه كما كان.'
+      ]
+    }
+  },
   {
     version: '5.22.0',
     date: '2026-10-09',
