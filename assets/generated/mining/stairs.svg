@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <linearGradient id="portalGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="60%" stop-color="#020617"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="stepTop" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#94a3b8"/>
+      <stop offset="100%" stop-color="#64748b"/>
+    </linearGradient>
+    <linearGradient id="stepFront" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <radialGradient id="torchGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <!-- Background Vault Arch -->
+  <path d="M24 116 V52 Q24 20 64 20 Q104 20 104 52 V116 Z" fill="url(#portalGrad)" stroke="#1e293b" stroke-width="4"/>
+  <!-- Arch Keystone & Carvings -->
+  <path d="M20 52 Q20 16 64 16 Q108 16 108 52" fill="none" stroke="#64748b" stroke-width="6" stroke-linecap="round"/>
+  <rect x="58" y="12" width="12" height="12" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="2"/>
+  <!-- Torch Lights -->
+  <circle cx="28" cy="62" r="14" fill="url(#torchGlow)"/>
+  <circle cx="28" cy="62" r="4" fill="#fbbf24" filter="url(#glow)"/>
+  <circle cx="100" cy="62" r="14" fill="url(#torchGlow)"/>
+  <circle cx="100" cy="62" r="4" fill="#fbbf24" filter="url(#glow)"/>
+  <!-- Stone Stair Steps descending downwards -->
+  <!-- Step 1 -->
+  <path d="M42 66 L86 66 L88 74 L40 74 Z" fill="url(#stepTop)"/>
+  <path d="M40 74 L88 74 L88 80 L40 80 Z" fill="url(#stepFront)"/>
+  <!-- Step 2 -->
+  <path d="M36 80 L92 80 L94 88 L34 88 Z" fill="url(#stepTop)"/>
+  <path d="M34 88 L94 88 L94 96 L34 96 Z" fill="url(#stepFront)"/>
+  <!-- Step 3 -->
+  <path d="M30 96 L98 96 L100 106 L28 106 Z" fill="url(#stepTop)"/>
+  <path d="M28 106 L100 106 L102 116 L26 116 Z" fill="url(#stepFront)"/>
+  <!-- Depths Aura / Portal Portal Light -->
+  <ellipse cx="64" cy="56" rx="16" ry="6" fill="#38bdf8" opacity="0.6" filter="url(#glow)"/>
+  <polygon points="64,44 67,52 75,55 67,58 64,66 61,58 53,55 61,52" fill="#ffffff" filter="url(#glow)"/>
+</svg>

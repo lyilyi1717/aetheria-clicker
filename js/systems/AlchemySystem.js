@@ -24,7 +24,7 @@ export const RECIPES = [
     buffValue: 2.5,
     duration: 90,
     desc: '+150% Combat Attack Power for 90s',
-    cost: { monsterBones: 2, sapphires: 1 }
+    cost: { gearScrap: 2, sapphires: 1 }
   },
   {
     id: 'aether_surge',

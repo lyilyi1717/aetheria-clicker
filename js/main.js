@@ -9,8 +9,8 @@ import { GameLoop } from './engine/GameLoop.js';
 import { GameState } from './systems/GameState.js';
 import { ClickerSystem } from './systems/ClickerSystem.js';
 import { BuildingSystem, BUILDING_DEFINITIONS } from './systems/BuildingSystem.js';
-import { CombatSystem, gearStat, getGearLevel } from './systems/CombatSystem.js';
-import { MiningSystem, getPickaxeName } from './systems/MiningSystem.js';
+import { CombatSystem, gearStat } from './systems/CombatSystem.js';
+import { MiningSystem, getPickaxeName, getPickaxeIcon } from './systems/MiningSystem.js';
 import { GardenSystem, SEED_TYPES, ESSENCE_NAMES, WATER_BOOST, MAX_GOLEMS } from './systems/GardenSystem.js';
 import { AlchemySystem, RECIPES, GEM_LADDER } from './systems/AlchemySystem.js';
 import { SpellSystem, SPELLS } from './systems/SpellSystem.js';
@@ -36,7 +36,7 @@ import { UnlocksUI } from './ui/unlocks.js';
 import { ComingUpUI } from './ui/comingUp.js';
 import { GardenBreedingUI } from './ui/garden.js';
 import { WardensRelicsUI } from './ui/wardens-relics.js';
-import { EquipmentUI } from './ui/equipment.js';
+import { BagUI } from './ui/bag.js';
 import { UpgradeSystem } from './systems/UpgradeSystem.js';
 import { UpgradeShopUI } from './ui/upgrades.js';
 import { ShardTreeUI } from './ui/shardTree.js';
@@ -51,6 +51,7 @@ import { SharedNews, sharedQueueItems, sharedNewsHooks } from './ui/sharedNews.j
 import { initTooltips, tipHtml, tipAttr } from './ui/tooltip.js';
 import { renderCombo } from './ui/comboBar.js';
 import { initAutoTap, renderAutoTap } from './ui/autoTap.js';
+import { initCombatFx, renderBossTimer } from './ui/combatFx.js';
 import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
@@ -109,6 +110,7 @@ class AetheriaApp {
     this.gameState.combatSystem = this.combatSystem;
     this.gameState.miningSystem = this.miningSystem;
     this.gameState.gardenSystem = this.gardenSystem;
+    this.gameState.clickerSystem = this.clickerSystem;   // shared paid-click budget (R59)
     this.gameState.bountySystem = this.bountySystem;
     this.gameState.achievementSystem = this.achievementSystem;
     this.gameState.collectionSystem = this.collectionSystem;
@@ -457,6 +459,7 @@ class AetheriaApp {
     }
 
     const monsterCard = document.getElementById('monster-arena-box');
+    initCombatFx(this.combatSystem, monsterCard, document.querySelector('.monster-avatar'), this.$('boss-timer'));
     if (monsterCard) {
       monsterCard.addEventListener('pointerdown', (e) => {
         sound.ensureContext();
@@ -484,6 +487,10 @@ class AetheriaApp {
         if (tile) {
           const idx = parseInt(tile.dataset.index, 10);
           sound.ensureContext();
+          tile.classList.remove('tile-hit');
+          void tile.offsetWidth;
+          tile.classList.add('tile-hit');
+          setTimeout(() => tile.classList.remove('tile-hit'), 140);
           this.miningSystem.mineBlock(idx, e.clientX, e.clientY);
           this.updateMiningUI();
         }
@@ -499,7 +506,10 @@ class AetheriaApp {
         sound.ensureContext();
         if (btn.id === 'btn-upgrade-pick') this.miningSystem.upgradePickaxe();
         else if (btn.id === 'btn-buy-drill') this.miningSystem.buyAutoDrill();
+        else if (btn.id === 'btn-buy-steam-jack') this.miningSystem.buySteamDrill();
+        else if (btn.id === 'btn-buy-seismic-rig') this.miningSystem.buySeismicRig();
         else if (btn.id === 'btn-mining-dynamite') this.miningSystem.useDynamite();
+        else if (btn.dataset.skill) this.miningSystem.upgradeSkill(btn.dataset.skill);
         else return;
         this.updateMiningUI();
       });
@@ -517,6 +527,8 @@ class AetheriaApp {
             this.gardenSystem.harvestPlot(idx, e.clientX, e.clientY);
           } else if (!p.seed) {
             this.gardenSystem.plantSeed(idx);
+          } else {
+            this.gardenSystem.tapPlot(idx, e.clientX, e.clientY);
           }
           this.updateGardenUI();
         }
@@ -709,8 +721,8 @@ class AetheriaApp {
     this.breedingUI.build();
     this.wardensRelicsUI = new WardensRelicsUI(this, fmtNum);
     this.wardensRelicsUI.build();
-    this.equipmentUI = new EquipmentUI(this, fmtNum);
-    this.equipmentUI.build();
+    this.bagUI = new BagUI(this, fmtNum);
+    this.bagUI.build();
     this.upgradeShopUI = new UpgradeShopUI(this);
     this.upgradeShopUI.build();
     this.buildSpellsStructure();
@@ -850,12 +862,7 @@ class AetheriaApp {
     setText(this.$('monster-hp-text'), t('combat.hp', { hp: this.combatSystem.fmt(Math.max(0, m.hp)), max: this.combatSystem.fmt(m.maxHp) }));
     setWidth(this.$('monster-hp-fill'), `${Math.max(0, (m.hp / m.maxHp) * 100)}%`);
 
-    if (bossTimerEl) {
-      // visibility (not display) so the portrait doesn't jump when a boss arrives
-      const vis = m.isBoss ? 'visible' : 'hidden';
-      if (bossTimerEl.style.visibility !== vis) bossTimerEl.style.visibility = vis;
-      if (m.isBoss) setText(bossTimerEl, t('combat.enrage', { s: m.timer.toFixed(1) }));
-    }
+    renderBossTimer(bossTimerEl, m);   // R42: enrage urgency, last boss gold (js/ui/combatFx.js)
 
     // Update skill cooldowns
     for (const key in h.skills) {
@@ -877,13 +884,11 @@ class AetheriaApp {
       this.lastGearSig = gearSig;
       const g = h.gear;
       const fmt = (v) => this.combatSystem.fmt(v);
-      // Stats include gear levels (R34); the level shows after the stat
-      const lv = (item) => getGearLevel(item) > 0 ? ' · ' + t('gear.lv', { n: getGearLevel(item) }) : '';
       gearCont.innerHTML =
-        gearCard(t('gear.slot.weapon'), g.weapon, t('gear.stat.atk', { n: fmt(gearStat('weapon', g.weapon)) }) + lv(g.weapon)) +
-        gearCard(t('gear.slot.armor'), g.armor, t('gear.stat.hp', { n: fmt(gearStat('armor', g.armor)) }) + lv(g.armor)) +
-        gearCard(t('gear.slot.amulet'), g.amulet, t('gear.stat.crit', { n: (gearStat('amulet', g.amulet) * 100).toFixed(0) }) + lv(g.amulet)) +
-        gearCard(t('gear.slot.relic'), g.relic, t('gear.stat.drain', { n: (gearStat('relic', g.relic) * 100).toFixed(0) }) + lv(g.relic));
+        gearCard(t('gear.slot.weapon'), g.weapon, t('gear.stat.atk', { n: fmt(gearStat('weapon', g.weapon)) }), 'weapon') +
+        gearCard(t('gear.slot.armor'), g.armor, t('gear.stat.hp', { n: fmt(gearStat('armor', g.armor)) }), 'armor') +
+        gearCard(t('gear.slot.amulet'), g.amulet, t('gear.stat.crit', { n: (gearStat('amulet', g.amulet) * 100).toFixed(0) }), 'amulet') +
+        gearCard(t('gear.slot.relic'), g.relic, t('gear.stat.drain', { n: (gearStat('relic', g.relic) * 100).toFixed(0) }), 'relic');
     }
 
     // Aether Forge
@@ -935,55 +940,141 @@ class AetheriaApp {
       if (!this.$('btn-buy-drill')) {
         pickaxeEl.innerHTML = `
           <div style="display:flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-            <img loading="lazy" decoding="async" src="cosmic_shovel.webp" alt="${t('mine.tool_alt')}" style="width: 64px; height: 64px; border-radius: 8px; border: 2px solid var(--accent-purple); box-shadow: 0 0 10px color-mix(in srgb, var(--dust) 50%, transparent);">
+            <img id="mining-pickaxe-img" loading="lazy" decoding="async" src="${getPickaxeIcon(grid.pickaxeTier || 0)}" alt="${t('mine.tool_alt')}" style="width: 64px; height: 64px; border-radius: 8px; border: 2px solid var(--accent-purple); box-shadow: 0 0 10px color-mix(in srgb, var(--dust) 50%, transparent); object-fit: contain; background: color-mix(in srgb, var(--tint) 4%, transparent);">
             <div>
               <div>${t('mine.pickaxe_line')}</div>
               <div>${t('mine.drills_line')}</div>
+              <div>${t('mine.jackhammer_line')}</div>
+              <div>${t('mine.seismic_line')}</div>
               <div class="mining-stats-line">${t('mine.stats_line')}</div>
             </div>
           </div>
           <div class="mining-btn-group">
             <button id="btn-upgrade-pick" class="btn-action"></button>
             <button id="btn-buy-drill" class="btn-action"></button>
+            <button id="btn-buy-steam-jack" class="btn-action"></button>
+            <button id="btn-buy-seismic-rig" class="btn-action"></button>
             <button id="btn-mining-dynamite" class="btn-action"></button>
+          </div>
+          <div style="margin-top: 0.75rem;">
+            <h4 style="font-size: 0.85rem; margin-bottom: 0.35rem; color: var(--accent-purple);">${t('mine.skills_title')}</h4>
+            <div class="mining-skills-grid">
+              <button class="btn-action btn-mine-skill" data-skill="shatter" id="btn-skill-shatter"></button>
+              <button class="btn-action btn-mine-skill" data-skill="chain" id="btn-skill-chain"></button>
+              <button class="btn-action btn-mine-skill" data-skill="cleave" id="btn-skill-cleave"></button>
+              <button class="btn-action btn-mine-skill" data-skill="frenzy" id="btn-skill-frenzy"></button>
+            </div>
           </div>
         `;
       }
 
       const stone = this.gameState.inventory.stone || 0;
+      const inv = this.gameState.inventory;
       const level = grid.pickaxeTier || 0;
+
+      const pickImg = this.$('mining-pickaxe-img');
+      const pickSrc = getPickaxeIcon(level);
+      if (pickImg && pickImg.getAttribute('src') !== pickSrc) {
+        pickImg.setAttribute('src', pickSrc);
+      }
 
       setTextById('mining-pick-name', getPickaxeName(level));
       setTextById('mining-pick-level', String(level));
       setTextById('mining-pick-power', fmt(this.miningSystem.getPickaxePower(), 1));
-      setTextById('mining-drill-count', fmtNum(grid.autoDrills));
+      setTextById('mining-drill-count', fmtNum(grid.autoDrills || 0));
       setTextById('mining-drill-rate', this.miningSystem.getAutoDrillRate().toFixed(1));
+      setTextById('mining-jack-count', fmtNum(grid.steamDrills || 0));
+      setTextById('mining-jack-rate', ((grid.steamDrills || 0) * 2.0).toFixed(1));
+      setTextById('mining-seismic-count', fmtNum(grid.seismicRigs || 0));
+      const sCd = Math.max(2.5, 8.0 - (grid.seismicRigs || 0) * 0.5);
+      setTextById('mining-seismic-cd', sCd.toFixed(1));
       setTextById('mining-tile-hp', fmt(strata.maxHp, 1));
       setTextById('mining-stone-yield', fmt(this.miningSystem.getStoneYield(), 1));
 
       const pickCost = this.miningSystem.getPickaxeCost();
       setTextById('btn-upgrade-pick', t('mine.upgrade_pick', { name: getPickaxeName(level + 1), n: fmt(pickCost, 2) }));
-      this.$('btn-upgrade-pick').classList.toggle('disabled', stone < pickCost);
+      this.$('btn-upgrade-pick')?.classList.toggle('disabled', stone < pickCost);
 
       const drillCost = this.miningSystem.getAutoDrillCost();
       setTextById('btn-buy-drill', t('mine.buy_drill', { n: fmt(drillCost, 2) }));
-      this.$('btn-buy-drill').classList.toggle('disabled', stone < drillCost);
+      this.$('btn-buy-drill')?.classList.toggle('disabled', stone < drillCost);
+
+      const steamCost = this.miningSystem.getSteamDrillCost();
+      setTextById('btn-buy-steam-jack', t('mine.buy_jackhammer', { stone: fmt(steamCost.stone, 2), rubies: steamCost.rubies }));
+      this.$('btn-buy-steam-jack')?.classList.toggle('disabled', stone < steamCost.stone || (inv.rubies || 0) < steamCost.rubies);
+
+      const seismicCost = this.miningSystem.getSeismicRigCost();
+      setTextById('btn-buy-seismic-rig', t('mine.buy_seismic', { stone: fmt(seismicCost.stone, 2), sapphires: seismicCost.sapphires }));
+      this.$('btn-buy-seismic-rig')?.classList.toggle('disabled', stone < seismicCost.stone || (inv.sapphires || 0) < seismicCost.sapphires);
 
       const cd = this.miningSystem.dynamiteCooldown;
       setTextById('btn-mining-dynamite', t('mine.dynamite', { state: cd > 0 ? t('u.sec', { n: Math.ceil(cd) }) : t('mine.ready') }));
-      this.$('btn-mining-dynamite').classList.toggle('disabled', cd > 0);
+      this.$('btn-mining-dynamite')?.classList.toggle('disabled', cd > 0);
+
+      // Stone Workshop Skills
+      const skills = grid.skills || {};
+      const shatterLv = skills.shatter || 0;
+      const shatterCost = this.miningSystem.getSkillCost('shatter');
+      const shatterName = shatterLv >= 8 ? t('mine.skill.shatter', { lv: t('mine.max_level') }) : t('mine.skill_upgrade', { name: t('mine.skill.shatter', { lv: shatterLv + 1 }), cost: fmt(shatterCost, 2) });
+      setTextById('btn-skill-shatter', `${shatterName} · ${t('mine.skill.shatter_desc', { chance: (this.miningSystem.getShatterChance() * 100).toFixed(0) })}`);
+      this.$('btn-skill-shatter')?.classList.toggle('disabled', shatterLv >= 8 || stone < shatterCost);
+
+      const chainLv = skills.chain || 0;
+      const chainCost = this.miningSystem.getSkillCost('chain');
+      const chainName = chainLv >= 8 ? t('mine.skill.chain', { lv: t('mine.max_level') }) : t('mine.skill_upgrade', { name: t('mine.skill.chain', { lv: chainLv + 1 }), cost: fmt(chainCost, 2) });
+      setTextById('btn-skill-chain', `${chainName} · ${t('mine.skill.chain_desc', { chance: (this.miningSystem.getChainChance() * 100).toFixed(1) })}`);
+      this.$('btn-skill-chain')?.classList.toggle('disabled', chainLv >= 8 || stone < chainCost);
+
+      const cleaveLv = skills.cleave || 0;
+      const cleaveCost = this.miningSystem.getSkillCost('cleave');
+      const cleaveName = cleaveLv >= 8 ? t('mine.skill.cleave', { lv: t('mine.max_level') }) : t('mine.skill_upgrade', { name: t('mine.skill.cleave', { lv: cleaveLv + 1 }), cost: fmt(cleaveCost, 2) });
+      setTextById('btn-skill-cleave', `${cleaveName} · ${t('mine.skill.cleave_desc', { chance: (this.miningSystem.getCleaveChance() * 100).toFixed(1) })}`);
+      this.$('btn-skill-cleave')?.classList.toggle('disabled', cleaveLv >= 8 || stone < cleaveCost);
+
+      const frenzyLv = skills.frenzy || 0;
+      const frenzyCost = this.miningSystem.getSkillCost('frenzy');
+      const frenzyName = frenzyLv >= 8 ? t('mine.skill.frenzy', { lv: t('mine.max_level') }) : t('mine.skill_upgrade', { name: t('mine.skill.frenzy', { lv: frenzyLv + 1 }), cost: fmt(frenzyCost, 2) });
+      setTextById('btn-skill-frenzy', `${frenzyName} · ${t('mine.skill.frenzy_desc', { dur: this.miningSystem.getFrenzyDuration().toFixed(0) })}`);
+      this.$('btn-skill-frenzy')?.classList.toggle('disabled', frenzyLv >= 8 || stone < frenzyCost);
     }
+
+    const MINING_TILE_ART = {
+      stairs: 'assets/generated/mining/stairs.svg',
+      gold_cache: 'assets/generated/mining/gold_cache.svg',
+      geode_pocket: 'assets/generated/mining/gold_cache.svg',
+      bomb: 'assets/generated/mining/dynamite.svg',
+      ruby: 'assets/generated/mining/relic_ruby.svg',
+      sapphire: 'assets/generated/mining/relic_sapphire.svg',
+      emerald: 'assets/generated/mining/relic_emerald.svg',
+      diamond: 'assets/generated/mining/relic_diamond.svg',
+      voidAmethyst: 'assets/generated/mining/relic_void_amethyst.svg'
+    };
 
     const tileContent = (b) => {
       let icon = '⛏️'; let label = itemName('stone');
       if (b.content === 'stairs') { icon = '🪜'; label = t('mine.tile.stairs'); }
+      else if (b.content === 'bomb') { icon = '💣'; label = t('mine.tile.bomb'); }
       else if (b.content === 'gold_cache') { icon = '💰'; label = t('res.gold'); }
+      else if (b.content === 'geode_pocket') { icon = '✨💎'; label = t('mine.tile.geode'); }
       else if (TILE_ITEM_KEY[b.content]) { const e = ITEM_NAMES[TILE_ITEM_KEY[b.content]]; icon = e.icon; label = e.name; }
-      return `<span class="m-icon">${icon}</span><span class="m-lbl">${label}</span>`;
+      const art = MINING_TILE_ART[b.content];
+      const iconMarkup = art
+        ? `<img class="m-art-img" src="${art}" alt="${icon}" loading="lazy">`
+        : `<span class="m-icon">${icon}</span>`;
+      return `${iconMarkup}<span class="m-lbl">${label}</span>`;
+    };
+
+    const getCrackClass = (b) => {
+      if (b.hp >= b.maxHp) return '';
+      const ratio = b.hp / b.maxHp;
+      if (ratio <= 0.33) return 'cracked-3';
+      if (ratio <= 0.66) return 'cracked-2';
+      return 'cracked-1';
     };
 
     const container = this.$('mining-grid-board');
     if (container) {
+      container.classList.toggle('frenzy-active', this.miningSystem.isFrenzyActive());
       // Key the rebuild on the blocks array itself: a new grid is generated 400ms after
       // the depth changes, so keying on depth left stale revealed tiles over the new grid.
       if (forceRebuildGrid || container.children.length === 0 || this.lastMiningBlocks !== grid.blocks) {
@@ -991,7 +1082,7 @@ class AetheriaApp {
         container.innerHTML = grid.blocks.map(b => b.revealed ? `
           <div class="mine-tile revealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${themeVar(strata.color)}">${tileContent(b)}</div>
         ` : `
-          <div class="mine-tile unrevealed" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${themeVar(strata.color)}">
+          <div class="mine-tile unrevealed strata-${strata.index} ${getCrackClass(b)}" id="mine-tile-${b.id}" data-index="${b.id}" style="border-color: ${themeVar(strata.color)}">
             <div class="tile-hp-bar" id="tile-bar-${b.id}" style="width: ${(b.hp / b.maxHp) * 100}%"></div>
             <span class="tile-hp-text" id="tile-text-${b.id}">${fmt(b.hp, 1)}</span>
           </div>
@@ -1009,12 +1100,15 @@ class AetheriaApp {
           const tile = refs?.tile;
           if (!tile) continue;
           if (b.revealed && !tile.classList.contains('revealed')) {
-            tile.classList.remove('unrevealed');
+            tile.classList.remove('unrevealed', 'cracked-1', 'cracked-2', 'cracked-3');
             tile.classList.add('revealed');
             tile.innerHTML = tileContent(b);
           } else if (!b.revealed) {
             setWidth(refs.bar, `${(b.hp / b.maxHp) * 100}%`);
             setText(refs.txt, fmt(b.hp, 1)); // max HP is in the stats line; "a/b" overflowed small tiles
+            const crack = getCrackClass(b);
+            tile.classList.remove('cracked-1', 'cracked-2', 'cracked-3');
+            if (crack) tile.classList.add(crack);
           }
         }
       }
@@ -1096,9 +1190,12 @@ class AetheriaApp {
         Object.entries(SEED_TYPES).map(([id, def]) => `<option value="${id}">${def.icon} ${def.name}</option>`).join('');
       golemCont.innerHTML = `
         <div class="golem-header">
-          <div>
-            <strong>${t('golem.title')}</strong> <span id="golem-count" class="res-badge num">0 / ${MAX_GOLEMS}</span>
-            <div class="golem-sub">${t('golem.sub')}</div>
+          <div style="display: flex; align-items: center; gap: var(--sp-2);">
+            <img src="assets/generated/garden/golem_automator.svg" class="golem-avatar-ico" alt="Golem" loading="lazy">
+            <div>
+              <strong>${t('golem.title')}</strong> <span id="golem-count" class="res-badge num">0 / ${MAX_GOLEMS}</span>
+              <div class="golem-sub">${t('golem.sub')}</div>
+            </div>
           </div>
           <button id="btn-buy-golem" class="btn-action" data-action="buy-golem"></button>
         </div>
@@ -1204,7 +1301,10 @@ class AetheriaApp {
       if (!p.seed) {
         const cls = `garden-plot empty${golemCls}`;
         if (plotEl.className !== cls) plotEl.className = cls;
-        setText(icoEl, '');
+        if (icoEl && icoEl.dataset.stage !== 'empty') {
+          icoEl.dataset.stage = 'empty';
+          icoEl.innerHTML = '';
+        }
         setText(statEl, t('garden.empty'));
         setWidth(fillEl, '0%');
       } else {
@@ -1214,7 +1314,23 @@ class AetheriaApp {
 
         const cls = `garden-plot planted${isMature ? ' mature' : ''}${p.fertilized ? ' fertilized' : ''}${golemCls}`;
         if (plotEl.className !== cls) plotEl.className = cls;
-        setText(icoEl, def.icon);
+
+        let stageKey = 'mature';
+        let stageContent = def.icon;
+        if (!isMature) {
+          if (progressPct < 35) {
+            stageKey = 'sprout';
+            stageContent = '<img class="plot-art-ico" src="assets/generated/garden/sprout.svg" alt="Sprout" loading="lazy">';
+          } else {
+            stageKey = 'blooming';
+            stageContent = '<img class="plot-art-ico" src="assets/generated/garden/blooming_flower.svg" alt="Blooming" loading="lazy">';
+          }
+        }
+        if (icoEl && icoEl.dataset.stage !== stageKey) {
+          icoEl.dataset.stage = stageKey;
+          icoEl.innerHTML = stageContent;
+        }
+
         const st = isMature ? t('garden.ready') : `${def.name} (${this.formatGrowTime(p.maxTime - p.progress)})${p.fertilized ? ' 🧪' : ''}`;
         setText(statEl, st);
         setWidth(fillEl, `${progressPct}%`);
@@ -1237,13 +1353,25 @@ class AetheriaApp {
 
   // --- Alchemy Structure ---
   buildAlchemyStructure() {
+    const ALCHEMY_ART = {
+      swiftness: 'assets/generated/alchemy/karak_tea.svg',
+      titans_draught: 'assets/generated/alchemy/almarai_laban.svg',
+      aether_surge: 'assets/generated/alchemy/cold_vimto.svg',
+      midas_elixir: 'assets/generated/alchemy/golden_dallah_brew.svg',
+      perm_might: 'assets/generated/alchemy/mandi_feast_nectar.svg',
+      perm_vitality: 'assets/generated/alchemy/shawarma_of_life.svg',
+      philosophers_catalyst: 'assets/generated/alchemy/royal_wasta_seal.svg'
+    };
+
     const listCont = document.getElementById('alchemy-recipes-list');
     if (listCont) {
       listCont.innerHTML = RECIPES.map(r => {
         const costStr = Object.entries(this.alchemySystem.getRecipeCost(r)).map(([k, v]) =>
           `<bdi><span id="alc-cost-${r.id}-${k}">${fmtNum(v)}</span>x</bdi> ${itemName(k)} (<span id="alc-own-${r.id}-${k}">0</span>)`).join(t('list.sep'));
+        const artMarkup = ALCHEMY_ART[r.id] ? `<img class="alc-art-img" src="${ALCHEMY_ART[r.id]}" alt="${r.name}" loading="lazy">` : '';
         return `
           <div class="alchemy-card" id="alc-card-${r.id}">
+            ${artMarkup}
             <div class="alc-info">
               <div class="alc-name">${r.name}</div>
               <div class="alc-desc">${r.desc}</div>
@@ -1339,11 +1467,20 @@ class AetheriaApp {
 
   // --- Spells Structure ---
   buildSpellsStructure() {
+    const SPELL_ART = {
+      aether_burst: 'assets/generated/spells/aether_burst.svg',
+      chrono_warp: 'assets/generated/spells/chrono_warp.svg',
+      midas_touch: 'assets/generated/spells/midas_touch.svg',
+      celestial_alignment: 'assets/generated/spells/celestial_alignment.svg',
+      void_strike: 'assets/generated/spells/void_strike.svg',
+      astral_refresh: 'assets/generated/spells/astral_refresh.svg'
+    };
+
     const cont = document.getElementById('spells-grid-container');
     if (cont) {
       cont.innerHTML = SPELLS.map(s => `
         <div class="spell-card" id="spell-card-${s.id}">
-          <div class="sp-icon">${s.icon}</div>
+          <div class="sp-icon">${SPELL_ART[s.id] ? `<img class="sp-art-img" src="${SPELL_ART[s.id]}" alt="${s.name}" loading="lazy">` : s.icon}</div>
           <div class="sp-details">
             <div class="sp-name">${s.name}</div>
             <div class="sp-desc">${s.desc}</div>
@@ -1861,7 +1998,7 @@ class AetheriaApp {
     this.unlocksUI?.update(dt);
     this.comingUp?.update(dt);
     this.wardensRelicsUI?.update(this.currentTab);
-    this.equipmentUI?.update(this.currentTab);
+    this.bagUI?.update(this.currentTab);
     this.shardTreeUI?.update(this.currentTab);
     this.dustShopUI?.update();
     this.chronicleUI?.update(this.currentTab);

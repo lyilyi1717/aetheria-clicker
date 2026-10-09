@@ -63,11 +63,11 @@ export const HEX_TOKEN = {
   '#f87171': 'danger', '#ef4444': 'danger',
   '#94a3b8': 'text-3', '#64748b': 'text-3',
   '#9aa5b1': 'rarity-common', '#56b4e9': 'rarity-rare', '#b388ff': 'rarity-epic',
-  '#ef8a3c': 'rarity-legendary', '#ffd84d': 'rarity-cosmic'
+  '#ef8a3c': 'rarity-legendary', '#ffd84d': 'rarity-cosmic', '#ff5d8f': 'rarity-mythic'
 };
 
 function activeTheme() {
-  return typeof document === 'undefined' ? DEFAULT_THEME : normalizeTheme(document.documentElement.dataset.theme);
+  return (typeof document === 'undefined' || !document.documentElement) ? DEFAULT_THEME : normalizeTheme(document.documentElement.dataset?.theme);
 }
 
 /** For CSS (inline styles, custom properties): a known Night hex becomes var(--token). */

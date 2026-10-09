@@ -11,6 +11,7 @@
 
 import { VERSION } from '../version.js';
 import { t } from '../i18n/index.js';
+import { CommunityVotes, openVotes, likesByIssue, likesToGo, APPROVE_LIKES } from './communityVotes.js';
 
 export const REPO = 'lyilyi1717/aetheria-clicker';
 export const API = `https://api.github.com/repos/${REPO}`;
@@ -234,6 +235,8 @@ export class CommunityUI {
     this.loading = false;
     this.type = 'bug';
     this.wasOpen = false;
+    // Requests from players without GitHub (Supabase, js/ui/communityVotes.js)
+    this.votes = new CommunityVotes({ getCloud: () => this.app?.cloudSave || null });
   }
 
   init() {
@@ -250,7 +253,7 @@ export class CommunityUI {
   // Called every frame from main.js; loads once each time the tab is opened (cache permitting)
   update(tab) {
     const open = tab === 'community';
-    if (open && !this.wasOpen) this.refresh(false);
+    if (open && !this.wasOpen) { this.updateFormMode(); this.refresh(false); }
     this.wasOpen = open;
   }
 
@@ -259,7 +262,8 @@ export class CommunityUI {
     this.loading = true;
     this.render();
     try {
-      this.data = await loadCommunity({ force });
+      const [data] = await Promise.all([loadCommunity({ force }), this.votes.load({ force })]);
+      this.data = data;
     } finally {
       this.loading = false;
       this.render();
@@ -305,13 +309,40 @@ export class CommunityUI {
     this.attached = el('p', 'cm-attached');
     this.formNote = el('p', 'cm-note');
     this.formNote.setAttribute('aria-live', 'polite');
-    const submit = el('button', 'btn btn-primary cm-submit', t('cm.open'));
-    submit.type = 'submit';
+    this.submitBtn = el('button', 'btn btn-primary cm-submit', t('cm.open'));
+    this.submitBtn.type = 'submit';
+    // Signed in: the main button posts here (no GitHub needed) and this one opens GitHub instead
+    this.githubBtn = el('button', 'btn btn-ghost btn-sm cm-github', t('cm.v.github_instead'));
+    this.githubBtn.type = 'button';
+    this.githubBtn.addEventListener('click', () => this.submit('github'));
+    this.accountNote = el('p', 'cm-attached');
+    const actions = el('div', 'cm-actions');
+    actions.append(this.submitBtn, this.githubBtn);
 
-    card.append(seg, titleField, descField, this.attached, this.formNote, submit);
+    card.append(seg, titleField, descField, this.attached, this.formNote, actions, this.accountNote);
     card.addEventListener('submit', (e) => { e.preventDefault(); this.submit(); });
     this.root.append(card);
     this.setType(this.type);
+    this.updateFormMode();
+  }
+
+  // Without GitHub: a game account posts here; the GitHub link stays as the other way in
+  get canPostHere() { return this.votes.signedIn && this.votes.state !== 'off'; }
+
+  updateFormMode() {
+    if (!this.submitBtn) return;
+    const here = this.canPostHere;
+    this.submitBtn.textContent = here ? t('cm.v.post') : t('cm.open');
+    this.githubBtn.hidden = !here;
+    this.accountNote.replaceChildren();
+    if (here) this.accountNote.textContent = t('cm.v.post_note', { n: APPROVE_LIKES });
+    else if (this.votes.state !== 'off') {
+      this.accountNote.append(t('cm.v.signin_note'), ' ');
+      const go = el('button', 'btn btn-ghost btn-sm', t('cm.v.signin_go'));
+      go.type = 'button';
+      go.addEventListener('click', () => this.app?.switchTab?.('settings'));
+      this.accountNote.append(go);
+    }
   }
 
   setType(type) {
@@ -324,11 +355,29 @@ export class CommunityUI {
     this.attached.textContent = t('cm.attached', { what: bug ? `v${VERSION} · ${browser}` : `v${VERSION}` });
   }
 
-  submit() {
+  async submit(via) {
     const title = this.titleInput.value.trim();
     if (title.length < 4) {
       this.formNote.textContent = t('cm.short_title');
       this.titleInput.focus();
+      return;
+    }
+    if (via !== 'github' && this.canPostHere) {
+      if (this.posting) return;
+      this.posting = true;
+      this.submitBtn.setAttribute('aria-disabled', 'true');
+      this.formNote.textContent = t('cm.v.posting');
+      const r = await this.votes.post({
+        kind: this.type, title, body: this.descInput.value, version: VERSION,
+        browser: this.type === 'bug' ? describeBrowser(globalThis.navigator?.userAgent) : ''
+      });
+      this.posting = false;
+      this.submitBtn.removeAttribute('aria-disabled');
+      if (!r.ok) { this.formNote.textContent = r.error; this.updateFormMode(); return; }
+      this.titleInput.value = '';
+      this.descInput.value = '';
+      this.formNote.textContent = t('cm.v.posted', { n: APPROVE_LIKES });
+      this.render();
       return;
     }
     this.formNote.textContent = t('cm.opens');
@@ -357,14 +406,89 @@ export class CommunityUI {
       this.status.append(btn, ' ', extLink(`https://github.com/${REPO}/issues?q=is%3Aissue+label%3Acommunity`, 'cm-all', t('cm.all')));
     }
 
+    this.updateFormMode();
     this.lists.replaceChildren();
+    if (this.votes.state === 'on') this.lists.append(this.voteSection());
     if (!d) return;
-    const { bugs, features } = groupOpen(d.issues);
+    // A request that went to GitHub keeps its in-game likes: they count with the issue's 👍
+    const extra = likesByIssue(this.votes.requests);
+    const issues = d.issues.map(i => (extra[i.number] ? { ...i, likes: i.likes + extra[i.number] } : i));
+    const { bugs, features } = groupOpen(issues);
     this.lists.append(
       this.section(t('cm.bugs'), t('cm.bugs_sub'), bugs, t('cm.bugs_empty')),
       this.section(t('cm.ideas'), t('cm.ideas_sub'), features, t('cm.ideas_empty')),
       this.doneSection(doneList(d.issues), d.shipped || {})
     );
+  }
+
+  // "Vote": requests posted in the game, waiting for likes before they go to GitHub
+  voteSection() {
+    const items = openVotes(this.votes.requests);
+    const card = el('section', 'card cm-section cm-votes');
+    const head = el('div', 'card-head');
+    const h = el('h3', 'cm-h', t('cm.v.title'));
+    h.append(' ', el('span', 'cm-count num', String(items.length)));
+    head.append(h, el('span', 'cm-sub', t('cm.v.sub', { n: APPROVE_LIKES })));
+    card.append(head);
+    if (!items.length) { card.append(el('p', 'cm-empty', t('cm.v.empty'))); return card; }
+    const signedIn = this.votes.signedIn;
+    const me = this.votes.myId;
+    const list = el('ol', 'cm-list');
+    items.forEach((req, idx) => {
+      const row = el('li', 'card-row cm-row');
+      row.append(el('span', 'cm-rank num', `${idx + 1}`));
+      const text = el('div', 'cm-text');
+      const title = el('span', 'cm-title', req.title);
+      title.dir = 'auto';
+      const togo = likesToGo(req.likes);
+      text.append(title, el('span', 'cm-meta num',
+        `${req.kind === 'bug' ? t('cm.bug_word') : t('cm.idea_word')} · ${togo ? t('cm.v.to_go', { n: togo }) : t('cm.v.next_run')}`));
+      row.append(text);
+
+      const mine = !!me && req.userId === me;
+      const liked = this.votes.myLikes.has(req.id);
+      const like = el('button', `btn btn-sm cm-like${liked ? ' is-on' : ''}`);
+      like.type = 'button';
+      like.append(el('span', 'num', `👍 ${req.likes}`));
+      like.setAttribute('aria-pressed', String(liked));
+      like.setAttribute('aria-label', t('cm.likes_aria_here', { n: req.likes }));
+      if (!signedIn || mine) {
+        like.setAttribute('aria-disabled', 'true');
+        like.title = mine ? t('cm.v.err_own') : t('cm.v.err_signin');
+      }
+      like.addEventListener('click', () => {
+        if (!signedIn) { this.formNote.textContent = t('cm.v.err_signin'); return; }
+        if (mine) return;
+        this.act(() => this.votes.like(req.id, !liked));
+      });
+      const actions = el('div', 'cm-row-actions');
+      actions.append(like);
+      if (signedIn) {
+        const extra = el('button', 'btn btn-ghost btn-sm', mine ? t('cm.v.delete') : t('cm.v.report'));
+        extra.type = 'button';
+        extra.addEventListener('click', () => {
+          if (!globalThis.confirm?.(mine ? t('cm.v.delete_confirm') : t('cm.v.report_confirm'))) return;
+          this.act(() => (mine ? this.votes.remove(req.id) : this.votes.report(req.id)));
+        });
+        actions.append(extra);
+      }
+      row.append(actions);
+      list.append(row);
+    });
+    card.append(list);
+    return card;
+  }
+
+  async act(fn) {
+    if (this.busy) return;
+    this.busy = true;
+    try {
+      const r = await fn();
+      if (!r.ok) this.formNote.textContent = r.error;
+    } finally {
+      this.busy = false;
+      this.render();
+    }
   }
 
   section(title, sub, items, empty) {

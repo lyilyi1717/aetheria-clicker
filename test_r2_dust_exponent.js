@@ -23,22 +23,18 @@ console.log('--- R2/R31: dust is 10 x (run Aether / 1e4)^(1/5), paid from 500 ru
   assert.ok(Math.abs((d.e + Math.log10(d.m)) - (1 + 326 / 5)) < 1e-6, `dust ${d}`);
 }
 
-console.log('--- R2: minimum run on Ascend ---');
+console.log('--- R2: no minimum run cooldown on Ascend ---');
 {
   const gs = new GameState();
   const ps = new PrestigeSystem(gs);
   gs.totalAetherEarned = new BigNum(1e12);
   const t0 = 1_000_000_000_000;
   gs.runStartedAt = t0;
-  assert.equal(ps.getMinRunRemaining(t0), MIN_RUN_SECONDS);
-  assert.equal(ps.getMinRunRemaining(t0 + 540_000), 60);
-  assert.equal(ps.canAscend(t0 + 599_000), false);
-  assert.equal(ps.canAscend(t0 + 600_000), true);
-  assert.equal(ps.getMinRunRemaining(t0 - 5_000_000), MIN_RUN_SECONDS, 'clock set back is clamped');
-  // fresh run: ascend refuses; an old run ascends and restarts the clock
-  gs.runStartedAt = Date.now();
+  assert.equal(ps.getMinRunRemaining(t0), 0);
+  assert.equal(ps.canAscend(t0), true, 'can Ascend immediately with pending dust');
+  // fresh run without dust: ascend refuses; run with dust ascends and restarts the clock
+  gs.totalAetherEarned = BigNum.zero();
   assert.equal(ps.ascend(), false);
-  gs.runStartedAt = 0;
   gs.totalAetherEarned = new BigNum(1e12);
   assert.equal(ps.ascend(), true);
   assert.ok(Date.now() - gs.runStartedAt < 5000);

@@ -1,5 +1,9 @@
 // High-performance Particle and Floating Text Engine
 import { themeColor } from '../ui/theme.js';
+import {
+  MAX_TEXTS, FAST_DECAY, MERGE_SIZE_STEP, MERGE_SIZE_MAX,
+  particleCap, isPhoneWidth, overCap, shouldMerge, addAmounts
+} from '../ui/feedbackBudget.js';
 
 // "Reduce motion" (R24, js/ui/motion.js writes data-motion on <html>): no sparks, and floating
 // numbers fade where they appear instead of drifting
@@ -13,7 +17,9 @@ export class ParticleEngine {
     this.ctx = null;
     this.particles = [];
     this.texts = [];
+    this.lightningArcs = [];
     this.suppressed = false; // Fast Forward: skip effects for simulated (warped) events
+    this.mergeTargets = new Map(); // "+n" merge key -> its live text (R41)
     this.lastTime = performance.now();
   }
 
@@ -33,6 +39,21 @@ export class ParticleEngine {
     this.dirty = true; // resizing resets the bitmap; clear on the next frame regardless
   }
 
+  isPhone() {
+    return isPhoneWidth(this.width ?? (typeof window !== 'undefined' ? window.innerWidth : 0));
+  }
+
+  // R41 caps (docs/game-feel-opportunities.md §4): over the cap the oldest fade faster instead
+  // of new ones being dropped, so the newest action still answers; past twice the cap the
+  // oldest go at once
+  enforceCap(list, cap) {
+    const { fade, drop } = overCap(list.length, cap);
+    if (drop > 0) list.splice(0, drop);
+    for (let i = 0; i < fade - drop && i < list.length; i++) {
+      if (list[i].decay < FAST_DECAY) list[i].decay = FAST_DECAY;
+    }
+  }
+
   spawnClickSparks(x, y, count = 12, color = '#38bdf8') {
     if (this.suppressed || motionReduced()) return;
     for (let i = 0; i < count; i++) {
@@ -49,12 +70,113 @@ export class ParticleEngine {
         decay: 0.02 + Math.random() * 0.03
       });
     }
+    this.enforceCap(this.particles, particleCap(this.isPhone()));
   }
 
-  spawnFloatingText(x, y, text, color = '#67e8f9', isCrit = false) {
+  spawnDebris(x, y, count = 8, color = '#94a3b8') {
+    if (this.suppressed || motionReduced()) return;
+    for (let i = 0; i < count; i++) {
+      const angle = -Math.PI * 0.8 + Math.random() * Math.PI * 0.6; // upward arc
+      const speed = 3 + Math.random() * 7;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 3 + Math.random() * 5,
+        color: themeColor(color),
+        alpha: 1,
+        decay: 0.015 + Math.random() * 0.02
+      });
+    }
+    this.enforceCap(this.particles, particleCap(this.isPhone()));
+  }
+
+  spawnLightningArc(x1, y1, x2, y2, color = '#38bdf8') {
+    if (this.suppressed || motionReduced()) return;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const dist = Math.hypot(dx, dy);
+    const steps = Math.max(6, Math.min(16, Math.floor(dist / 22)));
+    const points = [{ x: x1, y: y1 }];
+    const nx = -dy / (dist || 1);
+    const ny = dx / (dist || 1);
+
+    for (let i = 1; i < steps; i++) {
+      const t = i / steps;
+      const jitter = (Math.random() - 0.5) * Math.min(36, dist * 0.35);
+      points.push({
+        x: x1 + dx * t + nx * jitter,
+        y: y1 + dy * t + ny * jitter
+      });
+    }
+    points.push({ x: x2, y: y2 });
+
+    const branches = [];
+    if (steps > 4 && Math.random() < 0.75) {
+      const forkIdx = Math.floor(steps * 0.5);
+      const startPt = points[forkIdx];
+      const forkLen = 18 + Math.random() * 22;
+      const forkAngle = Math.atan2(dy, dx) + (Math.random() > 0.5 ? 0.75 : -0.75);
+      branches.push([
+        startPt,
+        {
+          x: startPt.x + Math.cos(forkAngle) * forkLen * 0.6 + (Math.random() - 0.5) * 8,
+          y: startPt.y + Math.sin(forkAngle) * forkLen * 0.6 + (Math.random() - 0.5) * 8
+        },
+        {
+          x: startPt.x + Math.cos(forkAngle) * forkLen,
+          y: startPt.y + Math.sin(forkAngle) * forkLen
+        }
+      ]);
+    }
+
+    this.lightningArcs.push({
+      points,
+      branches,
+      color: themeColor(color),
+      alpha: 1.0,
+      decay: 0.04,
+      width: 3.5
+    });
+
+    // Impact sparks at target
+    for (let i = 0; i < 5; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 2 + Math.random() * 4;
+      this.particles.push({
+        x: x2,
+        y: y2,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 2.5 + Math.random() * 2,
+        color: themeColor('#ffffff'),
+        alpha: 1,
+        decay: 0.04
+      });
+    }
+    this.enforceCap(this.particles, particleCap(this.isPhone()));
+  }
+
+  // `merge` ({ key, amount, prefix, fmt }) makes a "+n" text add into the last one with the same
+  // key spawned within 150 ms and 40 px, growing a little (16 -> 22 px) instead of piling up.
+  // Crits never merge.
+  spawnFloatingText(x, y, text, color = '#67e8f9', isCrit = false, merge = null) {
     if (this.suppressed) return;
+    const now = performance.now();
+    if (merge?.key && !isCrit) {
+      const prev = this.mergeTargets.get(merge.key);
+      if (shouldMerge(prev, merge.key, x, y, now) && this.texts.includes(prev)) {
+        prev.amount = addAmounts(prev.amount, merge.amount);
+        prev.text = (merge.prefix ?? '+') + merge.fmt(prev.amount);
+        prev.size = Math.min(MERGE_SIZE_MAX, prev.size + MERGE_SIZE_STEP);
+        prev.alpha = 1;
+        prev.updatedAt = now;
+        return prev;
+      }
+    }
     const still = motionReduced();
-    this.texts.push({
+    const entry = {
       x: x + (Math.random() - 0.5) * 30,
       y: y + (Math.random() - 0.5) * 20,
       text,
@@ -65,7 +187,16 @@ export class ParticleEngine {
       vx: still ? 0 : (Math.random() - 0.5) * 0.8,
       alpha: 1,
       decay: isCrit ? 0.012 : 0.018
-    });
+    };
+    if (merge?.key && !isCrit) {
+      Object.assign(entry, {
+        mergeKey: merge.key, amount: merge.amount, originX: x, originY: y, bornAt: now, updatedAt: now
+      });
+      this.mergeTargets.set(merge.key, entry);
+    }
+    this.texts.push(entry);
+    this.enforceCap(this.texts, MAX_TEXTS);
+    return entry;
   }
 
   loop(currentTime) {
@@ -74,11 +205,62 @@ export class ParticleEngine {
 
     if (this.ctx && this.canvas) {
       // Idle most of the time: skip the full-screen clear once the canvas is already blank
-      const hasWork = this.particles.length > 0 || this.texts.length > 0;
+      const hasWork = this.particles.length > 0 || this.texts.length > 0 || this.lightningArcs.length > 0;
       if (hasWork || this.dirty) {
         this.ctx.clearRect(0, 0, this.width, this.height);
       }
       this.dirty = hasWork;
+
+      // Render & update lightning arcs
+      for (let i = this.lightningArcs.length - 1; i >= 0; i--) {
+        const arc = this.lightningArcs[i];
+        arc.alpha -= arc.decay;
+        if (arc.alpha <= 0) {
+          this.lightningArcs.splice(i, 1);
+          continue;
+        }
+
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, arc.alpha);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Outer intense glow
+        ctx.strokeStyle = arc.color;
+        ctx.lineWidth = arc.width * 2.2;
+        ctx.shadowColor = arc.color;
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.moveTo(arc.points[0].x, arc.points[0].y);
+        for (let j = 1; j < arc.points.length; j++) {
+          ctx.lineTo(arc.points[j].x, arc.points[j].y);
+        }
+        ctx.stroke();
+
+        for (const branch of arc.branches) {
+          ctx.beginPath();
+          ctx.moveTo(branch[0].x, branch[0].y);
+          for (let j = 1; j < branch.length; j++) {
+            ctx.lineTo(branch[j].x, branch[j].y);
+          }
+          ctx.stroke();
+        }
+
+        // Inner white-hot lightning core
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(1.2, arc.width * 0.7);
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.moveTo(arc.points[0].x, arc.points[0].y);
+        for (let j = 1; j < arc.points.length; j++) {
+          ctx.lineTo(arc.points[j].x, arc.points[j].y);
+        }
+        ctx.stroke();
+
+        ctx.restore();
+      }
 
       // Render & update particles
       for (let i = this.particles.length - 1; i >= 0; i--) {

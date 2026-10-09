@@ -10,16 +10,20 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
+- Wave 10 (economy fixes + gear), run by the wave-10 coordinator session: all done except
+  R61 #159, which waits for R57. From `docs/economy-impact-check.md` (audit of v5.12.2): R58–R61 fix live
+  economy breaks from v5.10–5.12; R63–R65 are the retuned `docs/gear-and-boss-design.md`.
+
 - Wave 9, run by the R31 coordinator session: R57 #139 in progress (also takes on the
   attunement pacing below).
 
 ## Next up
 
-R0–R30 and R32–R40 are done.
+R0–R30, R32–R40, R41 and R42 are done.
 
-- Owner actions pending: run `supabase/leaderboard_season2.sql` then `supabase/cloud_saves.sql`;
-  enable Google sign-in (steps in PR #94); create repo labels `community`, `bug`, `feature`,
-  `accepted`, `wontfix`, `duplicate` (PR #97). Game title after the oil re-theme (question in #23).
+- Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil
+  re-theme (question in #23). Done 2026-10-09: `leaderboard_season2.sql`, `cloud_saves.sql` and
+  `leaderboard_registered.sql` applied to the live project (0 guest rows deleted); repo labels exist.
 
 ## Plan
 
@@ -83,8 +87,58 @@ R0–R30 and R32–R40 are done.
 | 9 | R55 Ascension attunements | #129 | R31, R52 |
 | 9 | R56 Challenge rewards and Chapter 2 | #130 | R31 |
 | 9 | R57 Tame the late-year Chronicle/Page loop | #139 | R52, R56 |
+| 10 | R58 Shatter damages tiles, not breaks them | #156 | – |
+| 10 | R59 Garden taps share the click cap; Dewdrop crash | #157 | R52 |
+| 10 | R60 Nectar Surge only on hand harvests | #158 | R59 |
+| 10 | R61 Minimum Ascension run; honest sim cadence | #159 | R57 |
+| 10 | R62 Super-Crits and mining shockwave never trigger | #160 | R58 |
+| 10 | R63 Tower gear base 1.105 | #161 | R8, R34 |
+| 10 | R64 Gear bag, rare finds, re-temper | #162 | R63 |
+| 10 | R65 Mythics, Barakah meter, boss telegraphs | #163 | R64 |
+| 10 | R66 Garden tap growth back to 5% (owner decision) | #172 | R59 |
+| 10 | R67 Core sim skips Tower-only Al-Wakeel | #178 | R65 |
 
 ## Done
+
+- R65 #163 (PR #177, v5.19.0): boss telegraphs SMASH/FEAST/WARD (`js/systems/bossFights.js`,
+  `js/ui/bossFx.js`), phase 2 at 50%, misses free below floor 150; Sheikhs every 50 floors;
+  Guardians at 50/150/300/500/750/1000 (merged with R18 Wardens); 4 Mythics (Wasta Strike every 30th
+  hit, boss cap 4% max HP), Barakah meter (20,000, rests after 1,000/day), Cosmic pity every 10th
+  Legendary; Al-Wakeel is a Dust-shop item (`al_wakeel`), R64 grant grandfathered. No migration.
+  Tower sim takes `--seed`, `--no-mythic`, `--no-telegraphs`; idle cost of telegraphs ~-4% at 3 d.
+  Art needed (for the art tool) is listed in PR #177.
+- R67 #178 (PR #179): R65 broke `sim:check` (merged with pacing red by mistake): the core sim bought
+  `al_wakeel` and one 40-dust purchase moved the days 50-70 median 6.9e11 -> 1.22e13. The core sim
+  now skips that Tower-only item. Shows how chaotic that window is (R57's area).
+
+- R62 #160 (PR #174, v5.17.3): 20% of crits become Super-Crits (`SUPER_CRIT_SHARE`): refinery x5
+  click (inside R52), mining crit adds a 0.15x shockwave to 4 neighbours on manual digs only.
+  Hyper-Crits still dormant (need >200% crit). Active income x2.89 -> x2.91; depth within +-3%.
+- R64 #162 (PR #168, v5.18.0): gear bag (30 slots), `js/systems/gearItems.js` + `GearSystem.js`,
+  `js/ui/bag.js`; rarity x1-5, 6 affixes, 6 boss signatures, mob drops 8%, Legendary pity 600,
+  re-temper, Kashta camp, Void Cataclysm Tower cap 10x Attack. Monster Bones and R34 gear levels
+  removed (owner); salvage pays Gear Scrap. Migration v11: equipped gear -> Heirlooms keeping exact
+  stats (`keep` floor), bones -> Scrap / up to 8 Rare finds / up to 20 Void Cores, Welcome Bag.
+  `GEAR_FLOOR_BASE` 1.109 (gear levels gone): tower 400/520/610 vs 414/498/560.
+
+- R58 #156 (PR #171, v5.17.1): Shatter is x10 pickaxe damage, no instant break
+  (`SHATTER_DAMAGE_MULT`). `sim/mining-pacing.mjs` taps through the manual path (active 5/s,
+  casual 1.5/s) and asserts the depth band (day 7 80-190, day 30 110-260, day 60 130-280); active
+  depth day 7/30/60 went 247/909/1777 -> 116/153/171. The sim takes ~9 min. Mining taps don't yet
+  spend from the R52 paid-tap bucket (candidate follow-up).
+- R60 #158 (PR #169, v5.15.0): Nectar Surge pays on hand harvests only (`harvestPlot(..., auto)`,
+  Golems/offline pass `auto`). `sim:check` now also runs `sim/garden-tap.mjs --assert` (Golems
+  x1.01 cap, offline 0 Oil).
+- R66 #172 (PR #173, v5.17.2): owner decision, tap growth back to 5%; tap uplift ~+x5 under the owner
+  ceiling `TAP_UPLIFT_CEILING` x5.5 (designed envelope x2.89 kept for reference). Hand-harvest
+  Garden x3.42 over generators is accepted by the owner.
+
+- R59 #157 (PR #165, v5.13.0): Garden taps share the R52 paid-click bucket
+  (`ClickerSystem.spendPaidTap()`), Dewdrop pays 0.25 s, tap growth 2% of grow time (was 5%; needed
+  to fit the x2.89 envelope), BigNum import crash fixed. Active-tapping sim: `sim/garden-tap.mjs`.
+- R63 #161 (PR #166, v5.14.0): `GEAR_FLOOR_BASE` 1.105; save step v10 sets `pendingFloorRebase`
+  so over-floor saves step down via `rebaseLegacyFloor` (record kept). `npm run sim:tower` now fails
+  outside +-10% of 414/498/560 at 1 d/1 w/1 m (open profile now 97/380/510/520).
 
 - Redesign proposal written (`docs/redesign-proposal.md`).
 - Project setup: `AGENTS.md`, `CLAUDE.md`, this file, `sim/core-pacing.mjs` (`npm run sim`),
@@ -280,12 +334,38 @@ R0–R30 and R32–R40 are done.
 - R54 #128 Coming up panel (PR #135, 5.1.0): logic in `js/ui/comingUp.js`, styles in
   `css/coming-up.css`. Desktop opens it from a header-chip dropdown; under 1024px it is a bottom
   sheet opened from the Refinery card. Reserve-based ETAs use this run's pace, so they're rough.
+- R41 #113 Feedback-tier helper (PR #155, 5.12.1): `js/ui/feedback.js` (`fire(tier, opts)`, `countUp`,
+  `hitStop`, `shake`; no-op without a DOM) on top of pure `js/ui/feedbackBudget.js` (budgets,
+  chains, sound cooldowns, caps, merge rule); `ParticleEngine` caps 250/150 sparks and 40 texts and
+  merges "+n" texts by key. Click/crit/anomaly, combat hits, dig hits and Auto-tap go through it.
+  `.fx-shake`/`.is-hitstop` are in `css/animations.css`, unused until R42. R42–R50 build on this.
+- R42 #114 Boss kills (PR #170, 5.17.0): `js/ui/combatFx.js` hooks `CombatSystem.onBossDefeated` (T2 via
+  `feedback.fire`, hit-stop + flash on `.monster-avatar`, shake on the arena card, callout + gold
+  count-up) and `renderBossTimer` (red/ticks at <= 10 s, scale at <= 3 s, "Last boss: +n gold"
+  between bosses in the same reserved line). New voices `playBossDown`, `playTick`.
 
 
 - R25 #61 Reward toasts clear the buff bar: `js/buffBar.js` writes its measured height to
   `--buff-bar-h` (token default 36px); `css/rewards.css` offsets the stack by it at 640px+ and caps
   its height above the bottom bar under 640px. Tests in `test_r25_toasts.js`; screenshots in
   `docs/ui/screenshots/r25/`.
+
+- #147 Bug: drill-found Geode Pockets (v5.10.0) fired the full-screen `big` reward ceremony and
+  achievement sound on whatever tab was open. `MiningSystem.revealReward` now uses tier `small`
+  and no sound when there is no tap position (drills); taps keep `big`. Test: `test_offtab_fx.js`.
+
+- #149 Bug: account confirmation emails linked to http://localhost:3000. Supabase's Site URL
+  was the default and the game's URL wasn't in Redirect URLs, so `redirect_to` was ignored. Fixed
+  in the Supabase dashboard (2026-10-08); the required settings are now in `supabase/cloud_saves.sql`'s header.
+
+- #151 Bug: email confirmation/reset links gave no visible result. `AccountUI.init` now opens
+  Settings, scrolls to Account and shows the outcome; `otp_expired` maps to `cloud.link_expired`.
+
+- #152 Leaderboard: registered players only. No guest sign-in; `Leaderboard.ensureSession` uses
+  the account session. Name = account `user_metadata.nickname` (`CloudSave.setNickname`, asked at
+  sign-up) > old `settings.lbName` > `funnyName(user_id)` (`js/data/funnyNames.js`). Server rules
+  and guest-row cleanup: `supabase/leaderboard_registered.sql` (handles Season 1 live or frozen;
+  re-run it after `leaderboard_season2.sql`).
 
 ## Notes for the next session
 
@@ -328,15 +408,46 @@ R0–R30 and R32–R40 are done.
   explains itself on hover; add its class to `TAP_TIP_SELECTOR` if phones need it. New animations
   that loop forever must be ambient and listed in `test_r24_motion.js`.
 
+- Dopamine, Subgames & Game Feel (v5.7.0 - v5.10.0):
+  - Removed 10-minute minimum Ascension run restriction (`MIN_RUN_SECONDS = 0`).
+  - Added Stat Overflow: cascading Super-Crits (Orange) and Hyper-Crits (Violet) across Refinery and Tower attacks.
+  - Mining Super-Crits and Shockwaves: 4-tile adjacent AoE detonation on manual mining crits.
+  - Excavation Geode Pockets (jackpot tiles): 3% chance to unearth 3x gold cache, 2 random gems, and 30s Oil surge.
+  - Active Garden Dewdrop Tapping: clicking growing plots advances crop timer by 5% and splashes oil.
+  - Cross-Subgame Synergies: Hydraulic Bore (Oil -> Mining Power), Subterranean Irrigation (Oil -> Garden Growth), Geothermal Warmth (Excavation Depth -> Garden Speed), Botanical Rigging (Harvests -> Pickaxe Power), and Nectar Surge (Harvest -> Oil Windfall).
+  - Polish & Bug Fixes: Suppressed Tower combat particles/floats when combat tab is hidden; hid Mana from header until Grimoire is unlocked; isolated Arabic unlock teaser fractions so they read left-to-right (`0/10`); stabilized `test_r52_clicks.js` timing race.
+
 ## Noticed (not yet an issue)
+
+- `test_mining.js` is flaky (random hits per tick; once 28 vs ~5); fix the seed.
+- R64 follow-ups: Al-Wakeel as a Dust-shop item (now only free at record floor 301+), stale i18n
+  keys `gear.batch`, `gear.new_weapon`, `gear.new_armor`, rare-find toast spam with auto-salvage Off.
+- Mining taps don't spend from the R52 paid-tap bucket yet.
+
+- Never use `git stash` in this repo: the stack is shared by every worktree and other tools; an
+  agent popped another tool's art work into the wrong worktree on 2026-10-08.
+- Owner: Arabic text doesn't need owner review; don't ask for it in PRs.
+
+- Untapped Garden is ~x3.42 of generator output from Nectar Surge on hand harvests (R60's area).
+- Tower 1 h floor is ~65% of target (97 vs 149); starting-kit tuning could fix it.
+- Save step v10 is taken by R63: R57 (#146) must renumber its step to v11.
+- `test_mining.js` has a flaky random-hits assertion; `sim/core-pacing.mjs` has no Garden profile.
+- Floating texts and sparks spawned outside `feedback.fire` (Garden, Mining finds, combat
+  shield/heal, golem row) still bypass the helper; the caps cover them, routing them is R46/R47 work.
+- Each particle draws with `save/restore` + `shadowBlur`; that is likely the bigger cost for the
+  phone-heat report #106 than the particle count.
 
 - After R31: Talent S2 gives ~10 stars/yr.
 - After R52: the Aetherial Strike talent can push active play past x2 over idle.
 - After R56: the Salt stamp pays 0 Pages (a paying stamp would move the sim around day 210);
   since R52, Sandstorm takes ~31 h on a fresh idle run.
-- `test_r52_clicks.js` is flaky (about 2 in 30 runs fail on `Date.now` timing in the offline
-  test); worth a small fix item if CI starts flaking.
-- Arabic unlock teaser labels show fractions reversed (e.g. "20/0"); seen in R54.
+- [FIXED v5.8] `test_r52_clicks.js` timing flake resolved with 1e-4 tolerance.
+- [FIXED v5.10] Arabic unlock teaser labels fraction reversal resolved with isolate wrapper.
+- [FIXED v5.10] Header Mana currency hidden until Grimoire is unlocked.
+- [FIXED v5.10] Combat floating damage text and particles confined to active Tower tab.
+- v5.10.0 strings bypass `t()`: crit labels ('CRIT!', 'SUPER CRIT!', 'HYPER CRIT!') in
+  ClickerSystem/CombatSystem/MiningSystem, the Nectar Surge '+n OIL!' text, and the geode toast detail.
+- `FRENZY_AUTO_CLICKS` is 0, so the Frenzy auto-click pulse in `ClickerSystem.update` is dead code.
 
 - Hex colours still in `CombatSystem.js`, `MiningSystem.js`, `ShardTreeSystem.js`,
   `js/ui/shardTree.js`, `js/data/names.js` (R35 maps the known ones to theme tokens at runtime).
@@ -350,7 +461,7 @@ R0–R30 and R32–R40 are done.
 
 - R7 starter gifts not built: Rare weapon (Tower), half-filled first contract (Bounties), free
   Cold Vimto brew (Alchemy), free caravan (Bazaar). Save export/import still sits in the Codex
-  (roadmap §2.1 rule 5 wants it in Settings). The header shows Mana before the Grimoire opens.
+  (roadmap §2.1 rule 5 wants it in Settings).
 - **Active income is x7.2, not the doc's ~x2** (R3, design doc §6.1 R3 notes). The specified
   spell/anomaly values were applied; the rest comes from Chrono Warp (~+1), Bursts cast inside
   Celestial, and Frenzy clicks. Owner decision: which of those to trim (each changes the
@@ -364,6 +475,3 @@ R0–R30 and R32–R40 are done.
   scales with the current floor; neither follows the R8 curves.
 - A brand-new account carrying a rebased legacy save shows floor <= 1,000 + 1,000/h on Season 2
   for its first hours (R19 guard ceiling); old anonymous accounts can still post forged floors.
-- Combat floating damage text and particles still render over other tabs (seen on Excavation
-  and over the Tower quick-cast chips; `docs/ui-review.md` finding 6). `1ae4d47` fixed it for
-  auto-attacks only.

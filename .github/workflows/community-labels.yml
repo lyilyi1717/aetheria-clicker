@@ -1,0 +1,33 @@
+name: Community labels
+
+# Player reports from the in-game Community tab arrive without labels (GitHub drops URL labels
+# for non-collaborators), so the tab can't list them. This adds `community` + `bug`/`feature`.
+# Run it by hand (Actions → Community labels → Run workflow) to label every open issue.
+on:
+  issues:
+    types: [opened, edited, reopened]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            // Title and body are only compared as strings in JS, never put into a shell command
+            const { communityLabelsFor } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/community-labels.mjs`);
+            const issues = context.payload.issue
+              ? [context.payload.issue]
+              : await github.paginate(github.rest.issues.listForRepo, { ...context.repo, state: 'open', per_page: 100 });
+            for (const issue of issues) {
+              const labels = communityLabelsFor(issue);
+              if (!labels.length) continue;
+              await github.rest.issues.addLabels({ ...context.repo, issue_number: issue.number, labels });
+              core.info(`#${issue.number}: +${labels.join(', ')}`);
+            }

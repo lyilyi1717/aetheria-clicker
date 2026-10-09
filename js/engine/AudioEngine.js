@@ -229,6 +229,108 @@ export class AudioEngine {
     osc.stop(t + 0.06);
   }
 
+  // Sound: Subterranean Bomb / Massive Explosion
+  playExplosion() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(140, t);
+    osc.frequency.exponentialRampToValueAtTime(25, t + 0.4);
+
+    gain.gain.setValueAtTime(0.5, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.4);
+  }
+
+  // Sound: Chain Lightning / Arc Conduction
+  playLightning() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    [0, 0.04, 0.08].forEach((delay) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(800 + Math.random() * 400, t + delay);
+      osc.frequency.exponentialRampToValueAtTime(150, t + delay + 0.06);
+
+      gain.gain.setValueAtTime(0.25, t + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.06);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(t + delay);
+      osc.stop(t + delay + 0.06);
+    });
+  }
+
+  // Sound: Block Shatter / Fracture
+  playShatter() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    [1200, 1600, 2200].forEach((freq) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.exponentialRampToValueAtTime(80, t + 0.12);
+
+      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(t);
+      osc.stop(t + 0.12);
+    });
+  }
+
+  // Sound: Excavation Frenzy Digging Rush
+  playFrenzyTrigger() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    [300, 500, 750, 1100].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t + idx * 0.04);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.5, t + idx * 0.04 + 0.1);
+
+      gain.gain.setValueAtTime(0.3, t + idx * 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.04 + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(t + idx * 0.04);
+      osc.stop(t + idx * 0.04 + 0.12);
+    });
+  }
+
   // Sound: Gem / Relic Uncovered (Arpeggio)
   playGem() {
     if (this.muted || this.quiet) return;
@@ -428,6 +530,60 @@ export class AudioEngine {
     });
   }
 
+  // Boss/Warden down (R42): a low thud as the hit-stop ends (sine 80 -> 40 Hz, 120 ms), then the
+  // last two notes of the brass phrase
+  playBossDown() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime + 0.09;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(80, t);
+    osc.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.5, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.13);
+    const s = this._scale();
+    for (const [f, off, dur] of [[s[2], 0.14, 0.14], [s[4], 0.3, 0.6]]) {
+      this._voice('sawtooth', f, t + off, dur, 0.12, { attack: 0.03 });
+      this._voice('square', f / 2, t + off, dur, 0.06, { attack: 0.03 });
+    }
+  }
+
+  // Enrage countdown tick (R42): a short, quiet pluck, once a second for the last 10 s
+  playTick() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    this._voice('triangle', this._scale()[0] * 2, this.ctx.currentTime, 0.08, 0.06);
+  }
+
+  // Boss telegraph wind-up (R65): two low square pulses, a warning that is not a hit
+  playWarn() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t0 = this.ctx.currentTime;
+    this._voice('square', 196, t0, 0.12, 0.05);
+    this._voice('square', 196, t0 + 0.2, 0.12, 0.05);
+  }
+
+  // A telegraph answered / a Wasta Strike: a bright rising two-note chime
+  playCounter() {
+    if (this.muted || this.quiet) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    const t0 = this.ctx.currentTime;
+    this._voice('triangle', 660, t0, 0.1, 0.08);
+    this._voice('triangle', 990, t0 + 0.08, 0.16, 0.08);
+  }
+
   // One entry point for the reward system (js/ui/rewards.js)
   playTier(tier) {
     if (tier === 'small') this.playPluck();
@@ -435,7 +591,24 @@ export class AudioEngine {
     else if (tier === 'big') this.playBrass();
     else if (tier === 'epic') this.playChoir();
   }
+
+  // One entry point for the feedback helper (js/ui/feedback.js): a sound id from SOUND_IDS.
+  // Returns false for an unknown id. Mute, volume and Fast Forward are checked by each voice.
+  play(id, pitchMod) {
+    const method = SOUND_IDS[id];
+    if (!method) return false;
+    this[method](pitchMod);
+    return true;
+  }
 }
+
+// Sound ids the feedback helper accepts (R41)
+export const SOUND_IDS = {
+  click: 'playClick', crit: 'playCrit', buy: 'playBuy', hit: 'playHit', defeat: 'playDefeat',
+  dig: 'playDig', gem: 'playGem', spell: 'playSpell', achievement: 'playAchievement',
+  ascension: 'playAscension', pluck: 'playPluck', bell: 'playBell', brass: 'playBrass',
+  choir: 'playChoir', 'boss-down': 'playBossDown', tick: 'playTick', warn: 'playWarn', counter: 'playCounter'
+};
 
 export const sound = new AudioEngine();
 

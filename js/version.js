@@ -3,9 +3,412 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.5.0';
+export const VERSION = '5.19.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.19.0',
+    date: '2026-10-09',
+    title: 'Mythic Finds, Barakah and Boss Telegraphs',
+    changes: [
+      'Bosses now fight back. Every 8 seconds (6 seconds in phase 2) a boss winds up for 1.5 seconds: SMASH (cast Iron Wall), FEAST (cast Heavy Strike or Supernova) or WARD (tap the glowing weak point 5 times). Answer it and the boss is Exposed for 3 seconds, taking 50% more damage. Miss it and SMASH hits you for 25% of your max HP, FEAST heals the boss 8%, WARD cuts your damage to it by 75% for 4 seconds. Up to floor 150 a miss costs nothing, so you can practise. At half HP a boss enters phase 2: it hits 50% harder and winds up sooner.',
+      'Sheikhs: every 50th floor that is not a Guardian or Warden floor is a Sheikh with 1.5x boss HP, 60 seconds and two kinds of telegraph. It always drops an Epic or better item.',
+      'Zone Guardians guard the end of each zone (floors 50, 150, 300, 500, 750 and 1,000): 3x boss HP, 60 seconds and three phases. Your first kill drops a guaranteed Legendary. Where a Guardian floor is also a Warden floor it is one fight, not two.',
+      'Mythic gear, the rarest tier: 0.001% of drops from floor 151 on (more from bosses, Sheikhs and Guardians). Four Mythics, one per slot: the Scepter of the Wasta King (every 30th hit is a WASTA STRIKE for 10x damage; on a boss the bonus is capped at 4% of its HP), the Thobe of Eternal Ironing (once per fight a lethal hit leaves you at full HP), the Nazar of the Haters (telegraphs answer themselves, normal crits hit 3x) and the Royal Decree Seal (+20% damage per telegraph you answered, up to 3). A Mythic is never salvaged by accident and arrives locked.',
+      'The Barakah meter in the bag is a visible pity timer for Mythics. Finds and first boss kills fill it; at 20,000 your next find from floor 151 on is a Mythic. After 1,000 points in a day the meter rests: more points that day count a quarter. It never drains and nothing expires, so time away costs you nothing.',
+      'Every 10th Legendary without a Cosmic is now a Cosmic. Each boss\'s first kill also gives a spare Void Core, double gold and Barakah.',
+      'Al-Wakeel (auto-equip upgrades) is now a Dust shop item (40 dust, after 5 Ascensions). Saves that already had it, from record floor 301, keep it.'
+    ],
+    ar: {
+      title: 'قطع خرافية والبركة وهجمات الزعماء المنذرة',
+      changes: [
+        'الزعماء يردّون الآن. كل 8 ثوان (6 ثوان في المرحلة الثانية) يستعد الزعيم لثانية ونصف: تحطيم (استخدم الجدار الحديدي)، أو وليمة (استخدم الضربة الثقيلة أو المستعر الأعظم)، أو حماية (انقر نقطة الضعف المتوهجة 5 مرات). إن صددتها يصبح الزعيم مكشوفا 3 ثوان ويتلقى ضررا أكثر بنسبة 50%. وإن فاتتك: يضربك التحطيم بـ25% من صحتك القصوى، وتعالج الوليمة الزعيم 8%، وتخفض الحماية ضررك عليه بنسبة 75% لمدة 4 ثوان. حتى الطابق 150 لا عقوبة على الفوات فتتدرّب بحرية. عند نصف الصحة تبدأ المرحلة الثانية: يضرب أقوى بنسبة 50% ويستعد أسرع.',
+        'الشيوخ: كل طابق يقبل القسمة على 50 وليس طابق حارس أكبر أو حارس هو شيخ بصحة تعادل 1.5 ضعف صحة الزعيم ومهلة 60 ثانية ونوعين من الهجمات المنذرة. ويُسقط دائما قطعة ملحمية فما فوق.',
+        'حرّاس المناطق عند نهاية كل منطقة (الطوابق 50 و150 و300 و500 و750 و1,000): ثلاثة أضعاف صحة الزعيم ومهلة 60 ثانية وثلاث مراحل. أول قتل لك يُسقط أسطورية مضمونة. وحيث يلتقي طابق حارس أكبر بطابق حارس يكون القتال واحدا لا اثنين.',
+        'العتاد الخرافي، أندر الفئات: 0.001% من الغنائم من الطابق 151 فما فوق (والنسبة أعلى من الزعماء والشيوخ والحرّاس). أربع قطع خرافية، واحدة لكل خانة: صولجان ملك الواسطة (كل ضربة ثلاثين هي ضربة واسطة بعشرة أضعاف الضرر، وعلى الزعيم لا تزيد المكافأة على 4% من صحته)، وثوب الكي الأبدي (مرة في كل قتال تتركك الضربة القاتلة بصحة كاملة)، ونظرة الحاسدين (تُصَدّ الهجمات المنذرة تلقائيا وتضرب الحرجة العادية ثلاثة أضعاف)، وختم المرسوم الملكي (+20% ضرر عن كل هجوم منذر صددته حتى 3 مرات). لا تُفكَّك القطعة الخرافية بالخطأ وتأتيك مقفلة.',
+        'عدّاد البركة في الحقيبة مؤقّت ضمان ظاهر للقطع الخرافية. تملؤه الغنائم وأول قتل للزعماء، وعند 20,000 تكون غنيمتك التالية من الطابق 151 فما فوق قطعة خرافية. بعد 1,000 نقطة في اليوم تستريح البركة: النقاط الإضافية في ذلك اليوم تُحسب بربعها. لا تنقص أبدا ولا تنتهي صلاحيتها، فغيابك لا يكلّفك شيئا.',
+        'كل أسطورية عاشرة دون قطعة كونية تصبح كونية. وأول قتل لأي زعيم يمنحك أيضا لبّ فراغ إضافيا وضعف الذهب وبركة.',
+        'الوكيل (تجهيز الترقيات تلقائيا) صار الآن عنصرا في متجر الغبار (40 غبارا بعد 5 صعودات). ومن كان يملكه من قبل، من الطابق القياسي 301، يحتفظ به.'
+      ]
+    }
+  },
+  {
+    version: '5.18.0',
+    date: '2026-10-09',
+    title: 'Gear Bag, Rare Finds and Re-Tempering',
+    changes: [
+      'New Gear Bag on the Tower tab: loot now waits in a 30-slot bag until you equip it. Compare it with what you wear, lock favourites, salvage or sell the rest, and see a green arrow on every upgrade. Gear no longer replaces itself.',
+      'Monsters drop an item 8% of the time, bosses always drop one. Rarities now go from x1 (Common) to x5 (Cosmic), with Rare and better items rolling affixes: Might, Vigor, Slayer, Precision, Greed and Fortune. After 600 drops without a Legendary, the next one is Legendary.',
+      'Bosses can drop their own signature Legendary (a Fizzing Rukbah Can, a Ladle of Infinite Kabsa and more), each with a special effect.',
+      'Re-temper a Legendary or Cosmic item with gold and Void Cores to bring it up to the floor you are on, so a favourite never goes out of date.',
+      'Kashta: after two losses at the same gate your hero camps for 5 minutes on a lower floor, farming loot and gold, then tries the gate again. You can switch it off, or camp on purpose, from the bag.',
+      'Monster Bones and gear levels are gone. Every level you had is now part of your gear\'s stats (+4% per level), your bones became Gear Scrap (1 per bone banked, 1 per 10 spent on levels), and heavy spenders also get up to 8 extra Rare finds in the bag and up to 20 Void Cores. Salvaging gear now pays Gear Scrap, which Almarai Laban uses instead of bones.',
+      'Old gear became Heirlooms: every equipped item keeps exactly the Attack, HP, Crit and Drain it had (level bonuses included), gains a bonus affix, and Legendary and Cosmic ones get a free re-temper. New drops use smaller rarity bonuses (Legendary x4, was x8; Cosmic x5, was x18). Players with a record above floor 300 keep automatic equipping of upgrades.',
+      'Gear now grows x1.109 per floor (was x1.105) to make up for the flatter rarities, so the Tower climb keeps its pace. Your gear may put you on a lower floor after the update; your record floor is kept.',
+      'Void Cataclysm in the Tower now deals at most 10 hits of your Attack.'
+    ],
+    ar: {
+      title: 'حقيبة العتاد والقطع النادرة وإعادة السقي',
+      changes: [
+        'حقيبة عتاد جديدة في تبويب البرج: تنتظر الغنائم في حقيبة من 30 خانة حتى تجهّزها. قارنها بما ترتديه، واقفل المفضّل، وفكّك الباقي أو بِعه، وسترى سهما أخضر عند كل ترقية. لم يعد العتاد يستبدل نفسه.',
+        'يُسقط الوحش قطعة بنسبة 8% ويُسقط الزعيم قطعة دائما. تتراوح الندرة الآن من ×1 (عادي) إلى ×5 (كوني)، وتحمل القطع النادرة وما فوقها خصائص: القوة، والحيوية، والقاتل، والدقة، والجشع، والحظ. بعد 600 غنيمة دون أسطورية تكون التالية أسطورية.',
+        'قد يُسقط الزعماء أسطورياتهم المميّزة (علبة الركبة الفوّارة، ومغرفة الكبسة اللانهائية وغيرها)، ولكل منها تأثير خاص.',
+        'أعد سقي قطعة أسطورية أو كونية بالذهب ولبّ الفراغ لترتفع إلى الطابق الذي وصلت إليه، فلا يتقادم عتادك المفضّل.',
+        'الكشتة: بعد خسارتين عند البوابة نفسها يخيّم بطلك 5 دقائق في طابق أدنى يجمع الغنائم والذهب، ثم يعيد المحاولة. يمكنك إيقافها أو التخييم متى شئت من الحقيبة.',
+        'اختفت عظام الوحوش ومستويات العتاد. صار كل مستوى لديك جزءا من إحصاءات عتادك (+4% لكل مستوى)، وتحوّلت عظامك إلى خردة عتاد (واحدة لكل عظمة محفوظة وواحدة لكل 10 صُرفت على المستويات)، ومن أنفق كثيرا يحصل أيضا على حتى 8 قطع نادرة إضافية في الحقيبة وحتى 20 من لبّ الفراغ. يعطيك تفكيك العتاد خردة عتاد، وتستخدمها وصفة المراعي في الخيمياء بدل العظام.',
+        'صار عتادك القديم إرثا: تحتفظ كل قطعة مجهّزة بالهجوم والصحة والضربة الحرجة والامتصاص كما كانت تماما (مع مكافآت المستويات)، وتكسب خاصية إضافية، وتحصل القطع الأسطورية والكونية على إعادة سقي مجانية. الغنائم الجديدة تستخدم مكافآت ندرة أصغر (الأسطوري ×4 بدل ×8، والكوني ×5 بدل ×18). من وصل رقمه القياسي فوق الطابق 300 يحتفظ بالتجهيز التلقائي للترقيات.',
+        'ينمو العتاد الآن ×1.109 لكل طابق (كان ×1.105) تعويضا عن الندرة الأقل، فيحافظ تسلق البرج على وتيرته. قد يضعك عتادك بعد التحديث في طابق أدنى؛ ويبقى رقمك القياسي محفوظا.',
+        'كارثة الفراغ في البرج لا تتجاوز الآن 10 أضعاف هجومك.'
+      ]
+    }
+  },
+  {
+    version: '5.17.3',
+    date: '2026-10-08',
+    title: 'Super-Crits and Shockwaves Actually Fire',
+    changes: [
+      'Fix: Super-Crits now really happen. About 1 in 5 Refinery crits is a Super-Crit that pays 5x your click (a normal crit pays 3x), with the orange SUPER CRIT! flash.',
+      'Fix: the Excavation shockwave now really happens. About 1 in 5 crits on a manual dig is a Super-Crit that also hits the four tiles around it. Auto-drills and other automatic hits never crit.',
+      'Hyper-Crits still need more than 200% crit chance, which nothing in the game reaches yet.'
+    ],
+    ar: {
+      title: 'الضربات الفائقة وموجات الصدمة تعمل فعلاً',
+      changes: [
+        'إصلاح: الضربات الفائقة تحدث الآن فعلاً. نحو واحدة من كل 5 ضربات حرجة في التكرير ضربة فائقة تعطي 5 أضعاف نقرتك (الحرجة العادية 3 أضعاف)، مع وميض «ضربة فائقة!» البرتقالي.',
+        'إصلاح: موجة الصدمة في التنقيب تحدث الآن فعلاً. نحو واحدة من كل 5 ضربات حرجة في الحفر اليدوي ضربة فائقة تصيب أيضاً المربعات الأربعة المجاورة. الحفارات الآلية والضربات التلقائية لا تُحدث ضربات حرجة أبداً.',
+        'الضربات الخارقة ما زالت تحتاج أكثر من 200% فرصة حرجة، ولا يصل إليها شيء في اللعبة حالياً.'
+      ]
+    }
+  },
+  {
+    version: '5.17.2',
+    date: '2026-10-08',
+    title: 'Garden Taps Grow Faster Again',
+    changes: [
+      'Each paid tap on a growing crop grows it by 5% of its grow time again (was 2% since the last update). The 5 paid taps a second limit stays.'
+    ],
+    ar: {
+      title: 'نقرات الحديقة تنمّي المحاصيل أسرع مجددًا',
+      changes: [
+        'كل نقرة مدفوعة على محصول نامٍ تنمّيه الآن بنسبة 5% من وقت نموه من جديد (كانت 2% منذ التحديث الأخير). يبقى حد 5 نقرات مدفوعة في الثانية.'
+      ]
+    }
+  },
+  {
+    version: '5.17.1',
+    date: '2026-10-08',
+    title: 'Shatter Nerf: Digging Keeps Its Pace',
+    changes: [
+      'Nerf: Seismic Fracture (Shatter) no longer breaks a tile outright. A proc now hits for x10 pickaxe damage, so a tile still has to be worn down; it was skipping tile HP and let manual diggers drop through the strata far faster than intended.',
+      'Excavation depth now follows its intended curve for hands-on players too (about depth 170 after two months of daily play, was over 1,700).'
+    ],
+    ar: {
+      title: 'تخفيف التحطيم: الحفر يحافظ على وتيرته',
+      changes: [
+        'تخفيف: لم يعد التحطيم (الكسر الزلزالي) يكسر المربع فوراً. أصبحت الضربة تُحدث ضرراً بقوة ×10 بدل تجاوز صلابة المربع، فقد كان يسمح للحفارين اليدويين بالنزول عبر الطبقات أسرع بكثير من المقصود.',
+        'عمق التنقيب يتبع الآن منحناه المقصود للاعبين النشطين أيضاً (نحو عمق 170 بعد شهرين من اللعب اليومي بدل أكثر من 1,700).'
+      ]
+    }
+  },
+  {
+    version: '5.17.0',
+    date: '2026-10-08',
+    title: 'Boss Kills Feel Like a Win',
+    changes: [
+      'Defeating a boss or Warden in the Void Tower is now a real moment: the portrait freezes for a split second and flashes, the card shakes, a deep thud and a short fanfare play, and "BOSS DOWN!" (or "WARDEN DOWN!") appears with the gold you won counting up.',
+      'The gold from your last boss stays readable above the portrait until the next boss arrives.',
+      'The enrage timer now stays calm until the last 10 seconds, then turns red and ticks softly once a second; in the last 3 seconds it grows a little.',
+      'With Reduce Motion on there is no shake, flash or growing timer; the colours, callout and sounds stay.'
+    ],
+    ar: {
+      title: 'هزيمة الزعيم تبدو كانتصار',
+      changes: [
+        'هزيمة زعيم أو حارس في برج الفراغ صارت لحظة حقيقية: تتجمد الصورة لجزء من الثانية وتومض، وتهتز البطاقة، وتُسمع ضربة عميقة ولحن قصير، ويظهر "سقط الزعيم!" (أو "سقط الحارس!") مع عدّ الذهب الذي ربحته.',
+        'يبقى ذهب آخر زعيم ظاهراً فوق الصورة حتى يصل الزعيم التالي.',
+        'مؤقت الغضب يبقى هادئاً حتى آخر 10 ثوانٍ، ثم يصبح أحمر ويدق بهدوء كل ثانية؛ وفي آخر 3 ثوانٍ يكبر قليلاً.',
+        'عند تفعيل تقليل الحركة لا يوجد اهتزاز أو وميض أو تكبير للمؤقت؛ وتبقى الألوان والإعلان والأصوات.'
+      ]
+    }
+  },
+  {
+    version: '5.16.1',
+    date: '2026-10-08',
+    title: 'Smooth Excavation Frenzy',
+    changes: [
+      'Excavation board stability: Removed the pulsing scale animation from the excavation grid during Frenzy mode. Rapid digging now keeps the board completely smooth and stationary with its golden glow intact, eliminating lag and jitter (reported by players).'
+    ],
+    ar: {
+      title: 'تحسين سلاسة حفر الحماس',
+      changes: [
+        'استقرار لوحة التنقيب: إزالة حركة الاهتزاز والنبض التكبيري من شبكة الحفر أثناء وضع الحماس. أصبح الحفر السريع سلساً تماماً وثابتاً في مكانه مع الحفاظ على التوهج الذهبي، مما يقضي على البطء والتقطيع (بناءً على ملاحظات اللاعبين).'
+      ]
+    }
+  },
+  {
+    version: '5.16.0',
+    date: '2026-10-08',
+    title: 'Comprehensive Visual Asset Overhaul',
+    changes: [
+      'Void Tower Gear Art: All 20 equipment tiers (weapons, armor, amulets, and relics across common, rare, epic, legendary, and cosmic) now display rich, full-color RPG item illustrations with rarity borders.',
+      'Hero & Boss Portraits: The Astral Champion now has a custom starlight helmet portrait, and iconic dungeon bosses (Abu Sarwal, Rukbah Soda, Mutawa, Karak Addict) feature unique character art.',
+      'Excavation Relics & Gems: Uncovered underground tiles now display custom vector assets for the Ancient Stairs, overflowing Gold Caches, and the 5 cultural gemstone relics (Fawanees, Dallah, Oud Wood, Misbaha, and Mabkhara).',
+      'Alchemy & Grimoire Icons: The Alchemical Crucible cards now display custom brewed elixir flasks, and Grimoire spells feature glowing arcane runic sigils.',
+      'Botanical Nexus & Anomaly: Plant plots now visually progress through distinct sprout and blooming stages before maturity, Garden Golems carry stone sentry badges, and the Golden Anomaly shines as an orbiting celestial star.'
+    ],
+    ar: {
+      title: 'تحديث شامل للرسومات والأصول البصرية',
+      changes: [
+        'رسومات العتاد في برج الفراغ: تعرض الآن جميع درجات المعدات العشرين (الأسلحة والدروع والتمائم والآثار من الشائع إلى الكوني) رسومات ملونة بالكامل مع إطارات ندرة مميزة.',
+        'صور البطل والزعماء: حصل بطل الأجرام السماوية على صورة شخصية ملحمية، وتتميز زعماء الأبراج (أبو سروال وفنيلة، ركبة صودا، المطوع، مدمن كرك) برسومات كرتونية ساخرة فريدة.',
+        'كنوز الحفر والآثار: تكشف بلاطات التنقيب الآن عن رسومات متجهة للدرج القديم وكنوز الذهب والآثار الخمسة (الفوانيس، الدلة، خشب العود، المسبحة، والمبخرة).',
+        'رموز الكيمياء والتعاويذ: بطاقات الخيمياء تعرض الآن قوارير الإكسير المتقنة، كما تضيء تعاويذ المخطوطة برموز سحرية متوهجة.',
+        'الحديقة والظاهرة الكونية: تنمو النباتات الآن بصرياً عبر مراحل البرعم والإزهار، ويحمل غولم الحديقة شارة الحارس الحجري، وتتألق الظاهرة الكونية كجرم سماوي مداري.'
+      ]
+    }
+  },
+  {
+    version: '5.15.0',
+    date: '2026-10-08',
+    title: 'Nectar Surge Rewards Your Own Hands',
+    changes: [
+      'The Nectar Surge Oil windfall (15 seconds of production per harvest) now pays only when you harvest a plot yourself. Golem harvests and harvests while you are away no longer pay it.',
+      'This is a nerf for Golem and offline gardening: those harvests had been multiplying total Oil income by about 3x to 5x, far faster than the rest of the game is paced for. They still give essences and seeds as before.',
+      'Harvesting by hand is unchanged.'
+    ],
+    ar: {
+      title: 'دفعة الرحيق تكافئ يديك',
+      changes: [
+        'دفعة الزيت من الرحيق (١٥ ثانية من الإنتاج لكل حصاد) تُدفع الآن فقط عندما تحصد أنت النبتة بنفسك. حصاد الغولم والحصاد أثناء غيابك لم يعد يمنحها.',
+        'هذا تخفيف للبستنة بالغولم وأثناء الغياب: كان هذا الحصاد يضاعف دخل الزيت الكلي من ٣ إلى ٥ أضعاف تقريبا، أسرع بكثير من وتيرة اللعبة. ما زال يعطي الجواهر والبذور كما كان.',
+        'الحصاد باليد بلا تغيير.'
+      ]
+    }
+  },
+  {
+    version: '5.14.0',
+    date: '2026-10-08',
+    title: 'A Steadier Climb up the Void Tower',
+    changes: [
+      'Gear now grows a little slower per Tower floor (x1.105 per floor, was x1.11), so the Tower climb keeps its intended pace: about 380 floors after a day, 510 after a week and 520 after a month of play with the game open, instead of racing past 700.',
+      'This is a nerf to new gear drops. Gear you already own keeps its stats.',
+      'Old saves may move down a floor band: if your Tower floor is higher than your gear can clear now, you restart at the highest floor it can. Your record floor is kept.'
+    ],
+    ar: {
+      title: 'تسلق أكثر ثباتا في برج الفراغ',
+      changes: [
+        'ينمو العتاد الآن أبطأ قليلا مع كل طابق في البرج (×1.105 لكل طابق بدلا من ×1.11)، فيحافظ التسلق على وتيرته المقصودة: نحو 380 طابقا بعد يوم، و510 بعد أسبوع، و520 بعد شهر من اللعب والمتصفح مفتوح، بدلا من تجاوز 700.',
+        'هذا تخفيف لعتاد الغنائم الجديد. العتاد الذي تملكه بالفعل يحتفظ بإحصاءاته.',
+        'قد تنزل الحفظات القديمة طابقا أو أكثر: إذا كان طابقك في البرج أعلى مما يستطيع عتادك تجاوزه الآن، تبدأ من أعلى طابق يستطيع تجاوزه. يبقى رقمك القياسي محفوظا.'
+      ]
+    }
+  },
+  {
+    version: '5.13.0',
+    date: '2026-10-08',
+    title: 'Garden Taps Share the Click Limit',
+    changes: [
+      'Tapping growing crops now counts toward the same 5 paid taps a second as the monolith. Faster taps still splash and sound, but grow nothing and pay nothing. This is a nerf: fast tapping through the Garden no longer multiplies your Oil.',
+      'A Dewdrop now pays 0.25 s of production (was 1 s), and each tap grows the crop by 2% of its grow time (was 5%).',
+      'Fixed a crash when tapping a crop while you produce no Oil yet (reported by players).'
+    ],
+    ar: {
+      title: 'نقرات الحديقة تشارك حد النقرات',
+      changes: [
+        'النقر على المحاصيل النامية يُحتسب الآن ضمن حد 5 نقرات مدفوعة في الثانية نفسه مع المونوليث. تظل النقرات الأسرع تُصدر الرذاذ والصوت لكنها لا تُنمّي شيئاً ولا تمنح شيئاً. هذا تخفيف: النقر السريع في الحديقة لم يعد يضاعف نفطك.',
+        'قطرة الندى تمنح الآن 0.25 ثانية من الإنتاج (كانت ثانية واحدة)، وكل نقرة تُنمّي المحصول بنسبة 2% من زمن نموه (كانت 5%).',
+        'إصلاح انهيار عند النقر على محصول قبل أن تبدأ بإنتاج النفط.'
+      ]
+    }
+  },
+  {
+    version: '5.12.2',
+    date: '2026-10-08',
+    title: 'Pickaxe Visual Upgrades & Electric Zap',
+    changes: [
+      'Visual Pickaxe Progression: Your pickaxe now evolves its appearance as you upgrade it through 6 custom vector tiers, from chipped rusty iron to forged steel, glowing mithril, dragon adamantite, and celestial void.',
+      'Electric Chain Lightning: Arc Conduction strikes now discharge true branching electric bolts across hit blocks with glowing cyan auras, white-hot cores, and tile reaction flashes.'
+    ],
+    ar: {
+      title: 'ترقيات مظهر الفأس وصاعقة البرق المتسلسلة',
+      changes: [
+        'مظهر متطور للفأس: يتغير مظهر الفأس الآن بصرياً عبر 6 مستويات متقنة، من الفأس الحديدي الصدئ إلى الفولاذ المطروق والميثريل المشع وصخر التنين حتى فراغ الأجرام السماوية.',
+        'برق متسلسل متوهج: يُطلق توصيل الصدمات الآن صواعق كهربائية متفرعة حقيقية تقفز بين الكتل مع هالات متوهجة ونواة بيضاء ساطعة.'
+      ]
+    }
+  },
+  {
+    version: '5.12.1',
+    date: '2026-10-08',
+    title: 'Tidier Floating Numbers',
+    changes: [
+      'Floating numbers no longer pile up: rapid taps on the Refinery add into one "+n" that grows a little instead of stacking dozens of numbers, and Auto-tap numbers do the same.',
+      'Sparks and floating text now have a cap (250 sparks, 150 on phones, and 40 texts). When the screen is busy the oldest effects fade out faster, so your newest tap always shows. Phones also draw a bit fewer sparks per effect, which should help long sessions run cooler.',
+      'Crit sounds have a short pause between them (a quarter of a second) so fast crit streaks no longer grate; taps in between still play the normal click.'
+    ],
+    ar: {
+      title: 'أرقام عائمة أكثر ترتيباً',
+      changes: [
+        'لم تعد الأرقام العائمة تتكدّس: النقرات السريعة على المصفاة تُجمع في رقم "+n" واحد يكبر قليلاً بدلاً من عشرات الأرقام فوق بعضها، وكذلك أرقام النقر التلقائي.',
+        'للشرارات والنصوص العائمة الآن حدّ أقصى (250 شرارة، و150 على الهواتف، و40 نصاً). عندما تزدحم الشاشة تتلاشى أقدم المؤثرات أسرع، فتظهر نقرتك الأحدث دائماً. كما ترسم الهواتف شرارات أقل قليلاً لكل مؤثر، مما يساعد على بقاء الجهاز أبرد في الجلسات الطويلة.',
+        'صار بين أصوات الضربات الحرجة فاصل قصير (ربع ثانية) حتى لا تزعج السلاسل السريعة منها؛ والنقرات بينها ما زالت تُصدر صوت النقر العادي.'
+      ]
+    }
+  },
+  {
+    version: '5.12.0',
+    date: '2026-10-08',
+    title: 'Excavation Overhaul: Techniques, Machinery & Explosives',
+    changes: [
+      'Visual overhaul: Excavation tiles now reflect the distinct rock strata of your depth with progressive fracture cracks as tile durability drops.',
+      'Stone Workshop: Upgrade powerful techniques using Stone: Seismic Fracture (2% to 10% chance to obliterate a block in 1 hit), Arc Conduction (chain lightning hitting 2-4 nearby tiles), Quarry Cleave (hits side blocks for 50% damage), and Excavation Frenzy duration.',
+      'Excavation Frenzy: Rapid manual digging chains (7 hits within 1.4s) trigger a fiery Frenzy that doubles digging power.',
+      'Hidden Bombs: Subterranean explosive tiles now spawn in the rock strata. Detonating a bomb blasts a 3x3 radius and chains into neighboring bombs.',
+      'Excavation Machinery: Deploy Steam Jackhammers that focus on the lowest-HP blocks and Seismic Pulverizers that periodically unleash row-clearing shockwaves.'
+    ],
+    ar: {
+      title: 'تطوير شامل للحفر: تقنيات وآلات ومتفجرات',
+      changes: [
+        'تطوير بصري: مربعات الحفر تعكس الآن طبقات الصخور الخاصة بالعمق مع شقوق تصدع تدريجية مع انخفاض صلابة المربع.',
+        'ورشة الأحجار: طوّر تقنيات قوية باستخدام الحجر: صدع زلزالي (فرصة 2% إلى 10% لتحطيم المربع بضربة واحدة)، وتوصيل القوس (برق متسلسل يصيب 2-4 مربعات مجاورة)، وشق المحجر (ضرب المربعات الجانبية بـ 50% ضرر)، وزيادة مدة جنون الحفر.',
+        'جنون الحفر: الضربات السريعة المتتالية (7 ضربات خلال 1.4 ث) تُفعّل حالة جنون الحفر وتضاعف قوة الحفر.',
+        'قنابل مخفية: قنابل متفجرة تحت الأرض تظهر في الشبكة؛ تفجير القنبلة يدمر مساحة 3×3 ويفجر القنابل المجاورة في سلسلة انفجارات.',
+        'آلات الحفر: اشترِ مطارق بخارية تستهدف المربعات الأقل صلابة ومطاحن زلزالية تطلق موجات زلزالية تدمر صفوفًا كاملة بشكل دوري.'
+      ]
+    }
+  },
+  {
+    version: '5.11.0',
+    date: '2026-10-08',
+    title: 'Registered Leaderboard & Nicknames',
+    changes: [
+      'The leaderboard now lists registered players only. Guest entries have been removed; create a free account (Settings) to join.',
+      'Creating an account asks for a nickname: that is your name on the leaderboard. Change it any time in Settings, Account.',
+      'Accounts without a nickname get a random funny one (like "Sneaky Potato 42") until you pick your own. Your email is never shown.',
+      'The old "Save & Join" name box on the leaderboard is gone; if you had picked a name there, your account keeps using it.'
+    ],
+    ar: {
+      title: 'لوحة متصدرين للمسجّلين وأسماء مستعارة',
+      changes: [
+        'لوحة المتصدرين تعرض الآن اللاعبين المسجّلين فقط. أُزيلت إدخالات الضيوف؛ أنشئ حسابًا مجانيًا من الإعدادات لتنضم.',
+        'إنشاء حساب يطلب اسمًا مستعارًا: هو اسمك في لوحة المتصدرين. غيّره متى شئت من الإعدادات، الحساب.',
+        'الحسابات بلا اسم مستعار تحصل على اسم طريف عشوائي (مثل "Sneaky Potato 42") حتى تختار اسمك. بريدك لا يظهر أبدًا.',
+        'أُزيل مربع "حفظ وانضمام" القديم من لوحة المتصدرين؛ وإذا كنت قد اخترت اسمًا هناك فسيستمر حسابك في استخدامه.'
+      ]
+    }
+  },
+  {
+    version: '5.10.2',
+    date: '2026-10-08',
+    title: 'Clearer Account Email Links',
+    changes: [
+      'Opening a confirmation or password-reset email now takes you to Settings and tells you what happened: "Email confirmed, you are signed in", or why the link did not work.',
+      'An expired or already-used link now explains what to do next instead of failing silently.'
+    ],
+    ar: {
+      title: 'روابط بريد الحساب أوضح',
+      changes: [
+        'فتح رسالة التأكيد أو إعادة تعيين كلمة المرور ينقلك الآن إلى الإعدادات ويخبرك بما حدث: "تم تأكيد بريدك وأنت مسجّل الدخول"، أو سبب عدم عمل الرابط.',
+        'الرابط المنتهي أو المستخدم سابقًا يشرح الآن ما عليك فعله بدلًا من الفشل بصمت.'
+      ]
+    }
+  },
+  {
+    version: '5.10.1',
+    date: '2026-10-08',
+    title: 'Quieter Drill Geodes',
+    changes: [
+      'Geode Pockets your drills find on their own now show a small notice instead of the full-screen jackpot celebration, so they no longer pop up over other tabs. Geodes you dig yourself still get the full celebration.'
+    ],
+    ar: {
+      title: 'جيودات المثاقب أهدأ',
+      changes: [
+        'جيوب الجيود التي تكتشفها المثاقب وحدها تظهر الآن كإشعار صغير بدلاً من احتفال الجائزة الكبرى بملء الشاشة، فلا تظهر فوق التبويبات الأخرى. أما الجيود التي تحفرها بنفسك فما زالت تحظى بالاحتفال الكامل.'
+      ]
+    }
+  },
+  {
+    version: '5.10.0',
+    date: '2026-10-08',
+    title: 'Combat Effect Tab Isolation & Interface Polish',
+    changes: [
+      'Combat text and particle effects now remain cleanly within the Void Tower arena instead of overflowing into Excavation or other tabs.',
+      'Mana currency is now cleanly hidden from the header until the Grimoire is discovered and unlocked.',
+      'Fixed Arabic unlock teaser progress fraction rendering so progress reads naturally from left to right.'
+    ],
+    ar: {
+      title: 'عزل تأثيرات القتال وتحسينات الواجهة',
+      changes: [
+        'نصوص وأضرار القتال وتأثيراتها أصبحت محصورة ببرج الفراغ دون الظهور فوق تبويب التنقيب أو التبويبات الأخرى.',
+        'تم إخفاء عملة المانا من الشريط العلوي حتى يتم اكتشاف وفتح كتاب التعاويذ.',
+        'إصلاح اتجاه عرض كسور التقدم في مؤشرات الفتح باللغة العربية لتقرأ بشكل طبيعي.'
+      ]
+    }
+  },
+  {
+    version: '5.9.0',
+    date: '2026-10-08',
+    title: 'Excavation Geode Jackpots, Dewdrop Tapping & Cross-Synergies',
+    changes: [
+      'Excavation Geode Pockets: unearth hidden jackpot tiles in the underground grid for x3 Gold cache value, 2 free precious gems, and an active Oil rush surge.',
+      'Active Garden Dewdrop Tapping: tap growing crop plots to accelerate growth speed with sparks and splash Oil bursts.',
+      'Geothermal Warmth & Botanical Rigging: digging deeper into Excavation now warms and speeds up Garden crop cycles, while plant harvests strengthen your pickaxe power.'
+    ],
+    ar: {
+      title: 'جوائز الجيود الكبرى وندى الحدائق والتناغم التبادلي',
+      changes: [
+        'جيوب الجيود في التنقيب: اكشف عن كتل الجوائز الكبرى تحت الأرض للحصول على 3 أضعاف الذهب وحبتين ثمينتين واندفاعة نفطية نشطة.',
+        'نقرات ندى الحديقة النشطة: انقر على الأحواض النامية لتسريع نمو المحاصيل مع تناثر شرارات وقطرات نفطية فورية.',
+        'الدفء الجوفي وتجهيز النباتات: الحفر لأعماق أبعد في التنقيب يدفئ ويسرع دورات نمو المحاصيل، وحصاد النباتات يزيد من قوة ضربات الفأس.'
+      ]
+    }
+  },
+  {
+    version: '5.8.0',
+    date: '2026-10-08',
+    title: 'Super-Crits, Mining Shockwaves & Subgame Scaling',
+    changes: [
+      'Critical strikes now cascade: roll into fiery Orange Super-Crits and Prismatic Hyper-Crits across Refinery clicks and Void Tower combat.',
+      'Excavation strikes now feature critical hits and shockwaves: critical strikes deal bonus damage, and Super-Crits shatter adjacent blocks simultaneously.',
+      'Hydraulic Bore & Subterranean Irrigation: your growing Oil empire now directly supercharges your pickaxe striking power and accelerates Garden crop growth.',
+      'Harvesting mature garden crops now rewards an immediate Nectar Surge of active Oil on the spot.'
+    ],
+    ar: {
+      title: 'الضربات الفائقة وموجات التعدين وتسريع الزراعة',
+      changes: [
+        'الضربات الحرجة أصبحت تتضاعف: احصل على ضربات فائقة نارية برتقالية وبنفسجية في التكرير وبرج الفراغ.',
+        'ضربات الفأس في التنقيب أصبحت تشمل الضربات الحرجة وموجات الصدمة: الضربات الفائقة تكسر الكتل المجاورة في وقت واحد.',
+        'الضغط الهيدروليكي والري الجوفي: ثروتك النفطية المتنامية تزيد مباشرة من قوة ضربات الفأس وتسرع نمو محاصيل الحديقة.',
+        'حصاد المحاصيل الناضجة في الحديقة يمنحك الآن دفعة نفطية فورية من الرحيق.'
+      ]
+    }
+  },
+  {
+    version: '5.7.0',
+    date: '2026-10-08',
+    title: 'Drill a New Well whenever you are ready',
+    changes: [
+      'The 10-minute minimum run restriction on drilling a New Well has been removed. You can now Ascend as soon as you have met the Oil requirement and earned pending Reserves, without waiting on a cooldown.',
+      'Auto-Ascend rules and Coming Up estimates now reflect the change, allowing immediate drilling as soon as your criteria are met.'
+    ],
+    ar: {
+      title: 'احفر بئرًا جديدة متى كنت مستعدًا',
+      changes: [
+        'تمت إزالة شرط الانتظار لمدة 10 دقائق لحفر بئر جديدة. يمكنك الآن الصعود فور استيفاء متطلبات النفط وكسب الاحتياطي، دون انتظار أي مؤقت.',
+        'قواعد الصعود التلقائي وتوقعات لوحة القادم أصبحت تعكس هذا التغيير فورًا بمجرد تحقق الشروط.'
+      ]
+    }
+  },
+  {
+    version: '5.6.0',
+    date: '2026-10-08',
+    title: 'Vote for bugs and ideas, no GitHub needed',
+    changes: [
+      'You no longer need a GitHub account to report a bug or suggest an idea: sign in with your game account (Settings → Account) and press Post in the Community tab.',
+      'New Vote list in the Community tab: requests from players show up there right away. Like the ones you want (one like per player, not on your own). When a request has 2 likes it goes to the build queue on GitHub within a few hours, and its likes keep counting there.',
+      'You can post 3 requests a day, delete your own while they are still in the Vote list, and report spam or abuse: 3 reports hide a request for everyone.',
+      'The GitHub way still works for players who prefer it.'
+    ]
+  },
   {
     version: '5.5.0',
     date: '2026-10-08',

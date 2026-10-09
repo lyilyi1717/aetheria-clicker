@@ -11,7 +11,7 @@ import {
   UNLOCK_BY_TAB, checkUnlocks, grantStarterGift, getTeasers, getUnlockProgress, isTabUnlocked,
   isUnlockNew, markUnlockSeen
 } from '../systems/UnlockSystem.js';
-import { t } from '../i18n/index.js';
+import { t, bidi } from '../i18n/index.js';
 
 const CHECK_SECONDS = 0.25;
 
@@ -23,7 +23,7 @@ function esc(s) {
 export function shortProgress(p) {
   if (!p) return t('unlock.soon');
   if (p.need === 1 && p.pct !== undefined && p.pct > 0 && p.pct < 1) return `${Math.floor(p.pct * 100)}%`;
-  if (p.need > 1 && Number.isInteger(p.have) && Number.isInteger(p.need)) return `${p.have}/${p.need}`;
+  if (p.need > 1 && Number.isInteger(p.have) && Number.isInteger(p.need)) return bidi(`${p.have}/${p.need}`);
   return t('unlock.soon');
 }
 

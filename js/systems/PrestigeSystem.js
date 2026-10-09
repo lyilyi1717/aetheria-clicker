@@ -18,8 +18,8 @@ export const DUST_BASE = 10;
 export const DUST_REF = 1e4;
 export const DUST_EXPONENT = 1 / 5;
 export const DUST_MIN_AETHER = 500;
-// Shortest run that may Ascend (design doc 2.1 / 6.1)
-export const MIN_RUN_SECONDS = 600;
+// Shortest run that may Ascend: cooldown removed so players can Ascend as soon as pending dust > 0
+export const MIN_RUN_SECONDS = 0;
 
 // Transcend (layer 2, design doc 6.1 / roadmap R4)
 // Gate for the next Transcend, in lifetime dust of the current layer: 400 x 1.6^k, k = Transcends
@@ -98,16 +98,14 @@ export class PrestigeSystem {
     return totalAether.div(DUST_REF).pow(DUST_EXPONENT).mul(DUST_BASE * (1 + 1e-12)).floor();
   }
 
-  // Seconds left until the current run is long enough to Ascend (0 = met). Wall-clock, so
-  // offline time counts. Clamped so a clock set backwards can't lock the button.
+  // Seconds left until the current run is long enough to Ascend (0 = met). Cooldown removed.
   getMinRunRemaining(now = Date.now()) {
-    const elapsed = (now - (this.gameState.runStartedAt || 0)) / 1000;
-    return Math.min(MIN_RUN_SECONDS, Math.max(0, MIN_RUN_SECONDS - elapsed));
+    return 0;
   }
 
   canAscend(now = Date.now()) {
     // A Chronicle challenge (R20) is a side run: no Ascending until it ends
-    return !isChallengeActive(this.gameState) && this.getPendingCosmicDust().gt(0) && this.getMinRunRemaining(now) <= 0;
+    return !isChallengeActive(this.gameState) && this.getPendingCosmicDust().gt(0);
   }
 
   // quiet: skip the ceremony; auto-Ascend (shard tree, R13) announces its own batched toast

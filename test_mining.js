@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { BigNum } from './js/engine/BigNum.js';
 import { GameState } from './js/systems/GameState.js';
-import { MiningSystem, compressDepth, getPickaxeName, MINING_SCHEMA, EXPLOSIVE_HITS,
+import { MiningSystem, compressDepth, getPickaxeName, MINING_SCHEMA, EXPLOSIVE_HITS, SHATTER_DAMAGE_MULT,
   STRATA_RELICS, RELIC_CHANCE, RELIC_PITY, AETHER_ORE_CHANCE } from './js/systems/MiningSystem.js';
 import { MarketSystem } from './js/systems/MarketSystem.js';
 import { AlchemySystem, GEM_LADDER, POLISH_RATIO } from './js/systems/AlchemySystem.js';
@@ -350,5 +350,96 @@ console.log('--- R18: Gem Polishing ---');
   assert.equal(h.alchemy.gemsPolished, 125 + 25 + 5 + 1);
 }
 
+console.log('--- Excavation Abilities, Workshop & Machinery ---');
+{
+  const g = new GameState();
+  const m = new MiningSystem(g);
+
+  // Skill costs and upgrades
+  assert.equal(m.getShatterChance(), 0.02);
+  assert.equal(m.getChainChance(), 0.05);
+  assert.equal(m.getCleaveChance(), 0.10);
+  assert.equal(m.getFrenzyDuration(), 6.0);
+
+  g.inventory.stone = 50000;
+  assert.equal(m.upgradeSkill('shatter'), true);
+  assert.equal(g.miningGrid.skills.shatter, 1);
+  assert.equal(m.getShatterChance(), 0.03);
+
+  assert.equal(m.upgradeSkill('chain'), true);
+  assert.equal(m.getChainChance(), 0.075);
+
+  assert.equal(m.upgradeSkill('cleave'), true);
+  assert.equal(m.getCleaveChance(), 0.135);
+
+  assert.equal(m.upgradeSkill('frenzy'), true);
+  assert.equal(m.getFrenzyDuration(), 7.0);
+
+  // Steam Jackhammer purchase & targeting
+  g.inventory.rubies = 10;
+  assert.equal(m.buySteamDrill(), true);
+  assert.equal(g.miningGrid.steamDrills, 1);
+  assert.equal(g.inventory.rubies, 7);
+
+  // Seismic Pulverizer purchase
+  g.inventory.sapphires = 10;
+  assert.equal(m.buySeismicRig(), true);
+  assert.equal(g.miningGrid.seismicRigs, 1);
+  assert.equal(g.inventory.sapphires, 6);
+
+  // Shatter is x10 damage on tile HP, never an instant break (R58)
+  m.generateNewGrid();
+  m.descending = false;
+  const testTile = g.miningGrid.blocks[0];
+  testTile.content = 'stone';
+  testTile.hp = 1e12;
+  testTile.maxHp = 1e12;
+  const shatterPower = m.getPickaxePower();
+  m.random = () => 0.001; // passes the shatter check (chance >= 0.02)
+  m.mineBlock(0, 100, 100);
+  assert.equal(testTile.revealed, false, 'Shatter must not break a tile outright');
+  assert.ok(testTile.maxHp - testTile.hp >= shatterPower * SHATTER_DAMAGE_MULT, 'Shatter deals x10 pickaxe damage');
+  // a tile with HP below the hit still breaks, through damage
+  const weakTile = g.miningGrid.blocks[2];
+  weakTile.content = 'stone';
+  weakTile.hp = 1;
+  weakTile.maxHp = 1;
+  m.mineBlock(2, 100, 100);
+  assert.equal(weakTile.revealed, true);
+  // the same random roll with Shatter off (level 0 chance 2%, roll 0.5) does less damage
+  testTile.hp = 1e12;
+  m.random = () => 0.5;
+  m.mineBlock(0, 100, 100);
+  assert.ok(testTile.maxHp - testTile.hp < shatterPower * SHATTER_DAMAGE_MULT);
+
+  // Manual Dig Streak activates Frenzy
+  m.frenzyTimer = 0;
+  m.digStreak = 0;
+  for (let i = 0; i < 7; i++) {
+    m.random = () => 0.999; // no shatter, chain, or cleave
+    const t = g.miningGrid.blocks[1];
+    t.content = 'stone';
+    t.revealed = false; // an earlier Super-Crit shockwave may have broken it
+    t.hp = 99999;
+    t.maxHp = 99999;
+    m.mineBlock(1, 100, 100);
+  }
+  assert.ok(m.isFrenzyActive(), 'Frenzy should be active after 7 rapid manual hits');
+  assert.ok(m.frenzyTimer > 0);
+
+  // Hidden bomb detonation
+  m.generateNewGrid();
+  m.descending = false;
+  g.miningGrid.blocks.forEach(b => { b.content = 'stone'; b.revealed = false; b.hp = 500; b.maxHp = 500; });
+  const bombTile = g.miningGrid.blocks[7]; // row 1, col 1
+  bombTile.content = 'bomb';
+  bombTile.revealed = true;
+  const nTile = g.miningGrid.blocks[8];
+  m.revealReward(bombTile, 100, 100);
+  // Bomb should have blasted 3x3 tiles, damaging or breaking nTile
+  assert.ok(nTile.hp < 500 || nTile.revealed, 'Bomb should damage neighbor blocks');
+}
+
 console.log('✅ MINING TESTS PASSED');
 setTimeout(() => process.exit(0), 0);
+

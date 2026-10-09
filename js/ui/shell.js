@@ -8,20 +8,22 @@ import { BigNum } from '../engine/BigNum.js';
 import { BUILDING_DEFINITIONS } from '../systems/BuildingSystem.js';
 import { MIN_RUN_SECONDS, DUST_MIN_AETHER } from '../systems/PrestigeSystem.js';
 import { SPELL_TABS } from '../tabBonuses.js';
+import { isTabUnlocked } from '../systems/UnlockSystem.js';
 import { t } from '../i18n/index.js';
 
 export const PHONE_QUERY = '(max-width: 639px)';
 const ASCEND_GATE = DUST_MIN_AETHER; // run Aether before Ascension pays dust (PrestigeSystem)
 
 // Header currencies per tab, hero first. Aether, Gold and Dust always show; Mana only where
-// spells are cast, Sand and Seals only where they are spent.
+// spells are cast (and only after Grimoire is unlocked), Sand and Seals only where they are spent.
 const HERO = { combat: 'gold', mining: 'gold', market: 'gold', prestige: 'dust', chronicle: 'pages' };
 const EXTRA = { alchemy: ['sand'], bounties: ['seals', 'sand'], spells: ['mana'], calendar: ['sand', 'seals'] };
 
-export function headerCurrencies(tab) {
+export function headerCurrencies(tab, gs = null) {
   const hero = HERO[tab] || 'aether';
   const list = [hero, ...['aether', 'gold', 'dust'].filter(c => c !== hero)];
-  if (SPELL_TABS[tab]) list.push('mana');
+  const spellsUnlocked = !gs || isTabUnlocked(gs, 'spells');
+  if (SPELL_TABS[tab] && spellsUnlocked) list.push('mana');
   for (const c of EXTRA[tab] || []) if (!list.includes(c)) list.push(c);
   return list;
 }
@@ -72,7 +74,11 @@ export function getNextGoal(gs, buildings, prestige, now = Date.now()) {
     return { icon: '🚀', text: t('goal.gate', { n: gate.format('standard', 0) }), pct, tab: 'prestige' };
   }
   const left = prestige.getMinRunRemaining(now);
-  return { icon: '⏳', text: t('goal.wait', { time: fmtClock(left) }), pct: 1 - left / MIN_RUN_SECONDS, tab: 'prestige' };
+  if (left > 0 && MIN_RUN_SECONDS > 0) {
+    return { icon: '⏳', text: t('goal.wait', { time: fmtClock(left) }), pct: 1 - left / MIN_RUN_SECONDS, tab: 'prestige' };
+  }
+  const dust = prestige.getPendingCosmicDust();
+  return { icon: '🚀', text: t('goal.drill', { n: dust.format('standard', 0) }), pct: 1, tab: 'prestige' };
 }
 
 export class Shell {
@@ -177,7 +183,7 @@ export class Shell {
     this.setSheetOpen(false);
     this.moreBtn?.classList.toggle('active', this.sheetTabs.has(tab));
 
-    const list = headerCurrencies(tab);
+    const list = headerCurrencies(tab, this.app?.gameState);
     for (const [key, el] of Object.entries(this.resEls)) {
       const i = list.indexOf(key);
       el.hidden = i < 0;

@@ -1,6 +1,11 @@
 {
  "version": 1,
- "style": "bold cartoon fantasy game art, thick black outlines, cel shading",
+ "bosses": [
+  { "id": "zone1_boss1", "path": "assets/generated/bosses/boss_rukbah_soda.svg" },
+  { "id": "zone1_boss2", "path": "assets/generated/bosses/boss_mutawa.svg" },
+  { "id": "zone1_boss5", "path": "assets/generated/bosses/boss_abu_sarwal.svg" },
+  { "id": "zone2_boss1", "path": "assets/generated/bosses/boss_karak_addict.svg" }
+ ],
  "assets": [
   {
    "id": "gear/amulet_common",

@@ -1,8 +1,8 @@
 import { BigNum } from '../engine/BigNum.js';
 import { getActiveRules } from './ChronicleSystem.js';
 import { sound } from '../engine/AudioEngine.js';
-import { particles } from '../engine/ParticleEngine.js';
 import { rewards } from '../ui/rewards.js';
+import { feedback } from '../ui/feedback.js';
 import {
   COMBO_FULL, FRENZY_AUTO_CLICKS, FRENZY_EVERY, FRENZY_DURATION, FRENZY_MAX_TIMER,
   CLICK_MAX_PER_SEC, AUTO_TAP_PER_SEC, AUTO_TAP_IDLE_AFTER
@@ -38,6 +38,18 @@ export function pickAnomalyType(r) {
 }
 
 const fmtStd = (a) => a.format('standard', 2);
+
+export const SUPER_CRIT_SHARE = 0.2;   // share of Refinery crits that are Super-Crits
+
+// Resolve critical strike tier (Stat Overflow):
+// 0 = Normal, 1 = Crit, 2 = Super-Crit (>100%), 3 = Hyper-Crit (>200%)
+export function resolveCritTier(chance, rng = Math.random) {
+  if (chance <= 0) return 0;
+  const guaranteed = Math.floor(chance);
+  let tier = guaranteed;
+  if (rng() < (chance - guaranteed)) tier += 1;
+  return tier;
+}
 
 export class ClickerSystem {
   // rng: injectable () => [0,1) so tests can seed anomaly rolls (defaults to Math.random)
@@ -76,28 +88,53 @@ export class ClickerSystem {
     return amount;
   }
 
+  // R59: other subgames (Garden taps, ...) draw from the same paid-click budget as the Oil
+  // monolith. Returns true when a token was spent; false means the tap pays nothing.
+  spendPaidTap() {
+    if (this.clickTokens < 1) return false;
+    this.clickTokens -= 1;
+    return true;
+  }
+
+  // Click pitch climbs with the combo (R44 turns this into scale steps)
+  clickPitch() {
+    return 1 + (this.gameState.comboCount % FRENZY_EVERY) * 0.03;
+  }
+
   handleClick(clientX, clientY, isAutoClick = false) {
     if (!isAutoClick) {
       this.sinceManualClick = 0;
       this.gameState.secondsSinceTap = 0;   // Idle attunement (R55); Auto-tap never resets it
       // Over CLICK_MAX_PER_SEC: the tap animates and sounds, but pays nothing
       if (this.clickTokens < 1) {
-        sound.playClick(1 + (this.gameState.comboCount % FRENZY_EVERY) * 0.03);
-        if (clientX && clientY) particles.spawnClickSparks(clientX, clientY, 6, '#38bdf8');
+        feedback.fire(0, {
+          kind: 'click', at: { x: clientX, y: clientY }, sound: 'click', soundPitch: this.clickPitch(),
+          sparks: 6, color: '#38bdf8'
+        });
         return BigNum.zero();
       }
       this.clickTokens -= 1;
     }
-    // Determine if critical strike
-    const isCrit = Math.random() < this.gameState.critChance;
+
+    // Determine critical strike tier
+    const effectiveCritChance = this.gameState.critChance || 0;
+    let critTier = resolveCritTier(effectiveCritChance, this.rng);
+    // Crit chance never passes 100%, so tiers above 1 never rolled. A crit upgrades to a
+    // Super-Crit (5x with the base 3x) with SUPER_CRIT_SHARE odds.
+    if (critTier === 1 && this.rng() < SUPER_CRIT_SHARE) critTier = 2;
+    const isCrit = critTier > 0;
     let yieldAmount = this.gameState.getClickYield();
 
-    if (isCrit) {
-      yieldAmount = yieldAmount.mul(this.gameState.critMultiplier);
-      sound.playCrit();
-    } else {
-      sound.playClick(1 + (this.gameState.comboCount % FRENZY_EVERY) * 0.03);
+    if (critTier > 0) {
+      const multBase = this.gameState.critMultiplier || 3;
+      // Tier 1: multBase, Tier 2: 1 + 2*(multBase-1), Tier 3+: 1 + 4*(multBase-1)
+      const tierMult = critTier === 1
+        ? multBase
+        : 1 + Math.pow(2, critTier - 1) * (multBase - 1);
+      yieldAmount = yieldAmount.mul(tierMult);
     }
+    // Pitch from the combo before this click counts (as before R41)
+    const pitch = this.clickPitch();
 
     // Award aether
     this.gameState.aether = this.gameState.aether.add(yieldAmount);
@@ -128,11 +165,27 @@ export class ClickerSystem {
       }
     }
 
-    // Spawn visual feedback
-    if (clientX && clientY) {
-      particles.spawnClickSparks(clientX, clientY, isCrit ? 20 : 10, isCrit ? '#f59e0b' : '#38bdf8');
-      const text = (isCrit ? t('fx.crit') + ' +' : '+') + yieldAmount.format('standard', 1);
-      particles.spawnFloatingText(clientX, clientY, text, isCrit ? '#fbbf24' : '#67e8f9', isCrit);
+    // Feedback (R41): a tap is T0 and its "+n" merges with the last one; a crit is T1 with its
+    // own sound (250 ms cooldown, the click sound answers in between)
+    const at = { x: clientX, y: clientY };
+    if (isCrit) {
+      if (critTier >= 2) {
+        const hyper = critTier >= 3;
+        feedback.fire(1, {
+          kind: 'crit-label', at, sparks: hyper ? 14 : 10, color: hyper ? '#a855f7' : '#f97316',
+          label: hyper ? '🔮 HYPER CRIT!' : '⚡ SUPER CRIT!', labelOffset: hyper ? -35 : -30
+        });
+      }
+      feedback.fire(1, {
+        kind: 'crit', at, sound: 'crit', fallbackSound: 'click', soundPitch: pitch,
+        sparks: 20, color: '#f59e0b',
+        text: t('fx.crit') + ' +' + yieldAmount.format('standard', 1), textColor: '#fbbf24', isCrit: true
+      });
+    } else {
+      feedback.fire(0, {
+        kind: 'click', at, sound: 'click', soundPitch: pitch, sparks: 10, color: '#38bdf8',
+        amount: yieldAmount, textColor: '#67e8f9', merge: true
+      });
     }
 
     // Notify bounty / achievements
@@ -229,8 +282,7 @@ export class ClickerSystem {
     this.anomalyActive = false;
     this.anomalyTimer = 60 + this.rng() * 60;
 
-    sound.playGem();
-    if (x && y) particles.spawnClickSparks(x, y, 35, '#eab308');
+    feedback.fire(2, { kind: 'anomaly', at: { x, y }, sound: 'gem', sparks: 35, color: '#eab308' });
 
     const cps = this.gameState.getNetAetherPerSecond();
     const note = { tier: 'medium', icon: '✨', color: '#fde047' };

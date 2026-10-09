@@ -50,28 +50,28 @@ console.log('--- formatEta: rough, friendly durations ---');
   assert.equal(formatEta(NaN), '');
 }
 
-console.log('--- New Well ETA: the Oil gate, then the 10-min minimum run ---');
+console.log('--- New Well ETA: the Oil gate, no minimum run wait ---');
 {
   const { gs, ps } = setup();
   gs.totalAetherEarned = new BigNum(DUST_MIN_AETHER / 2);
-  // 250 Oil missing to the 500-Oil gate (R52) at 10/s = 25 s, but the run must also last 600 s
-  assert.equal(nextWellEta(gs, ps, new BigNum(10), NOW), MIN_RUN_SECONDS);
+  // 250 Oil missing to the 500-Oil gate (R52) at 10/s = 25 s; no 10-min wait
+  assert.equal(nextWellEta(gs, ps, new BigNum(10), NOW), 25);
   near(nextWellEta(gs, ps, new BigNum(0.1), NOW), DUST_MIN_AETHER / 2 * 10, 'Oil is the slower part');
   assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW), null);
   gs.totalAetherEarned = new BigNum(DUST_REF * 32);
   assert.ok(ps.getPendingCosmicDust().gt(0));
-  assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW + 100_000), MIN_RUN_SECONDS - 100, 'paying run: only the clock');
-  assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW + MIN_RUN_SECONDS * 1000), 0);
+  assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW + 100_000), 0, 'paying run: ready now');
+  assert.equal(nextWellEta(gs, ps, BigNum.zero(), NOW), 0);
 }
 
-console.log('--- Reserve pace: pending over the run time (at least the minimum run) ---');
+console.log('--- Reserve pace: pending over the run time ---');
 {
   const { gs, ps } = setup();
   assert.equal(dustRate(gs, ps, NOW).toNumber(), 0, 'no pending Reserves, no pace');
   gs.totalAetherEarned = new BigNum(DUST_REF * 32); // pays 20
   const pending = ps.getPendingCosmicDust().toNumber();
   assert.equal(pending, 20);
-  assert.ok(Math.abs(dustRate(gs, ps, NOW + 60_000).toNumber() - pending / MIN_RUN_SECONDS) < 1e-12, 'short run counts as 10 min');
+  assert.ok(Math.abs(dustRate(gs, ps, NOW + 60_000).toNumber() - pending / 60) < 1e-12, 'run counts elapsed time');
   assert.ok(Math.abs(dustRate(gs, ps, NOW + 3600_000).toNumber() - pending / 3600) < 1e-12);
 }
 
@@ -79,7 +79,7 @@ console.log('--- several New Wells: next one, then the player\'s own wells per d
 {
   const { gs, ps } = setup();
   gs.totalAetherEarned = new BigNum(DUST_REF * 32);
-  const t = NOW + MIN_RUN_SECONDS * 1000;
+  const t = NOW;
   assert.equal(wellsEta(gs, ps, BigNum.zero(), 0, t), 0);
   assert.equal(wellsEta(gs, ps, BigNum.zero(), 1, t), 0);
   assert.equal(wellsEta(gs, ps, BigNum.zero(), 3, t), null, 'no history: no guess');
@@ -152,7 +152,7 @@ console.log('--- after New Wells: Reserve Shop tier and the next New Field ---')
   // A New Well paying past the gate: the New Field is one New Well away
   gs.totalAetherEarned = new BigNum(DUST_REF).mul(new BigNum(32).pow(5)); // pays 320
   const f2 = getComingUp(gs, { buildings: bs, prestige: ps, now: NOW }, 10).find(i => i.id === 'field');
-  assert.equal(f2.eta, MIN_RUN_SECONDS, 'waits only for the minimum run');
+  assert.equal(f2.eta, 0, 'paying run: can Ascend right away to hit the gate');
   gs.totalCosmicDust = new BigNum(400);
   const f3 = getComingUp(gs, { buildings: bs, prestige: ps, now: NOW }, 10).find(i => i.id === 'field');
   assert.equal(f3.eta, 0, 'gate met: ready');

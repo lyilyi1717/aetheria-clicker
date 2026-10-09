@@ -359,6 +359,146 @@ export const MIGRATIONS = [
       refundInto(data.chronicle?.active?.stash, 'aether');
       return data;
     }
+  },
+  {
+    // v9 -> v10 (R63, Tower gear base 1.11 -> 1.105): new gear rolls on a flatter curve, so a
+    // kit built on the old one can sit above the floor it now clears. Equipped gear keeps the
+    // stats it has; flag the hero so CombatSystem.rebaseLegacyFloor (needs live combat stats)
+    // steps the floor down to the highest one the kit clears. maxFloor stays the record;
+    // indexFloor is the floor the Market Index reads (kept sane here, set again by the rebase).
+    to: 10,
+    migrate(data) {
+      const h = data.hero;
+      if (!h || typeof h !== 'object') return data;
+      const floor = Number(h.floor), maxFloor = Number(h.maxFloor), idx = Number(h.indexFloor);
+      const f = Number.isFinite(floor) && floor >= 1 ? Math.floor(floor) : 1;
+      if (!(Number.isFinite(idx) && idx >= 1)) {
+        h.indexFloor = Number.isFinite(maxFloor) && maxFloor >= 1 ? Math.min(Math.floor(maxFloor), f) : f;
+      }
+      h.pendingFloorRebase = true;
+      return data;
+    }
+  },
+  {
+    // v10 -> v11 (R64, gear wave 1): gear becomes items you keep in a bag. Equipped gear is
+    // converted to items on the new curve: rarity multipliers 1/2/3/4/5 (was 1/2/4/8/18), a
+    // recorded item level inferred from the stat, and a "Heirloom" bonus for Rare and better (one
+    // affix; Legendary and Cosmic also get one free re-temper) to soften the Legendary/Cosmic
+    // cut. R34 gear levels and Monster Bones are retired: each item's level multiplier (+4% per
+    // level) is baked into its stats (and kept through re-tempers as `bake`); bones spent on levels
+    // (10 x (i + 1) per level i) and banked bones become Gear Scrap (1 per 10 spent, 1 per banked
+    // bone), up to 8 extra Rare finds in the bag (1 per 1,200 spent) and up to 20 Void Cores
+    // (1 per 1,000 spent); the bones go to 0 and a one-time notice tells the player. The bag
+    // starts with a Welcome Bag (one Rare per slot at the Index floor); the hero is flagged so
+    // rebaseLegacyFloor steps the floor down if the new kit clears less. Saves that had
+    // auto-replace (record floor 301+) keep automation as Al-Wakeel.
+    // Constants and formulas are inlined: this step must keep its meaning when the game changes.
+    to: 11,
+    migrate(data) {
+      const G = 1.109, G_OLD = 1.11;
+      const OLD_MULT = { Common: 1, Rare: 2, Epic: 4, Legendary: 8, Cosmic: 18 };
+      const NEW = { Common: [1, 0, 0], Rare: [2, 1, 1], Epic: [3, 2, 2], Legendary: [4, 3, 2], Cosmic: [5, 4, 3] };   // [mult, tier, affixes]
+      const SLOTS = ['weapon', 'armor', 'amulet', 'relic'];
+      const POOL = ['might', 'vigor', 'slayer', 'precision', 'greed', 'fortune'];
+      const MID = { might: 0.06, vigor: 0.075, slayer: 0.09, precision: 0.15, greed: 0.075, fortune: 0.03 };
+      const STARTERS = ['Rusty Shortsword', 'Tattered Tunic', 'Pebble Amulet', 'Ancient Shard'];
+      const h = data.hero && typeof data.hero === 'object' ? data.hero : null;
+      const maxFloor = h && Number.isFinite(Number(h.maxFloor)) && Number(h.maxFloor) >= 1 ? Math.floor(Number(h.maxFloor)) : 1;
+      const idxRaw = h ? Number(h.indexFloor) : NaN;
+      const idxFloor = Number.isFinite(idxRaw) && idxRaw >= 1 ? Math.min(maxFloor, Math.floor(idxRaw)) : maxFloor;
+      const stat = (slot, rarity, ilvl) => {
+        const [mult, tier] = NEW[rarity];
+        if (slot === 'weapon') return { attack: Math.max(1, Math.floor(10 * Math.pow(G, ilvl - 1) * mult)) };
+        if (slot === 'armor') return { hp: Math.max(1, Math.floor(40 * Math.pow(G, ilvl - 1) * mult)) };
+        if (slot === 'amulet') return { crit: Math.min(0.5, 0.05 + 0.05 * tier + 0.0002 * ilvl) };
+        return { lifesteal: Math.min(0.3, 0.02 + 0.02 * tier + 0.0001 * ilvl) };
+      };
+      const affixes = (rarity, seed) => {
+        const n = NEW[rarity][2], tier = NEW[rarity][1];
+        const out = [];
+        for (let i = 0; i < n; i++) {
+          const id = POOL[(seed + i * 2) % POOL.length];
+          out.push({ id, v: Math.round(MID[id] * tier * 1000) / 1000 });
+        }
+        return out;
+      };
+      let nextUid = 1;
+      let spentBones = 0;
+      const clampIlvl = (n) => Math.max(1, Math.min(maxFloor, Math.floor(Number.isFinite(n) ? n : 1)));
+      if (h && h.gear && typeof h.gear === 'object') {
+        SLOTS.forEach((slot, si) => {
+          const old = h.gear[slot];
+          if (!old || typeof old !== 'object') return;   // GearSystem replaces a missing item with a Common
+          const rarity = NEW[old.rarity] ? old.rarity : 'Common';
+          const key = { weapon: 'attack', armor: 'hp', amulet: 'crit', relic: 'lifesteal' }[slot];
+          const raw = Number(old[key]);
+          const lv = Math.max(0, Math.min(30, Math.floor(Number(old.level)) || 0));
+          spentBones += 5 * lv * (lv + 1);
+          const bake = 1 + 0.04 * lv;
+          const cap = { weapon: Infinity, armor: Infinity, amulet: 0.5, relic: 0.3 }[slot];
+          if (!Number.isFinite(raw) || raw <= 0) { delete h.gear[slot]; return; }
+          if (STARTERS.includes(old.name)) {
+            const starter = { ...old, slot, rarity: 'Common', ilvl: 1, affixes: [], uniqueId: null, locked: false, uid: nextUid++ };
+            delete starter.level;
+            starter[key] = Math.min(cap, slot === 'weapon' || slot === 'armor' ? Math.floor(raw * bake) : raw * bake);
+            if (lv > 0) starter.bake = bake;
+            h.gear[slot] = starter;
+            return;
+          }
+          let ilvl;
+          if (slot === 'weapon' || slot === 'armor') {
+            const base = (slot === 'weapon' ? 10 : 40) * OLD_MULT[rarity];
+            ilvl = clampIlvl(1 + Math.log(Math.max(raw, 1) / base) / Math.log(G_OLD));
+          } else {
+            const cap = slot === 'amulet' ? 0.5 : 0.3;
+            ilvl = raw >= cap - 1e-9 ? clampIlvl(maxFloor) : clampIlvl((raw - 0.02) / (0.001 * OLD_MULT[rarity]));
+          }
+          const base = stat(slot, rarity, ilvl);
+          base[key] = Math.min(cap, slot === 'weapon' || slot === 'armor' ? Math.floor(base[key] * bake) : base[key] * bake);
+          const item = {
+            ...base,
+            uid: nextUid++, slot, rarity, ilvl,
+            name: typeof old.name === 'string' && old.name ? old.name : rarity + ' ' + slot.toUpperCase(),
+            affixes: [], uniqueId: null, locked: false
+          };
+          if (lv > 0) item.bake = bake;
+          // No power is lost: the old effective stat (level bonus included) is the floor. The new
+          // curve (Legendary x4, was x8; Cosmic x5, was x18; bounded Amulet/Relic) only takes over
+          // once a re-temper lifts the item above it.
+          const oldEff = Math.min(cap, raw * bake);
+          if (oldEff > item[key]) { item[key] = oldEff; item.keep = oldEff; }
+          if (rarity !== 'Common') {
+            item.affixes = affixes(rarity, ilvl + si).slice(0, 1);
+            item.heirloom = true;
+            if (rarity === 'Legendary' || rarity === 'Cosmic') item.freeTemper = true;
+          }
+          h.gear[slot] = item;
+        });
+        h.pendingFloorRebase = true;
+      }
+      const rare = (slot, si) => ({
+        ...stat(slot, 'Rare', idxFloor),
+        uid: nextUid++, slot, rarity: 'Rare', ilvl: idxFloor,
+        name: 'Rare ' + slot.toUpperCase(), affixes: affixes('Rare', idxFloor + si + 1), uniqueId: null, locked: false
+      });
+      const items = SLOTS.map(rare);
+      // Bones -> Gear Scrap, Rare finds and Void Cores
+      const inv = data.inventory && typeof data.inventory === 'object' ? data.inventory : (data.inventory = {});
+      const banked = Math.max(0, Math.floor(Number(inv.monsterBones)) || 0);
+      const scrap = Math.floor(spentBones / 10) + banked;
+      const extra = Math.min(8, Math.floor(spentBones / 1200));
+      const cores = Math.min(20, Math.floor(spentBones / 1000));
+      for (let i = 0; i < extra; i++) items.push(rare(SLOTS[i % 4], 4 + i));
+      if (scrap > 0 || cores > 0 || extra > 0) {
+        inv.gearScrap = (Math.max(0, Math.floor(Number(inv.gearScrap)) || 0)) + scrap;
+        inv.voidCores = (Math.max(0, Math.floor(Number(inv.voidCores)) || 0)) + cores;
+      }
+      inv.monsterBones = 0;
+      const wakeel = maxFloor >= 301;
+      data.bag = { items, cap: 30, nextUid, autoSalvage: 'Common', wakeel, autoEquip: wakeel };
+      data.loot = { legDry: 0, salvaged: 0, found: 0, notice: scrap > 0 || cores > 0 || extra > 0 ? { scrap, items: extra, cores } : null };
+      return data;
+    }
   }
 ];
 

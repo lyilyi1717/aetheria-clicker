@@ -183,7 +183,8 @@ console.log('--- v2 -> v3: a deep pre-rebalance Tower save (floor 700k) is rebas
     const gs = new GameState();
     gs.deserialize(fixture);
     const w = gs.hero.gear.weapon.attack;
-    assert.ok(Number.isFinite(w) && Math.abs(w / (180 * Math.pow(1.11, 6000)) - 1) < 1e-6, 'weapon rescaled to 1.11');
+    // v3 rescaled it to 1.11; v11 then turned it into an Heirloom item that keeps that exact stat
+    assert.ok(Number.isFinite(w) && Math.abs(w / (180 * Math.pow(1.11, 6000)) - 1) < 1e-6, 'weapon keeps its 1.11-curve stat');
     assert.equal(gs.hero.maxFloor, 723053, 'record kept');
     assert.equal(gs.hero.indexFloor, 700000, 'provisional indexFloor until CombatSystem rebases the floor');
     assert.equal(gs.hero.pendingFloorRebase, true);

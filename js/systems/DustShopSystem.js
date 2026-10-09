@@ -55,6 +55,8 @@ export const DUST_SHOP_ITEMS = [
     desc: 'Garden Golems can be bought (Stone + Lemon Drops). Golems you own always keep working.', see: 'See it: Garden' },
   { id: 'hourglass', tier: 5, icon: '⌛', name: 'Hourglass of Al-Ula', cost: 40, maxRank: 1,
     desc: 'Adds 5 min and 1 h Fast Forward buttons (300 and 3,600 Chrono Sand).', see: 'See it: Fast Forward' },
+  { id: 'al_wakeel', tier: 5, icon: '🧾', name: 'Al-Wakeel', cost: 40, maxRank: 1,
+    desc: 'Your wakeel handles the gear: an item that beats what you wear is equipped the moment it drops. Switch it on or off in the bag.', see: 'See it: Tower bag' },
   { id: 'auto_leylines', tier: 10, icon: '🔮', name: 'Automated Leylines', cost: 60, maxRank: 1,
     desc: 'Casts your spells for you whenever Mana is full.', see: 'See it: Grimoire' },
   { id: 'blueprint_memory_2', tier: 10, icon: '🏛️', name: 'Blueprint Memory II', cost: 50, maxRank: 1,

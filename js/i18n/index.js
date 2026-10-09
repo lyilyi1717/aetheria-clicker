@@ -35,11 +35,11 @@ function fill(str, params) {
   if (!isRtl()) return str.replace(/\{(\w+)\}/g, (m, name) => value(name) ?? m);
   // Right to left: a number keeps its sign and unit with it ("+12%", "×3", "-4%") inside one
   // left-to-right isolate, so it reads "+12%" and not "%12+".
-  return str.replace(/([+\-−×]?)\{(\w+)\}(%?)/g, (m, sign, name, pct) => {
+  return str.replace(/([+\-−×]?)\{(\w+)\}(%?|\/\d+)/g, (m, sign, name, suffix) => {
     const v = value(name);
     if (v === null) return m;
-    if (!HAS_DIGIT.test(v) || HAS_TAG.test(v)) return sign + v + pct;
-    return FSI + sign + v + pct + PDI;
+    if (!HAS_DIGIT.test(v) || HAS_TAG.test(v)) return sign + v + suffix;
+    return FSI + sign + v + suffix + PDI;
   });
 }
 

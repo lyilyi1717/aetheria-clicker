@@ -14,7 +14,7 @@
 
 import { BigNum } from '../engine/BigNum.js';
 import { BUILDING_DEFINITIONS, getUnlockedTierCount } from '../systems/BuildingSystem.js';
-import { MIN_RUN_SECONDS, DUST_MIN_AETHER } from '../systems/PrestigeSystem.js';
+import { DUST_MIN_AETHER } from '../systems/PrestigeSystem.js';
 import { getTeasers, getUnlockProgress, UNLOCK_BY_TAB, isTabUnlocked } from '../systems/UnlockSystem.js';
 import { DUST_SHOP_ITEMS, getNextShopTier } from '../systems/DustShopSystem.js';
 import { SHARD_TREE_NODES, hasNode, getShardBalance, getOpenTierCount, isFoundryOpen } from '../systems/ShardTreeSystem.js';
@@ -63,7 +63,7 @@ export function formatEta(sec) {
 export function dustRate(gs, prestige, now = Date.now()) {
   const pending = prestige.getPendingCosmicDust();
   if (!pending.gt(0)) return BigNum.zero();
-  const runSec = Math.max(MIN_RUN_SECONDS, (now - num(gs.runStartedAt)) / 1000);
+  const runSec = Math.max(1, (now - num(gs.runStartedAt)) / 1000);
   return pending.div(runSec);
 }
 

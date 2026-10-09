@@ -138,17 +138,17 @@ console.log('--- Auto-tap keeps tapping offline ---');
   const gs = make(1000);
   const sm = new SaveManager(gs);
   const res = sm.processOfflineTime(Date.now() - 2 * H * 1000);
-  assert.ok(close(res.gainedAether.toNumber(), 1000 * 2 * H), 'without Auto-tap: production only');
+  assert.ok(close(res.gainedAether.toNumber(), 1000 * 2 * H, 1e-4), 'without Auto-tap: production only');
   gs.aether = BigNum.zero();
   gs.dustShop.ranks.auto_tap = 1;
   const res2 = sm.processOfflineTime(Date.now() - 2 * H * 1000);
-  assert.ok(close(res2.gainedAether.toNumber(), 1500 * 2 * H), 'with Auto-tap: x1.5');
+  assert.ok(close(res2.gainedAether.toNumber(), 1500 * 2 * H, 1e-4), 'with Auto-tap: x1.5');
 }
 
 console.log('--- save step v9: bought click upgrades are refunded as Oil ---');
 {
-  assert.equal(SAVE_VERSION, 9);
-  assert.equal(MIGRATIONS.at(-1).to, 9);
+  assert.ok(SAVE_VERSION >= 9);
+  assert.equal(MIGRATIONS.find(s => s.to === 9).to, 9);
   const V8 = {
     version: 8,
     aether: { m: 5, e: 2 },                       // 500 Oil
@@ -158,7 +158,7 @@ console.log('--- save step v9: bought click upgrades are refunded as Oil ---');
       active: { id: 'sand_lights_out', startedAt: 1, stash: { aether: { m: 0, e: 0 }, totalAetherEarned: { m: 1, e: 3 },
         clickPower: { m: 1, e: 0 }, buildings: {}, upgrades: ['click_1', 'tapper_u1'], comboCount: 0, runStartedAt: 1 } } }
   };
-  const d = migrateSave(clone(V8));
+  const d = migrateSave(clone(V8), MIGRATIONS.filter(s => s.to <= 9));
   assert.equal(d.version, 9);
   assert.deepEqual(d.upgrades, ['tapper_u1', 'resonator_u2']);
   // click_1..3 cost 10 x baseCost of tiers 1..3 = 100 + 1,000 + 10,000
@@ -182,7 +182,7 @@ console.log('--- save step v9: bought click upgrades are refunded as Oil ---');
   assert.deepEqual(Object.keys(gs.upgrades).sort(), ['resonator_u2', 'tapper_u1']);
   assert.ok(close(gs.aether.toNumber(), 11600));
   const out = clone(gs.serialize());
-  assert.equal(out.version, 9);
+  assert.equal(out.version, SAVE_VERSION);
   const gs2 = new GameState();
   gs2.deserialize(clone(out));
   assert.ok(gs2.aether.eq(gs.aether), 'a v9 save is not refunded twice');

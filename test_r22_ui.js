@@ -17,7 +17,7 @@ const tokens = definedIn(tokensCss);
 console.log('--- tokens.css carries the style guide §2.1 block ---');
 {
   const guide = read('./docs/ui-style-guide.md');
-  const block = guide.match(/```css\n([\s\S]*?)```/)[1];
+  const block = guide.match(/```css\r?\n([\s\S]*?)```/)[1];
   for (const name of definedIn(block)) assert.ok(tokens.has(name), `tokens.css is missing ${name}`);
   assert.match(tokensCss, /--rarity-legendary:\s*#ef8a3c/, 'Legendary is orange, not red');
   assert.match(tokensCss, /--font-ui:\s*'Inter'/, 'Inter is the UI font');
@@ -55,7 +55,8 @@ console.log('--- rarity: colour + glyph + word ---');
 {
   assert.equal(rarityClass('Legendary'), 'legendary');
   assert.equal(rarityClass('COSMIC'), 'cosmic');
-  assert.equal(rarityClass('Mythic'), '');
+  assert.equal(rarityClass('Mythic'), 'mythic');
+  assert.equal(rarityClass('Godly'), '');
   assert.equal(rarityClass(undefined), '');
   for (const [cls, glyph] of Object.entries(RARITY_GLYPHS)) {
     const word = cls[0].toUpperCase() + cls.slice(1);
@@ -65,7 +66,7 @@ console.log('--- rarity: colour + glyph + word ---');
     assert.ok(tag.includes(`>${word}<`), `${word}: word`);
     assert.ok(tokensCss.includes(`--rarity-${cls}:`), `${word}: token exists`);
   }
-  assert.equal(rarityTag('Mythic'), '');
+  assert.equal(rarityTag('Godly'), '');
 }
 
 console.log('--- gear card ---');
@@ -86,9 +87,9 @@ console.log('--- gear card ---');
 
 console.log('--- loot drop colours match the rarity tokens ---');
 {
-  const combat = read('./js/systems/CombatSystem.js');
+  const combat = read('./js/systems/gearItems.js');   // the rarity table moved here in R64
   for (const [name, cls] of [['Common', 'common'], ['Rare', 'rare'], ['Epic', 'epic'], ['Legendary', 'legendary'], ['Cosmic', 'cosmic']]) {
-    const drop = combat.match(new RegExp(`name: '${name}', color: '(#[0-9a-f]+)'`, 'i'));
+    const drop = combat.match(new RegExp(`name: '${name}'[^}]*color: '(#[0-9a-f]+)'`, 'i'));
     const token = tokensCss.match(new RegExp(`--rarity-${cls}:\\s*(#[0-9a-f]+)`, 'i'));
     assert.ok(drop && token, `${name}: drop and token colours found`);
     assert.equal(drop[1].toLowerCase(), token[1].toLowerCase(), `${name} drop colour matches its token`);

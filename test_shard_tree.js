@@ -131,7 +131,7 @@ console.log('--- Chronos: 6 h Fast Forward once a day ---');
   assert.equal(st.canLongWarp(now + LONG_WARP_COOLDOWN_MS), true);
 }
 
-console.log('--- Chronos: Auto-Ascend rules, the 10-min minimum, and 30 min for the ratio rules (R31) ---');
+console.log('--- Chronos: Auto-Ascend rules, and 30 min for the ratio rules (R31) ---');
 {
   const B = (n) => new BigNum(n);
   // x2: pending >= lifetime; x1.5: >= 0.5 x; x1.2: >= 0.2 x
@@ -156,10 +156,8 @@ console.log('--- Chronos: Auto-Ascend rules, the 10-min minimum, and 30 min for 
   gs.runStartedAt = now - 3600e3;
   assert.equal(st.tick(now), false, 'not owned');
   st.buy('chronos_auto_ascend');
-  gs.runStartedAt = now - (MIN_RUN_SECONDS - 5) * 1000;
-  st.lastCheckAt = 0;
-  assert.equal(st.shouldAutoAscend(now), false, 'respects the 10-min minimum run');
   gs.runStartedAt = now - (AUTO_ASCEND_MIN_RUN_SECONDS - 5) * 1000;
+  st.lastCheckAt = 0;
   assert.equal(st.shouldAutoAscend(now), false, 'the default rule waits for a 30-min run');
   gs.runStartedAt = now - (AUTO_ASCEND_MIN_RUN_SECONDS + 5) * 1000;
   st.setAutoAscendEnabled(false);
@@ -170,7 +168,7 @@ console.log('--- Chronos: Auto-Ascend rules, the 10-min minimum, and 30 min for 
   assert.equal(st.tick(now), true);
   assert.equal(gs.ascensionCount, 1);
   assert.ok(gs.totalCosmicDust.eq(pending));
-  assert.equal(st.tick(now + 2000), false, 'new run: minimum applies again');
+  assert.equal(st.tick(now + 2000), false, 'new run: ratio rule waits for 30 min again');
   const batch = st.takeAutoAscendBatch();
   assert.equal(batch.count, 1);
   assert.ok(batch.dust.eq(pending));

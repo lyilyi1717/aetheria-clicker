@@ -35,7 +35,7 @@ export const DEEP_BLUEPRINT_DIVISOR = 10;      // a tier's 6 upgrades cost /10
 export const OFFLINE_SHARD_BONUS = 8 * 3600;   // seconds added to both offline bands
 export const LONG_WARP_SECONDS = 6 * 3600;     // Hourglass of Eternity: 6 h of production
 export const LONG_WARP_COOLDOWN_MS = 24 * 3600 * 1000;
-// Auto-Ascend is checked this often (wall clock); Ascend itself needs a 10-min run anyway
+// Auto-Ascend is checked this often (wall clock)
 export const AUTO_ASCEND_CHECK_MS = 1000;
 
 export const SHARD_TREE_BRANCHES = [
@@ -55,7 +55,7 @@ export const AUTO_ASCEND_RULES = [
   { id: 'timer', label: 'Timer' }
 ];
 localize(AUTO_ASCEND_RULES, 'autorule', ['label']);
-export const AUTO_ASCEND_TIMER_OPTIONS = [10, 30, 60, 240]; // minutes; 10 = the minimum run
+export const AUTO_ASCEND_TIMER_OPTIONS = [10, 30, 60, 240]; // minutes
 export const AUTO_ASCEND_DEFAULT_RULE = 'x1.25';
 export const AUTO_ASCEND_DEFAULT_TIMER = 30;
 // The ×m rules also wait for a run this long (R31): with small dust numbers a fresh layer meets
@@ -260,7 +260,6 @@ export function setAutoBlastEnabled(gameState, on) {
 // --- Auto-Ascend rule (pure) ---
 
 // Whether the rule says "Ascend now", given pending and lifetime dust (BigNum) and run seconds.
-// The 10-minute minimum run is checked separately (PrestigeSystem.getMinRunRemaining).
 export function autoAscendRuleMet(settings, pending, lifetimeDust, runSeconds) {
   if (!pending || pending.lte(0)) return false;
   const rule = AUTO_ASCEND_RULES.find(r => r.id === settings?.rule) || AUTO_ASCEND_RULES.find(r => r.id === AUTO_ASCEND_DEFAULT_RULE);

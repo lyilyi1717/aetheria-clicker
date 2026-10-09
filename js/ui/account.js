@@ -6,6 +6,7 @@
 import { CloudSave, AUTO_SYNC_MS, summarizeSave, cleanCallbackUrl } from '../engine/CloudSave.js';
 import { formatDuration } from './offlineModal.js';
 import { rewards } from './rewards.js';
+import { validateName } from '../leaderboard.js';
 import { t, getLang } from '../i18n/index.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -57,9 +58,15 @@ export class AccountUI {
     const cb = await this.cloud.handleCallback(location.href);
     if (cb) {
       try { history.replaceState(null, '', cleanCallbackUrl(location.href)); } catch { /* file:// */ }
-      if (cb.error) this.say(cb.error, 'bad');
-      else if (cb.recovery) { this.say(t('acct.choose_pw'), 'ok'); this.app.switchTab?.('settings'); }
+      // Show the outcome where the player can see it: open Settings -> Account
+      if (cb.error) {
+        this.say(cb.error, 'bad');
+        rewards.notify({ tier: 'medium', kind: 'account', icon: '⚠️', title: t('acct.link_failed'), detail: cb.error, color: 'var(--danger)' });
+      } else if (cb.recovery) this.say(t('acct.choose_pw'), 'ok');
+      else if (cb.signedIn) this.say(t('acct.link_ok', { email: this.cloud.email }), 'ok');
+      this.app.switchTab?.('settings');
       this.render();
+      this.root?.scrollIntoView?.({ block: 'start' });
     }
 
     // Uploads: every few minutes, on manual save, and when the page is hidden
@@ -70,15 +77,15 @@ export class AccountUI {
     window.addEventListener('pagehide', () => this.cloud.sync('hide'));
     setInterval(() => this.renderStatus(), 30000);
 
-    if (this.cloud.signedIn && !this.cloud.needsNewPassword) await this.afterSignIn(!!cb?.signedIn);
+    if (this.cloud.signedIn && !this.cloud.needsNewPassword) await this.afterSignIn(!!cb?.signedIn, cb?.signedIn ? 'medium' : 'small');
     else if (!this.cloud.signedIn) this.cloud.providers().then(p => { this.googleOn = p ? p.google : null; this.render(); });
   }
 
   say(text, kind = '') { this.note = text; this.noteKind = kind; this.renderStatus(); }
 
   // --- flows ---
-  async afterSignIn(fresh) {
-    if (fresh) rewards.notify({ tier: 'small', kind: 'account', icon: '☁️', title: t('acct.signed_in_as', { email: this.cloud.email }), color: 'var(--aether)' });
+  async afterSignIn(fresh, tier = 'small') {
+    if (fresh) rewards.notify({ tier, kind: 'account', icon: '☁️', title: t('acct.signed_in_as', { email: this.cloud.email }), color: 'var(--aether)' });
     if (this.app.leaderboard) this.app.leaderboard.lastPush = 0;   // move the leaderboard row to the account now
     const d = await this.cloud.sync('login');
     this.afterSync(d);
@@ -110,7 +117,8 @@ export class AccountUI {
     const f = this.root.querySelector('form');
     return {
       email: f?.querySelector('[name=email]')?.value.trim() || '',
-      password: f?.querySelector('[name=password]')?.value || ''
+      password: f?.querySelector('[name=password]')?.value || '',
+      nickname: f?.querySelector('[name=nickname]')?.value.trim() || ''
     };
   }
 
@@ -126,7 +134,17 @@ export class AccountUI {
   }
 
   onSubmit(act) {
-    const { email, password } = this.fields();
+    const { email, password, nickname } = this.fields();
+    if (act === 'nick') {
+      const err = validateName(nickname);
+      if (err) return this.say(err, 'bad');
+      return this.withBusy(async () => {
+        await this.cloud.setNickname(nickname);
+        this.say(t('acct.nick_saved', { name: nickname }), 'ok');
+        const lb = this.app.leaderboard;
+        if (lb) { lb.lastPush = 0; lb.lastFetch = 0; }
+      });
+    }
     if (act === 'newpass') {
       if (password.length < 6) return this.say(t('acct.pw_min'), 'bad');
       return this.withBusy(async () => {
@@ -143,10 +161,14 @@ export class AccountUI {
       });
     }
     if (password.length < 6) return this.say(t('acct.pw_min2'), 'bad');
+    if (act === 'signup') {
+      const err = validateName(nickname);
+      if (err) return this.say(nickname ? err : t('acct.nick_needed'), 'bad');
+    }
     return this.withBusy(async () => {
       if (act === 'signup') {
         this.say(t('acct.creating'));
-        if (await this.cloud.signUp(email, password)) { this.say(''); await this.afterSignIn(true); }
+        if (await this.cloud.signUp(email, password, nickname)) { this.say(''); await this.afterSignIn(true); }
         else this.say(t('acct.confirm_sent', { email }), 'ok');
       } else {
         this.say(t('acct.signing_in'));
@@ -208,6 +230,7 @@ export class AccountUI {
         <form class="acct-form" novalidate>
           <label class="acct-field"><span>${t('acct.email')}</span><input name="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" dir="ltr"></label>
           <label class="acct-field"><span>${t('acct.password')}</span><input name="password" type="password" autocomplete="current-password" minlength="6" dir="ltr"></label>
+          <label class="acct-field"><span>${t('acct.nickname_new')}</span><input name="nickname" type="text" maxlength="20" autocomplete="nickname" spellcheck="false" placeholder="${t('lb.name_ph')}" dir="ltr"></label>
           <div class="acct-actions">
             <button type="submit" class="btn btn-primary" data-act="login">${t('acct.login')}</button>
             <button type="button" class="btn" data-act="signup">${t('acct.signup')}</button>
@@ -232,6 +255,10 @@ export class AccountUI {
             <div class="acct-sub">${c.provider === 'google' ? t('acct.google_account') : t('acct.email_account')} · <span class="acct-cloud"></span></div>
           </div>
         </div>
+        <form class="acct-form acct-nick" novalidate>
+          <label class="acct-field"><span>${t('acct.nickname')}</span><input name="nickname" type="text" maxlength="20" autocomplete="nickname" spellcheck="false" placeholder="${t('lb.name_ph')}" dir="ltr" value="${esc(this.app.leaderboard?.name || '')}"></label>
+          <div class="acct-actions"><button type="submit" class="btn" data-act="nick">${t('acct.nick_save')}</button></div>
+        </form>
         <div class="acct-actions">
           <button type="button" class="btn btn-primary" data-act="sync">${t('acct.sync_now')}</button>
           <button type="button" class="btn" data-act="choose" hidden>${t('acct.choose')}</button>
