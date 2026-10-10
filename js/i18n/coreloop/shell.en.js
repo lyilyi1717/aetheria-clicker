@@ -10,6 +10,8 @@ export default {
   'cl.shell.beta': 'Preview: a separate save; your current game is untouched.',
   'cl.shell.back': 'Back to the current game',
   'cl.shell.soon': 'This screen is being built.',
+  'cl.shell.load_failed': 'This screen did not load.',
+  'cl.shell.retry': 'Try again',
   'cl.shell.crude': 'Crude',
   'cl.shell.per_sec': '{n}/s',
   'cl.shell.state.hands': 'Hands-on',

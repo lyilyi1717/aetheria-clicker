@@ -9,6 +9,7 @@ import '../../i18n/coreloop/guide-strings.js';
 import * as Guide from '../../systems/coreloop/Guide.js';
 
 const PULSE_MS = 2400;
+const WHY_MS = 9000;   // how long the reason stays open on a phone after the goal changes
 
 // --- pure ----------------------------------------------------------------------------------------
 // What the bar says now: { kicker, goal, why, count, frac, screen, anchor, key }. `key` changes
@@ -60,6 +61,7 @@ export class GuideBar {
     this.el = el;
     this.parts = Object.fromEntries([...el.querySelectorAll('[data-g]')].map(n => [n.dataset.g, n]));
     this.parts.go.addEventListener('click', () => this.go());
+    el.querySelector('.cl-guide-text').addEventListener('click', () => { clearTimeout(this.whyTimer); el.classList.toggle('cl-guide-open'); });
     this.key = null;
     this.target = null;
   }
@@ -77,7 +79,9 @@ export class GuideBar {
       this.key = v.key;
       this.el.classList.remove('cl-guide-changed');
       void this.el.offsetWidth;
-      this.el.classList.add('cl-guide-changed');
+      this.el.classList.add('cl-guide-changed', 'cl-guide-open');
+      clearTimeout(this.whyTimer);
+      this.whyTimer = setTimeout(() => this.el.classList.remove('cl-guide-open'), WHY_MS);
     }
     this.mark(v);
   }

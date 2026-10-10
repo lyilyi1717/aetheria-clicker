@@ -9,6 +9,8 @@ export default {
   'cl.shell.beta': 'معاينة بحفظ مستقل؛ لعبتك الحالية لا تُمس.',
   'cl.shell.back': 'العودة إلى اللعبة الحالية',
   'cl.shell.soon': 'هذه الشاشة قيد البناء.',
+  'cl.shell.load_failed': 'لم تُحمَّل هذه الشاشة.',
+  'cl.shell.retry': 'حاول مرة أخرى',
   'cl.shell.crude': 'الخام',
   'cl.shell.per_sec': '{n}/ث',
   'cl.shell.state.hands': 'تلعب بيدك',

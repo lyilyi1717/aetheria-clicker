@@ -14,12 +14,12 @@ export default {
 
   // Fraction tower
   'cl.refinery.powers.gas': 'Powers hand work: taps, Heat and digging',
-  'cl.refinery.powers.naphtha': 'Powers the generators (Crude)',
+  'cl.refinery.powers.naphtha': 'Powers the pumps of the Well',
   'cl.refinery.powers.kerosene': 'Powers the Tower',
   'cl.refinery.powers.diesel': 'Powers the Mine',
   'cl.refinery.powers.bitumen': 'Powers the Oasis and the Away rate',
   'cl.refinery.speeds.gas': 'your hand work (taps, Heat, digging)',
-  'cl.refinery.speeds.naphtha': 'the generators',
+  'cl.refinery.speeds.naphtha': 'the pumps of the Well',
   'cl.refinery.speeds.kerosene': 'the Tower',
   'cl.refinery.speeds.diesel': 'the Mine',
   'cl.refinery.speeds.bitumen': 'the Oasis and your Away rate',
