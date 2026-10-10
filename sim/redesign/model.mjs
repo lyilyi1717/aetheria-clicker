@@ -205,13 +205,13 @@ function maybeChronicle(s) {
 
 // --- Fields --------------------------------------------------------------------------------------
 export const rankSum = (f) => f.ranks.reduce((x, y) => x + Math.min(y, P.rankHours.length), 0);
-const fieldSpeed = (s) => Math.pow(P.pFieldMult, s.pressureBest);
+export const fieldSpeed = (s) => Math.pow(P.pFieldMult, s.pressureBest);
 export function fieldPower(s, i, st) {
   let p = P.fieldBase[i] * fracVal(s, FIELD_FRAC[i]) * (1 + P.schoolPower * rankSum(s.fields[i]) / P.actionsPerField);
   if (st === 'hands') p *= heatOf(s) * fracVal(s, FRAC.gas);
   return p;
 }
-const gradeOf = (F) => Math.floor(F / P.gradeSpan);
+export const gradeOf = (F) => Math.floor(F / P.gradeSpan);
 export const rigGrade = (f) => gradeOf(Math.min(P.rigReachMax, P.rigReach0 + P.rigReachStep * (f.rig - 1)) * f.F);
 export const rigEff = (f) => P.rigEffBase + P.rigEffMastery * (rankSum(f) / P.actionsPerField) / P.rankHours.length;
 export function rigRate(s, i, st) {
@@ -225,7 +225,7 @@ export function rigRate(s, i, st) {
 }
 // Hand farming in Field i: handMult x that Field's Rig rate (Watching), at least handFloor; no Heat
 // One hour of a Field's farming at the Watching rate (the unit Essence prices are quoted in)
-const fieldHour = (s, i) => 3600 * Math.max(rigRate(s, i, 'watch'), P.handFloor);
+export const fieldHour = (s, i) => 3600 * Math.max(rigRate(s, i, 'watch'), P.handFloor);
 // Hand farming (any Field): handMult x the average Rig rate (Watching), at least handFloor; no Heat.
 // Tied to the average, not the Field in hand, so Hands-on stays ~3x Watching whatever the Rig mix
 export const handRateBase = (s) => {
@@ -234,12 +234,12 @@ export const handRateBase = (s) => {
   return P.handMult * Math.max(m, P.handFloor) * (charter(s).hand || 1);
 };
 
-function addInv(f, g, units) {
+export function addInv(f, g, units) {
   while (f.inv.length <= g) f.inv.push(0);
   f.inv[g] += units;
 }
-const invAtLeast = (f, g) => { let n = 0; for (let k = g; k < f.inv.length; k++) n += f.inv[k]; return n; };
-function takeAtLeast(f, g, units) {
+export const invAtLeast = (f, g) => { let n = 0; for (let k = g; k < f.inv.length; k++) n += f.inv[k]; return n; };
+export function takeAtLeast(f, g, units) {
   for (let k = g; k < f.inv.length && units > 0; k++) {
     const x = Math.min(f.inv[k], units); f.inv[k] -= x; units -= x;
   }
@@ -259,7 +259,7 @@ export function addMastery(s, i, hours) {
   }
 }
 
-function fieldsStep(s, dt, st) {
+export function fieldsStep(s, dt, st) {
   const out = { units: 0, rigs: 0 };
   for (let i = 0; i < NF; i++) {
     const f = s.fields[i];
