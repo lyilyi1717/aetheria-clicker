@@ -1,0 +1,48 @@
+/* Core-loop Well screen (js/ui/coreloop/well.js). Tokens and components only; phone first. */
+.clw { display: flex; flex-direction: column; gap: var(--sp-4); }
+.clw [hidden] { display: none !important; }
+.clw-h { font-family: var(--font-display); font-size: var(--fs-16); color: var(--gold); margin: 0; }
+.clw-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.clw-max { min-width: 120px; min-height: var(--tap); }
+.clw-note { margin: 0; color: var(--text-3); font-size: var(--fs-12); line-height: var(--lh-body); }
+.clw-would { margin: 0 0 var(--sp-2); color: var(--text-1); font-size: var(--fs-14); font-weight: 600; }
+
+.clw-gusher {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-1);
+  width: 100%; min-height: 96px; font-size: var(--fs-20); box-shadow: var(--glow-gold);
+  animation: clw-bob 0.9s var(--ease-out) infinite alternate;
+}
+.clw-gusher-left { font-size: var(--fs-14); font-weight: 600; font-variant-numeric: tabular-nums; }
+@keyframes clw-bob { to { transform: scale(1.02); } }
+
+.clw-summary { display: flex; flex-direction: column; gap: var(--sp-3); }
+.clw-rate { font-size: var(--fs-18); font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+.clw-heat { display: flex; flex-direction: column; gap: var(--sp-2); }
+
+.clw-slots { display: flex; flex-direction: column; gap: var(--sp-2); }
+.clw-slot { flex-wrap: wrap; align-items: stretch; }
+.clw-info { flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.clw-title { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; }
+.clw-amount { color: var(--gold); font-size: var(--fs-18); font-weight: 700; font-variant-numeric: tabular-nums; }
+.clw-sub { color: var(--text-2); font-size: var(--fs-12); font-variant-numeric: tabular-nums; }
+.clw-prog { margin-block-start: var(--sp-1); }
+.clw-prog .val { min-width: 0; font-weight: 500; color: var(--text-2); }
+.clw-acts { display: flex; gap: var(--sp-2); flex: 0 1 auto; }
+.clw-acts .btn { min-height: var(--tap); }
+.clw-lock { flex: 1 1 100%; }
+.clw .btn-buy { flex: 1 1 0; min-width: 92px; }
+
+.clw-card .btn-block { margin-block-start: var(--sp-2); min-height: var(--tap); }
+.clw-card .card-head { margin-bottom: var(--sp-2); }
+
+.cl-pulse { animation: clw-pulse var(--dur-3) var(--ease-out); }
+@keyframes clw-pulse { 0% { box-shadow: 0 0 0 2px var(--gold); } 100% { box-shadow: 0 0 0 0 transparent; } }
+
+@media (max-width: 480px) {
+  .clw-acts { flex: 1 1 100%; }
+}
+@media (min-width: 768px) {
+  .clw-slot { flex-wrap: nowrap; }
+  .clw-lock { flex: 0 1 auto; }
+}
+@media (prefers-reduced-motion: reduce) { .clw-gusher, .cl-pulse { animation: none; } }

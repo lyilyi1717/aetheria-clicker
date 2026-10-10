@@ -1,0 +1,173 @@
+// CL-13: the core-loop Well screen. No DOM: the module imports without one; the pure views and the
+// strings are checked here, the screen itself in a browser.
+import assert from 'node:assert/strict';
+import { BigNum } from './js/engine/BigNum.js';
+import { P } from './js/systems/coreloop/params.js';
+import { PRESENCE, makeContext } from './js/systems/coreloop/shared.js';
+import { createCoreLoopState } from './js/systems/coreloop/state.js';
+import * as Well from './js/systems/coreloop/Well.js';
+import * as Presence from './js/systems/coreloop/Presence.js';
+import * as W from './js/ui/coreloop/well.js';
+import EN_W from './js/i18n/coreloop/well.en.js';
+import AR_W from './js/i18n/coreloop/well.ar.js';
+import EN from './js/i18n/en.js';
+import AR from './js/i18n/ar.js';
+
+let checks = 0;
+const ok = (c, m) => { assert.ok(c, m); checks++; };
+const eq = (a, b, m) => { assert.deepEqual(a, b, m); checks++; };
+const ph = (s) => [...String(s).matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort();
+
+// --- strings -------------------------------------------------------------------------------------
+ok(typeof W.mount === 'function', 'mount exported');
+for (const k of Object.keys(EN_W)) {
+  ok(k.startsWith('cl.well.'), k + ' is namespaced');
+  ok(EN[k] === EN_W[k], k + ' registered');
+  ok(typeof AR_W[k] === 'string' && AR_W[k].length > 0, k + ' has Arabic');
+  ok(AR[k] === AR_W[k], k + ' registered in Arabic');
+  eq(ph(AR_W[k]), ph(EN_W[k]), k + ' keeps its placeholders');
+  ok(!/[A-Za-z]{3,}/.test(AR_W[k].replace(/\{\w+\}/g, '')), k + ' has no Latin words in Arabic');
+}
+eq(Object.keys(AR_W).sort(), Object.keys(EN_W).sort(), 'same keys in both languages');
+
+const ctx = makeContext(() => {});
+const fresh = () => createCoreLoopState(7);
+
+// --- slots shown ---------------------------------------------------------------------------------
+{
+  const s = fresh();
+  eq(W.slotsShown(s), 1, 'an empty Well shows the first slot');
+  s.well.crude = new BigNum(1, 6);
+  Well.buy(s, 1, 1);
+  eq(W.slotsShown(s), 2, 'one above the highest bought');
+  s.well.bought[P.slots] = 1;
+  eq(W.slotsShown(s), P.slots, 'never past the last slot');
+}
+
+// --- slot view -----------------------------------------------------------------------------------
+{
+  const s = fresh();
+  s.well.crude = new BigNum(1);
+  const v = W.slotView(s, 1);
+  eq(v.packLeft, P.packSize, 'a full pack to go');
+  eq(v.packFrac, 0, 'no progress to the x2');
+  ok(v.shown, 'slot 1 shown');
+  ok(!W.slotView(s, 3).shown, 'slot 3 is a locked teaser');
+  const n = Math.min(3, Well.affordable(s, 1));
+  if (n > 0) { Well.buy(s, 1, n); }
+  const v2 = W.slotView(s, 1);
+  eq(v2.bought, n);
+  eq(v2.packLeft, P.packSize - n);
+  ok(Math.abs(v2.packFrac - n / P.packSize) < 1e-9, 'progress is bought in this pack / pack size');
+}
+{
+  const s = fresh();
+  s.well.crude = BigNum.zero();
+  const v = W.slotView(s, 1);
+  ok(!v.canBuyOne && !v.canBuyPack, 'cannot buy with no Crude');
+  ok(v.missingOne && v.missingOne.gt(BigNum.zero()), 'the missing amount is given');
+  ok(v.missingPack.gt(v.missingOne), 'the pack is dearer than one unit');
+  s.well.crude = new BigNum(1, 30);
+  const rich = W.slotView(s, 1);
+  ok(rich.canBuyOne && rich.canBuyPack, 'can buy with plenty');
+  eq(rich.missingOne, null, 'nothing missing');
+  ok(rich.packCost.eq(rich.cost.mul(P.packSize)), 'pack cost is cost x units');
+}
+{
+  const s = fresh();
+  s.well.crude = new BigNum(1, 30);
+  Well.buy(s, 1, 1);
+  ok(W.slotView(s, 2).rate.eq(Well.slotRate(s, 2)), 'upper slots show the plain slot rate');
+}
+
+// --- Max all -------------------------------------------------------------------------------------
+{
+  const s = fresh();
+  s.well.crude = BigNum.zero();
+  ok(!W.canBuyAny(s), 'no Crude: Max all is off');
+  s.well.crude = new BigNum(1, 20);
+  ok(W.canBuyAny(s), 'Crude: Max all is on');
+}
+
+// --- Pressure ------------------------------------------------------------------------------------
+{
+  const s = fresh();
+  s.well.crude = BigNum.zero();
+  let p = W.pressureView(s);
+  ok(!p.can && p.missing, 'Pressure unaffordable shows what is missing');
+  eq(p.perLevel, P.pMult);
+  s.well.crude = new BigNum(1, 20);
+  p = W.pressureView(s);
+  ok(p.can && p.missing === null, 'Pressure affordable');
+  Well.buyPressure(s);
+  eq(W.pressureView(s).level, 1);
+}
+
+// --- Flare ---------------------------------------------------------------------------------------
+{
+  const s = fresh();
+  let f = W.flareView(s);
+  eq(f.reason, 'none', 'nothing to burn in an empty Well');
+  ok(!f.can);
+  s.well.crude = new BigNum(1, 40);
+  Well.buyMax(s);
+  s.well.amount[1] = new BigNum(1, 60);
+  f = W.flareView(s);
+  ok(f.would > 0, 'a Flare would set a multiplier');
+  ok(f.can === Well.canFlare(s), 'enabled exactly when the system says so');
+  if (f.can) eq(f.reason, 'ok');
+  s.well.flare = f.would * 10;
+  f = W.flareView(s);
+  eq(f.reason, 'low', 'a Flare worth less than the gain floor');
+  ok(!f.can);
+  ok(f.needs > f.would);
+}
+{
+  const api = { fmt: (x) => x.format() };
+  eq(W.fmtX(api, 0), '0');
+  eq(W.fmtX(api, 1), '1');
+  eq(W.fmtX(api, 2.5), '2.5');
+  eq(W.fmtX(api, 3.14159), '3.14');
+  ok(W.fmtX(api, 123456).length > 0 && W.fmtX(api, 123456) !== '123456', 'big values use the game notation');
+}
+
+// --- next generator ------------------------------------------------------------------------------
+{
+  const s = fresh();
+  let g = W.generatorView(s);
+  eq(g.n, P.slots + 1);
+  eq(g.slot, 1, 'generator 9 upgrades slot 1');
+  eq(g.goal, P.genLog0);
+  eq(g.frac, 0, 'no best run yet');
+  s.well.bestEver = new BigNum(1, 30);
+  g = W.generatorView(s);
+  ok(Math.abs(g.have - 30) < 1e-9);
+  ok(Math.abs(g.frac - 30 / P.genLog0) < 1e-9, 'bar is have / goal in log10');
+  s.well.bestEver = new BigNum(1, 1000);
+  s.well.generators = P.slots;
+  eq(W.generatorView(s).frac, 1, 'capped at full');
+  s.well.generators = P.generators;
+  eq(W.generatorView(s), null, 'all unlocked');
+}
+
+// --- Gusher and Heat -----------------------------------------------------------------------------
+{
+  const s = fresh();
+  eq(W.gusherView(s), { up: false, left: 0 }, 'no Gusher');
+  s.presence.nextGusherAt = 100; s.t = 105;
+  s.presence.state = PRESENCE.WATCH;
+  const g = W.gusherView(s);
+  ok(g.up && Math.abs(g.left - (P.gusherWindow - 5)) < 1e-9, 'seconds left of the window');
+  s.presence.state = PRESENCE.AWAY;
+  ok(!W.gusherView(s).up, 'not catchable while Away');
+  s.presence.state = PRESENCE.WATCH;
+  ok(Presence.catchGusher(s, ctx), 'the system agrees it can be caught');
+
+  const h = fresh();
+  ok(!W.heatView(h, PRESENCE.WATCH).on, 'no Heat meter while Watching');
+  h.presence.heatSeconds = P.heatRamp / 2;
+  const hv = W.heatView(h, PRESENCE.HANDS);
+  ok(hv.on && Math.abs(hv.frac - 0.5) < 1e-9 && Math.abs(hv.heat - 1.5) < 1e-9, 'Heat 1..2 over the ramp');
+}
+
+console.log(`test_cl_ui_well: ${checks} checks passed`);
