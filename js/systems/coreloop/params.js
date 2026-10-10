@@ -82,6 +82,7 @@ export const P = {
   legendHours: 25,                 // then Legend II, III, ... every 25 more hours (endless)
   legendTitleEvery: 5,             // Legend V, X, XV ... are titles (L4)
   rigMasteryShare: 0.1,
+  rigEffBase: 0.4, rigEffMastery: 0.6, // Rig efficiency = base + mastery x (average rank / named ranks)
   schoolPower: 0.1,                // field power x(1 + schoolPower·sum of ranks / actions)
 
   // --- Refinery -------------------------------------------------------------------------------

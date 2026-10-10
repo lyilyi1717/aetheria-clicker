@@ -204,7 +204,7 @@ function maybeChronicle(s) {
 }
 
 // --- Fields --------------------------------------------------------------------------------------
-const rankSum = (f) => f.ranks.reduce((x, y) => x + Math.min(y, P.rankHours.length), 0);
+export const rankSum = (f) => f.ranks.reduce((x, y) => x + Math.min(y, P.rankHours.length), 0);
 const fieldSpeed = (s) => Math.pow(P.pFieldMult, s.pressureBest);
 export function fieldPower(s, i, st) {
   let p = P.fieldBase[i] * fracVal(s, FIELD_FRAC[i]) * (1 + P.schoolPower * rankSum(s.fields[i]) / P.actionsPerField);
@@ -213,7 +213,7 @@ export function fieldPower(s, i, st) {
 }
 const gradeOf = (F) => Math.floor(F / P.gradeSpan);
 export const rigGrade = (f) => gradeOf(Math.min(P.rigReachMax, P.rigReach0 + P.rigReachStep * (f.rig - 1)) * f.F);
-const rigEff = (f) => 0.4 + 0.6 * (rankSum(f) / P.actionsPerField) / 5;
+export const rigEff = (f) => P.rigEffBase + P.rigEffMastery * (rankSum(f) / P.actionsPerField) / P.rankHours.length;
 export function rigRate(s, i, st) {
   const f = s.fields[i];
   if (f.rig === 0) return 0;
@@ -246,8 +246,8 @@ function takeAtLeast(f, g, units) {
 }
 
 // Hours on an action needed for rank r+1: the named ranks, then Legend II, III, ... every legendHours
-const rankThreshold = (r) => (r < P.rankHours.length ? P.rankHours[r] : P.rankHours[P.rankHours.length - 1] + P.legendHours * (r - P.rankHours.length + 1));
-function addMastery(s, i, hours) {
+export const rankThreshold = (r) => (r < P.rankHours.length ? P.rankHours[r] : P.rankHours[P.rankHours.length - 1] + P.legendHours * (r - P.rankHours.length + 1));
+export function addMastery(s, i, hours) {
   const f = s.fields[i];
   for (let a = 0; a < P.actionsPerField; a++) {
     f.hours[a] += hours * P.actionShare[a];
