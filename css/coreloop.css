@@ -151,3 +151,22 @@ body.coreloop { background: var(--bg-0); color: var(--text-1); font-family: var(
 @media (min-width: 768px) {
   .cl-tab-new { position: static; }
 }
+
+/* Phone: the header stays small, so the screen keeps the screen. The bar is one row (goal and
+   "Show me"); its reason opens for a few seconds when the goal changes, and on a tap. */
+@media (max-width: 767px) {
+  .cl-title { display: none; }
+  .cl-header { padding: var(--sp-2) var(--sp-3); gap: var(--sp-2); }
+  .cl-guide { flex-wrap: nowrap; padding: var(--sp-2) var(--sp-3) calc(var(--sp-2) + 4px); }
+  .cl-guide-text { flex: 1 1 0; cursor: pointer; }
+  .cl-guide-kicker { font-size: 0.625rem; }
+  .cl-guide-goal { font-size: var(--fs-14); }
+  .cl-guide-why { display: none; }
+  .cl-guide-open .cl-guide-why { display: block; }
+  .cl-guide-side { gap: var(--sp-2); flex: 0 0 auto; }
+  .cl-guide-count { font-size: var(--fs-13); }
+  .cl-guide-go { padding-inline: var(--sp-3); }
+  .cl-head { margin-block-end: var(--sp-3); }
+  .cl-head-title { font-size: var(--fs-16); }
+  .cl-head-line { font-size: var(--fs-13); }
+}

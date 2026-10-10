@@ -202,8 +202,12 @@ export class CoreLoopShell {
         const mod = await import(`./${id}.js`);
         view = mod.mount(panel, this.api);
       } catch (err) {
-        if (!/Failed to fetch|Cannot find module|error loading/i.test(String(err?.message))) console.error(err);
-        panel.innerHTML = `<p class="cl-soon">${t('cl.shell.soon')}</p>`;
+        console.error(err);
+        panel.innerHTML = `<p class="cl-soon">${t('cl.shell.load_failed')}</p><p class="cl-soon"><button type="button" class="btn" data-cl-retry>${t('cl.shell.retry')}</button></p>`;
+        panel.querySelector('[data-cl-retry]').addEventListener('click', () => this.show(id));
+        this.screens.delete(id);   // the next show() loads it again
+        this.render();
+        return;
       }
       this.screens.get(id).view = view;
     }

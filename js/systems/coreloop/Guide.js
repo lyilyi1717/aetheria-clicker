@@ -84,10 +84,10 @@ export const STEPS = Object.freeze([
   { id: 'order', screen: 'refinery', anchor: 'refinery.order', need: 1, needs: ['tab.refinery'], have: ordersFilled },
   { id: 'slot2', screen: 'well', anchor: 'well.buy.2', need: 1, have: (s) => s.well.bought[2] },
   { id: 'pressure', screen: 'well', anchor: 'well.pressure', need: 1, needs: ['well.pressure'], have: (s) => s.well.pressureBest },
-  { id: 'gusher', screen: 'well', anchor: 'well.tap', need: 1, have: (s) => s.presence.caught },
   { id: 'reserves', screen: 'well', anchor: 'well.rate', need: P.wellMinReserves, have: (s) => (wells(s) > 0 ? P.wellMinReserves : Prestige.pendingReserves(s)) },
   { id: 'newwell', screen: 'prestige', anchor: 'prestige.newwell', need: 1, needs: ['tab.prestige'], have: wells },
   { id: 'tree', screen: 'prestige', anchor: 'prestige.tree', need: 1, needs: ['prestige.tree'], have: (s) => (anyNode(s) ? 1 : 0) },
+  { id: 'gusher', screen: 'well', anchor: 'well.tap', need: 1, have: (s) => s.presence.caught },
   { id: 'wells3', screen: 'prestige', anchor: 'prestige.newwell', need: 3, have: wells },
   { id: 'rank', screen: 'fields', anchor: 'fields.mastery', need: 1, needs: ['fields.mastery'], have: (s) => (anyRank(s) ? 1 : 0) }
 ]);
