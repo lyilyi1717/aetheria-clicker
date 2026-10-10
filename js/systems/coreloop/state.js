@@ -83,6 +83,7 @@ export function createCoreLoopState(seed = 1) {
       vials: {},                // '<field>:<grade>' -> { tier, pity }
       vialOffers: 0,
       vialDay: -1,
+      batchFrom: [],            // best grade at each Chronicle, one number per Chronicle batch of recipes
       recipes: []               // { found, made, tier } by recipe index
     },
 
@@ -207,6 +208,7 @@ export function deserializeCoreLoop(raw) {
   }
   s.collection.vialOffers = int(col.vialOffers);
   s.collection.vialDay = Math.floor(num(col.vialDay, -1));
+  s.collection.batchFrom = (Array.isArray(col.batchFrom) ? col.batchFrom : []).map(x => int(x));
   s.collection.recipes = (Array.isArray(col.recipes) ? col.recipes : [])
     .map(x => (isObj(x) ? { found: x.found === true, made: int(x.made), tier: Math.min(P.compoundTiers.length, int(x.tier)) } : { found: false, made: 0, tier: 0 }));
 
