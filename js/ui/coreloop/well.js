@@ -156,7 +156,7 @@ export function fmtX(api, x) {
 }
 
 // --- DOM -----------------------------------------------------------------------------------------
-const ICONS = ['\u{1FAA3}', '\u{1F527}', '\u{1F6FB}', '\u{1F5FC}', '\u{1F6E2}️', '\u{1F69B}', '\u{1F3DD}️', '\u{1F30D}'];
+const ICONS = ['\u{1F96B}', '\u{1F527}', '\u{1F699}', '\u{1F5FC}', '\u{1F6E2}️', '\u{1F69B}', '\u{1F3DD}️', '\u{1F30D}'];
 const el = (tag, cls, text) => {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -242,6 +242,7 @@ export function mount(panel, api) {
   const heatHead = el('div', 'bar-row');
   heatHead.append(el('span', null, t('cl.name.heat')), el('span', 'val'));
   const heatVal = heatHead.lastChild;
+  heatVal.hidden = true;
   const heatBar = bar('gold');
   const heatNote = el('p', 'clw-note');
   heatBox.append(heatHead, heatBar, heatNote);

@@ -64,12 +64,12 @@
 .clw-prog .val { min-width: 0; font-weight: 500; color: var(--text-2); white-space: nowrap; }
 .clw-acts { display: flex; flex-direction: column; gap: var(--sp-2); flex: 1 1 100%; }
 .clw .btn-buy {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: var(--sp-2);
-  min-height: var(--tap); width: 100%; font-variant-numeric: tabular-nums;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  min-height: var(--tap); width: 100%; height: auto; padding-block: var(--sp-2); white-space: normal; font-variant-numeric: tabular-nums;
 }
 .clw .btn-buy .lbl { font-weight: 700; }
 .clw .btn-buy .cost { font-size: var(--fs-13); }
-.clw .btn-buy .when { flex: 1 1 100%; font-size: var(--fs-12); color: var(--text-2); text-align: center; }
+.clw .btn-buy .when { font-size: var(--fs-12); color: var(--text-2); text-align: center; }
 .clw-pack { opacity: 0.9; }
 
 .cl-pulse { animation: clw-pulse var(--dur-3) var(--ease-out); }
@@ -94,3 +94,7 @@
   .cl-flash { animation: none; color: var(--text-1); }
 }
 :root[data-motion="reduced"] .clw-well, :root[data-motion="reduced"] .clw-well.is-gusher { animation: none; }
+@media (max-width: 480px) {
+  .clw-well { inline-size: 136px; block-size: 136px; }
+  .clw-well-icon { font-size: 2.75rem; }
+}
