@@ -7,8 +7,8 @@ import { presenceOf, noteInput, heat, step, gusherUp, gusherLeft, canCatchGusher
 import { newState as simState, advance as simAdvance } from './sim/redesign/model.mjs';
 
 const fresh = (charter = 'none') => { const s = createCoreLoopState(); s.prestige.charter = charter; return s; };
-// the driver's job: advance the clock, then step
-const tick = (s, dt, pr, ctx) => { s.t += dt; step(s, dt, pr, ctx); };
+// the driver's job: step at the start of the interval, then advance the clock
+const tick = (s, dt, pr, ctx) => { step(s, dt, pr, ctx); s.t += dt; };
 
 console.log('--- state from input age (30 s) ---');
 {

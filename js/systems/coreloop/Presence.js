@@ -4,8 +4,8 @@
 // driver needs (P.gusherSeconds of Watching-rate Crude and Rig output); Well.js / Fields.js are
 // the writers of Crude and Materials.
 //
-// Clock: `state.t` is the loop time at the END of the step; the driver advances it before
-// calling step(). A Gusher is up while nextGusherAt <= t < nextGusherAt + P.gusherWindow.
+// Clock: `state.t` is the start of the step (a step covers [t, t + dt)); the driver adds dt to it
+// after every system has stepped. A Gusher is up while nextGusherAt <= t < nextGusherAt + P.gusherWindow.
 import { P } from './params.js';
 import { PRESENCE, HIT, rand, NO_CONTEXT } from './shared.js';
 
@@ -43,13 +43,12 @@ function schedule(state) {
 
 // Advance presence by dt seconds spent in `presence` (PRESENCE.*). Returns nothing.
 export function step(state, dt, presence, ctx = NO_CONTEXT) {
-  void ctx;
   const p = state.presence;
   p.state = presence;
   if (presence === PRESENCE.HANDS) p.heatSeconds += dt; else p.heatSeconds = 0;
 
   if (p.nextGusherAt <= 0) schedule(state);                       // first step, or a fresh load
-  else if (presence !== PRESENCE.WATCH && state.t - dt < p.nextGusherAt) p.nextGusherAt += dt; // the wait counts Watching time only
+  else if (presence !== PRESENCE.WATCH && state.t < p.nextGusherAt) p.nextGusherAt += dt; // the wait counts Watching time only
   else if (state.t >= p.nextGusherAt + P.gusherWindow) schedule(state); // missed one: the next wait starts
 }
 
