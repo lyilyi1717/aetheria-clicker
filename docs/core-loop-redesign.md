@@ -197,7 +197,7 @@ filled by a **way of playing**, which makes every presence state produce somethi
 - Bubbles level with **Essence** (Oasis Materials), so the Garden feeds every Fraction.
 - Big Bubbles go in **3 active slots**, a loadout per playstyle.
 - Cauldrons fill in seconds, never in raw Material units (units grow with Pressure; in the sim that
-  ran away to 1,175 Bubbles). Each 10th Bubble opens a new **Bubble family** (L3).
+  ran away to 1,175 Bubbles). Each 4th Bubble opens a new **Bubble family** (L3).
 - Target cadence (to be simmed): a Bubble every 30-60 min on day 0 across the four, then one or
   two a day for months. The Hand Cauldron fills fastest, so active players see the most new
   Bubbles.
@@ -376,8 +376,8 @@ every 14 days (7-9 d); Hands-on ≈ 2.5-4x Watching ≈ 2.3-3.3x Away; best run 
 new x10 record comes at least every 30 days (19-23 d). Best run, month 1 → 12: 1e74-1e93 → 1e191-
 1e250. Several rules in this doc came from the sim; its tuning log lists them.
 
-Open concerns the sim surfaced: Bubbles come very often (~8,000 a year for the casual player;
-rarer, bigger Bubbles may feel better), and Orders carry many of the hourly hits.
+Open concern the sim surfaced: Orders carry many of the hourly hits. (Bubbles came ~8,000 a year;
+retuned to about 800, each six times bigger, by owner decision 4.)
 
 ## 10. Risks and what has to be proven first
 
