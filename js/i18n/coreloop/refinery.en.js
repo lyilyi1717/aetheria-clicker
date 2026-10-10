@@ -79,7 +79,7 @@ export default {
   'cl.refinery.tier.glass': 'Glass',
   'cl.refinery.tier.crystal': 'Crystal',
   'cl.refinery.tier.gold': 'Gold',
-  'cl.refinery.tier.aether': 'Ether',
+  'cl.refinery.tier.aether': 'Star',
   'cl.refinery.tier.compound': 'Compound',
   'cl.refinery.tier.gilded': 'Gilded',
   'cl.refinery.tier.royal': 'Royal',

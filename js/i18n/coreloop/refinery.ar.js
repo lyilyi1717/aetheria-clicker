@@ -74,7 +74,7 @@ export default {
   'cl.refinery.tier.glass': 'زجاج',
   'cl.refinery.tier.crystal': 'كريستال',
   'cl.refinery.tier.gold': 'ذهب',
-  'cl.refinery.tier.aether': 'أثير',
+  'cl.refinery.tier.aether': 'نجم',
   'cl.refinery.tier.compound': 'مركّب',
   'cl.refinery.tier.gilded': 'مذهّب',
   'cl.refinery.tier.royal': 'ملكي',
