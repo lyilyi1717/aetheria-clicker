@@ -10,17 +10,18 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R87 #235 (CL-17 game-feel pass): draft PR #250, unit tests green, **not yet seen or heard in a
-  browser** (the Chrome extension was disconnected); check desktop, 375 px, sound, reduced motion and
-  Arabic before merging.
-- R91 #241 (CL-24 the one tree): logic and sims merged (#251); the tree's view in the Prestige screen
-  is still to build (`js/ui/coreloop/tree.js`, needs a browser check).
+- **Clarity pass on the `?loop=2` preview** (owner, 2026-10-10: "not clear for humans, I didn't know
+  how to play it ... no sense of progress ... simpler to understand without losing game mechanic
+  complexity"). The shared part is merged (R95, below). In progress, one sub-agent each:
+  R96 #255 (CL-29 Well), R97 #256 (CL-30 Fields), R98 #257 (CL-31 Refinery), R99 #258 (CL-32 Expand
+  and Collection), and R91 #241 (CL-24 the tree's view, `js/ui/coreloop/tree.js`). After they merge:
+  a combined browser pass of the whole first session, then show the owner.
 
 ## Next up
 
 - **Core-loop redesign** (`docs/core-loop-plan.md`): Waves A and B done; Wave C: the `?loop=2` preview
-  has its shell and all five screens (R82-R86). **Open:** R87 (CL-17 game-feel pass, Sonnet, ready),
-  and **Wave C2 (integration), R88-R94 (#238-#244)**, filed after the Wave D go / no-go came out
+  has its shell, all five screens (R82-R86) and the game-feel pass (R87). **Open:** the clarity pass
+  (R95 done, R96-R99 in progress) and **Wave C2 (integration), R88-R94 (#238-#244)**, filed after the Wave D go / no-go came out
   **no-go** (#23, 2026-10-10): the loop has no home yet for the three subgames' own play, the
   trees and shops, spells and elixirs, or the non-loop tabs. Ready now: R93 (CL-26 sim covers the
   subgames and the tree, Opus), R91 (CL-24 the one tree, Opus), R92 (CL-25 Tafheet, spells, Brews,
@@ -126,6 +127,11 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-C | R85 CL-15 Refinery screen | #233 | R82 |
 | CL-C | R86 CL-16 Prestige screen and Codex | #234 | R82 |
 | CL-C | R87 CL-17 Game-feel pass | #235 | R83-R86 |
+| CL-C | R95 CL-28 Guided start: next-step bar, staged unlocks | #253 | R82-R87 |
+| CL-C | R96 CL-29 Well screen a person can read | #255 | R95 |
+| CL-C | R97 CL-30 Fields screen a person can read | #256 | R95 |
+| CL-C | R98 CL-31 Refinery screen a person can read | #257 | R95 |
+| CL-C | R99 CL-32 Expand and Collection screens a person can read | #258 | R95 |
 | CL-C2 | R88 CL-21 Tower as a Field | #238 | R84, R93 |
 | CL-C2 | R89 CL-22 Mine as a Field | #239 | R84, R93 |
 | CL-C2 | R90 CL-23 Oasis as a Field | #240 | R84, R93 |
@@ -135,6 +141,22 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-C2 | R94 CL-27 Codex hosts achievements, leaderboard, community, settings, about | #244 | R86 |
 
 ## Done
+
+- R95 #253 (CL-28, PR #254, no player change): the guide. `coreloop/Guide.js` (pure; the sims never
+  call it): 22 features (tabs and sections of screens) each with the rule that opens it, sticky
+  (`state.guide.open`); 13 first-session steps; then a standing suggestion. The shell shows it as one
+  gold next-step bar with "Show me" (it rings the element with `data-guide="<anchor>"`), hides tabs
+  until they open (a "new" mark), an intro on a fresh save, and draws each screen's head (name, one
+  sentence, "How it works"). **Screens must ask `api.isOpen(feature)` and carry their anchors**
+  (README "The guide"). Fixed: a screen's own `display` beat `[hidden]`, so Fields was stacked under
+  every other tab. `Well.tap` (flat `P.tapCrude` = 1). New saved fields `state.guide`, `well.taps`,
+  `presence.caught`. Names: the eight pumps (`cl.slot.*`: Bucket, Hand Pump, Wanet, Derrick,
+  Pipeline, Sahreej, Sea Platform, Giant Field); tabs Prestige / Codex are shown as Expand /
+  Collection (module ids unchanged). A guided player: Fields 0:39, first Order 2:09, first New Well
+  13:21 (`test_cl_guide.js` holds the order and a 12-minute limit on quiet gaps).
+- R87 #235 (CL-17, PR #250, no player change): `js/ui/coreloop/feedback.js` gives every event the loop
+  emits its feedback tier in one place (sound, colour cue, a line, a toast, a ceremony). Checked in
+  a browser for errors and the line; **sound was not checked by ear**.
 
 - R91 #241, first part (CL-24, PR #251, no player change): `coreloop/Tree.js` + `treeMath.js` (shared with
   the model). 38 nodes in three rings (`P.tree`); all 59 nodes of the old Reserve shop, Shard tree,
