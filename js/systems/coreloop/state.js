@@ -5,6 +5,7 @@
 import { BigNum } from '../../engine/BigNum.js';
 import { P } from './params.js';
 import { FIELDS, FRACTIONS } from './shared.js';
+import { newTree, nodeOf, RINGS } from './treeMath.js';
 
 // Bumped when the meaning of a saved field changes; the step that converts old data goes in
 // migrateCoreLoop below (never edit a shipped step).
@@ -86,6 +87,9 @@ export function createCoreLoopState(seed = 1) {
       batchFrom: [],            // best grade at each Chronicle, one number per Chronicle batch of recipes
       recipes: []               // { found, made, tier } by recipe index
     },
+
+    // --- the one tree (Tree.js): what each ring's bank holds and the rank of each node bought
+    tree: newTree(),
 
     // --- Seals (Seals.js)
     seals: { hours: zeros(P.seals), tier: zeros(P.seals) },
@@ -211,6 +215,14 @@ export function deserializeCoreLoop(raw) {
   s.collection.batchFrom = (Array.isArray(col.batchFrom) ? col.batchFrom : []).map(x => int(x));
   s.collection.recipes = (Array.isArray(col.recipes) ? col.recipes : [])
     .map(x => (isObj(x) ? { found: x.found === true, made: int(x.made), tier: Math.min(P.compoundTiers.length, int(x.tier)) } : { found: false, made: 0, tier: 0 }));
+
+  const tr = isObj(data.tree) ? data.tree : {};
+  for (const ring of RINGS) s.tree.bank[ring] = int(isObj(tr.bank) ? tr.bank[ring] : 0);
+  if (isObj(tr.ranks)) {
+    const ranks = {};
+    for (const [id, r] of Object.entries(tr.ranks)) if (nodeOf(id) && int(r) > 0) ranks[id] = Math.min(nodeOf(id).max, int(r));
+    s.tree.ranks = ranks;
+  }
 
   const se = isObj(data.seals) ? data.seals : {};
   s.seals.hours = numArr(se.hours, P.seals).map(x => Math.max(0, x));

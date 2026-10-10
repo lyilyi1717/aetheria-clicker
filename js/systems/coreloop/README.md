@@ -49,6 +49,7 @@ names, with the differences listed under "Game vs sim" below.
 | `collection.*` | `Collection.js` (CL-5) | |
 | `seals.*` | `Seals.js` (CL-7) | reads `prestige.crew` |
 | `presence.*` | `Presence.js` (CL-1) | |
+| `tree.*` | `Tree.js` (CL-24) | banks are filled and rings reset by Prestige through `Tree.earn / resetRing` |
 
 A Fraction's value is `fracValue(state, i)` in `shared.js`:
 `(1 + bubble + vial + compound + seal) x P.orderMult^level`. Sources add inside a Fraction; the
@@ -105,6 +106,27 @@ What the items that depend on it can rely on:
   are won the sim's way: `trials(state, stretchSeconds, ctx)` at the end of a Hands-on stretch.
 - **Never writes outside `prestige.*`:** the Well is reset by `Well.resetRun`, Rigs by
   `Rigs.build / levelUp / resetLevels`.
+
+## The one tree (`Tree.js`, CL-24)
+
+- **Three rings** (`P.tree`): inner, bought with the Reserves earned this New Field layer and reset
+  by a New Field; middle, bought with the Shares New Fields pay (not the re-blaze ones) and reset by
+  a Chronicle (which also resets the inner ring); outer, bought with Pages, never reset.
+- **Buying spends a bank** (`state.tree.bank`), never the multiplier: `prestige.reserves`, `shares`
+  and `pages` count what was earned.
+- **Effects are read where they apply**, through `treeBonus(state.tree, kind, field)`
+  (`treeMath.js`): `crude`, `awayWell`, `handsWell` (Well), `heat`, `gusherRate`, `gusherWindow`
+  (Presence), `fieldPower` (Fields), `rig`, `hand` (Rigs), `reserves`, `startShares`, `pageBank`,
+  `keepPressure`, `startKit` (Prestige, through `Well.resetRun(state, { pressure, kit })`),
+  `offlineHours` (Loop). A system that adds a kind reads it the same way.
+- **Flags** (`kind: 'flag'`, `Tree.has(state, id)`) are unlocks whose effect belongs to a later
+  item, named in the node's `pending` (the Tower's Wardens, Auto-Blast, Brews, ...). They can be
+  bought now and do nothing until that item reads them.
+- **The model shares the arithmetic:** `sim/redesign/model.mjs` calls the same `treeMath.js` on
+  `s.tree`, and its policy is `buyAffordable` (cheapest first), which is also `Tree.buyAll`.
+- **Every node of the old Reserve shop, Shard tree, talents, Page upgrades and Quartermaster** is
+  in a node's `from` list or in `P.treeElsewhere` (`test_cl_tree.js` fails otherwise), so a
+  converted save can be refunded into the tree (CL-18).
 
 ## One tick of the loop (the driver's job)
 

@@ -7,6 +7,7 @@ import { P } from './params.js';
 import { FIELDS, HIT, NO_CONTEXT } from './shared.js';
 import * as Well from './Well.js';
 import * as Rigs from './Rigs.js';
+import * as Tree from './Tree.js';
 
 const DAY = 86400;
 const log10Big = (b) => (b.m > 0 ? Math.log10(b.m) + b.e : -Infinity);
@@ -50,7 +51,7 @@ export function trials(state, stretchSeconds, ctx = NO_CONTEXT) {
 // Reserves a New Well would pay now: floor(resBase · log10(run Crude / wellMin)^resPow)
 export function pendingReserves(state) {
   const x = log10Big(state.well.runCrude) - Math.log10(P.wellMin);
-  return x > 0 ? Math.floor(P.resBase * Math.pow(x, P.resPow)) : 0;
+  return x > 0 ? Math.floor(P.resBase * Math.pow(x, P.resPow) * Tree.bonus(state, 'reserves')) : 0;
 }
 // Reserves a New Well must pay: P.wellGain of what this layer has, at least P.wellMinReserves
 export const newWellNeed = (state) => Math.max(P.wellMinReserves, P.wellGain * state.prestige.reserves);
@@ -64,7 +65,12 @@ export function newWell(state, ctx = NO_CONTEXT) {
   p.reserves += gained;
   p.wells++;
   unlockTrials(state, 'well', p.wells);
-  Well.resetRun(state);
+  Tree.earn(state, 'reserves', gained);
+  // the tree: part of the Pressure survives, and a starter kit waits in the new Well
+  Well.resetRun(state, {
+    pressure: state.well.pressure * Math.min(1, Tree.bonus(state, 'keepPressure')),
+    kit: Tree.bonus(state, 'startKit')
+  });
   ctx.emit('newWell', HIT.MINOR, { reserves: gained });
   return true;
 }
@@ -115,6 +121,8 @@ export function newField(state, choice, charter, ctx = NO_CONTEXT) {
   p.reserves = 0;
   p.lastResetAt = state.t;
   if (charter !== undefined) p.charter = charter;
+  Tree.earn(state, 'shares', P.sharesPerField);
+  Tree.resetRing(state, 'reserves');
   Well.resetRun(state);
   if (pick.kind === 'rig') Rigs.build(state, pick.field);
   else if (pick.kind === 'level') Rigs.levelUp(state, pick.field);
@@ -151,7 +159,10 @@ export function chronicle(state, ctx = NO_CONTEXT) {
   p.pages += pages;
   p.chronicles++;
   p.newFields = 0;
-  p.shares = reblazeShares(p.pages);
+  p.shares = reblazeShares(p.pages) + Tree.bonus(state, 'startShares');
+  Tree.earn(state, 'pages', pages + Tree.bonus(state, 'pageBank'));
+  Tree.resetRing(state, 'shares');
+  Tree.resetRing(state, 'reserves');
   p.reserves = 0;
   p.lastResetAt = state.t;
   Well.closeChronicleRecord(state);

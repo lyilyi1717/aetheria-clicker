@@ -196,7 +196,7 @@ console.log('--- Codex ---');
 
   s.cauldrons.bubbles = Array.from({ length: 9 }, (_, i) => ({ frac: i % 5, level: 1 }));
   const b = Codex.bubbleSummary(s);
-  eq([b.total, b.families, b.perFrac], [9, 2, [2, 2, 2, 2, 1]], 'bubbles and families');
+  eq([b.total, b.families, b.perFrac], [9, Math.floor(9 / P.bubbleFamily), [2, 2, 2, 2, 1]], 'bubbles and families');
 
   s.mastery[1].ranks = [0, 3, 5, 7];
   const m = Codex.masteryRows(s)[1];
