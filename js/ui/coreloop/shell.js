@@ -203,6 +203,7 @@ export class CoreLoopShell {
     const summary = this.load();
     this.api = this.makeApi();
     this.build();
+    import('./feedback.js').then(m => { this.stopFeedback = m.start(this.api); }).catch(err => console.error(err));
     this.welcome(summary);
     const d = this.doc, w = d.defaultView;
     const input = () => Presence.noteInput(this.state);

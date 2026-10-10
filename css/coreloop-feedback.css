@@ -1,0 +1,29 @@
+/* Core-loop game feel (CL-17): the cue on the header or panel and the quiet status line.
+   Tokens only. Under reduced motion the animation is removed (tokens.css) but the static
+   outline stays for as long as the cue is held, so the moment still reads. */
+.coreloop .clfx-cue-t1,
+.coreloop .clfx-cue-t2 {
+  outline: 2px solid var(--clfx-color, var(--gold));
+  outline-offset: 2px;
+  border-radius: var(--r-2);
+  animation: clfxPulse 450ms var(--ease-out);
+}
+.coreloop .clfx-cue-t1 { outline-width: 1px; }
+@keyframes clfxPulse {
+  0% { outline-offset: 10px; outline-color: transparent; }
+  30% { outline-color: var(--clfx-color, var(--gold)); }
+  100% { outline-offset: 2px; }
+}
+
+.clfx-line {
+  position: fixed; inset-inline: var(--sp-4); bottom: calc(var(--sp-4) + 64px);
+  margin: 0 auto; max-width: 28rem; padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-3); color: var(--text-1); border: 1px solid var(--line-2);
+  border-radius: var(--r-2); font-size: var(--fs-13); text-align: center;
+  pointer-events: none; z-index: 50;
+}
+.clfx-line[data-tier="2"] { border-color: var(--gold); }
+.clfx-line[hidden] { display: none; }
+@media (min-width: 768px) {
+  .clfx-line { bottom: var(--sp-4); }
+}
