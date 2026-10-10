@@ -21,6 +21,7 @@ import { STEPS } from '../../systems/coreloop/Guide.js';
 import '../../i18n/coreloop/guide-strings.js';
 import { feedback as defaultFeedback } from '../feedback.js';
 import { rewards as defaultRewards } from '../rewards.js';
+import { icon, iconToken, fromToken } from './icons.js';
 
 registerStrings(FX_EN, FX_AR);
 
@@ -48,8 +49,8 @@ const keyParts = (key) => String(key).split(':').map(Number);
 const MAP = {
   gusher: { level: 1, key: 'gusher', sound: 'pluck', color: '--gold', target: 'crude' },
   guide: { level: 1, key: 'guide', sound: 'pluck', color: '--gold', target: 'crude', params: (e) => ({ goal: t(`cl.guide.step.${e.step}`, { need: STEPS.find(s => s.id === e.step)?.need ?? '' }) }) },
-  unlock: { level: 3, key: 'unlock', sound: 'achievement', color: '--gold', target: 'panel', icon: '🔓', params: (e) => ({ name: t(`cl.feature.${e.feature}`) }) },
-  newWell: { level: 1, key: 'newWell', sound: 'bell', color: '--gold', target: 'crude', icon: '🛢️' },
+  unlock: { level: 3, key: 'unlock', sound: 'achievement', color: '--gold', target: 'panel', icon: iconToken('unlock'), params: (e) => ({ name: t(`cl.feature.${e.feature}`) }) },
+  newWell: { level: 1, key: 'newWell', sound: 'bell', color: '--gold', target: 'crude', icon: iconToken('well') },
 
   flare: { level: 2, key: 'flare', sound: 'spell', color: '--danger', target: 'crude', params: () => ({ flare: t('cl.name.flare') }) },
   order: { level: 2, key: 'order', sound: 'coins', color: '--gold', target: 'crude', params: (e) => ({ frac: fracName(e.frac) }) },
@@ -60,23 +61,23 @@ const MAP = {
     params: (e) => ({ field: fieldName(e.field), rank: rankName(e.rank) })
   },
 
-  generator: { level: 3, key: 'generator', sound: 'buy', color: '--gold', target: 'panel', icon: '⚙️', params: (e) => ({ n: e.n }) },
-  grade: { level: 3, key: 'grade', sound: 'gem-rare', color: '--life', target: 'panel', icon: '⛏️', params: (e) => ({ field: fieldName(e.field), grade: e.grade }) },
-  rigGrade: { level: 3, key: 'rigGrade', sound: 'gem-rare', color: '--life', target: 'panel', icon: '🛠️', params: (e) => ({ rig: rigName(e.field), grade: e.grade }) },
-  compound: { level: 3, key: 'compound', sound: 'gem-epic', color: '--mana', target: 'panel', icon: '⚗️', params: (e) => ({ n: e.recipe + 1 }) },
-  vialTier: { level: 3, key: 'vialTier', sound: 'gem-rare', color: '--mana', target: 'panel', icon: '🧪', params: (e) => { const [f, g] = keyParts(e.key); return { field: fieldName(f), grade: g, tier: e.tier }; } },
-  bubbleFamily: { level: 3, key: 'bubbleFamily', sound: 'mirage', color: '--mana', target: 'panel', icon: '🫧', params: (e) => ({ n: e.n }) },
-  gilded: { level: 3, key: 'gilded', sound: 'gem-legendary', color: '--gold', target: 'panel', icon: '✨', params: (e) => ({ n: e.recipe + 1 }) },
+  generator: { level: 3, key: 'generator', sound: 'buy', color: '--gold', target: 'panel', icon: iconToken('gear'), params: (e) => ({ n: e.n }) },
+  grade: { level: 3, key: 'grade', sound: 'gem-rare', color: '--life', target: 'panel', icon: iconToken('mine'), params: (e) => ({ field: fieldName(e.field), grade: e.grade }) },
+  rigGrade: { level: 3, key: 'rigGrade', sound: 'gem-rare', color: '--life', target: 'panel', icon: iconToken('wrench'), params: (e) => ({ rig: rigName(e.field), grade: e.grade }) },
+  compound: { level: 3, key: 'compound', sound: 'gem-epic', color: '--mana', target: 'panel', icon: iconToken('refinery'), params: (e) => ({ n: e.recipe + 1 }) },
+  vialTier: { level: 3, key: 'vialTier', sound: 'gem-rare', color: '--mana', target: 'panel', icon: iconToken('vial'), params: (e) => { const [f, g] = keyParts(e.key); return { field: fieldName(f), grade: g, tier: e.tier }; } },
+  bubbleFamily: { level: 3, key: 'bubbleFamily', sound: 'mirage', color: '--mana', target: 'panel', icon: iconToken('bubbles'), params: (e) => ({ n: e.n }) },
+  gilded: { level: 3, key: 'gilded', sound: 'gem-legendary', color: '--gold', target: 'panel', icon: iconToken('sparkle'), params: (e) => ({ n: e.recipe + 1 }) },
   seal: {
-    level: 3, key: (e) => (e.level >= 4 ? 'sealBig' : 'seal'), sound: 'brass-short', color: '--gold', target: 'panel', icon: '🔱',
+    level: 3, key: (e) => (e.level >= 4 ? 'sealBig' : 'seal'), sound: 'brass-short', color: '--gold', target: 'panel', icon: iconToken('trident'),
     params: (e) => ({ n: e.seal + 1, tier: e.tier })
   },
-  newField: { level: 3, key: 'newField', sound: 'caravan', color: '--life', target: 'panel', icon: '🏜️', params: (e) => ({ n: e.n }) },
+  newField: { level: 3, key: 'newField', sound: 'caravan', color: '--life', target: 'panel', icon: iconToken('oasis'), params: (e) => ({ n: e.n }) },
 
-  weekly: { level: 4, key: 'weekly', sound: 'brass', color: '--gold', icon: '📦', params: () => ({ weekly: t('cl.name.weekly') }) },
-  royal: { level: 4, key: 'royal', sound: 'brass', color: '--gold', icon: '👑', params: (e) => ({ n: e.recipe + 1 }) },
-  trial: { level: 4, key: 'trial', sound: 'brass', color: '--life', icon: '🏁', params: (e) => ({ name: t(`cl.fx.trial.${e.id}`) }) },
-  chronicle: { level: 4, key: 'chronicle', sound: 'choir', color: '--gold', icon: '📜', epic: true, params: (e) => ({ pages: e.pages?.format ? e.pages.format() : e.pages }) }
+  weekly: { level: 4, key: 'weekly', sound: 'brass', color: '--gold', icon: iconToken('crate'), params: () => ({ weekly: t('cl.name.weekly') }) },
+  royal: { level: 4, key: 'royal', sound: 'brass', color: '--gold', icon: iconToken('crown'), params: (e) => ({ n: e.recipe + 1 }) },
+  trial: { level: 4, key: 'trial', sound: 'brass', color: '--life', icon: iconToken('flag'), params: (e) => ({ name: t(`cl.fx.trial.${e.id}`) }) },
+  chronicle: { level: 4, key: 'chronicle', sound: 'choir', color: '--gold', icon: iconToken('scroll'), epic: true, params: (e) => ({ pages: e.pages?.format ? e.pages.format() : e.pages }) }
 };
 export const KINDS = Object.freeze(Object.keys(MAP));
 
@@ -162,6 +163,7 @@ export class CoreLoopFeedback {
       tier: 'small', kind: `clfx-many-${kind}`, icon: m.icon || '', color: m.color, sound: false,
       title: t('cl.fx.many', { n, what: t(`cl.fx.kind.${kind}`) })
     });
+    this.watchIcons();
   }
 
   show(d, solo) {
@@ -173,6 +175,7 @@ export class CoreLoopFeedback {
       this.rewards.ceremony({
         tier: d.epic ? 'epic' : 'big', kind: `clfx-${d.kind}`, title: text, icon: d.icon, color: d.color, source: el
       });
+      this.watchIcons();
       return;
     }
     this.fx.fire(d.tier, { kind: `cl:${d.kind}`, sound: d.sound, color: this.colorOf(d.color), at: el, sparks: this.fx.particles?.canvas ? undefined : 0, target: d.named ? this.panel() : null });
@@ -183,6 +186,7 @@ export class CoreLoopFeedback {
     // 2. Then the words
     if (d.named) {
       this.rewards.toast({ tier: 'medium', kind: `clfx-${d.kind}`, title: text, icon: d.icon, color: d.color, sound: false, source: el });
+      this.watchIcons();
     } else if (solo || d.tier === 2) this.line(text, d.tier);
   }
 
@@ -219,7 +223,31 @@ export class CoreLoopFeedback {
     this.lineTimer = setTimeout(() => { if (this.lineEl) this.lineEl.hidden = true; }, LINE_MS);
   }
 
+  // rewards.js sets a toast's or ceremony's icon as text. Ours is a token (iconToken); this swaps
+  // it for the drawing as soon as rewards.js writes it (a microtask, before the next paint).
+  watchIcons() {
+    const r = this.rewards;
+    if (typeof MutationObserver === 'undefined' || !r?.stack) return;
+    const sweep = () => {
+      for (const node of [r.stack, r.ovIcon]) {
+        if (!node?.querySelectorAll) continue;
+        const spots = node.matches?.('.reward-ceremony-icon') ? [node] : node.querySelectorAll('.reward-toast-icon');
+        for (const spot of spots) {
+          const name = fromToken(spot.textContent);
+          if (name != null) spot.innerHTML = icon(name);
+        }
+      }
+    };
+    if (!this.iconObserver) {
+      this.iconObserver = new MutationObserver(sweep);
+      for (const node of [r.stack, r.ovIcon]) if (node) this.iconObserver.observe(node, { childList: true, subtree: true, characterData: true });
+    }
+    sweep();
+  }
+
   stop() {
+    this.iconObserver?.disconnect();
+    this.iconObserver = null;
     clearTimeout(this.lineTimer);
     this.lineEl?.remove();
     this.lineEl = null;

@@ -15,6 +15,8 @@ import * as Well from '../../systems/coreloop/Well.js';
 import * as Presence from '../../systems/coreloop/Presence.js';
 import * as Prestige from '../../systems/coreloop/Prestige.js';
 
+import { icon, SLOT_ICONS } from './icons.js';
+
 registerStrings(EN, AR);
 
 const log10Big = (b) => (b && b.m > 0 ? Math.log10(b.m) + b.e : 0);
@@ -156,7 +158,6 @@ export function fmtX(api, x) {
 }
 
 // --- DOM -----------------------------------------------------------------------------------------
-const ICONS = ['\u{1F96B}', '\u{1F527}', '\u{1F699}', '\u{1F5FC}', '\u{1F6E2}️', '\u{1F69B}', '\u{1F3DD}️', '\u{1F30D}'];
 const el = (tag, cls, text) => {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -228,7 +229,9 @@ export function mount(panel, api) {
   const well = button('clw-well', onWellTap);
   well.dataset.guide = 'well.tap';
   well.setAttribute('aria-label', t('cl.well.tap_label'));
-  const wellIcon = el('span', 'clw-well-icon', '\u{1F6E2}️');
+  const wellIcon = el('span', 'clw-well-icon');
+  wellIcon.innerHTML = icon('well', { size: 'hero' });
+  let wellMode = 'well';
   wellIcon.setAttribute('aria-hidden', 'true');
   const wellText = el('span', 'clw-well-text');
   well.append(wellIcon, wellText);
@@ -310,8 +313,9 @@ export function mount(panel, api) {
   const rows = [];
   for (let k = 1; k <= P.slots; k++) {
     const row = el('article', 'card-row clw-slot');
-    const icon = el('span', 'clw-icon', ICONS[k - 1] || '');
-    icon.setAttribute('aria-hidden', 'true');
+    const pumpIcon = el('span', 'clw-icon');
+    pumpIcon.innerHTML = icon(SLOT_ICONS[k - 1] || 'dot');
+    pumpIcon.setAttribute('aria-hidden', 'true');
     const info = el('div', 'clw-info');
     const title = el('div', 'clw-title');
     title.append(el('strong', null, slotName(k, true)));
@@ -327,7 +331,7 @@ export function mount(panel, api) {
     const bp = buyButton(() => api.act((s) => Well.canBuy(s, k, Well.packLeft(s, k)) && Well.buy(s, k, Well.packLeft(s, k)) && restart(row, 'cl-pulse')));
     bp.classList.add('clw-pack');
     acts.append(b1, bp);
-    row.append(icon, info, acts);
+    row.append(pumpIcon, info, acts);
     list.appendChild(row);
     rows.push({ row, have, makes, bar: b, progVal: prog.lastChild, b1, bp });
   }
@@ -377,7 +381,10 @@ export function mount(panel, api) {
     // The well, or the Gusher
     const gusher = hv.mode === 'gusher';
     well.classList.toggle('is-gusher', gusher);
-    wellIcon.textContent = gusher ? '\u{26F2}' : '\u{1F6E2}️';
+    if (wellMode !== (gusher ? 'gusher' : 'well')) {
+      wellMode = gusher ? 'gusher' : 'well';
+      wellIcon.innerHTML = icon(wellMode, { size: 'hero' });
+    }
     wellText.textContent = gusher ? `${t('cl.well.gusher_tap')} ${t('cl.well.gusher_left', { n: Math.ceil(hv.left) })}` : t('cl.well.tap_hint');
     well.setAttribute('aria-label', gusher ? wellText.textContent : t('cl.well.tap_label'));
     setText(heatVal, `x${h.heat.toFixed(2)}`, false);

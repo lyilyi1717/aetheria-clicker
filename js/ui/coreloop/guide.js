@@ -7,6 +7,7 @@
 import { t } from '../../i18n/index.js';
 import '../../i18n/coreloop/guide-strings.js';
 import * as Guide from '../../systems/coreloop/Guide.js';
+import { icon } from './icons.js';
 
 const PULSE_MS = 2400;
 const WHY_MS = 9000;   // how long the reason stays open on a phone after the goal changes
@@ -125,7 +126,7 @@ export function showIntro(doc, root, done) {
   el.setAttribute('aria-labelledby', 'cl-intro-title');
   el.innerHTML = `
     <div class="cl-intro-card">
-      <div class="cl-intro-art" aria-hidden="true">🛢️</div>
+      <div class="cl-intro-art" aria-hidden="true">${icon('well', { size: 'hero' })}</div>
       <h2 id="cl-intro-title">${t('cl.intro.title')}</h2>
       <ol>
         <li>${t('cl.intro.l1')}</li>
