@@ -196,6 +196,10 @@ they can use. The guide is the one place that decides both.
   `prestige.newfield`, `prestige.chronicle`, `prestige.tree`.
 - **The Well can be tapped:** `api.tapWell()` (`Well.tap`): a flat `P.tapCrude`, which matters for
   the first minutes only, plus the input that keeps Heat up. A Gusher is caught on the same spot.
+- **The Gusher lesson brings its own Gusher:** while the step is `gusher`, `refresh` calls
+  `Presence.summonGusher`, so one surfaces `P.guideGusherDelay` seconds later in any presence, and
+  again after a miss. (An ordinary Gusher's wait counts Watching time only, so a player who keeps
+  tapping would never see one.)
 - `refresh(state, ctx)` runs after every tick and action (the shell does it); the sims never call
   it, so the guide cannot change a simulated year.
 

@@ -48,6 +48,7 @@ export const gusherLeft = (state) => (gusherUp(state) ? state.presence.nextGushe
 
 // Next Gusher after `P.gusherEvery` Watching seconds on average (x0.5..1.5, from the state's RNG)
 function schedule(state) {
+  state.presence.summoned = false;
   state.presence.nextGusherAt = state.t + gusherInterval(state) * (0.5 + rand(state));
 }
 
@@ -58,8 +59,16 @@ export function step(state, dt, presence, ctx = NO_CONTEXT) {
   if (presence === PRESENCE.HANDS) p.heatSeconds += dt; else p.heatSeconds = 0;
 
   if (p.nextGusherAt <= 0) schedule(state);                       // first step, or a fresh load
-  else if (presence !== PRESENCE.WATCH && state.t < p.nextGusherAt) p.nextGusherAt += dt; // the wait counts Watching time only
+  else if (presence !== PRESENCE.WATCH && !p.summoned && state.t < p.nextGusherAt) p.nextGusherAt += dt; // the wait counts Watching time only
   else if (state.t >= p.nextGusherAt + gusherWindow(state)) schedule(state); // missed one: the next wait starts
+}
+
+// The guide's own Gusher: it surfaces `delay` seconds from now whatever the player is doing (the
+// lesson must not depend on luck or on knowing to rest the hands). One that is up stays as it is.
+export function summonGusher(state, delay = P.guideGusherDelay) {
+  if (gusherUp(state)) return;
+  state.presence.nextGusherAt = state.t + Math.max(0, delay);
+  state.presence.summoned = true;
 }
 
 export const canCatchGusher = (state) => state.presence.state !== PRESENCE.AWAY && gusherUp(state);

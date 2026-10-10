@@ -119,6 +119,39 @@ console.log('--- open is sticky: a New Well, a save and a load close nothing ---
   assert.deepEqual(bad.guide, { step: 0, open: {}, fresh: {}, intro: false });
 }
 
+console.log('--- the Gusher lesson brings its own Gusher, whatever the player is doing ---');
+{
+  const s = createCoreLoopState(4);
+  s.guide.step = Guide.STEPS.findIndex(x => x.id === 'gusher');
+  Loop.advance(s, 1, PRESENCE.HANDS);            // an ordinary wait is scheduled
+  Guide.refresh(s);
+  assert.equal(s.presence.summoned, true);
+  // a player who never stops tapping: an ordinary Gusher would never come
+  let up = -1;
+  for (let i = 0; i < 30 && up < 0; i++) { Presence.noteInput(s); Loop.advance(s, 1, PRESENCE.HANDS); Guide.refresh(s); if (Presence.canCatchGusher(s)) up = i; }
+  assert.ok(up >= 0 && up <= P.guideGusherDelay + 1, `it surfaces within ${P.guideGusherDelay} s (${up})`);
+  // missed: the next one is called again
+  for (let i = 0; i < P.gusherWindow + 2; i++) { Presence.noteInput(s); Loop.advance(s, 1, PRESENCE.HANDS); Guide.refresh(s); }
+  let again = false;
+  for (let i = 0; i < 30 && !again; i++) { Presence.noteInput(s); Loop.advance(s, 1, PRESENCE.HANDS); Guide.refresh(s); again = Presence.canCatchGusher(s); }
+  assert.ok(again, 'a missed one comes back');
+  assert.ok(Loop.catchGusher(s));
+  Guide.refresh(s);
+  assert.equal(s.presence.caught, 1);
+  assert.equal(s.presence.summoned, false, 'after the lesson Gushers are ordinary again');
+  assert.notEqual(Guide.current(s)?.id, 'gusher');
+  // without the lesson nothing is summoned, and a hands-on wait still does not count
+  const o = createCoreLoopState(4);
+  Loop.advance(o, 1, PRESENCE.HANDS);
+  const at = o.presence.nextGusherAt;
+  Guide.refresh(o);
+  Loop.advance(o, 10, PRESENCE.HANDS);
+  assert.equal(o.presence.summoned, false);
+  assert.ok(Math.abs(o.presence.nextGusherAt - (at + 10)) < 1e-9);
+  const back = deserializeCoreLoop(JSON.parse(JSON.stringify(serializeCoreLoop(s))));
+  assert.equal(back.presence.summoned, false);
+}
+
 console.log('--- a new tab is marked until it is looked at ---');
 {
   const s = createCoreLoopState(2);

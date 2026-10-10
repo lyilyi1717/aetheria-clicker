@@ -60,6 +60,7 @@ export const P = {
   heatRamp: 60,                    // s to full Heat; Heat = 1 + min(1, t/heatRamp)
   gusherEvery: 240, gusherSeconds: 60,
   handsWindow: 30,                 // s since the last input that still count as Hands-on
+  guideGusherDelay: 4,             // s after the guide asks for a Gusher that its own one surfaces
   gusherWindow: 20,                // s a Gusher stays up to be tapped
   offlineMaxHours: 12,             // time away settled on return, at most (the design's "Rigs up to 12 h")
   offlineStep: 300,                // s per step when settling time away (the sim's Away step)

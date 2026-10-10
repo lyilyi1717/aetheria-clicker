@@ -105,7 +105,8 @@ export function createCoreLoopState(seed = 1) {
       heatSeconds: 0,           // seconds into the current hands-on stretch
       handField: 0,             // the Field the player is working
       nextGusherAt: 0,
-      caught: 0                 // Gushers caught ever
+      caught: 0,                // Gushers caught ever
+      summoned: false           // the Gusher that is coming was called by the guide: it surfaces in any presence
     }
   };
 }
@@ -243,5 +244,6 @@ export function deserializeCoreLoop(raw) {
   s.presence.handField = Math.min(FIELDS.length - 1, int(pr.handField));
   s.presence.nextGusherAt = Math.max(0, num(pr.nextGusherAt));
   s.presence.caught = int(pr.caught);
+  s.presence.summoned = pr.summoned === true;
   return s;
 }
