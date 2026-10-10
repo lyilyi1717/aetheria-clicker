@@ -435,7 +435,7 @@ function mixer(s) {
   }
 }
 
-function sealsStep(s, dt) {
+export function sealsStep(s, dt) {
   if (s.crew <= 0) return;
   const { hours, tier } = s.seals;
   const open = [];
@@ -445,7 +445,7 @@ function sealsStep(s, dt) {
     hours[i] += ((1 + P.sealCrewBonus * s.crew) * dt) / 3600;
     while (tier[i] < P.sealHours.length && hours[i] >= P.sealHours[tier[i]]) {
       tier[i]++;
-      s.frac[i % 5].extra += 0.03 * tier[i];
+      s.frac[i % 5].extra += P.sealBonusPerTier * tier[i];
       event(s, 'seal', tier[i] >= P.sealBigTier ? 4 : 3, { seal: i, tier: tier[i] });
     }
   }
