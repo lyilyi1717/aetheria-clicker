@@ -55,6 +55,13 @@ export function pendingReserves(state) {
 }
 // Reserves a New Well must pay: P.wellGain of what this layer has, at least P.wellMinReserves
 export const newWellNeed = (state) => Math.max(P.wellMinReserves, P.wellGain * state.prestige.reserves);
+// log10 of the run Crude at which a New Well is allowed: the inverse of pendingReserves at
+// newWellNeed. A run's progress toward its New Well is log10(runCrude) over this (one bar, from the
+// first Crude to the reset, that never moves back within a run).
+export function newWellRunLog(state) {
+  const need = Math.ceil(newWellNeed(state));
+  return Math.log10(P.wellMin) + Math.pow(need / (P.resBase * Tree.bonus(state, 'reserves')), 1 / P.resPow);
+}
 // Seconds of the run still to go before a New Well is allowed (0 when long enough)
 export const canNewWell = (state) => pendingReserves(state) >= newWellNeed(state);
 

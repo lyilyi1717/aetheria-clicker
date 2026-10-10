@@ -114,6 +114,12 @@ export class CoreLoopShell {
       tapWell: () => api.act((state, ctx) => Well.tap(state, ctx)),
       // Open another screen (a closed one is ignored)
       go: (id) => shell.show(id),
+      // Send the crew to a Field (the player's choice of where to work; looking at a Field is not one)
+      sendCrew: (field) => api.act((state) => { Presence.setHandField(state, field); Guide.noteSent(state); }),
+      // The bar's goal: { screen, anchor, here }. `here` is true when its screen is the one showing.
+      // A screen gives btn-primary (solid gold) only to the element with this anchor while `here`;
+      // anything else that can be pressed is btn-ready (gold outline). One gold thing per screen.
+      goal: () => { const n = Guide.next(shell.state); return { screen: n.screen, anchor: n.anchor, here: n.screen === shell.current }; },
       // Listen to the loop's events ({ kind, level, ...data }); returns an unsubscribe function
       on(fn) { shell.listeners.add(fn); return () => shell.listeners.delete(fn); },
       // Catch the Gusher that is up (a player action): { crude, units }, or null when none

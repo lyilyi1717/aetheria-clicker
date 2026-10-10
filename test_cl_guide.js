@@ -26,8 +26,13 @@ console.log('--- a fresh save: one tab, one goal ---');
   assert.deepEqual(Guide.TABS.filter(tab => Guide.isOpen(s, `tab.${tab}`)), ['well']);
   for (const f of Guide.FEATURE_IDS) if (f !== 'tab.well') assert.equal(Guide.isOpen(s, f), false, f + ' is closed');
   const n = Guide.next(s);
-  assert.equal(n.kind, 'step'); assert.equal(n.id, 'buy1'); assert.equal(n.index, 0);
-  assert.ok(Well.canBuy(s, 1, 1), 'and the first goal can be done at once');
+  assert.equal(n.kind, 'step'); assert.equal(n.id, 'tap'); assert.equal(n.index, 0);
+  assert.equal(n.anchor, 'well.tap', 'the first goal is the biggest thing on the screen');
+  // five taps bring the Bucket, and it can be bought at once
+  for (let i = 0; i < 5; i++) Well.tap(s);
+  assert.deepEqual(Guide.refresh(s), ['well.pumps']);
+  assert.equal(Guide.next(s).id, 'buy1');
+  assert.ok(Well.canBuy(s, 1, 1));
   assert.ok(Guide.introPending(s));
   Guide.dismissIntro(s);
   assert.ok(!Guide.introPending(s));
@@ -57,14 +62,18 @@ function play(seconds, seed = 7) {
     if (e.kind === 'unlock') { log.push({ t: s.t, feature: e.feature, level: e.level }); if (e.feature.startsWith('tab.')) seeAt[e.feature] = s.t + 3; }
   });
   for (let i = 0; i < seconds; i++) {
-    const step = Guide.current(s), watching = step?.id === 'gusher';
-    if (!watching) { Presence.noteInput(s); Well.tap(s, ctx); Well.tap(s, ctx); }
-    for (const [tab, at] of Object.entries(seeAt)) if (s.t >= at) { Guide.markSeen(s, tab); delete seeAt[tab]; }
-    if (step && (step.id === 'buy1' || step.id === 'pack')) { while (Well.canBuy(s, 1, 1)) Well.buy(s, 1, 1); } else if (!watching) Well.buyMax(s);
+    const id = Guide.current(s)?.id;
+    Presence.noteInput(s); Well.tap(s, ctx); Well.tap(s, ctx);     // a player who never stops tapping
+    // a tab is opened 3 s after it appears; opening Fields, the player sends the crew
+    for (const [tab, at] of Object.entries(seeAt)) if (s.t >= at) { Guide.markSeen(s, tab); if (tab === 'tab.fields') Guide.noteSent(s); delete seeAt[tab]; }
+    if (id === 'buy1' || id === 'pack') { while (s.well.bought[1] < P.packSize && Well.canBuy(s, 1, 1)) Well.buy(s, 1, 1); }
+    else if (id === 'pressure') Well.buyPressure(s);
+    else if (id === 'slot2') { if (Well.canBuy(s, 2, 1)) Well.buy(s, 2, 1); }
+    else if (id !== 'tap') Well.buyMax(s);
     if (Presence.canCatchGusher(s)) Loop.catchGusher(s, ctx);
-    if (Guide.isOpen(s, 'tab.refinery')) Refinery.fillAll(s, ctx);
+    if (Guide.isOpen(s, 'tab.refinery') && !Guide.isNew(s, 'tab.refinery')) Refinery.fillAll(s, ctx);
     if (Guide.isOpen(s, 'tab.prestige') && Prestige.canNewWell(s)) { Prestige.newWell(s, ctx); Tree.buyAll(s); }
-    Loop.advance(s, 1, watching ? PRESENCE.WATCH : PRESENCE.HANDS, ctx);
+    Loop.advance(s, 1, PRESENCE.HANDS, ctx);
     Guide.refresh(s, ctx);
   }
   return { s, log };
@@ -77,8 +86,17 @@ console.log('--- the first hour: every step passes, in order, and nothing is qui
   assert.deepEqual(steps, Guide.STEPS.map(x => x.id), 'steps pass in their written order');
   assert.equal(Guide.current(s), null);
   const at = (id) => log.find(e => e.step === id).t;
-  assert.ok(at('buy1') <= 5 && at('tap') <= 15, 'the first two take seconds');
-  assert.ok(at('order') <= 5 * 60, `first Order within 5 min (${at('order')} s)`);
+  assert.ok(at('tap') <= 5 && at('buy1') <= 10, 'the first two take seconds');
+  // one loop at a time: the Well alone until the cascade has been seen, then Fields
+  const fieldsAt = log.find(e => e.feature === 'tab.fields').t;
+  assert.ok(fieldsAt >= 150 && fieldsAt <= 6 * 60, `Fields arrive at the first long wait (${fieldsAt} s)`);
+  assert.ok(at('slot2') <= fieldsAt, 'after the Hand Pump');
+  assert.ok(at('order') <= 8 * 60, `first Order within 8 min (${at('order')} s)`);
+  // the first New Well brings the tree and nothing else
+  const withWell = log.filter(e => e.feature && e.t >= at('newwell') && e.t <= at('newwell') + 5).map(e => e.feature);
+  assert.deepEqual(withWell, ['prestige.tree'], 'one new thing at the first New Well');
+  // the Gusher of the lesson pays: it waits for a Hand Pump in the run
+  assert.ok(at('gusher') > at('newwell'));
   assert.ok(at('newwell') <= 20 * 60, `first New Well within 20 min (${at('newwell')} s)`);
   // something new (a step passed or a part opened) at least every 12 minutes of the first hour's guided part
   const times = [0, ...log.map(e => e.t)];
@@ -88,9 +106,10 @@ console.log('--- the first hour: every step passes, in order, and nothing is qui
   for (let i = 1; i < Guide.STEPS.length; i++) {
     const tab = `tab.${Guide.STEPS[i].screen}`;
     if (tab !== 'tab.well') assert.ok(opened.get(tab) <= at(Guide.STEPS[i - 1].id), `${tab} is open when ${Guide.STEPS[i].id} is the goal`);
-    for (const f of Guide.STEPS[i].needs || []) assert.ok(opened.get(f) <= at(Guide.STEPS[i - 1].id), `${f} for ${Guide.STEPS[i].id}`);
+    for (const f of (Guide.STEPS[i].needs || []).filter(x => !Guide.QUIET.includes(x))) assert.ok(opened.get(f) <= at(Guide.STEPS[i - 1].id), `${f} for ${Guide.STEPS[i].id}`);
   }
   for (const e of log.filter(x => x.feature)) assert.equal(e.level, e.feature.startsWith('tab.') ? 3 : 2);
+  for (const f of Guide.QUIET) assert.ok(Guide.isOpen(s, f) && !log.some(e => e.feature === f), f + ' opens without a line');
   for (const tab of Guide.TABS) assert.ok(Guide.isOpen(s, `tab.${tab}`), tab + ' open after an hour');
   // then the standing suggestion takes over, and always points at an open screen
   const n = Guide.next(s);
@@ -112,11 +131,11 @@ console.log('--- open is sticky: a New Well, a save and a load close nothing ---
   // a save from before the guide, or a broken one: defaults, then refresh opens what it earned
   const old = serializeCoreLoop(s); delete old.guide; delete old.well.taps;
   const o = deserializeCoreLoop(old);
-  assert.deepEqual(o.guide, { step: 0, open: {}, fresh: {}, intro: false });
+  assert.deepEqual(o.guide, { v: 2, step: 0, open: {}, fresh: {}, intro: false, sent: false });
   Guide.refresh(o);
   assert.ok(Guide.isOpen(o, 'tab.prestige') && Guide.isOpen(o, 'tab.fields') && Guide.isOpen(o, 'tab.refinery'));
   const bad = deserializeCoreLoop({ guide: { step: 'x', open: [1], fresh: { 'tab.fields': 'yes' }, intro: 1 } });
-  assert.deepEqual(bad.guide, { step: 0, open: {}, fresh: {}, intro: false });
+  assert.deepEqual(bad.guide, { v: 2, step: 0, open: {}, fresh: {}, intro: false, sent: false });
 }
 
 console.log('--- the Gusher lesson brings its own Gusher, whatever the player is doing ---');
@@ -124,6 +143,9 @@ console.log('--- the Gusher lesson brings its own Gusher, whatever the player is
   const s = createCoreLoopState(4);
   s.guide.step = Guide.STEPS.findIndex(x => x.id === 'gusher');
   Loop.advance(s, 1, PRESENCE.HANDS);            // an ordinary wait is scheduled
+  Guide.refresh(s);
+  assert.equal(s.presence.summoned, false, 'not on an empty Well: it would pay nothing');
+  s.well.bought[2] = 1; s.well.bought[1] = 10;   // the run has its first Hand Pump
   Guide.refresh(s);
   assert.equal(s.presence.summoned, true);
   // a player who never stops tapping: an ordinary Gusher would never come
@@ -155,8 +177,8 @@ console.log('--- the Gusher lesson brings its own Gusher, whatever the player is
 console.log('--- a new tab is marked until it is looked at ---');
 {
   const s = createCoreLoopState(2);
-  s.well.bought[1] = 5;
-  assert.deepEqual(Guide.refresh(s), ['tab.fields']);
+  s.well.bought[1] = 10; s.well.bought[2] = 1; s.well.pressureBest = 1;
+  assert.ok(Guide.refresh(s).includes('tab.fields'));
   assert.ok(Guide.isNew(s, 'tab.fields'));
   Guide.markSeen(s, 'tab.fields');
   assert.ok(!Guide.isNew(s, 'tab.fields') && Guide.isOpen(s, 'tab.fields'));
@@ -193,7 +215,7 @@ console.log('--- words: every step, suggestion, feature and screen, in both lang
   // the bar's view of a fresh save and of a finished one
   const s = createCoreLoopState(1);
   const v = barView(s);
-  assert.equal(v.screen, 'well'); assert.equal(v.anchor, 'well.buy.1');
+  assert.equal(v.screen, 'well'); assert.equal(v.anchor, 'well.tap');
   assert.ok(v.goal && v.why && !/\{/.test(v.goal + v.why + v.kicker));
   s.guide.step = Guide.STEPS.length;
   const w = barView(s);

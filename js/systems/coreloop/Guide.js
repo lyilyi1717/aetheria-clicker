@@ -34,27 +34,36 @@ const fieldsEver = (state) => state.prestige.totalFields;
 const visited = (state, tab) => state.guide.open[`tab.${tab}`] === true && state.guide.fresh[`tab.${tab}`] !== true;
 
 // --- features ------------------------------------------------------------------------------------
-// id -> rule. A tab is 'tab.<screen>'; the rest are sections of a screen.
+// id -> rule. A tab is 'tab.<screen>'; the rest are sections of a screen ('shell.*': of the frame).
+// The first session meets one loop at a time (docs/core-loop-feel-study.md, R1): the Well alone
+// until it has paid three times (a Bucket, the x2, a Hand Pump), Fields at the first long wait,
+// the Refinery when an Order can be filled on arrival, and the Collection, Vials and Mastery
+// after the first New Well, as the things the second run is for.
+const anyFillable = (state) => state.refinery.orders.some((_, i) => Refinery.canFillOrder(state, i));
 export const FEATURES = Object.freeze({
   'tab.well': () => true,
-  'well.pressure': (s) => everLog(s) >= P.pA - 0.5 || s.well.pressureBest > 0 || wells(s) > 0,
-  'well.flare': (s) => Well.canFlare(s) || s.well.flare > 1,
+  'well.pumps': (s) => s.well.taps >= STEPS[0].need || s.well.bought[1] > 0 || wells(s) > 0,
+  'well.pressure': (s) => s.well.bought[1] >= P.packSize || s.well.pressureBest > 0 || wells(s) > 0,
+  'well.heat': (s) => s.well.pressureBest > 0 || s.well.bought[2] > 0 || wells(s) > 0,
+  'well.run': (s) => s.well.bought[2] > 0 || wells(s) > 0,
   'well.maxall': (s) => s.well.bought[2] > 0 || wells(s) > 0,
+  'well.flare': (s) => Well.canFlare(s) || s.well.flare > 1,
   'well.generators': (s) => wells(s) >= 3 || s.well.generators > P.slots,
+  // The presence chip (Playing / Leaning back) means nothing until Gushers have been met
+  'shell.presence': (s) => s.presence.caught > 0 || s.guide.step >= STEPS.findIndex(x => x.id === 'gusher'),
 
-  // Materials are hauled from the first second (the hand works the Tower), so the Fields rules
-  // read what the player has done, not what has piled up
-  'tab.fields': (s) => s.well.bought[1] >= 5 || ordersFilled(s) > 0 || wells(s) > 0,
-  'fields.mine': (s) => visited(s, 'refinery') || ordersFilled(s) > 0 || wells(s) > 0,
+  'tab.fields': (s) => (s.well.bought[2] > 0 && s.well.pressureBest > 0) || ordersFilled(s) > 0 || wells(s) > 0,
+  'fields.mine': (s) => ordersFilled(s) > 0 || wells(s) > 0,
   'fields.oasis': (s) => ordersFilled(s) > 0 || wells(s) > 0,
-  'fields.mastery': (s) => ordersFilled(s) > 0 || anyRank(s) || wells(s) > 0,
+  'fields.mastery': (s) => wells(s) >= 2 || anyRank(s),
   'fields.rig': (s) => fieldsEver(s) > 0 || s.fields.some(f => f.rig > 0),
 
-  'tab.refinery': (s) => (visited(s, 'fields') && materials(s) >= 5) || ordersFilled(s) > 0 || wells(s) > 0,
-  'refinery.vials': (s) => ordersFilled(s) > 0 || anyVial(s),
-  'refinery.weekly': (s) => ordersFilled(s) >= 3 || wells(s) > 0,
-  'refinery.cauldrons': (s) => wells(s) >= 1,
-  'refinery.mixer': (s) => anyRecipe(s) || wells(s) >= 2,
+  'tab.refinery': (s) => (s.guide.sent && anyFillable(s)) || ordersFilled(s) > 0 || wells(s) > 0,
+  // After the first New Well only the tree is new; the rest arrive one reset or a few Orders apart
+  'refinery.vials': (s) => ordersFilled(s) >= 3 || anyVial(s),
+  'refinery.weekly': (s) => ordersFilled(s) >= 6 || fieldsEver(s) > 0,
+  'refinery.cauldrons': (s) => wells(s) >= 2,
+  'refinery.mixer': (s) => anyRecipe(s) || wells(s) >= 4,
 
   'tab.prestige': (s) => Prestige.pendingReserves(s) >= 1 || wells(s) > 0,
   'prestige.tree': (s) => wells(s) >= 1,
@@ -63,8 +72,10 @@ export const FEATURES = Object.freeze({
   'prestige.trials': (s) => anyTrial(s),
   'prestige.seals': (s) => fieldsEver(s) >= 1 || s.prestige.crew > 0,
 
-  'tab.codex': (s) => anyVial(s) || anyRecipe(s) || wells(s) >= 1
+  'tab.codex': (s) => anyVial(s) || anyRecipe(s) || wells(s) >= 3
 });
+// Parts that simply appear where the player is looking: no "New:" line for them
+export const QUIET = Object.freeze(['well.pumps', 'well.heat', 'well.run', 'shell.presence']);
 export const FEATURE_IDS = Object.freeze(Object.keys(FEATURES));
 export const TABS = Object.freeze(['well', 'fields', 'refinery', 'prestige', 'codex']);
 
@@ -74,23 +85,32 @@ export const isNew = (state, feature) => state.guide.fresh[feature] === true;
 export function markSeen(state, feature) { delete state.guide.fresh[feature]; }
 
 // --- the first session ---------------------------------------------------------------------------
-// have(state) / need: the progress the bar shows (`frac`, when a count says too little). `needs`: features opened when the step is
-// reached, so "Show me" always has somewhere to go. Order is the order of play.
+// have(state) / need: the progress the bar shows (`frac`, when a count says too little). `needs`:
+// features opened when the step is reached, so "Show me" always has somewhere to go. Order is the
+// order of play. No step passes by itself and none waits on the clock: each is something the
+// player does.
+const runLog = (state) => Math.max(0, log10Big(state.well.runCrude));
 export const STEPS = Object.freeze([
-  { id: 'buy1', screen: 'well', anchor: 'well.buy.1', need: 1, have: (s) => s.well.bought[1] },
-  { id: 'tap', screen: 'well', anchor: 'well.tap', need: 10, have: (s) => s.well.taps },
+  { id: 'tap', screen: 'well', anchor: 'well.tap', need: 5, have: (s) => (s.well.bought[1] > 0 ? 5 : s.well.taps) },
+  { id: 'buy1', screen: 'well', anchor: 'well.buy.1', need: 1, needs: ['well.pumps'], have: (s) => s.well.bought[1] },
   { id: 'pack', screen: 'well', anchor: 'well.buy.1', need: P.packSize, have: (s) => s.well.bought[1] },
-  { id: 'work', screen: 'fields', anchor: 'fields.work', need: 5, needs: ['tab.fields'], have: (s) => (ordersFilled(s) > 0 ? 5 : visited(s, 'fields') ? materials(s) : 0) },
-  { id: 'order', screen: 'refinery', anchor: 'refinery.order', need: 1, needs: ['tab.refinery'], have: ordersFilled },
-  { id: 'slot2', screen: 'well', anchor: 'well.buy.2', need: 1, have: (s) => s.well.bought[2] },
   { id: 'pressure', screen: 'well', anchor: 'well.pressure', need: 1, needs: ['well.pressure'], have: (s) => s.well.pressureBest },
-  { id: 'reserves', screen: 'well', anchor: 'well.rate', need: P.wellMinReserves, have: (s) => (wells(s) > 0 ? P.wellMinReserves : Prestige.pendingReserves(s)) },
+  { id: 'slot2', screen: 'well', anchor: 'well.buy.2', need: 1, needs: ['well.heat'], have: (s) => s.well.bought[2] },
+  { id: 'work', screen: 'fields', anchor: 'fields.work', need: 1, needs: ['tab.fields'], have: (s) => (s.guide.sent || ordersFilled(s) > 0 ? 1 : 0) },
+  { id: 'order', screen: 'refinery', anchor: 'refinery.order', need: 1, needs: ['tab.refinery'], have: ordersFilled },
+  {
+    id: 'reserves', screen: 'well', anchor: 'well.rate', need: P.wellMinReserves,
+    have: (s) => (wells(s) > 0 ? P.wellMinReserves : Prestige.pendingReserves(s)),
+    frac: (s) => runLog(s) / Prestige.newWellRunLog(s)   // moves from the first second, never back
+  },
   { id: 'newwell', screen: 'prestige', anchor: 'prestige.newwell', need: 1, needs: ['tab.prestige'], have: wells },
   { id: 'tree', screen: 'prestige', anchor: 'prestige.tree', need: 1, needs: ['prestige.tree'], have: (s) => (anyNode(s) ? 1 : 0) },
   { id: 'gusher', screen: 'well', anchor: 'well.tap', need: 1, have: (s) => s.presence.caught },
-  { id: 'wells3', screen: 'prestige', anchor: 'prestige.newwell', need: 3, have: wells },
-  { id: 'rank', screen: 'fields', anchor: 'fields.mastery', need: 1, needs: ['fields.mastery'], have: (s) => (anyRank(s) ? 1 : 0) }
+  { id: 'wells3', screen: 'prestige', anchor: 'prestige.newwell', need: 3, have: wells }
 ]);
+
+// The player sent the crew to a Field (the Fields screen, through the shell's api.sendCrew)
+export function noteSent(state) { state.guide.sent = true; }
 
 const stepDone = (state, step) => step.have(state) >= step.need;
 
@@ -109,11 +129,12 @@ export function refresh(state, ctx = NO_CONTEXT) {
     ctx.emit('guide', HIT.MINOR, { step: STEPS[g.step].id });
     g.step++;
   }
-  // The Gusher lesson brings its own Gusher, again and again until one is caught
-  if (STEPS[g.step]?.id === 'gusher' && !state.presence.summoned && !Presence.gusherUp(state)) Presence.summonGusher(state);
+  // The Gusher lesson brings its own Gusher, again and again until one is caught; not on an empty
+  // Well, where it would pay nothing (it waits for the run's first Hand Pump)
+  if (STEPS[g.step]?.id === 'gusher' && state.well.bought[2] > 0 && !state.presence.summoned && !Presence.gusherUp(state)) Presence.summonGusher(state);
   for (const id of FEATURE_IDS) if (!g.open[id] && FEATURES[id](state)) open(id);
   for (const id of STEPS[g.step]?.needs || []) open(id);
-  for (const id of opened) ctx.emit('unlock', id.startsWith('tab.') ? HIT.NOVELTY : HIT.BIG, { feature: id });
+  for (const id of opened) if (!QUIET.includes(id)) ctx.emit('unlock', id.startsWith('tab.') ? HIT.NOVELTY : HIT.BIG, { feature: id });
   return opened;
 }
 
@@ -142,8 +163,7 @@ export function suggestion(state) {
     const frac = Math.max(0, log10Big(state.well.bestRunChron)) / Prestige.fieldGateLog(state);
     return { id: 'goal_field', screen: 'prestige', anchor: 'prestige.newfield', frac: Math.min(1, frac) };
   }
-  const need = Prestige.newWellNeed(state);
-  return { id: 'goal_well', screen: 'prestige', anchor: 'prestige.newwell', n: need, frac: Math.min(1, Prestige.pendingReserves(state) / need) };
+  return { id: 'goal_well', screen: 'prestige', anchor: 'prestige.newwell', n: Prestige.newWellNeed(state), frac: Math.min(1, runLog(state) / Prestige.newWellRunLog(state)) };
 }
 
 // What the bar shows: the current step, else the standing suggestion

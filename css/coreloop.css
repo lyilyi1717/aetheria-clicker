@@ -170,3 +170,8 @@ body.coreloop { background: var(--bg-0); color: var(--text-1); font-family: var(
   .cl-head-title { font-size: var(--fs-16); }
   .cl-head-line { font-size: var(--fs-13); }
 }
+
+/* One gold thing per screen (the feel study, R3): solid gold (btn-primary) is the bar's goal or
+   the single best action; anything else that can be pressed now is btn-ready. */
+#coreloop-root .btn-ready { background: transparent; border-color: var(--gold); color: var(--gold); }
+#coreloop-root .btn-ready:hover { background: var(--gold-dim); }

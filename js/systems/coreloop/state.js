@@ -10,6 +10,8 @@ import { newTree, nodeOf, RINGS } from './treeMath.js';
 // Bumped when the meaning of a saved field changes; the step that converts old data goes in
 // migrateCoreLoop below (never edit a shipped step).
 export const CORE_LOOP_VERSION = 1;
+// Bumped when Guide.STEPS changes order or meaning (state.guide.step is an index into it)
+export const GUIDE_STEPS_VERSION = 2;
 
 const zeros = (n) => new Array(n).fill(0);
 const bigs = (n) => Array.from({ length: n }, () => BigNum.zero());
@@ -93,7 +95,9 @@ export function createCoreLoopState(seed = 1) {
     tree: newTree(),
 
     // --- the guide (Guide.js): steps passed, features opened (sticky), tabs not looked at yet
-    guide: { step: 0, open: {}, fresh: {}, intro: false },
+    // `v` is the version of the step list: a save from another list starts the steps over and
+    // refresh() passes the ones already done. `sent`: the player has sent the crew to a Field.
+    guide: { v: GUIDE_STEPS_VERSION, step: 0, open: {}, fresh: {}, intro: false, sent: false },
 
     // --- Seals (Seals.js)
     seals: { hours: zeros(P.seals), tier: zeros(P.seals) },
@@ -224,8 +228,9 @@ export function deserializeCoreLoop(raw) {
     .map(x => (isObj(x) ? { found: x.found === true, made: int(x.made), tier: Math.min(P.compoundTiers.length, int(x.tier)) } : { found: false, made: 0, tier: 0 }));
 
   const gd = isObj(data.guide) ? data.guide : {};
-  s.guide.step = int(gd.step);
+  s.guide.step = int(gd.v) === GUIDE_STEPS_VERSION ? int(gd.step) : 0;
   s.guide.intro = gd.intro === true;
+  s.guide.sent = gd.sent === true;
   for (const k of ['open', 'fresh']) if (isObj(gd[k])) for (const [id, v] of Object.entries(gd[k])) if (v === true && id.length < 40) s.guide[k][id] = true;
 
   const tr = isObj(data.tree) ? data.tree : {};

@@ -164,7 +164,8 @@ Everything else is a player action: brew, fill, offer, mix, level, buy, flare, r
   exporting `mount(panel, api) -> { update(api) }`. `api.state`, `api.t`, `api.fmt`,
   `api.act((state, ctx) => System.action(state, ..., ctx))` (counts as input, then redraws),
   `api.on(fn)` for events, `api.catchGusher()`, `api.presence()`, and from the guide
-  `api.isOpen(feature)`, `api.lockText(feature)`, `api.tapWell()`, `api.go(screen)`. A missing
+  `api.isOpen(feature)`, `api.lockText(feature)`, `api.tapWell()`, `api.go(screen)`,
+  `api.sendCrew(field)`, `api.goal()`. A missing
   module shows a placeholder, so screens land one PR at a time without editing the shell.
 - **The shell draws the head of every screen** (its name, one sentence, "How it works") and the
   next-step bar; a screen starts with its content, not with a title or an explanation of itself.
@@ -198,6 +199,16 @@ they can use. The guide is the one place that decides both.
   button of pump k), `well.pressure`, `well.rate`; `fields.work`, `fields.mastery`;
   `refinery.order` (the first fillable Order, else the first Order); `prestige.newwell`,
   `prestige.newfield`, `prestige.chronicle`, `prestige.tree`.
+- **One loop at a time** (`docs/core-loop-feel-study.md`): the Well alone until the cascade has been
+  seen (`well.pumps` after five taps, `well.pressure` at ten Buckets, `well.heat` and `well.run`
+  with the first Hand Pump), Fields at the first long wait, the Refinery when the crew has been
+  sent, only the tree at the first New Well. The parts in `Guide.QUIET` appear without a "New:"
+  line. No step passes by itself and none waits on the clock.
+- **`api.sendCrew(field)`** is how the Fields screen moves the crew (it tells the guide the player
+  chose; looking at a Field is not choosing). **`api.goal()`** is the bar's goal
+  `{ screen, anchor, here }`: a screen gives `btn-primary` (solid gold) only to the element with
+  that anchor while `here`, and `btn-ready` (gold outline) to anything else that can be pressed.
+  One solid gold thing per screen.
 - **The Well can be tapped:** `api.tapWell()` (`Well.tap`): a flat `P.tapCrude`, which matters for
   the first minutes only, plus the input that keeps Heat up. A Gusher is caught on the same spot.
 - **The Gusher lesson brings its own Gusher:** while the step is `gusher`, `refresh` calls
