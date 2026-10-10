@@ -285,20 +285,20 @@ export function fieldsStep(s, dt, st) {
 }
 
 // --- Refinery ------------------------------------------------------------------------------------
-const bubbleCost = (c, i) => P.cauldronC0[P.cauldrons[i]] * Math.pow(c.n + 1, P.bubbleExp);
-const bubbleEffect = (L) => (P.bubbleA * L) / (P.bubbleB + L);
-function recomputeBubbles(s) {
+export const bubbleCost = (c, i) => P.cauldronC0[P.cauldrons[i]] * Math.pow(c.n + 1, P.bubbleExp);
+export const bubbleEffect = (L) => (P.bubbleA * L) / (P.bubbleB + L);
+export function recomputeBubbles(s) {
   for (const fr of s.frac) fr.bub = 0;
   for (const b of s.bubbles) s.frac[b.f].bub += bubbleEffect(b.level);
 }
 
 // Fill-seconds per Cauldron, scale-free (raw Material units grow with Pressure and would run away)
-function cauldronFill(s, dt, st, rigs) {
+export function cauldronFill(s, dt, st, rigs) {
   const add = [st === 'hands' ? dt : 0, st === 'watch' ? dt : 0, (st === 'hands' ? dt : 0) + rigs * P.sandsPerRig * dt, st === 'away' ? dt : 0];
   s.caul.forEach((c, i) => { c.fill += add[i] * c.speed; });
 }
 // Brewing is a tap, so it happens while the player is there
-function brew(s) {
+export function brew(s) {
   s.caul.forEach((c, i) => {
     for (let guard = 0; guard < 50 && c.fill >= bubbleCost(c, i); guard++) {
       c.fill -= bubbleCost(c, i);
@@ -396,7 +396,7 @@ function vials(s) {
   }
 }
 
-function bubbleLevels(s) {
+export function bubbleLevels(s) {
   for (let guard = 0; guard < 200; guard++) {
     let best = null;
     for (const b of s.bubbles) if (!best || b.level < best.level) best = b;
