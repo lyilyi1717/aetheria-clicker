@@ -78,10 +78,12 @@ ok(idle.complete && !idle.can && V.sectionOf(idle) === 'done', 'a node at its to
 s = fresh(); s.tree.bank.reserves = 5;
 const before = V.sortNodes(Tree.nodes(s, 'reserves').map(n => V.nodeView(s, n))).filter(v => v.can).map(v => v.id);
 eq(before, ['kit', 'idle_hands'], '5 Reserves buy the Kit or Idle Hands, nothing else');
+ok(!V.buyAllWorthIt(s, 'reserves'), 'buy all is not offered when the bank pays for one node');
 const got = V.buyRing(s, 'reserves');
 eq(got, ['kit'], 'buy all takes the cheapest first and stops when the bank is empty');
 eq(s.tree.bank.reserves, 0, 'the bank counted down');
 s = fresh(); s.tree.bank.reserves = 1000;
+ok(V.buyAllWorthIt(s, 'reserves'), 'buy all is offered with a full bank');
 V.buyRing(s, 'reserves');
 ok(!Tree.has(s, 'alchemist') && !Tree.has(s, 'wakeel') && !Tree.has(s, 'leylines'), 'buy all never buys a flag');
 

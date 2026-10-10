@@ -79,6 +79,12 @@ export function buyRing(state, ring) {
   return bought;
 }
 
+// Would "buy all" buy two or more here? (it never touches the real state)
+export function buyAllWorthIt(state, ring) {
+  const probe = { tree: { bank: { ...state.tree.bank }, ranks: { ...state.tree.ranks } } };
+  return buyRing(probe, ring).length >= 2;
+}
+
 // --- DOM -----------------------------------------------------------------------------------------
 const el = (tag, cls, text) => {
   const e = document.createElement(tag);
@@ -236,7 +242,7 @@ export function mountTree(host, api) {
       r.heads.soon.hidden = r.lists.soon.hidden = by.soon.length === 0;
       r.doneBox.hidden = by.done.length === 0;
       setText(r.doneSum, t('cl.tree.sec.done', { n: by.done.length }));
-      r.all.hidden = by.now.length < 2;
+      r.all.hidden = by.now.length < 2 || !buyAllWorthIt(s, ring);
     }
     // order: groups innermost first, then the status line and the one locked line
     const wanted = [];

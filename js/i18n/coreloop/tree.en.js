@@ -48,7 +48,7 @@ export default {
   'cl.tree.fx.gusherWindow': 'Gushers stay {n} seconds longer, each rank',
   'cl.tree.fx.startShares': 'Start each Chronicle with {n} more Share, each rank',
   'cl.tree.fx.pageBank': 'Each Chronicle gives you {n} more Page to spend',
-  'cl.tree.fx.startKit': 'Each New Well starts with {n} {slot} already working, each rank',
+  'cl.tree.fx.startKit': 'Each New Well starts with {n} free {slot} units, each rank',
   'cl.tree.fx.keepPressure': 'A New Well keeps {n}% of your Pressure, each rank',
   'cl.tree.fx.handsWell': 'Hands-on Da\'sa boosts the Well {n}% more, each rank',
   'cl.tree.fx.flag': 'An unlock for a part of the game that is not open yet.',
