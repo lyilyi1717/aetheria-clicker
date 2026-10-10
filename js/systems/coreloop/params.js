@@ -22,6 +22,7 @@ export const P = {
   buyTenMult: 2, packSize: 10,     // x2 per pack of 10 bought; the price steps with the pack too
   tierRate: 1,                     // units of tier k-1 (or Crude) made per unit of tier k per s
   startCrude: 50,
+  tapCrude: 1,                     // Crude a tap on the Well gives: flat, so it only matters in the first minutes
   // Global multipliers (layers, Naphtha, Pressure, presence) act on tier 1's Crude output only:
   // applied to every cascade stage they would be raised to the power of the tier count
   awayWell: 0.5,                   // Well rate while Away (offline efficiency)

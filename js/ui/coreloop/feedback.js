@@ -17,6 +17,8 @@ import FX_AR from '../../i18n/coreloop/feedback.ar.js';
 import { P } from '../../systems/coreloop/params.js';
 import { FRACTIONS, PRESENCE } from '../../systems/coreloop/shared.js';
 import { rankInfo } from '../../systems/coreloop/Mastery.js';
+import { STEPS } from '../../systems/coreloop/Guide.js';
+import '../../i18n/coreloop/guide-strings.js';
 import { feedback as defaultFeedback } from '../feedback.js';
 import { rewards as defaultRewards } from '../rewards.js';
 
@@ -45,6 +47,8 @@ const keyParts = (key) => String(key).split(':').map(Number);
 // icon is for toasts and ceremonies.
 const MAP = {
   gusher: { level: 1, key: 'gusher', sound: 'pluck', color: '--gold', target: 'crude' },
+  guide: { level: 1, key: 'guide', sound: 'pluck', color: '--gold', target: 'crude', params: (e) => ({ goal: t(`cl.guide.step.${e.step}`, { need: STEPS.find(s => s.id === e.step)?.need ?? '' }) }) },
+  unlock: { level: 3, key: 'unlock', sound: 'achievement', color: '--gold', target: 'panel', icon: '🔓', params: (e) => ({ name: t(`cl.feature.${e.feature}`) }) },
   newWell: { level: 1, key: 'newWell', sound: 'bell', color: '--gold', target: 'crude', icon: '🛢️' },
 
   flare: { level: 2, key: 'flare', sound: 'spell', color: '--danger', target: 'crude', params: () => ({ flare: t('cl.name.flare') }) },

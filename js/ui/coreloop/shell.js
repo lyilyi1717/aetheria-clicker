@@ -7,6 +7,10 @@
 // and registers its own strings with registerStrings() from js/i18n/coreloop/index.js. A screen
 // whose module doesn't exist yet shows a placeholder, so screens land one PR at a time without
 // editing this file. `api` is described at `makeApi` below.
+//
+// The guide (CL-28, js/systems/coreloop/Guide.js) decides which tabs and sections are open and
+// what the player should do next. A screen shows a section only when api.isOpen('<feature>') and
+// marks what the next-step bar can point at with data-guide="<anchor>".
 import { t, isRtl } from '../../i18n/index.js';
 import { registerStrings } from '../../i18n/coreloop/index.js';
 import SHELL_EN from '../../i18n/coreloop/shell.en.js';
@@ -16,6 +20,8 @@ import { PRESENCE, makeContext } from '../../systems/coreloop/shared.js';
 import * as Presence from '../../systems/coreloop/Presence.js';
 import * as Well from '../../systems/coreloop/Well.js';
 import * as Loop from '../../systems/coreloop/Loop.js';
+import * as Guide from '../../systems/coreloop/Guide.js';
+import { GuideBar, showIntro, screenHead, lockText } from './guide.js';
 import { createCoreLoopState } from '../../systems/coreloop/state.js';
 import { loadCoreLoop, saveCoreLoop, secondsAway, CORE_LOOP_SAVE_KEY } from './store.js';
 
@@ -74,6 +80,12 @@ export class CoreLoopShell {
     if (!(dt > 0)) return;
     if (dt > MAX_TICK_S) { this.welcome(Loop.settleAway(this.state, dt, this.ctx)); return; }
     Loop.advance(this.state, dt, currentPresence(this.state, this.doc?.hidden), this.ctx);
+    this.refreshGuide();
+  }
+
+  // Brings the guide up to date; a tab or section that opens redraws the tabs
+  refreshGuide() {
+    if (Guide.refresh(this.state, this.ctx).length && this.root) this.drawTabs();
   }
 
   makeApi() {
@@ -89,9 +101,18 @@ export class CoreLoopShell {
       act(fn) {
         Presence.noteInput(shell.state);
         const out = fn(shell.state, shell.ctx);
+        shell.refreshGuide();
         shell.render();
         return out;
       },
+      // Is this tab or section open to the player yet? ('tab.fields', 'well.pressure', ...: the ids
+      // are Guide.FEATURES). A closed section is left out, or shown as the one line lockText gives.
+      isOpen: (feature) => Guide.isOpen(shell.state, feature),
+      lockText,
+      // A tap on the Well: P.tapCrude and the input that keeps Heat up. Returns the Crude given.
+      tapWell: () => api.act((state, ctx) => Well.tap(state, ctx)),
+      // Open another screen (a closed one is ignored)
+      go: (id) => shell.show(id),
       // Listen to the loop's events ({ kind, level, ...data }); returns an unsubscribe function
       on(fn) { shell.listeners.add(fn); return () => shell.listeners.delete(fn); },
       // Catch the Gusher that is up (a player action): { crude, units }, or null when none
@@ -117,12 +138,14 @@ export class CoreLoopShell {
         <div class="cl-crude" aria-live="off"><span class="cl-crude-label">${t('cl.shell.crude')}</span>
           <strong class="cl-crude-amount" id="cl-crude">0</strong><span class="cl-crude-rate" id="cl-rate"></span></div>
         <div class="cl-presence"><span class="cl-chip" id="cl-presence"></span><span class="cl-chip cl-heat" id="cl-heat" hidden></span></div>
+        <div class="cl-guide-slot" id="cl-guide-slot"></div>
       </header>
       <p class="cl-welcome" id="cl-welcome" hidden></p>
       <nav class="cl-tabs" role="tablist" aria-label="${t('cl.shell.title')}">
-        ${SCREENS.map(s => `<button type="button" class="cl-tab" role="tab" data-cl-tab="${s.id}" aria-selected="false"><span aria-hidden="true">${s.icon}</span><span>${t(`cl.tab.${s.id}`)}</span></button>`).join('')}
+        ${SCREENS.map(s => `<button type="button" class="cl-tab" role="tab" data-cl-tab="${s.id}" aria-selected="false"><span aria-hidden="true">${s.icon}</span><span>${t(`cl.tab.${s.id}`)}</span><i class="cl-tab-new" hidden>${t('cl.shell.new')}</i></button>`).join('')}
       </nav>
       <main class="cl-panels">
+        <div class="cl-head-slot" id="cl-head-slot"></div>
         ${SCREENS.map(s => `<section class="cl-panel" role="tabpanel" data-cl-panel="${s.id}" hidden></section>`).join('')}
       </main>
       <footer class="cl-footer">
@@ -138,11 +161,36 @@ export class CoreLoopShell {
       if (b) this.show(b.dataset.clTab);
     });
     this.el.reset.addEventListener('click', () => this.reset());
+    this.guideBar = new GuideBar(this);
+    root.querySelector('#cl-guide-slot').appendChild(this.guideBar.el);
+    this.heads = new Map();
+    this.drawTabs();
+    if (Guide.introPending(this.state)) showIntro(d, root, () => { Guide.dismissIntro(this.state); this.save(); });
+  }
+
+  // Tabs appear as the guide opens them; with one tab there is nothing to switch, so no bar
+  drawTabs() {
+    let open = 0;
+    for (const b of this.root.querySelectorAll('[data-cl-tab]')) {
+      const feature = `tab.${b.dataset.clTab}`;
+      b.hidden = !Guide.isOpen(this.state, feature);
+      if (!b.hidden) open++;
+      b.querySelector('.cl-tab-new').hidden = !Guide.isNew(this.state, feature);
+    }
+    const nav = this.root.querySelector('.cl-tabs');
+    nav.hidden = open < 2;
+    nav.style.setProperty('--cl-tabs', String(Math.max(1, open)));
+    this.root.classList.toggle('cl-one-tab', open < 2);
   }
 
   async show(id) {
-    if (!SCREENS.some(s => s.id === id)) id = SCREENS[0].id;
+    if (!SCREENS.some(s => s.id === id) || !Guide.isOpen(this.state, `tab.${id}`)) id = SCREENS[0].id;
     this.current = id;
+    Guide.markSeen(this.state, `tab.${id}`);
+    this.refreshGuide();
+    this.drawTabs();
+    if (!this.heads.has(id)) this.heads.set(id, screenHead(this.doc, id));
+    this.root.querySelector('#cl-head-slot').replaceChildren(this.heads.get(id));
     try { this.storage?.setItem(TAB_KEY, id); } catch { /* per-viewer convenience only */ }
     for (const b of this.root.querySelectorAll('[data-cl-tab]')) b.setAttribute('aria-selected', String(b.dataset.clTab === id));
     for (const p of this.root.querySelectorAll('[data-cl-panel]')) p.hidden = p.dataset.clPanel !== id;
@@ -169,6 +217,10 @@ export class CoreLoopShell {
     this.el.rate.textContent = t('cl.shell.per_sec', { n: fmt(Well.crudePerSecond(s, presence)) });
     this.el.presence.textContent = t(`cl.shell.state.${presence}`);
     this.el.presence.dataset.state = presence;
+    this.el.presence.title = t(`cl.shell.state.${presence}.tip`);
+    this.guideBar.update();
+    const hh = this.root.querySelector('.cl-header').offsetHeight;
+    if (hh && hh !== this.headerH) { this.headerH = hh; this.root.style.setProperty('--cl-header-h', `${hh}px`); }
     const heat = Presence.heat(s);
     this.el.heat.hidden = !(presence === PRESENCE.HANDS && heat > 1);
     if (!this.el.heat.hidden) this.el.heat.textContent = t('cl.shell.heat', { n: heat.toFixed(2) });
@@ -201,6 +253,7 @@ export class CoreLoopShell {
 
   start() {
     const summary = this.load();
+    Guide.refresh(this.state);   // a save from before the guide: open what it has already earned, quietly
     this.api = this.makeApi();
     this.build();
     import('./feedback.js').then(m => { this.stopFeedback = m.start(this.api); }).catch(err => console.error(err));

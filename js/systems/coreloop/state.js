@@ -28,6 +28,7 @@ export function createCoreLoopState(seed = 1) {
       crude: new BigNum(P.startCrude), // spendable
       runCrude: BigNum.zero(),         // earned this run (since the last New Well)
       runStart: 0,                     // loop time the run began
+      taps: 0,                         // taps on the Well ever (the guide's first lesson)
       bought: zeros(P.slots + 1),      // units bought per slot (sets price and the x2-per-10)
       amount: bigs(P.slots + 1),       // units owned per slot (bought + produced by the slot above)
       pressure: 0,                     // Pressure levels this run
@@ -91,6 +92,9 @@ export function createCoreLoopState(seed = 1) {
     // --- the one tree (Tree.js): what each ring's bank holds and the rank of each node bought
     tree: newTree(),
 
+    // --- the guide (Guide.js): steps passed, features opened (sticky), tabs not looked at yet
+    guide: { step: 0, open: {}, fresh: {}, intro: false },
+
     // --- Seals (Seals.js)
     seals: { hours: zeros(P.seals), tier: zeros(P.seals) },
 
@@ -100,7 +104,8 @@ export function createCoreLoopState(seed = 1) {
       lastInputAt: -Infinity,   // loop time of the last input (not saved: -Infinity on load)
       heatSeconds: 0,           // seconds into the current hands-on stretch
       handField: 0,             // the Field the player is working
-      nextGusherAt: 0
+      nextGusherAt: 0,
+      caught: 0                 // Gushers caught ever
     }
   };
 }
@@ -143,6 +148,7 @@ export function deserializeCoreLoop(raw) {
   const w = isObj(data.well) ? data.well : {};
   for (const k of WELL_BIG) if (w[k] !== undefined) s.well[k] = BigNum.fromJSON(w[k]);
   s.well.runStart = Math.max(0, num(w.runStart));
+  s.well.taps = int(w.taps);
   s.well.bought = numArr(w.bought, P.slots + 1).map(x => int(x));
   s.well.amount = Array.from({ length: P.slots + 1 }, (_, i) => BigNum.fromJSON(Array.isArray(w.amount) ? w.amount[i] : null));
   s.well.pressure = int(w.pressure);
@@ -216,6 +222,11 @@ export function deserializeCoreLoop(raw) {
   s.collection.recipes = (Array.isArray(col.recipes) ? col.recipes : [])
     .map(x => (isObj(x) ? { found: x.found === true, made: int(x.made), tier: Math.min(P.compoundTiers.length, int(x.tier)) } : { found: false, made: 0, tier: 0 }));
 
+  const gd = isObj(data.guide) ? data.guide : {};
+  s.guide.step = int(gd.step);
+  s.guide.intro = gd.intro === true;
+  for (const k of ['open', 'fresh']) if (isObj(gd[k])) for (const [id, v] of Object.entries(gd[k])) if (v === true && id.length < 40) s.guide[k][id] = true;
+
   const tr = isObj(data.tree) ? data.tree : {};
   for (const ring of RINGS) s.tree.bank[ring] = int(isObj(tr.bank) ? tr.bank[ring] : 0);
   if (isObj(tr.ranks)) {
@@ -231,5 +242,6 @@ export function deserializeCoreLoop(raw) {
   const pr = isObj(data.presence) ? data.presence : {};
   s.presence.handField = Math.min(FIELDS.length - 1, int(pr.handField));
   s.presence.nextGusherAt = Math.max(0, num(pr.nextGusherAt));
+  s.presence.caught = int(pr.caught);
   return s;
 }

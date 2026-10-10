@@ -74,3 +74,80 @@ body.coreloop { background: var(--bg-0); color: var(--text-1); font-family: var(
 }
 
 @media (prefers-reduced-motion: reduce) { #coreloop-root * { transition: none !important; animation: none !important; } }
+
+/* A panel that is not the open one is gone, whatever display its screen gives it */
+#coreloop-root .cl-panel[hidden], #coreloop-root .cl-tabs[hidden], #coreloop-root .cl-tab[hidden] { display: none !important; }
+.cl-tabs { grid-template-columns: repeat(var(--cl-tabs, 5), 1fr); }
+.cl-tab { position: relative; }
+.cl-tab-new {
+  position: absolute; inset-block-start: 4px; inset-inline-end: 12%; font-style: normal;
+  font-size: var(--fs-11); line-height: 1; padding: 2px 6px; border-radius: var(--r-pill);
+  background: var(--gold); color: var(--text-on-accent); animation: cl-new 1.4s var(--ease-out) infinite alternate;
+}
+.cl-tab-new[hidden] { display: none; }
+@keyframes cl-new { from { transform: scale(1); } to { transform: scale(1.12); } }
+#coreloop-root.cl-one-tab { padding-block-end: 0; }
+
+/* The next-step bar: the one thing to do now */
+.cl-guide-slot { flex: 1 1 100%; max-inline-size: 1068px; margin-inline: auto; }
+.cl-guide {
+  position: relative; overflow: hidden;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3);
+  padding: var(--sp-3) var(--sp-3) calc(var(--sp-3) + 4px);
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); border-radius: var(--r-2);
+  background: var(--gold-dim);
+}
+.cl-guide-text { flex: 1 1 220px; min-inline-size: 0; display: flex; flex-direction: column; gap: 2px; }
+.cl-guide-kicker { font-size: var(--fs-11); letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
+.cl-guide-goal { font-size: var(--fs-16); color: var(--text-1); line-height: var(--lh-tight); }
+.cl-guide-why { font-size: var(--fs-13); color: var(--text-2); }
+.cl-guide-why:empty, .cl-guide-count:empty { display: none; }
+.cl-guide-side { display: flex; align-items: center; gap: var(--sp-3); margin-inline-start: auto; }
+.cl-guide-count { font-size: var(--fs-16); font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+.cl-guide-go { white-space: nowrap; }
+.cl-guide-bar { position: absolute; inset-inline: 0; inset-block-end: 0; block-size: 4px; background: color-mix(in srgb, var(--gold) 18%, transparent); }
+.cl-guide-bar[hidden] { display: none; }
+.cl-guide-bar i { display: block; block-size: 100%; inline-size: 0; background: var(--gold); transition: inline-size var(--dur-3) var(--ease-out); }
+.cl-guide-changed { animation: cl-guide-in var(--dur-3) var(--ease-pop); }
+@keyframes cl-guide-in { from { transform: translateY(-6px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+
+/* What the bar points at: a steady ring, and a pulse on "Show me" */
+[data-guide-on] { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: var(--r-2); }
+.cl-guide-pulse { animation: cl-pulse 0.8s var(--ease-out) 3; }
+@keyframes cl-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 70%, transparent); }
+  100% { box-shadow: 0 0 0 18px transparent; }
+}
+
+/* The head of a screen: its name and what it is for, in one sentence */
+.cl-head { max-inline-size: 880px; margin: 0 auto var(--sp-4); }
+.cl-head-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.cl-head-title { margin: 0; font-family: var(--font-display); font-size: var(--fs-20); color: var(--gold); }
+.cl-head-line { margin: var(--sp-1) 0 0; font-size: var(--fs-14); color: var(--text-2); }
+.cl-head-long { margin: var(--sp-2) 0 0; padding: var(--sp-3); border-radius: var(--r-2); background: var(--bg-2); font-size: var(--fs-13); color: var(--text-2); }
+.cl-head-long[hidden] { display: none; }
+/* A closed section, when a screen shows it at all: one quiet line */
+.cl-locked { margin: 0; padding: var(--sp-3); border: 1px dashed var(--line-2); border-radius: var(--r-2); color: var(--text-3); font-size: var(--fs-13); }
+
+/* The intro of a fresh save */
+.cl-intro {
+  position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: var(--sp-4);
+  background: color-mix(in srgb, var(--bg-0) 86%, transparent);
+}
+.cl-intro-card {
+  max-inline-size: 420px; inline-size: 100%; padding: var(--sp-5, 24px); border-radius: var(--r-3);
+  background: var(--bg-2); border: 1px solid var(--line-brand); box-shadow: var(--el-3);
+  display: flex; flex-direction: column; gap: var(--sp-3); text-align: center;
+}
+.cl-intro-art { font-size: 56px; line-height: 1; }
+.cl-intro-card h2 { margin: 0; font-family: var(--font-display); color: var(--gold); font-size: var(--fs-20); }
+.cl-intro-card ol { margin: 0; padding-inline-start: var(--sp-5, 24px); text-align: start; display: flex; flex-direction: column; gap: var(--sp-2); color: var(--text-2); font-size: var(--fs-14); }
+.cl-intro-go { align-self: stretch; min-height: var(--tap); font-size: var(--fs-16); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cl-tab-new, .cl-guide-changed, .cl-guide-pulse { animation: none; }
+  .cl-guide-bar i { transition: none; }
+}
+@media (min-width: 768px) {
+  .cl-tab-new { position: static; }
+}

@@ -1,6 +1,10 @@
 // Core-loop feedback lines (CL-17): the short text shown after the sound and colour of an event.
 // Dynamic keys are built in js/ui/coreloop/feedback.js as template literals.
 export default {
+  'cl.fx.guide': 'Done: {goal}.',
+  'cl.fx.unlock': 'New: {name}',
+  'cl.fx.kind.guide': 'steps done',
+  'cl.fx.kind.unlock': 'new parts opened',
   'cl.fx.gusher': 'Gusher caught.',
   'cl.fx.newWell': 'New Well opened.',
   'cl.fx.flare': '{flare} lit.',
