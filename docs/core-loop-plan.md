@@ -27,17 +27,17 @@ in half-built states for weeks and break rule 2 (saves) repeatedly. So:
 `js/i18n/*.js` and `docs/STATUS.md` are **shared files**: only the items that list them may touch
 them, one at a time.
 
-## 2. Before anything: the unfinished "Phase 1 Shell"
+## 2. Where things stand
 
-A session started Phase 1 on a local branch `core-loop-shell` (commit `e6a1044`, not pushed, no
-PR) with uncommitted edits to 19 live files plus `PresenceSystem.js` and `RigSystem.js`. It wires
-into the live game (the Away haul pays Oil, which changes the economy), which this plan avoids.
-This plan replaces that approach. A backup of those edits is in `scratch/core-loop-shell-wip/` on
-the owner's machine (not in the repo).
-
-- Do not continue that branch. Its `STATUS.md` "In progress" line was never pushed.
-- CL-1 and CL-2 may reuse ideas from the two backed-up files, rewritten to this plan's layout.
-- The owner discards the local branch and edits; a session only does it if asked.
+- **Done:** CL-0 (R70, #204): the contract in `js/systems/coreloop/`.
+- **Filed:** Wave A as issues #204-#213 (R70-R79), labels `roadmap` and `core-loop`. Owner decisions
+  are posted on issue #23.
+- **Ready now:** CL-1, CL-2, CL-3, CL-7 (Sonnet, in parallel) and CL-8 (Opus).
+- **Authority (owner, 2026-10-10):** the coordinating session pushes item branches, opens PRs and
+  **merges them itself** once the checks pass and it has reviewed the PR against the issue and the
+  sim. It still stops for the owner's go-ahead before Wave D (the switch that changes the live game).
+- An earlier attempt at a "Phase 1 Shell" that wired into the live game was cancelled by the owner.
+  Don't revive it; if a local branch `core-loop-shell` or a stash of that name exists, leave it.
 
 ## 3. Owner decisions needed (ask in issue #23; defaults in brackets)
 
@@ -127,28 +127,31 @@ CL-13…CL-16 can run together (one file each); i18n keys go in per-item files
 
 ```
 You are the coordinating session for the core-loop redesign of Aetheria.
-Read AGENTS.md, docs/core-loop-plan.md, docs/core-loop-redesign.md and docs/core-loop-reference.md,
-then docs/STATUS.md. Follow docs/core-loop-plan.md exactly.
+Read AGENTS.md, docs/core-loop-plan.md (section 2 says where things stand), docs/core-loop-redesign.md,
+docs/core-loop-reference.md, js/systems/coreloop/README.md, then docs/STATUS.md. Follow the plan.
 
-1. Section 2 first: confirm the repo is on a clean checkout of main. If a local branch
-   core-loop-shell or uncommitted edits exist, stop and ask me before touching them.
-2. Post the owner decisions of section 3 as one comment on issue #23 with their defaults; work
-   with the defaults unless I answer.
-3. File one GitHub issue per Wave A item (label roadmap, title "R<n>: CL-x <name>", body: goal,
-   spec section, files, depends on, done when, model) and add the rows to the Plan table in
-   docs/STATUS.md.
-4. Do CL-0 yourself (it is the contract everything else is written against). Before writing it,
-   run /agent-tree-design to derive the module boundaries, and check them against section 4.
-5. When CL-0 is merged, fan out per AGENTS.md "Fanning out": items marked S go to the
-   roadmap-coder agent (Sonnet), one per worktree and branch with a draft PR opened right away;
-   items marked O go to the roadmap-architect agent (Opus) or you do them yourself. Never two
-   agents on the same files. Start with CL-1, CL-2, CL-3, CL-7 together, and CL-8 on Opus.
-6. Review every PR against its issue and against sim/redesign/model.mjs before merging. Wave A
-   PRs get the no-changelog label. Only you edit docs/STATUS.md.
-7. Stop and report after each wave: what merged, test and sim results, anything unsure, and what
-   needs my decision. Do not start Wave D without my go-ahead.
-Never push to main directly, never force-push, and ask me before any push that is not a branch
-for one of these items.
+1. Start from a clean checkout of main. Check which core-loop issues are open and which have an
+   open PR (gh issue list --label core-loop; gh pr list): an item is ready when every item in its
+   "Depends on" line is closed.
+2. Fan out the ready items per AGENTS.md "Fanning out": one sub-agent per item, each in its own
+   git worktree and branch, with a draft PR opened right away. Items marked Sonnet go to the
+   roadmap-coder agent; items marked Opus go to the roadmap-architect agent, or you do them
+   yourself if sub-agents are pinned to Sonnet. Never two agents on the same files. Use the
+   prompt in section 6.2 of the plan for each.
+3. For each PR: review it against its issue, the contract README and the sim functions it ports;
+   run npm test and the sim --assert yourself; make sure it has the no-changelog label (Wave A).
+   When the checks pass and you are satisfied, mark it ready and merge it yourself (I trust your
+   review; you don't need to ask). If it is not good enough, send it back to the agent or fix it.
+4. After each merge: update docs/STATUS.md (only you edit it), then fan out whatever became ready.
+   Keep going through Wave A and Wave B without waiting for me.
+5. When a new item needs an issue (Waves B and C), file it as "R<n>: CL-x <name>" with labels
+   roadmap and core-loop, in the same format as #204-#213, and add its row to the Plan table.
+6. Stop and ask me before Wave D (the switch that changes the live game), before anything that
+   deletes player data or old systems, and whenever an owner decision in #23 has no default that
+   fits. Otherwise decide, write the decision in the PR, and go on.
+7. At the end of the session, leave docs/STATUS.md and section 2 of the plan saying exactly where
+   things stand, and tell me what merged, what is open, and what needs me.
+Never force-push and never push to main directly: everything goes through a PR.
 ```
 
 ### 6.2 One sub-agent (the coordinator fills the brackets)
@@ -164,7 +167,7 @@ Write [files] and nothing else. Logic takes the clock and RNG as arguments. Use 
 the plan says so. Tests in test_cl_[x].js must cover the "done when" line and at least one case
 checked against the sim's function with the same inputs.
 Open a draft PR at once ("R[n]: CL-[x] [name]", body "Closes #[N]", label no-changelog), then
-finish with npm test green. Do not edit docs/STATUS.md, js/main.js, GameState.js or any i18n
+finish with npm test green. Do not merge it: the coordinator reviews and merges. Do not edit docs/STATUS.md, js/main.js, GameState.js or any i18n
 file. Final report: PR link, what you built, test output, anything you were unsure of.
 ```
 
