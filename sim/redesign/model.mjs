@@ -19,7 +19,7 @@ export function rand(s) {
 
 // Mixer recipes: pairs of Fields cycle (tower+mine, mine+oasis, oasis+tower); grades spread from
 // `from` up to `from + span` over the batch
-function buildRecipes(count, from, span) {
+export function buildRecipes(count, from, span) {
   const pairs = [[0, 1], [1, 2], [2, 0]];
   const out = [];
   for (let i = 0; i < count; i++) {
@@ -197,7 +197,7 @@ export function maybeChronicle(s) {
   s.newFields = 0; s.shares = Math.floor(s.pages * P.startSharesPerPage); s.resLife = 0; s.lastResetAt = s.t;
   for (const f of s.fields) if (f.rig > 1) f.rig = 1;
   const top = Math.max(...s.fields.map(f => f.bestGrade));
-  s.recipes.push(...buildRecipes(P.recipesPerChronicle, top, 4));
+  s.recipes.push(...buildRecipes(P.recipesPerChronicle, top, P.recipeChronicleSpan));
   resetRun(s);
   event(s, 'chronicle', 4, { pages });
   return true;
@@ -370,7 +370,7 @@ export function weeklyOrder(s) {
   event(s, 'weekly', 4);
 }
 
-function vials(s) {
+export function vials(s) {
   const day = Math.floor(s.t / 86400);
   if (day !== s.vialDay) { s.vialDay = day; s.vialOffers += P.vialOffersPerDay; }
   s.fields.forEach((f, i) => {
@@ -408,7 +408,7 @@ function bubbleLevels(s) {
   }
 }
 
-function mixer(s) {
+export function mixer(s) {
   let remade = false;
   for (const r of s.recipes) {
     const A = s.fields[r.fa], B = s.fields[r.fb];
@@ -417,7 +417,7 @@ function mixer(s) {
       if (rand(s) >= P.mixerChance) continue;
       r.found = true; r.made = 1;
       takeAtLeast(A, r.ga, 1); takeAtLeast(B, r.gb, 1);
-      s.frac[FIELD_FRAC[r.fa]].extra += 0.02;
+      s.frac[FIELD_FRAC[r.fa]].extra += P.compoundBonus;
       event(s, 'compound', 3);
       continue;
     }
@@ -430,7 +430,7 @@ function mixer(s) {
     r.made++;
     if (r.made >= P.compoundTiers[r.tier]) {
       r.tier++;
-      if (r.tier >= 2) { s.frac[FIELD_FRAC[r.fa]].extra += 0.02; event(s, r.tier === 2 ? 'gilded' : 'royal', r.tier === 2 ? 3 : 4); }
+      if (r.tier >= 2) { s.frac[FIELD_FRAC[r.fa]].extra += P.compoundBonus; event(s, r.tier === 2 ? 'gilded' : 'royal', r.tier === 2 ? 3 : 4); }
     }
   }
 }

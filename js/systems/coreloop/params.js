@@ -114,6 +114,8 @@ export const P = {
   // Mixer
   // recipe grades spread over the year's whole grade range, so discoveries keep coming
   recipes: 40, recipesPerChronicle: 10, recipeGradeMax: 40, mixerChance: 0.6,
+  recipeChronicleSpan: 4,          // a Chronicle's batch spreads its grades over this many above the best grade
+  compoundBonus: 0.02,             // added to the Fraction per Compound found, and per Gilded / Royal tier
   compoundTiers: [5, 25, 100],
   remakeHours: 0.5,                // a re-make costs this many hours of each Field's farming; one per visit
   // Seals

@@ -66,7 +66,7 @@ console.log('--- a state survives a save, field for field ---');
   s.cauldrons.vats[2] = { fill: 777.7, brewed: 40, bars: 50, speed: 2.5 };
   s.cauldrons.bubbles = [{ frac: 0, level: 3 }, { frac: 4, level: 12 }];
   s.collection.vials = { '1:7': { tier: 3, pity: 0 }, '0:2': { tier: 0, pity: 2 } };
-  s.collection.vialOffers = 4; s.collection.vialDay = 17;
+  s.collection.vialOffers = 4; s.collection.vialDay = 17; s.collection.batchFrom = [3, 11];
   s.collection.recipes = [{ found: true, made: 30, tier: 2 }, { found: false, made: 0, tier: 0 }];
   s.seals.hours[4] = 612.5; s.seals.tier[4] = 3;
   s.presence.handField = 2; s.presence.nextGusherAt = 13000;
@@ -110,7 +110,7 @@ console.log('--- saves that lack fields, or are garbage, still load (rule 2) ---
     fields: [{ frontier: NaN, inventory: [-5, 'x', 3], rig: -2 }],
     refinery: { frac: [{ level: -1, bubble: -9 }], orders: [{ empty: false, frac: 99, field: 0, qty: 5 }, { empty: false, frac: 1, field: 1, qty: -1 }] },
     cauldrons: { vats: [{ speed: 0, fill: -1 }], bubbles: [{ frac: 9, level: 3 }, { frac: 1, level: 0 }, 'x'] },
-    collection: { vials: { 'bad key': { tier: 3 }, '0:1': { tier: 99, pity: -1 } }, recipes: ['x', { found: 'y', made: -1, tier: 9 }] },
+    collection: { vials: { 'bad key': { tier: 3 }, '0:1': { tier: 99, pity: -1 } }, batchFrom: [4.7, -2, 'x'], recipes: ['x', { found: 'y', made: -1, tier: 9 }] },
     seals: { tier: [99], hours: [-1] }, presence: { handField: 7 }
   });
   assert.equal(bad.t, 0);
@@ -130,6 +130,8 @@ console.log('--- saves that lack fields, or are garbage, still load (rule 2) ---
   assert.deepEqual(bad.cauldrons.bubbles, [{ frac: 1, level: 1 }]);
   assert.deepEqual(bad.collection.vials, { '0:1': { tier: P.vialTiers, pity: 0 } });
   assert.deepEqual(bad.collection.recipes[1], { found: false, made: 0, tier: P.compoundTiers.length });
+  assert.deepEqual(bad.collection.batchFrom, [4, 0, 0]);
+  assert.deepEqual(deserializeCoreLoop({}).collection.batchFrom, []);
   assert.equal(bad.seals.tier[0], P.sealHours.length);
   assert.equal(bad.presence.handField, FIELDS.length - 1);
   const flat = JSON.stringify(serializeCoreLoop(bad));
