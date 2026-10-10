@@ -5,6 +5,7 @@ import { BigNum } from './js/engine/BigNum.js';
 import { P } from './js/systems/coreloop/params.js';
 import { FIELD, FRACTIONS, PRESENCE, makeContext } from './js/systems/coreloop/shared.js';
 import { createCoreLoopState } from './js/systems/coreloop/state.js';
+import * as Guide from './js/systems/coreloop/Guide.js';
 import * as Fields from './js/systems/coreloop/Fields.js';
 import * as Rigs from './js/systems/coreloop/Rigs.js';
 import * as Refinery from './js/systems/coreloop/Refinery.js';
@@ -33,7 +34,8 @@ for (const k of Object.keys(EN_R)) {
 }
 for (const k of Object.keys(AR_R)) ok(k in EN_R, `${k} Arabic has an English key`);
 // every dynamic key the screen builds exists
-for (const f of FRACTIONS) { ok(`cl.frac.${f}` in EN, f); ok(`cl.refinery.powers.${f}` in EN, f); }
+for (const f of FRACTIONS) { ok(`cl.frac.${f}` in EN, f); ok(`cl.refinery.powers.${f}` in EN, f); ok(`cl.refinery.speeds.${f}` in EN, f); }
+for (const k of ['orders', 'bubbles', 'vials', 'compounds', 'seals']) ok(`cl.refinery.part.${k}` in EN, k);
 for (const c of P.cauldrons) { ok(`cl.dallah.${c}` in EN, c); ok(`cl.refinery.fills.${c}` in EN, c); }
 for (const f of P.fields) ok(`cl.field.${f}` in EN, f);
 for (const id of [...Collection.VIAL_TIERS, ...Collection.COMPOUND_TIERS, 'none', 'unknown']) ok(`cl.refinery.tier.${id}` in EN, id);
@@ -55,13 +57,38 @@ function running() {
 }
 const give = (s, field, grade, n) => Fields.addMaterial(s, field, grade, n);
 
-{ // tower
+{ // Your Fractions: only the parts whose feature is open, x1 reads "not raised yet"
   const s = createCoreLoopState(1);
-  const rows = UI.towerRows(s);
+  const closed = () => false, all = () => true;
+  let rows = UI.fractionRows(s, closed);
   eq(rows.map(r => r.id), [...FRACTIONS], 'five Fractions, Gas on top');
-  ok(rows.every(r => r.value === 1 && r.level === 0 && r.key === r.id), 'a new game starts at x1');
+  ok(rows.every(r => r.value === 1 && !r.raised && r.key === r.id), 'a new game starts unraised');
+  eq(rows[0].parts.map(p => p.kind), ['orders'], 'a fresh screen lists only Orders');
+  eq(UI.fractionRows(s, all)[0].parts.map(p => p.kind), ['orders', 'bubbles', 'vials', 'compounds', 'seals'], 'everything open lists every part');
+  eq(UI.fractionRows(s, (f) => f === 'refinery.vials')[0].parts.map(p => p.kind), ['orders', 'vials']);
   s.refinery.frac[1].level = 3;
-  ok(Math.abs(UI.towerRows(s)[1].value - Math.pow(P.orderMult, 3)) < 1e-12, 'value follows the Order level');
+  rows = UI.fractionRows(s, closed);
+  ok(Math.abs(rows[1].value - Math.pow(P.orderMult, 3)) < 1e-12 && rows[1].raised, 'value follows the Order level');
+  ok(Math.abs(rows[1].parts[0].mult - rows[1].value) < 1e-12 && rows[1].parts[0].level === 3);
+  s.refinery.frac[0].bubble = 0.25;
+  ok(UI.fractionRows(s, closed)[0].raised, 'any source raises it');
+  eq(UI.fractionRows(s, all)[0].parts[1].pct, 25, 'parts read as percent');
+  eq(UI.orderPct(), 1.5, 'an Order adds 1.5%');
+}
+
+{ // which later sections show: fresh, mid, late
+  const only = (...ids) => (f) => ids.includes(f);
+  let v = UI.sectionsView(only());
+  eq([v.open, v.lock], [[], 'refinery.vials'], 'fresh: nothing, hint at the first');
+  v = UI.sectionsView(only('refinery.vials'));
+  eq([v.open, v.lock], [['refinery.vials'], 'refinery.weekly'], 'after an Order: Vials');
+  v = UI.sectionsView(only('refinery.vials', 'refinery.weekly', 'refinery.cauldrons'));
+  eq([v.open.length, v.lock], [3, 'refinery.mixer'], 'mid: three open, one hint');
+  v = UI.sectionsView(only('refinery.vials', 'refinery.cauldrons'));
+  eq(v.lock, 'refinery.weekly', 'the first closed one, in order, is the only hint');
+  v = UI.sectionsView(() => true);
+  eq([v.open.length, v.lock], [4, null], 'late: all four, no hint');
+  for (const f of UI.LATER) ok(f in Guide.FEATURES, `${f} is a guide feature`);
 }
 
 { // orders
@@ -80,6 +107,22 @@ const give = (s, field, grade, n) => Fields.addMaterial(s, field, grade, n);
   const e = UI.orderView(s, 0);
   eq(e.empty, true, 'an empty slot shows a refill time'); ok(e.refillIn > 0 && e.refillIn <= P.orderRefill);
   eq(UI.orderView(s, 9), null, 'no such slot');
+  ok(e.progress >= 0 && e.progress < 1, 'the empty slot has a refill bar');
+  eq(UI.refillProgress(P.orderRefill), 0); eq(UI.refillProgress(0), 1); eq(UI.refillProgress(P.orderRefill / 2), 0.5);
+  eq(v.pct, 1.5);
+}
+
+{ // the anchor goes on the first fillable Order, else the first
+  const s = running();
+  Refinery.step(s, 1, PRESENCE.WATCH);
+  eq(UI.anchorSlot(s), 0, 'nothing fillable: the first Order');
+  eq(UI.fillableCount(s), 0);
+  const o1 = Refinery.orderInfo(s, 1);
+  give(s, o1.field, o1.grade, o1.qty + 1);
+  ok(Refinery.canFillOrder(s, 1), 'the second can be filled');
+  eq(UI.anchorSlot(s), Refinery.canFillOrder(s, 0) ? 0 : 1, 'the first fillable');
+  ok(UI.fillableCount(s) >= 1);
+  eq(UI.anchorSlot({ refinery: { orders: [] } }), -1, 'no slots, no anchor');
 }
 
 { // weekly
