@@ -99,5 +99,6 @@
   .clw-well-icon { font-size: 2.75rem; }
 }
 /* The label inside the well wraps and stays inside the circle ("Gusher! Tap! 13 s left") */
-.clw-well-text { text-align: center; max-inline-size: 124px; line-height: 1.15; }
+.clw-well-text { text-align: center; max-inline-size: 124px; line-height: 1.15; white-space: normal; text-wrap: balance; }
 .clw-well.is-gusher .clw-well-text { font-size: var(--fs-14); }
+.clw-well.is-gusher .cl-icon { inline-size: 72px; block-size: 72px; }
