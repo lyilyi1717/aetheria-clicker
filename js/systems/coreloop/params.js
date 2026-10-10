@@ -36,8 +36,9 @@ export const P = {
   wellMin: 1e6,                    // run Crude for a New Well
   resBase: 2, resPow: 1.5,         // Reserves = floor(resBase·(log10(run/wellMin))^resPow): log-scaled
   resPer: 0.1,                     // Crude x(1 + resPer·R), R = lifetime Reserves this layer
-  wellMinRunSec: 600,
-  wellGain: 0.25, wellMinReserves: 5, // New Well once it would add ≥ 25% to lifetime Reserves (at least 5)
+  // New Well once it would add ≥ 25% to this layer's Reserves, at least wellMinReserves. A resource
+  // gate only: no reset waits on the clock (owner rule, 2026-10-10)
+  wellGain: 0.25, wellMinReserves: 12,
   // New Field k (0-based in this Chronicle) needs a best run of 10^(fieldLog0 + fieldLogStep·k +
   // fieldLogPerChronicle·Chronicles) Crude: a clear goal on screen, and each loop must climb higher
   fieldLog0: 50, fieldLogStep: 3, fieldLogPerChronicle: 8,

@@ -100,7 +100,7 @@ console.log('--- the first hour: every step passes, in order, and nothing is qui
 
 console.log('--- open is sticky: a New Well, a save and a load close nothing ---');
 {
-  const { s } = play(900);
+  const { s } = play(1200);
   const open = Guide.FEATURE_IDS.filter(f => Guide.isOpen(s, f));
   assert.ok(open.includes('tab.prestige') && s.prestige.wells >= 1);
   assert.equal(s.well.bought[1] < 5 || true, true);

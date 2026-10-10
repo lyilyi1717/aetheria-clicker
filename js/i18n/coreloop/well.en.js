@@ -14,7 +14,6 @@ export default {
   'cl.well.run_first': '{have} of {goal} Crude: a New Well starts paying Reserves here.',
   'cl.well.run_pending': 'A New Well would pay {n} Reserves',
   'cl.well.run_need': 'It needs {need} Reserves.',
-  'cl.well.run_wait': 'New Well in {time}',
   'cl.well.run_ready': 'A New Well is ready.',
   'cl.well.run_go': 'Open Expand',
   // Pumps

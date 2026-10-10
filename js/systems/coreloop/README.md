@@ -16,19 +16,22 @@ names, with the differences listed under "Game vs sim" below.
    `state.t`; randomness comes from `rand(state)` (`shared.js`). Same state in, same state out.
    **`state.t` is the start of the step:** a step covers `[t, t + dt)`, and the loop driver adds
    `dt` to `state.t` after every system has stepped (as the sim's `advance` does).
-3. **Numbers from `params.js` only** (`P`). No literals for anything tunable. The sim reads the
+3. **Gates are resources, never the clock.** Nothing the player wants may be locked behind "wait
+   N minutes whatever you do": a gate is Crude, Reserves, Materials, levels. (Time away, the
+   Hands-on window and how often a Gusher surfaces are rates, not gates.)
+4. **Numbers from `params.js` only** (`P`). No literals for anything tunable. The sim reads the
    same object, so a number changed here changes the sim.
-4. **Report moments with `ctx.emit(kind, level, data)`.** `ctx` is the last argument of any
+5. **Report moments with `ctx.emit(kind, level, data)`.** `ctx` is the last argument of any
    function that can cause one; default it to `NO_CONTEXT`. Kinds and levels are in the table
    below. The UI turns them into feedback; the sim counts them.
-5. **Write only your own part of the state** (table below). Read anything.
-6. **Units:** time in seconds (`P.rankHours` and Seal hours are hours, as named); Material
+6. **Write only your own part of the state** (table below). Read anything.
+7. **Units:** time in seconds (`P.rankHours` and Seal hours are hours, as named); Material
    amounts are plain numbers in "units"; Crude and generator amounts are `BigNum`.
-7. **Step signature** for anything that advances with time:
+8. **Step signature** for anything that advances with time:
    `step(state, dt, presence, ctx = NO_CONTEXT)` with `presence` one of `PRESENCE.*`.
    Player actions are separate functions that return `true` if they happened
    (`fillOrder(state, slot, ctx)`), so the UI can enable buttons with a matching `can…` function.
-8. **Saves:** a new saved field needs a default in `createCoreLoopState` and a line in
+9. **Saves:** a new saved field needs a default in `createCoreLoopState` and a line in
    `deserializeCoreLoop`. `test_cl_state.js` fails if a field doesn't survive a save.
 
 ## Who writes what
@@ -91,8 +94,9 @@ What the items that depend on it can rely on:
   Chronicle timing as `suggestChronicle(state)` (full Pages, or the loop has slowed). CL-10's
   driver plays those.
 - **New Well:** Reserves are `pendingReserves(state)`; allowed when they are at least
-  `newWellNeed(state)` (25% of this layer's Reserves, at least `P.wellMinReserves`) and the run is
-  `P.wellMinRunSec` old. That is a rule of the game, not a policy (the redesign doc, §6).
+  `newWellNeed(state)` (25% of this layer's Reserves, at least `P.wellMinReserves`). That is a
+  rule of the game, not a policy (the redesign doc, §6). **No reset waits on the clock** (owner
+  rule, 2026-10-10): a gate is always something the player earns.
 - **New Field:** `fieldChoices(state)` lists what it may be spent on: `{ kind: 'rig', field }`,
   `{ kind: 'level', field }`, `{ kind: 'crew' }`. The first one ever builds a Rig. A Charter
   (`CHARTERS`) may be switched with each New Field and only then; `prestige.charter` is `'none'`

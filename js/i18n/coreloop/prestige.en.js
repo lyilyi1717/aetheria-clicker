@@ -22,10 +22,8 @@ export default {
   'cl.prestige.well.keep': 'Fields, Materials, Orders, Mastery, your Collection and every Reserve you have.',
   'cl.prestige.well.bar': '{have} of {need} Reserves, the least a New Well pays',
   'cl.prestige.well.bar_enough': 'Enough Reserves. Pump on: the more Crude this run, the more it pays.',
-  'cl.prestige.well.wait': 'The run must be {time} older first.',
   'cl.prestige.well.btn': 'New Well: +{n} Reserves',
   'cl.prestige.well.btn_need': 'Need {n} more Reserves first',
-  'cl.prestige.well.btn_wait': 'Ready in {time}',
   'cl.prestige.well.done': 'New Well! +{n} Reserves.',
 
   'cl.prestige.tree.title': 'Upgrade tree',

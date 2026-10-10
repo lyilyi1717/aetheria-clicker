@@ -53,7 +53,7 @@ const rigged = () => {
   s.fields.forEach((_, i) => Rigs.build(s, i));
   return s;
 };
-const withRun = (s, log) => { s.well.runCrude = new BigNum(1, log); s.well.bestRunChron = new BigNum(1, log); s.t = P.wellMinRunSec + 10; return s; };
+const withRun = (s, log) => { s.well.runCrude = new BigNum(1, log); s.well.bestRunChron = new BigNum(1, log); s.t = 610; return s; };
 
 console.log('--- New Well card ---');
 {
@@ -66,10 +66,8 @@ console.log('--- New Well card ---');
   v = View.wellView(s);
   ok(v.can && v.pending >= v.need && v.missing === 0 && v.fraction === 1, 'a long, big run can');
   eq(View.wellButton(s), { can: true, text: t('cl.prestige.well.btn', { n: v.pending }) }, 'button shows the payout');
-  s.t = 10;                                       // big run, but too young
-  v = View.wellView(s);
-  ok(!v.can && v.wait > 0 && v.missing === 0, 'only the wait is left');
-  ok(View.wellButton(s).text === t('cl.prestige.well.btn_wait', { time: View.clock(v.wait) }), 'button shows the wait');
+  s.t = 1;                                        // a young run can too: no reset waits on the clock
+  ok(View.wellView(s).can && !('wait' in View.wellView(s)), 'enough Reserves is all it takes');
   s.prestige.reserves = 20;
   eq(View.wellView(s).mult, 1 + P.resPer * 20, 'Crude multiplier from Reserves');
 }

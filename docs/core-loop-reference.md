@@ -74,8 +74,8 @@ Generators: g unlocks at a best-ever run of 10^(60 + 7(g-9)), g = 9..30, never r
 Away Well x0.5; Hands-on x(1 + 0.5·Heat).
 
 ### 3.3 Prestige
-New Well: Reserves = floor(2·log10(run/1e6)^1.5), when ≥ 25% of lifetime Reserves (min 5) and
-run ≥ 10 min. New Field (a Hands-on decision): best run ≥ 10^(50 + 3k + 8·Chronicles); +2 Shares;
+New Well: Reserves = floor(2·log10(run/1e6)^1.5), when ≥ 25% of lifetime Reserves (min 12);
+no minimum run time (no gate waits on the clock). New Field (a Hands-on decision): best run ≥ 10^(50 + 3k + 8·Chronicles); +2 Shares;
 choice Rig → Crew (slots 1 + Chronicles) → lowest Rig level. Chronicle: ≥ 8 New Fields first,
 then ≥ 6; best ≥ 10x record; 9 New Fields or 5 days slowed. Pages = 3 + floor((fields-6)/2).
 Starts with floor(1.3·Pages) Shares (re-blaze); Rig levels back to 1. The one tree (`P.tree`): an
@@ -228,3 +228,13 @@ must carry, not just a number):
     tree: 1e206, 1e241, 1e191, 1e250). On the real systems the idle profile then sat at the T3 limit
     (L3 gap 3.0-3.3 d; it had been 2.9-3.0 since log 28) → a Bubble family every 3rd Bubble (was 4th);
     worst L3 gap now 2.8 d. All targets pass on seeds 1-6 in both sims. **D**
+30. Owner rule (2026-10-10): **no gate may wait on the clock; gates are resources.** The New Well had
+    one (run ≥ 10 min). Timer removed, nothing else changed: 287 of 288 checks in the model (seeds
+    1-6) and 143 of 144 on the real systems; the one miss is T12 for active, seed 3 (33.1 d and
+    33.6 d; the limit is 30). T12 moves 22-33 d between seeds either way, so the timer was not what
+    held it. → the least a New Well pays 5 → **12 Reserves** (tried 8: T12 30.5 d on seed 1; 20
+    also passes). All targets pass on seeds 1-6 in the model and 1-3 on the real systems. Year shape
+    (seed 1, best run month 12): active 1e203 (was 1e201), casual, idle and open within 3 decades.
+    A guided first New Well comes at 15:54 (was 13:21). Still on the clock, and open questions for
+    the owner: a filled Order slot refills after 30 min (`orderRefill`), a Trial can be won 2 h
+    after it unlocks (`trialDelay`), the weekly Order. **D**
