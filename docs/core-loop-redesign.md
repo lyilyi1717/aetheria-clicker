@@ -197,7 +197,7 @@ filled by a **way of playing**, which makes every presence state produce somethi
 - Bubbles level with **Essence** (Oasis Materials), so the Garden feeds every Fraction.
 - Big Bubbles go in **3 active slots**, a loadout per playstyle.
 - Cauldrons fill in seconds, never in raw Material units (units grow with Pressure; in the sim that
-  ran away to 1,175 Bubbles). Each 4th Bubble opens a new **Bubble family** (L3).
+  ran away to 1,175 Bubbles). Each 3rd Bubble opens a new **Bubble family** (L3).
 - Target cadence (to be simmed): a Bubble every 30-60 min on day 0 across the four, then one or
   two a day for months. The Hand Cauldron fills fastest, so active players see the most new
   Bubbles.

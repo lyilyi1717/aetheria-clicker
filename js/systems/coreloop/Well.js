@@ -6,6 +6,8 @@
 import { BigNum } from '../../engine/BigNum.js';
 import { P } from './params.js';
 import { PRESENCE, FRAC, HIT, NO_CONTEXT, fracValue } from './shared.js';
+import { heat as heatOf } from './Presence.js';
+import { treeBonus } from './treeMath.js';
 
 // The sim's buyAll stops after this many packs of a slot and Pressure levels in one call
 const MAX_PACKS = 40;
@@ -55,9 +57,6 @@ function unlockGenerators(state, ctx) {
 }
 
 // --- rates ---------------------------------------------------------------------------------------
-// Heat of the hands-on stretch (Presence.js owns presence.heatSeconds; same formula as its heat)
-const heatOf = (state) => 1 + Math.min(1, state.presence.heatSeconds / P.heatRamp);
-
 // Everything global: Reserves, Shares, Pages, Pressure, Naphtha and the presence state. It acts on
 // slot 1's Crude output only (on every stage it would be raised to the power of the slot count).
 export function wellMultiplier(state, presence = PRESENCE.WATCH) {
@@ -66,9 +65,10 @@ export function wellMultiplier(state, presence = PRESENCE.WATCH) {
     + p.shares * Math.log10(P.shareMult)
     + p.pages * Math.log10(P.pageMult)
     + state.well.pressure * Math.log10(P.pMult)
-    + Math.log10(fracValue(state, FRAC.NAPHTHA));
-  if (presence === PRESENCE.AWAY) log += Math.log10(P.awayWell);
-  else if (presence === PRESENCE.HANDS) log += Math.log10(1 + P.handsWell * (heatOf(state) - 1));
+    + Math.log10(fracValue(state, FRAC.NAPHTHA))
+    + Math.log10(treeBonus(state.tree, 'crude'));
+  if (presence === PRESENCE.AWAY) log += Math.log10(Math.min(1, P.awayWell * treeBonus(state.tree, 'awayWell')));
+  else if (presence === PRESENCE.HANDS) log += Math.log10(1 + (P.handsWell + treeBonus(state.tree, 'handsWell')) * (heatOf(state) - 1));
   return pow10(log);
 }
 
@@ -220,16 +220,18 @@ export function flare(state, byHand = true, ctx = NO_CONTEXT) {
 
 // --- New Well ------------------------------------------------------------------------------------
 // What a New Well resets (Prestige.js calls this). Generators, pressureBest and the best-run
-// records stay.
-export function resetRun(state) {
+// records stay. `keep` is what the tree carries over: `pressure` levels kept, and `kit` free
+// units of slot 1 (owned, not bought: they don't move its price).
+export function resetRun(state, { pressure = 0, kit = 0 } = {}) {
   const w = state.well;
   w.crude = new BigNum(P.startCrude);
   w.runCrude = BigNum.zero();
   w.runStart = state.t;
   w.bought = new Array(P.slots + 1).fill(0);
   w.amount = Array.from({ length: P.slots + 1 }, () => BigNum.zero());
-  w.pressure = 0;
+  w.pressure = Math.max(0, Math.floor(pressure));
   w.flare = 1;
+  if (kit > 0) w.amount[1] = new BigNum(kit);
 }
 
 // A Chronicle closes the record its gate compares against (Prestige.js calls this, then

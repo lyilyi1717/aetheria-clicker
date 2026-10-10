@@ -19,6 +19,7 @@ import * as Collection from '../js/systems/coreloop/Collection.js';
 import * as Cauldrons from '../js/systems/coreloop/Cauldrons.js';
 import * as Seals from '../js/systems/coreloop/Seals.js';
 import * as Prestige from '../js/systems/coreloop/Prestige.js';
+import * as Tree from '../js/systems/coreloop/Tree.js';
 import { PROFILES, presenceAt } from './redesign/profiles.mjs';
 import { simulate as simulateModel, checkTargets } from './redesign/run.mjs';
 
@@ -99,6 +100,7 @@ function refineryActions(run, { resets = true } = {}) {
   vialsPolicy(run);
   mixerPolicy(run);
   bubbleLevelsPolicy(run);
+  Tree.buyAll(g);
   if (!resets) return;
   if (Prestige.suggestChronicle(g)) Prestige.chronicle(g, ctx);
   else if (Prestige.canNewField(g)) Prestige.newField(g, Prestige.suggestedChoice(g), undefined, ctx);

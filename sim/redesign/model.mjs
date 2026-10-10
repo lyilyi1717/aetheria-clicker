@@ -1,6 +1,7 @@
 // Core-loop redesign model (docs/core-loop-redesign.md). Pure functions over a plain, cloneable
 // state object; all numbers come from params.mjs. run.mjs drives it through a profile's schedule.
 import { P } from './params.mjs';
+import { newTree, treeBonus, earn, resetRing, buyAffordable } from '../../js/systems/coreloop/treeMath.js';
 
 const LOG10 = Math.log10;
 export const FRAC = { gas: 0, naphtha: 1, kerosene: 2, diesel: 3, bitumen: 4 };
@@ -50,7 +51,7 @@ export function newState(profile, seed = 1) {
     vials: {}, vialOffers: 0, vialDay: -1,
     recipes: buildRecipes(P.recipes, 0, P.recipeGradeMax),
     seals: { hours: new Array(P.seals).fill(0), tier: new Array(P.seals).fill(0) }, crew: 0,
-    heatT: 0, handField: 0,
+    heatT: 0, handField: 0, tree: newTree(),
     events: [], log: true,
     orderStats: { posted: 0, filledIn24h: 0, postedTimes: {} },
     weekly: { week: -1, need: null }, bestEver: 0, recordTimes: [],
@@ -61,7 +62,7 @@ export function newState(profile, seed = 1) {
 // --- multipliers --------------------------------------------------------------------------------
 export const fracVal = (s, i) => (1 + s.frac[i].bub + s.frac[i].vial + s.frac[i].extra) * Math.pow(P.orderMult, s.frac[i].level);
 const layerMult = (s) => (1 + P.resPer * s.resLife) * Math.pow(P.shareMult, s.shares) * Math.pow(P.pageMult, s.pages);
-const heatOf = (s) => 1 + Math.min(1, s.heatT / P.heatRamp);
+const heatOf = (s) => 1 + Math.min(1, (s.heatT * treeBonus(s.tree, 'heat')) / P.heatRamp);
 const charter = (s) => P.charter[s.charter] || {};
 export const openTiers = (s) => s.gens;
 const topTier = (s) => { for (let k = P.slots; k >= 1; k--) if (s.b[k] > 0) return k; return 0; };
@@ -80,9 +81,9 @@ function event(s, k, lvl, extra) {
 
 // Well output multiplier in a presence state
 export function wellMult(s, st) {
-  let m = layerMult(s) * Math.pow(P.pMult, s.pressure) * fracVal(s, FRAC.naphtha);
-  if (st === 'away') m *= P.awayWell;
-  else if (st === 'hands') m *= 1 + P.handsWell * (heatOf(s) - 1);
+  let m = layerMult(s) * Math.pow(P.pMult, s.pressure) * fracVal(s, FRAC.naphtha) * treeBonus(s.tree, 'crude');
+  if (st === 'away') m *= Math.min(1, P.awayWell * treeBonus(s.tree, 'awayWell'));
+  else if (st === 'hands') m *= 1 + (P.handsWell + treeBonus(s.tree, 'handsWell')) * (heatOf(s) - 1);
   return m;
 }
 export function tierRate(s, k, top, wm) {
@@ -152,7 +153,7 @@ export function maybeFlare(s, manual) {
 }
 
 // --- prestige ------------------------------------------------------------------------------------
-export const pendingReserves = (s) => (s.runCrude < P.wellMin ? 0 : Math.floor(P.resBase * Math.pow(LOG10(s.runCrude / P.wellMin), P.resPow)));
+export const pendingReserves = (s) => (s.runCrude < P.wellMin ? 0 : Math.floor(P.resBase * Math.pow(LOG10(s.runCrude / P.wellMin), P.resPow) * treeBonus(s.tree, 'reserves')));
 
 export function resetRun(s) {
   s.crude = P.startCrude; s.runCrude = 0; s.runStart = s.t;
@@ -164,7 +165,12 @@ export function maybeNewWell(s) {
   if (p < Math.max(P.wellMinReserves, P.wellGain * s.resLife) || s.t - s.runStart < P.wellMinRunSec) return false;
   s.resLife += p; s.wells++;
   for (const [id, kind, n] of P.trials) if (kind === 'well' && s.wells === n) s.trials[id].unlocked = s.t;
+  earn(s.tree, 'reserves', p);
+  // the tree: part of the Pressure survives, and a starter kit of slot 1 units waits in the new Well
+  const pressure = Math.floor(s.pressure * Math.min(1, treeBonus(s.tree, 'keepPressure')));
   resetRun(s);
+  s.pressure = pressure;
+  s.a[1] += treeBonus(s.tree, 'startKit');
   return true;
 }
 
@@ -174,6 +180,8 @@ export function maybeNewField(s) {
   if (!(s.bestRunChron > 0) || LOG10(s.bestRunChron) < fieldGateLog(s)) return false;
   s.newFields++; s.totalFields++; s.shares += P.sharesPerField; s.resLife = 0;
   s.lastResetAt = s.t;
+  earn(s.tree, 'shares', P.sharesPerField);
+  resetRing(s.tree, 'reserves');
   resetRun(s);
   // Choice: a Rig in each Field first, then alternate Crew and the lowest Rig's level
   const noRig = s.fields.findIndex(f => f.rig === 0);
@@ -194,7 +202,9 @@ export function maybeChronicle(s) {
   const pages = P.pageBase + Math.floor((Math.min(s.newFields, P.chronFullFields) - P.chronFields) / P.pageStep);
   s.pages += pages; s.chronicles++;
   s.recordAtChron = Math.max(s.recordAtChron, s.bestRunChron); s.bestRunChron = 0;
-  s.newFields = 0; s.shares = Math.floor(s.pages * P.startSharesPerPage); s.resLife = 0; s.lastResetAt = s.t;
+  s.newFields = 0; s.shares = Math.floor(s.pages * P.startSharesPerPage) + treeBonus(s.tree, 'startShares'); s.resLife = 0; s.lastResetAt = s.t;
+  earn(s.tree, 'pages', pages + treeBonus(s.tree, 'pageBank'));   // Pages to spend; the multiplier counts `pages` only
+  resetRing(s.tree, 'shares'); resetRing(s.tree, 'reserves');
   for (const f of s.fields) if (f.rig > 1) f.rig = 1;
   const top = Math.max(...s.fields.map(f => f.bestGrade));
   s.recipes.push(...buildRecipes(P.recipesPerChronicle, top, P.recipeChronicleSpan));
@@ -207,7 +217,7 @@ export function maybeChronicle(s) {
 export const rankSum = (f) => f.ranks.reduce((x, y) => x + Math.min(y, P.rankHours.length), 0);
 export const fieldSpeed = (s) => Math.pow(P.pFieldMult, s.pressureBest);
 export function fieldPower(s, i, st) {
-  let p = P.fieldBase[i] * fracVal(s, FIELD_FRAC[i]) * (1 + P.schoolPower * rankSum(s.fields[i]) / P.actionsPerField);
+  let p = P.fieldBase[i] * fracVal(s, FIELD_FRAC[i]) * (1 + P.schoolPower * rankSum(s.fields[i]) / P.actionsPerField) * treeBonus(s.tree, 'fieldPower', i);
   if (st === 'hands') p *= heatOf(s) * fracVal(s, FRAC.gas);
   return p;
 }
@@ -221,7 +231,7 @@ export function rigRate(s, i, st) {
   let pr = P[st];
   if (st === 'watch') pr *= c.watch || 1;
   if (st === 'away') pr = Math.min(P.awayCap * P.watch, pr * (c.away || 1) * Math.pow(fracVal(s, FRAC.bitumen), P.awayBitumenExp));
-  return P.rigBase * f.rig * rigEff(f) * fieldSpeed(s) * pr;
+  return P.rigBase * f.rig * rigEff(f) * fieldSpeed(s) * pr * treeBonus(s.tree, 'rig', i);
 }
 // Hand farming in Field i: handMult x that Field's Rig rate (Watching), at least handFloor; no Heat
 // One hour of a Field's farming at the Watching rate (the unit Essence prices are quoted in)
@@ -231,7 +241,7 @@ export const fieldHour = (s, i) => 3600 * Math.max(rigRate(s, i, 'watch'), P.han
 export const handRateBase = (s) => {
   let m = 0;
   for (let i = 0; i < NF; i++) m += rigRate(s, i, 'watch') / NF;
-  return P.handMult * Math.max(m, P.handFloor) * (charter(s).hand || 1);
+  return P.handMult * Math.max(m, P.handFloor) * (charter(s).hand || 1) * treeBonus(s.tree, 'hand');
 };
 
 export function addInv(f, g, units) {
@@ -474,6 +484,7 @@ export function refineryActions(s, { resets = true } = {}) {
   vials(s);
   mixer(s);
   bubbleLevels(s);
+  buyAffordable(s.tree);   // the tree: whatever the banks pay for, cheapest first
   if (resets) maybeChronicle(s) || maybeNewField(s);
 }
 
@@ -494,7 +505,7 @@ export function advance(s, dt, st) {
   s.crude += made; s.runCrude += made; s.probeCrude += made;
   // Gushers while Watching: a catch pays gusherSeconds of Crude and Rig output
   if (st === 'watch') {
-    const x = (dt / P.gusherEvery) * s.gusherCatch * (charter(s).gusher || 1);
+    const x = (dt / P.gusherEvery) * s.gusherCatch * (charter(s).gusher || 1) * treeBonus(s.tree, 'gusherRate');
     const n = Math.floor(x) + (rand(s) < x - Math.floor(x) ? 1 : 0);
     if (n > 0) {
       const c = crudePerSec(s, 'watch') * P.gusherSeconds * n;

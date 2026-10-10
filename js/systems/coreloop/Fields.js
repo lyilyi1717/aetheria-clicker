@@ -7,6 +7,7 @@ import { P } from './params.js';
 import { PRESENCE, HIT, FIELD_FRAC, FRAC, fracValue, NO_CONTEXT } from './shared.js';
 import * as Mastery from './Mastery.js';
 import * as Presence from './Presence.js';
+import { treeBonus } from './treeMath.js';
 
 const LOG10 = Math.log10;
 
@@ -14,7 +15,7 @@ export const gradeOf = (frontier) => Math.floor(frontier / P.gradeSpan);
 
 // A Field's power. Hands-on adds Heat and the Gas Fraction (the sim's fieldPower).
 export function fieldPower(state, field, presence) {
-  let p = P.fieldBase[field] * fracValue(state, FIELD_FRAC[field]) * Mastery.schoolPower(state, field);
+  let p = P.fieldBase[field] * fracValue(state, FIELD_FRAC[field]) * Mastery.schoolPower(state, field) * treeBonus(state.tree, 'fieldPower', field);
   if (presence === PRESENCE.HANDS) p *= Presence.heat(state) * fracValue(state, FRAC.GAS);
   return p;
 }

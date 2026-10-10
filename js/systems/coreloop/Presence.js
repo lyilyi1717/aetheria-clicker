@@ -8,11 +8,14 @@
 // after every system has stepped. A Gusher is up while nextGusherAt <= t < nextGusherAt + P.gusherWindow.
 import { P } from './params.js';
 import { PRESENCE, HIT, rand, NO_CONTEXT } from './shared.js';
+import { treeBonus } from './treeMath.js';
 
 const charterOf = (state) => P.charter[state.prestige.charter] || {};
 
 // Seconds of Watching between Gushers (the charter's `gusher` multiplier makes them more frequent)
-export const gusherInterval = (state) => P.gusherEvery / (charterOf(state).gusher || 1);
+export const gusherInterval = (state) => P.gusherEvery / ((charterOf(state).gusher || 1) * treeBonus(state.tree, 'gusherRate'));
+// Seconds a Gusher stays up (the tree can lengthen it)
+export const gusherWindow = (state) => P.gusherWindow + treeBonus(state.tree, 'gusherWindow');
 
 // The state from input age. lastInputAt is -Infinity after a load, so that reads as Watching.
 export function presenceOf(state) {
@@ -33,15 +36,15 @@ export function setHandField(state, field) {
 }
 
 // Heat 1..2 over P.heatRamp seconds of continuous Hands-on (the sim's heatOf)
-export const heat = (state) => 1 + Math.min(1, state.presence.heatSeconds / P.heatRamp);
+export const heat = (state) => 1 + Math.min(1, (state.presence.heatSeconds * treeBonus(state.tree, 'heat')) / P.heatRamp);
 
 export function gusherUp(state) {
   const at = state.presence.nextGusherAt;
-  return at > 0 && state.t >= at && state.t < at + P.gusherWindow;
+  return at > 0 && state.t >= at && state.t < at + gusherWindow(state);
 }
 
 // Seconds left to tap the Gusher that is up (0 when none)
-export const gusherLeft = (state) => (gusherUp(state) ? state.presence.nextGusherAt + P.gusherWindow - state.t : 0);
+export const gusherLeft = (state) => (gusherUp(state) ? state.presence.nextGusherAt + gusherWindow(state) - state.t : 0);
 
 // Next Gusher after `P.gusherEvery` Watching seconds on average (x0.5..1.5, from the state's RNG)
 function schedule(state) {
@@ -56,7 +59,7 @@ export function step(state, dt, presence, ctx = NO_CONTEXT) {
 
   if (p.nextGusherAt <= 0) schedule(state);                       // first step, or a fresh load
   else if (presence !== PRESENCE.WATCH && state.t < p.nextGusherAt) p.nextGusherAt += dt; // the wait counts Watching time only
-  else if (state.t >= p.nextGusherAt + P.gusherWindow) schedule(state); // missed one: the next wait starts
+  else if (state.t >= p.nextGusherAt + gusherWindow(state)) schedule(state); // missed one: the next wait starts
 }
 
 export const canCatchGusher = (state) => state.presence.state !== PRESENCE.AWAY && gusherUp(state);
