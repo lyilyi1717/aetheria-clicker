@@ -198,7 +198,7 @@ export function mount(panel, api) {
     const name = h(doc, 'span', 'clf-chip-name', t(`cl.field.${id}`));
     const sub = h(doc, 'span', 'clf-chip-sub num');
     b.append(name, sub);
-    b.addEventListener('click', () => api.act((s) => Presence.setHandField(s, i)));
+    b.addEventListener('click', () => api.sendCrew(i));
     pick.appendChild(b);
     return { b, sub };
   });
@@ -244,7 +244,7 @@ export function mount(panel, api) {
   work.dataset.guide = 'fields.work';
   work.addEventListener('click', () => {
     pulse(work); pulse(winRow);
-    api.act(() => {});     // the tap is the input: it is what keeps the crew working
+    api.sendCrew(api.state.presence.handField);   // the tap is the input, and it tells the guide the crew was sent
   });
   for (const n of [work, winRow, status]) n.addEventListener('animationend', () => n.classList.remove('clf-pulse'));
 

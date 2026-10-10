@@ -39,6 +39,10 @@ export default {
   'cl.slot.6.gloss': 'the tanker truck',
   'cl.slot.7': 'Sea Platform',
   'cl.slot.8': 'Giant Field',
+  // What each Field's crew hauls (the Materials, by name)
+  'cl.material.tower': 'Steel',
+  'cl.material.mine': 'Ore',
+  'cl.material.oasis': 'Water',
   // Fractions
   'cl.frac.gas': 'Gas',
   'cl.frac.naphtha': 'Naphtha',
