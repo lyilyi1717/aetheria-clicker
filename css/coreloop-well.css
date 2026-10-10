@@ -2,47 +2,95 @@
 .clw { display: flex; flex-direction: column; gap: var(--sp-4); }
 .clw [hidden] { display: none !important; }
 .clw-h { font-family: var(--font-display); font-size: var(--fs-16); color: var(--gold); margin: 0; }
-.clw-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.clw-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); }
+.clw-titlebox { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .clw-max { min-width: 120px; min-height: var(--tap); }
 .clw-note { margin: 0; color: var(--text-3); font-size: var(--fs-12); line-height: var(--lh-body); }
+.clw-line { margin: 0 0 var(--sp-2); color: var(--text-2); font-size: var(--fs-14); line-height: var(--lh-body); }
 .clw-would { margin: 0 0 var(--sp-2); color: var(--text-1); font-size: var(--fs-14); font-weight: 600; }
 
-.clw-gusher {
+/* 1. The well */
+.clw-hero { display: flex; flex-direction: column; align-items: center; gap: var(--sp-4); text-align: center; }
+.clw-stage { position: relative; display: flex; justify-content: center; width: 100%; }
+.clw-well {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-1);
-  width: 100%; min-height: 96px; font-size: var(--fs-20); box-shadow: var(--glow-gold);
-  animation: clw-bob 0.9s var(--ease-out) infinite alternate;
+  inline-size: 168px; block-size: 168px; padding: var(--sp-3); border-radius: 50%; cursor: pointer;
+  border: 3px solid var(--gold); color: var(--text-1); font: inherit; touch-action: manipulation;
+  background: radial-gradient(circle at 50% 35%, var(--bg-4), var(--bg-2) 70%);
+  box-shadow: 0 0 0 6px var(--gold-dim), var(--glow-gold);
+  -webkit-tap-highlight-color: transparent; user-select: none;
+  transition: transform var(--dur-1) var(--ease-out);
 }
-.clw-gusher-left { font-size: var(--fs-14); font-weight: 600; font-variant-numeric: tabular-nums; }
-@keyframes clw-bob { to { transform: scale(1.02); } }
+.clw-well:active { transform: scale(0.94); }
+.clw-well.is-tapped { animation: clw-squash var(--dur-3) var(--ease-pop); }
+.clw-well-icon { font-size: 3.5rem; line-height: 1; }
+.clw-well-text { font-size: var(--fs-13); font-weight: 700; color: var(--gold); }
+.clw-well.is-gusher {
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--gold) 55%, var(--bg-2)), var(--gold-dim) 80%);
+  animation: clw-bob 0.7s var(--ease-out) infinite alternate;
+}
+.clw-well.is-gusher .clw-well-text { color: var(--text-1); font-size: var(--fs-16); }
+@keyframes clw-squash { 0% { transform: scale(0.88); } 60% { transform: scale(1.05); } 100% { transform: scale(1); } }
+@keyframes clw-bob { to { transform: scale(1.06); } }
+.clw-float {
+  position: absolute; z-index: 2; pointer-events: none; transform: translate(-50%, -50%);
+  color: var(--gold); font-size: var(--fs-24); font-weight: 800; text-shadow: 0 1px 4px var(--bg-0);
+  animation: clw-float 0.9s var(--ease-out) forwards;
+}
+@keyframes clw-float { to { transform: translate(-50%, -140px); opacity: 0; } }
 
-.clw-summary { display: flex; flex-direction: column; gap: var(--sp-3); }
-.clw-rate { font-size: var(--fs-18); font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
-.clw-heat { display: flex; flex-direction: column; gap: var(--sp-2); }
+.clw-side { display: flex; flex-direction: column; gap: var(--sp-3); width: 100%; max-inline-size: 420px; }
+.clw-rate { font-size: var(--fs-32); line-height: 1.1; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+.clw-ratelabel { color: var(--text-2); font-size: var(--fs-13); }
+.clw-heat { display: flex; flex-direction: column; gap: var(--sp-2); text-align: start; }
+.clw-paid { margin: 0; color: var(--gold); font-weight: 700; }
 
+/* 2. This run */
+.clw-card .card-head { margin-bottom: var(--sp-2); }
+.clw-card > .clw-h { margin-block-end: var(--sp-2); }
+.clw-card .bar { margin-block-end: var(--sp-2); }
+.clw-run-go { margin-block-start: var(--sp-2); min-height: var(--tap); }
+.clw-card .btn-block { margin-block-start: var(--sp-2); min-height: var(--tap); }
+
+/* 3. Pumps */
 .clw-slots { display: flex; flex-direction: column; gap: var(--sp-2); }
 .clw-slot { flex-wrap: wrap; align-items: stretch; }
-.clw-info { flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.clw-title { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; }
-.clw-amount { color: var(--gold); font-size: var(--fs-18); font-weight: 700; font-variant-numeric: tabular-nums; }
-.clw-sub { color: var(--text-2); font-size: var(--fs-12); font-variant-numeric: tabular-nums; }
+.clw-icon { font-size: 2rem; line-height: 1; align-self: center; inline-size: 2.4rem; text-align: center; }
+.clw-info { flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.clw-title strong { font-size: var(--fs-16); }
+.clw-have { color: var(--gold); font-size: var(--fs-20); font-weight: 700; font-variant-numeric: tabular-nums; }
+.clw-sub { color: var(--text-2); font-size: var(--fs-13); font-variant-numeric: tabular-nums; }
 .clw-prog { margin-block-start: var(--sp-1); }
-.clw-prog .val { min-width: 0; font-weight: 500; color: var(--text-2); }
-.clw-acts { display: flex; gap: var(--sp-2); flex: 0 1 auto; }
-.clw-acts .btn { min-height: var(--tap); }
-.clw-lock { flex: 1 1 100%; }
-.clw .btn-buy { flex: 1 1 0; min-width: 92px; }
-
-.clw-card .btn-block { margin-block-start: var(--sp-2); min-height: var(--tap); }
-.clw-card .card-head { margin-bottom: var(--sp-2); }
+.clw-prog .val { min-width: 0; font-weight: 500; color: var(--text-2); white-space: nowrap; }
+.clw-acts { display: flex; flex-direction: column; gap: var(--sp-2); flex: 1 1 100%; }
+.clw .btn-buy {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: var(--sp-2);
+  min-height: var(--tap); width: 100%; font-variant-numeric: tabular-nums;
+}
+.clw .btn-buy .lbl { font-weight: 700; }
+.clw .btn-buy .cost { font-size: var(--fs-13); }
+.clw .btn-buy .when { flex: 1 1 100%; font-size: var(--fs-12); color: var(--text-2); text-align: center; }
+.clw-pack { opacity: 0.9; }
 
 .cl-pulse { animation: clw-pulse var(--dur-3) var(--ease-out); }
 @keyframes clw-pulse { 0% { box-shadow: 0 0 0 2px var(--gold); } 100% { box-shadow: 0 0 0 0 transparent; } }
+.cl-flash { animation: clw-flash var(--dur-3) var(--ease-out); }
+@keyframes clw-flash { 0% { color: var(--text-1); text-shadow: 0 0 10px var(--gold); } 100% { text-shadow: 0 0 0 transparent; } }
+.cl-nope { animation: clw-nope var(--dur-2) var(--ease-out); }
+@keyframes clw-nope { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 
-@media (max-width: 480px) {
-  .clw-acts { flex: 1 1 100%; }
+@media (min-width: 560px) {
+  .clw-acts { flex-direction: row; flex: 0 1 auto; }
+  .clw .btn-buy { min-width: 130px; }
 }
 @media (min-width: 768px) {
+  .clw-hero { flex-direction: row; justify-content: center; text-align: start; }
+  .clw-stage { width: auto; }
   .clw-slot { flex-wrap: nowrap; }
-  .clw-lock { flex: 0 1 auto; }
+  .clw-rate { text-align: start; }
 }
-@media (prefers-reduced-motion: reduce) { .clw-gusher, .cl-pulse { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .clw-well, .clw-well.is-gusher, .clw-well.is-tapped, .cl-pulse, .cl-nope, .clw-float { animation: none; transition: none; }
+  .cl-flash { animation: none; color: var(--text-1); }
+}
+:root[data-motion="reduced"] .clw-well, :root[data-motion="reduced"] .clw-well.is-gusher { animation: none; }
