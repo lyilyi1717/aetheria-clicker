@@ -323,6 +323,7 @@ console.log('--- mixer: discover, find, re-make, tiers ---');
     a0 -= cost.a;
     near(Fields.countAtLeast(h, r.fa, r.ga), a0, `stock after make ${n}`);
     assert.equal(h.collection.recipes[3].made, n);
+    assert.equal(Collection.compoundTierId(h, 3), ['compound', 'compound', 'gilded', 'royal'][h.collection.recipes[3].tier]);
   }
   assert.equal(h.collection.recipes[3].tier, P.compoundTiers.length);
   assert.equal(Collection.compoundTierId(h, 3), 'royal');

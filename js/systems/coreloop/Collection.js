@@ -147,11 +147,12 @@ export const recipeState = (state, index) => (recipeAt(state, index) ? { ...entr
 export const recipeFound = (state, index) => !!state.collection.recipes[index]?.found;
 export const recipesFound = (state) => state.collection.recipes.reduce((n, r) => n + (r.found ? 1 : 0), 0);
 
-// A Compound's tier id: 'compound' once found, then 'gilded', 'royal'; 'unknown' before
+// A Compound's tier id: 'unknown' before it is found, then 'compound' (tiers 0 and 1: the first
+// P.compoundTiers step has no name), 'gilded' at tier 2 and 'royal' at tier 3
 export const COMPOUND_TIERS = Object.freeze(['compound', 'gilded', 'royal']);
 export function compoundTierId(state, index) {
   const r = state.collection.recipes[index];
-  return r && r.found ? COMPOUND_TIERS[Math.min(r.tier, COMPOUND_TIERS.length - 1)] : 'unknown';
+  return r && r.found ? COMPOUND_TIERS[Math.max(0, Math.min(r.tier, COMPOUND_TIERS.length) - 1)] : 'unknown';
 }
 
 const hasIngredients = (state, r) => Fields.countAtLeast(state, r.fa, r.ga) >= 1 && Fields.countAtLeast(state, r.fb, r.gb) >= 1;
