@@ -7,6 +7,7 @@ import { PRESENCE, HIT, FRAC, fracValue, NO_CONTEXT } from './shared.js';
 import * as Fields from './Fields.js';
 import * as Mastery from './Mastery.js';
 import * as Presence from './Presence.js';
+import { treeBonus } from './treeMath.js';
 
 const NF = P.fields.length;
 const charterOf = (state) => P.charter[state.prestige.charter] || {};
@@ -27,7 +28,7 @@ export function rigRate(state, field, presence) {
   let pr = P[presence];
   if (presence === PRESENCE.WATCH) pr *= c.watch || 1;
   if (presence === PRESENCE.AWAY) pr = Math.min(P.awayCap * P.watch, pr * (c.away || 1) * Math.pow(fracValue(state, FRAC.BITUMEN), P.awayBitumenExp));
-  return P.rigBase * rig * Mastery.rigEfficiency(state, field) * fieldSpeed(state) * pr;
+  return P.rigBase * rig * Mastery.rigEfficiency(state, field) * fieldSpeed(state) * pr * treeBonus(state.tree, 'rig', field);
 }
 
 // One hour of a Field's farming at the Watching rate (the unit Essence prices are quoted in)
@@ -37,7 +38,7 @@ export const fieldHour = (state, field) => 3600 * Math.max(rigRate(state, field,
 export function handRate(state) {
   let m = 0;
   for (let i = 0; i < NF; i++) m += rigRate(state, i, PRESENCE.WATCH) / NF;
-  return P.handMult * Math.max(m, P.handFloor) * (charterOf(state).hand || 1);
+  return P.handMult * Math.max(m, P.handFloor) * (charterOf(state).hand || 1) * treeBonus(state.tree, 'hand');
 }
 
 // Advance every Field by dt seconds in `presence`. Returns { units, rigs }: Material made and the

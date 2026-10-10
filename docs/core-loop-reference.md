@@ -78,7 +78,10 @@ New Well: Reserves = floor(2·log10(run/1e6)^1.5), when ≥ 25% of lifetime Rese
 run ≥ 10 min. New Field (a Hands-on decision): best run ≥ 10^(50 + 3k + 8·Chronicles); +2 Shares;
 choice Rig → Crew (slots 1 + Chronicles) → lowest Rig level. Chronicle: ≥ 8 New Fields first,
 then ≥ 6; best ≥ 10x record; 9 New Fields or 5 days slowed. Pages = 3 + floor((fields-6)/2).
-Starts with floor(1.35·Pages) Shares (re-blaze); Rig levels back to 1. Trials: Auto-Buy at
+Starts with floor(1.3·Pages) Shares (re-blaze); Rig levels back to 1. The one tree (`P.tree`): an
+inner ring bought with the layer's Reserves (reset by a New Field), a middle ring bought with the
+Shares New Fields pay (reset by a Chronicle), an outer ring bought with Pages (kept); buying spends
+a bank, never the multipliers; the policy buys the cheapest affordable node at every Refinery visit. Trials: Auto-Buy at
 New Well 3, Auto-Well at New Field 1 (acts only with Auto-Buy), Auto-Flare at New Field 2; won
 at the first Hands-on stretch ≥ 5 min that starts ≥ 2 h after unlock.
 
@@ -97,7 +100,7 @@ only, 15 min of (Rig Watching rate + 0.25 x hand rate) at the Rig grade; refill 
 Order: 4 h of every Field's Rig output; +1 level on all Fractions (L4). Cauldrons fill in
 seconds: Hand (Hands-on), Oil (Watching), Sands (1/s by hand + 0.25/s per working Rig), Time
 (Away); Bubble n costs c0·(n+1)^0.95 with c0 900/1800/1800/7200; every 5th bar +0.1 speed;
-unlimited; every 4th Bubble opens a family (L3). Bubble effect 3·L/(10+L); levels cost
+unlimited; every 3rd Bubble opens a family (L3). Bubble effect 3·L/(10+L); levels cost
 0.25·1.15^(L-1) hours of Oasis output. Vials per (Field, grade): 3 offers/day + 1 per Order,
 30% chance, pity 4; tiers cost 2/8/32/128 h of Oasis output. Mixer: 40 recipes over grades
 0-40 + 10 per Chronicle, found at 60% per visit once both Materials are in stock; re-makes cost
@@ -214,3 +217,14 @@ must carry, not just a number):
     same total Fraction bonus as before), a family every 4th Bubble instead of every 10th (fewer
     Bubbles left T3, the L3 gap, at 3.0-3.2 d on 3 of 24 runs). All targets pass on seeds 1-6 in
     `sim/redesign` and on the real systems (`npm run sim:coreloop -- --assert`). **D**
+29. The old Reserve shop, Shard tree, talents, Page upgrades and Quartermaster (59 nodes) had no home
+    in the loop. → **The one tree** (CL-24): 38 nodes in three rings, each old node in a node's `from`
+    list. Tuning: with hand-yield nodes Hands-on reached 5.3x Watching (T5 allows 4.5) → those nodes
+    raise the Hands-on Well bonus instead of Materials; "+1 Page per Chronicle" fed the re-blaze
+    (1.35 Shares a Page) and gave 26 Chronicles → it pays an extra Page *to spend*, not a
+    multiplier Page; the tree's remaining power (about x10 Crude and +2 starting Shares) still gave
+    the open profile 25 Chronicles (T9 allows 24) → re-blaze 1.35 → 1.3 Shares a Page. Year shape
+    after (seed 1, best run month 12): active 1e201, casual 1e243, idle 1e188, open 1e252 (before the
+    tree: 1e206, 1e241, 1e191, 1e250). On the real systems the idle profile then sat at the T3 limit
+    (L3 gap 3.0-3.3 d; it had been 2.9-3.0 since log 28) → a Bubble family every 3rd Bubble (was 4th);
+    worst L3 gap now 2.8 d. All targets pass on seeds 1-6 in both sims. **D**

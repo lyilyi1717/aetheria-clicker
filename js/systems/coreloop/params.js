@@ -46,7 +46,7 @@ export const P = {
   pageBase: 3, pageStep: 2, pageMult: 1.06,
   // Re-blaze: a Chronicle starts with floor(lifetime Pages x this) Field Shares, so the next loop races
   // back past old content instead of crawling (the old Chronicle dropped ~x1e7 of Shares at once)
-  startSharesPerPage: 1.35,
+  startSharesPerPage: 1.3,
 
   // --- presence -------------------------------------------------------------------------------
   away: 0.3, watch: 1, hands: 1,   // Rig rate by state
@@ -108,7 +108,7 @@ export const P = {
   // Unlimited: named Bubbles, then numbered variants. Owner decision 4: fewer, bigger Bubbles. A bar's
   // cost grows almost linearly (bubbleExp), so a year brings about 800 (it was 8,000 at 0.6) and each
   // adds six times as much (bubbleA); they add (saturating) inside a Fraction, never multiply each other
-  bubbleFamily: 4,                 // every 4th Bubble opens a new Bubble family (L3)
+  bubbleFamily: 3,                 // every 3rd Bubble opens a new Bubble family (L3)
   // Essence prices are in hours of Oasis farming (Watching rate), so they stay meaningful as output grows
   bubbleA: 3, bubbleB: 10, bubbleLevelHours: 0.25, bubbleCostGrowth: 1.15,
   // Vials
@@ -134,6 +134,66 @@ export const P = {
   // game open need it); Auto-Well needs Auto-Buy won
   trials: [['autoBuy', 'well', 3], ['autoWell', 'field', 1], ['autoFlare', 'field', 2]],
   trialMinSec: 300, trialDelay: 7200,
+
+  // --- the one tree (CL-24) -------------------------------------------------------------------
+  // The Reserve shop, Shard tree, talents, Page upgrades and Quartermaster of the old game as three
+  // rings. Inner: bought with the Reserves earned this New Field layer, reset by a New Field. Middle:
+  // bought with the Shares New Fields pay (not the re-blaze ones), reset by a Chronicle. Outer: bought
+  // with Pages, never reset. Buying spends a bank; the Crude multipliers of Reserves, Shares and Pages
+  // read what was earned and are not reduced. Rank r (0-based) costs cost x growth^r.
+  // kind: a multiplier is x(1 + value x rank) (crude, hand, reserves, awayWell, fieldPower, rig,
+  // gusherRate, heat); an amount is + value x rank (offlineHours, gusherWindow, startShares,
+  // pageBank (an extra Page to spend per Chronicle), startKit, keepPressure, handsWell); a flag is on at rank 1 (for later items).
+  // field: a Field index for fieldPower / rig; left out = all three. from: the old ids it stands for.
+  tree: [
+    // inner ring (Reserves)
+    { id: 'kit', ring: 'reserves', cost: 5, growth: 3, max: 3, kind: 'startKit', value: 10, from: ['genesis', 'resonant_start'] },
+    { id: 'idle_hands', ring: 'reserves', cost: 5, growth: 1, max: 1, kind: 'crude', value: 0.1, from: ['auto_tap'] },
+    { id: 'memory', ring: 'reserves', cost: 10, growth: 5, max: 2, kind: 'keepPressure', value: 0.5, from: ['blueprint_memory', 'blueprint_memory_2'] },
+    { id: 'vault', ring: 'reserves', cost: 10, growth: 2, max: 3, kind: 'offlineHours', value: 4, from: ['chrono_vault'] },
+    { id: 'titan', ring: 'reserves', cost: 10, growth: 2, max: 5, kind: 'fieldPower', field: 0, value: 0.2, from: ['titan_legacy'] },
+    { id: 'wasta', ring: 'reserves', cost: 20, growth: 2, max: 5, kind: 'handsWell', value: 0.1, from: ['finger_of_wasta'] },
+    { id: 'drill', ring: 'reserves', cost: 35, growth: 2, max: 3, kind: 'rig', field: 1, value: 0.15, from: ['drill_mastery'] },
+    { id: 'covenant', ring: 'reserves', cost: 30, growth: 2, max: 3, kind: 'rig', field: 2, value: 0.15, from: ['golem_covenant'] },
+    { id: 'hourglass', ring: 'reserves', cost: 40, growth: 2, max: 2, kind: 'gusherWindow', value: 10, from: ['hourglass'] },
+    { id: 'amplifier', ring: 'reserves', cost: 50, growth: 2, max: 10, kind: 'reserves', value: 0.1, from: ['dust_amplifier'] },
+    { id: 'alchemist', ring: 'reserves', cost: 15, growth: 1, max: 1, kind: 'flag', value: 1, from: ['astral_alchemist'], pending: 'CL-25' },
+    { id: 'wakeel', ring: 'reserves', cost: 40, growth: 1, max: 1, kind: 'flag', value: 1, from: ['al_wakeel'], pending: 'CL-21' },
+    { id: 'leylines', ring: 'reserves', cost: 60, growth: 1, max: 1, kind: 'flag', value: 1, from: ['auto_leylines'], pending: 'CL-25' },
+    // middle ring (Shares)
+    { id: 'foundry', ring: 'shares', cost: 1, growth: 1, max: 12, kind: 'crude', value: 0.1,
+      from: ['foundry_t9', 'foundry_t10', 'foundry_t11', 'foundry_t12', 'foundry_t13', 'foundry_t14', 'foundry_t15', 'foundry_t16', 'foundry_t17', 'foundry_t18', 'foundry_t19', 'foundry_t20'] },
+    { id: 'efficiency', ring: 'shares', cost: 1, growth: 1, max: 6, kind: 'crude', value: 0.1, from: ['building_efficiency', 'cost_reduction', 'synergy_resonance'] },
+    { id: 'grip', ring: 'shares', cost: 1, growth: 1, max: 3, kind: 'handsWell', value: 0.1, from: ['click_power'] },
+    { id: 'synergy', ring: 'shares', cost: 1, growth: 1, max: 3, kind: 'handsWell', value: 0.1, from: ['click_synergy'] },
+    { id: 'warlord', ring: 'shares', cost: 1, growth: 1, max: 3, kind: 'fieldPower', field: 0, value: 0.2, from: ['warlord_might'] },
+    { id: 'spoils', ring: 'shares', cost: 1, growth: 1, max: 3, kind: 'rig', field: 0, value: 0.1, from: ['dungeon_wealth', 'loot_fortune'] },
+    { id: 'miner', ring: 'shares', cost: 1, growth: 1, max: 3, kind: 'fieldPower', field: 1, value: 0.2, from: ['mining_power'] },
+    { id: 'botanist', ring: 'shares', cost: 1, growth: 1, max: 3, kind: 'fieldPower', field: 2, value: 0.2, from: ['botanical_haste'] },
+    { id: 'flow', ring: 'shares', cost: 1, growth: 1, max: 3, kind: 'heat', value: 0.15, from: ['mana_flow'] },
+    { id: 'night_shift', ring: 'shares', cost: 1, growth: 1, max: 3, kind: 'awayWell', value: 0.1, from: ['offline_transcendence'] },
+    { id: 'lookout', ring: 'shares', cost: 1, growth: 1, max: 3, kind: 'gusherRate', value: 0.1, from: ['chrono_mastery'] },
+    { id: 'long_sleep', ring: 'shares', cost: 2, growth: 1, max: 1, kind: 'offlineHours', value: 8, from: ['chronos_offline'] },
+    { id: 'long_warp', ring: 'shares', cost: 3, growth: 1, max: 1, kind: 'flag', value: 1, from: ['chronos_long_warp'], pending: 'CL-25' },
+    { id: 'sharp_eye', ring: 'shares', cost: 1, growth: 1, max: 3, kind: 'flag', value: 1, from: ['crit_mastery'], pending: 'CL-25' },
+    { id: 'slow_brew', ring: 'shares', cost: 1, growth: 1, max: 3, kind: 'flag', value: 1, from: ['catalyst_potency'], pending: 'CL-25' },
+    { id: 'auto_blast', ring: 'shares', cost: 1, growth: 1, max: 1, kind: 'flag', value: 1, from: ['chronos_auto_blast'], pending: 'CL-22' },
+    { id: 'wardens', ring: 'shares', cost: 1, growth: 1, max: 1, kind: 'flag', value: 1, from: ['tower_wardens'], pending: 'CL-21' },
+    { id: 'second_wind', ring: 'shares', cost: 2, growth: 1, max: 1, kind: 'flag', value: 1, from: ['tower_second_wind'], pending: 'CL-21' },
+    // outer ring (Pages)
+    { id: 'treaty', ring: 'pages', cost: 1, growth: 1, max: 10, kind: 'crude', value: 0.02, from: ['aether_treaty'] },
+    { id: 'hunter', ring: 'pages', cost: 2, growth: 1, max: 5, kind: 'fieldPower', field: 0, value: 0.15, from: ['hunters_edge'] },
+    { id: 'caravan', ring: 'pages', cost: 2, growth: 1, max: 5, kind: 'rig', value: 0.05, from: ['golden_req'] },
+    { id: 'contract', ring: 'pages', cost: 2, growth: 1, max: 5, kind: 'awayWell', value: 0.05, from: ['chronos_contract'] },
+    { id: 'ink', ring: 'pages', cost: 4, growth: 2, max: 2, kind: 'startShares', value: 1, from: ['ink'] },
+    { id: 'margin', ring: 'pages', cost: 6, growth: 1, max: 4, kind: 'crude', value: 0.1, from: ['margin_notes', 'second_reading'] },
+    { id: 'gilded', ring: 'pages', cost: 8, growth: 1, max: 1, kind: 'pageBank', value: 1, from: ['gilded_edges'] }
+  ],
+  // Old nodes whose job another part of the loop already does (no tree node)
+  treeElsewhere: {
+    auto_buy: 'Trial: Auto-Buy', chronos_auto_ascend: 'Trial: Auto-Well',
+    bookmark: 'Trials are never reset', dog_ear: 'the outer ring is never reset'
+  },
 
   // --- probes and targets -------------------------------------------------------------------
   refineEvery: 120,                // a hands-on player checks the Refinery every 2 min (and on leaving)

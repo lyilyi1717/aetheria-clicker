@@ -196,7 +196,7 @@ console.log('--- Chronicle: Fields needed, record gate, Pages, re-blaze ---');
   const p = g.prestige;
   assert.deepEqual([p.pages, p.chronicles, p.newFields, p.reserves, p.lastResetAt], [4, 1, 0, 0, 40 * DAY]);
   assert.equal(p.shares, Math.floor(4 * P.startSharesPerPage), 're-blaze: floor(1.35 · Pages) Shares');
-  assert.equal(Prestige.reblazeShares(40), 54);
+  assert.equal(Prestige.reblazeShares(40), Math.floor(40 * P.startSharesPerPage));
   assert.deepEqual(g.fields.map(f => f.rig), [1, 1, 1], 'Rig levels back to 1, the Rigs stay');
   assert.equal(p.crew, 1, 'Crew stay');
   assert.equal(Prestige.crewSlots(g), 2, 'and a Chronicle adds a slot');

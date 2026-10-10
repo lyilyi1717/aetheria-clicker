@@ -67,6 +67,7 @@ console.log('--- a state survives a save, field for field ---');
   s.cauldrons.bubbles = [{ frac: 0, level: 3 }, { frac: 4, level: 12 }];
   s.collection.vials = { '1:7': { tier: 3, pity: 0 }, '0:2': { tier: 0, pity: 2 } };
   s.collection.vialOffers = 4; s.collection.vialDay = 17; s.collection.batchFrom = [3, 11];
+  s.tree.bank = { reserves: 120, shares: 3, pages: 14 }; s.tree.ranks = { kit: 2, foundry: 5, treaty: 1 };
   s.collection.recipes = [{ found: true, made: 30, tier: 2 }, { found: false, made: 0, tier: 0 }];
   s.seals.hours[4] = 612.5; s.seals.tier[4] = 3;
   s.presence.handField = 2; s.presence.nextGusherAt = 13000;

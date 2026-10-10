@@ -11,6 +11,7 @@ import * as Collection from './Collection.js';
 import * as Cauldrons from './Cauldrons.js';
 import * as Seals from './Seals.js';
 import * as Prestige from './Prestige.js';
+import * as Tree from './Tree.js';
 
 // Advances every system by dt seconds in `presence`, runs the automation the player has won,
 // and moves the clock. Returns the Crude the Well made.
@@ -45,7 +46,8 @@ export function catchGusher(state, ctx = NO_CONTEXT) {
 // Time the game was closed, played as Away in P.offlineStep steps, at most P.offlineMaxHours.
 // Returns what the return screen shows: seconds settled, Crude made, Material units gained.
 export function settleAway(state, seconds, ctx = NO_CONTEXT) {
-  const total = Math.min(Math.max(0, Number(seconds) || 0), P.offlineMaxHours * 3600);
+  const hours = P.offlineMaxHours + Tree.bonus(state, 'offlineHours');
+  const total = Math.min(Math.max(0, Number(seconds) || 0), hours * 3600);
   const units0 = state.fields.reduce((n, f) => n + f.inventory.reduce((a, b) => a + b, 0), 0);
   let crude = BigNum.zero(), left = total;
   while (left > 1e-9) {
@@ -54,5 +56,5 @@ export function settleAway(state, seconds, ctx = NO_CONTEXT) {
     left -= dt;
   }
   const units = state.fields.reduce((n, f) => n + f.inventory.reduce((a, b) => a + b, 0), 0) - units0;
-  return { seconds: total, crude, units, capped: seconds > total };
+  return { seconds: total, crude, units, capped: seconds > total, capHours: hours };
 }
