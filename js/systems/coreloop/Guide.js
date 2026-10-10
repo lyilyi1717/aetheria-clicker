@@ -109,6 +109,8 @@ export function refresh(state, ctx = NO_CONTEXT) {
     ctx.emit('guide', HIT.MINOR, { step: STEPS[g.step].id });
     g.step++;
   }
+  // The Gusher lesson brings its own Gusher, again and again until one is caught
+  if (STEPS[g.step]?.id === 'gusher' && !state.presence.summoned && !Presence.gusherUp(state)) Presence.summonGusher(state);
   for (const id of FEATURE_IDS) if (!g.open[id] && FEATURES[id](state)) open(id);
   for (const id of STEPS[g.step]?.needs || []) open(id);
   for (const id of opened) ctx.emit('unlock', id.startsWith('tab.') ? HIT.NOVELTY : HIT.BIG, { feature: id });

@@ -10,21 +10,17 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- **Clarity pass on the `?loop=2` preview** (owner, 2026-10-10: "not clear for humans, I didn't know
-  how to play it ... no sense of progress ... simpler to understand without losing game mechanic
-  complexity"). The shared part is merged (R95, below). In progress, one sub-agent each:
-  R96 #255 (CL-29 Well), R97 #256 (CL-30 Fields), R98 #257 (CL-31 Refinery), R99 #258 (CL-32 Expand
-  and Collection), and R91 #241 (CL-24 the tree's view, `js/ui/coreloop/tree.js`). After they merge:
-  a combined browser pass of the whole first session, then show the owner.
+- R100 #266 (CL-33 the preview's icons as inline SVG, no emoji): one sub-agent. The owner's second
+  PC showed no barrel on the Well (its fonts lack the emoji).
 
 ## Next up
 
 - **Core-loop redesign** (`docs/core-loop-plan.md`): Waves A and B done; Wave C: the `?loop=2` preview
-  has its shell, all five screens (R82-R86) and the game-feel pass (R87). **Open:** the clarity pass
-  (R95 done, R96-R99 in progress) and **Wave C2 (integration), R88-R94 (#238-#244)**, filed after the Wave D go / no-go came out
+  has its shell, all five screens (R82-R86) and the game-feel pass (R87). The clarity pass after the owner's first try (R95-R99, and the tree's
+  view, R91) is done; R100 (icons) is in progress. **Open:** **Wave C2 (integration), R88-R94 (#238-#244)**, filed after the Wave D go / no-go came out
   **no-go** (#23, 2026-10-10): the loop has no home yet for the three subgames' own play, the
   trees and shops, spells and elixirs, or the non-loop tabs. Ready now: R93 (CL-26 sim covers the
-  subgames and the tree, Opus), R91 (CL-24 the one tree, Opus), R92 (CL-25 Tafheet, spells, Brews,
+  subgames and the tree, Opus), R92 (CL-25 Tafheet, spells, Brews,
   Opus), R94 (CL-27 Codex hosts the other tabs, Sonnet). R88-R90 (subgames as Fields, Opus) need R93.
   Owner answers are on #23 (no mockups; Saudi names; keep or archive old saves; no new leaderboard
   season; the coordinator decides go / no-go). Wave D waits for a **go**.
@@ -132,6 +128,7 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-C | R97 CL-30 Fields screen a person can read | #256 | R95 |
 | CL-C | R98 CL-31 Refinery screen a person can read | #257 | R95 |
 | CL-C | R99 CL-32 Expand and Collection screens a person can read | #258 | R95 |
+| CL-C | R100 CL-33 The preview's icons as inline SVG | #266 | R95-R99 |
 | CL-C2 | R88 CL-21 Tower as a Field | #238 | R84, R93 |
 | CL-C2 | R89 CL-22 Mine as a Field | #239 | R84, R93 |
 | CL-C2 | R90 CL-23 Oasis as a Field | #240 | R84, R93 |
@@ -141,6 +138,31 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-C2 | R94 CL-27 Codex hosts achievements, leaderboard, community, settings, about | #244 | R86 |
 
 ## Done
+
+- **Clarity pass on the `?loop=2` preview, R96-R99 and the rest of R91** (2026-10-10, no player change;
+  the same mechanics, shown one at a time). Each screen asks `api.isOpen(feature)`, carries its
+  `data-guide` anchors and shows at most one "Opens when ..." line:
+  - R96 #255 (CL-29, PR #262) **Well:** a tappable well (`api.tapWell`, a Gusher is caught on it), Da'sa
+    as a meter, only the pumps owned plus the next one, by name, "in 12 s" on a button that cannot be
+    paid yet, a "This run" strip toward the New Well.
+  - R97 #256 (CL-30, PR #260) **Fields:** the crew card says working or resting and why (any tap keeps
+    them going for `P.handsWindow` s), with the seconds left, a moving level bar and Materials ticking.
+  - R98 #257 (CL-31, PR #263) **Refinery:** Orders first, in words ("Wants 45 Tower Materials ... gives
+    Gas +1 level"), a compact Fractions row, then Vials, the weekly Order, the Dallahs, the Mixer.
+  - R99 #258 (CL-32, PR #264) **Expand and Collection:** each reset says what you get, what starts over
+    and what you keep, with a bar toward its gate; the Collection shows what was found.
+  - R91 #241 (CL-24, PR #261) **the tree's view** (`js/ui/coreloop/tree.js`, mounted by the Expand
+    screen): three rings as groups, "You can buy now" first, flag nodes shown as arriving later and
+    not buyable. Noticed: `Tree.buyAll` also buys those flag nodes; the view does not use it.
+  - Follow-up from the combined browser pass (PR #265): the phone header is 131-155 px (was 276), the
+    "Catch a Gusher" step comes after the first tree purchase, a screen whose files did not arrive
+    offers "Try again".
+  - **Checked by the coordinator in a browser:** the first session at desktop width from a fresh save
+    to the first New Well and a tree purchase; the Well and Expand at 375 px. **Not checked:** Arabic
+    by the coordinator (each sub-agent looked at its own screen in Arabic at 375 px), sound, a real
+    phone, the Collection beyond the sub-agent's own look.
+  - Notes: browsers cache the modules hard; after a deploy a player may need a hard refresh.
+    `server.py` drops a request now and then under parallel loads (harmless since the retry).
 
 - R95 #253 (CL-28, PR #254, no player change): the guide. `coreloop/Guide.js` (pure; the sims never
   call it): 22 features (tabs and sections of screens) each with the rule that opens it, sticky
