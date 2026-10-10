@@ -59,6 +59,7 @@ import { Leaderboard } from './leaderboard.js';
 import { AccountUI } from './ui/account.js';
 import { CommunityUI } from './ui/community.js';
 import { gainLabel, gainTip } from './ui/buyGain.js';
+import { coreLoopFlag } from './ui/coreloop/store.js';
 import { afterBuy } from './ui/buyFx.js';
 import { MonsterPortrait, loadBossArtManifest } from './bossArt.js';
 import { ITEM_NAMES, TILE_ITEM_KEY, itemName } from './data/names.js';
@@ -2154,6 +2155,8 @@ class AetheriaApp {
 // Instantiate on window load
 window.addEventListener('DOMContentLoaded', () => {
   applyLanguageToDocument();
+  // ?loop=2: the core-loop preview (its own save; the current game doesn't start)
+  if (coreLoopFlag(location.search)) { import('./ui/coreloop/shell.js').then(m => m.startCoreLoopShell()); return; }
   window.gameApp = new AetheriaApp();
   if (window.gameApp.languageReload) { window.gameApp.saveManager.save(); location.reload(); return; }
   window.gameApp.init();
