@@ -1,0 +1,21 @@
+/* Core-loop icons (js/ui/coreloop/icons.js). em-based, so an icon follows its text. */
+.cl-icon { inline-size: 1em; block-size: 1em; flex: 0 0 auto; vertical-align: -0.125em; overflow: visible; }
+.cl-icon-hero { inline-size: 6rem; block-size: 6rem; vertical-align: baseline; filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--gold) 35%, transparent)); }
+.clw-well .cl-icon-hero { inline-size: 5.5rem; block-size: 5.5rem; }
+.cl-intro-art .cl-icon-hero { inline-size: 5rem; block-size: 5rem; }
+.reward-toast-icon .cl-icon { inline-size: 1.4rem; block-size: 1.4rem; }
+.reward-ceremony-icon .cl-icon { inline-size: 3.4rem; block-size: 3.4rem; }
+
+.cl-drip { transform-box: fill-box; transform-origin: 50% 0; animation: cl-drip 3.2s var(--ease-out, ease-out) infinite; }
+@keyframes cl-drip {
+  0%, 12% { transform: translateY(-1.5px) scale(0.6); opacity: 0; }
+  30% { transform: translateY(0) scale(1); opacity: 1; }
+  80% { transform: translateY(3px) scale(1); opacity: 1; }
+  100% { transform: translateY(5px) scale(0.8); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .cl-drip { animation: none; } }
+:root[data-motion="reduced"] .cl-drip { animation: none; }
+
+@media (max-width: 480px) {
+  .clw-well .cl-icon-hero { inline-size: 4.5rem; block-size: 4.5rem; }
+}

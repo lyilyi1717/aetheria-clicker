@@ -22,17 +22,18 @@ import * as Well from '../../systems/coreloop/Well.js';
 import * as Loop from '../../systems/coreloop/Loop.js';
 import * as Guide from '../../systems/coreloop/Guide.js';
 import { GuideBar, showIntro, screenHead, lockText } from './guide.js';
+import { icon } from './icons.js';
 import { createCoreLoopState } from '../../systems/coreloop/state.js';
 import { loadCoreLoop, saveCoreLoop, secondsAway, CORE_LOOP_SAVE_KEY } from './store.js';
 
 registerStrings(SHELL_EN, SHELL_AR);
 
 export const SCREENS = Object.freeze([
-  { id: 'well', icon: '🛢️' },
-  { id: 'fields', icon: '⛏️' },
-  { id: 'refinery', icon: '⚗️' },
-  { id: 'prestige', icon: '🏆' },
-  { id: 'codex', icon: '📜' }
+  { id: 'well', icon: 'well' },
+  { id: 'fields', icon: 'mine' },
+  { id: 'refinery', icon: 'refinery' },
+  { id: 'prestige', icon: 'trophy' },
+  { id: 'codex', icon: 'scroll' }
 ]);
 const TICK_MS = 250;        // simulation tick while visible
 const RENDER_MS = 250;      // screen updates
@@ -142,7 +143,7 @@ export class CoreLoopShell {
       </header>
       <p class="cl-welcome" id="cl-welcome" hidden></p>
       <nav class="cl-tabs" role="tablist" aria-label="${t('cl.shell.title')}">
-        ${SCREENS.map(s => `<button type="button" class="cl-tab" role="tab" data-cl-tab="${s.id}" aria-selected="false"><span aria-hidden="true">${s.icon}</span><span>${t(`cl.tab.${s.id}`)}</span><i class="cl-tab-new" hidden>${t('cl.shell.new')}</i></button>`).join('')}
+        ${SCREENS.map(s => `<button type="button" class="cl-tab" role="tab" data-cl-tab="${s.id}" aria-selected="false"><span aria-hidden="true">${icon(s.icon)}</span><span>${t(`cl.tab.${s.id}`)}</span><i class="cl-tab-new" hidden>${t('cl.shell.new')}</i></button>`).join('')}
       </nav>
       <main class="cl-panels">
         <div class="cl-head-slot" id="cl-head-slot"></div>
