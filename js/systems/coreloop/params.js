@@ -119,6 +119,7 @@ export const P = {
   // One Seal per month theme: Seal i opens on day i x sealEveryDays. With any Crew, every open Seal gains
   // (1 + sealCrewBonus x Crew) Seal-hours per hour; tiers at these cumulative Seal-hours
   seals: 12, sealEveryDays: 30, sealCrewBonus: 0.25, sealHours: [24, 150, 500, 1200, 2500],
+  sealBonusPerTier: 0.03,          // reaching tier T adds this x T to the Seal's Fraction (Seal i powers Fraction i % 5)
   sealBigTier: 4,                  // tiers from here (Radiant, Eternal) are L4; the first three are L3
   crewBase: 1,                     // Crew slots = crewBase + Chronicles (a New Field choice fills one)
   // Trials (automation): unlocked at New Field n, won at the first Hands-on stretch ≥ trialMinSec
