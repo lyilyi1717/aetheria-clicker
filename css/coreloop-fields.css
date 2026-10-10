@@ -1,12 +1,24 @@
-/* Core-loop Fields screen (?loop=2, CL-14). Tokens and components only; phone first (one column),
-   two columns from 768px. Logical properties throughout so Arabic mirrors. */
+/* Core-loop Fields screen (?loop=2, CL-14 / CL-30). Tokens and components only; phone first (one
+   column), two columns from 768px. Logical properties throughout so Arabic mirrors. */
 
 .clf { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
 .clf * { min-width: 0; }
+.clf [hidden] { display: none !important; }
 
-.clf-switch { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); }
-.clf-switch-btn { min-height: 48px; font-size: var(--fs-14); }
-.clf-switch-btn[aria-pressed="true"] { background: var(--aether-dim); border-color: var(--aether); color: var(--aether); font-weight: 700; }
+/* Field picker */
+.clf-pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: var(--sp-2); }
+.clf-chip {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: start;
+  min-height: 48px; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-2);
+  border: 1px solid var(--line-2); background: var(--bg-1); color: var(--text-1); font: inherit; cursor: pointer;
+}
+.clf-chip-name { font-size: var(--fs-14); font-weight: 700; }
+.clf-chip-sub { font-size: var(--fs-12); color: var(--text-3); white-space: normal; overflow-wrap: anywhere; }
+.clf-chip[aria-pressed="true"] { background: var(--gold-dim); border-color: var(--gold); }
+.clf-chip[aria-pressed="true"] .clf-chip-name, .clf-chip[aria-pressed="true"] .clf-chip-sub { color: var(--gold); }
+.clf-chip:disabled { cursor: default; border-style: dashed; background: transparent; }
+.clf-chip:disabled .clf-chip-name { color: var(--text-3); }
+.clf-chip:focus-visible, .clf-work:focus-visible { outline: 2px solid var(--aether); outline-offset: 2px; }
 
 .clf-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-4); }
 .clf-col { display: flex; flex-direction: column; gap: var(--sp-4); }
@@ -14,34 +26,41 @@
 
 .clf-card { padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
 .clf-title { margin: 0; font-family: var(--font-display); font-size: var(--fs-16); color: var(--text-1); overflow-wrap: anywhere; }
-.clf-level { margin: 0; font-size: var(--fs-24); font-weight: 700; color: var(--text-1); }
 .clf-sub { margin: 0; font-size: var(--fs-13); color: var(--text-2); overflow-wrap: anywhere; }
 .clf-none { margin: 0; font-size: var(--fs-14); color: var(--text-3); }
 .clf-note { margin: 0; font-size: var(--fs-12); color: var(--text-3); }
 
-/* The big tap area */
-.clf-tap {
-  display: flex; flex-direction: column; gap: var(--sp-1); width: 100%;
-  min-height: 112px; padding: var(--sp-4); white-space: normal; text-align: center;
-  user-select: none; touch-action: manipulation;
-}
-.clf-tap-label { font-size: var(--fs-20); font-weight: 800; }
-.clf-tap-hint { font-size: var(--fs-13); font-weight: 600; opacity: 0.85; }
-.clf-tap.is-working { box-shadow: var(--glow-gold); }
-.clf-tap.is-tap { animation: clf-tap var(--dur-2) var(--ease-pop); }
-@keyframes clf-tap { 0% { transform: scale(1); } 40% { transform: scale(0.97); } 100% { transform: scale(1); } }
+/* The crew: status, then the level, then what it brings in */
+.clf-status { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-16); color: var(--text-2); border-radius: var(--r-2); }
+.clf-dot { inline-size: 10px; block-size: 10px; border-radius: 50%; background: var(--text-3); flex: none; }
+.clf-crew.is-working .clf-status { color: var(--life); }
+.clf-crew.is-working .clf-dot { background: var(--life); box-shadow: 0 0 0 3px color-mix(in srgb, var(--life) 25%, transparent); }
+.clf-win .bar > i { transition: width var(--dur-2) linear; }
+
+.clf-block { display: flex; flex-direction: column; gap: var(--sp-2); }
+.clf-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
+.clf-big { font-size: var(--fs-24); font-weight: 700; color: var(--text-1); }
+.clf-crew .bar.lg > i { transition: width var(--dur-3) linear; }
+
+/* The one main action */
+.clf-work { width: 100%; min-height: 56px; white-space: normal; text-align: center; user-select: none; touch-action: manipulation; }
+.clf-work.is-working { box-shadow: var(--glow-gold); }
 
 .clf-heat { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--sp-1) var(--sp-3); }
 .clf-heat-name { font-size: var(--fs-13); font-weight: 700; color: var(--danger); }
 .clf-heat-gloss { grid-column: 1 / -1; font-size: var(--fs-12); color: var(--text-3); }
 
-.clf-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-1); font-size: var(--fs-14); color: var(--text-1); }
-.clf-list[hidden], .clf-none[hidden], .clf-shelf[hidden] { display: none; }
+.clf-quiet { align-self: flex-start; min-height: 44px; }
 
+.clf-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-1); font-size: var(--fs-14); color: var(--text-1); }
 .clf-shelf { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
-.clf-shelf > li[hidden] { display: none; }
 
 .clf-actions { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-3); }
 .clf-action { display: grid; gap: var(--sp-1); }
 .clf-action-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
 .clf-action-name { font-size: var(--fs-14); color: var(--text-1); }
+
+/* A tap, and a change of status, answer at once */
+.clf-pulse { animation: clf-pulse var(--dur-3) var(--ease-out); }
+@keyframes clf-pulse { 0% { box-shadow: 0 0 0 2px var(--gold); } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .clf-pulse { animation: none; } .clf-crew .bar > i { transition: none; } }
