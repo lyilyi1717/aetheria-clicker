@@ -14,8 +14,10 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-- **Core-loop redesign**: the implementation plan is `docs/core-loop-plan.md` (waves, items CL-0…CL-20,
-  owner decisions, fan-out prompts). Not started; no issues filed yet. Design: `docs/core-loop-redesign.md`.
+- **Core-loop redesign** (`docs/core-loop-plan.md`): Wave A (dark logic, R70-R79, wave "CL-A" in the Plan
+  table) is filed. R70 is done; ready now: R71, R72, R73, R77 (Sonnet, in parallel) and R78 (Opus).
+  Owner decisions are in #23 (comment of 2026-10-10); defaults apply unless answered. The coordinator
+  merges each PR once its checks pass and it has been reviewed against the issue and the sim.
 
 R0–R30, R32–R40 and R41–R43 are done.
 
@@ -97,9 +99,24 @@ R0–R30, R32–R40 and R41–R43 are done.
 | 10 | R67 Core sim skips Tower-only Al-Wakeel | #178 | R65 |
 | 10 | R68 Auto-Drills use the manual dig abilities | #183 | – |
 | 10 | R69 Drill Mastery shop item gates drill abilities | #191 | R68 |
+| CL-A | R70 CL-0 Core-loop contracts (state, shared, params) | #204 | – |
+| CL-A | R71 CL-1 Presence, Heat, Gushers | #205 | R70 |
+| CL-A | R72 CL-2 Fields and Rigs | #206 | R70 |
+| CL-A | R73 CL-3 Mastery | #207 | R70 |
+| CL-A | R74 CL-4 Refinery: Fractions and Orders | #208 | R72 |
+| CL-A | R75 CL-5 Collection: Vials and Mixer | #209 | R72 |
+| CL-A | R76 CL-6 Cauldrons and Bubbles | #210 | R71, R72 |
+| CL-A | R77 CL-7 Seals and Crew | #211 | R70 |
+| CL-A | R78 CL-8 Well v2 (cascade, BigNum) | #212 | R70 |
+| CL-A | R79 CL-9 Prestige v2 | #213 | R78, R72 |
 
 ## Done
 
+- R70 #204 (CL-0, no player change): `js/systems/coreloop/` holds the contract for the core-loop
+  redesign: `README.md` (rules, who writes which part of the state, events), `state.js` (saved state,
+  save / load that accepts any input), `shared.js` (ids, hit levels, seeded RNG, Fraction value).
+  `params.js` there is now the only copy of the numbers; `sim/redesign/params.mjs` re-exports it.
+  Nothing in the live game imports the folder. Wave A PRs carry the `no-changelog` label.
 - #196 (PR #197, v5.30.1): fixed Open New Field ReferenceError on New Well page. In R45, runPrestige was used in prestige.js to trigger the field ceremony without being imported. Imported runPrestige and added a regression test in test_r45_prestige_ceremony.js.
 - R69 #191 (PR #192, v5.28.0): owner request, the R68 drill abilities need the Reserve shop's
   `drill_mastery` (tier 3, 35, one-time; gate `procs` in `mineBlock`). Core sim skips it (like
