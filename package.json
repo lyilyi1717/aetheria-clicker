@@ -8,6 +8,7 @@
     "test": "node run_tests.mjs",
     "sim": "node sim/core-pacing.mjs",
     "sim:check": "node sim/core-pacing.mjs --assert && node sim/garden-tap.mjs --assert",
+    "sim:coreloop": "node sim/core-loop.mjs",
     "sim:tower": "node sim/tower-pacing.mjs",
     "sim:mining": "node sim/mining-pacing.mjs"
   },

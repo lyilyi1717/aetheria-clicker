@@ -25,6 +25,13 @@ export function noteInput(state) {
   state.presence.state = PRESENCE.HANDS;
 }
 
+// The Field the player works by hand (Rigs.step pushes its frontier while Hands-on)
+export function setHandField(state, field) {
+  if (!Number.isInteger(field) || field < 0 || field >= P.fields.length) return false;
+  state.presence.handField = field;
+  return true;
+}
+
 // Heat 1..2 over P.heatRamp seconds of continuous Hands-on (the sim's heatOf)
 export const heat = (state) => 1 + Math.min(1, state.presence.heatSeconds / P.heatRamp);
 
