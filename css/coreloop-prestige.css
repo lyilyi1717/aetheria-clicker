@@ -1,12 +1,15 @@
-/* Core-loop Prestige and Codex screens (?loop=2, CL-16). Tokens only (css/tokens.css), components
+/* Core-loop Expand (prestige) and Collection (codex) screens (?loop=2, CL-16, CL-32). Tokens only (css/tokens.css), components
    from css/components.css, logical properties for RTL. Phone first: one column, no horizontal
    scroll; the ladder goes to columns from 768px. */
 
 .cp-screen { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
 .cp-screen * { min-width: 0; overflow-wrap: anywhere; }
 
+.cp-screen [hidden] { display: none !important; }
+
 .cp-stats { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .cp-ladder { display: grid; grid-template-columns: 1fr; gap: var(--sp-4); align-items: start; }
+.cp-stack { display: flex; flex-direction: column; gap: var(--sp-4); max-inline-size: 720px; inline-size: 100%; margin-inline: auto; }
 .cp-card { display: flex; flex-direction: column; gap: var(--sp-3); }
 .cp-wide { grid-column: 1 / -1; }
 .cp-h { margin: 0; font-family: var(--font-display); font-size: var(--fs-18); color: var(--gold); }
@@ -14,6 +17,21 @@
 .cp-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); font-size: var(--fs-14); color: var(--text-2); }
 .cp-row strong { color: var(--text-1); text-align: end; }
 .cp-line { margin: 0; font-size: var(--fs-14); color: var(--text-1); }
+.cp-lead { margin: 0; font-size: var(--fs-14); color: var(--text-2); line-height: var(--lh-body); }
+/* the three lines every reset says: you get / starts over / you keep */
+.cp-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.cp-ln { display: flex; flex-direction: column; gap: 2px; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); background: var(--bg-1); border-inline-start: 3px solid var(--line-2); }
+.cp-ln-get { border-inline-start-color: var(--gold); }
+.cp-ln-keep { border-inline-start-color: var(--life); }
+.cp-ln-k { font-size: var(--fs-11); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+.cp-ln-v { font-size: var(--fs-14); color: var(--text-1); line-height: var(--lh-body); }
+.cp-ln-get .cp-ln-v { font-size: var(--fs-16); font-weight: 600; color: var(--gold); }
+.cp-banks { display: flex; flex-direction: column; gap: var(--sp-2); }
+.cp-more { border: 1px solid var(--line-1); border-radius: var(--r-2); padding: 0 var(--sp-3); }
+.cp-more[open] { padding-block-end: var(--sp-3); }
+.cp-more summary { min-height: var(--tap); display: flex; align-items: center; cursor: pointer; font-size: var(--fs-14); color: var(--text-2); }
+.cp-more[open] summary { margin-block-end: var(--sp-2); }
+.cp-more:focus-within { outline: 2px solid var(--aether); outline-offset: 2px; }
 .cp-note { margin: 0; font-size: var(--fs-12); color: var(--text-3); line-height: var(--lh-body); }
 .cp-hint { margin: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); background: var(--gold-dim); color: var(--gold); font-size: var(--fs-13); }
 .cp-hint[hidden] { display: none; }
@@ -48,7 +66,15 @@
 .cp-seal { flex-direction: column; align-items: stretch; gap: var(--sp-2); }
 .cp-seal-head { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); }
 
-/* Codex */
+/* Collection */
+.cx-found { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.cx-found .chip { white-space: normal; }
+.cx-rest { margin: 0; font-size: var(--fs-12); color: var(--text-3); }
+.cx-gives { margin: 0; font-size: var(--fs-14); color: var(--gold); font-weight: 600; }
+.cx-chip[data-tier="1"], .cx-chip[data-tier="2"] { color: var(--sand); }
+.cx-chip[data-tier="3"] { color: var(--gold); }
+.cx-chip[data-tier="4"] { color: var(--life); }
+.cx-chip[data-tier="5"] { color: var(--aether); }
 .cx-field { display: flex; flex-direction: column; gap: var(--sp-2); }
 .cx-grid { display: flex; flex-wrap: wrap; gap: 3px; }
 .cx-cell { width: 14px; height: 14px; border-radius: 3px; background: var(--bg-4); border: 1px solid var(--line-1); }
@@ -62,6 +88,8 @@
 .cx-mastery { display: grid; grid-template-columns: 1fr; gap: var(--sp-4); }
 .cx-elsewhere a { color: var(--aether); }
 
+.cp-bump { animation: cp-bump var(--dur-3) var(--ease-out); }
+@keyframes cp-bump { from { color: var(--gold); text-shadow: var(--glow-gold); } }
 .cp-flash { animation: cp-flash var(--dur-3) var(--ease-out); }
 @keyframes cp-flash { from { box-shadow: var(--glow-gold); } to { box-shadow: var(--el-1); } }
 
@@ -74,4 +102,6 @@
 @media (min-width: 1100px) {
   .cp-seals { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-@media (prefers-reduced-motion: reduce) { .cp-flash { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .cp-bump { animation: cp-bump var(--dur-3) var(--ease-out); }
+@keyframes cp-bump { from { color: var(--gold); text-shadow: var(--glow-gold); } }
+.cp-flash { animation: none; } }

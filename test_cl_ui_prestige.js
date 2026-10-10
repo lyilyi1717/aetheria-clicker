@@ -8,6 +8,7 @@ import * as Prestige from './js/systems/coreloop/Prestige.js';
 import * as Rigs from './js/systems/coreloop/Rigs.js';
 import * as Seals from './js/systems/coreloop/Seals.js';
 import * as Collection from './js/systems/coreloop/Collection.js';
+import * as Guide from './js/systems/coreloop/Guide.js';
 import * as View from './js/ui/coreloop/prestige.js';
 import * as Codex from './js/ui/coreloop/codex.js';
 import PEN from './js/i18n/coreloop/prestige.en.js';
@@ -68,7 +69,7 @@ console.log('--- New Well card ---');
   s.t = 10;                                       // big run, but too young
   v = View.wellView(s);
   ok(!v.can && v.wait > 0 && v.missing === 0, 'only the wait is left');
-  ok(View.wellButton(s).text === t('cl.prestige.well.btn_wait', { time: View.longTime(v.wait) }), 'button shows the wait');
+  ok(View.wellButton(s).text === t('cl.prestige.well.btn_wait', { time: View.clock(v.wait) }), 'button shows the wait');
   s.prestige.reserves = 20;
   eq(View.wellView(s).mult, 1 + P.resPer * 20, 'Crude multiplier from Reserves');
 }
@@ -77,12 +78,12 @@ console.log('--- New Field card and its choices ---');
 {
   const s = createCoreLoopState(2);
   let v = View.fieldView(s);
-  eq([v.need, v.have, v.can], [P.fieldLog0, 0, false], 'the first gate');
-  s.well.bestRunChron = new BigNum(1, 25);
+  eq([v.need, v.have, v.can, v.pct], [P.fieldLog0, 0, false, 0], 'the first gate');
+  s.well.bestRunChron = new BigNum(1, P.fieldLog0 / 2);
   v = View.fieldView(s);
-  ok(Math.abs(v.fraction - 25 / 50) < 1e-9 && !v.can, 'progress is a log10 ratio');
-  ok(View.fieldButton(s, false).text === t('cl.prestige.field.btn_need', { need: 50, have: '25' }), 'locked label says what is missing');
-  s.well.bestRunChron = new BigNum(1, 50);
+  ok(Math.abs(v.fraction - 0.5) < 1e-9 && !v.can, 'progress is a log10 ratio');
+  ok(v.pct === 50 && View.fieldButton(s, false).text === t('cl.prestige.field.btn_need', { pct: 50 }), 'locked label says how far along');
+  s.well.bestRunChron = new BigNum(1, P.fieldLog0);
   ok(View.fieldView(s).can, 'gate reached');
   eq(View.fieldButton(s, false), { can: true, text: t('cl.prestige.field.btn', { n: P.sharesPerField }) }, 'ready label');
   eq(View.fieldButton(s, true), { can: true, text: t('cl.prestige.field.confirm') }, 'armed label asks again');
@@ -100,7 +101,7 @@ console.log('--- New Field card and its choices ---');
   for (const c of first) eq(View.parseChoice(View.choiceId(c)), c, 'ids round-trip');
 
   const r = rigged();
-  r.well.bestRunChron = new BigNum(1, 50);
+  r.well.bestRunChron = new BigNum(1, P.fieldLog0);
   const kinds = Prestige.fieldChoices(r).map(c => c.kind);
   ok(kinds.includes('crew') && kinds.includes('level') && !kinds.includes('rig'), 'then crew and levels');
   const cards = Prestige.fieldChoices(r).map(c => View.choiceCard(r, c));
@@ -131,7 +132,7 @@ console.log('--- Chronicle card ---');
   s.well.recordAtChron = new BigNum(1, 60); s.well.bestRunChron = new BigNum(1, 10);
   v = View.chronicleView(s);
   ok(v.hasRecord && v.recordLog === 60 + Math.log10(P.chronRecord) && !v.recordOk && !v.can, 'record gate shown and unmet');
-  ok(View.chronicleButton(s, false).text === t('cl.prestige.chron.btn_record', { need: v.recordLog, have: '10' }), 'label names the record');
+  ok(View.chronicleButton(s, false).text === t('cl.prestige.chron.btn_record', { need: v.recordLog }), 'label names the record');
 }
 
 console.log('--- Trials ---');
@@ -210,6 +211,109 @@ console.log('--- Codex ---');
 
   s.seals.tier[0] = 3; s.seals.tier[5] = 2;
   eq(Codex.sealTierSummary(s), { n: 5, max: P.seals * P.sealHours.length, fraction: 5 / (P.seals * P.sealHours.length) }, 'Seal tiers reached');
+}
+
+console.log('--- CL-32: the three lines of each reset ---');
+{
+  const s = createCoreLoopState(7);
+  const fmt = (n) => String(n);
+  for (const layer of ['well', 'field', 'chronicle']) {
+    const l = View.resetLines(s, layer, fmt);
+    ok(l.get && l.starts && l.keep, `${layer}: get, starts over and keep all say something`);
+    ok(!/\{\w+\}/.test(l.get + l.starts + l.keep), `${layer}: no placeholder left over`);
+    ok(!/aether/i.test(l.get + l.starts + l.keep), `${layer}: banned word`);
+  }
+  // before the Well can pay, the get line speaks of Reserves in general and shows the multiplier now
+  const soon = View.resetLines(s, 'well', fmt).get;
+  eq(soon, t('cl.prestige.well.get_soon', { mult: (1).toFixed(2) }), 'a Well that cannot pay yet says what Reserves do');
+  withRun(s, 30);
+  const v = View.wellView(s);
+  eq(View.resetLines(s, 'well', fmt).get, t('cl.prestige.well.get_now', { n: v.pending, mult: v.multAfter.toFixed(2) }), 'a Well that can pay names the Reserves and the Crude multiplier after it');
+  ok(v.multAfter === 1 + P.resPer * (v.reserves + v.pending), 'the multiplier is the one the Well will use');
+  eq(View.resetLines(s, 'field', fmt).get, t('cl.prestige.field.get', { n: P.sharesPerField }), 'a New Field pays the Shares from the params');
+  const c = rigged();
+  c.prestige.newFields = P.chronFirstFields;
+  const cv = View.chronicleView(c);
+  eq(View.resetLines(c, 'chronicle', fmt).get, t('cl.prestige.chron.get', { n: cv.pages, shares: cv.shares }), 'a Chronicle names its Pages and the Shares you restart with');
+  ok(View.clock(125) === t('cl.prestige.time_ms', { m: 2, s: '05' }), 'a short wait reads as a clock');
+  ok(View.clock(7300) === View.longTime(7300), 'a long wait reads as hours');
+}
+
+console.log('--- CL-32: which sections show (fresh, mid, late) ---');
+{
+  const open = (s) => (f) => Guide.isOpen(s, f);
+  const names = (st) => st.open.join(',');
+  // fresh save: the tab is open only because a New Well would pay; nothing else is
+  const fresh = createCoreLoopState(8);
+  Guide.refresh(fresh);
+  let st = View.stage(open(fresh));
+  eq([st.open, st.locked], [[], 'tree'], 'fresh: the New Well card plus one locked line (the tree)');
+  eq(View.statsShown(fresh), [], 'fresh: no stats row ("Shares 0" never shows)');
+  // mid: one New Well
+  const mid = createCoreLoopState(9);
+  mid.prestige.wells = 1; mid.prestige.reserves = 7; mid.tree.bank.reserves = 7;
+  Guide.refresh(mid);
+  st = View.stage(open(mid));
+  eq([names(st), st.locked], ['tree', 'field'], 'after the first New Well: the tree is open and New Field is the next locked line');
+  eq(View.statsShown(mid), ['reserves'], 'mid: only Reserves in the stats');
+  eq(View.treeBanks(mid), [{ ring: 'reserves', n: 7 }], 'mid: only the Reserves bank');
+  mid.prestige.wells = 3; Guide.refresh(mid);
+  st = View.stage(open(mid));
+  eq([names(st), st.locked], ['tree,field', 'chronicle'], 'three Wells: New Field opens, Chronicle is next');
+  // late: everything open
+  const late = createCoreLoopState(10);
+  late.prestige.wells = 5; late.prestige.totalFields = 4; late.prestige.chronicles = 1; late.prestige.shares = 3; late.prestige.pages = 2;
+  late.tree.bank.shares = 3; late.tree.bank.pages = 2;
+  late.prestige.trials[P.trials[0][0]].unlockedAt = 0;
+  Guide.refresh(late);
+  st = View.stage(open(late));
+  eq([names(st), st.locked], [View.SECTIONS.join(','), null], 'late: every section shows and no locked line');
+  eq(View.statsShown(late), ['reserves', 'shares', 'pages', 'chronicles'].filter(k => late.prestige[k] > 0), 'late: the stats the player has');
+  eq(View.treeBanks(late).map(b => b.ring), ['reserves', 'shares', 'pages'], 'late: all three banks');
+  for (const id of View.SECTIONS) ok(Guide.FEATURES[`prestige.${id}`], `${id} is a guide feature`);
+}
+
+console.log('--- CL-32: the Collection ---');
+{
+  const open = (s) => (f) => Guide.isOpen(s, f);
+  const fresh = createCoreLoopState(11);
+  Guide.refresh(fresh);
+  let st = Codex.collectionSections(fresh, open(fresh));
+  eq(st.open, [], 'fresh: nothing found, nothing open: no empty grids');
+  ok(st.locked === 'vials', 'fresh: the next one to come is the single locked line');
+  fresh.collection.vials['0:0'] = { tier: 2, pity: 0 };
+  st = Codex.collectionSections(fresh, () => false);
+  eq([st.open, st.locked], [['vials'], 'compounds'], 'a found Vial opens Vials');
+  fresh.cauldrons.bubbles = [{ frac: 0, level: 1 }];
+  fresh.mastery[0].ranks[0] = 1;
+  fresh.well.generators = P.slots + 1;
+  fresh.seals.tier[0] = 1;
+  fresh.collection.recipes = [{ found: true, made: 1, tier: 0 }];
+  st = Codex.collectionSections(fresh, () => false);
+  eq([st.open.length, st.locked], [Codex.SECTION_IDS.length, null], 'having found something in each opens every section');
+  for (const id of Codex.SECTION_IDS) ok(Guide.FEATURES[Codex.SECTION_RULES[id].feature], `${id} uses a real guide feature`);
+
+  const s = createCoreLoopState(12);
+  s.fields[0].bestGrade = 3; s.fields[1].bestGrade = 1;
+  s.collection.vials['0:1'] = { tier: 2, pity: 0 };
+  s.collection.vials['0:3'] = { tier: 5, pity: 0 };
+  s.collection.vials['1:0'] = { tier: 1, pity: 0 };
+  const vc = Codex.vialSummary(s);
+  eq([vc[0].found, vc[0].total, vc[1].found, vc[1].total], [2, 4, 1, 2], 'Vials: found of reached, per Field');
+  const chips = Codex.vialChips(s);
+  eq(chips.map(c => c.tier), [5, 2, 1], 'only found Vials are chips, best first');
+  Collection.recompute(s);
+  ok(Math.abs(Codex.addedTotal(s, 'vial') - (2 + 5 + 1) * P.vialPerTier) < 1e-9, 'what the Vials give is their tiers times the per-tier bonus');
+  s.collection.recipes = [{ found: true, made: 1, tier: 0 }, { found: true, made: 25, tier: 3 }, { found: false, made: 0, tier: 0 }];
+  Collection.recompute(s);
+  eq(Codex.compoundChips(s).map(c => c.tier), [3, 1], 'Compound chips: found only, best first');
+  ok(Math.abs(Codex.addedTotal(s, 'compound') - (1 + 3) * P.compoundBonus) < 1e-9, 'Compounds give a bonus per tier');
+  s.mastery[1].ranks = [0, 3, 0, 0];
+  eq(Codex.masteryCounts(s), { found: 1, total: P.fields.length * P.actionsPerField }, 'ranked skills of all');
+  eq(Codex.masteryChips(s).length, 1, 'only ranked skills are chips');
+  const many = Array.from({ length: Codex.CHIP_CAP + 5 }, (_, i) => ({ label: String(i), tier: 1 }));
+  const cap = Codex.capChips(many);
+  eq([cap.shown.length, cap.hidden], [Codex.CHIP_CAP, 5], 'a long list is capped with a count');
 }
 
 console.log('--- the modules mount nothing at import ---');
