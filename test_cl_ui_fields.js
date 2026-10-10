@@ -38,7 +38,7 @@ FIELDS.forEach(id => ['cl.field.', 'cl.rig.'].forEach(p => ok(`${p}${id}` in EN 
 // --- helpers ---------------------------------------------------------------------------------
 eq(fmtNum(0.5), '0.5'); eq(fmtNum(3), '3'); eq(fmtNum(0), '0'); eq(fmtNum(12.34), '12.3'); eq(fmtNum(250.6), '251');
 eq(fmtNum(NaN), '0'); ok(/K|1,?234/.test(fmtNum(1234)), 'thousands abbreviated: ' + fmtNum(1234));
-eq(gradeLabel(3), '3');
+eq(gradeLabel(3), '4'); eq(gradeLabel(0), '1');
 
 eq(rankLabel(0), 'Unranked'); eq(rankLabel(1), 'Novice'); eq(rankLabel(5), 'Ostoura');
 eq(rankLabel(6), 'Ostoura 2'); eq(rankLabel(7), 'Ostoura 3');

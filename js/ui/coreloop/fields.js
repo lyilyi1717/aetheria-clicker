@@ -36,7 +36,8 @@ export function fmtNum(x, d = 2) {
 }
 
 // Material grades are shown by their number in the engine (grade 0 is the first)
-export const gradeLabel = (g) => String(g);
+// Players count grades from 1 (index 0 is "Grade 1"), on every core-loop screen
+export const gradeLabel = (g) => String(g + 1);
 
 // The name of a Mastery rank: "Novice" ... "Ostoura", "Ostoura 2" ... past Legend
 export function rankLabel(rank) {
