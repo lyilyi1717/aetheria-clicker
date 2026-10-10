@@ -313,13 +313,13 @@ function brew(s) {
   recomputeBubbles(s);
 }
 
-function orderField(s, src) {
+export function orderField(s, src) {
   if (src !== 'any') return P.fields.indexOf(src);
   let best = 0, most = -1;
   s.fields.forEach((f, i) => { const n = invAtLeast(f, 0); if (n > most) { most = n; best = i; } });
   return best;
 }
-function postOrders(s) {
+export function postOrders(s) {
   for (const o of s.orders) {
     if (!o.empty || s.t < o.refillAt) continue;
     const taken = new Set(s.orders.filter(x => !x.empty).map(x => x.frac));
@@ -333,7 +333,7 @@ function postOrders(s) {
     s.orderStats.posted++;
   }
 }
-function fillOrders(s) {
+export function fillOrders(s) {
   for (const o of s.orders) {
     if (o.empty) continue;
     const f = s.fields[o.field];
@@ -347,15 +347,15 @@ function fillOrders(s) {
   }
 }
 // Units of a Field that open Orders still need
-function reserved(s, fi) {
+export function reserved(s, fi) {
   let n = 0;
   for (const o of s.orders) if (!o.empty && o.field === fi) n += o.qty;
   return n;
 }
-function surplus(s, fi) { return Math.max(0, invAtLeast(s.fields[fi], 0) - reserved(s, fi)); }
+export function surplus(s, fi) { return Math.max(0, invAtLeast(s.fields[fi], 0) - reserved(s, fi)); }
 
 // The weekly big Order: every Field's Materials at its Rig grade, sized to weeklyHours of Rig output
-function weeklyOrder(s) {
+export function weeklyOrder(s) {
   const week = Math.floor(s.t / (7 * 86400));
   const w = s.weekly;
   if (week !== w.week && s.fields.every(f => f.rig > 0)) {
