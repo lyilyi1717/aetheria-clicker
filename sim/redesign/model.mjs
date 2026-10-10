@@ -254,7 +254,7 @@ export function addMastery(s, i, hours) {
     while (f.hours[a] >= rankThreshold(f.ranks[a])) {
       f.ranks[a]++;
       const past = f.ranks[a] - P.rankHours.length;   // ranks past Legend
-      event(s, 'rank', past === 0 || (past > 0 && past % P.legendTitleEvery === 0) ? 4 : 2, { field: i, rank: f.ranks[a] });
+      event(s, 'rank', past === 0 || (past > 0 && (past + 1) % P.legendTitleEvery === 0) ? 4 : 2, { field: i, rank: f.ranks[a] });
     }
   }
 }

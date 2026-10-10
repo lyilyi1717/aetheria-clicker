@@ -7,7 +7,7 @@ import { HIT, NO_CONTEXT } from './shared.js';
 
 const NAMED = P.rankHours.length;                    // ranks 1..NAMED are the named ranks; NAMED is Legend
 // Rank ids by rank number: 0 has no rank yet; the last named rank is Legend
-export const RANK_IDS = Object.freeze(['unranked', 'novice', 'apprentice', 'adept', 'expert', 'legend'].slice(0, NAMED + 1));
+export const RANK_IDS = Object.freeze(['unranked', 'novice', 'adept', 'master', 'grandmaster', 'legend'].slice(0, NAMED + 1));
 
 // Hours on an action needed for rank + 1: the named ranks, then Legend II, III, ... every legendHours
 export function rankThreshold(rank) {
@@ -17,10 +17,10 @@ export function rankThreshold(rank) {
 // Ranks past Legend (0 at Legend, negative below it)
 const pastLegend = (rank) => rank - NAMED;
 
-// True for Legend and every legendTitleEvery ranks past it (Legend V, X, ...): the L4 ranks
+// True for Legend and every legendTitleEvery ranks past it (Legend V, X, ...: the Legend number is a multiple of legendTitleEvery): the L4 ranks
 export function isTitleRank(rank) {
   const past = pastLegend(rank);
-  return past === 0 || (past > 0 && past % P.legendTitleEvery === 0);
+  return past === 0 || (past > 0 && (past + 1) % P.legendTitleEvery === 0);
 }
 
 // What the UI shows for a rank: { id, level, title }. id is from RANK_IDS (capped at legend); level

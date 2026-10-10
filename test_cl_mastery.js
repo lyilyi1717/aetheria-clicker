@@ -18,14 +18,16 @@ console.log('--- thresholds: 0.25/1.5/6/20/60 h, then +25 h each ---');
 
 console.log('--- Legend, Legend V and X are level 4 ---');
 {
-  // rank 5 = Legend, rank 9 = Legend V, rank 14 = Legend X
+  // rank 5 = Legend, rank 9 = Legend V, rank 14 = Legend X; rank 10 is Legend VI, not a title
   const titles = [];
   for (let r = 1; r <= 30; r++) if (isTitleRank(r)) titles.push(r);
-  assert.deepEqual(titles, [5, 10, 15, 20, 25, 30]);
+  assert.deepEqual(titles, [5, 9, 14, 19, 24, 29]);
   assert.deepEqual(rankInfo(5), { id: 'legend', level: 1, title: true });
   assert.deepEqual(rankInfo(0), { id: 'unranked', level: 0, title: false });
   assert.equal(rankInfo(9).level, 5);
   assert.equal(rankInfo(14).level, 10);
+  assert.equal(rankInfo(10).title, false);
+  assert.deepEqual(['novice', 'adept', 'master', 'grandmaster', 'legend'], [1, 2, 3, 4, 5].map(r => rankInfo(r).id));
 }
 
 console.log('--- hours split over actions and ranks emit events ---');
@@ -44,11 +46,11 @@ console.log('--- hours split over actions and ranks emit events ---');
   assert.equal(s.mastery[1].ranks[0], 5);
   assert.deepEqual(c2.events.map(e => e.level), [2, 2, 2, 2, 4]);
   assert.deepEqual(c2.events.map(e => e.rank), [1, 2, 3, 4, 5]);
-  // past Legend: 70 h -> 300 h; Legend V (rank 9) is not the next title, rank 10 is
+  // past Legend: 70 h -> 300 h; Legend V (rank 9) and X (rank 14) are titles
   const c3 = makeContext();
   addActionMastery(s, 1, 0, 230, c3);
   assert.equal(s.mastery[1].ranks[0], 5 + Math.floor((300 - 60) / 25));
-  assert.deepEqual(c3.events.filter(e => e.level === HIT.MAJOR).map(e => e.rank), [10]);
+  assert.deepEqual(c3.events.filter(e => e.level === HIT.MAJOR).map(e => e.rank), [9, 14]);
   addMastery(createCoreLoopState(), 0, 5);   // no ctx is fine
 }
 
@@ -74,7 +76,7 @@ console.log('--- same inputs as the sim ---');
   for (let r = 0; r < 30; r++) assert.equal(rankThreshold(r), sim.rankThreshold(r));
   const g = createCoreLoopState();
   const m = sim.newState(Object.values(PROFILES)[0]);
-  const feed = [0.01, 0.2, 1.7, 5, 40, 0.3, 90, 200];
+  const feed = [0.01, 0.2, 1.7, 5, 40, 0.3, 90, 200, 900, 300, 1000];
   feed.forEach((h, i) => {
     const field = i % P.fields.length;
     const c = makeContext();

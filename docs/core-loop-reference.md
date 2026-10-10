@@ -208,3 +208,4 @@ must carry, not just a number):
 25. Re-blaze 1.5 Shares/Page overshot (25-26 Chronicles); 1.0-1.25 left a flat month. → 1.35.
     New Field gate step 4 → 3 (the 5th → 6th Field took 15 days late in a Chronicle).
 26. T9 upper bound 15 → 24 (see §4); dead code from the Orders' Crude price removed.
+27. The sim's Legend titles landed on Legend VI, XI (every 5 ranks past Legend) while the design says Legend V, X → a title when the Legend number is a multiple of 5 (ranks 9, 14, ...), 25 h earlier each. All targets still pass on seeds 1-6.
