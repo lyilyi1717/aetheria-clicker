@@ -102,12 +102,13 @@ export const P = {
   cauldronC0: { hand: 900, oil: 1800, sands: 1800, time: 7200 },
   sandsPerRig: 0.25,               // Sands fills 1/s while farming by hand + this per working Rig per s
   // every upgradeEvery-th full bar adds cauldronSpeed to the fill speed (linear, so no runaway)
-  bubbleExp: 0.6, upgradeEvery: 5, cauldronSpeed: 0.1,
-  // Unlimited: named Bubbles, then numbered variants. A near-flat cost keeps a steady stream all year;
-  // safe because Bubbles add (saturating) inside a Fraction, they never multiply each other
-  bubbleFamily: 10,                // every 10th Bubble opens a new Bubble family (L3)
+  bubbleExp: 0.95, upgradeEvery: 5, cauldronSpeed: 0.1,
+  // Unlimited: named Bubbles, then numbered variants. Owner decision 4: fewer, bigger Bubbles. A bar's
+  // cost grows almost linearly (bubbleExp), so a year brings about 800 (it was 8,000 at 0.6) and each
+  // adds six times as much (bubbleA); they add (saturating) inside a Fraction, never multiply each other
+  bubbleFamily: 4,                 // every 4th Bubble opens a new Bubble family (L3)
   // Essence prices are in hours of Oasis farming (Watching rate), so they stay meaningful as output grows
-  bubbleA: 0.5, bubbleB: 10, bubbleLevelHours: 0.25, bubbleCostGrowth: 1.15,
+  bubbleA: 3, bubbleB: 10, bubbleLevelHours: 0.25, bubbleCostGrowth: 1.15,
   // Vials
   vialOffersPerDay: 3, vialChance: 0.3, vialPity: 4,
   vialTierHours: [2, 8, 32, 128], vialTiers: 5, vialPerTier: 0.05,

@@ -149,10 +149,10 @@ console.log('--- brewing: every 5th bar, families, the loop guard ---');
   assert.deepEqual(g.cauldrons.bubbles.map(b => b.frac), [0, 1, 2, 3, 4, 0, 1, 2]);
   assert.equal(count(ctx, 'bubble'), 8);
   assert.ok(ctx.events.filter(e => e.kind === 'bubble').every(e => e.level === HIT.BIG && e.cauldron === hand));
-  assert.equal(count(ctx, 'bubbleFamily'), 0);
+  assert.equal(count(ctx, 'bubbleFamily'), Math.floor(8 / P.bubbleFamily), 'a family every P.bubbleFamily Bubbles');
   near(g.refinery.frac[0].bubble, 2 * C.bubbleEffect(1), 'frac[i].bubble is current after a brew');
-  while (g.cauldrons.bubbles.length < P.bubbleFamily) C.brew(g, hand, ctx);
-  assert.equal(count(ctx, 'bubbleFamily'), 1);
+  while (g.cauldrons.bubbles.length < 3 * P.bubbleFamily) C.brew(g, hand, ctx);
+  assert.equal(count(ctx, 'bubbleFamily'), 3);
   assert.deepEqual(ctx.events.find(e => e.kind === 'bubbleFamily'), { kind: 'bubbleFamily', level: HIT.NOVELTY, n: 1 });
   // brewAll stops at 50 bars a vat and leaves the rest
   const h = createCoreLoopState();

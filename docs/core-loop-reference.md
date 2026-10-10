@@ -96,8 +96,8 @@ Fraction = (1 + Bubbles + Vials + Compounds + Seals) x 1.015^Orders. Orders: 3 s
 only, 15 min of (Rig Watching rate + 0.25 x hand rate) at the Rig grade; refill 30 min. Weekly
 Order: 4 h of every Field's Rig output; +1 level on all Fractions (L4). Cauldrons fill in
 seconds: Hand (Hands-on), Oil (Watching), Sands (1/s by hand + 0.25/s per working Rig), Time
-(Away); Bubble n costs c0·(n+1)^0.6 with c0 900/1800/1800/7200; every 5th bar +0.1 speed;
-unlimited; every 10th Bubble opens a family (L3). Bubble effect 0.5·L/(10+L); levels cost
+(Away); Bubble n costs c0·(n+1)^0.95 with c0 900/1800/1800/7200; every 5th bar +0.1 speed;
+unlimited; every 4th Bubble opens a family (L3). Bubble effect 3·L/(10+L); levels cost
 0.25·1.15^(L-1) hours of Oasis output. Vials per (Field, grade): 3 offers/day + 1 per Order,
 30% chance, pity 4; tiers cost 2/8/32/128 h of Oasis output. Mixer: 40 recipes over grades
 0-40 + 10 per Chronicle, found at 60% per visit once both Materials are in stock; re-makes cost
@@ -137,8 +137,7 @@ Year shape (seed 1): best run month 1 → 12: casual 1e91 → 1e241, active 1e93
 Known limits (not modelled, or deliberately simple): Tower/Mine/Oasis are one generic frontier
 model (no bosses, tiles, timers); Heat has no Flashpoint burst; the Mixer is a chance stand-in
 for curiosity; Charters only as rate multipliers; Trials are a time rule, not real challenge
-runs; no save or migration modelling. Open design concerns: **Bubble volume** (~8,000 a year for
-casual: cadence passes, but each one may feel cheap; consider rarer, bigger Bubbles); **Orders
+runs; no save or migration modelling. Open design concerns: **Bubble volume** settled (tuning log 28); consider rarer, bigger Bubbles); **Orders
 carry many hourly hits** (casual: 81% of sessions also have a non-Order hit, others 96-100%).
 
 ## 5. Tuning log
@@ -209,3 +208,9 @@ must carry, not just a number):
     New Field gate step 4 → 3 (the 5th → 6th Field took 15 days late in a Chronicle).
 26. T9 upper bound 15 → 24 (see §4); dead code from the Orders' Crude price removed.
 27. The sim's Legend titles landed on Legend VI, XI (every 5 ranks past Legend) while the design says Legend V, X → a title when the Legend number is a multiple of 5 (ranks 9, 14, ...), 25 h earlier each. All targets still pass on seeds 1-6.
+28. Owner decision 4 (#23): Bubbles came ~8,000 a year for a casual player, each too small to notice.
+    → Bar cost (n+1)^0.6 → (n+1)^0.95 (about 800 a year: 640-1,080 across profiles and seeds; still
+    ≥ 8 on day 0 for active and casual), Bubble effect 0.5 → 3 at saturation (six times bigger, the
+    same total Fraction bonus as before), a family every 4th Bubble instead of every 10th (fewer
+    Bubbles left T3, the L3 gap, at 3.0-3.2 d on 3 of 24 runs). All targets pass on seeds 1-6 in
+    `sim/redesign` and on the real systems (`npm run sim:coreloop -- --assert`). **D**
