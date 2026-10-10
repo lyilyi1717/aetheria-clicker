@@ -84,6 +84,10 @@ Allowed, with these limits:
   When in doubt, run them one after another.
 - **Claude Code:** start each sub-agent as the `roadmap-coder` agent (`.claude/agents/`). The
   sub-agent model is set in `.claude/settings.json` and that agent's frontmatter; don't override it.
+  Items a plan doc marks for Opus (contracts, economy maths, save migrations, shared files) go to
+  the `roadmap-architect` agent, or the coordinating session does them itself. If
+  `CLAUDE_CODE_SUBAGENT_MODEL` in `.claude/settings.json` pins every sub-agent to one model, the
+  coordinating session (run on Opus) does those items itself.
 - The coordinating session reviews each sub-agent's PR against its issue before reporting done,
   and is the only one that edits `docs/STATUS.md` (avoids conflicts in that file). It moves each
   merged item to "Done" in the same session.
