@@ -180,12 +180,11 @@ function setBar(bar, fraction) {
 export function mount(panel, api) {
   const doc = panel.ownerDocument;
   ensureStyles(doc);
-  panel.classList.add('cp-screen');
   const trialIds = P.trials.map(([id]) => id);
   const bar = (ref, tone) => `<div class="bar lg ${tone}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-ref="${ref}"><i></i></div>`;
   const row = (label, ref) => `<div class="cp-row"><span>${esc(label)}</span><strong class="num" data-ref="${ref}"></strong></div>`;
 
-  panel.innerHTML = `
+  panel.innerHTML = `<div class="cp-screen">
     <div class="cp-stats">
       ${['reserves', 'shares', 'pages', 'chronicles'].map(k => `<span class="chip gold">${esc(t(`cl.prestige.stat.${k}`))} <strong class="num" data-ref="stat-${k}"></strong></span>`).join('')}
     </div>
@@ -263,7 +262,8 @@ export function mount(panel, api) {
           <span class="cp-gloss" data-ref="seal-note-${i}"></span>
         </div>`).join('')}
       </div>
-    </section>`;
+    </section>
+    </div>`;
 
   const refs = {};
   for (const n of panel.querySelectorAll('[data-ref]')) refs[n.dataset.ref] = n;

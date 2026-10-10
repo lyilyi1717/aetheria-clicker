@@ -12,7 +12,7 @@ export default {
   'cl.codex.vial.glass': 'Glass',
   'cl.codex.vial.crystal': 'Crystal',
   'cl.codex.vial.gold': 'Gold',
-  'cl.codex.vial.aether': 'Aether',
+  'cl.codex.vial.aether': 'Star',
 
   'cl.codex.compounds.title': 'Compounds',
   'cl.codex.compounds.found': '{found} of {total} found',

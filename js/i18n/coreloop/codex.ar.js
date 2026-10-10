@@ -12,7 +12,7 @@ export default {
   'cl.codex.vial.glass': 'زجاج',
   'cl.codex.vial.crystal': 'بلّور',
   'cl.codex.vial.gold': 'ذهب',
-  'cl.codex.vial.aether': 'أثير',
+  'cl.codex.vial.aether': 'نجم',
 
   'cl.codex.compounds.title': 'المركّبات',
   'cl.codex.compounds.found': 'وُجد {found} من {total}',

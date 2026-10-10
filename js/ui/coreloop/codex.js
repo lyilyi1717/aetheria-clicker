@@ -92,10 +92,9 @@ function setBar(bar, fraction) {
 export function mount(panel, api) {
   const doc = panel.ownerDocument;
   ensureStyles(doc);
-  panel.classList.add('cp-screen');
   const bar = (ref, tone) => `<div class="bar ${tone}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-ref="${ref}"><i></i></div>`;
 
-  panel.innerHTML = `
+  panel.innerHTML = `<div class="cp-screen">
     <p class="cp-note">${esc(t('cl.codex.intro'))}</p>
     <div class="cp-ladder">
       <section class="card cp-card">
@@ -137,7 +136,8 @@ export function mount(panel, api) {
         </div>
       </section>
     </div>
-    <p class="cp-note cx-elsewhere">${esc(t('cl.codex.elsewhere'))} <a class="cl-back" href="?">${esc(t('cl.codex.back'))}</a></p>`;
+    <p class="cp-note cx-elsewhere">${esc(t('cl.codex.elsewhere'))} <a class="cl-back" href="?">${esc(t('cl.codex.back'))}</a></p>
+    </div>`;
 
   const refs = {};
   for (const n of panel.querySelectorAll('[data-ref]')) refs[n.dataset.ref] = n;
