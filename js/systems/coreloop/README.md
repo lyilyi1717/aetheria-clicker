@@ -124,6 +124,28 @@ What the items that depend on it can rely on:
 Everything else is a player action: brew, fill, offer, mix, level, buy, flare, reset, and
 `Presence.noteInput` / `Presence.setHandField`.
 
+## The preview UI (`?loop=2`, CL-12)
+
+- `js/systems/coreloop/Loop.js`: `advance(state, dt, presence, ctx)` is the tick above for the game
+  (the player's Gusher tap is `Loop.catchGusher`, a player action between ticks);
+  `settleAway(state, seconds, ctx)` plays time away as Away steps of `P.offlineStep`, at most
+  `P.offlineMaxHours`.
+- `js/ui/coreloop/shell.js` owns the state, the tick (every 250 ms while visible; a hidden page or a
+  longer gap is settled as time away), input (any tap = Hands-on), and the save under
+  `AETHERIA_CORELOOP_SAVE_V1` (`store.js`). The current game's save is never read or written.
+- **A screen** is `js/ui/coreloop/<id>.js` (`well`, `fields`, `refinery`, `prestige`, `codex`)
+  exporting `mount(panel, api) -> { update(api) }`. `api.state`, `api.t`, `api.fmt`,
+  `api.act((state, ctx) => System.action(state, ..., ctx))` (counts as input, then redraws),
+  `api.on(fn)` for events, `api.catchGusher()`, `api.presence()`. A missing module shows a
+  placeholder, so screens land one PR at a time without editing the shell.
+- **Strings:** each screen keeps `js/i18n/coreloop/<id>.en.js` / `.ar.js` and calls
+  `registerStrings(en, ar)` (`js/i18n/coreloop/index.js`) at import; use `cl.<id>.*` keys. The
+  shared vocabulary (Fractions, Fields, Rigs, Charters, Dallahs, ranks and the Saudi names
+  decided on #23) is in `shell.en.js` as `cl.frac.*`, `cl.field.*`, `cl.rig.*`, `cl.name.*`,
+  `cl.charter.*`, `cl.dallah.*`, `cl.rank.*`. Dynamic keys go in template literals
+  (`` t(`cl.tab.${id}`) ``) so `test_r37_i18n.js` doesn't read them as literal keys.
+- Styles: `css/coreloop.css` (tokens only, phone first: tabs at the bottom below 768 px).
+
 ## Events
 
 `ctx.emit(kind, level, data)`. Levels are `HIT.MINOR` 1, `HIT.BIG` 2, `HIT.NOVELTY` 3, `HIT.MAJOR` 4.

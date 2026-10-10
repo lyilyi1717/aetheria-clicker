@@ -60,6 +60,8 @@ export const P = {
   gusherEvery: 240, gusherSeconds: 60,
   handsWindow: 30,                 // s since the last input that still count as Hands-on
   gusherWindow: 20,                // s a Gusher stays up to be tapped
+  offlineMaxHours: 12,             // time away settled on return, at most (the design's "Rigs up to 12 h")
+  offlineStep: 300,                // s per step when settling time away (the sim's Away step)
 
   // --- Fields ---------------------------------------------------------------------------------
   fields: ['tower', 'mine', 'oasis'],
