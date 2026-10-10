@@ -14,13 +14,15 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
-- **Core-loop redesign** (`docs/core-loop-plan.md`): Wave A (R70-R79) and Wave B (R80, the proof sim) are
-  done: every system is in `js/systems/coreloop/`, dark, and `npm run sim:coreloop -- --assert` passes
-  T1-T12 on the real code. **Next: Wave C** (dark UI behind `?loop=2`), filed as R81-R87 (#229-#235).
-  R81 (CL-11 mockups, Opus) is ready now and needs the **owner's approval** before R82 (the shell)
-  starts; R83-R86 (screens, Sonnet, in parallel) need R82; R87 (game feel) needs R83-R86. Wave D (the
-  switch) waits for the owner's go-ahead. Owner decisions: #23 (decision 4 applied in R76, the rest
-  are still on their defaults). The coordinator merges with squash merges.
+- **Core-loop redesign** (`docs/core-loop-plan.md`): Waves A and B done; Wave C: the `?loop=2` preview
+  has its shell and all five screens (R82-R86). **Open:** R87 (CL-17 game-feel pass, Sonnet, ready),
+  and **Wave C2 (integration), R88-R94 (#238-#244)**, filed after the Wave D go / no-go came out
+  **no-go** (#23, 2026-10-10): the loop has no home yet for the three subgames' own play, the
+  trees and shops, spells and elixirs, or the non-loop tabs. Ready now: R93 (CL-26 sim covers the
+  subgames and the tree, Opus), R91 (CL-24 the one tree, Opus), R92 (CL-25 Tafheet, spells, Brews,
+  Opus), R94 (CL-27 Codex hosts the other tabs, Sonnet). R88-R90 (subgames as Fields, Opus) need R93.
+  Owner answers are on #23 (no mockups; Saudi names; keep or archive old saves; no new leaderboard
+  season; the coordinator decides go / no-go). Wave D waits for a **go**.
 
 R0–R30, R32–R40 and R41–R43 are done.
 
@@ -113,16 +115,34 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-A | R78 CL-8 Well v2 (cascade, BigNum) | #212 | R70 |
 | CL-A | R79 CL-9 Prestige v2 | #213 | R78, R72 |
 | CL-B | R80 CL-10 Proof sim on the real systems | #226 | R71-R79 |
-| CL-C | R81 CL-11 Core-loop mockups (owner approves) | #229 | – |
-| CL-C | R82 CL-12 Shell behind `?loop=2` | #230 | R80, R81 |
+| CL-C | R81 CL-11 Core-loop mockups (closed: owner wants none) | #229 | – |
+| CL-C | R82 CL-12 Shell behind `?loop=2` | #230 | R80 |
 | CL-C | R83 CL-13 Well screen | #231 | R82 |
 | CL-C | R84 CL-14 Fields screen | #232 | R82 |
 | CL-C | R85 CL-15 Refinery screen | #233 | R82 |
 | CL-C | R86 CL-16 Prestige screen and Codex | #234 | R82 |
 | CL-C | R87 CL-17 Game-feel pass | #235 | R83-R86 |
+| CL-C2 | R88 CL-21 Tower as a Field | #238 | R84, R93 |
+| CL-C2 | R89 CL-22 Mine as a Field | #239 | R84, R93 |
+| CL-C2 | R90 CL-23 Oasis as a Field | #240 | R84, R93 |
+| CL-C2 | R91 CL-24 The one upgrade tree | #241 | R86 |
+| CL-C2 | R92 CL-25 Tafheet, spells and elixirs | #242 | R83, R85 |
+| CL-C2 | R93 CL-26 Proof sim covers the subgames and the tree | #243 | – |
+| CL-C2 | R94 CL-27 Codex hosts achievements, leaderboard, community, settings, about | #244 | R86 |
 
 ## Done
 
+- R83-R86 #231-#234 (CL-13…CL-16, PRs #247, #245, #246, #248, behind `?loop=2`): the Well, Fields,
+  Refinery, Prestige and Codex screens, one module each (`js/ui/coreloop/<id>.js`, own strings and
+  css). Players count grades from 1. Top Vial tier is "Star" ("Aether" is a retired word). Trials
+  are won with a "Take the Trial" button. Placeholders still to name: the 12 Mastery actions, the
+  12 Seals, Compounds, the Well's slots. The lower Refinery sections, Seals / Trials and the Codex
+  were measured at 375 px, not looked at; no combined browser pass after the last merges.
+- R82 #230 (CL-12, PR #237, behind `?loop=2`): the preview shell. `Loop.js` (tick, Gusher tap, time
+  away capped at `P.offlineMaxHours` 12), `js/ui/coreloop/shell.js` + `store.js` (own save key
+  `AETHERIA_CORELOOP_SAVE_V1`), `registerStrings` for per-screen strings, the shared vocabulary with
+  the names from #23 in `js/i18n/coreloop/shell.en.js`. A screen is `mount(panel, api)`; the README has
+  the API. `index.html` and `GameState.js` were not needed.
 - R76 #210 (CL-6, PRs #224 and #228, no player change): `coreloop/Cauldrons.js`, then owner decision 4:
   about 800 Bubbles a year instead of 8,000 (bar cost ^0.95, effect x6, a family every 4th Bubble).
   Bubble totals move by the difference on a brew or level-up (no rebuild). Reference tuning log 28.

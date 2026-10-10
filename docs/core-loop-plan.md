@@ -33,12 +33,19 @@ them, one at a time.
   `js/systems/coreloop/` (the README says what each promises and the order of a loop tick); the
   proof sim `npm run sim:coreloop -- --assert` passes T1-T12 on seeds 1-6 with the real code.
   Owner decision 4 (fewer, bigger Bubbles) is applied (reference tuning log 28).
-- **Next: Wave C**, filed as R81-R87 (#229-#235). CL-11 (mockups, Opus) can start now; its "done
-  when" is the owner's approval, and CL-12 (the shell, Opus, shared files) waits for it. Then
-  CL-13…CL-16 in parallel (Sonnet), then CL-17.
-- **Not started:** Wave D (the switch). The owner's go-ahead comes first, with answers or
-  confirmed defaults for decisions 1, 2, 3, 5 and 6 in #23.
-- **Filed:** Wave A #204-#213 (R70-R79), Wave B #226 (R80), Wave C #229-#235 (R81-R87), labels
+- **Wave C:** the `?loop=2` preview has its shell and five screens (CL-12…CL-16, R82-R86). No
+  mockups (owner, #23): CL-11 is closed. Open: CL-17 (game feel).
+- **Wave D go / no-go (the coordinator's call, #23): NO-GO as of 2026-10-10.** The loop passes its
+  targets, but a switch would remove the subgames' own play, the trees and shops, spells and
+  elixirs, and the non-loop tabs, against the owner's rule (change how the player interacts, never
+  remove). **Wave C2 (integration)** closes that gap, R88-R94 (#238-#244): CL-21 Tower, CL-22 Mine,
+  CL-23 Oasis as Fields; CL-24 the one tree; CL-25 Tafheet, spells and Brews; CL-26 the sims
+  cover the subgames and the tree; CL-27 the Codex hosts the other tabs. **Go** when every current
+  tab has a home in the preview and both sims pass T1-T12 on seeds 1-6 with all of it modelled.
+- **Owner answers (#23):** Saudi names (table on #23, strings in `js/i18n/coreloop/shell.en.js`);
+  old saves convert what fits and archive the rest (a revert must be possible); `sim:check` moves
+  to T1-T12 at the switch; no new leaderboard season until a save wipe.
+- **Filed:** Wave A #204-#213 (R70-R79), Wave B #226 (R80), Wave C #229-#235 (R81-R87), Wave C2 #238-#244 (R88-R94), labels
   `roadmap` and `core-loop`. Owner decisions
   are posted on issue #23.
 - **Sub-agents are pinned to Sonnet** (`.claude/settings.json`), so the coordinating session does
