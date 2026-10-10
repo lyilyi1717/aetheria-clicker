@@ -22,11 +22,12 @@ assert.ok(kinds.length >= 20, 'parsed the Events table: ' + kinds.join(','));
 
 // A sample event per kind with the level the README gives (rank and seal also at their big level)
 const LEVEL = {
-  gusher: 1, newWell: 1, flare: 2, order: 2, bubble: 2, vial: 2, rank: 2,
+  gusher: 1, newWell: 1, guide: 1, unlock: 3, flare: 2, order: 2, bubble: 2, vial: 2, rank: 2,
   generator: 3, bubbleFamily: 3, vialTier: 3, compound: 3, gilded: 3, grade: 3, rigGrade: 3, seal: 3, newField: 3,
   weekly: 4, royal: 4, trial: 4, chronicle: 4
 };
 const DATA = {
+  guide: { step: 'tap' }, unlock: { feature: 'tab.fields' },
   flare: {}, order: { frac: 2 }, bubble: { cauldron: 1 }, vial: { key: '1:4' }, rank: { field: 0, action: 1, rank: 2 },
   generator: { n: 12 }, bubbleFamily: { n: 2 }, vialTier: { key: '2:3', tier: 2 }, compound: { recipe: 5 }, gilded: { recipe: 5 },
   grade: { field: 1, grade: 3 }, rigGrade: { field: 2, grade: 3 }, seal: { seal: 0, tier: 2 }, newField: { n: 4 },

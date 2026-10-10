@@ -1,5 +1,9 @@
 // Arabic for js/i18n/coreloop/feedback.en.js
 export default {
+  'cl.fx.guide': 'تم: {goal}.',
+  'cl.fx.unlock': 'جديد: {name}',
+  'cl.fx.kind.guide': 'خطوات تمت',
+  'cl.fx.kind.unlock': 'أجزاء جديدة فُتحت',
   'cl.fx.gusher': 'أمسكت بالفوارة.',
   'cl.fx.newWell': 'فُتح بئر جديد.',
   'cl.fx.flare': 'اشتعلت {flare}.',

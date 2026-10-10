@@ -68,6 +68,7 @@ export const canCatchGusher = (state) => state.presence.state !== PRESENCE.AWAY 
 export function catchGusher(state, ctx = NO_CONTEXT) {
   if (!canCatchGusher(state)) return false;
   ctx.emit('gusher', HIT.MINOR);
+  state.presence.caught++;
   schedule(state);
   return { seconds: P.gusherSeconds, presence: PRESENCE.WATCH };
 }

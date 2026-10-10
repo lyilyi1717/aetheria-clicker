@@ -123,6 +123,14 @@ export function addCrude(state, amount, ctx = NO_CONTEXT) {
   }
 }
 
+// A tap on the Well by hand: a flat P.tapCrude. It starts a new player off and gives the hands
+// something to do; the real reward of tapping is Heat (Presence), which the caller's input keeps up.
+export function tap(state, ctx = NO_CONTEXT) {
+  state.well.taps++;
+  addCrude(state, P.tapCrude, ctx);
+  return P.tapCrude;
+}
+
 // Advances the cascade by dt seconds and banks the Crude. Returns the Crude made (BigNum).
 // Presence.step runs first in a loop tick: the hands-on rate reads presence.heatSeconds.
 export function step(state, dt, presence, ctx = NO_CONTEXT) {

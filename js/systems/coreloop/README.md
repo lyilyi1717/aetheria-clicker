@@ -50,6 +50,7 @@ names, with the differences listed under "Game vs sim" below.
 | `seals.*` | `Seals.js` (CL-7) | reads `prestige.crew` |
 | `presence.*` | `Presence.js` (CL-1) | |
 | `tree.*` | `Tree.js` (CL-24) | banks are filled and rings reset by Prestige through `Tree.earn / resetRing` |
+| `guide.*` | `Guide.js` (CL-28) | steps passed, features opened, tabs not looked at yet; never reset |
 
 A Fraction's value is `fracValue(state, i)` in `shared.js`:
 `(1 + bubble + vial + compound + seal) x P.orderMult^level`. Sources add inside a Fraction; the
@@ -158,8 +159,14 @@ Everything else is a player action: brew, fill, offer, mix, level, buy, flare, r
 - **A screen** is `js/ui/coreloop/<id>.js` (`well`, `fields`, `refinery`, `prestige`, `codex`)
   exporting `mount(panel, api) -> { update(api) }`. `api.state`, `api.t`, `api.fmt`,
   `api.act((state, ctx) => System.action(state, ..., ctx))` (counts as input, then redraws),
-  `api.on(fn)` for events, `api.catchGusher()`, `api.presence()`. A missing module shows a
-  placeholder, so screens land one PR at a time without editing the shell.
+  `api.on(fn)` for events, `api.catchGusher()`, `api.presence()`, and from the guide
+  `api.isOpen(feature)`, `api.lockText(feature)`, `api.tapWell()`, `api.go(screen)`. A missing
+  module shows a placeholder, so screens land one PR at a time without editing the shell.
+- **The shell draws the head of every screen** (its name, one sentence, "How it works") and the
+  next-step bar; a screen starts with its content, not with a title or an explanation of itself.
+- **A screen is for a person, not a spreadsheet:** one main action that is obvious at a glance,
+  the number that matters big and the rest small, words before numbers, the game's names
+  (`cl.slot.*`, `cl.name.*`) and never "Tier 1", and a visible response to every tap.
 - **Strings:** each screen keeps `js/i18n/coreloop/<id>.en.js` / `.ar.js` and calls
   `registerStrings(en, ar)` (`js/i18n/coreloop/index.js`) at import; use `cl.<id>.*` keys. The
   shared vocabulary (Fractions, Fields, Rigs, Charters, Dallahs, ranks and the Saudi names
@@ -167,6 +174,30 @@ Everything else is a player action: brew, fill, offer, mix, level, buy, flare, r
   `cl.charter.*`, `cl.dallah.*`, `cl.rank.*`. Dynamic keys go in template literals
   (`` t(`cl.tab.${id}`) ``) so `test_r37_i18n.js` doesn't read them as literal keys.
 - Styles: `css/coreloop.css` (tokens only, phone first: tabs at the bottom below 768 px).
+
+## The guide (`Guide.js`, CL-28)
+
+A person who opens the game must know what to do in ten seconds and must never be shown more than
+they can use. The guide is the one place that decides both.
+
+- **Features** (`Guide.FEATURES`): a tab (`tab.fields`) or a section of a screen (`well.pressure`),
+  each with the rule that opens it. Open is sticky (`state.guide.open`); no reset closes anything.
+  **A screen shows a section only when `api.isOpen('<feature>')`.** A closed section is left out,
+  or, when it is the next thing coming, shown as one line: `<p class="cl-locked">` with
+  `api.lockText('<feature>')`. Screens never invent their own unlock rules.
+- **Steps** (`Guide.STEPS`): the first session, one goal at a time. Reaching a step opens what it
+  needs. After the last step, `Guide.suggestion(state)` names the one thing most worth doing now.
+  `Guide.next(state)` is whichever applies; the shell's gold bar shows it with "Show me".
+- **Anchors:** the bar points at the element with `data-guide="<anchor>"` inside the open panel
+  (it gets `data-guide-on` while it is the goal and a pulse on "Show me"). A screen must carry its
+  anchors: `well.tap` (the tappable well, also where a Gusher is caught), `well.buy.<k>` (the buy
+  button of pump k), `well.pressure`, `well.rate`; `fields.work`, `fields.mastery`;
+  `refinery.order` (the first fillable Order, else the first Order); `prestige.newwell`,
+  `prestige.newfield`, `prestige.chronicle`, `prestige.tree`.
+- **The Well can be tapped:** `api.tapWell()` (`Well.tap`): a flat `P.tapCrude`, which matters for
+  the first minutes only, plus the input that keeps Heat up. A Gusher is caught on the same spot.
+- `refresh(state, ctx)` runs after every tick and action (the shell does it); the sims never call
+  it, so the guide cannot change a simulated year.
 
 ## Events
 
@@ -193,6 +224,8 @@ Everything else is a player action: brew, fill, offer, mix, level, buy, flare, r
 | `newWell` | 1 | Prestige | `reserves` |
 | `newField` | 3 | Prestige | `n` |
 | `chronicle` | 4 | Prestige | `pages` |
+| `guide` | 1 | Guide | `step` |
+| `unlock` | 3 for a tab, 2 for a section | Guide | `feature` |
 
 ## Game vs sim
 
