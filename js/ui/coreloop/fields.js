@@ -154,8 +154,7 @@ export function mount(panel, api) {
   const rNone = h(doc, 'p', 'clf-none', t('cl.fields.rig_none'));
   const rList = h(doc, 'ul', 'clf-list');
   const rRows = ['reach', 'grade', 'eff', 'watch', 'away', 'hand'].map(k => { const li = h(doc, 'li', 'num'); li.dataset.k = k; rList.appendChild(li); return li; });
-  const rPower = h(doc, 'p', 'clf-sub num');
-  rigCard.append(rHead, rGloss, rNone, rList, rPower);
+  rigCard.append(rHead, rGloss, rNone, rList);
 
   // Materials shelf
   const shelfCard = h(doc, 'section', 'card clf-card');
@@ -222,7 +221,6 @@ export function mount(panel, api) {
     // Rig
     setText(rTitle, t(`cl.rig.${id}`));
     setText(rGloss, t(`cl.rig.${id}.gloss`));
-    setText(rPower, t('cl.fields.power', { n: fmtNum(d.power) }));
     rNone.hidden = !!d.rig;
     rList.hidden = !d.rig;
     rLevel.hidden = !d.rig;
