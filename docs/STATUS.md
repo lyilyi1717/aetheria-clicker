@@ -10,14 +10,16 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R100 #266 (CL-33 the preview's icons as inline SVG, no emoji): one sub-agent. The owner's second
-  PC showed no barrel on the Well (its fonts lack the emoji).
+- Nothing is being built right now. **Open questions for the owner** (asked 2026-10-10): the other
+  waits on the clock (Order slots refill after 30 min, a Trial can be won 2 h after it unlocks,
+  the weekly Order): keep or turn into resource gates; and whether a New Well's Reserves should be
+  paid from the best run so far (a high-water mark) instead of the current run.
 
 ## Next up
 
 - **Core-loop redesign** (`docs/core-loop-plan.md`): Waves A and B done; Wave C: the `?loop=2` preview
   has its shell, all five screens (R82-R86) and the game-feel pass (R87). The clarity pass after the owner's first try (R95-R99, and the tree's
-  view, R91) is done; R100 (icons) is in progress. **Open:** **Wave C2 (integration), R88-R94 (#238-#244)**, filed after the Wave D go / no-go came out
+  view, R91) and R100-R101 are done. **Open:** **Wave C2 (integration), R88-R94 (#238-#244)**, filed after the Wave D go / no-go came out
   **no-go** (#23, 2026-10-10): the loop has no home yet for the three subgames' own play, the
   trees and shops, spells and elixirs, or the non-loop tabs. Ready now: R93 (CL-26 sim covers the
   subgames and the tree, Opus), R92 (CL-25 Tafheet, spells, Brews,
@@ -129,6 +131,7 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-C | R98 CL-31 Refinery screen a person can read | #257 | R95 |
 | CL-C | R99 CL-32 Expand and Collection screens a person can read | #258 | R95 |
 | CL-C | R100 CL-33 The preview's icons as inline SVG | #266 | R95-R99 |
+| CL-C | R101 CL-34 No gate waits on the clock (New Well timer removed) | #270 | – |
 | CL-C2 | R88 CL-21 Tower as a Field | #238 | R84, R93 |
 | CL-C2 | R89 CL-22 Mine as a Field | #239 | R84, R93 |
 | CL-C2 | R90 CL-23 Oasis as a Field | #240 | R84, R93 |
@@ -138,6 +141,24 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-C2 | R94 CL-27 Codex hosts achievements, leaderboard, community, settings, about | #244 | R86 |
 
 ## Done
+
+- R101 #270 (CL-34, PR #271, no player change): **owner rule: no gate waits on the clock; gates are
+  resources** (README rule 3). The New Well's 10-minute timer is gone (`P.wellMinRunSec`,
+  `Prestige.newWellWait` removed); the least a New Well pays is 12 Reserves (was 5), which keeps
+  every target passing: model seeds 1-6 and real systems seeds 1-3 (reference tuning log 30; with
+  the timer removed and nothing else, T12 missed on one seed at 33 d). First guided New Well 15:54
+  (was 13:21). Merged with the `test` check red: it was the known `test_mining.js` flake ("Frenzy
+  should be active after 7 rapid manual hits"); `main` passes all 91 files locally. `agy` was asked
+  to run these sims but its headless mode cannot run commands without an allow-rule in its own
+  settings, so the coordinator ran them.
+- R100 #266 (CL-33, PR #269, no player change): `js/ui/coreloop/icons.js`, 30 inline SVG icons (the
+  well's barrel and the Gusher with hero drawings, the eight pumps, the tabs, toast icons); no emoji
+  is left in the preview's files and `test_cl_ui_icons.js` holds that. New icons go in `icons.js`;
+  toasts use `iconToken('name')` because `js/ui/rewards.js` sets icons as text. The Fields have
+  icons defined (`FIELD_ICONS`) but the Fields screen does not show them yet.
+- R95 follow-up (PR #268): the guide's Gusher step brings its own Gusher (`Presence.summonGusher`,
+  `P.guideGusherDelay` 4 s, again after a miss): an ordinary Gusher's wait counts Watching time
+  only, so a player who kept tapping never saw one.
 
 - **Clarity pass on the `?loop=2` preview, R96-R99 and the rest of R91** (2026-10-10, no player change;
   the same mechanics, shown one at a time). Each screen asks `api.isOpen(feature)`, carries its
