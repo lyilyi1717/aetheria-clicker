@@ -12,6 +12,8 @@ import EN_W from './js/i18n/coreloop/well.en.js';
 import AR_W from './js/i18n/coreloop/well.ar.js';
 import EN from './js/i18n/en.js';
 import AR from './js/i18n/ar.js';
+import SHELL_EN from './js/i18n/coreloop/shell.en.js';
+Object.assign(EN, SHELL_EN); // the shared names the screen reads (the shell registers them in the game)
 
 let checks = 0;
 const ok = (c, m) => { assert.ok(c, m); checks++; };
@@ -168,6 +170,73 @@ const fresh = () => createCoreLoopState(7);
   h.presence.heatSeconds = P.heatRamp / 2;
   const hv = W.heatView(h, PRESENCE.HANDS);
   ok(hv.on && Math.abs(hv.frac - 0.5) < 1e-9 && Math.abs(hv.heat - 1.5) < 1e-9, 'Heat 1..2 over the ramp');
+}
+
+// --- CL-29: words, waits, hero, run strip, sections ----------------------------------------------
+{
+  const api = { fmt: (x) => x.format() };
+  eq(W.etaSeconds(new BigNum(36), new BigNum(3)), 12, '36 more at 3 a second is 12 s');
+  eq(W.etaSeconds(new BigNum(1), new BigNum(1, 5)), 1, 'never under a second');
+  eq(W.etaSeconds(new BigNum(5), BigNum.zero()), null, 'no rate, no promise');
+  eq(W.etaSeconds(new BigNum(1, 40), new BigNum(1)), Infinity, 'far away');
+  eq(W.waitWords(12), '12 s');
+  eq(W.waitWords(130), '3 min');
+  eq(W.waitWords(7300), '3 h');
+  eq(W.waitWords(1e9), null, 'too long to say');
+  eq(W.whenWords(api, new BigNum(36), new BigNum(3)), 'in 12 s');
+  ok(/^need /.test(W.whenWords(api, new BigNum(36), BigNum.zero())), 'a zero rate says what is missing');
+  eq(W.rowWords(1), { key: 'cl.well.makes_crude', prev: 0 }, 'the Bucket makes Crude');
+  eq(W.rowWords(4), { key: 'cl.well.makes_pump', prev: 3 }, 'other pumps make the pump before');
+  ok(W.slotName(3, true).includes('(') && !W.slotName(2, true).includes('('), 'gloss only where there is one');
+  ok(!/Tier|slot|generator \d/i.test(W.slotName(1) + W.slotName(8)), 'game names, never Tier');
+}
+{
+  const s = fresh();
+  let h = W.heroView(s, PRESENCE.WATCH);
+  eq(h.mode, 'well', 'the well without a Gusher');
+  ok(!h.heat.warm, 'cold at the start');
+  s.presence.heatSeconds = P.heatRamp;
+  h = W.heroView(s, PRESENCE.HANDS);
+  ok(h.heat.warm && h.heat.frac === 1 && h.heat.gain > 1, 'full Heat gives a real gain');
+  s.presence.nextGusherAt = 100; s.t = 105; s.presence.state = PRESENCE.WATCH;
+  h = W.heroView(s, PRESENCE.WATCH);
+  ok(h.mode === 'gusher' && h.left > 0, 'the well is the Gusher while one is up');
+}
+{
+  const s = fresh();
+  ok(!W.runView(s).show, 'no run strip before 10 Buckets');
+  s.well.bought[1] = 10;
+  let r = W.runView(s);
+  ok(r.show && r.stage === 'first' && r.frac === 0, 'first stage, empty bar');
+  s.well.runCrude = new BigNum(1, 3);
+  ok(Math.abs(W.runView(s).frac - 0.5) < 1e-9, 'bar is log10 run Crude over log10 of the first New Well');
+  s.well.runCrude = new BigNum(1, 12);
+  r = W.runView(s);
+  ok(r.stage === 'pending' && r.pending >= 1 && r.frac > 0, 'Reserves pending');
+  ok(r.wait > 0, 'the wait is given');
+}
+{
+  const open = (set) => (f) => set.includes(f);
+  let v = W.sectionsView(open([]));
+  eq(v.lock, 'well.maxall', 'the first closed section is the one coming');
+  ok(Object.values(v.open).every(x => !x), 'nothing open');
+  v = W.sectionsView(open(['well.maxall', 'well.pressure']));
+  eq(v.lock, 'well.flare');
+  v = W.sectionsView(open(W.SECTIONS));
+  eq(v.lock, null, 'all open, none locked');
+}
+{
+  // a fresh save shows the well and one pump row, nothing else
+  const s = fresh();
+  eq(W.slotsShown(s), 1);
+  const open = (f) => s.guide.open[f] === true;
+  ok(!open('well.maxall') && !open('well.pressure') && !open('well.flare') && !open('well.generators'), 'sections start closed');
+}
+{
+  // every literal key the screen uses exists
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('./js/ui/coreloop/well.js', import.meta.url), 'utf8');
+  for (const m of src.matchAll(/'(cl\.well\.[a-z_]+)'/g)) ok(m[1] in EN_W, m[1] + ' is defined');
 }
 
 console.log(`test_cl_ui_well: ${checks} checks passed`);
