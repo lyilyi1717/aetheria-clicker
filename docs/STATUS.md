@@ -10,7 +10,11 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- None (core-loop Waves A and B complete; Wave C filed, not started).
+- R87 #235 (CL-17 game-feel pass): draft PR #250, unit tests green, **not yet seen or heard in a
+  browser** (the Chrome extension was disconnected); check desktop, 375 px, sound, reduced motion and
+  Arabic before merging.
+- R91 #241 (CL-24 the one tree): logic and sims merged (#251); the tree's view in the Prestige screen
+  is still to build (`js/ui/coreloop/tree.js`, needs a browser check).
 
 ## Next up
 
@@ -132,6 +136,12 @@ R0–R30, R32–R40 and R41–R43 are done.
 
 ## Done
 
+- R91 #241, first part (CL-24, PR #251, no player change): `coreloop/Tree.js` + `treeMath.js` (shared with
+  the model). 38 nodes in three rings (`P.tree`); all 59 nodes of the old Reserve shop, Shard tree,
+  talents, Page upgrades and Quartermaster have a home (`from` lists, `P.treeElsewhere`). 9 nodes are
+  flags waiting for CL-21 / CL-22 / CL-25 (`pending`). New saved field `state.tree`. Tuning (reference
+  log 29): re-blaze 1.3 Shares a Page (was 1.35), a Bubble family every 3rd Bubble (was 4th).
+  Both sims pass T1-T12 on seeds 1-6.
 - R83-R86 #231-#234 (CL-13…CL-16, PRs #247, #245, #246, #248, behind `?loop=2`): the Well, Fields,
   Refinery, Prestige and Codex screens, one module each (`js/ui/coreloop/<id>.js`, own strings and
   css). Players count grades from 1. Top Vial tier is "Star" ("Aether" is a retired word). Trials
