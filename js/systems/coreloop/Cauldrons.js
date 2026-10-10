@@ -49,7 +49,7 @@ export function baseFillRate(vat, presence, rigs = 0) {
 }
 
 // Advance every vat by dt seconds in `presence` (the sim's cauldronFill)
-export function step(state, dt, presence, ctx = NO_CONTEXT) { // eslint-disable-line no-unused-vars
+export function step(state, dt, presence, ctx = NO_CONTEXT) {
   const rigs = workingRigs(state, presence);
   state.cauldrons.vats.forEach((c, i) => { c.fill += baseFillRate(i, presence, rigs) * dt * c.speed; });
 }
@@ -85,8 +85,9 @@ export function brew(state, vat, ctx = NO_CONTEXT) {
   if (c.bars % P.upgradeEvery === 0) { c.speed += P.cauldronSpeed; return 'upgrade'; }
   c.brewed++;
   const bubbles = state.cauldrons.bubbles;
-  bubbles.push({ frac: bubbles.length % FRACTIONS.length, level: 1 });
-  recompute(state);
+  const frac = bubbles.length % FRACTIONS.length;
+  bubbles.push({ frac, level: 1 });
+  state.refinery.frac[frac].bubble += bubbleEffect(1);
   ctx.emit('bubble', HIT.BIG, { cauldron: vat });
   if (bubbles.length % P.bubbleFamily === 0) ctx.emit('bubbleFamily', HIT.NOVELTY, { n: bubbles.length / P.bubbleFamily });
   return 'bubble';
@@ -112,11 +113,13 @@ export const canLevelBubble = (state, index) =>
   index >= 0 && index < state.cauldrons.bubbles.length && Fields.countAtLeast(state, FIELD.OASIS, 0) >= levelCost(state, index);
 
 // An L1 moment: no event
-export function levelBubble(state, index, ctx = NO_CONTEXT) { // eslint-disable-line no-unused-vars
+export function levelBubble(state, index, ctx = NO_CONTEXT) {
   if (!canLevelBubble(state, index)) return false;
   if (!Fields.takeMaterial(state, FIELD.OASIS, 0, levelCost(state, index))) return false;
-  state.cauldrons.bubbles[index].level++;
-  recompute(state);
+  // the total moves by the difference, not a rebuild: a player may own thousands of Bubbles
+  const b = state.cauldrons.bubbles[index];
+  state.refinery.frac[b.frac].bubble += bubbleEffect(b.level + 1) - bubbleEffect(b.level);
+  b.level++;
   return true;
 }
 

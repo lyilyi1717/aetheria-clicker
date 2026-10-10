@@ -182,7 +182,7 @@ console.log('--- levelling a Bubble ---');
 {
   const g = createCoreLoopState();
   g.fields[FIELD.OASIS].rig = 3;
-  g.cauldrons.bubbles = [{ frac: 0, level: 3 }, { frac: 1, level: 2 }, { frac: 2, level: 2 }];
+  g.cauldrons.bubbles = [{ frac: 0, level: 3 }, { frac: 1, level: 2 }, { frac: 2, level: 2 }]; C.recompute(g);
   assert.equal(C.lowestBubble(g), 1, 'first of the lowest');
   assert.equal(C.lowestBubble(createCoreLoopState()), -1);
   const cost = C.levelCost(g, 1);
