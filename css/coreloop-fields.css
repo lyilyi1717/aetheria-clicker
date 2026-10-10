@@ -1,0 +1,47 @@
+/* Core-loop Fields screen (?loop=2, CL-14). Tokens and components only; phone first (one column),
+   two columns from 768px. Logical properties throughout so Arabic mirrors. */
+
+.clf { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
+.clf * { min-width: 0; }
+
+.clf-switch { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); }
+.clf-switch-btn { min-height: 48px; font-size: var(--fs-14); }
+.clf-switch-btn[aria-pressed="true"] { background: var(--aether-dim); border-color: var(--aether); color: var(--aether); font-weight: 700; }
+
+.clf-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-4); }
+.clf-col { display: flex; flex-direction: column; gap: var(--sp-4); }
+@media (min-width: 768px) { .clf-grid { grid-template-columns: 1fr 1fr; align-items: start; } }
+
+.clf-card { padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+.clf-title { margin: 0; font-family: var(--font-display); font-size: var(--fs-16); color: var(--text-1); overflow-wrap: anywhere; }
+.clf-level { margin: 0; font-size: var(--fs-24); font-weight: 700; color: var(--text-1); }
+.clf-sub { margin: 0; font-size: var(--fs-13); color: var(--text-2); overflow-wrap: anywhere; }
+.clf-none { margin: 0; font-size: var(--fs-14); color: var(--text-3); }
+.clf-note { margin: 0; font-size: var(--fs-12); color: var(--text-3); }
+
+/* The big tap area */
+.clf-tap {
+  display: flex; flex-direction: column; gap: var(--sp-1); width: 100%;
+  min-height: 112px; padding: var(--sp-4); white-space: normal; text-align: center;
+  user-select: none; touch-action: manipulation;
+}
+.clf-tap-label { font-size: var(--fs-20); font-weight: 800; }
+.clf-tap-hint { font-size: var(--fs-13); font-weight: 600; opacity: 0.85; }
+.clf-tap.is-working { box-shadow: var(--glow-gold); }
+.clf-tap.is-tap { animation: clf-tap var(--dur-2) var(--ease-pop); }
+@keyframes clf-tap { 0% { transform: scale(1); } 40% { transform: scale(0.97); } 100% { transform: scale(1); } }
+
+.clf-heat { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--sp-1) var(--sp-3); }
+.clf-heat-name { font-size: var(--fs-13); font-weight: 700; color: var(--danger); }
+.clf-heat-gloss { grid-column: 1 / -1; font-size: var(--fs-12); color: var(--text-3); }
+
+.clf-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-1); font-size: var(--fs-14); color: var(--text-1); }
+.clf-list[hidden], .clf-none[hidden], .clf-shelf[hidden] { display: none; }
+
+.clf-shelf { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.clf-shelf > li[hidden] { display: none; }
+
+.clf-actions { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-3); }
+.clf-action { display: grid; gap: var(--sp-1); }
+.clf-action-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.clf-action-name { font-size: var(--fs-14); color: var(--text-1); }
