@@ -36,7 +36,7 @@ export const P = {
   resBase: 2, resPow: 1.5,         // Reserves = floor(resBase·(log10(run/wellMin))^resPow): log-scaled
   resPer: 0.1,                     // Crude x(1 + resPer·R), R = lifetime Reserves this layer
   wellMinRunSec: 600,
-  wellGain: 0.25,                  // New Well once it would add ≥ 25% to lifetime Reserves (min 5)
+  wellGain: 0.25, wellMinReserves: 5, // New Well once it would add ≥ 25% to lifetime Reserves (at least 5)
   // New Field k (0-based in this Chronicle) needs a best run of 10^(fieldLog0 + fieldLogStep·k +
   // fieldLogPerChronicle·Chronicles) Crude: a clear goal on screen, and each loop must climb higher
   fieldLog0: 50, fieldLogStep: 3, fieldLogPerChronicle: 8,
