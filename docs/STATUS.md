@@ -14,6 +14,9 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## Next up
 
+- **Core-loop redesign**: the implementation plan is `docs/core-loop-plan.md` (waves, items CL-0…CL-20,
+  owner decisions, fan-out prompts). Not started; no issues filed yet. Design: `docs/core-loop-redesign.md`.
+
 R0–R30, R32–R40 and R41–R43 are done.
 
 - Owner actions pending: enable Google sign-in (steps in PR #94). Game title after the oil

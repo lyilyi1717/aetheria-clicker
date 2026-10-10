@@ -1,0 +1,181 @@
+# Core-loop redesign: implementation plan
+
+For the session that picks this up. Read in this order: `AGENTS.md`, this file,
+`docs/core-loop-redesign.md` (the design; wins where docs differ), `docs/core-loop-reference.md`
+(owner directions, decisions, the sim's exact formulas, targets, tuning log). The model the
+numbers come from is `sim/redesign/` (`node sim/redesign/run.mjs --assert`, all targets pass on
+seeds 1-6).
+
+Nothing of the redesign is in the game on `main` yet.
+
+## 1. Strategy: build dark, switch once
+
+The redesign replaces the economy and most tabs. Shipping it piece by piece would leave players
+in half-built states for weeks and break rule 2 (saves) repeatedly. So:
+
+1. **Wave A, dark logic.** Each new system is a **new file** under `js/systems/coreloop/` with its
+   own `test_cl_*.js`, pure logic ported from `sim/redesign/model.mjs`. Nothing imports it from the
+   live game. PRs carry the `no-changelog` label (players can't notice). These items touch no
+   shared file, so they fan out safely.
+2. **Wave B, proof.** A sim that drives the **real** new classes (`sim/core-loop.mjs`) must
+   reproduce the `sim/redesign` targets. This is the check that the port is faithful.
+3. **Wave C, dark UI.** The five screens, built behind a flag (`?loop=2`, off by default), with
+   mockups first (rule 7) and Arabic (rule 11).
+4. **Wave D, the switch.** One save migration, the old systems retired, MAJOR version, changelog.
+
+`js/main.js`, `index.html`, `js/systems/GameState.js`, `js/engine/migrations.js`, `js/version.js`,
+`js/i18n/*.js` and `docs/STATUS.md` are **shared files**: only the items that list them may touch
+them, one at a time.
+
+## 2. Before anything: the unfinished "Phase 1 Shell"
+
+A session started Phase 1 on a local branch `core-loop-shell` (commit `e6a1044`, not pushed, no
+PR) with uncommitted edits to 19 live files plus `PresenceSystem.js` and `RigSystem.js`. It wires
+into the live game (the Away haul pays Oil, which changes the economy), which this plan avoids.
+This plan replaces that approach. A backup of those edits is in `scratch/core-loop-shell-wip/` on
+the owner's machine (not in the repo).
+
+- Do not continue that branch. Its `STATUS.md` "In progress" line was never pushed.
+- CL-1 and CL-2 may reuse ideas from the two backed-up files, rewritten to this plan's layout.
+- The owner discards the local branch and edits; a session only does it if asked.
+
+## 3. Owner decisions needed (ask in issue #23; defaults in brackets)
+
+1. **In-game names and their Arabic** for: Fractions (Gas, Naphtha, Kerosene, Diesel, Bitumen),
+   Rigs (Caravan Guards, Pump Jacks, Falaj), Cauldrons (Qidr of …), Compounds, Vials, Charters
+   (Wildcatter, Operator, Baron), Seals, Crew, Flare, Pressure, Gusher, Heat. [use these]
+2. **Old saves**: convert, never wipe. [gems, stone, gold, scrap, tokens, essences become
+   Materials of grade by current depth / floor / species; Golems and Auto-Drills become Rigs;
+   Reserves, Shares, Pages kept; talents, shard tree and shop refunded into the one tree]
+3. **Year-one sim targets**: the R31 / R57 targets retire with the old economy. [replace
+   `npm run sim:check` with the `sim/redesign` targets T1-T12 at the switch]
+4. **Bubble volume**: the sim gives ~8,000 a year for a casual player. [retune to roughly a
+   tenth as many with bigger effects, in CL-6, with `--assert` still green]
+5. **What stays of the three subgames' own mechanics** (boss telegraphs, gear, dynamite, breeding)
+   under the Fields frame. [all stay; the Field frame adds frontier, Rigs and Materials on top]
+6. **Leaderboard**: a new season at the switch. [yes]
+
+## 4. Items
+
+Model: **S** = Sonnet sub-agent (`roadmap-coder`), spec is exact and the work is one new file.
+**O** = Opus (`roadmap-architect`, or the coordinating session itself): cross-cutting design,
+BigNum maths, saves, or review-heavy. Each item becomes one GitHub issue `R<n>: …` (label
+`roadmap`) when filed; add its row to the Plan table in `docs/STATUS.md`.
+
+### Wave A: dark logic (new files only; label `no-changelog`)
+
+| ID | Item | Model | Depends | Files | Port from `sim/redesign/model.mjs` | Done when |
+|---|---|---|---|---|---|---|
+| CL-0 | **Contracts**: `js/systems/coreloop/README.md` + `state.js` (the saved-state shape with defaults, `createCoreLoopState()`, constants shared by all items) + `params.js` (game copy of `sim/redesign/params.mjs`) | O | – | new dir only | `newState`, `params.mjs` | Every later item can be written against it; `test_cl_state.js` round-trips the state through JSON |
+| CL-1 | Presence: hands-on / watching / away, Heat meter, Gusher timer | S | CL-0 | `coreloop/Presence.js`, test | `heatOf`, gusher block of `advance` | States change on input age (30 s); Heat ramps 1→2 over 60 s; Gusher schedule deterministic with injected clock and RNG |
+| CL-2 | Fields: frontier, grades, Materials inventory, Rigs (rate, reach, efficiency, presence rates, Away cap) | S | CL-0 | `coreloop/Fields.js`, `coreloop/Rigs.js`, tests | `fieldPower`, `fieldsStep`, `rigRate`, `rigGrade`, `handRateBase`, `addInv`/`takeAtLeast` | Sim's Hands : Watching : Away ratios hold in a unit test; Away never above 45% of Watching |
+| CL-3 | Mastery: actions, ranks, Legend ladder and titles, Rig efficiency hook | S | CL-0 | `coreloop/Mastery.js`, test | `addMastery`, `rankThreshold`, `rigEff` | Rank thresholds and title levels match the reference §3.4 |
+| CL-4 | Fractions and Orders (3 slots, sizing, refill, weekly Order) | S | CL-2 | `coreloop/Refinery.js`, test | `fracVal`, `postOrders`, `fillOrders`, `weeklyOrder`, `reserved` | Orders cost Materials only; an Order is always fillable from its Field's current Rig grade |
+| CL-5 | Vials and Mixer (offers, pity, tiers, recipes, re-makes) | S | CL-2 | `coreloop/Collection.js`, test | `vials`, `mixer`, `buildRecipes` | Odds and pity exposed for the UI; recipes deterministic from a seed table checked into the file |
+| CL-6 | Cauldrons and Bubbles (fill per presence, cost curve, families, levels) | S | CL-1, CL-2 | `coreloop/Cauldrons.js`, test | `cauldronFill`, `brew`, `bubbleLevels`, `bubbleEffect` | Fill is in seconds, never Material units; includes owner decision 4 |
+| CL-7 | Seals and Crew (monthly opening, time-paced tiers) | S | CL-0 | `coreloop/Seals.js`, test | `sealsStep` | A Seal's tier times match reference §3.5 for Crew 1 and 5 |
+| CL-8 | **Well v2**: 8 cascade slots in `BigNum`, exact per-step integration, x2 per 10, generator upgrades by best run, Pressure, Flare | O | CL-0 | `coreloop/Well.js`, test | `wellStep`, `tierRate`, `buyAll`, `maybeFlare`, `unlockGenerators` | Matches `wellStep` to 1e-9 relative on recorded fixtures up to 1e200; no `Number` overflow past 1e308 |
+| CL-9 | **Prestige v2**: New Well (log Reserves, 25% rule), New Field gates and choice, Chronicle (record gate, re-blaze), Trials, Charters | O | CL-8, CL-2 | `coreloop/Prestige.js`, test | `maybeNewWell`, `maybeNewField`, `maybeChronicle`, `trials` | Gate values and resets match the reference §3.3 |
+
+CL-1, CL-2, CL-3, CL-7 can run together once CL-0 is merged; then CL-4, CL-5, CL-6; CL-8 and
+CL-9 run alongside on Opus.
+
+### Wave B: proof (Opus, the coordinating session)
+
+| ID | Item | Depends | Files | Done when |
+|---|---|---|---|---|
+| CL-10 | `sim/core-loop.mjs`: drive the real `coreloop/` classes with the `sim/redesign` profiles and target checks | CL-1…CL-9 | `sim/core-loop.mjs`, `package.json` script `sim:coreloop` | All of T1-T12 pass on seeds 1-3; differences from `sim/redesign` explained in the PR |
+
+### Wave C: dark UI (flag `?loop=2`; mockups first)
+
+| ID | Item | Model | Depends | Files | Done when |
+|---|---|---|---|---|---|
+| CL-11 | Mockups for the 5 screens + style-guide additions (Fraction tower, Order card, Cauldron bar, Rig card, Seal) | O | – (can start now) | `docs/ui/mockups/coreloop-*.html`, `docs/ui-style-guide.md` | Owner approves; desktop and 375 px |
+| CL-12 | Shell: flag, 5-tab nav, loop state wired into the game loop and save under a **separate save key** | O | CL-10, CL-11 | `js/main.js` (small), `index.html`, `js/ui/coreloop/shell.js`, `GameState.js` | Flag off = today's game byte-for-byte; flag on = empty new shell that saves and loads |
+| CL-13 | Well screen | S | CL-12 | `js/ui/coreloop/well.js`, css | Matches mockup; i18n keys with Arabic |
+| CL-14 | Fields screen (Tower / Mine / Oasis switch, frontier, Rig cards, Materials shelf) | S | CL-12 | `js/ui/coreloop/fields.js`, css | same |
+| CL-15 | Refinery screen (Fraction tower, Orders, Brewing Hall, Mixer, Vials) | S | CL-12 | `js/ui/coreloop/refinery.js`, css | same |
+| CL-16 | Prestige screen (ladder, one tree, Seals, Charters) and Codex | S | CL-12 | `js/ui/coreloop/prestige.js`, `codex.js`, css | same |
+| CL-17 | Game feel pass: every L2-L4 moment gets its tier (game-feel guide §7) | S | CL-13…CL-16 | `js/ui/coreloop/feedback.js` | Checklist in the PR |
+
+CL-13…CL-16 can run together (one file each); i18n keys go in per-item files
+`js/i18n/coreloop/<item>.{en,ar}.js` that CL-12 sets up, so no two items edit `en.js` / `ar.js`.
+
+### Wave D: the switch (Opus, sequential)
+
+| ID | Item | Depends | Done when |
+|---|---|---|---|
+| CL-18 | Save migration: old save → core-loop state (owner decision 2), with old-shaped-save tests | CL-12…CL-16, decisions | Every fixture in `test_saves.js` loads; nothing is lost without a stated conversion |
+| CL-19 | Switch: flag on by default, old tabs and systems retired, `sim:check` targets replaced (decision 3), MAJOR version, changelog, leaderboard season | CL-17, CL-18 | `npm test`, `npm run sim:coreloop -- --assert`; played on desktop and phone |
+| CL-20 | Cleanup: delete retired systems, sims and tests; docs and `STATUS.md` | CL-19 | No dead imports; docs describe the game that exists |
+
+## 5. Rules for this work (on top of AGENTS.md)
+
+- **Port, don't redesign.** If an implementation needs a rule the sim lacks, change
+  `sim/redesign/params.mjs` or `model.mjs` in the same PR, run `--assert`, and update
+  `docs/core-loop-reference.md` (tuning log). The sim stays the source of the numbers.
+- **`BigNum` in the game.** The sim uses doubles (fine to 1e300); the game must use `BigNum` for
+  Crude and generator amounts.
+- **Deterministic logic.** New systems take the clock and the RNG as arguments (no `Date.now()`
+  or `Math.random()` inside), so tests and CL-10 can replay them.
+- **No live wiring in Wave A.** A Wave A PR that edits a file outside `js/systems/coreloop/`,
+  its test, or its issue's listed files is out of scope.
+
+## 6. Prompts
+
+### 6.1 Coordinator (run the session on Opus)
+
+```
+You are the coordinating session for the core-loop redesign of Aetheria.
+Read AGENTS.md, docs/core-loop-plan.md, docs/core-loop-redesign.md and docs/core-loop-reference.md,
+then docs/STATUS.md. Follow docs/core-loop-plan.md exactly.
+
+1. Section 2 first: confirm the repo is on a clean checkout of main. If a local branch
+   core-loop-shell or uncommitted edits exist, stop and ask me before touching them.
+2. Post the owner decisions of section 3 as one comment on issue #23 with their defaults; work
+   with the defaults unless I answer.
+3. File one GitHub issue per Wave A item (label roadmap, title "R<n>: CL-x <name>", body: goal,
+   spec section, files, depends on, done when, model) and add the rows to the Plan table in
+   docs/STATUS.md.
+4. Do CL-0 yourself (it is the contract everything else is written against). Before writing it,
+   run /agent-tree-design to derive the module boundaries, and check them against section 4.
+5. When CL-0 is merged, fan out per AGENTS.md "Fanning out": items marked S go to the
+   roadmap-coder agent (Sonnet), one per worktree and branch with a draft PR opened right away;
+   items marked O go to the roadmap-architect agent (Opus) or you do them yourself. Never two
+   agents on the same files. Start with CL-1, CL-2, CL-3, CL-7 together, and CL-8 on Opus.
+6. Review every PR against its issue and against sim/redesign/model.mjs before merging. Wave A
+   PRs get the no-changelog label. Only you edit docs/STATUS.md.
+7. Stop and report after each wave: what merged, test and sim results, anything unsure, and what
+   needs my decision. Do not start Wave D without my go-ahead.
+Never push to main directly, never force-push, and ask me before any push that is not a branch
+for one of these items.
+```
+
+### 6.2 One sub-agent (the coordinator fills the brackets)
+
+```
+Implement roadmap issue #[N] "R[n]: CL-[x] [name]" for Aetheria.
+Worktree: [path]. Branch: [branch]. Work only there.
+Read AGENTS.md, then docs/core-loop-plan.md sections 4 and 5, the issue, and
+js/systems/coreloop/README.md (the contract). Your spec is the functions
+[list from the "Port from" column] in sim/redesign/model.mjs with the numbers in
+sim/redesign/params.mjs and docs/core-loop-reference.md section 3.
+Write [files] and nothing else. Logic takes the clock and RNG as arguments. Use BigNum where
+the plan says so. Tests in test_cl_[x].js must cover the "done when" line and at least one case
+checked against the sim's function with the same inputs.
+Open a draft PR at once ("R[n]: CL-[x] [name]", body "Closes #[N]", label no-changelog), then
+finish with npm test green. Do not edit docs/STATUS.md, js/main.js, GameState.js or any i18n
+file. Final report: PR link, what you built, test output, anything you were unsure of.
+```
+
+### 6.3 Which model, in short
+
+| Work | Model | Why |
+|---|---|---|
+| CL-0 contracts, CL-8 Well, CL-9 Prestige, CL-10 sim, CL-11 mockups, CL-12 shell, Wave D, every review | Opus | Decisions that every other item depends on; BigNum cascade maths; saves; shared files |
+| CL-1 to CL-7, CL-13 to CL-17 | Sonnet | One new file each against a written contract and an executable spec |
+
+`.claude/settings.json` sets `CLAUDE_CODE_SUBAGENT_MODEL` to `sonnet`. If that pins every sub-agent
+to Sonnet whatever the agent file says, the coordinating session (started on Opus) does the O items
+itself, one after another, and only the S items fan out. Check with one `roadmap-architect` run
+before relying on it.
