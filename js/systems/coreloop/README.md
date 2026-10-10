@@ -106,6 +106,24 @@ What the items that depend on it can rely on:
 - **Never writes outside `prestige.*`:** the Well is reset by `Well.resetRun`, Rigs by
   `Rigs.build / levelUp / resetLevels`.
 
+## One tick of the loop (the driver's job)
+
+`sim/core-loop.mjs` (`advance`) is the reference driver; the game loop (CL-12) does the same:
+
+1. `Presence.step`, then `Well.step` (it returns the Crude made).
+2. A Gusher the player catches: `Presence.catchGusher` returns `{ seconds, presence }`; pay it with
+   `Well.addCrude(state, Well.crudePerSecond(state, presence).mul(seconds))` and
+   `Rigs.haul(state, seconds)`. A Gusher stays up `P.gusherWindow` seconds: a driver that steps
+   further than that at a time must end a step at `presence.nextGusherAt` or it never sees one.
+3. `Rigs.step` (hand work and the hauls), `Cauldrons.step`, `Seals.step`, `Collection.step`,
+   `Refinery.step`.
+4. Automation the player has won (`Prestige.hasAutomation`): `Prestige.newWell` (Auto-Well, with
+   Auto-Buy), `Well.buyMax` (Auto-Buy), `Well.flare(state, false)` (Auto-Flare).
+5. `state.t += dt`.
+
+Everything else is a player action: brew, fill, offer, mix, level, buy, flare, reset, and
+`Presence.noteInput` / `Presence.setHandField`.
+
 ## Events
 
 `ctx.emit(kind, level, data)`. Levels are `HIT.MINOR` 1, `HIT.BIG` 2, `HIT.NOVELTY` 3, `HIT.MAJOR` 4.

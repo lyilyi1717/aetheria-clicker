@@ -1,6 +1,7 @@
 // Refinery (docs/core-loop-plan.md CL-4): Orders and the weekly Order. Port of orderField,
 // postOrders, fillOrders, reserved, surplus and weeklyOrder in sim/redesign/model.mjs.
-// Writes only `refinery.frac[i].level`, `refinery.orders` and `refinery.weekly`. Materials are read
+// Writes only `refinery.frac[i].level`, `refinery.orders` and `refinery.weekly` (a filled Order's
+// Vial offer goes through Collection.addVialOffers). Materials are read
 // and taken only through Fields.countAtLeast / Fields.takeMaterial; nothing here touches `well`.
 //
 // Orders cost Materials only. Posting is not a player action (`step` does it); filling is
@@ -9,6 +10,7 @@ import { P } from './params.js';
 import { PRESENCE, FRACTIONS, HIT, fracValue, NO_CONTEXT } from './shared.js';
 import * as Fields from './Fields.js';
 import * as Rigs from './Rigs.js';
+import * as Collection from './Collection.js';
 
 const NF = P.fields.length;
 const WEEK = 7 * 86400;     // a calendar week, not a tunable
@@ -72,7 +74,7 @@ export function fillOrder(state, slot, ctx = NO_CONTEXT) {
   if (!Fields.takeMaterial(state, o.field, o.grade, o.qty)) return false;
   const { frac, posted } = o;
   state.refinery.frac[frac].level++;
-  // Collection.js: the wiring step adds a Vial offer here (the sim's vialOffers++)
+  Collection.addVialOffers(state, 1);   // a filled Order brings a Vial offer
   state.refinery.orders[slot] = { empty: true, refillAt: state.t + P.orderRefill };
   ctx.emit('order', HIT.BIG, { frac, slot, age: state.t - posted });
   return true;
