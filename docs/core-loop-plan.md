@@ -49,9 +49,10 @@ them, one at a time.
   bar, staged unlocks, `js/systems/coreloop/Guide.js`), then one item per screen, CL-29 Well (#255),
   CL-30 Fields (#256), CL-31 Refinery (#257), CL-32 Expand and Collection (#258): the same
   mechanics, shown one at a time, in plain words, with a visible answer to every tap. All done
-  (2026-10-10), with the tree's view (CL-24). CL-33 (#266): the preview's icons as inline SVG, since
-  emoji are missing on some machines.
-- **Filed:** Wave A #204-#213 (R70-R79), Wave B #226 (R80), Wave C #229-#235 (R81-R87) and #253-#258, #266 (R95-R100), Wave C2 #238-#244 (R88-R94), labels
+  (2026-10-10), with the tree's view (CL-24). CL-33 (#266, done): the preview's icons as inline SVG, since
+  emoji are missing on some machines. CL-34 (#270, done): owner rule, no gate waits on the clock;
+  the New Well's timer is removed and the least it pays is 12 Reserves.
+- **Filed:** Wave A #204-#213 (R70-R79), Wave B #226 (R80), Wave C #229-#235 (R81-R87) and #253-#258, #266, #270 (R95-R101), Wave C2 #238-#244 (R88-R94), labels
   `roadmap` and `core-loop`. Owner decisions
   are posted on issue #23.
 - **Sub-agents are pinned to Sonnet** (`.claude/settings.json`), so the coordinating session does
