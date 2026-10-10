@@ -1,0 +1,52 @@
+/* The one upgrade tree (?loop=2, CL-24). Tokens only (css/tokens.css), components from
+   css/components.css, logical properties for RTL. Phone first: one column, no horizontal scroll. */
+
+.cl-tree { display: flex; flex-direction: column; gap: var(--sp-5); min-inline-size: 0; }
+.cl-tree[hidden] { display: none; }
+.cl-tree * { min-inline-size: 0; overflow-wrap: anywhere; }
+.cl-tree [hidden] { display: none !important; }
+
+.cl-tree-status { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); margin: 0; }
+
+.cl-tree-ring { display: flex; flex-direction: column; gap: var(--sp-3); }
+.cl-tree-bankhead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
+.cl-tree-title { margin: 0; font-family: var(--font-display); font-size: var(--fs-18); color: var(--gold); }
+.cl-tree-bank { display: flex; align-items: baseline; gap: var(--sp-2); }
+.cl-tree-banknum { font-size: var(--fs-32); font-weight: 700; line-height: 1; color: var(--gold); font-variant-numeric: tabular-nums; border-radius: var(--r-1); }
+.cl-tree-bankword { font-size: var(--fs-13); color: var(--text-2); }
+.cl-tree-reset { margin: 0; font-size: var(--fs-12); color: var(--text-3); line-height: var(--lh-body); }
+.cl-tree-all { align-self: flex-start; min-block-size: var(--tap); color: var(--text-2); }
+.cl-tree-sec { margin: var(--sp-2) 0 0; font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); }
+summary.cl-tree-sec { cursor: pointer; min-block-size: var(--tap); display: flex; align-items: center; }
+.cl-tree-donebox[open] > summary { margin-block-end: var(--sp-2); }
+
+.cl-tree-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-3); }
+.cl-tree-card { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3); }
+.cl-tree-card.is-can { border-color: var(--gold); }
+.cl-tree-card.is-done, .cl-tree-card.is-flag { opacity: 0.7; box-shadow: none; }
+.cl-tree-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); }
+.cl-tree-name { font-size: var(--fs-16); color: var(--text-1); }
+.cl-tree-rank { font-size: var(--fs-12); color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cl-tree-fx { margin: 0; font-size: var(--fs-14); color: var(--text-2); line-height: var(--lh-body); }
+.cl-tree-pips { display: flex; flex-wrap: wrap; gap: 4px; }
+.cl-tree-pip { inline-size: 14px; block-size: 6px; border-radius: var(--r-pill); background: var(--bg-4); border: 1px solid var(--line-2); }
+.cl-tree-pip.is-on { background: var(--gold); border-color: var(--gold); }
+.cl-tree-bar { block-size: 4px; }
+.cl-tree-buy { align-self: stretch; flex-direction: row; justify-content: space-between; gap: var(--sp-3); min-block-size: var(--tap); }
+.cl-tree-buy .lbl { font-size: var(--fs-13); }
+.cl-tree-buy .cost { font-size: var(--fs-14); }
+.cl-tree-done { align-self: flex-start; }
+
+.is-bought { animation: cl-tree-flash var(--dur-4, 0.5s) var(--ease-out); }
+.is-bump { animation: cl-tree-bump var(--dur-3) var(--ease-out); }
+.cl-tree-pip.is-new { animation: cl-tree-pip var(--dur-3) var(--ease-pop, var(--ease-out)); }
+@keyframes cl-tree-flash { 0% { box-shadow: 0 0 0 3px var(--gold), var(--glow-gold); } 100% { box-shadow: 0 0 0 0 transparent; } }
+@keyframes cl-tree-bump { 0% { transform: scale(1.2); background: var(--gold-dim); } 100% { transform: none; background: transparent; } }
+@keyframes cl-tree-pip { 0% { transform: scaleY(2.2); } 100% { transform: none; } }
+
+@media (min-width: 600px) {
+  .cl-tree-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-bought, .is-bump, .cl-tree-pip.is-new { animation: none; }
+}
