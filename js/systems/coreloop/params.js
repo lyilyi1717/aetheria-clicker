@@ -19,7 +19,7 @@ export const P = {
   // x10^(stepA + stepB·k) per 10 bought of tier k. Keep Σ_k log10(buyTenMult)/(stepA + stepB·k) < 1:
   // above 1 the x2-per-10 bonuses compound faster than prices and a run blows up in finite time
   stepA: 3, stepB: 1,
-  buyTenMult: 2,                   // x2 per 10 bought
+  buyTenMult: 2, packSize: 10,     // x2 per pack of 10 bought; the price steps with the pack too
   tierRate: 1,                     // units of tier k-1 (or Crude) made per unit of tier k per s
   startCrude: 50,
   // Global multipliers (layers, Naphtha, Pressure, presence) act on tier 1's Crude output only:
