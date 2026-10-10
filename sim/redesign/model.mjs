@@ -67,7 +67,7 @@ export const openTiers = (s) => s.gens;
 const topTier = (s) => { for (let k = P.slots; k >= 1; k--) if (s.b[k] > 0) return k; return 0; };
 // Upgrades in slot k: generators g in 9..gens with ((g - 9) % slots) + 1 === k
 const slotLevel = (s, k) => (s.gens - P.slots >= k ? Math.floor((s.gens - P.slots - k) / P.slots) + 1 : 0);
-function unlockGenerators(s) {
+export function unlockGenerators(s) {
   const best = s.bestEver > 0 ? LOG10(s.bestEver) : -Infinity;
   let want = P.slots;
   while (want < P.generators && best >= P.genLog0 + P.genLogStep * (want + 1 - (P.slots + 1))) want++;
@@ -79,14 +79,14 @@ function event(s, k, lvl, extra) {
 }
 
 // Well output multiplier in a presence state
-function wellMult(s, st) {
+export function wellMult(s, st) {
   let m = layerMult(s) * Math.pow(P.pMult, s.pressure) * fracVal(s, FRAC.naphtha);
   if (st === 'away') m *= P.awayWell;
   else if (st === 'hands') m *= 1 + P.handsWell * (heatOf(s) - 1);
   return m;
 }
-function tierRate(s, k, top, wm) {
-  return P.tierRate * Math.pow(P.genMult, slotLevel(s, k)) * Math.pow(P.buyTenMult, Math.floor(s.b[k] / 10)) * (k === top ? s.flare : 1) * (k === 1 ? wm : 1);
+export function tierRate(s, k, top, wm) {
+  return P.tierRate * Math.pow(P.genMult, slotLevel(s, k)) * Math.pow(P.buyTenMult, Math.floor(s.b[k] / P.packSize)) * (k === top ? s.flare : 1) * (k === 1 ? wm : 1);
 }
 export function crudePerSec(s, st = 'watch') {
   const top = topTier(s);
@@ -95,7 +95,7 @@ export function crudePerSec(s, st = 'watch') {
 
 // --- Well: exact cascade over dt (constant rates within the step) -------------------------------
 // new a_j = Σ_m a_{j+m} · Π_{i=j+1..j+m} r_i · dt^m / m!, with a_0 = Crude made
-function wellStep(s, dt, st) {
+export function wellStep(s, dt, st) {
   const N = topTier(s);
   if (N === 0) return 0;
   const wm = wellMult(s, st);
@@ -115,17 +115,17 @@ function wellStep(s, dt, st) {
   return next[0];
 }
 
-const tierCostLog = (s, k) => P.costA * k + P.costB * k * k + (P.stepA + P.stepB * k) * Math.floor(s.b[k] / 10);
+const tierCostLog = (s, k) => P.costA * k + P.costB * k * k + (P.stepA + P.stepB * k) * Math.floor(s.b[k] / P.packSize);
 const pressureCostLog = (s) => P.pA + P.pB * s.pressure;
 
 // "Max all": tiers top-down in 10-packs (or what fits), then Pressure
-function buyAll(s) {
+export function buyAll(s) {
   for (let k = P.slots; k >= 1; k--) {
     for (let guard = 0; guard < 40; guard++) {
       if (s.crude <= 0) return;
       const cl = tierCostLog(s, k), lc = LOG10(s.crude);
       if (lc < cl) break;
-      const want = 10 - (s.b[k] % 10);
+      const want = P.packSize - (s.b[k] % P.packSize);
       const n = Math.min(want, Math.floor(Math.pow(10, lc - cl) + 1e-9));
       if (n <= 0) break;
       s.crude -= n * Math.pow(10, cl);
@@ -141,7 +141,7 @@ function buyAll(s) {
   if (s.crude < 0) s.crude = 0;
 }
 
-function maybeFlare(s, manual) {
+export function maybeFlare(s, manual) {
   const top = topTier(s);
   if (top < 2 || s.a[1] <= 1) return;
   const m = Math.pow(LOG10(s.a[1]) / P.flareDiv, 2);
@@ -154,7 +154,7 @@ function maybeFlare(s, manual) {
 // --- prestige ------------------------------------------------------------------------------------
 const pendingReserves = (s) => (s.runCrude < P.wellMin ? 0 : Math.floor(P.resBase * Math.pow(LOG10(s.runCrude / P.wellMin), P.resPow)));
 
-function resetRun(s) {
+export function resetRun(s) {
   s.crude = P.startCrude; s.runCrude = 0; s.runStart = s.t;
   s.a.fill(0); s.b.fill(0); s.pressure = 0; s.flare = 1;
 }

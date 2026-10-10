@@ -14,6 +14,8 @@ names, with the differences listed under "Game vs sim" below.
    instances hold state. No DOM, no audio, no `window`.
 2. **No hidden inputs.** No `Date.now()`, no `Math.random()`. Time comes in as `dt` (seconds) and
    `state.t`; randomness comes from `rand(state)` (`shared.js`). Same state in, same state out.
+   **`state.t` is the start of the step:** a step covers `[t, t + dt)`, and the loop driver adds
+   `dt` to `state.t` after every system has stepped (as the sim's `advance` does).
 3. **Numbers from `params.js` only** (`P`). No literals for anything tunable. The sim reads the
    same object, so a number changed here changes the sim.
 4. **Report moments with `ctx.emit(kind, level, data)`.** `ctx` is the last argument of any
@@ -53,6 +55,32 @@ A Fraction's value is `fracValue(state, i)` in `shared.js`:
 five Fractions multiply what they power (`FIELD_FRAC`, Naphtha for the Well, Gas for hand work,
 Bitumen also for the Away rate).
 
+## The Well (`Well.js`, CL-8)
+
+What the items that depend on it can rely on:
+
+- **Slots and generators.** `well.bought[k]` / `well.amount[k]` for slot k = 1..`P.slots` (index 0
+  unused). `well.generators` (8..30) never resets; generator n upgrades `generatorSlot(n)`.
+- **Production.** `step(state, dt, presence, ctx)` advances the cascade exactly (the sim's
+  `wellStep`), banks the Crude through `addCrude` and returns the Crude made. Run `Presence.step`
+  before it in a tick: the Hands-on rate reads `presence.heatSeconds`.
+- **`addCrude(state, amount, ctx)` is the only way Crude is earned** (the cascade, a Gusher's
+  payout of `crudePerSecond(state, PRESENCE.WATCH) x P.gusherSeconds`). It keeps `runCrude`,
+  `bestRunChron` and `bestEver` and unlocks generators (`generator` event).
+- **Actions**, each with its `can…`: `buy(state, k, count)` (within the current pack of
+  `P.packSize`), `buyPressure(state)`, `buyMax(state)` (the sim's `buyAll`; Auto-Buy is the
+  driver calling it each tick), `flare(state, byHand, ctx)` (the sim's `maybeFlare`: only when it
+  at least multiplies the current Flare by `P.flareMinGain`; `byHand` false is Auto-Flare and
+  emits nothing).
+- **Resets.** `resetRun(state)` is a New Well's reset: Crude back to `P.startCrude`, `runCrude`,
+  `bought`, `amount`, `pressure`, `flare`, and `runStart = state.t`. It keeps `generators`,
+  `pressureBest`, `bestRunChron`, `bestEver`, `recordAtChron`. `closeChronicleRecord(state)` is
+  the Chronicle's part: `recordAtChron = max(recordAtChron, bestRunChron)`, `bestRunChron = 0`.
+  Prestige calls both; it never writes `well.*` itself.
+- **Numbers.** Crude, slot amounts, rates, prices and `wellMultiplier` are `BigNum` (multipliers
+  are summed in log10, so 2.5^Shares may pass 1e308). `bought`, `pressure`, `flare` and
+  `generators` are plain numbers. Compare Crude with gates in log10: `Math.log10(b.m) + b.e`.
+
 ## Events
 
 `ctx.emit(kind, level, data)`. Levels are `HIT.MINOR` 1, `HIT.BIG` 2, `HIT.NOVELTY` 3, `HIT.MAJOR` 4.
@@ -88,6 +116,7 @@ Bitumen also for the Away rate).
 | Fraction extras | one `extra` field | `compound` and `seal`, one writer each |
 | Mastery | inside each field | its own `mastery[i]` |
 | Events | `{ t, k, lvl }` pushed on the state | `ctx.emit(kind, level, data)`; not stored |
+| Buying | `buyAll` can leave Crude a hair below zero (it rounds an almost-affordable unit up) | Crude never goes below zero |
 | Player policy | built in (when to buy, brew, fill, reset) | none: the game exposes actions, the player decides. CL-10's sim supplies the policy |
 | Recipes | generated list in the state | content table in `Collection.js`; the state keeps `found / made / tier` |
 
