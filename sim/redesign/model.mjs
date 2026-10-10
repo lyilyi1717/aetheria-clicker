@@ -152,16 +152,16 @@ export function maybeFlare(s, manual) {
 }
 
 // --- prestige ------------------------------------------------------------------------------------
-const pendingReserves = (s) => (s.runCrude < P.wellMin ? 0 : Math.floor(P.resBase * Math.pow(LOG10(s.runCrude / P.wellMin), P.resPow)));
+export const pendingReserves = (s) => (s.runCrude < P.wellMin ? 0 : Math.floor(P.resBase * Math.pow(LOG10(s.runCrude / P.wellMin), P.resPow)));
 
 export function resetRun(s) {
   s.crude = P.startCrude; s.runCrude = 0; s.runStart = s.t;
   s.a.fill(0); s.b.fill(0); s.pressure = 0; s.flare = 1;
 }
 
-function maybeNewWell(s) {
+export function maybeNewWell(s) {
   const p = pendingReserves(s);
-  if (p < Math.max(5, P.wellGain * s.resLife) || s.t - s.runStart < P.wellMinRunSec) return false;
+  if (p < Math.max(P.wellMinReserves, P.wellGain * s.resLife) || s.t - s.runStart < P.wellMinRunSec) return false;
   s.resLife += p; s.wells++;
   for (const [id, kind, n] of P.trials) if (kind === 'well' && s.wells === n) s.trials[id].unlocked = s.t;
   resetRun(s);
@@ -170,7 +170,7 @@ function maybeNewWell(s) {
 
 export const fieldGateLog = (s) => P.fieldLog0 + P.fieldLogStep * s.newFields + P.fieldLogPerChronicle * s.chronicles;
 
-function maybeNewField(s) {
+export function maybeNewField(s) {
   if (!(s.bestRunChron > 0) || LOG10(s.bestRunChron) < fieldGateLog(s)) return false;
   s.newFields++; s.totalFields++; s.shares += P.sharesPerField; s.resLife = 0;
   s.lastResetAt = s.t;
@@ -185,7 +185,7 @@ function maybeNewField(s) {
   return true;
 }
 
-function maybeChronicle(s) {
+export function maybeChronicle(s) {
   const need = s.chronicles === 0 ? P.chronFirstFields : P.chronFields;
   if (s.newFields < need) return false;
   if (s.chronicles > 0 && s.bestRunChron < P.chronRecord * s.recordAtChron) return false;
@@ -313,13 +313,13 @@ export function brew(s) {
   recomputeBubbles(s);
 }
 
-function orderField(s, src) {
+export function orderField(s, src) {
   if (src !== 'any') return P.fields.indexOf(src);
   let best = 0, most = -1;
   s.fields.forEach((f, i) => { const n = invAtLeast(f, 0); if (n > most) { most = n; best = i; } });
   return best;
 }
-function postOrders(s) {
+export function postOrders(s) {
   for (const o of s.orders) {
     if (!o.empty || s.t < o.refillAt) continue;
     const taken = new Set(s.orders.filter(x => !x.empty).map(x => x.frac));
@@ -333,7 +333,7 @@ function postOrders(s) {
     s.orderStats.posted++;
   }
 }
-function fillOrders(s) {
+export function fillOrders(s) {
   for (const o of s.orders) {
     if (o.empty) continue;
     const f = s.fields[o.field];
@@ -347,15 +347,15 @@ function fillOrders(s) {
   }
 }
 // Units of a Field that open Orders still need
-function reserved(s, fi) {
+export function reserved(s, fi) {
   let n = 0;
   for (const o of s.orders) if (!o.empty && o.field === fi) n += o.qty;
   return n;
 }
-function surplus(s, fi) { return Math.max(0, invAtLeast(s.fields[fi], 0) - reserved(s, fi)); }
+export function surplus(s, fi) { return Math.max(0, invAtLeast(s.fields[fi], 0) - reserved(s, fi)); }
 
 // The weekly big Order: every Field's Materials at its Rig grade, sized to weeklyHours of Rig output
-function weeklyOrder(s) {
+export function weeklyOrder(s) {
   const week = Math.floor(s.t / (7 * 86400));
   const w = s.weekly;
   if (week !== w.week && s.fields.every(f => f.rig > 0)) {

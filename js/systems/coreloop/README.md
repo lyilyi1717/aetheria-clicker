@@ -81,6 +81,31 @@ What the items that depend on it can rely on:
   are summed in log10, so 2.5^Shares may pass 1e308). `bought`, `pressure`, `flare` and
   `generators` are plain numbers. Compare Crude with gates in log10: `Math.log10(b.m) + b.e`.
 
+## Prestige (`Prestige.js`, CL-9)
+
+- **Each layer is a gate, an action and a suggestion.** `canNewWell` / `newWell`, `canNewField` /
+  `newField(state, choice, charter, ctx)`, `canChronicle` / `chronicle`. The sim resets the moment
+  it may and picks for the player; the game offers its pick as `suggestedChoice(state)` and its
+  Chronicle timing as `suggestChronicle(state)` (full Pages, or the loop has slowed). CL-10's
+  driver plays those.
+- **New Well:** Reserves are `pendingReserves(state)`; allowed when they are at least
+  `newWellNeed(state)` (25% of this layer's Reserves, at least `P.wellMinReserves`) and the run is
+  `P.wellMinRunSec` old. That is a rule of the game, not a policy (the redesign doc, §6).
+- **New Field:** `fieldChoices(state)` lists what it may be spent on: `{ kind: 'rig', field }`,
+  `{ kind: 'level', field }`, `{ kind: 'crew' }`. The first one ever builds a Rig. A Charter
+  (`CHARTERS`) may be switched with each New Field and only then; `prestige.charter` is `'none'`
+  until the first pick.
+- **Chronicle:** Pages by New Fields this Chronicle (`pendingPages`), re-blaze Shares, Rig levels
+  back to 1, the record gate closed through `Well.closeChronicleRecord`. Crew, Rigs, generators,
+  Trials and everything outside the Well and the prestige counters stay. Collection.js adds its
+  own recipe batch when it sees `prestige.chronicles` grow.
+- **Trials:** unlocked by `newWell` / `newField` at the counts in `P.trials`;
+  `hasAutomation(state, id)` is what the loop driver asks before it buys, flares or opens a New
+  Well for the player (Auto-Well also needs Auto-Buy). Until Trials are real challenge runs they
+  are won the sim's way: `trials(state, stretchSeconds, ctx)` at the end of a Hands-on stretch.
+- **Never writes outside `prestige.*`:** the Well is reset by `Well.resetRun`, Rigs by
+  `Rigs.build / levelUp / resetLevels`.
+
 ## Events
 
 `ctx.emit(kind, level, data)`. Levels are `HIT.MINOR` 1, `HIT.BIG` 2, `HIT.NOVELTY` 3, `HIT.MAJOR` 4.
