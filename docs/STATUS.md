@@ -10,16 +10,17 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- R72 #206 (CL-2 Fields and Rigs): sub-agent, branch `cl-2-fields-rigs`, draft PR open.
+- None (core-loop Waves A and B complete; Wave C filed, not started).
 
 ## Next up
 
-- **Core-loop redesign** (`docs/core-loop-plan.md`): Wave A (dark logic, R70-R79, wave "CL-A" in the Plan
-  table). Done: R70, R71, R73, R77, R78. In progress: R72. Then R74, R75, R76 (Sonnet, in parallel, need
-  R72) and R79 (Opus, needs R72). After Wave A: CL-10 (`sim/core-loop.mjs`, drives the real classes;
-  not filed yet). Owner decisions are in #23 (comment of 2026-10-10); defaults apply unless answered.
-  The coordinator merges each PR (squash, so branch commit trailers stay out of `main`) once its
-  checks pass and it has been reviewed against the issue and the sim.
+- **Core-loop redesign** (`docs/core-loop-plan.md`): Wave A (R70-R79) and Wave B (R80, the proof sim) are
+  done: every system is in `js/systems/coreloop/`, dark, and `npm run sim:coreloop -- --assert` passes
+  T1-T12 on the real code. **Next: Wave C** (dark UI behind `?loop=2`), filed as R81-R87 (#229-#235).
+  R81 (CL-11 mockups, Opus) is ready now and needs the **owner's approval** before R82 (the shell)
+  starts; R83-R86 (screens, Sonnet, in parallel) need R82; R87 (game feel) needs R83-R86. Wave D (the
+  switch) waits for the owner's go-ahead. Owner decisions: #23 (decision 4 applied in R76, the rest
+  are still on their defaults). The coordinator merges with squash merges.
 
 R0–R30, R32–R40 and R41–R43 are done.
 
@@ -111,9 +112,32 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-A | R77 CL-7 Seals and Crew | #211 | R70 |
 | CL-A | R78 CL-8 Well v2 (cascade, BigNum) | #212 | R70 |
 | CL-A | R79 CL-9 Prestige v2 | #213 | R78, R72 |
+| CL-B | R80 CL-10 Proof sim on the real systems | #226 | R71-R79 |
+| CL-C | R81 CL-11 Core-loop mockups (owner approves) | #229 | – |
+| CL-C | R82 CL-12 Shell behind `?loop=2` | #230 | R80, R81 |
+| CL-C | R83 CL-13 Well screen | #231 | R82 |
+| CL-C | R84 CL-14 Fields screen | #232 | R82 |
+| CL-C | R85 CL-15 Refinery screen | #233 | R82 |
+| CL-C | R86 CL-16 Prestige screen and Codex | #234 | R82 |
+| CL-C | R87 CL-17 Game-feel pass | #235 | R83-R86 |
 
 ## Done
 
+- R76 #210 (CL-6, PRs #224 and #228, no player change): `coreloop/Cauldrons.js`, then owner decision 4:
+  about 800 Bubbles a year instead of 8,000 (bar cost ^0.95, effect x6, a family every 4th Bubble).
+  Bubble totals move by the difference on a brew or level-up (no rebuild). Reference tuning log 28.
+- R80 #226 (CL-10, PR #227, no player change): `sim/core-loop.mjs` (`npm run sim:coreloop`) plays the
+  `sim/redesign` year on the real systems; T1-T12 pass on seeds 1-6. Differences from the model are in
+  the PR (Gushers 8-11% fewer catches, active ends ~5 decades lower). The README's "One tick of the
+  loop" is the call order CL-12 must follow. Refinery now gives a Vial offer per filled Order.
+- R79 #213 (CL-9, PR #222, no player change): `coreloop/Prestige.js`: gates, actions and the sim's
+  picks as suggestions (`suggestedChoice`, `suggestChronicle`). Charters switch only with a New Field.
+- R75 #209 (CL-5, PR #225, no player change): `coreloop/Collection.js`. Discovery is deterministic (the
+  sim's `mixerChance` stays in the sim driver). New saved field `collection.batchFrom`.
+- R74 #208 (CL-4, PR #223, no player change): `coreloop/Refinery.js`. Posting is `step`; filling is a
+  player action. No reroll yet (no numbers for it).
+- R72 #206 (CL-2, PR #221, no player change): `coreloop/Fields.js`, `coreloop/Rigs.js`. `takeMaterial`
+  is all or nothing; `Rigs.step` is the whole farming step.
 - R78 #212 (CL-8, PR #218, no player change): `coreloop/Well.js`, the cascade in `BigNum` (multipliers
   summed in log10). Matches the sim's `wellStep` to 1e-9 up to 1e200 and runs past 1e308. `addCrude` is
   the one way Crude is earned; `resetRun` / `closeChronicleRecord` are what Prestige calls. The README
@@ -477,6 +501,8 @@ R0–R30, R32–R40 and R41–R43 are done.
 
 ## Noticed (not yet an issue)
 
+- `test_mining.js` failed twice in CI on 2026-10-10 (PR #215: "Frenzy should be active after 7 rapid
+  manual hits", then "expected ~5 hits in one tick, got 17") and passed on rerun; still unseeded.
 - `test_mining.js` "Frenzy should be active after 7 rapid manual hits" is flaky (about 1 run in 8
   locally, also seen in CI on PR #186); the manual Dig Streak loop depends on something random or
   timing-based.

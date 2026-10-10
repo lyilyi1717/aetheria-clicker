@@ -29,12 +29,17 @@ them, one at a time.
 
 ## 2. Where things stand
 
-- **Done (merged):** CL-0 (R70), CL-1 Presence (R71), CL-3 Mastery (R73), CL-7 Seals (R77),
-  CL-8 Well (R78). `js/systems/coreloop/README.md` carries what each merged system promises.
-- **In progress:** CL-2 Fields and Rigs (R72), a sub-agent on branch `cl-2-fields-rigs`.
-- **Next:** CL-4, CL-5, CL-6 (Sonnet, in parallel) and CL-9 Prestige (Opus) once CL-2 is merged;
-  then CL-10 (Wave B, not filed as an issue yet).
-- **Filed:** Wave A as issues #204-#213 (R70-R79), labels `roadmap` and `core-loop`. Owner decisions
+- **Done (merged):** Wave A, CL-0 to CL-9 (R70-R79), and Wave B, CL-10 (R80). The systems are in
+  `js/systems/coreloop/` (the README says what each promises and the order of a loop tick); the
+  proof sim `npm run sim:coreloop -- --assert` passes T1-T12 on seeds 1-6 with the real code.
+  Owner decision 4 (fewer, bigger Bubbles) is applied (reference tuning log 28).
+- **Next: Wave C**, filed as R81-R87 (#229-#235). CL-11 (mockups, Opus) can start now; its "done
+  when" is the owner's approval, and CL-12 (the shell, Opus, shared files) waits for it. Then
+  CL-13…CL-16 in parallel (Sonnet), then CL-17.
+- **Not started:** Wave D (the switch). The owner's go-ahead comes first, with answers or
+  confirmed defaults for decisions 1, 2, 3, 5 and 6 in #23.
+- **Filed:** Wave A #204-#213 (R70-R79), Wave B #226 (R80), Wave C #229-#235 (R81-R87), labels
+  `roadmap` and `core-loop`. Owner decisions
   are posted on issue #23.
 - **Sub-agents are pinned to Sonnet** (`.claude/settings.json`), so the coordinating session does
   the Opus items itself.
