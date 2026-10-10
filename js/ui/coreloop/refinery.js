@@ -1,6 +1,6 @@
-// Core-loop Refinery screen (docs/core-loop-plan.md CL-15), behind ?loop=2. Five sections: the
-// Fraction tower, Orders (and the weekly Order), the Brewing Hall (Dallahs and Bubbles), Vials, and
-// the Mixer. It reads the systems only through their functions and acts only through api.act with
+// Core-loop Refinery screen (docs/core-loop-plan.md CL-15, CL-31), behind ?loop=2. Orders and the
+// Fractions row are always there; Vials, the weekly Order, the Brewing Hall (Dallahs and Bubbles) and
+// the Mixer appear one at a time as the guide opens them (api.isOpen). It reads the systems only through their functions and acts only through api.act with
 // the systems' own actions, enabled only when the system's can… function says so.
 //
 // The view-model helpers at the top are pure (state in, plain data out) and are what the tests
@@ -30,23 +30,51 @@ export function fmtNum(fmt, x) {
 // A Fraction value or multiplier: two decimals while small
 export const fmtMult = (fmt, x) => (x < 10 ? x.toFixed(3) : x < 100 ? x.toFixed(1) : fmtNum(fmt, x));
 
-// A Fraction's row in the tower
-export function towerRows(state) {
+// The percent one filled Order adds to a Fraction (1.5 for orderMult 1.015)
+export const orderPct = () => Math.round((P.orderMult - 1) * 1000) / 10;
+
+// The Fractions row. `isOpen(feature)` is the guide's: a part is listed only when its feature is open.
+// `raised` is false while nothing at all has raised the Fraction (it still reads x1).
+export function fractionRows(state, isOpen = () => true) {
   return FRACTIONS.map((id, i) => {
     const f = state.refinery.frac[i];
-    return { key: id, id, index: i, value: fracValue(state, i), level: f.level, bubble: f.bubble, vial: f.vial, compound: f.compound, seal: f.seal };
+    const value = fracValue(state, i);
+    const parts = [{ kind: 'orders', level: f.level, mult: Math.pow(P.orderMult, f.level) }];
+    if (isOpen('refinery.cauldrons')) parts.push({ kind: 'bubbles', pct: Math.round(f.bubble * 100) });
+    if (isOpen('refinery.vials')) parts.push({ kind: 'vials', pct: Math.round(f.vial * 100) });
+    if (isOpen('refinery.mixer')) parts.push({ kind: 'compounds', pct: Math.round(f.compound * 100) });
+    if (isOpen('prestige.seals')) parts.push({ kind: 'seals', pct: Math.round(f.seal * 100) });
+    return { key: id, id, index: i, value, raised: value > 1 + 1e-9, level: f.level, parts };
   });
+}
+
+// Which later sections show, and the one closed section to hint at (the first closed, in order)
+export const LATER = Object.freeze(['refinery.vials', 'refinery.weekly', 'refinery.cauldrons', 'refinery.mixer']);
+export function sectionsView(isOpen) {
+  const open = LATER.filter(f => isOpen(f));
+  return { open, lock: LATER.find(f => !isOpen(f)) || null };
+}
+
+// Seconds until a new Order, as 0..1 of the refill wait
+export const refillProgress = (refillIn) => Math.max(0, Math.min(1, 1 - refillIn / P.orderRefill));
+// How many Orders can be filled right now
+export const fillableCount = (state) => state.refinery.orders.reduce((n, _, i) => n + (Refinery.canFillOrder(state, i) ? 1 : 0), 0);
+// Where data-guide="refinery.order" goes: the first Order that can be filled, else the first
+export function anchorSlot(state) {
+  const n = state.refinery.orders.length;
+  for (let i = 0; i < n; i++) if (Refinery.canFillOrder(state, i)) return i;
+  return n > 0 ? 0 : -1;
 }
 
 // What an Order slot shows (see Refinery.orderInfo), with ids in place of names
 export function orderView(state, slot) {
   const o = Refinery.orderInfo(state, slot);
   if (!o) return null;
-  if (o.empty) return { empty: true, refillIn: o.refillIn };
+  if (o.empty) return { empty: true, refillIn: o.refillIn, progress: refillProgress(o.refillIn) };
   return {
     empty: false, fracId: FRACTIONS[o.frac], field: o.field, fieldId: fieldId(o.field), grade: o.grade, qty: o.qty,
     have: o.have, progress: o.progress, missing: Math.max(0, o.qty - o.have), before: o.before, after: o.after,
-    can: Refinery.canFillOrder(state, slot)
+    pct: orderPct(), can: Refinery.canFillOrder(state, slot)
   };
 }
 
@@ -181,6 +209,26 @@ function keyedList(parent, make) {
     }
   };
 }
+// A short highlight on a number that changed (not on its first draw)
+function pop(node) {
+  node.classList.remove('cl-r-pop');
+  void node.offsetWidth;
+  node.classList.add('cl-r-pop');
+}
+function setNum(node, text) {
+  if (node.textContent === text) return;
+  const had = node.textContent !== '';
+  node.textContent = text;
+  if (had) pop(node);
+}
+// A plain card that is always open: a title and a body
+function plain() {
+  const root = el('section', 'cl-r-sec card cl-r-plain');
+  const title = el('h2', 'cl-r-h cl-r-h-plain');
+  const body = el('div', 'cl-r-body cl-r-body-plain');
+  root.append(title, body);
+  return { root, title, body };
+}
 function section(id, title, open) {
   const root = el('details', 'cl-r-sec card', null, { 'data-r-sec': id });
   root.open = open;
@@ -218,62 +266,63 @@ export function mount(panel, firstApi) {
   panel.appendChild(wrap);
   const titles = [];   // [node, key] for static text, refreshed in update so a language switch shows
 
-  // ---------------------------------------------------------------- 1. Fraction tower
-  const tower = section('tower', '', true);
-  titles.push([tower.root.querySelector('.cl-r-h'), 'cl.refinery.sec.tower']);
-  tower.body.appendChild(el('p', 'cl-r-note', null, { 'data-t': 'cl.refinery.tower.blurb' }));
-  const towerList = el('ol', 'cl-r-tower');
-  tower.body.appendChild(towerList);
-  const towerRowsUI = keyedList(towerList, (r) => {
-    const li = el('li', 'cl-r-frac'), head = el('div', 'cl-r-frac-head');
-    const name = el('strong', 'cl-r-frac-name'), value = el('span', 'cl-r-frac-value num'), lvl = el('span', 'chip gold');
-    head.append(name, lvl, value);
-    const powers = el('div', 'cl-r-sub'), parts = el('div', 'cl-r-sub cl-r-parts num');
-    li.append(head, powers, parts);
-    return { el: li, update(x) {
-      setText(name, t(`cl.frac.${x.id}`));
-      setText(value, '×' + fmtMult(fmt, x.value));
-      setText(lvl, t('cl.refinery.tower.level', { n: x.level }));
-      setText(powers, t(`cl.refinery.powers.${x.id}`));
-      setText(parts, t('cl.refinery.tower.parts', { b: x.bubble.toFixed(2), v: x.vial.toFixed(2), c: x.compound.toFixed(2), s: x.seal.toFixed(2) }));
-    } };
+  // ---------------------------------------------------------------- 1. Orders (always)
+  const orders = plain();
+  titles.push([orders.title, 'cl.name.orders']);
+  const doneMsg = el('p', 'cl-r-done', null, { role: 'status' });
+  doneMsg.hidden = true;
+  const say = (text, node) => { setText(node, text); setHidden(node, false); flash(node); };
+  const fillAllRow = el('div', 'cl-r-actions');
+  const fillAllBtn = makeBtn(() => {
+    const before = FRACTIONS.map((_, i) => fracValue(api.state, i));
+    let n = 0;
+    act((s, c) => { n = Refinery.fillAll(s, c); return n > 0; });
+    if (n > 0) { say(t('cl.refinery.order.done_all', { n }), doneMsg); flashFracs(before); }
   });
-
-  // ---------------------------------------------------------------- 2. Orders
-  const orders = section('orders', '', true);
-  titles.push([orders.root.querySelector('.cl-r-h'), 'cl.name.orders']);
-  orders.body.appendChild(el('p', 'cl-r-note', null, { 'data-t': 'cl.refinery.order.reward' }));
+  fillAllRow.appendChild(fillAllBtn);
   const orderGrid = el('div', 'cl-r-grid');
-  orders.body.appendChild(orderGrid);
+  orders.body.append(doneMsg, fillAllRow, orderGrid);
   const orderListUI = keyedList(orderGrid, (o) => {
-    const card = el('div', 'cl-r-card');
-    const head = el('div', 'cl-r-card-head'), title = el('strong'), slotChip = el('span', 'chip');
-    head.append(title, slotChip);
-    const emptyBox = el('div', 'cl-r-empty'), emptyMsg = el('p', 'cl-r-sub');
-    emptyBox.appendChild(emptyMsg);
+    const card = el('div', 'cl-r-card cl-r-order');
+    const title = el('strong', 'cl-r-card-title');
+    const emptyBox = el('div', 'cl-r-empty'), emptyMsg = el('p', 'cl-r-ask'), emptyBar = makeBar('sand');
+    emptyBox.append(emptyMsg, emptyBar);
     const fullBox = el('div', 'cl-r-full');
-    const ask = el('p', 'cl-r-ask'), bar = makeBar('gold'), have = el('p', 'cl-r-sub num'), value = el('p', 'cl-r-sub num');
+    const ask = el('p', 'cl-r-ask'), bar = makeBar('gold'), have = el('p', 'cl-r-sub num'), gives = el('p', 'cl-r-sub cl-r-gives');
+    const where = el('p', 'cl-r-sub'), goBtn = el('button', 'btn cl-r-btn cl-r-quiet', '', { type: 'button' });
+    goBtn.addEventListener('click', () => api.go('fields'));
     const actRow = el('div', 'cl-r-actions'), need = el('span', 'cl-r-need num');
-    const btn = makeBtn(() => { if (act((s, c) => Refinery.fillOrder(s, ref.item.slot, c))) flash(card); });
+    const btn = makeBtn(() => {
+      const v = ref.item.view;
+      if (act((s, c) => Refinery.fillOrder(s, ref.item.slot, c))) {
+        flash(card);
+        say(t('cl.refinery.order.done', { frac: t(`cl.frac.${v.fracId}`), before: fmtMult(fmt, v.before), after: fmtMult(fmt, v.after) }) + (api.isOpen('refinery.vials') ? ' ' + t('cl.refinery.order.done_vial') : ''), doneMsg);
+        flashFracs(null, FRACTIONS.indexOf(v.fracId));
+      }
+    });
     actRow.append(btn, need);
-    fullBox.append(ask, bar, have, value, actRow);
-    card.append(head, emptyBox, fullBox);
+    fullBox.append(ask, bar, have, gives, where, goBtn, actRow);
+    card.append(title, emptyBox, fullBox);
     const ref = { el: card, update(x) {
       const v = x.view;
-      setText(slotChip, t('cl.refinery.order.slot', { n: x.slot + 1 }));
       setHidden(emptyBox, !v.empty); setHidden(fullBox, v.empty);
+      if (x.anchor) card.setAttribute('data-guide', 'refinery.order'); else card.removeAttribute('data-guide');
       if (v.empty) {
         setText(title, t('cl.name.orders'));
         setText(emptyMsg, v.refillIn > 0 ? t('cl.refinery.order.refill', { time: secs(v.refillIn) }) : t('cl.refinery.order.posts_now'));
+        setBar(emptyBar, v.progress);
         card.classList.remove('is-ready');
         return;
       }
-      const m = mat(v.field, v.grade);
-      setText(title, t(`cl.frac.${v.fracId}`));
-      setText(ask, t('cl.refinery.order.ask', { qty: fmtNum(fmt, v.qty), mat: m }));
+      const frac = t(`cl.frac.${v.fracId}`), fieldName = t(`cl.field.${v.fieldId}`);
+      setText(title, t('cl.refinery.order.title', { frac }));
+      setText(ask, t('cl.refinery.order.ask', { qty: fmtNum(fmt, v.qty), field: fieldName, grade: v.grade + 1 }));
       setBar(bar, v.progress);
-      setText(have, t('cl.refinery.order.have', { have: fmtNum(fmt, v.have), qty: fmtNum(fmt, v.qty) }));
-      setText(value, t('cl.refinery.order.value', { frac: t(`cl.frac.${v.fracId}`), before: fmtMult(fmt, v.before), after: fmtMult(fmt, v.after) }));
+      setNum(have, t('cl.refinery.order.have', { have: fmtNum(fmt, v.have), qty: fmtNum(fmt, v.qty) }));
+      setText(gives, t('cl.refinery.order.gives', { frac, what: t(`cl.refinery.speeds.${v.fracId}`), pct: v.pct, before: fmtMult(fmt, v.before), after: fmtMult(fmt, v.after) }));
+      setHidden(where, v.can); setHidden(goBtn, v.can || !api.isOpen('tab.fields'));
+      setText(where, t('cl.refinery.order.where', { field: fieldName }));
+      setText(goBtn, t('cl.refinery.order.go'));
       setBtn(btn, v.can, t('cl.refinery.order.fill'));
       setText(need, v.can ? '' : t('cl.refinery.need_more', { n: fmtNum(fmt, v.missing) }));
       card.classList.toggle('is-ready', v.can);
@@ -281,21 +330,113 @@ export function mount(panel, firstApi) {
     return ref;
   });
 
-  // The weekly Order
+  // ---------------------------------------------------------------- 2. Your Fractions (always)
+  const fracs = plain();
+  titles.push([fracs.title, 'cl.refinery.sec.fractions']);
+  fracs.body.appendChild(el('p', 'cl-r-note', null, { 'data-t': 'cl.refinery.fractions.blurb' }));
+  const fracList = el('ol', 'cl-r-tower');
+  fracs.body.appendChild(fracList);
+  const fracRefs = {};   // id -> value node, for the brief highlight after a fill
+  const fracUI = keyedList(fracList, (r) => {
+    const li = el('li', 'cl-r-frac');
+    const head = el('button', 'cl-r-fhead', '', { type: 'button', 'aria-expanded': 'false' });
+    const left = el('span', 'cl-r-fleft'), name = el('strong', 'cl-r-frac-name'), powers = el('span', 'cl-r-sub');
+    left.append(name, powers);
+    const value = el('span', 'cl-r-frac-value num');
+    head.append(left, value);
+    const body = el('div', 'cl-r-fbody'), partsUl = el('ul', 'cl-r-parts');
+    body.hidden = true;
+    const partLis = {};
+    for (const k of ['orders', 'bubbles', 'vials', 'compounds', 'seals']) { partLis[k] = el('li'); partsUl.appendChild(partLis[k]); }
+    body.appendChild(partsUl);
+    head.addEventListener('click', () => { body.hidden = !body.hidden; head.setAttribute('aria-expanded', String(!body.hidden)); });
+    li.append(head, body);
+    fracRefs[r.id] = value;
+    return { el: li, update(x) {
+      setText(name, t(`cl.frac.${x.id}`));
+      setText(powers, t(`cl.refinery.powers.${x.id}`));
+      setNum(value, x.raised ? '×' + fmtMult(fmt, x.value) : t('cl.refinery.frac.unraised'));
+      value.classList.toggle('is-dim', !x.raised);
+      const shown = new Set(x.parts.map(p => p.kind));
+      for (const k of Object.keys(partLis)) setHidden(partLis[k], !shown.has(k));
+      for (const p of x.parts) {
+        setText(partLis[p.kind], p.kind === 'orders'
+          ? t('cl.refinery.part.orders', { n: p.level, mult: fmtMult(fmt, p.mult) })
+          : t(`cl.refinery.part.${p.kind}`, { pct: p.pct }));
+      }
+    } };
+  });
+  // The raised Fraction's value glows: a fill answers where the player is looking
+  function flashFracs(before, index) {
+    if (index != null && index >= 0 && fracRefs[FRACTIONS[index]]) pop(fracRefs[FRACTIONS[index]]);
+    if (before) FRACTIONS.forEach((id, i) => { if (fracValue(api.state, i) !== before[i] && fracRefs[id]) pop(fracRefs[id]); });
+  }
+
+  // ---------------------------------------------------------------- 3. Vials (when open)
+  const vials = section('vials', '', true);
+  titles.push([vials.root.querySelector('.cl-r-h'), 'cl.name.vials']);
+  vials.body.appendChild(el('p', 'cl-r-note', null, { 'data-t': 'cl.refinery.vials.blurb' }));
+  const offersChip = el('p', 'cl-r-offers'), offersNum = el('span', 'chip gold num'), offersHint = el('span', 'cl-r-sub');
+  offersChip.append(offersNum, offersHint);
+  vials.body.appendChild(offersChip);
+  vials.body.appendChild(el('h3', 'cl-r-h3', null, { 'data-t': 'cl.refinery.vials.try_title' }));
+  const tryList = el('ul', 'cl-r-rows'), tryNone = el('p', 'cl-r-sub', null, { 'data-t': 'cl.refinery.vials.try_none' });
+  vials.body.append(tryList, tryNone);
+  const tryUI = keyedList(tryList, () => {
+    const li = el('li', 'cl-r-row'), info = el('div', 'cl-r-info'), name = el('strong'), odds = el('span', 'cl-r-sub num');
+    info.append(name, odds);
+    const btn = makeBtn(() => {
+      const r = ref.item;
+      if (act((s, c) => Collection.offerVial(s, r.field, r.grade, c))) flash(li);
+    });
+    li.append(info, btn);
+    const ref = { el: li, update(x) {
+      setText(name, mat(x.field, x.grade));
+      setText(odds, t(x.guaranteed ? 'cl.refinery.vials.sure_now' : 'cl.refinery.vials.odds', { chance: Math.round(x.chance * 100), sure: x.sure, pity: x.pity }));
+      setBtn(btn, x.can, x.can || api.state.collection.vialOffers > 0 ? t('cl.refinery.vials.try') : t('cl.refinery.vials.no_offers'));
+    } };
+    return ref;
+  });
+  vials.body.appendChild(el('h3', 'cl-r-h3', null, { 'data-t': 'cl.refinery.vials.owned_title' }));
+  const ownList = el('ul', 'cl-r-rows'), ownNone = el('p', 'cl-r-sub', null, { 'data-t': 'cl.refinery.vials.owned_none' });
+  vials.body.append(ownList, ownNone);
+  const ownUI = keyedList(ownList, () => {
+    const li = el('li', 'cl-r-row'), info = el('div', 'cl-r-info'), name = el('strong'), tier = el('span', 'tag tier'), cost = el('span', 'cl-r-sub num');
+    const head = el('div', 'cl-r-inline'); head.append(name, tier);
+    info.append(head, cost);
+    const btn = makeBtn(() => { const k = ref.item.key; if (act((s, c) => Collection.upgradeVial(s, k, c))) flash(li); });
+    li.append(info, btn);
+    const ref = { el: li, update(x) {
+      setText(name, mat(x.field, x.grade));
+      setText(tier, t('cl.refinery.vials.tier', { n: x.tier, name: t(`cl.refinery.tier.${x.tierId}`) }));
+      const top = x.cost === null;
+      setText(cost, top ? '' : t('cl.refinery.vials.upgrade_cost', { cost: t('cl.refinery.oasis_units', { n: fmtNum(fmt, x.cost) }), have: fmtNum(fmt, Fields.countAtLeast(api.state, FIELD.OASIS, 0)) }));
+      setBtn(btn, x.can, top ? t('cl.refinery.vials.top') : x.can ? t('cl.refinery.vials.upgrade') : t('cl.refinery.vials.upgrade') + ' · ' + t('cl.refinery.need_more', { n: fmtNum(fmt, x.missing) }));
+    } };
+    return ref;
+  });
+
+  // ---------------------------------------------------------------- 4. The weekly Order (when open)
+  const weeklySec = section('weekly', '', true);
+  titles.push([weeklySec.root.querySelector('.cl-r-h'), 'cl.name.weekly']);
+  weeklySec.body.appendChild(el('p', 'cl-r-note', null, { 'data-t': 'cl.refinery.weekly.blurb' }));
   const weekly = el('div', 'cl-r-card cl-r-weekly');
-  const wHead = el('div', 'cl-r-card-head'), wTitle = el('strong'), wTime = el('span', 'chip');
-  wHead.append(wTitle, wTime);
-  const wNote = el('p', 'cl-r-sub'), wRowsEl = el('div', 'cl-r-wrows'), wClosed = el('p', 'cl-r-sub');
+  const wHead = el('div', 'cl-r-card-head'), wTime = el('span', 'chip');
+  wHead.append(wTime);
+  const wRowsEl = el('div', 'cl-r-wrows'), wClosed = el('p', 'cl-r-sub');
   const wActs = el('div', 'cl-r-actions'), wValue = el('span', 'cl-r-need num');
-  const wBtn = makeBtn(() => { if (act((s, c) => Refinery.fillWeekly(s, c))) flash(weekly); });
+  const wBtn = makeBtn(() => {
+    const before = FRACTIONS.map((_, i) => fracValue(api.state, i));
+    if (act((s, c) => Refinery.fillWeekly(s, c))) { flash(weekly); say(t('cl.refinery.weekly.done'), doneMsg); flashFracs(before); }
+  });
   wActs.append(wBtn, wValue);
-  weekly.append(wHead, wNote, wRowsEl, wClosed, wActs);
-  orders.body.appendChild(weekly);
+  weekly.append(wHead, wRowsEl, wClosed, wActs);
+  weeklySec.body.appendChild(weekly);
   const weeklyRows = keyedList(wRowsEl, () => {
     const row = el('div', 'cl-r-wrow'), txt = el('span', 'num'), bar = makeBar('gold'), miss = el('span', 'cl-r-need num');
     row.append(txt, bar, miss);
     return { el: row, update(x) {
-      setText(txt, t('cl.refinery.weekly.row', { mat: mat(x.field, x.grade), have: fmtNum(fmt, x.free), qty: fmtNum(fmt, x.qty) }));
+      setText(txt, t('cl.refinery.weekly.row', { mat: t('cl.refinery.material_min', { field: t(`cl.field.${x.fieldId}`), grade: x.grade + 1 }), have: fmtNum(fmt, x.free), qty: fmtNum(fmt, x.qty) }));
       setBar(bar, x.progress);
       setText(miss, x.missing > 0 ? t('cl.refinery.need_more', { n: fmtNum(fmt, x.missing) }) : t('cl.refinery.ready'));
     } };
@@ -353,50 +494,6 @@ export function mount(panel, firstApi) {
   bubbleBox.append(lvlMsg, lvlCost, lvlActs);
   hall.body.appendChild(bubbleBox);
 
-  // ---------------------------------------------------------------- 4. Vials
-  const vials = section('vials', '', wide);
-  titles.push([vials.root.querySelector('.cl-r-h'), 'cl.name.vials']);
-  vials.body.appendChild(el('p', 'cl-r-note', null, { 'data-t': 'cl.refinery.vials.blurb' }));
-  const offersChip = el('p', 'cl-r-offers'), offersNum = el('span', 'chip gold num'), offersHint = el('span', 'cl-r-sub');
-  offersChip.append(offersNum, offersHint);
-  vials.body.appendChild(offersChip);
-  vials.body.appendChild(el('h3', 'cl-r-h3', null, { 'data-t': 'cl.refinery.vials.try_title' }));
-  const tryList = el('ul', 'cl-r-rows'), tryNone = el('p', 'cl-r-sub', null, { 'data-t': 'cl.refinery.vials.try_none' });
-  vials.body.append(tryList, tryNone);
-  const tryUI = keyedList(tryList, () => {
-    const li = el('li', 'cl-r-row'), info = el('div', 'cl-r-info'), name = el('strong'), odds = el('span', 'cl-r-sub num');
-    info.append(name, odds);
-    const btn = makeBtn(() => {
-      const r = ref.item;
-      if (act((s, c) => Collection.offerVial(s, r.field, r.grade, c))) flash(li);
-    });
-    li.append(info, btn);
-    const ref = { el: li, update(x) {
-      setText(name, mat(x.field, x.grade));
-      setText(odds, t(x.guaranteed ? 'cl.refinery.vials.sure_now' : 'cl.refinery.vials.odds', { chance: Math.round(x.chance * 100), sure: x.sure, pity: x.pity }));
-      setBtn(btn, x.can, x.can || api.state.collection.vialOffers > 0 ? t('cl.refinery.vials.try') : t('cl.refinery.vials.no_offers'));
-    } };
-    return ref;
-  });
-  vials.body.appendChild(el('h3', 'cl-r-h3', null, { 'data-t': 'cl.refinery.vials.owned_title' }));
-  const ownList = el('ul', 'cl-r-rows'), ownNone = el('p', 'cl-r-sub', null, { 'data-t': 'cl.refinery.vials.owned_none' });
-  vials.body.append(ownList, ownNone);
-  const ownUI = keyedList(ownList, () => {
-    const li = el('li', 'cl-r-row'), info = el('div', 'cl-r-info'), name = el('strong'), tier = el('span', 'tag tier'), cost = el('span', 'cl-r-sub num');
-    const head = el('div', 'cl-r-inline'); head.append(name, tier);
-    info.append(head, cost);
-    const btn = makeBtn(() => { const k = ref.item.key; if (act((s, c) => Collection.upgradeVial(s, k, c))) flash(li); });
-    li.append(info, btn);
-    const ref = { el: li, update(x) {
-      setText(name, mat(x.field, x.grade));
-      setText(tier, t('cl.refinery.vials.tier', { n: x.tier, name: t(`cl.refinery.tier.${x.tierId}`) }));
-      const top = x.cost === null;
-      setText(cost, top ? '' : t('cl.refinery.vials.upgrade_cost', { cost: t('cl.refinery.oasis_units', { n: fmtNum(fmt, x.cost) }), have: fmtNum(fmt, Fields.countAtLeast(api.state, FIELD.OASIS, 0)) }));
-      setBtn(btn, x.can, top ? t('cl.refinery.vials.top') : x.can ? t('cl.refinery.vials.upgrade') : t('cl.refinery.vials.upgrade') + ' · ' + t('cl.refinery.need_more', { n: fmtNum(fmt, x.missing) }));
-    } };
-    return ref;
-  });
-
   // ---------------------------------------------------------------- 5. Mixer
   const mixer = section('mixer', '', wide);
   titles.push([mixer.root.querySelector('.cl-r-h'), 'cl.name.mixer']);
@@ -413,17 +510,17 @@ export function mount(panel, firstApi) {
   pickers.append(pickA.box, pickB.box);
   const mixActs = el('div', 'cl-r-actions'), mixMsg = el('p', 'cl-r-mixmsg', null, { role: 'status' });
   mixMsg.hidden = true;
-  const say = (text) => { setText(mixMsg, text); setHidden(mixMsg, false); flash(mixMsg); };
+  const mixSay = (text) => { setText(mixMsg, text); setHidden(mixMsg, false); flash(mixMsg); };
   const mixBtn = makeBtn(() => {
     const a = parsePick(pickA.sel.value), b = parsePick(pickB.sel.value);
     if (!a || !b) return;
     const res = mixResult(api.state, a, b);
-    if (res.kind === 'none') { say(t('cl.refinery.mixer.result_none')); return; }
-    if (res.kind === 'known') { say(t('cl.refinery.mixer.result_known')); return; }
+    if (res.kind === 'none') { mixSay(t('cl.refinery.mixer.result_none')); return; }
+    if (res.kind === 'known') { mixSay(t('cl.refinery.mixer.result_known')); return; }
     if (act((s, c) => Collection.discover(s, res.index, c))) {
-      say(t('cl.refinery.mixer.result_new', { name: t('cl.refinery.compound.name', { n: res.index + 1 }) }));
+      mixSay(t('cl.refinery.mixer.result_new', { name: t('cl.refinery.compound.name', { n: res.index + 1 }) }));
       flash(mixer.root);
-    } else say(t('cl.refinery.mixer.result_none'));
+    } else mixSay(t('cl.refinery.mixer.result_none'));
   });
   mixActs.appendChild(mixBtn);
   mixer.body.append(noneHeld, pickers, mixActs, mixMsg);
@@ -467,7 +564,10 @@ export function mount(panel, firstApi) {
     return ref;
   });
 
-  wrap.append(tower.root, orders.root, hall.root, vials.root, mixer.root);
+  const lockLine = el('p', 'cl-locked cl-r-lock');
+  lockLine.hidden = true;
+  const later = { 'refinery.vials': vials.root, 'refinery.weekly': weeklySec.root, 'refinery.cauldrons': hall.root, 'refinery.mixer': mixer.root };
+  wrap.append(orders.root, fracs.root, vials.root, weeklySec.root, hall.root, mixer.root, lockLine);
 
   // ---------------------------------------------------------------- update
   function update(nextApi) {
@@ -476,13 +576,21 @@ export function mount(panel, firstApi) {
     for (const [n, k] of titles) setText(n, t(k));
     for (const n of panel.querySelectorAll('[data-t]')) setText(n, t(n.dataset.t));
 
-    towerRowsUI.set(towerRows(s));
+    fracUI.set(fractionRows(s, api.isOpen));
 
-    orderListUI.set(s.refinery.orders.map((_, slot) => ({ key: 's' + slot, slot, view: orderView(s, slot) })));
+    const anchor = anchorSlot(s);
+    orderListUI.set(s.refinery.orders.map((_, slot) => ({ key: 's' + slot, slot, anchor: slot === anchor, view: orderView(s, slot) })));
+    const nFill = fillableCount(s);
+    setHidden(fillAllRow, nFill < 2);
+    setBtn(fillAllBtn, nFill >= 2, t('cl.refinery.order.fill_all', { n: nFill }));
+
+    const view = sectionsView(api.isOpen);
+    for (const f of LATER) setHidden(later[f], !view.open.includes(f));
+    setHidden(lockLine, !view.lock);
+    if (view.lock) setText(lockLine, api.lockText(view.lock));
+
     const w = weeklyView(s);
-    setText(wTitle, t('cl.name.weekly'));
-    setText(wTime, secs(w.secondsToNextWeek));
-    setText(wNote, t('cl.refinery.weekly.blurb'));
+    setText(wTime, t('cl.refinery.weekly.closes', { time: secs(w.secondsToNextWeek) })); setHidden(wTime, !w.open);
     setHidden(wRowsEl, !w.open); setHidden(wClosed, w.open); setHidden(wActs, !w.open);
     setText(wClosed, t('cl.refinery.weekly.closed', { time: secs(w.secondsToNextWeek) }));
     weeklyRows.set(w.rows.map(r => ({ key: 'f' + r.field, ...r })));
