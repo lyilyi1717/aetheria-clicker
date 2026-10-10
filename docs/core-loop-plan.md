@@ -29,10 +29,17 @@ them, one at a time.
 
 ## 2. Where things stand
 
-- **Done:** CL-0 (R70, #204): the contract in `js/systems/coreloop/`.
+- **Done (merged):** CL-0 (R70), CL-1 Presence (R71), CL-3 Mastery (R73), CL-7 Seals (R77),
+  CL-8 Well (R78). `js/systems/coreloop/README.md` carries what each merged system promises.
+- **In progress:** CL-2 Fields and Rigs (R72), a sub-agent on branch `cl-2-fields-rigs`.
+- **Next:** CL-4, CL-5, CL-6 (Sonnet, in parallel) and CL-9 Prestige (Opus) once CL-2 is merged;
+  then CL-10 (Wave B, not filed as an issue yet).
 - **Filed:** Wave A as issues #204-#213 (R70-R79), labels `roadmap` and `core-loop`. Owner decisions
   are posted on issue #23.
-- **Ready now:** CL-1, CL-2, CL-3, CL-7 (Sonnet, in parallel) and CL-8 (Opus).
+- **Sub-agents are pinned to Sonnet** (`.claude/settings.json`), so the coordinating session does
+  the Opus items itself.
+- **Merges are squash merges** with a message written by the coordinator: sub-agent commits carry
+  a model-name trailer that rule 9 keeps out of `main`.
 - **Authority (owner, 2026-10-10):** the coordinating session pushes item branches, opens PRs and
   **merges them itself** once the checks pass and it has reviewed the PR against the issue and the
   sim. It still stops for the owner's go-ahead before Wave D (the switch that changes the live game).

@@ -10,14 +10,16 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- None from the wave-10 coordinator session (wave 10 complete).
+- R72 #206 (CL-2 Fields and Rigs): sub-agent, branch `cl-2-fields-rigs`, draft PR open.
 
 ## Next up
 
 - **Core-loop redesign** (`docs/core-loop-plan.md`): Wave A (dark logic, R70-R79, wave "CL-A" in the Plan
-  table) is filed. R70 is done; ready now: R71, R72, R73, R77 (Sonnet, in parallel) and R78 (Opus).
-  Owner decisions are in #23 (comment of 2026-10-10); defaults apply unless answered. The coordinator
-  merges each PR once its checks pass and it has been reviewed against the issue and the sim.
+  table). Done: R70, R71, R73, R77, R78. In progress: R72. Then R74, R75, R76 (Sonnet, in parallel, need
+  R72) and R79 (Opus, needs R72). After Wave A: CL-10 (`sim/core-loop.mjs`, drives the real classes;
+  not filed yet). Owner decisions are in #23 (comment of 2026-10-10); defaults apply unless answered.
+  The coordinator merges each PR (squash, so branch commit trailers stay out of `main`) once its
+  checks pass and it has been reviewed against the issue and the sim.
 
 R0–R30, R32–R40 and R41–R43 are done.
 
@@ -112,6 +114,19 @@ R0–R30, R32–R40 and R41–R43 are done.
 
 ## Done
 
+- R78 #212 (CL-8, PR #218, no player change): `coreloop/Well.js`, the cascade in `BigNum` (multipliers
+  summed in log10). Matches the sim's `wellStep` to 1e-9 up to 1e200 and runs past 1e308. `addCrude` is
+  the one way Crude is earned; `resetRun` / `closeChronicleRecord` are what Prestige calls. The README
+  now has the Well's contract and the clock rule (`state.t` is the start of a step). `P.packSize`.
+- R73 #207 (CL-3, PR #219, no player change): `coreloop/Mastery.js`. Rank ids novice, adept, master,
+  grandmaster, legend. Spec change: titles land on Legend V, X (ranks 9, 14), as the design says; the
+  sim had VI, XI (reference tuning log 27, `--assert` green on seeds 1-6). `P.rigEffBase`, `rigEffMastery`.
+- R77 #211 (CL-7, PR #215, no player change): `coreloop/Seals.js`. A Seal that opens inside a step is
+  credited for the part after it opened (the sim waits a step). `P.sealBonusPerTier`.
+- R71 #205 (CL-1, PR #216, no player change): `coreloop/Presence.js`. A Gusher comes up on a seeded
+  schedule while Watching and stays `P.gusherWindow` (20 s); `catchGusher` returns the payout and the
+  loop driver pays it (`Well.addCrude`, `Rigs.haul`). CL-10: Watching steps are 30 s, so the driver
+  must split a step at `presence.nextGusherAt` or it will miss the window. `P.handsWindow`.
 - R70 #204 (CL-0, no player change): `js/systems/coreloop/` holds the contract for the core-loop
   redesign: `README.md` (rules, who writes which part of the state, events), `state.js` (saved state,
   save / load that accepts any input), `shared.js` (ids, hit levels, seeded RNG, Fraction value).
