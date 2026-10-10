@@ -12,7 +12,6 @@ export default {
   'cl.well.run_first': '{have} من {goal} خام: من هنا يبدأ البئر الجديد يدفع احتياطيات.',
   'cl.well.run_pending': 'البئر الجديد بيدفع {n} احتياطي',
   'cl.well.run_need': 'يحتاج {need} احتياطي.',
-  'cl.well.run_wait': 'البئر الجديد بعد {time}',
   'cl.well.run_ready': 'البئر الجديد جاهز.',
   'cl.well.run_go': 'افتح التوسّع',
   'cl.well.pumps_title': 'المضخات',

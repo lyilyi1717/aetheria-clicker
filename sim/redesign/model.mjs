@@ -162,7 +162,7 @@ export function resetRun(s) {
 
 export function maybeNewWell(s) {
   const p = pendingReserves(s);
-  if (p < Math.max(P.wellMinReserves, P.wellGain * s.resLife) || s.t - s.runStart < P.wellMinRunSec) return false;
+  if (p < Math.max(P.wellMinReserves, P.wellGain * s.resLife)) return false;
   s.resLife += p; s.wells++;
   for (const [id, kind, n] of P.trials) if (kind === 'well' && s.wells === n) s.trials[id].unlocked = s.t;
   earn(s.tree, 'reserves', p);

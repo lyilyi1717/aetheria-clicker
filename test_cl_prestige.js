@@ -87,30 +87,31 @@ console.log('--- Reserves and the New Well gate (reference §3.3) ---');
     assert.equal(Prestige.pendingReserves(g), want, `1e${e}`);
     assert.equal(want, Math.floor(P.resBase * Math.pow(Math.max(0, e - 6), P.resPow)));
   }
-  // at least 5 Reserves, at least 25% of what this layer has, and a run of 10 minutes
-  g.well.runCrude = new BigNum(1, 8); g.t = 599;
-  assert.equal(Prestige.newWellNeed(g), 5);
-  assert.equal(Prestige.newWellWait(g), 1);
-  assert.equal(Prestige.canNewWell(g), false, 'the run is 1 s short of 10 min');
+  // at least P.wellMinReserves, at least 25% of what this layer has; never the clock
+  assert.ok(!('wellMinRunSec' in P), 'no reset waits on the clock');
+  g.well.runCrude = new BigNum(1, 9);            // pays 10: under the least a New Well must pay
+  assert.equal(Prestige.newWellNeed(g), P.wellMinReserves);
+  assert.ok(Prestige.pendingReserves(g) < P.wellMinReserves);
+  assert.equal(Prestige.canNewWell(g), false);
   assert.equal(Prestige.newWell(g), false);
-  g.t = 600;
-  assert.equal(Prestige.canNewWell(g), true);
-  g.prestige.reserves = 24;
-  assert.equal(Prestige.newWellNeed(g), 6);
-  assert.equal(Prestige.canNewWell(g), false, '5 pending is under 25% of 24');
-  g.prestige.reserves = 20;
+  g.well.runCrude = new BigNum(1, 10);           // pays 16
+  assert.equal(Prestige.canNewWell(g), true, 'enough Reserves is all it takes, one second into the run');
+  g.prestige.reserves = 80;
+  assert.equal(Prestige.newWellNeed(g), 20);
+  assert.equal(Prestige.canNewWell(g), false, '16 pending is under 25% of 80');
+  g.prestige.reserves = 20; g.t = 600;
   const ctx = makeContext();
   g.well.bought[1] = 30; g.well.amount[1] = new BigNum(1e5); g.well.pressure = 4; g.well.pressureBest = 4; g.well.flare = 3;
-  g.well.bestRunChron = new BigNum(1, 8); g.well.bestEver = new BigNum(1, 8);
+  g.well.bestRunChron = new BigNum(1, 10); g.well.bestEver = new BigNum(1, 10);
   assert.equal(Prestige.newWell(g, ctx), true);
-  assert.deepEqual(ctx.events, [{ kind: 'newWell', level: HIT.MINOR, reserves: 5 }]);
-  assert.equal(g.prestige.reserves, 25);
+  assert.deepEqual(ctx.events, [{ kind: 'newWell', level: HIT.MINOR, reserves: 16 }]);
+  assert.equal(g.prestige.reserves, 36);
   assert.equal(g.prestige.wells, 1);
   assert.equal(g.well.crude.toNumber(), P.startCrude);
   assert.equal(g.well.runCrude.m, 0);
   assert.equal(g.well.runStart, 600);
   assert.deepEqual([g.well.bought[1], g.well.pressure, g.well.flare, g.well.pressureBest], [0, 0, 1, 4]);
-  assert.equal(g.well.bestRunChron.e, 8, 'the Chronicle best survives a New Well');
+  assert.equal(g.well.bestRunChron.e, 10, 'the Chronicle best survives a New Well');
   assert.equal(Prestige.canNewWell(g), false);
   // past the double range the Reserves stay a plain, finite number
   g.well.runCrude = new BigNum(3, 5000);

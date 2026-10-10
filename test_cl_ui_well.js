@@ -213,7 +213,7 @@ const fresh = () => createCoreLoopState(7);
   s.well.runCrude = new BigNum(1, 12);
   r = W.runView(s);
   ok(r.stage === 'pending' && r.pending >= 1 && r.frac > 0, 'Reserves pending');
-  ok(r.wait > 0, 'the wait is given');
+  ok(!('wait' in r), 'no wait: a New Well is gated by Reserves only');
 }
 {
   const open = (set) => (f) => set.includes(f);

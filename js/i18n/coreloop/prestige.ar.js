@@ -20,10 +20,8 @@ export default {
   'cl.prestige.well.keep': 'الحقول والمواد والطلبات والإتقان ومجموعتك وكل احتياطي لديك.',
   'cl.prestige.well.bar': '{have} من {need} احتياطي، وهو أقل ما يدفعه البئر الجديد',
   'cl.prestige.well.bar_enough': 'الاحتياطي كافٍ. واصل الضخ: كلما زاد الخام في هذه الجولة زاد ما يدفعه.',
-  'cl.prestige.well.wait': 'يجب أن تمضي {time} إضافية على الجولة أولًا.',
   'cl.prestige.well.btn': 'بئر جديد: +{n} احتياطي',
   'cl.prestige.well.btn_need': 'ينقصك {n} احتياطي أولًا',
-  'cl.prestige.well.btn_wait': 'جاهز بعد {time}',
   'cl.prestige.well.done': 'بئر جديد! +{n} احتياطي.',
 
   'cl.prestige.tree.title': 'شجرة الترقيات',

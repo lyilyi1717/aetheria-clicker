@@ -66,10 +66,9 @@ export function treeBanks(state) {
 export function wellView(state) {
   const pending = Prestige.pendingReserves(state);
   const need = Math.ceil(Prestige.newWellNeed(state));
-  const wait = Prestige.newWellWait(state);
   const R = state.prestige.reserves;
   return {
-    pending, need, wait, can: Prestige.canNewWell(state),
+    pending, need, can: Prestige.canNewWell(state),
     missing: Math.max(0, need - pending),
     fraction: need > 0 ? clamp01(pending / need) : 1,
     reserves: R, mult: 1 + P.resPer * R, multAfter: 1 + P.resPer * (R + pending)
@@ -78,8 +77,7 @@ export function wellView(state) {
 export function wellButton(state) {
   const v = wellView(state);
   if (v.can) return { can: true, text: t('cl.prestige.well.btn', { n: v.pending }) };
-  const text = v.missing > 0 ? t('cl.prestige.well.btn_need', { n: v.missing }) : t('cl.prestige.well.btn_wait', { time: clock(v.wait) });
-  return { can: false, text };
+  return { can: false, text: t('cl.prestige.well.btn_need', { n: v.missing }) };
 }
 
 export function fieldView(state) {
@@ -270,7 +268,6 @@ export function mount(panel, api) {
         ${lines('well')}
         ${bar('well-bar', 'gold')}
         <p class="cp-note" data-ref="well-bar-text"></p>
-        <p class="cp-note" data-ref="well-wait"></p>
         <button type="button" class="btn btn-block btn-lg cp-act" data-guide="prestige.newwell" data-ref="well-btn"></button>
         <p class="cp-status" role="status" aria-live="polite" data-ref="well-status"></p>
       </section>
@@ -464,8 +461,6 @@ export function mount(panel, api) {
     setText(refs['well-bar-text'], w.missing > 0
       ? t('cl.prestige.well.bar', { have: a.fmt(w.pending), need: a.fmt(w.need) })
       : t('cl.prestige.well.bar_enough'));
-    setText(refs['well-wait'], w.wait > 0 ? t('cl.prestige.well.wait', { time: clock(w.wait) }) : '');
-    refs['well-wait'].hidden = !(w.wait > 0);
     const wb = wellButton(s);
     setButton(refs['well-btn'], wb.can, wb.text);
 

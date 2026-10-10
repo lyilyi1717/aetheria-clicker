@@ -126,11 +126,11 @@ export function heroView(state, presence) {
 // The strip "This run": hidden until 10 Buckets are owned (or a New Well was done)
 export function runView(state) {
   const show = state.well.bought[1] >= 10 || state.prestige.wells > 0;
-  const pending = Prestige.pendingReserves(state), need = Prestige.newWellNeed(state), wait = Prestige.newWellWait(state);
+  const pending = Prestige.pendingReserves(state), need = Prestige.newWellNeed(state);
   if (pending < 1) {
-    return { show, stage: 'first', frac: clamp01(log10Big(state.well.runCrude) / Math.log10(P.wellMin)), pending, need, wait };
+    return { show, stage: 'first', frac: clamp01(log10Big(state.well.runCrude) / Math.log10(P.wellMin)), pending, need };
   }
-  return { show, stage: 'pending', frac: clamp01(pending / need), pending, need, wait, ready: Prestige.canNewWell(state) };
+  return { show, stage: 'pending', frac: clamp01(pending / need), pending, need, ready: Prestige.canNewWell(state) };
 }
 
 // Which sections of the screen show: the open ones, and the one closed section that comes next
@@ -405,9 +405,7 @@ export function mount(panel, api) {
       } else {
         runText.textContent = t('cl.well.run_pending', { n: r.pending });
         runSub.hidden = false;
-        runSub.textContent = r.ready ? t('cl.well.run_ready')
-          : r.wait > 0 ? t('cl.well.run_wait', { time: clock(r.wait) })
-          : t('cl.well.run_need', { need: fmtX(a, r.need) });
+        runSub.textContent = r.ready ? t('cl.well.run_ready') : t('cl.well.run_need', { need: fmtX(a, r.need) });
       }
       runGo.hidden = !a.isOpen('tab.prestige');
       runGo.classList.toggle('btn-primary', !!r.ready);

@@ -56,8 +56,7 @@ export function pendingReserves(state) {
 // Reserves a New Well must pay: P.wellGain of what this layer has, at least P.wellMinReserves
 export const newWellNeed = (state) => Math.max(P.wellMinReserves, P.wellGain * state.prestige.reserves);
 // Seconds of the run still to go before a New Well is allowed (0 when long enough)
-export const newWellWait = (state) => Math.max(0, P.wellMinRunSec - (state.t - state.well.runStart));
-export const canNewWell = (state) => pendingReserves(state) >= newWellNeed(state) && newWellWait(state) <= 0;
+export const canNewWell = (state) => pendingReserves(state) >= newWellNeed(state);
 
 export function newWell(state, ctx = NO_CONTEXT) {
   if (!canNewWell(state)) return false;
