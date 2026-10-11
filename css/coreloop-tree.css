@@ -53,3 +53,21 @@ summary.cl-tree-sec { cursor: pointer; min-block-size: var(--tap); display: flex
 @media (prefers-reduced-motion: reduce) {
   .is-bought, .is-bump, .cl-tree-pip.is-new { animation: none; }
 }
+
+/* Rings are folds: a title and a one-line status; one is open by default */
+.cl-tree { gap: var(--sp-3); }
+.cl-tree-ring { display: block; border: 1px solid var(--line-1); border-radius: var(--r-2); background: var(--bg-1); }
+.cl-tree-sum {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
+  min-block-size: var(--tap); padding: var(--sp-2) var(--sp-3); cursor: pointer; list-style: none;
+}
+.cl-tree-sum::-webkit-details-marker { display: none; }
+.cl-tree-sum::after { content: "\25BE"; color: var(--text-3); transition: transform var(--dur-2) var(--ease-out); }
+.cl-tree-ring:not([open]) > .cl-tree-sum::after { transform: rotate(90deg); }
+[dir="rtl"] .cl-tree-ring:not([open]) > .cl-tree-sum::after { transform: rotate(-90deg); }
+.cl-tree-sum:focus-visible { outline: 2px solid var(--aether); outline-offset: -2px; }
+.cl-tree-sumtext { display: flex; flex-direction: column; gap: 2px; }
+.cl-tree-ringstatus { color: var(--text-2); font-size: var(--fs-13); }
+.cl-tree-ring[open] > .cl-tree-sum .cl-tree-ringstatus { display: none; }
+.cl-tree-ringbody { display: flex; flex-direction: column; gap: var(--sp-3); padding: 0 var(--sp-3) var(--sp-3); }
+.cl-tree-title { font-size: var(--fs-16); }

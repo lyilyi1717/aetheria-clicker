@@ -34,7 +34,7 @@ export default {
 
   'cl.codex.mastery.title': 'الإتقان',
   'cl.codex.mastery.found': 'رُتّبت {found} من {total} مهارة',
-  'cl.codex.mastery.chip': '{field} المهارة {n}: {rank}',
+  'cl.codex.mastery.chip': '{field}، {skill}: {rank}',
   'cl.codex.mastery.gives': 'كل رتبة تقوّي حقلها.',
   'cl.codex.mastery.from': 'الرتب تأتي من الوقت الذي تقضيه في العمل بحقل.',
 
@@ -49,5 +49,16 @@ export default {
   'cl.codex.seals.from': '{crew} يكسبون ساعات الأختام لك، حتى وأنت غائب. وظّف طاقمًا مع حقل جديد.',
 
   'cl.codex.elsewhere': 'لوحة المتصدرين والمجتمع والإعدادات وحول اللعبة تبقى في اللعبة الحالية.',
-  'cl.codex.back': 'افتح اللعبة الحالية'
+  'cl.codex.back': 'افتح اللعبة الحالية',
+
+  'cl.codex.ready.new': 'جديد منذ زيارتك الأخيرة: {list}',
+  'cl.codex.ready.new_item': '{name} +{n}',
+  'cl.codex.ready.join': '، ',
+  'cl.codex.ready.none': 'لا جديد منذ زيارتك الأخيرة.',
+  'cl.codex.ready.all': 'وجدت كل ما هو مفتوح حتى الآن.',
+  'cl.codex.ready.empty': 'لم تجد شيئًا بعد. واصل اللعب وستتجمع مقتنياتك هنا.',
+  'cl.codex.ready.btn_show': 'أرني',
+  'cl.codex.ready.btn_go': 'اذهب إلى {screen}',
+  'cl.codex.sum.adds': 'تضيف {n}',
+  'cl.codex.new_tag': 'جديد +{n}'
 };

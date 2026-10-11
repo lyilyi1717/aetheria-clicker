@@ -34,7 +34,7 @@ export default {
 
   'cl.codex.mastery.title': 'Mastery',
   'cl.codex.mastery.found': '{found} of {total} skills ranked',
-  'cl.codex.mastery.chip': '{field} skill {n}: {rank}',
+  'cl.codex.mastery.chip': '{field}, {skill}: {rank}',
   'cl.codex.mastery.gives': 'Every rank makes its Field stronger.',
   'cl.codex.mastery.from': 'Ranks come from time spent working a Field.',
 
@@ -49,5 +49,16 @@ export default {
   'cl.codex.seals.from': '{crew} earns Seal-hours for your Seals, even while you are away. Hire crew with a New Field.',
 
   'cl.codex.elsewhere': 'The leaderboard, community, settings and about stay in the current game.',
-  'cl.codex.back': 'Open the current game'
+  'cl.codex.back': 'Open the current game',
+
+  'cl.codex.ready.new': 'New since your last visit: {list}',
+  'cl.codex.ready.new_item': '{name} +{n}',
+  'cl.codex.ready.join': ', ',
+  'cl.codex.ready.none': 'Nothing new since your last visit.',
+  'cl.codex.ready.all': 'You have found everything that is open so far.',
+  'cl.codex.ready.empty': 'Nothing found yet. Play on and your finds will gather here.',
+  'cl.codex.ready.btn_show': 'Show me',
+  'cl.codex.ready.btn_go': 'Go to the {screen}',
+  'cl.codex.sum.adds': 'adds {n}',
+  'cl.codex.new_tag': 'New +{n}'
 };

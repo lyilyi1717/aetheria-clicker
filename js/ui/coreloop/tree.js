@@ -8,6 +8,7 @@ import AR from '../../i18n/coreloop/tree.ar.js';
 import { P } from '../../systems/coreloop/params.js';
 import { FIELDS } from '../../systems/coreloop/shared.js';
 import * as Tree from '../../systems/coreloop/Tree.js';
+import { makeFold } from './folds.js';
 
 registerStrings(EN, AR);
 
@@ -101,6 +102,27 @@ export function bestNode(state, isOpen) {
   return null;
 }
 
+// How many upgrades can be bought right now, per ring and in all
+export function buyableByRing(state, isOpen) {
+  const out = {};
+  for (const ring of RING_IDS) out[ring] = Tree.nodes(state, ring).filter(n => nodeView(state, n, isOpen).can).length;
+  return out;
+}
+export const buyableCount = (state, isOpen) => Object.values(buyableByRing(state, isOpen)).reduce((a, b) => a + b, 0);
+// The banks the player holds (rings that show), for a one-line status
+export function bankList(state) {
+  const { shown } = ringsShown(state);
+  return shown.map(ring => ({ ring, n: Tree.bank(state, ring) })).filter(b => b.n > 0);
+}
+// The ring that is open by default: the first with something to buy, else the innermost shown
+export function focusRing(state, isOpen) {
+  const by = buyableByRing(state, isOpen);
+  const { shown } = ringsShown(state);
+  return shown.find(r => by[r] > 0) || shown[0] || null;
+}
+// Has the player bought anything in the tree yet?
+export const anyBought = (state) => RING_IDS.some(r => ringHasRank(state, r));
+
 // Buys this ring's affordable nodes, cheapest first (never a flag). Returns the ids bought.
 export function buyRing(state, ring, isOpen) {
   const bought = [];
@@ -174,39 +196,51 @@ export function mountTree(host, api) {
   }
 
   function buildRing(ring) {
-    const sec = el('section', 'cl-tree-ring');
+    const sec = el('details', 'cl-tree-ring');
     sec.dataset.ring = ring;
-    const head = el('div', 'cl-tree-bankhead');
+    const sum = el('summary', 'cl-tree-sum');
+    const sumText = el('span', 'cl-tree-sumtext');
     const title = el('h3', 'cl-tree-title', t(`cl.tree.ring.${ring}`));
+    const ringStatus = el('span', 'cl-tree-ringstatus');
+    sumText.append(title, ringStatus);
+    sum.append(sumText);
+    const body = el('div', 'cl-tree-ringbody');
+    const head = el('div', 'cl-tree-bankhead');
     const bankBox = el('div', 'cl-tree-bank');
     const bankNum = el('span', 'cl-tree-banknum');
     bankBox.append(bankNum, el('span', 'cl-tree-bankword', t(`cl.tree.spend.${ring}`)));
-    head.append(title, bankBox);
+    head.append(bankBox);
     const reset = el('p', 'cl-tree-reset', t(`cl.tree.reset.${ring}`));
     // Spending a bank never lowers the multiplier (it counts what was earned): said where it is spent
     const keep = el('p', 'cl-tree-keep');
     keep.hidden = ring !== 'reserves';
-    const all = el('button', 'btn btn-sm cl-tree-all', t('cl.tree.buyall'));
+    const all = el('button', 'btn btn-sm cl-tree-all btn-ready', t('cl.tree.buyall'));
     all.type = 'button'; all.title = t('cl.tree.buyall_hint');
     all.addEventListener('click', () => {
       let bought = [];
       api.act((s) => { bought = buyRing(s, ring, api.isOpen); });
       if (bought.length) status.textContent = t('cl.tree.bought_all', { n: bought.length });
     });
-    const lists = { now: el('div', 'cl-tree-grid'), soon: el('div', 'cl-tree-grid') };
+    const nowHead = el('h4', 'cl-tree-sec', t('cl.tree.sec.now'));
+    const nowGrid = el('div', 'cl-tree-grid');
+    // "Saving up for" is folded when something can be bought now, so the buyable cards come first
+    const soonBox = el('details', 'cl-tree-donebox cl-tree-soonbox');
+    const soonSum = el('summary', 'cl-tree-sec');
+    const soonGrid = el('div', 'cl-tree-grid');
+    soonBox.append(soonSum, soonGrid);
     const laterBox = el('details', 'cl-tree-donebox cl-tree-laterbox');
     const laterSum = el('summary', 'cl-tree-sec');
     const laterGrid = el('div', 'cl-tree-grid');
     laterBox.append(laterSum, laterGrid);
-    const heads = { now: el('h4', 'cl-tree-sec', t('cl.tree.sec.now')), soon: el('h4', 'cl-tree-sec', t('cl.tree.sec.soon')) };
     const doneBox = el('details', 'cl-tree-donebox');
     const doneSum = el('summary', 'cl-tree-sec');
     const doneGrid = el('div', 'cl-tree-grid');
     doneBox.append(doneSum, doneGrid);
-    sec.append(head, keep, reset, all, heads.now, lists.now, heads.soon, lists.soon, laterBox, doneBox);
+    body.append(head, keep, reset, all, nowHead, nowGrid, soonBox, laterBox, doneBox);
+    sec.append(sum, body);
     const cards = new Map();
     for (const n of P.tree) if (n.ring === ring) cards.set(n.id, buildCard(ring, n.id));
-    return { ring, sec, bankNum, bankLast: null, keep, all, lists, heads, laterBox, laterSum, laterGrid, doneBox, doneSum, doneGrid, cards };
+    return { ring, sec, fold: makeFold(sec), soonFold: makeFold(soonBox), ringStatus, bankNum, bankLast: null, keep, all, nowHead, nowGrid, soonBox, soonSum, soonGrid, laterBox, laterSum, laterGrid, doneBox, doneSum, doneGrid, cards };
   }
 
   function place(container, wanted) {
@@ -263,7 +297,8 @@ export function mountTree(host, api) {
   }
 
   let first = true;
-  function update(a = api) {
+  let focus = null;       // the ring open by default; it moves only when it has nothing to buy and another has
+  function update(a = api, opts = {}) {
     const s = a.state;
     const open = a.isOpen('prestige.tree');
     root.hidden = !open;
@@ -271,14 +306,20 @@ export function mountTree(host, api) {
     const { shown, next } = ringsShown(s);
     // one solid gold thing per screen: when the bar's goal is another button here (the New Well), none
     const goal = typeof a.goal === 'function' ? a.goal() : null;
-    const best = goal && goal.here && goal.anchor !== 'prestige.tree' ? null : bestNode(s, a.isOpen);
+    // `opts.gold` (from the Expand screen, which decides the one solid gold button) wins when given
+    const best = opts.gold === false ? null : opts.gold === true ? bestNode(s, a.isOpen)
+      : goal && goal.here && goal.anchor !== 'prestige.tree' ? null : bestNode(s, a.isOpen);
+    const buyBy = buyableByRing(s, a.isOpen);
+    if (!focus || !shown.includes(focus) || (buyBy[focus] === 0 && shown.some(r => buyBy[r] > 0))) focus = focusRing(s, a.isOpen);
     // status line sits at the top of the group
     for (const ring of RING_IDS) {
       let r = rings.get(ring);
       if (!shown.includes(ring)) { if (r) r.sec.hidden = true; continue; }
       if (!r) { r = buildRing(ring); rings.set(ring, r); }
       r.sec.hidden = false;
+      r.fold.resolve(ring === focus);
       const bank = Tree.bank(s, ring);
+      setText(r.ringStatus, t(buyBy[ring] > 0 ? 'cl.tree.ring.status_buy' : 'cl.tree.ring.status_none', { n: buyBy[ring], bank: price(ring, bank) }));
       setText(r.bankNum, a.fmt(bank));
       if (r.bankLast !== null && r.bankLast !== bank) flash(r.bankNum, 'is-bump');
       r.bankLast = bank;
@@ -286,12 +327,14 @@ export function mountTree(host, api) {
       const by = { now: [], soon: [], later: [], done: [] };
       for (const v of views) by[sectionOf(v)].push(v);
       for (const v of views) updateCard(r.cards.get(v.id), v, first, s, v.id === best);
-      place(r.lists.now, by.now.map(v => r.cards.get(v.id).card));
-      place(r.lists.soon, by.soon.map(v => r.cards.get(v.id).card));
+      place(r.nowGrid, by.now.map(v => r.cards.get(v.id).card));
+      place(r.soonGrid, by.soon.map(v => r.cards.get(v.id).card));
       place(r.laterGrid, by.later.map(v => r.cards.get(v.id).card));
       place(r.doneGrid, by.done.map(v => r.cards.get(v.id).card));
-      r.heads.now.hidden = r.lists.now.hidden = by.now.length === 0;
-      r.heads.soon.hidden = r.lists.soon.hidden = by.soon.length === 0;
+      r.nowHead.hidden = r.nowGrid.hidden = by.now.length === 0;
+      r.soonBox.hidden = by.soon.length === 0;
+      r.soonFold.resolve(by.now.length === 0);
+      setText(r.soonSum, t('cl.tree.sec.soon', { n: by.soon.length }));
       r.laterBox.hidden = by.later.length === 0;
       setText(r.laterSum, t('cl.tree.sec.later', { n: by.later.length }));
       r.doneBox.hidden = by.done.length === 0;

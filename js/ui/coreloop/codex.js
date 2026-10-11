@@ -4,6 +4,8 @@
 // A section shows once the player has found one of its things or its feature is open; each says
 // "N of M found", what the found ones give in total and where more come from. Unfound entries are
 // not drawn, only counted. The one closed section that comes next shows as a single locked line.
+// CL-45: it opens with one strip (what is new since the last visit, or where the next find comes
+// from, with one button); each section is folded to its title and "N of M found" and opens on a tap.
 // mount(panel, api) -> { update(api) }. Logic is in the pure helpers (test_cl_ui_prestige.js).
 import { t } from '../../i18n/index.js';
 import { registerStrings } from '../../i18n/coreloop/index.js';
@@ -15,6 +17,7 @@ import * as Collection from '../../systems/coreloop/Collection.js';
 import * as Cauldrons from '../../systems/coreloop/Cauldrons.js';
 import * as Mastery from '../../systems/coreloop/Mastery.js';
 import * as Well from '../../systems/coreloop/Well.js';
+import { makeFold } from './folds.js';
 
 registerStrings(EN, AR);
 
@@ -117,7 +120,7 @@ export function masteryChips(state) {
   const out = [];
   masteryRows(state).forEach((row) => {
     row.actions.forEach((a, i) => {
-      if (a.rank > 0) out.push({ label: t('cl.codex.mastery.chip', { field: t(`cl.field.${FIELDS[row.field]}`), n: i + 1, rank: a.label }), tier: a.title ? 3 : 1, grade: a.rank });
+      if (a.rank > 0) out.push({ label: t('cl.codex.mastery.chip', { field: t(`cl.field.${FIELDS[row.field]}`), skill: t(`cl.skill.${P.fields[row.field]}.${i + 1}`), rank: a.label }), tier: a.title ? 3 : 1, grade: a.rank });
     });
   });
   return out.sort((a, b) => b.grade - a.grade);
@@ -130,6 +133,70 @@ export function masteryCounts(state) {
 // How many chips a section draws before it says "and N more"
 export const CHIP_CAP = 40;
 export const capChips = (chips) => ({ shown: chips.slice(0, CHIP_CAP), hidden: Math.max(0, chips.length - CHIP_CAP) });
+
+// ---- what is new since the last visit (the tab dot) and where the next find comes from
+// How many the player has found in each section
+export function foundCounts(state) {
+  const sums = vialSummary(state);
+  return {
+    vials: sums.reduce((n, x) => n + x.found, 0),
+    compounds: compoundSummary(state).found,
+    bubbles: bubbleSummary(state).total,
+    mastery: masteryCounts(state).found,
+    generators: generatorSummary(state).n,
+    seals: sealTierSummary(state).n
+  };
+}
+// { id: how many more than `seen` }, only the sections that grew
+export function newSince(counts, seen) {
+  const out = {};
+  if (!seen) return out;
+  for (const id of SECTION_IDS) {
+    const d = (counts[id] || 0) - (seen[id] || 0);
+    if (d > 0) out[id] = d;
+  }
+  return out;
+}
+// The counts the player last looked at: kept for the session (and across reloads when the browser
+// lets us). The first time ever, today's counts are the baseline, so nothing is "new" at load.
+const SEEN_KEY = 'aetheria.coreloop.collection.seen';
+let seenMemory = null;
+export const seenStore = {
+  get() {
+    if (seenMemory) return seenMemory;
+    try { const raw = globalThis.localStorage?.getItem(SEEN_KEY); if (raw) seenMemory = JSON.parse(raw); } catch { /* storage can be blocked */ }
+    return seenMemory;
+  },
+  set(counts) {
+    seenMemory = { ...counts };
+    try { globalThis.localStorage?.setItem(SEEN_KEY, JSON.stringify(seenMemory)); } catch { /* storage can be blocked */ }
+  },
+  reset() { seenMemory = null; }
+};
+// The tab dot: how many sections have something new since the last visit
+export function readyCount(state) {
+  const counts = foundCounts(state);
+  const seen = seenStore.get();
+  if (!seen) { seenStore.set(counts); return 0; }
+  return Object.keys(newSince(counts, seen)).length;
+}
+
+// Where each section's finds come from: the screen to open, and the line that says how
+export const SECTION_SCREEN = Object.freeze({ vials: 'refinery', compounds: 'refinery', bubbles: 'refinery', mastery: 'fields', generators: 'well', seals: 'prestige' });
+// The first open section that still has things to find: { id, screen }, or null
+export function nextFind(state, isOpen) {
+  const open = collectionSections(state, isOpen).open;
+  const left = {
+    vials: () => { const x = vialSummary(state); return x.reduce((n, y) => n + y.total - y.found, 0) > 0; },
+    compounds: () => { const c = compoundSummary(state); return c.total === 0 || c.total > c.found; },
+    bubbles: () => true,
+    mastery: () => { const m = masteryCounts(state); return m.total > m.found; },
+    generators: () => generatorSummary(state).n < P.generators,
+    seals: () => { const x = sealTierSummary(state); return x.n < x.max; }
+  };
+  const id = open.find(k => left[k]());
+  return id ? { id, screen: SECTION_SCREEN[id] } : null;
+}
 
 // ================================================================== DOM
 function ensureStyles(doc) {
@@ -151,19 +218,28 @@ export function mount(panel, api) {
   const doc = panel.ownerDocument;
   ensureStyles(doc);
   const bar = (ref, tone) => `<div class="bar ${tone}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-ref="${ref}"><i></i></div>`;
-  // One card: title, "N of M found", what they give, the found ones, the count of the rest, where more come from
-  const card = (id, extra = '') => `<section class="card cp-card" data-sec="${id}" data-ref="sec-${id}" hidden>
-      <h2 class="cp-h">${esc(t(`cl.codex.${id}.title`))}</h2>
-      <p class="cp-line" data-ref="${id}-count"></p>
-      <p class="cx-gives" data-ref="${id}-gives"></p>
-      ${extra}
-      <div class="cx-found" data-ref="${id}-found" role="list"></div>
-      <p class="cx-rest" data-ref="${id}-rest"></p>
-      <p class="cp-note" data-ref="${id}-from"></p>
-    </section>`;
+  // One fold: title and "N of M found" (plus what they add) in the summary; inside, what the found
+  // ones give, the found ones, the count of the rest, where more come from
+  const card = (id, extra = '') => `<details class="card cp-fold" data-sec="${id}" data-ref="sec-${id}" hidden>
+      <summary class="cp-sum"><span class="cp-sumtext"><h2 class="cp-h">${esc(t(`cl.codex.${id}.title`))}</h2><span class="cp-sumstatus" data-ref="${id}-sum"></span></span>
+        <span class="tag new" data-ref="${id}-new" hidden></span></summary>
+      <div class="cp-body">
+        <p class="cp-line" data-ref="${id}-count"></p>
+        <p class="cx-gives" data-ref="${id}-gives"></p>
+        ${extra}
+        <div class="cx-found" data-ref="${id}-found" role="list"></div>
+        <p class="cx-rest" data-ref="${id}-rest"></p>
+        <p class="cp-note" data-ref="${id}-from"></p>
+      </div>
+    </details>`;
 
   panel.innerHTML = `<div class="cp-screen">
     <div class="cp-stack">
+      <section class="card cp-ready cl-reserve" data-ref="strip" aria-live="polite">
+        <p class="cp-ready-title" data-ref="strip-title"></p>
+        <p class="cp-ready-sub" data-ref="strip-sub"></p>
+        <button type="button" class="btn btn-lg btn-primary cp-ready-btn" data-ref="strip-btn" hidden></button>
+      </section>
       ${card('vials')}
       ${card('compounds')}
       ${card('bubbles')}
@@ -177,6 +253,22 @@ export function mount(panel, api) {
 
   const refs = {};
   for (const n of panel.querySelectorAll('[data-ref]')) refs[n.dataset.ref] = n;
+  const folds = {};
+  for (const id of SECTION_IDS) folds[id] = makeFold(refs[`sec-${id}`]);
+
+  let lastApi = api;
+  // what the player had seen when they came here: the strip and the "New" tags compare with this
+  let base = seenStore.get() || foundCounts(api.state);
+  let acked = false;                 // "Show me" was pressed on this visit
+  let stripAction = null;
+  const commit = () => seenStore.set(foundCounts(lastApi.state));
+  // leaving the screen counts as having looked; coming back starts a new visit
+  if (typeof MutationObserver === 'function') {
+    new MutationObserver(() => {
+      if (panel.hidden) commit();
+      else { base = seenStore.get() || foundCounts(lastApi.state); acked = false; update(lastApi); }
+    }).observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+  }
 
   // The found chips are rebuilt only when the list changes
   const sigs = {};
@@ -190,18 +282,48 @@ export function mount(panel, api) {
   }
   const rest = (id, n) => setText(refs[`${id}-rest`], n > 0 ? t('cl.codex.rest', { n }) : '');
   const gives = (id, found, key, state) => setText(refs[`${id}-gives`], found > 0 ? t('cl.codex.gives', { n: plus(addedTotal(state, key)) }) : t('cl.codex.none_yet'));
+  // the summary: "N of M found" and, once something is found, what the found ones add
+  const summary = (id, countText, found, key, state) => {
+    setText(refs[`${id}-sum`], key && found > 0 ? `${countText} · ${t('cl.codex.sum.adds', { n: plus(addedTotal(state, key)) })}` : countText);
+  };
+
+  refs['strip-btn'].addEventListener('click', () => {
+    if (stripAction === 'show') {
+      const news = newSince(foundCounts(lastApi.state), base);
+      const id = SECTION_IDS.find(k => news[k]);
+      if (id) { folds[id].choose(true); refs[`sec-${id}`].scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }); }
+      acked = true; commit(); update(lastApi);
+    } else if (stripAction) lastApi.go(stripAction);
+  });
+
+  // where more of a section's things come from (the same line as inside the section)
+  function fromText(s, id) {
+    if (id === 'generators') { const g = generatorSummary(s); return g.nextLog === null ? t('cl.codex.generators.all') : t('cl.codex.generators.next', { n: g.nextLog }); }
+    return t(`cl.codex.${id}.from`, { n: P.recipesPerChronicle, crew: t('cl.name.crew') });
+  }
 
   function update(a) {
+    lastApi = a;
     const s = a.state;
     const st = collectionSections(s, a.isOpen);
     for (const id of SECTION_IDS) refs[`sec-${id}`].hidden = !st.open.includes(id);
     setText(refs.locked, st.locked ? a.lockText(SECTION_RULES[st.locked].feature) : '');
     refs.locked.hidden = !st.locked;
+    const counts = foundCounts(s);
+    const news = newSince(counts, base);
+    for (const id of SECTION_IDS) {
+      const tag = refs[`${id}-new`];
+      tag.hidden = !news[id];
+      if (news[id]) setText(tag, t('cl.codex.new_tag', { n: news[id] }));
+      folds[id].resolve(false);
+    }
 
     if (st.open.includes('vials')) {
       const sums = vialSummary(s);
       const found = sums.reduce((n, x) => n + x.found, 0), total = sums.reduce((n, x) => n + x.total, 0);
-      setText(refs['vials-count'], t('cl.codex.vials.found', { found, total }));
+      const count = t('cl.codex.vials.found', { found, total });
+      setText(refs['vials-count'], count);
+      summary('vials', count, found, 'vial', s);
       gives('vials', found, 'vial', s);
       paintChips('vials', vialChips(s));
       rest('vials', total - found);
@@ -210,7 +332,9 @@ export function mount(panel, api) {
 
     if (st.open.includes('compounds')) {
       const comp = compoundSummary(s);
-      setText(refs['compounds-count'], t('cl.codex.compounds.found', { found: comp.found, total: comp.total }) + (comp.found ? ` · ${t('cl.codex.compounds.tiers', comp.by)}` : ''));
+      const count = t('cl.codex.compounds.found', { found: comp.found, total: comp.total });
+      setText(refs['compounds-count'], count + (comp.found ? ` · ${t('cl.codex.compounds.tiers', comp.by)}` : ''));
+      summary('compounds', count, comp.found, 'compound', s);
       gives('compounds', comp.found, 'compound', s);
       paintChips('compounds', compoundChips(s));
       rest('compounds', comp.total - comp.found);
@@ -219,7 +343,9 @@ export function mount(panel, api) {
 
     if (st.open.includes('bubbles')) {
       const b = bubbleSummary(s);
-      setText(refs['bubbles-count'], b.total ? t('cl.codex.bubbles.total', { n: a.fmt(b.total), families: b.families }) : t('cl.codex.bubbles.none'));
+      const count = b.total ? t('cl.codex.bubbles.total', { n: a.fmt(b.total), families: b.families }) : t('cl.codex.bubbles.none');
+      setText(refs['bubbles-count'], count);
+      summary('bubbles', count, b.total, 'bubble', s);
       gives('bubbles', b.total, 'bubble', s);
       paintChips('bubbles', b.perFrac.map((n, i) => ({ label: `${t(`cl.frac.${FRACTIONS[i]}`)} ${a.fmt(n)}`, tier: n > 0 ? 3 : 0 })).filter(c => c.tier > 0));
       setText(refs['bubbles-from'], t('cl.codex.bubbles.from'));
@@ -227,7 +353,9 @@ export function mount(panel, api) {
 
     if (st.open.includes('mastery')) {
       const m = masteryCounts(s);
-      setText(refs['mastery-count'], t('cl.codex.mastery.found', m));
+      const count = t('cl.codex.mastery.found', m);
+      setText(refs['mastery-count'], count);
+      summary('mastery', count, m.found, null, s);
       setText(refs['mastery-gives'], m.found > 0 ? t('cl.codex.mastery.gives') : t('cl.codex.none_yet'));
       paintChips('mastery', masteryChips(s));
       rest('mastery', m.total - m.found);
@@ -236,7 +364,9 @@ export function mount(panel, api) {
 
     if (st.open.includes('generators')) {
       const g = generatorSummary(s);
-      setText(refs['generators-count'], t('cl.codex.generators.count', { n: g.n, max: g.max }));
+      const count = t('cl.codex.generators.count', { n: g.n, max: g.max });
+      setText(refs['generators-count'], count);
+      summary('generators', count, 0, null, s);
       setText(refs['generators-gives'], g.n > P.slots ? t('cl.codex.generators.gives', { mult: P.genMult }) : t('cl.codex.none_yet'));
       setBar(refs['generators-bar'], g.fraction);
       setText(refs['generators-from'], g.nextLog === null ? t('cl.codex.generators.all') : t('cl.codex.generators.next', { n: g.nextLog }));
@@ -244,11 +374,32 @@ export function mount(panel, api) {
 
     if (st.open.includes('seals')) {
       const sl = sealTierSummary(s);
-      setText(refs['seals-count'], t('cl.codex.seals.count', { n: sl.n, max: sl.max }));
+      const count = t('cl.codex.seals.count', { n: sl.n, max: sl.max });
+      setText(refs['seals-count'], count);
+      summary('seals', count, sl.n, 'seal', s);
       gives('seals', sl.n, 'seal', s);
       setBar(refs['seals-bar'], sl.fraction);
       setText(refs['seals-from'], t('cl.codex.seals.from', { crew: t('cl.name.crew') }));
     }
+
+    // The strip: what is new, else where the next find comes from. One button.
+    const strip = refs['strip-btn'];
+    const newIds = SECTION_IDS.filter(k => news[k]);
+    if (newIds.length && !acked) {
+      setText(refs['strip-title'], t('cl.codex.ready.new', { list: newIds.map(k => t('cl.codex.ready.new_item', { name: t(`cl.codex.${k}.title`), n: news[k] })).join(t('cl.codex.ready.join')) }));
+      setText(refs['strip-sub'], '');
+      stripAction = 'show';
+      setText(strip, t('cl.codex.ready.btn_show'));
+      strip.hidden = false;
+    } else {
+      const nf = nextFind(s, a.isOpen);
+      setText(refs['strip-title'], nf ? t('cl.codex.ready.none') : st.open.length ? t('cl.codex.ready.all') : t('cl.codex.ready.empty'));
+      setText(refs['strip-sub'], nf ? fromText(s, nf.id) : '');
+      stripAction = nf ? nf.screen : null;
+      if (nf) setText(strip, t('cl.codex.ready.btn_go', { screen: t(`cl.tab.${nf.screen}`) }));
+      strip.hidden = !nf || !a.isOpen(`tab.${nf.screen}`);
+    }
+    refs['strip-sub'].hidden = !refs['strip-sub'].textContent;
   }
 
   update(api);

@@ -315,6 +315,72 @@ console.log('--- CL-32: the Collection ---');
   eq([cap.shown.length, cap.hidden], [Codex.CHIP_CAP, 5], 'a long list is capped with a count');
 }
 
+console.log('--- CL-45: ready now, the one full card, the one gold button, the tab dots ---');
+{
+  const open = (s) => (f) => Guide.isOpen(s, f);
+  const fresh = createCoreLoopState(20);
+  Guide.refresh(fresh);
+  eq(View.readyCount(fresh), 0, 'fresh: nothing ready, no dot');
+  eq(View.stripShown(fresh), false, 'the strip waits until the first round of the loop is done');
+  fresh.well.runCrude = new BigNum(1, 40); fresh.well.bestRunChron = new BigNum(1, 40);
+  Guide.refresh(fresh);
+  const canWell = Prestige.canNewWell(fresh);
+  eq(View.readyCount(fresh) >= (canWell ? 1 : 0), true, 'a New Well that can be drilled counts');
+  const late = createCoreLoopState(21);
+  late.prestige.wells = 6; late.prestige.totalFields = 2; late.prestige.newFields = 2; late.prestige.chronicles = 1;
+  late.tree.bank.reserves = P.tree.find(n => n.ring === 'reserves').cost * 3;
+  Guide.refresh(late);
+  eq(View.stripShown(late), true, 'late: the strip shows');
+  let rv = View.readyView(late, open(late));
+  ok(rv.ready.tree && rv.buyable >= 1 && rv.best, 'late: an affordable upgrade is ready, with a best node');
+  eq(rv.count, (rv.ready.well ? 1 : 0) + (rv.ready.field ? 1 : 0) + (rv.ready.chronicle ? 1 : 0) + 1 + rv.trials.length, 'the count is resets + 1 for the tree + Trials');
+  eq(View.readyCount(late), rv.count, 'readyCount is the same count without a mounted screen');
+  // a Trial that can be taken counts
+  const tid = P.trials[0][0];
+  late.prestige.trials[tid].unlockedAt = 0; late.prestige.trials[tid].wellsAt = 0; Guide.refresh(late);
+  rv = View.readyView(late, open(late));
+  eq(rv.trials, [tid], 'an earned Trial is ready');
+  // the bar's goal goes first, and only it is gold
+  const withGoal = View.readyView(late, open(late), 'prestige.tree');
+  eq(withGoal.order[0], 'tree', 'the goal this screen names comes first');
+  eq(View.goldOwner({ here: true, anchor: 'prestige.tree' }, rv, true), 'tree', 'goal on the tree: the tree owns the gold');
+  eq(View.goldOwner({ here: true, anchor: 'prestige.newwell' }, { ready: { well: false }, order: [] }, true), null, 'goal here but not pressable: no gold at all');
+  eq(View.goldOwner({ here: false }, rv, true), 'strip', 'goal elsewhere: the strip owns the gold');
+  eq(View.goldOwner({ here: false }, rv, false), rv.order[0], 'goal elsewhere, no strip yet: the first ready thing');
+  eq(View.goldOwner({ here: false }, { ready: {}, order: [] }, true), null, 'nothing ready: nothing is gold');
+  // one reset is the full card
+  const m = View.mainReset(late, open(late), null);
+  ok(View.RESET_IDS.includes(m), 'one reset is the full card');
+  eq(View.mainReset(late, open(late), { here: true, anchor: 'prestige.newfield' }), 'field', 'the reset the goal names is the full card');
+  eq(View.mainReset(fresh, open(fresh), null), 'well', 'only the New Well is open at the start: it is the card');
+  for (const id of View.RESET_IDS) ok(View.resetLine(late, id).length > 0, id + ' has a one-line status');
+  for (const id of View.RESET_IDS) ok(View.nextLine(late, id).length > 0, id + ' has a next line');
+  ok(/d/.test(View.treeStatus(late, open(late))), 'the tree status says what is to spend');
+  ok(View.trialsStatus(late).includes(t('cl.prestige.trial.' + tid)), 'the Trials status names a Trial');
+  ok(View.sealsStatus(late).includes(String(P.seals)), 'the Seals status says how many of the Seals');
+  // no countdown anywhere
+  for (const k of Object.keys(PEN)) if (/status|ready|sum/.test(k)) ok(!/{time}|{d}|{h}/.test(PEN[k]), k + ' is not a clock');
+}
+
+console.log('--- CL-45: the Collection says what is new ---');
+{
+  Codex.seenStore.reset();
+  const s = createCoreLoopState(30);
+  eq(Codex.readyCount(s), 0, 'the first look sets the baseline: nothing is new');
+  s.collection.vials['0:0'] = { tier: 1, pity: 0 }; s.fields[0].bestGrade = 0;
+  eq(Codex.readyCount(s), 1, 'a find since the last visit gives the tab a dot');
+  eq(Codex.newSince(Codex.foundCounts(s), { ...Codex.foundCounts(s), vials: 0 }), { vials: 1 }, 'newSince names the section that grew');
+  Codex.seenStore.set(Codex.foundCounts(s));
+  eq(Codex.readyCount(s), 0, 'looking clears it');
+  const open = (f) => Guide.isOpen(s, f);
+  Guide.refresh(s);
+  const nf = Codex.nextFind(s, open);
+  ok(nf === null || ['refinery', 'fields', 'well', 'prestige'].includes(nf.screen), 'the next find points at a screen');
+  s.mastery[0].ranks[0] = 1;
+  ok(t('cl.codex.mastery.chip', { field: 'x', skill: t('cl.skill.tower.1'), rank: 'y' }).includes(t('cl.skill.tower.1')), 'a Mastery chip uses the skill name');
+  Codex.seenStore.reset();
+}
+
 console.log('--- the modules mount nothing at import ---');
 ok(typeof View.mount === 'function' && typeof Codex.mount === 'function', 'both export mount');
 

@@ -24,7 +24,9 @@ export default {
   'cl.tree.bought_all': 'Bought {n} upgrades.',
   // sections of a ring
   'cl.tree.sec.now': 'You can buy now',
-  'cl.tree.sec.soon': 'Saving up for',
+  'cl.tree.sec.soon': 'Saving up for ({n})',
+  'cl.tree.ring.status_buy': '{n} you can buy now, {bank} to spend',
+  'cl.tree.ring.status_none': '{bank} to spend, nothing to buy yet',
   'cl.tree.sec.later': 'Arriving later ({n})',
   'cl.tree.sec.done': 'Complete ({n})',
   // a card
