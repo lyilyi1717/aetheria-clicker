@@ -10,7 +10,6 @@ import * as Guide from '../../systems/coreloop/Guide.js';
 import { icon } from './icons.js';
 
 const PULSE_MS = 2400;
-const WHY_MS = 9000;   // how long the reason stays open on a phone after the goal changes
 
 // --- pure ----------------------------------------------------------------------------------------
 // What the bar says now: { kicker, goal, why, count, frac, screen, anchor, key }. `key` changes
@@ -61,10 +60,30 @@ export class GuideBar {
       <div class="cl-guide-bar" data-g="bar" hidden><i></i></div>`;
     this.el = el;
     this.parts = Object.fromEntries([...el.querySelectorAll('[data-g]')].map(n => [n.dataset.g, n]));
-    this.parts.go.addEventListener('click', () => this.go());
-    el.querySelector('.cl-guide-text').addEventListener('click', () => { clearTimeout(this.whyTimer); el.classList.toggle('cl-guide-open'); });
+    // The whole goal and its reason open as a card BELOW the bar, on a tap: the bar itself never
+    // changes height, so "Show me" is always where the finger left it.
+    const pop = d.createElement('div');
+    pop.className = 'cl-guide-pop';
+    pop.hidden = true;
+    pop.innerHTML = '<strong class="cl-pop-goal"></strong><span class="cl-pop-why"></span>';
+    this.pop = pop;
+    this.parts.go.addEventListener('click', () => { this.toggle(false); this.go(); });
+    const text = el.querySelector('.cl-guide-text');
+    text.setAttribute('role', 'button');
+    text.tabIndex = 0;
+    text.setAttribute('aria-expanded', 'false');
+    text.addEventListener('click', () => this.toggle());
+    text.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggle(); } });
+    // A tap anywhere else, or Escape, puts it away
+    d.addEventListener('pointerdown', (e) => { if (!pop.hidden && !el.contains(e.target) && !pop.contains(e.target)) this.toggle(false); }, { passive: true });
+    d.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.toggle(false); });
     this.key = null;
     this.target = null;
+  }
+
+  toggle(open = this.pop.hidden) {
+    this.pop.hidden = !open;
+    this.parts.goal.parentElement.setAttribute('aria-expanded', String(open));
   }
 
   update() {
@@ -74,15 +93,15 @@ export class GuideBar {
     p.goal.textContent = v.goal;
     p.why.textContent = v.why;
     p.count.textContent = v.count;
+    this.pop.querySelector('.cl-pop-goal').textContent = v.goal;
+    this.pop.querySelector('.cl-pop-why').textContent = v.why;
     p.bar.hidden = v.frac === null;
     if (v.frac !== null) p.bar.firstElementChild.style.inlineSize = `${Math.round(v.frac * 100)}%`;
     if (v.key !== this.key) {
       this.key = v.key;
       this.el.classList.remove('cl-guide-changed');
       void this.el.offsetWidth;
-      this.el.classList.add('cl-guide-changed', 'cl-guide-open');
-      clearTimeout(this.whyTimer);
-      this.whyTimer = setTimeout(() => this.el.classList.remove('cl-guide-open'), WHY_MS);
+      this.el.classList.add('cl-guide-changed');   // a glow, not a movement
     }
     this.mark(v);
   }
@@ -109,7 +128,9 @@ export class GuideBar {
     if (!el) return;
     this.mark(v);
     const calm = this.shell.doc.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    el.scrollIntoView?.({ block: 'center', behavior: calm ? 'auto' : 'smooth' });
+    // 'nearest' does not move a target that is already in view; the CSS scroll margins on
+    // [data-guide] keep it clear of the sticky header (and the phone's tab bar) when it does
+    el.scrollIntoView?.({ block: 'nearest', behavior: calm ? 'auto' : 'smooth' });
     el.classList.remove('cl-guide-pulse');
     void el.offsetWidth;
     el.classList.add('cl-guide-pulse');

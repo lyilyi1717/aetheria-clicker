@@ -12,7 +12,7 @@ import * as Rigs from './js/systems/coreloop/Rigs.js';
 import * as Presence from './js/systems/coreloop/Presence.js';
 import * as Prestige from './js/systems/coreloop/Prestige.js';
 import { loadCoreLoop, saveCoreLoop, secondsAway, coreLoopFlag, CORE_LOOP_SAVE_KEY } from './js/ui/coreloop/store.js';
-import { CoreLoopShell, SCREENS, currentPresence, fmtDuration } from './js/ui/coreloop/shell.js';
+import { CoreLoopShell, SCREENS, currentPresence, fmtDuration, tabOrder, readyOf, headerRate } from './js/ui/coreloop/shell.js';
 import EN from './js/i18n/en.js';
 import AR from './js/i18n/ar.js';
 
@@ -177,6 +177,63 @@ console.log('--- strings: registered, with Arabic, no clashes ---');
   assert.throws(() => registerStrings({ 'cl.tab.well': 'Pump' }, {}), /already defined/);
   registerStrings({ 'cl.tab.well': EN['cl.tab.well'] }, { 'cl.tab.well': AR['cl.tab.well'] });   // same text: fine
   assert.equal(FIELD.OASIS, 2);
+}
+
+console.log('--- the header says one steady thing (CL-37) ---');
+{
+  const s = running();
+  const watch = Well.crudePerSecond(s, PRESENCE.WATCH);
+  Presence.noteInput(s);
+  Loop.advance(s, 40, PRESENCE.HANDS);
+  assert.ok(Well.crudePerSecond(s, PRESENCE.HANDS).gt(watch), 'Da\'sa really is a bonus while playing');
+  assert.ok(headerRate(s).eq(Well.crudePerSecond(s, PRESENCE.WATCH)), 'the header shows the steady rate');
+  s.t += 1000;   // hands off for good
+  assert.ok(headerRate(s).eq(Well.crudePerSecond(s, PRESENCE.WATCH)), 'and it does not fall when the hands come off');
+  assert.equal(EN['cl.shell.state.hands'], 'Playing');
+  assert.equal(EN['cl.shell.state.watch'], 'Leaning back');
+  assert.equal(Object.keys(EN).filter(k => k === 'cl.shell.state.watch.tip').length, 1);
+  assert.ok(Guide_isOpen(createCoreLoopState(1)) === false, 'the chip is closed on a fresh save');
+}
+function Guide_isOpen(state) { return state.guide.open['shell.presence'] === true; }
+
+console.log('--- tabs: appended in the order they arrived, dots tolerate any screen ---');
+{
+  const s = createCoreLoopState(1);
+  assert.deepEqual(tabOrder(s), ['well', 'fields', 'refinery', 'prestige', 'codex'], 'no tab open: the default order');
+  s.guide.open['tab.refinery'] = true;
+  s.guide.open['tab.fields'] = true;
+  assert.deepEqual(tabOrder(s).slice(0, 3), ['well', 'refinery', 'fields'], 'the one that arrived first comes first');
+  s.guide.open['tab.codex'] = true;
+  assert.deepEqual(tabOrder(s).slice(0, 4), ['well', 'refinery', 'fields', 'codex']);
+  assert.equal(tabOrder(s).length, 5);
+  assert.equal(new Set(tabOrder(s)).size, 5);
+  // readyCount: absent, failing, odd values and good ones
+  assert.equal(readyOf(null, s), 0, 'a module that did not load');
+  assert.equal(readyOf({}, s), 0, 'no export');
+  assert.equal(readyOf({ readyCount: 'nope' }, s), 0);
+  assert.equal(readyOf({ readyCount() { throw new Error('x'); } }, s), 0);
+  assert.equal(readyOf({ readyCount: () => NaN }, s), 0);
+  assert.equal(readyOf({ readyCount: () => -2 }, s), 0);
+  assert.equal(readyOf({ readyCount: (st) => (st === s ? 3 : 0) }, s), 3);
+}
+
+console.log('--- the frame holds still: CSS and markup contracts ---');
+{
+  const css = readFileSync('css/coreloop.css', 'utf8');
+  assert.match(css, /--cl-bar-h: 84px/, 'the bar has one height on desktop');
+  assert.match(css, /--cl-bar-h: 64px/, 'and one on a phone');
+  assert.match(css, /\.cl-guide \{[^}]*block-size: var\(--cl-bar-h\)/, 'the bar is a fixed height');
+  assert.match(css, /\.cl-guide-pop/, 'the reason opens below the bar, not by growing it');
+  assert.match(css, /scroll-margin-block-start: calc\(var\(--cl-header-h/, '"Show me" clears the sticky header');
+  assert.match(css, /\.cl-chip\[data-shown="false"\] \{ visibility: hidden; \}/, 'the chip keeps its room');
+  assert.doesNotMatch(css, /--cl-tabs,/, 'the phone tab bar has fixed columns');
+  const guide = readFileSync('js/ui/coreloop/guide.js', 'utf8');
+  assert.doesNotMatch(guide, /WHY_MS|setTimeout\(\(\) => this\.el\.classList\.remove\('cl-guide-open'/, 'no auto-open of the reason');
+  assert.match(guide, /block: 'nearest'/);
+  const shell = readFileSync('js/ui/coreloop/shell.js', 'utf8');
+  assert.match(shell, /headerRate\(s\)/);
+  assert.doesNotMatch(shell, /crudePerSecond\(s, presence\)/);
+  for (const k of ['cl.shell.ready']) assert.ok(EN[k] && AR[k], k);
 }
 
 console.log('test_cl_shell.js OK');
