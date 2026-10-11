@@ -32,6 +32,7 @@ export function gap(name, seconds) {
 }
 
 export function tone(freq, { type = 'triangle', a = 0.004, d = 0.15, vol = 0.25, slide = 0, at = 0 } = {}) {
+  if (!ctx) return;   // no sound before the first click; a feature's handler must not fail on it
   const t0 = ctx.currentTime + at;
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.type = type;
@@ -45,6 +46,7 @@ export function tone(freq, { type = 'triangle', a = 0.004, d = 0.15, vol = 0.25,
 }
 
 export function noise({ d = 0.15, vol = 0.3, from = 3000, to = 300, at = 0, type = 'lowpass' } = {}) {
+  if (!ctx) return;   // no sound before the first click; a feature's handler must not fail on it
   const t0 = ctx.currentTime + at;
   const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
   const f = ctx.createBiquadFilter(); f.type = type;
