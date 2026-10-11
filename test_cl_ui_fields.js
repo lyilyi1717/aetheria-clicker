@@ -14,7 +14,7 @@ import AR_F from './js/i18n/coreloop/fields.ar.js';
 import EN from './js/i18n/en.js';
 import AR from './js/i18n/ar.js';
 import './js/ui/coreloop/shell.js';   // registers the shared vocabulary the screen uses
-import { mount, describeField, rankLabel, fmtNum, gradeLabel, openFields, nextClosedField, sectionsView, crewStatus, secondsLeft, levelView, hauledPerSecond, rateParts, materialsOf } from './js/ui/coreloop/fields.js';
+import { mount, describeField, rankLabel, fmtNum, whole, roman, materialName, gradeLabel, openFields, nextClosedField, sectionsView, crewStatus, readyCount, workButton, goldFor, wantedOrders, masteryReach, levelView, hauledPerSecond, rateParts, materialsOf } from './js/ui/coreloop/fields.js';
 
 let checks = 0;
 const ok = (c, m) => { assert.ok(c, m); checks++; };
@@ -30,10 +30,8 @@ for (const k of Object.keys(EN_F)) {
   ok(!/[A-Za-z]{2,}/.test(AR_F[k].replace(/\{\w+\}/g, '')), `${k} Arabic has no Latin words`);
 }
 for (const k of Object.keys(AR_F)) ok(k in EN_F, `${k} has English`);
-// Every Field has all its action names
-FIELDS.forEach(id => { for (let a = 0; a < P.actionsPerField; a++) ok(`cl.fields.action.${id}.${a}` in EN_F, `action name ${id}.${a}`); ok(`cl.fields.school.${id}` in EN_F, `school ${id}`); });
 // Shared names the screen uses exist
-FIELDS.forEach(id => ['cl.field.', 'cl.rig.'].forEach(p => ok(`${p}${id}` in EN && `${p}${id}` in AR, `${p}${id}`)));
+FIELDS.forEach(id => ['cl.field.', 'cl.rig.', 'cl.material.'].forEach(p => ok(`${p}${id}` in EN && `${p}${id}` in AR, `${p}${id}`)));
 
 // --- helpers ---------------------------------------------------------------------------------
 eq(fmtNum(0.5), '0.5'); eq(fmtNum(3), '3'); eq(fmtNum(0), '0'); eq(fmtNum(12.34), '12.3'); eq(fmtNum(250.6), '251');
@@ -100,17 +98,8 @@ eq(sectionsView(none), { mastery: false, rig: false, locked: 'fields.mastery' })
 eq(sectionsView(f => f === 'fields.mastery'), { mastery: true, rig: false, locked: 'fields.rig' });
 eq(sectionsView(all), { mastery: true, rig: true, locked: null });
 
-eq(crewStatus(PRESENCE.HANDS), 'working'); eq(crewStatus(PRESENCE.WATCH), 'resting'); eq(crewStatus(PRESENCE.AWAY), 'resting');
+eq(crewStatus(PRESENCE.HANDS), 'working'); eq(crewStatus(PRESENCE.WATCH), 'break'); eq(crewStatus(PRESENCE.AWAY), 'break');
 
-s = fresh(); s.t = 100;
-eq(secondsLeft(s), 0, 'never tapped: resting');
-Presence.noteInput(s);
-eq(secondsLeft(s), P.handsWindow, 'a tap tops the window up');
-s.t = 100 + 10;
-eq(secondsLeft(s), P.handsWindow - 10);
-s.t = 100 + P.handsWindow + 1;
-eq(secondsLeft(s), 0, 'window over: resting');
-eq(secondsLeft(s, PRESENCE.AWAY), 0, 'hidden page: resting');
 
 // Level view: 1-based level, fraction through it, time to finish while working
 s = fresh(); s.t = 5; Presence.noteInput(s);
@@ -134,11 +123,59 @@ Rigs.build(s, 0);
 hz = hauledPerSecond(s, 0, PRESENCE.WATCH);
 eq(hz.hands, 0); ok(hz.rig > 0, 'a Rig hauls while resting'); eq(hz.total, hz.rig);
 
-eq(rateParts(0.5), { unit: 's', n: 0.5 });
-eq(rateParts(0.05).unit, 'm'); ok(Math.abs(rateParts(0.05).n - 3) < 1e-9);
-eq(rateParts(0.0005).unit, 'h'); eq(rateParts(0).unit, 'h'); eq(rateParts(NaN).n, 0);
+eq(rateParts(1.5), { unit: 's', n: 1.5 });
+eq(rateParts(0.5).unit, 'm');
+ok(Math.abs(rateParts(0.5).n - 30) < 1e-9); eq(rateParts(0.05).unit, 'm'); ok(Math.abs(rateParts(0.05).n - 3) < 1e-9);
+eq(rateParts(0.005).unit, 'h'); eq(rateParts(0).unit, 'h'); eq(rateParts(NaN).n, 0);
 s = fresh(); Fields.addMaterial(s, 0, 0, 2); Fields.addMaterial(s, 0, 3, 1.5);
 eq(materialsOf(s, 0), 3.5); eq(materialsOf(s, 1), 0);
+
+// --- CL-39: the verb, the Order that wants the place, one ladder -------------------------------
+eq(whole(35.9), '35'); eq(whole(0), '0'); eq(whole(2.9999999999), '3');
+eq(roman(2), 'II'); eq(roman(4), 'IV'); eq(roman(9), 'IX'); eq(roman(14), 'XIV'); eq(roman(40), '40');
+eq(materialName(0, 0), 'Steel'); eq(materialName(1, 0), 'Ore'); eq(materialName(2, 2), 'Water III');
+eq(materialName(0, 1), 'Steel II');
+
+// The button: the crew starts at the Tower, so the Tower must still offer "send" until the player did
+eq(workButton({ viewing: 0, crewField: 0, sent: false, working: true }), 'send', 'the first send is offered where the crew starts');
+eq(workButton({ viewing: 1, crewField: 0, sent: true, working: true }), 'send', 'another place: send');
+eq(workButton({ viewing: 0, crewField: 0, sent: true, working: true }), null, 'working here: no button');
+eq(workButton({ viewing: 0, crewField: 0, sent: true, working: false }), 'back', 'on a break here: back to work');
+
+// One solid gold thing
+eq(goldFor({ goal: { here: true, anchor: 'fields.work', screen: 'fields' }, work: true, refinery: true }), { work: true, refinery: false });
+eq(goldFor({ goal: { here: true, anchor: 'fields.mastery', screen: 'fields' }, work: true, refinery: true }), { work: false, refinery: false }, 'the goal is elsewhere on the screen: all outlined');
+eq(goldFor({ goal: { here: false, anchor: 'refinery.order', screen: 'refinery' }, work: true, refinery: true }), { work: false, refinery: true }, 'the bar points at the Refinery');
+eq(goldFor({ goal: { here: false, anchor: 'well.rate', screen: 'well' }, work: true, refinery: false }), { work: true, refinery: false }, 'best action of this screen');
+eq(goldFor({ goal: { here: false, anchor: 'well.rate', screen: 'well' }, work: false, refinery: false }), { work: false, refinery: false });
+
+// The tab dot: only for a crew on a break, on a tab that is open
+s = fresh(); s.t = 500;
+eq(readyCount(s), 0, 'tab closed: no dot');
+s.guide.open['tab.fields'] = true;
+eq(readyCount(s), 1, 'never touched for a while: on a break');
+Presence.noteInput(s);
+eq(readyCount(s), 0, 'a tap: working');
+s.t += P.handsWindow + 1;
+eq(readyCount(s), 1);
+
+// Orders that want a Field
+s = fresh(); s.t = 10;
+Object.assign(s.refinery.orders[0], { empty: false, frac: 1, field: 1, grade: 0, qty: 45, posted: 0 });
+Object.assign(s.refinery.orders[1], { empty: false, frac: 0, field: 0, grade: 1, qty: 20, posted: 0 });
+eq(wantedOrders(s, 2), [], 'no Order wants the Oasis');
+eq(wantedOrders(s, 1).length, 1); eq(wantedOrders(s, 1)[0].qty, 45); eq(wantedOrders(s, 1)[0].ready, false);
+Fields.addMaterial(s, 1, 0, 50);
+eq(wantedOrders(s, 1)[0].ready, true, 'enough of the Material');
+eq(wantedOrders(s, 0)[0].grade, 1);
+
+// Mastery stays one line until a rank is near
+eq(masteryReach({ actions: [{ rank: 0, fraction: 0.1 }, { rank: 0, fraction: 0.4 }] }), false);
+eq(masteryReach({ actions: [{ rank: 0, fraction: 0.1 }, { rank: 0, fraction: 0.5 }] }), true);
+eq(masteryReach({ actions: [{ rank: 1, fraction: 0 }] }), true);
+
+// The English text never says a countdown or a rest
+for (const [k, v] of Object.entries(EN_F)) ok(!/rest|d+ s left|Keep them going|Aether|Bosses/i.test(v), `${k} has no old wording`);
 
 // Module shape (the DOM is built only in mount)
 eq(typeof mount, 'function');

@@ -5,17 +5,20 @@
 .clf * { min-width: 0; }
 .clf [hidden] { display: none !important; }
 
-/* Field picker */
-.clf-pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: var(--sp-2); }
+/* The map: three places, the crew's marker on one */
+.clf-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2); }
 .clf-chip {
   display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: start;
-  min-height: 48px; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-2);
+  min-height: 72px; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-2);
   border: 1px solid var(--line-2); background: var(--bg-1); color: var(--text-1); font: inherit; cursor: pointer;
 }
+.clf-chip-icon { display: inline-flex; inline-size: 24px; block-size: 24px; color: var(--text-3); }
+.clf-chip-icon svg { inline-size: 100%; block-size: 100%; }
 .clf-chip-name { font-size: var(--fs-14); font-weight: 700; }
 .clf-chip-sub { font-size: var(--fs-12); color: var(--text-3); white-space: normal; overflow-wrap: anywhere; }
+.clf-chip.has-crew .clf-chip-sub { color: var(--life); }
 .clf-chip[aria-pressed="true"] { background: var(--gold-dim); border-color: var(--gold); }
-.clf-chip[aria-pressed="true"] .clf-chip-name, .clf-chip[aria-pressed="true"] .clf-chip-sub { color: var(--gold); }
+.clf-chip[aria-pressed="true"] .clf-chip-name, .clf-chip[aria-pressed="true"] .clf-chip-icon { color: var(--gold); }
 .clf-chip:disabled { cursor: default; border-style: dashed; background: transparent; }
 .clf-chip:disabled .clf-chip-name { color: var(--text-3); }
 .clf-chip:focus-visible, .clf-work:focus-visible { outline: 2px solid var(--aether); outline-offset: 2px; }
@@ -35,7 +38,6 @@
 .clf-dot { inline-size: 10px; block-size: 10px; border-radius: 50%; background: var(--text-3); flex: none; }
 .clf-crew.is-working .clf-status { color: var(--life); }
 .clf-crew.is-working .clf-dot { background: var(--life); box-shadow: 0 0 0 3px color-mix(in srgb, var(--life) 25%, transparent); }
-.clf-win .bar > i { transition: width var(--dur-2) linear; }
 
 .clf-block { display: flex; flex-direction: column; gap: var(--sp-2); }
 .clf-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
@@ -44,12 +46,21 @@
 
 /* The one main action */
 .clf-work { width: 100%; min-height: 56px; white-space: normal; text-align: center; user-select: none; touch-action: manipulation; }
-.clf-work.is-working { box-shadow: var(--glow-gold); }
 
 .clf-heat { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--sp-1) var(--sp-3); }
-.clf-heat-name { font-size: var(--fs-13); font-weight: 700; color: var(--danger); }
+.clf-heat-name { font-size: var(--fs-13); font-weight: 700; color: var(--gold); }
 .clf-heat-gloss { grid-column: 1 / -1; font-size: var(--fs-12); color: var(--text-3); }
 
+.clf-subtitle { margin: 0; font-size: var(--fs-13); font-weight: 700; color: var(--text-2); }
+.clf-wanted { display: flex; flex-direction: column; gap: var(--sp-1); padding: var(--sp-3); border-radius: var(--r-2); background: var(--bg-2); border: 1px solid var(--line-2); }
+.clf-list .is-ready { color: var(--life); }
+.clf-rig-main { margin: 0; font-size: var(--fs-14); color: var(--text-1); }
+.clf-more > summary, .clf-mastery-sum { cursor: pointer; font-size: var(--fs-13); color: var(--text-2); min-height: 32px; display: flex; align-items: center; }
+.clf-more[open] > summary { margin-block-end: var(--sp-2); }
+.clf-mastery { gap: var(--sp-2); }
+.clf-mastery-sum { justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
+.clf-mastery:not([open]) > :not(summary) { display: none; }
+.clf-mastery[open] > :not(summary) { margin-block-start: var(--sp-3); }
 .clf-quiet { align-self: flex-start; min-height: 44px; }
 
 .clf-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-1); font-size: var(--fs-14); color: var(--text-1); }
