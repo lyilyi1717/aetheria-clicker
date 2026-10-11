@@ -98,7 +98,7 @@ console.log('--- one tick: the README order, automation only when won ---');
   const c = running(); c.well.crude = new BigNum(1, 30);
   Loop.advance(c, 1, PRESENCE.WATCH);
   assert.ok(c.well.crude.e >= 30, 'nothing bought without Auto-Buy');
-  c.prestige.trials.autoBuy = { unlockedAt: 0, won: true };
+  c.prestige.trials.autoBuy = { unlockedAt: 0, wellsAt: 0, won: true };
   Loop.advance(c, 1, PRESENCE.WATCH);
   assert.ok(c.well.crude.e < 30, 'Auto-Buy spends');
   assert.equal(Prestige.hasAutomation(c, 'autoBuy'), true);

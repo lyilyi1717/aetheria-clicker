@@ -248,5 +248,9 @@ must carry, not just a number):
     made Orders rain on the real systems). The first Order ever is Naphtha for the Tower's Material,
     so the first thing the Refinery does is speed the Well. All targets pass: model seeds 1-6, real
     systems seeds 1-3. Orders filled in a fortnight are identical in the model and on the real
-    systems (casual: 679 and 679). Still on the clock: the Trials' 2 h (`trialDelay`), next. **D**
+    systems (casual: 679 and 679). The Trials' 2 h came next (log 32). **D**
+32. The last gate on the clock: a Trial could be won 2 h after it unlocked. → **Earned:** `trialWells`
+    (6) New Wells after the unlock. The year barely notices the number (3, 6 and 15 all pass on
+    seed 1 with the same shape: active 1e211, casual 1e241, idle 1e188, open 1e252). The weekly
+    Order stays on the calendar as a bonus on top of Orders. **D**
 

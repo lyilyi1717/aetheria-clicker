@@ -134,12 +134,14 @@ export const P = {
   sealBonusPerTier: 0.03,          // reaching tier T adds this x T to the Seal's Fraction (Seal i powers Fraction i % 5)
   sealBigTier: 4,                  // tiers from here (Radiant, Eternal) are L4; the first three are L3
   crewBase: 1,                     // Crew slots = crewBase + Chronicles (a New Field choice fills one)
-  // Trials (automation): unlocked at New Field n, won at the first Hands-on stretch ≥ trialMinSec
-  // starting ≥ trialDelay after unlock
+  // Trials (automation): unlocked at New Well or New Field n, won at the first Hands-on stretch
+  // ≥ trialMinSec once trialWells New Wells have been drilled since
   // [id, kind, n]: unlocked at the n-th New Well or New Field. Auto-Buy comes early (players who leave the
   // game open need it); Auto-Well needs Auto-Buy won
   trials: [['autoBuy', 'well', 3], ['autoWell', 'field', 1], ['autoFlare', 'field', 2]],
-  trialMinSec: 300, trialDelay: 7200,
+  // A Trial is earned, not waited for: trialWells New Wells after it unlocks (owner rule: no gate
+  // waits on the clock). trialMinSec is the sim's stand-in for the challenge run itself.
+  trialMinSec: 300, trialWells: 6,
 
   // --- the one tree (CL-24) -------------------------------------------------------------------
   // The Reserve shop, Shard tree, talents, Page upgrades and Quartermaster of the old game as three
