@@ -30,6 +30,7 @@ export default {
   'cl.fields.wanted_none': 'No Order asks for {material} right now.',
   'cl.fields.material_grade': '{material} {grade}',
   'cl.fields.to_refinery': 'Fill it in the Refinery',
+  'cl.fields.rig_word': 'Rig',
   'cl.fields.rig_none': 'No Rig here yet: a New Field builds one.',
   'cl.fields.rig_level': 'Level {n}',
   'cl.fields.rig_hauls': 'Hauls {material} by itself: {rate}',

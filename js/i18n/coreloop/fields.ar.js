@@ -30,6 +30,7 @@ export default {
   'cl.fields.wanted_none': 'لا طلب يحتاج {material} الآن.',
   'cl.fields.material_grade': '{material} {grade}',
   'cl.fields.to_refinery': 'أنجزه في المصفاة',
+  'cl.fields.rig_word': 'المنصّة',
   'cl.fields.rig_none': 'لا منصّة هنا بعد: الحقل الجديد يبني واحدة.',
   'cl.fields.rig_level': 'المستوى {n}',
   'cl.fields.rig_hauls': 'تجلب {material} بنفسها: {rate}',

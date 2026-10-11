@@ -444,7 +444,7 @@ export function mount(panel, api) {
     });
     wanted.hidden = orders.length === 0;
     setText(wantedNone, t('cl.fields.wanted_none', { material: mat }));
-    wantedNone.hidden = orders.length > 0 || !sent;
+    wantedNone.hidden = orders.length > 0 || !sent || here;
     toRefinery.hidden = !readyOrder;
     toRefinery.classList.toggle('btn-primary', gold.refinery);
     toRefinery.classList.toggle('btn-ready', !gold.refinery);
@@ -494,7 +494,7 @@ export function mount(panel, api) {
     rigCard.hidden = !sec.rig;
     mCard.hidden = !sec.mastery;
     locked.hidden = !sec.locked;
-    if (sec.locked) setText(locked, a.lockText(sec.locked));
+    if (sec.locked) setText(locked, `${sec.locked === 'fields.mastery' ? t('cl.fields.mastery_title') : t('cl.fields.rig_word')}: ${a.lockText(sec.locked)}`);
 
     if (sec.rig) {
       setText(rTitle, t(`cl.rig.${id}`));
