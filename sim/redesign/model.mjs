@@ -39,7 +39,7 @@ export function newState(profile, seed = 1) {
     pressure: 0, pressureBest: 0, flare: 1, gens: P.slots, recordMark: 0,
     wells: 0, resLife: 0, newFields: 0, totalFields: 0, shares: 0, chronicles: 0, pages: 0,
     lastResetAt: 0,
-    trials: Object.fromEntries(P.trials.map(([id]) => [id, { unlocked: null, won: false }])),
+    trials: Object.fromEntries(P.trials.map(([id]) => [id, { unlocked: null, wellsAt: 0, won: false }])),
     fields: P.fields.map(() => ({
       F: 0, bestGrade: 0, inv: [0], rig: 0, rigBest: 0,
       hours: new Array(P.actionsPerField).fill(0), ranks: new Array(P.actionsPerField).fill(0)
@@ -164,7 +164,7 @@ export function maybeNewWell(s) {
   const p = pendingReserves(s);
   if (p < Math.max(P.wellMinReserves, P.wellGain * s.resLife)) return false;
   s.resLife += p; s.wells++;
-  for (const [id, kind, n] of P.trials) if (kind === 'well' && s.wells === n) s.trials[id].unlocked = s.t;
+  for (const [id, kind, n] of P.trials) if (kind === 'well' && s.wells === n) { s.trials[id].unlocked = s.t; s.trials[id].wellsAt = s.wells; }
   earn(s.tree, 'reserves', p);
   // the tree: part of the Pressure survives, and a starter kit of slot 1 units waits in the new Well
   const pressure = Math.floor(s.pressure * Math.min(1, treeBonus(s.tree, 'keepPressure')));
@@ -188,7 +188,7 @@ export function maybeNewField(s) {
   if (noRig >= 0) s.fields[noRig].rig = 1;
   else if (s.crew < P.crewBase + s.chronicles) s.crew++;
   else s.fields.reduce((lo, f) => (f.rig < lo.rig ? f : lo)).rig++;
-  for (const [id, kind, n] of P.trials) if (kind === 'field' && s.totalFields === n) s.trials[id].unlocked = s.t;
+  for (const [id, kind, n] of P.trials) if (kind === 'field' && s.totalFields === n) { s.trials[id].unlocked = s.t; s.trials[id].wellsAt = s.wells; }
   event(s, 'field', 3, { n: s.totalFields });
   return true;
 }
@@ -501,7 +501,7 @@ export function refineryActions(s, { resets = true } = {}) {
 export function trials(s, stretchSec) {
   for (const [id] of P.trials) {
     const tr = s.trials[id];
-    if (tr.won || tr.unlocked === null || s.t - tr.unlocked < P.trialDelay || stretchSec < P.trialMinSec) continue;
+    if (tr.won || tr.unlocked === null || s.wells - tr.wellsAt < P.trialWells || stretchSec < P.trialMinSec) continue;
     tr.won = true;
     event(s, 'trial', 4, { id });
   }

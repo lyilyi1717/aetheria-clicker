@@ -192,15 +192,16 @@ export function resetLines(state, layer, fmt = String) {
 export function trialView(state, id) {
   const spec = P.trials.find(([tid]) => tid === id);
   const kind = spec[1], n = spec[2];
+  // `wait` is New Wells still to drill, never time
   if (Prestige.hasAutomation(state, id)) return { status: 'won', wait: 0, kind, n, can: false };
   if (!Prestige.trialUnlocked(state, id)) return { status: 'locked', wait: 0, kind, n, can: false };
-  const wait = Math.max(0, Prestige.trialReadyAt(state, id) - state.t);
-  return { status: wait > 0 ? 'waiting' : 'ready', wait, kind, n, can: Prestige.canWinTrial(state, id) };
+  const left = Prestige.trialWellsLeft(state, id);
+  return { status: left > 0 ? 'waiting' : 'ready', wait: left, kind, n, can: Prestige.canWinTrial(state, id) };
 }
 export function trialText(state, id) {
   const v = trialView(state, id);
   if (v.status === 'locked') return t(`cl.prestige.trial.locked_${v.kind}`, { n: v.n });
-  if (v.status === 'waiting') return t('cl.prestige.trial.waiting', { time: longTime(v.wait) });
+  if (v.status === 'waiting') return t('cl.prestige.trial.waiting', { n: v.wait });
   return t(`cl.prestige.trial.${v.status}`);
 }
 

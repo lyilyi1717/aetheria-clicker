@@ -26,7 +26,7 @@ function toGame(s) {
     wells: s.wells, reserves: s.resLife, newFields: s.newFields, totalFields: s.totalFields, shares: s.shares,
     chronicles: s.chronicles, pages: s.pages, lastResetAt: s.lastResetAt, crew: s.crew, charter: s.charter
   });
-  for (const [id] of P.trials) g.prestige.trials[id] = { unlockedAt: s.trials[id].unlocked, won: s.trials[id].won };
+  for (const [id] of P.trials) g.prestige.trials[id] = { unlockedAt: s.trials[id].unlocked, wellsAt: s.trials[id].wellsAt, won: s.trials[id].won };
   s.fields.forEach((f, i) => { Object.assign(g.fields[i], { frontier: f.F, bestGrade: f.bestGrade, rig: f.rig, rigBestGrade: f.rigBest }); });
   return g;
 }
@@ -37,7 +37,7 @@ function assertSame(g, s, what) {
   assert.deepEqual(
     [p.wells, p.reserves, p.newFields, p.totalFields, p.shares, p.chronicles, p.pages, p.lastResetAt, p.crew],
     [s.wells, s.resLife, s.newFields, s.totalFields, s.shares, s.chronicles, s.pages, s.lastResetAt, s.crew], what);
-  for (const [id] of P.trials) assert.deepEqual(p.trials[id], { unlockedAt: s.trials[id].unlocked, won: s.trials[id].won }, `${what}: trial ${id}`);
+  for (const [id] of P.trials) assert.deepEqual(p.trials[id], { unlockedAt: s.trials[id].unlocked, wellsAt: s.trials[id].wellsAt, won: s.trials[id].won }, `${what}: trial ${id}`);
   assert.deepEqual(g.fields.map(f => f.rig), s.fields.map(f => f.rig), `${what}: Rig levels`);
   assert.deepEqual(g.well.bought, s.b, `${what}: slots`);
   assert.deepEqual([g.well.pressure, g.well.flare, g.well.runStart, g.well.pressureBest, g.well.generators], [s.pressure, s.flare, s.runStart, s.pressureBest, s.gens], what);
@@ -72,7 +72,7 @@ function randomSim() {
   s.pressure = n(0, 60); s.pressureBest = s.pressure + n(0, 40); s.flare = u(1, 30); s.gens = n(8, 30);
   // a Trial is unlocked exactly when its New Well / New Field count has been reached
   for (const [id, kind, count] of P.trials) {
-    if ((kind === 'well' ? s.wells : s.totalFields) >= count) { s.trials[id].unlocked = u(0, s.t); s.trials[id].won = rand(dice) < 0.3; }
+    if ((kind === 'well' ? s.wells : s.totalFields) >= count) { s.trials[id].unlocked = u(0, s.t); s.trials[id].wellsAt = Math.floor(u(0, s.wells + 1)); s.trials[id].won = rand(dice) < 0.3; }
   }
   return s;
 }
@@ -243,17 +243,24 @@ console.log('--- Trials: unlock, the wait, the win ---');
   const g = createCoreLoopState();
   assert.deepEqual(P.trials, [['autoBuy', 'well', 3], ['autoWell', 'field', 1], ['autoFlare', 'field', 2]]);
   assert.equal(Prestige.trialUnlocked(g, 'autoBuy'), false);
-  assert.equal(Prestige.trialReadyAt(g, 'autoBuy'), null);
+  assert.equal(Prestige.trialWellsLeft(g, 'autoBuy'), null);
+  assert.ok(!('trialDelay' in P), 'no Trial waits on the clock');
   assert.equal(Prestige.winTrial(g, 'autoBuy'), false);
   for (let i = 1; i <= 3; i++) {
     g.t = i * 1000; g.well.runStart = g.t - 600; g.well.runCrude = new BigNum(1, 9 + 3 * i);
     assert.equal(Prestige.newWell(g), true);
     assert.equal(Prestige.trialUnlocked(g, 'autoBuy'), i === 3, `Auto-Buy unlocks at New Well 3 (at ${i})`);
   }
-  assert.equal(Prestige.trialReadyAt(g, 'autoBuy'), 3000 + P.trialDelay);
-  g.t = 3000 + P.trialDelay - 1;
-  assert.equal(Prestige.trials(g, 3600), false, 'not 2 h after the unlock yet');
-  g.t = 3000 + P.trialDelay;
+  // earned by New Wells after the unlock, however long the player waits
+  assert.equal(Prestige.trialWellsLeft(g, 'autoBuy'), P.trialWells);
+  g.t = 1e9;
+  assert.equal(Prestige.trials(g, 3600), false, 'a year of waiting wins nothing');
+  for (let i = 1; i <= P.trialWells; i++) {
+    assert.equal(Prestige.trials(g, 3600), false, `not yet (${i - 1} of ${P.trialWells})`);
+    g.well.runCrude = new BigNum(1, 40 + 6 * i);
+    assert.equal(Prestige.newWell(g), true);
+    assert.equal(Prestige.trialWellsLeft(g, 'autoBuy'), P.trialWells - i);
+  }
   assert.equal(Prestige.trials(g, P.trialMinSec - 1), false, 'the stretch is too short');
   assert.equal(Prestige.hasAutomation(g, 'autoBuy'), false);
   const ctx = makeContext();
@@ -263,8 +270,8 @@ console.log('--- Trials: unlock, the wait, the win ---');
   assert.equal(Prestige.trials(g, 9999, ctx), false, 'won once');
   assert.equal(Prestige.canWinTrial(g, 'autoBuy'), false);
   assert.equal(ctx.events.length, 1);
-  // a 4th New Well does not move the unlock time
-  g.t = 90000; g.well.runStart = 0; g.well.runCrude = new BigNum(1, 60);
+  // a later New Well does not move the unlock time
+  g.t = 90000; g.well.runStart = 0; g.well.runCrude = new BigNum(1, 400);
   assert.equal(Prestige.newWell(g), true);
   assert.equal(g.prestige.trials.autoBuy.unlockedAt, 3000);
 }
