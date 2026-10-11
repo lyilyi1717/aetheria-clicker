@@ -123,4 +123,27 @@ console.log('--- the Head Start Kit applies at once to an empty run ---');
   eq(V.kitNote(s, v1), 'next', 'a run with Buckets says it starts at the next New Well');
 }
 
+console.log('--- CL-45: the tree folds to one ring and a status ---');
+{
+  const s = createCoreLoopState(40);
+  s.prestige.wells = 3; s.prestige.totalFields = 1;
+  const any = () => true;
+  eq(V.buyableCount(s, any), 0, 'nothing banked: nothing to buy');
+  eq(V.anyBought(s), false, 'nothing bought yet');
+  const cheapest = Math.min(...P.tree.filter(n => n.ring === 'reserves').map(n => n.cost));
+  s.tree.bank.reserves = cheapest;
+  ok(V.buyableCount(s, any) >= 1, 'a bank that covers the cheapest node can buy it');
+  eq(V.focusRing(s, any), 'reserves', 'the ring with something to buy is the one open');
+  s.tree.bank.reserves = 0;
+  const share = Math.min(...P.tree.filter(n => n.ring === 'shares').map(n => n.cost));
+  s.tree.bank.shares = share;
+  eq(V.focusRing(s, any), 'shares', 'it moves to the ring that has something to buy');
+  s.tree.bank.shares = 0;
+  eq(V.focusRing(s, any), 'reserves', 'with nothing to buy the innermost ring is open');
+  eq(V.bankList(s), [], 'no bank held: nothing listed');
+  s.tree.bank.reserves = 2;
+  eq(V.bankList(s), [{ ring: 'reserves', n: 2 }], 'a held bank is listed');
+  for (const k of ['cl.tree.ring.status_buy', 'cl.tree.ring.status_none']) ok(TEN[k] && TAR[k], k);
+}
+
 console.log(`cl-ui-tree: ${checks} checks passed`);
