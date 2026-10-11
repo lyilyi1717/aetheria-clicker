@@ -36,6 +36,12 @@ for (const k of Object.keys(AR_R)) ok(k in EN_R, `${k} Arabic has an English key
 // every dynamic key the screen builds exists
 for (const f of FRACTIONS) { ok(`cl.frac.${f}` in EN, f); ok(`cl.refinery.powers.${f}` in EN, f); ok(`cl.refinery.speeds.${f}` in EN, f); }
 for (const k of ['orders', 'bubbles', 'vials', 'compounds', 'seals']) ok(`cl.refinery.part.${k}` in EN, k);
+for (const k of ['orders', 'dallahs']) for (const f of ['one', 'other']) ok(`cl.refinery.ready.${k}_${f}` in EN, `${k}_${f}`);
+// no countdown on this screen: no string takes a time, and none says "in N min"
+for (const k of Object.keys(EN_R)) ok(!/\{(time|s|m)\}/.test(EN_R[k]) && !/Closes in|New Order in/.test(EN_R[k]), `${k} shows no countdown`);
+// plain words: no spreadsheet phrases, no banned word, no pictographs
+for (const k of Object.keys(EN_R)) ok(!/grade \d|or better|x\{before\}|Aether|Materials, /.test(EN_R[k]), `${k} reads like a person`);
+for (const k of Object.keys(EN_R)) ok(!/\p{Extended_Pictographic}/u.test(EN_R[k] + AR_R[k]), `${k} has no emoji`);
 for (const c of P.cauldrons) { ok(`cl.dallah.${c}` in EN, c); ok(`cl.refinery.fills.${c}` in EN, c); }
 for (const f of P.fields) ok(`cl.field.${f}` in EN, f);
 for (const id of [...Collection.VIAL_TIERS, ...Collection.COMPOUND_TIERS, 'none', 'unknown']) ok(`cl.refinery.tier.${id}` in EN, id);
@@ -47,7 +53,11 @@ eq(UI.fmtNum(fmt, 3.04), '3', 'under 10: one decimal, trimmed');
 eq(UI.fmtNum(fmt, 3.26), '3.3');
 eq(UI.fmtNum(fmt, 1234.4), '1234');
 eq(UI.fmtNum(fmt, Infinity), '∞');
-eq(UI.fmtMult(fmt, 1.5), '1.500');
+eq(UI.fmtMult(fmt, 1.5), '1.50');
+eq(UI.fmtWhole(fmt, 44.2, true), '45', 'what is asked rounds up'); eq(UI.fmtWhole(fmt, 44.9), '44', 'what is held rounds down');
+eq(UI.fmtWhole(fmt, 0), '0');
+eq(UI.pctOf(1.015), 1.5); eq(UI.fracText(fmt, 1.03), '+3%'); eq(UI.fracText(fmt, 2.5), '×2.50');
+eq(UI.chanceWords(0.3), { kind: 'in10', n: 3 }, '3 in 10'); eq(UI.chanceWords(0.25), { kind: 'pct', n: 25 });
 
 // ---- a running state
 function running() {
@@ -70,6 +80,7 @@ const give = (s, field, grade, n) => Fields.addMaterial(s, field, grade, n);
   rows = UI.fractionRows(s, closed);
   ok(Math.abs(rows[1].value - Math.pow(P.orderMult, 3)) < 1e-12 && rows[1].raised, 'value follows the Order level');
   ok(Math.abs(rows[1].parts[0].mult - rows[1].value) < 1e-12 && rows[1].parts[0].level === 3);
+  eq(rows[1].parts[0].pct, 4.6, 'three Orders read as +4.6%');
   s.refinery.frac[0].bubble = 0.25;
   ok(UI.fractionRows(s, closed)[0].raised, 'any source raises it');
   eq(UI.fractionRows(s, all)[0].parts[1].pct, 25, 'parts read as percent');
@@ -105,10 +116,12 @@ const give = (s, field, grade, n) => Fields.addMaterial(s, field, grade, n);
   eq(w.can, true, 'fillable once held'); eq(w.missing, 0); eq(w.progress, 1);
   ok(Refinery.fillOrder(s, 0), 'and the system fills it');
   const e = UI.orderView(s, 0);
-  eq(e.empty, true, 'an empty slot shows a refill time'); ok(e.refillIn > 0 && e.refillIn <= P.orderRefill);
+  eq(e.empty, true, 'an empty slot shows the haul toward the next Order');
+  ok(e.need > 0 && e.hauled >= 0 && e.hauled <= e.need && !('refillIn' in e), 'hauled of need, never a countdown');
   eq(UI.orderView(s, 9), null, 'no such slot');
-  ok(e.progress >= 0 && e.progress < 1, 'the empty slot has a refill bar');
-  eq(UI.refillProgress(P.orderRefill), 0); eq(UI.refillProgress(0), 1); eq(UI.refillProgress(P.orderRefill / 2), 0.5);
+  ok(e.progress >= 0 && e.progress < 1, 'the empty slot has a haul bar');
+  s.fields[0].hauled += e.need / 2;
+  ok(Math.abs(UI.orderView(s, 0).progress - 0.5) < 0.05, 'the bar moves as the crew hauls');
   eq(v.pct, 1.5);
 }
 
@@ -129,7 +142,6 @@ const give = (s, field, grade, n) => Fields.addMaterial(s, field, grade, n);
   const s = running();
   const w0 = UI.weeklyView(s);
   eq([w0.open, w0.can, w0.rows.length], [false, false, 0], 'closed before it posts');
-  ok(w0.secondsToNextWeek > 0);
   s.t = 8 * 86400;
   Refinery.step(s, 1, PRESENCE.WATCH);
   const w1 = UI.weeklyView(s);
@@ -144,17 +156,15 @@ const give = (s, field, grade, n) => Fields.addMaterial(s, field, grade, n);
 
 { // Dallahs and Bubbles
   const s = running();
-  const idle = UI.cauldronView(s, 0, PRESENCE.WATCH);
-  eq(idle.id, 'hand'); eq(idle.eta, Infinity, 'the Hand Dallah does not fill while Watching');
-  eq(idle.can, false); eq(idle.fill, 0);
-  const oil = UI.cauldronView(s, 1, PRESENCE.WATCH);
-  ok(oil.eta > 0 && oil.eta < Infinity, 'Oil fills while Watching');
+  const idle = UI.cauldronView(s, 0);
+  eq(idle.id, 'hand'); eq(idle.can, false); eq(idle.fill, 0);
+  ok(!('eta' in idle), 'no time is shown');
   s.cauldrons.vats[0].fill = 1e9;
-  const full = UI.cauldronView(s, 0, PRESENCE.HANDS);
-  eq([full.can, full.eta, full.fill], [true, 0, 1]);
+  const full = UI.cauldronView(s, 0);
+  eq([full.can, full.fill], [true, 1]);
   eq(full.upgrade, false);
   s.cauldrons.vats[0].bars = P.upgradeEvery - 1;
-  eq(UI.cauldronView(s, 0, PRESENCE.HANDS).upgrade, true, 'says when the next bar is a speed upgrade');
+  eq(UI.cauldronView(s, 0).upgrade, true, 'says when the next bar is a speed upgrade');
   s.cauldrons.vats[0].bars = 0;
   eq(Cauldrons.brew(s, 0), 'bubble');
   const rows = UI.bubbleRows(s);
@@ -177,10 +187,10 @@ const give = (s, field, grade, n) => Fields.addMaterial(s, field, grade, n);
   s.collection.vialOffers = 2;
   rows = UI.vialTryRows(s);
   ok(rows.every(r => r.can), 'offers make it possible');
-  eq(rows[0].sure, P.vialPity, 'tries to the sure one');
+  eq(rows[0].sure, P.vialPity, 'tries to the sure one'); eq(rows[0].total, P.vialPity, 'the try that is sure');
   s.collection.vials['0:0'] = { tier: 0, pity: P.vialPity - 1 };
   const r0 = UI.vialTryRows(s)[0];
-  eq([r0.guaranteed, r0.sure, r0.pity], [true, 1, P.vialPity - 1], 'pity is shown');
+  eq([r0.guaranteed, r0.sure, r0.pity, r0.total], [true, 1, P.vialPity - 1, P.vialPity], 'pity is shown');
   eq(UI.ownedVials(s), [], 'none unlocked');
   while (Collection.vialTier(s, '0:0') === 0) { s.collection.vialOffers = 1; Collection.offerVial(s, FIELD.TOWER, 0); give(s, FIELD.TOWER, 0, 1); }
   const own = UI.ownedVials(s);
@@ -209,6 +219,31 @@ const give = (s, field, grade, n) => Fields.addMaterial(s, field, grade, n);
   ok(c[0].cost.a > 0 && c[0].cost.b > 0);
   s.collection.recipes[0].tier = P.compoundTiers.length;
   eq(UI.compoundRows(s)[0].top, true); eq(UI.compoundRows(s)[0].tierId, 'royal');
+}
+
+{ // the ready strip, the tab dot, the gold button, the next hint
+  const s = running();
+  Refinery.step(s, 1, PRESENCE.WATCH);
+  const open = () => true;
+  let rv = UI.readyView(s, open);
+  eq([rv.orders, rv.weekly, rv.dallahs, rv.count], [0, 0, 0, 0], 'nothing waiting');
+  eq(UI.readyCount(s), 0);
+  ok(rv.next && rv.next.missing > 0, 'the next Order says how much more');
+  const o0 = Refinery.orderInfo(s, 0);
+  give(s, o0.field, o0.grade, o0.qty + 1);
+  rv = UI.readyView(s, open);
+  ok(rv.orders >= 1 && rv.count === rv.orders, 'a fillable Order is ready');
+  ok(UI.readyCount(s) >= 1, 'the tab dot follows it');
+  s.cauldrons.vats[0].fill = 1e9;
+  eq(UI.readyView(s, open).dallahs, 1, 'a full Dallah is ready when the Hall is open');
+  eq(UI.readyView(s, (f) => f !== 'refinery.cauldrons').dallahs, 0, 'a closed Hall is never named');
+  eq(UI.nextHint({ refinery: { orders: [{ empty: true }] } }), { empty: true }, 'only empty slots');
+  eq(UI.nextHint({ refinery: { orders: [] } }), null);
+  // one solid gold thing
+  eq(UI.goldTarget({ here: true, anchor: 'refinery.order' }, 2, true), 'card', 'the bar names the Order');
+  eq(UI.goldTarget({ here: true, anchor: 'refinery.order' }, 2, false), null, 'its target cannot be pressed: nothing is solid');
+  eq(UI.goldTarget({ here: false, anchor: 'well.tap' }, 2, true), 'strip', 'the goal is elsewhere: the best action here');
+  eq(UI.goldTarget({ here: false }, 0, false), null, 'nothing ready, nothing gold');
 }
 
 { // every action goes through the systems: an act() that returns false changes nothing
