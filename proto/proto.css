@@ -50,7 +50,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #toast { position: absolute; inset-block-start: 58px; left: 50%; transform: translate(-50%, -8px); background: rgba(15,10,6,.86); border: 1px solid rgba(255,255,255,.2); border-radius: 12px; padding: 7px 16px; font-weight: 600; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; white-space: nowrap; max-width: 92%; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 #toast.gold { border-color: var(--gold); color: var(--gold); }
-#toast.bone { border-color: #f6efdc; }
+#toast.fossil { border-color: #f6efdc; color: #f6efdc; }
 
 #banner { position: absolute; left: 0; right: 0; top: 34%; text-align: center; pointer-events: none; opacity: 0; transform: scale(.6); }
 #banner.show { animation: banner 3.6s ease-out both; }

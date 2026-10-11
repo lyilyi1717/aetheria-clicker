@@ -98,7 +98,7 @@ function ev(kind, d) {
     case 'fossil':
       sfx.fossil();
       { const [x, y] = centre(d.r, d.c); ring(x, y, CELL * 1.4, '#f6efdc'); spark(x, y, '#f6efdc', 20); }
-      toast(d.isNew ? t('t_fossil_new', { set: t('set_' + d.set) }) : t('t_fossil_dup', { n: fmt(d.coins) }), 'bone');
+      toast(d.isNew ? t('t_fossil_new', { set: t('set_' + d.set) }) : t('t_fossil_dup', { n: fmt(d.coins) }), 'fossil');
       flags.museumDirty = true;
       break;
     case 'set': banner(t('t_set', { set: t('set_' + d.set) }), ''); sfx.star(); screenFlash('#f6efdc', 0.3); flags.museumDirty = true; break;
