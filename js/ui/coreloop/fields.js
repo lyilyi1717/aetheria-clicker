@@ -519,10 +519,9 @@ export function mount(panel, api) {
     if (sec.mastery) {
       setText(mLine, t('cl.fields.mastery_line', { n: fmtNum(d.school) }));
       if (!mOpened && masteryReach(d)) { mOpened = true; mCard.open = true; }
-      const field = t(`cl.field.${id}`);
       d.actions.forEach((ac, k) => {
         const row = mRows[k];
-        setText(row.name, t('cl.fields.skill', { field, n: k + 1 }));
+        setText(row.name, t(`cl.skill.${id}.${k + 1}`));
         setText(row.rank, rankLabel(ac.rank));
         setW(row.fill, ac.fraction);
         const mins = ac.to < 1;

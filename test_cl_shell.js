@@ -12,6 +12,7 @@ import * as Rigs from './js/systems/coreloop/Rigs.js';
 import * as Presence from './js/systems/coreloop/Presence.js';
 import * as Prestige from './js/systems/coreloop/Prestige.js';
 import { loadCoreLoop, saveCoreLoop, secondsAway, coreLoopFlag, CORE_LOOP_SAVE_KEY } from './js/ui/coreloop/store.js';
+import { shorten, fmt as shellFmt } from './js/ui/coreloop/shell.js';
 import { CoreLoopShell, SCREENS, currentPresence, fmtDuration, tabOrder, readyOf, headerRate } from './js/ui/coreloop/shell.js';
 import EN from './js/i18n/en.js';
 import AR from './js/i18n/ar.js';
@@ -236,4 +237,12 @@ console.log('--- the frame holds still: CSS and markup contracts ---');
   for (const k of ['cl.shell.ready']) assert.ok(EN[k] && AR[k], k);
 }
 
+console.log('--- numbers for a person: three figures, never five ---');
+{
+  const cases = { '446.68K': '447K', '1.00K': '1K', '3.98K': '3.98K', '12.30M': '12.3M', '999.60K': '999K', '100.00K': '100K', '2.26af': '2.26af', '999.9': '999.9', '45': '45' };
+  for (const [a, b] of Object.entries(cases)) assert.equal(shorten(a), b, a);
+  assert.equal(shellFmt(new BigNum(4.4668, 5)), '447K');
+  assert.equal(shellFmt(new BigNum(4.5, 1)), '45');
+  assert.equal(shellFmt(12.4), '12');
+}
 console.log('test_cl_shell.js OK');
