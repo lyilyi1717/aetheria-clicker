@@ -205,7 +205,7 @@ export class CoreLoopFeedback {
     }
     // 2. Then the words
     if (d.named) {
-      this.rewards.toast({ tier: 'medium', kind: `clfx-${d.kind}`, title: text, icon: d.icon, color: d.color, sound: false, source: el });
+      this.rewards.toast({ tier: 'medium', kind: `clfx-${d.kind}${d.kind === 'unlock' ? `-${text}` : ''}`, title: text, icon: d.icon, color: d.color, sound: false, source: el });
       this.watchIcons();
     } else if (!d.quiet && (solo || d.tier === 2)) this.line(text, d.tier);
   }
