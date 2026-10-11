@@ -52,7 +52,12 @@ them, one at a time.
   (2026-10-10), with the tree's view (CL-24). CL-33 (#266, done): the preview's icons as inline SVG, since
   emoji are missing on some machines. CL-34 (#270, done): owner rule, no gate waits on the clock;
   the New Well's timer is removed and the least it pays is 12 Reserves.
-- **Filed:** Wave A #204-#213 (R70-R79), Wave B #226 (R80), Wave C #229-#235 (R81-R87) and #253-#258, #266, #270 (R95-R101), Wave C2 #238-#244 (R88-R94), labels
+- **Feel pass** (2026-10-11): a first-time play-through in real time, `docs/core-loop-feel-study.md`,
+  and its recommendations as CL-35 to CL-41 (#275-#279, #285, #287, all done): the first session one
+  loop at a time, a Well that tells the truth about progress, a page that holds still, rewards that
+  land, a crew with a verb, Orders and Trials earned instead of timed, a Refinery in plain words.
+  Left from the study: its R10 for Expand and the Collection, the Well's sticky strip on a phone.
+- **Filed:** Wave A #204-#213 (R70-R79), Wave B #226 (R80), Wave C #229-#235 (R81-R87) and #253-#258, #266, #270, #275-#279, #285, #287 (R95-R108), Wave C2 #238-#244 (R88-R94), labels
   `roadmap` and `core-loop`. Owner decisions
   are posted on issue #23.
 - **Sub-agents are pinned to Sonnet** (`.claude/settings.json`), so the coordinating session does

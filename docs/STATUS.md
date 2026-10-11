@@ -10,10 +10,19 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- Nothing is being built right now. **Open questions for the owner** (asked 2026-10-10): the other
-  waits on the clock (Order slots refill after 30 min, a Trial can be won 2 h after it unlocks,
-  the weekly Order): keep or turn into resource gates; and whether a New Well's Reserves should be
-  paid from the best run so far (a high-water mark) instead of the current run.
+- **Feel pass on the `?loop=2` preview** (`docs/core-loop-feel-study.md`). Built and merged: R1-R9 and
+  R11 of the study (see Done). **Still to build from it:**
+  - R10 for Expand and the Collection (one "ready now" strip, sections folded, only the next reset
+    as a full card); the Refinery has it.
+  - The Well's sticky strip on a phone: the shell offers the hooks (`.cl-stick`, `--cl-strip-h`,
+    comment near the end of `css/coreloop.css`), `well.js` does not use them yet.
+  - R8 leftovers: one notation for big numbers (prices still print "446.68K"), names for the twelve
+    skills (generic "Mine skill 1" today; the owner was asked for a direction), the localised sign
+    in `fracText` (`refinery.js`) for Arabic.
+  - Small: the unlock toast reads "New: the Refinery x2" when two parts open together; the first
+    Bucket row already names the next crate's price ("446.68K each") at second five.
+  - **Not yet done by anyone:** a real-time play on a phone-sized frame of the combined build, and
+    a combined look in Arabic.
 
 ## Next up
 
@@ -132,6 +141,13 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-C | R99 CL-32 Expand and Collection screens a person can read | #258 | R95 |
 | CL-C | R100 CL-33 The preview's icons as inline SVG | #266 | R95-R99 |
 | CL-C | R101 CL-34 No gate waits on the clock (New Well timer removed) | #270 | – |
+| CL-C | R102 CL-35 Re-time the first session (feel study R1) | #275 | R95 |
+| CL-C | R103 CL-36 The Well tells the truth about progress | #276 | R102 |
+| CL-C | R104 CL-37 The page holds still | #277 | R102 |
+| CL-C | R105 CL-38 The first rewards land | #278 | R102 |
+| CL-C | R106 CL-39 The crew has a verb | #279 | R102 |
+| CL-C | R107 CL-40 Orders refill on haul; Trials are earned | #285 | – |
+| CL-C | R108 CL-41 The Refinery in three lines a card | #287 | R107 |
 | CL-C2 | R88 CL-21 Tower as a Field | #238 | R84, R93 |
 | CL-C2 | R89 CL-22 Mine as a Field | #239 | R84, R93 |
 | CL-C2 | R90 CL-23 Oasis as a Field | #240 | R84, R93 |
@@ -141,6 +157,47 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-C2 | R94 CL-27 Codex hosts achievements, leaderboard, community, settings, about | #244 | R86 |
 
 ## Done
+
+- **Feel pass, R102-R108** (2026-10-11, no player change; the preview only). The owner said a third
+  time that the preview was confusing, and a first-time play-through in real time found why
+  (`docs/core-loop-feel-study.md`, PR #274: read its sections 1 and 3 before touching the preview).
+  Built from it:
+  - R102 #275 (CL-35, PRs #280, #288) **the first session, one loop at a time** (`Guide.js`): the
+    game opens on the barrel alone ("You found oil. Tap it."), the Bucket after five taps, Pressure
+    at ten Buckets, Da'sa and the run bar with the first Hand Pump, Fields then (about 3:20 to 3:40
+    in a real play), the Refinery when the crew has been sent, only the tree at the first New Well.
+    No step passes by itself; none waits on the clock. `state.guide.v` restarts the steps of an older
+    save. No intro card. `Prestige.newWellProgress` (the share of decades, squared) is the one run
+    bar, on the Well and in the gold bar. Contract for screens: `api.sendCrew`, `api.goal`,
+    `btn-ready`, one solid gold thing per screen (README "The guide").
+  - R103 #276 (CL-36, PR #281) **Well:** no wait printed in hours, the x2 and the next crate's price
+    announced together, the big rate is the steady rate with Da'sa as a bonus, "Buy everything" says
+    what it will buy.
+  - R104 #277 (CL-37, PR #284) **frame:** a fixed-height bar whose reason opens as a card, tabs in
+    order of arrival, "Show me" clears the header, tab dots from each screen's `readyCount(state)`.
+  - R105 #278 (CL-38, PR #283) **rewards:** the first New Well is a ceremony with a run summary and
+    one button to the tree; "spending never lowers your multiplier"; tree nodes that name unmet
+    things wait under "Arriving later"; the Head Start Kit applies at once; a `pack` event for the
+    tenth of a pump. **Found: every reward toast and ceremony had been invisible in the preview**
+    (a CSS rule hid all of `<body>` but the preview's root); fixed in #288.
+  - R106 #279 (CL-39, PR #282) **Fields:** looking at a Field no longer moves the crew; "Send the
+    crew here" does. A "wanted by an Order" line, one Level ladder, no countdown, Materials by name
+    (`cl.material.*`: Steel, Ore, Water).
+  - R107 #285 (CL-40, PRs #286, #290) **the last gates on the clock:** an Order slot refills on haul
+    (`Refinery.haulNeed`: 30 minutes' worth at the rates of the moment, half of hand work counted;
+    new saved `fields[i].hauled`), the first Order ever is Naphtha for Steel, and a Trial is won
+    after `P.trialWells` (6) New Wells since its unlock (`trialDelay` is gone; new saved
+    `trials[id].wellsAt`). Both sims pass T1-T12: model seeds 1-6, real systems seeds 1-3 (tuning
+    log 31, 32). Only the weekly Order follows the calendar, as a bonus.
+  - R108 #287 (CL-41, PR #289) **Refinery:** an Order card in three lines ("45 Steel (you have 61) /
+    the Well's pumps +1.5%"), an empty slot shows "Next Order: 12 of 180 hauled", a "ready now"
+    strip with one button, later sections folded, Vial odds and misses in words, no countdown.
+  - **Checked by the coordinator in a browser, desktop, English:** the first four minutes in real
+    time from a fresh save (barrel, Bucket, ten Buckets, Pressure, Hand Pump, Fields, crew sent),
+    then with the console: the first Order, the New Well ceremony and the landing on the tree.
+    **Not checked:** a phone-sized frame of the combined build, Arabic, sound.
+  - `agy` (the Antigravity CLI) now has exact allow-rules for the sim and test commands in its own
+    settings; it matches exact command strings only.
 
 - R101 #270 (CL-34, PR #271, no player change): **owner rule: no gate waits on the clock; gates are
   resources** (README rule 3). The New Well's 10-minute timer is gone (`P.wellMinRunSec`,
