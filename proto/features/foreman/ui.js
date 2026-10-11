@@ -1,4 +1,4 @@
-// Dig feature (page side): the Foreman panel (one big button per job, hotkeys 1 to 5), the arrival
+// Dig feature (page side): the Foreman panel (one big button per job, hotkeys Z X C V B; 1 to 3 are the Forge's tools), the arrival
 // banner, flags where the Rafeeqs were sent, and tea glasses at their feet during a break.
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
@@ -8,7 +8,8 @@ import { icon, badge, S } from '../../ui/icons.js';
 
 const { t } = G;
 const JOBS = G.foremanJobs;
-const KEY = id => String(JOBS.indexOf(id) + 1);
+const KEYS = 'ZXCVB';
+const KEY = id => KEYS[JOBS.indexOf(id)];
 const flag = (x, y, col) => `<path d="M${x} ${y} V${y - 15}" ${S} fill="none"/><path d="M${x} ${y - 15} L${x + 11} ${y - 11} L${x} ${y - 7} Z" fill="${col}" ${S}/>`;
 
 const ICONS = {
@@ -54,7 +55,7 @@ ui({
     foremanArrives(d, app) { app.banner(t('t_foreman_title'), t('t_foreman_sub')); try { app.sfx.arrive(); } catch { /* audio not unlocked yet */ } app.dirty('foreman'); },
     job(d, app) { sent = 0; try { app.sfx.job(); } catch { /* audio not unlocked yet */ } app.dirty('foreman'); },
   },
-  keys: Object.fromEntries(JOBS.map((id, i) => [String(i + 1), app => { const s = app.state; if (s.foremanHere && G.foremanSet(s, id, app.ev)) app.refresh?.(); }])),
+  keys: Object.fromEntries(JOBS.map(id => [KEY(id).toLowerCase(), app => { const s = app.state; if (s.foremanHere && G.foremanSet(s, id, app.ev)) app.refresh?.(); }])),
   panels: [{
     id: 'foreman', elId: 'foreman', side: 'left', at: 15, title: 'foreman_title',
     when: s => s.foremanHere,
