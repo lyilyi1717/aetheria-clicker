@@ -5,7 +5,7 @@ export default { en: {
   r2_pair: 'Pair: {name}',
 
   r_hop: 'Jumping Pick', r_hop_d: '{d}',
-  r_hop_d1: 'When you break a block, your hit jumps to the next block of the same kind.',
+  r_hop_d1: 'Your hit jumps on to the next block of the same kind.',
   r_hop_d2: 'Your hit jumps twice, to blocks of the same kind.',
   r_hop_d3: 'Your hit keeps jumping for as long as it breaks blocks.',
 
@@ -35,7 +35,7 @@ export default { en: {
   r_fuse_d3: 'Burned blocks sometimes leave a TNT barrel in the ashes.',
 
   r_rang: 'Boomerang', r_rang_d: '{d}',
-  r_rang_d1: 'Your pick flies along the row and back, and hits {n} blocks twice. But you swing slower.',
+  r_rang_d1: 'Your pick flies along the row and back, and hits {n} blocks twice. It hits hard, but you swing slower.',
   r_rang_d2: 'Your boomerang flies all the way to the wall. You still swing slower.',
   r_rang_d3: 'Your boomerang comes back along the row below.',
 

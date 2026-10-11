@@ -40,9 +40,9 @@ import strings from './strings.js';
 const p = {
   pairChance: 0.4,              // a chest shows the missing partner of a relic you hold
   // when each pair may first be offered: relics and relic levels found so far, in all sites
-  openHop: 1, openFling: 3, openFire: 4, openCrew: 5, openGarden: 8,
+  openHop: 2, openFling: 4, openFire: 6, openCrew: 7, openGarden: 10,
 
-  hopRange: 3, hopDmg: 0.6, hopGap: 0.08, hopJumps: [0, 1, 2, 2], hopMax: 8,
+  hopRange: 3, hopDmg: 0.5, hopGap: 0.08, hopJumps: [0, 1, 2, 2], hopMax: 8,
   twinEvery: 5, twinCount: [0, 1, 2, 2], twinNot: ['chest'],
   flingFrac: 0.5,               // a flying block hits for this share of its own strength
   flingSide: 3, flingUp: 1, flingDown: 2, flingTime: 0.35, flingBounce: [0, 0, 1, 3],
@@ -50,7 +50,8 @@ const p = {
   fireHeat: [0, 2, 3, 3],       // how many steps a fire can spread
   fireTick: 0.25, fireTicks: 6, fireDmg: 0.5, fireCreep: 0.12,
   fuseHeat: [0, 2, 3, 3], fuseRing: 2, fuseAsh: 0.06,
-  rangReach: 4, rangDmg: 1, rangTime: 0.28,
+  rangReach: 4, rangTime: 0.28,      // the pick is away this long: about every second swing of a held mouse is lost
+  rangMain: 1.5, rangDmg: 0.7,                  // so the thrown hit is harder; the blocks it passes take this share of it, twice
   fallTick: 0.07, fallFrac: 0.35, fallMaxRows: 3, fallSide: 0.5,
   borrowEvery: [0, 6, 4, 4], borrowGap: 0.06,
   fazaaN: [0, 2, 99, 99], fazaaHold: 1.2, fazaaBeat: 2,
@@ -346,10 +347,9 @@ export const relics2 = use({
   },
   mods: { draftPool: { at: 900, fn: pairDraft } },
   relics: {
-    hop: { at: 200, max: 3, pair: 'twin', when: after('hop', p.openHop), vars: says('hop'), hooks: { broke(s, b) {
-      if (!b.byHand || b.chain || b.B.wall) return;
-      hopFrom(s, b.r, b.c, b.t, s.relics2.dmg * p.hopDmg, p.hopJumps[s.relics.hop], 1);
-    } } },
+    hop: { at: 200, max: 3, pair: 'twin', when: after('hop', p.openHop), vars: says('hop'), hooks: { swung: { at: 45, fn(s, sw) {
+      if (!sw.B.wall) hopFrom(s, sw.r, sw.c, sw.B.id, sw.dmg * p.hopDmg, p.hopJumps[s.relics.hop], 1);
+    } } } },
     twin: { at: 210, max: 3, pair: 'hop', when: after('twin', p.openHop), vars: says('twin', () => ({ n: p.twinEvery })), hooks: { broke(s, b, ev) {
       if (!b.byHand || b.chain) return;
       const st = s.relics2, lv = s.relics.twin, ready = st.n >= p.twinEvery;
@@ -383,7 +383,7 @@ export const relics2 = use({
       else for (const [dr, dc] of NEAR) if (relics2Ignite(s, b.r + dr, b.c + dc, heat)) n++;
       if (n) emit(s, ev, 'relics2Fire', { r: b.r, c: b.c, n });
     } } },
-    fuse: { at: 250, max: 3, pair: 'fire', when: after('fuse', p.openFire, s => s.seen.tnt), vars: says('fuse'), hooks: {
+    fuse: { at: 250, max: 3, pair: 'fire', when: after('fuse', p.openFire, s => s.unlocked['type:tnt']), vars: says('fuse'), hooks: {
       step: gifts('fuse', () => 'tnt'),
       broke(s, b) {
         if (b.B.chain) later(s, PARAMS.tnt.fuse + 0.03, 'relics2Ring', { r: b.r, c: b.c, rad: p.fuseRing + rel(s, 'bang'), heat: p.fuseHeat[s.relics.fuse] });
@@ -392,7 +392,7 @@ export const relics2 = use({
 
     rang: { at: 260, max: 3, pair: 'fall', when: deep('rang', 0), vars: says('rang', () => ({ n: p.rangReach })),
       mods: { canSwing: (v, s) => { const st = s.relics2, left = st.busy - s.t; return v && (st.guest || !(left > 0 && left <= p.rangTime)); } },
-      hooks: { swung: { at: 35, fn(s, sw, ev) {
+      hooks: { swing: { at: 30, fn(s, sw) { if (!sw.B.wall) sw.dmg *= p.rangMain; } }, swung: { at: 35, fn(s, sw, ev) {
         if (sw.B.wall) return;                                     // the Big Rock is hit the plain way, at full speed
         const st = s.relics2, lv = s.relics.rang, reach = lv >= 2 ? COLS : p.rangReach;
         const path = dir => { const out = []; for (let k = 1; k <= reach; k++) { const c = sw.c + dir * k, o = cellAt(s, sw.r, c); if (c < 0 || c >= COLS || (o && kindOf(o).wall)) break; out.push(c); } return out; };
