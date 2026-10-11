@@ -1,0 +1,7 @@
+/* Star Shop */
+#panel-starshop .star-note { margin-block-end: 8px; }
+#panel-starshop .star-pick { margin-block-start: 10px; padding-block-start: 8px; border-block-start: 1px dashed var(--line); }
+#panel-starshop .star-pick-row { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 6px; }
+#panel-starshop .star-pick-row .ghost { padding: 4px; line-height: 0; }
+#panel-starshop.ready { border-color: var(--gold); box-shadow: 0 0 18px rgba(255, 210, 63, .25); }
+.star-reroll { display: inline-flex; align-items: center; gap: 8px; margin-block: 6px; }
