@@ -7,6 +7,7 @@ import { PRESENCE, makeContext } from './js/systems/coreloop/shared.js';
 import { createCoreLoopState } from './js/systems/coreloop/state.js';
 import * as Well from './js/systems/coreloop/Well.js';
 import * as Presence from './js/systems/coreloop/Presence.js';
+import * as Prestige from './js/systems/coreloop/Prestige.js';
 import * as W from './js/ui/coreloop/well.js';
 import EN_W from './js/i18n/coreloop/well.en.js';
 import AR_W from './js/i18n/coreloop/well.ar.js';
@@ -41,7 +42,13 @@ const fresh = () => createCoreLoopState(7);
   eq(W.slotsShown(s), 1, 'an empty Well shows the first slot');
   s.well.crude = new BigNum(1, 6);
   Well.buy(s, 1, 1);
+  eq(W.slotsShown(s), 1, 'the first run: the Hand Pump waits for a full crate of Buckets');
+  s.well.bought[1] = P.packSize;
   eq(W.slotsShown(s), 2, 'one above the highest bought');
+  const again = fresh();
+  again.prestige.wells = 1; again.well.crude = new BigNum(1, 6);
+  Well.buy(again, 1, 1);
+  eq(W.slotsShown(again), 2, 'after a New Well the next pump shows at once');
   s.well.bought[P.slots] = 1;
   eq(W.slotsShown(s), P.slots, 'never past the last slot');
 }
@@ -181,10 +188,13 @@ const fresh = () => createCoreLoopState(7);
   eq(W.etaSeconds(new BigNum(1, 40), new BigNum(1)), Infinity, 'far away');
   eq(W.waitWords(12), '12 s');
   eq(W.waitWords(130), '3 min');
-  eq(W.waitWords(7300), '3 h');
+  eq(W.waitWords(600), '10 min');
+  eq(W.waitWords(601), null, 'past ten minutes no wait is printed');
+  eq(W.waitWords(7300), null, 'never hours');
   eq(W.waitWords(1e9), null, 'too long to say');
   eq(W.whenWords(api, new BigNum(36), new BigNum(3)), 'in 12 s');
-  ok(/^need /.test(W.whenWords(api, new BigNum(36), BigNum.zero())), 'a zero rate says what is missing');
+  eq(W.whenWords(api, new BigNum(1, 6), new BigNum(3)), '', 'a far-off price says nothing; its bar shows how close');
+  eq(W.whenWords(api, new BigNum(36), BigNum.zero()), '', 'a zero rate promises nothing');
   eq(W.rowWords(1), { key: 'cl.well.makes_crude', prev: 0 }, 'the Bucket makes Crude');
   eq(W.rowWords(4), { key: 'cl.well.makes_pump', prev: 3 }, 'other pumps make the pump before');
   ok(W.slotName(3, true).includes('(') && !W.slotName(2, true).includes('('), 'gloss only where there is one');
@@ -204,16 +214,25 @@ const fresh = () => createCoreLoopState(7);
 }
 {
   const s = fresh();
-  ok(!W.runView(s).show, 'no run strip before 10 Buckets');
-  s.well.bought[1] = 10;
-  let r = W.runView(s);
-  ok(r.show && r.stage === 'first' && r.frac === 0, 'first stage, empty bar');
+  ok(!W.runView(s).show, 'no run bar until the guide opens it');
+  ok(W.runView(s, true).show, 'shown when the guide opens it');
+  let r = W.runView(s, true);
+  ok(r.first && r.frac === 0 && r.pct === 0, 'first run, empty bar');
   s.well.runCrude = new BigNum(1, 3);
-  ok(Math.abs(W.runView(s).frac - 0.5) < 1e-9, 'bar is log10 run Crude over log10 of the first New Well');
-  s.well.runCrude = new BigNum(1, 12);
-  r = W.runView(s);
-  ok(r.stage === 'pending' && r.pending >= 1 && r.frac > 0, 'Reserves pending');
-  ok(!('wait' in r), 'no wait: a New Well is gated by Reserves only');
+  r = W.runView(s, true);
+  ok(Math.abs(r.frac - 3 / Prestige.newWellRunLog(s)) < 1e-9, 'bar is log10 run Crude over log10 the run needs');
+  ok(r.pct === Math.floor(r.frac * 100) && r.pct < 100, 'whole percent');
+  s.well.runCrude = new BigNum(1, 20);
+  r = W.runView(s, true);
+  ok(r.ready && r.frac === 1 && r.pct === 100 && r.pending >= 1, 'ready is a full bar');
+  s.prestige.wells = 1;
+  ok(!W.runView(s, true).first && W.runView(fresh(), true).first, 'later runs say Next');
+  // never back: the biggest value seen in a run stays; a new run starts again
+  const hold = W.makeHold();
+  eq(hold(0, 0.4), 0.4);
+  eq(hold(0, 0.3), 0.4, 'a smaller value does not move the bar back');
+  eq(hold(0, 0.5), 0.5);
+  eq(hold(1, 0.1), 0.1, 'a new run starts the bar again');
 }
 {
   const open = (set) => (f) => set.includes(f);
@@ -232,6 +251,102 @@ const fresh = () => createCoreLoopState(7);
   const open = (f) => s.guide.open[f] === true;
   ok(!open('well.maxall') && !open('well.pressure') && !open('well.flare') && !open('well.generators'), 'sections start closed');
 }
+// --- CL-36: the Well tells the truth -------------------------------------------------------------
+{
+  const api = { fmt: (x) => x.format() };
+  eq(W.whole(api, new BigNum(44.67), 'ceil'), '45', 'prices round up to a whole number');
+  eq(W.whole(api, new BigNum(446.68), 'ceil'), '447');
+  eq(W.whole(api, new BigNum(17.26), 'floor'), '17', 'counts climb 11, 12, 13');
+  eq(W.whole(api, new BigNum(1.125)), '1', 'rates are whole under 1,000');
+  ok(W.whole(api, new BigNum(1.5, 4)) === api.fmt(new BigNum(1.5, 4)), 'big numbers use the game notation');
+  const v = W.slotView(fresh(), 1);
+  ok(v.nextCost.gt(v.cost.mul(1000)), 'the price step is announced with the x2');
+  const s = fresh();
+  s.well.crude = new BigNum(1, 6); Well.buy(s, 1, 10);
+  eq(W.nextCrateCost(fresh(), 1).format(), Well.slotCost(s, 1).format(), 'the announced price is the price after the crate');
+  // a button's fill is Crude held over price
+  const f = fresh(); f.well.crude = new BigNum(25);
+  ok(Math.abs(W.fillFrac(f, new BigNum(100)) - 0.25) < 1e-9, 'a quarter full');
+  f.well.crude = new BigNum(500);
+  eq(W.fillFrac(f, new BigNum(100)), 1, 'never more than full');
+  f.well.crude = BigNum.zero();
+  eq(W.fillFrac(f, new BigNum(100)), 0, 'empty with nothing');
+  eq(W.whenWords(api, new BigNum(3.98, 3), new BigNum(0.02)), '', 'an hour away says nothing');
+}
+{
+  // one gold thing
+  const items = [
+    { id: 'run', anchor: 'prestige.newwell', can: false },
+    { id: 'b2', anchor: 'well.buy.2', can: true },
+    { id: 'b1', anchor: 'well.buy.1', can: true },
+    { id: 'pressure', anchor: 'well.pressure', can: true },
+    { id: 'max', anchor: 'well.maxall', can: true, best: false }
+  ];
+  const count = (g, k) => Object.values(g).filter((x) => x === k).length;
+  let g = W.goldView({ screen: 'well', anchor: 'well.buy.1', here: true }, items);
+  eq(g.b1, 'primary', 'the bar names it, so it is the gold one');
+  eq(count(g, 'primary'), 1); eq(g.b2, 'ready'); eq(g.max, 'ready'); eq(g.run, '');
+  g = W.goldView({ screen: 'well', anchor: 'well.buy.1', here: true }, items.map((i) => (i.id === 'b1' ? { ...i, can: false } : i)));
+  eq(count(g, 'primary'), 0, 'its target cannot be pressed yet: nothing else is solid gold');
+  g = W.goldView({ screen: 'well', anchor: 'well.tap', here: true }, items);
+  eq(count(g, 'primary'), 0, 'the barrel is the goal: no button is solid gold');
+  g = W.goldView({ screen: 'fields', anchor: 'fields.work', here: false }, items);
+  eq(g.b2, 'primary', 'elsewhere: the best thing here (first that can be pressed)');
+  eq(count(g, 'primary'), 1);
+  g = W.goldView({ screen: 'fields', anchor: 'fields.work', here: false }, [{ id: 'max', anchor: 'x', can: true, best: false }]);
+  eq(count(g, 'primary'), 0, 'Buy everything is never promoted');
+  g = W.goldView(null, items);
+  eq(count(g, 'primary'), 1, 'no goal known: still at most one');
+}
+{
+  // Buy everything says what it will buy, and does not change the state it looked at
+  const api = { fmt: (x) => x.format() };
+  const s = fresh();
+  s.well.crude = new BigNum(1, 5);
+  Well.buy(s, 1, 10);
+  const snap = () => JSON.stringify([s.well.crude, s.well.bought, s.well.pressure]);
+  const before = snap();
+  const plan = W.buyPlan(s);
+  eq(snap(), before, 'a dry run leaves the Well alone');
+  const real = fresh();
+  real.well.crude = s.well.crude; real.well.bought = s.well.bought.slice(); real.well.amount = s.well.amount.slice();
+  const b0 = real.well.bought.slice(), p0 = real.well.pressure;
+  Well.buyMax(real);
+  const got = [];
+  for (let k = P.slots; k >= 1; k--) if (real.well.bought[k] > b0[k]) got.push({ k, n: real.well.bought[k] - b0[k] });
+  eq(plan.items, got, 'the plan is what buyMax buys');
+  eq(plan.pressure, real.well.pressure - p0, 'and the Pressure levels');
+  eq(W.buyWords(api, { items: [], pressure: 0 }), 'Buy everything');
+  eq(W.buyWords(api, { items: [{ k: 2, n: 2 }], pressure: 1 }), 'Buy: Hand Pump x2, Pressure x1');
+  ok(/and 1 more/.test(W.buyWords(api, { items: [{ k: 4, n: 1 }, { k: 3, n: 1 }, { k: 2, n: 1 }], pressure: 1 })), 'a long list is cut');
+  // a first unit of a later crate that takes most of the Crude is called out
+  const r = fresh();
+  r.well.bought[1] = 10; r.well.amount[1] = new BigNum(10); r.well.crude = new BigNum(5, 5);
+  const rp = W.buyPlan(r);
+  ok(rp.risky && rp.risky.k === 1, 'the 447K Bucket is called out');
+}
+{
+  // Da'sa is a bonus on top; resting shows no bonus and the steady rate does not move
+  const s = fresh();
+  s.well.crude = new BigNum(1, 5); Well.buy(s, 1, 10);
+  s.presence.heatSeconds = P.heatRamp;
+  const hot = W.heatView(s, PRESENCE.HANDS);
+  ok(hot.pct === Math.round(P.handsWell * 100) && hot.bonus.m > 0, 'full Da\'sa: the percentage and the extra a second');
+  eq(hot.max, Math.round(P.handsWell * 100));
+  const rate = Well.crudePerSecond(s, PRESENCE.WATCH);
+  const ratio = hot.bonus.div(rate).toNumber();
+  ok(ratio > 0.49 && ratio < 0.51, 'the bonus is on top of the steady rate');
+  s.presence.heatSeconds = 0;
+  const cold = W.heatView(s, PRESENCE.WATCH);
+  ok(!cold.on && cold.pct === 0 && cold.bonus.m === 0 && cold.frac === 0 && cold.max === hot.max, 'resting: no bonus, the most it can give stays');
+  eq(Well.crudePerSecond(s, PRESENCE.WATCH).format(), rate.format(), 'the steady rate does not move');
+  eq(W.reservesWords(1), 'A New Well would pay 1 Reserve');
+  eq(W.reservesWords(12), 'A New Well would pay 12 Reserves');
+}
+{
+  for (const k of Object.keys(EN_W)) ok(!/\bh\b|hour/i.test(EN_W[k]), k + ' has no hours');
+}
+
 {
   // every literal key the screen uses exists
   const { readFileSync } = await import('node:fs');
