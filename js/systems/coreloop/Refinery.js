@@ -7,7 +7,7 @@
 // Orders cost Materials only. Posting is not a player action (`step` does it); filling is
 // (`fillOrder`, `fillWeekly`). The sim's policy "fill everything fillable" is `fillAll`.
 import { P } from './params.js';
-import { PRESENCE, FRACTIONS, HIT, fracValue, NO_CONTEXT } from './shared.js';
+import { PRESENCE, FRACTIONS, FRAC, HIT, fracValue, NO_CONTEXT } from './shared.js';
 import * as Fields from './Fields.js';
 import * as Rigs from './Rigs.js';
 import * as Collection from './Collection.js';
@@ -28,22 +28,41 @@ export function orderField(state, source) {
   return best;
 }
 
-// Post an Order into every empty slot whose refill time has passed, in slot order. Each takes the
+// Units hauled by every Field, ever; and what the Rigs and the crew haul in a second of Watching
+// (the Rigs at their Watching rate plus P.orderRefillHand of hand work)
+export const totalHauled = (state) => state.fields.reduce((n, f) => n + f.hauled, 0);
+export const haulRate = (state) => {
+  let r = P.orderRefillHand * Rigs.handRate(state);
+  for (let i = 0; i < NF; i++) r += Rigs.rigRate(state, i, PRESENCE.WATCH);
+  return r;
+};
+
+// Units an empty slot needs hauled before its next Order: P.orderRefill seconds' worth at today's
+// rates (not frozen when the slot emptied, so a stronger Rig does not make Orders rain)
+export const haulNeed = (state) => P.orderRefill * haulRate(state);
+
+// Post an Order into every empty slot whose haul has been done, in slot order. No slot waits on
+// the clock: it refills when P.orderRefill seconds' worth of haul has come in since it emptied.
+// The first Order ever is Naphtha for the first Field's Material, so that the first thing the
+// Refinery does for a new player is speed the Well with what the crew already hauls. Each takes the
 // lowest-level Fraction not already on an open Order. The grade is the Field's Rig grade (so the
 // Rig's own haul fills it), or one under the frontier grade before a Rig. The quantity is
 // P.orderSeconds of Watching Rig output plus a share of hand work. Returns the number posted.
 export function postOrders(state) {
   const ref = state.refinery;
   let posted = 0;
+  let first = ref.frac.every(fr => fr.level === 0) && ref.orders.every(o => o.empty);
   for (const o of ref.orders) {
-    if (!o.empty || state.t < o.refillAt) continue;
+    if (!o.empty || (o.haulFrom !== null && totalHauled(state) - o.haulFrom < haulNeed(state))) continue;
     const taken = new Set(ref.orders.filter(x => !x.empty).map(x => x.frac));
     let frac = 0, lo = Infinity;
     ref.frac.forEach((fr, i) => { if (!taken.has(i) && fr.level < lo) { lo = fr.level; frac = i; } });
-    const field = orderField(state, P.orderSource[FRACTIONS[frac]]);
+    let field = orderField(state, P.orderSource[FRACTIONS[frac]]);
+    if (first) { frac = FRAC.NAPHTHA; field = 0; first = false; }
     const f = state.fields[field];
     const grade = f.rig > 0 ? Rigs.rigGrade(state, field) : Math.max(0, Fields.gradeOf(f.frontier) - 1);
     const qty = P.orderSeconds * (Rigs.rigRate(state, field, PRESENCE.WATCH) + P.orderHandShare * Rigs.handRate(state));
+    delete o.haulFrom;
     Object.assign(o, { empty: false, frac, field, grade, qty, posted: state.t });
     posted++;
   }
@@ -75,7 +94,7 @@ export function fillOrder(state, slot, ctx = NO_CONTEXT) {
   const { frac, posted } = o;
   state.refinery.frac[frac].level++;
   Collection.addVialOffers(state, 1);   // a filled Order brings a Vial offer
-  state.refinery.orders[slot] = { empty: true, refillAt: state.t + P.orderRefill };
+  state.refinery.orders[slot] = { empty: true, haulFrom: totalHauled(state) };
   ctx.emit('order', HIT.BIG, { frac, slot, age: state.t - posted });
   return true;
 }
@@ -119,22 +138,27 @@ export function fillWeekly(state, ctx = NO_CONTEXT) {
 }
 
 // --- time ----------------------------------------------------------------------------------------
-// Posts what is due at `state.t` (the start of the step): Orders into empty slots past their
-// refill time, and the weekly Order in a new week. dt and presence are unused: Orders follow the
-// clock, not the player's presence. Filling stays a player action.
+// Posts what is due at `state.t` (the start of the step): Orders into empty slots whose haul is
+// done, and the weekly Order in a new week (a calendar bonus on top, the one thing here that
+// follows the clock). dt and presence are unused. Filling stays a player action.
 export function step(state, dt, presence, ctx = NO_CONTEXT) {
   postOrders(state);
   postWeekly(state);
 }
 
 // --- for the UI ----------------------------------------------------------------------------------
-// What slot `slot` shows. Empty: { empty: true, refillIn } (seconds; 0 means it posts next step).
+// What slot `slot` shows. Empty: { empty: true, hauled, need, progress, refillIn }: units hauled
+// toward the next Order, of how many, and the seconds that would take at the Watching rate.
 // Open: the ask (field, grade, qty), what the player has toward it, whether it can be filled, its
 // age, and the Fraction's value before and after.
 export function orderInfo(state, slot) {
   const o = state.refinery.orders[slot];
   if (!o) return null;
-  if (o.empty) return { empty: true, refillIn: Math.max(0, o.refillAt - state.t) };
+  if (o.empty) {
+    const need = haulNeed(state), rate = haulRate(state);
+    const hauled = o.haulFrom === null ? need : Math.min(need, Math.max(0, totalHauled(state) - o.haulFrom));
+    return { empty: true, hauled, need, progress: need > 0 ? hauled / need : 1, refillIn: rate > 0 ? (need - hauled) / rate : 0 };
+  }
   const have = Fields.countAtLeast(state, o.field, o.grade);
   const before = fracValue(state, o.frac);
   return {

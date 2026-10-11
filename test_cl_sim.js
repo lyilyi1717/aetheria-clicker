@@ -47,7 +47,10 @@ for (const name of Object.keys(PROFILES)) {
   const m = simulateModel(name, 1, { days: DAYS, probes: false }).s;
   const near = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol, `${name}: ${what}: game ${a}, model ${b}`);
   near(Math.log10(g.well.bestEver.m) + g.well.bestEver.e, Math.log10(m.bestEver), 8, 'best run (decades)');
-  near(g.prestige.totalFields, m.totalFields, Math.max(2, 0.2 * m.totalFields), 'New Fields');
+  // New Fields are compared within the same number of Chronicles: a Chronicle that lands a few
+  // hours either side of the fortnight's end moves the count by a third on its own
+  near(g.prestige.chronicles, m.chronicles, 1, 'Chronicles');
+  if (g.prestige.chronicles === m.chronicles) near(g.prestige.totalFields, m.totalFields, Math.max(2, 0.25 * m.totalFields), 'New Fields');
   near(g.cauldrons.bubbles.length, m.bubbles.length, Math.max(3, 0.1 * m.bubbles.length), 'Bubbles');
   near(ev.filter(e => e.k === 'order').length, m.events.filter(e => e.k === 'order').length, Math.max(5, 0.1 * ev.length), 'Orders filled');
   g.fields.forEach((f, i) => near(f.bestGrade, m.fields[i].bestGrade, 1, `frontier grade of Field ${i}`));

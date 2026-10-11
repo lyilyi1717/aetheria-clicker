@@ -96,7 +96,7 @@ Mastery: 4 actions per Field, time split 40/30/20/10%; ranks at 0.25/1.5/6/20/60
 
 ### 3.5 Refinery
 Fraction = (1 + Bubbles + Vials + Compounds + Seals) x 1.015^Orders. Orders: 3 slots, Materials
-only, 15 min of (Rig Watching rate + 0.25 x hand rate) at the Rig grade; refill 30 min. Weekly
+only, 15 min of (Rig Watching rate + 0.25 x hand rate) at the Rig grade; a slot refills on haul (30 min' worth at the Watching rate, log 31). Weekly
 Order: 4 h of every Field's Rig output; +1 level on all Fractions (L4). Cauldrons fill in
 seconds: Hand (Hands-on), Oil (Watching), Sands (1/s by hand + 0.25/s per working Rig), Time
 (Away); Bubble n costs c0·(n+1)^0.95 with c0 900/1800/1800/7200; every 5th bar +0.1 speed;
@@ -238,3 +238,15 @@ must carry, not just a number):
     A guided first New Well comes at 15:54 (was 13:21). Still on the clock, and open questions for
     the owner: a filled Order slot refills after 30 min (`orderRefill`), a Trial can be won 2 h
     after it unlocks (`trialDelay`), the weekly Order. **D**
+31. The same rule for Orders: a filled slot refilled after 30 min on the clock. → **A slot refills on
+    haul:** when the crew and the Rigs have hauled, since it emptied, what `orderRefill` (1800 s) of
+    Watching brings at the rates of the moment, counting `orderRefillHand` of hand work. With the
+    hand share at the Order's own 0.25 the active profile ran 15 decades ahead (1e218) and open made
+    25 Chronicles (T9 allows 24); at 1.0 active fell to 1e196 and casual to 1e217. → **0.5**: active
+    1e209, casual 1e241, idle 1e187, open 1e252 (before: 1e203, 1e241, 1e187, 1e254). The need is
+    read at the rates of the moment, not frozen when the slot emptied (frozen, a Rig bought later
+    made Orders rain on the real systems). The first Order ever is Naphtha for the Tower's Material,
+    so the first thing the Refinery does is speed the Well. All targets pass: model seeds 1-6, real
+    systems seeds 1-3. Orders filled in a fortnight are identical in the model and on the real
+    systems (casual: 679 and 679). Still on the clock: the Trials' 2 h (`trialDelay`), next. **D**
+

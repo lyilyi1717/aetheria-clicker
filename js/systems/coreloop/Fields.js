@@ -28,6 +28,7 @@ export function addMaterial(state, field, grade, units) {
   const inv = state.fields[field].inventory;
   while (inv.length <= grade) inv.push(0);
   inv[grade] += units;
+  state.fields[field].hauled += units;   // lifetime haul: an empty Order slot refills on it
 }
 
 // Units of grade `grade` and up
