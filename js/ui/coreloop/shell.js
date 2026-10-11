@@ -21,7 +21,7 @@ import * as Presence from '../../systems/coreloop/Presence.js';
 import * as Well from '../../systems/coreloop/Well.js';
 import * as Loop from '../../systems/coreloop/Loop.js';
 import * as Guide from '../../systems/coreloop/Guide.js';
-import { GuideBar, showIntro, screenHead, lockText } from './guide.js';
+import { GuideBar, screenHead, lockText } from './guide.js';
 import { icon } from './icons.js';
 import { createCoreLoopState } from '../../systems/coreloop/state.js';
 import { loadCoreLoop, saveCoreLoop, secondsAway, CORE_LOOP_SAVE_KEY } from './store.js';
@@ -105,7 +105,7 @@ export class CoreLoopShell {
 
   // Brings the guide up to date; a tab or section that opens redraws the tabs
   refreshGuide() {
-    if (Guide.refresh(this.state, this.ctx).length && this.root) this.drawTabs();
+    if (Guide.refresh(this.state, this.ctx).length && this.root) { this.drawTabs(); this.drawHead(); }
   }
 
   makeApi() {
@@ -196,7 +196,15 @@ export class CoreLoopShell {
     // The header is a fixed height; if a font loads late, --cl-header-h stays true
     if (typeof ResizeObserver === 'function') new ResizeObserver(() => this.measure()).observe(root.querySelector('.cl-header'));
     this.drawTabs();
-    if (Guide.introPending(this.state)) showIntro(d, root, () => { Guide.dismissIntro(this.state); this.save(); });
+    // No intro card: the first screen is the barrel and one sentence (the feel study's first five
+    // minutes). Three sentences about pumps and a gold bar before the first tap taught nothing.
+  }
+
+  // The Well's head ("Buy pumps ...") waits until there are pumps to buy
+  drawHead() {
+    const slot = this.root?.querySelector('#cl-head-slot');
+    // (kept in the layout, so nothing moves when it shows)
+    if (slot) slot.style.visibility = this.current === 'well' && !Guide.isOpen(this.state, 'well.pumps') ? 'hidden' : '';
   }
 
   // Tabs appear as the guide opens them, appended in the order they arrived. With one tab there is
@@ -248,6 +256,7 @@ export class CoreLoopShell {
     this.drawTabs();
     if (!this.heads.has(id)) this.heads.set(id, screenHead(this.doc, id));
     this.root.querySelector('#cl-head-slot').replaceChildren(this.heads.get(id));
+    this.drawHead();
     try { this.storage?.setItem(TAB_KEY, id); } catch { /* per-viewer convenience only */ }
     for (const b of this.root.querySelectorAll('[data-cl-tab]')) b.setAttribute('aria-selected', String(b.dataset.clTab === id));
     for (const p of this.root.querySelectorAll('[data-cl-panel]')) p.hidden = p.dataset.clPanel !== id;

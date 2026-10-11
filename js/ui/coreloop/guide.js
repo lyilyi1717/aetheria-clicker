@@ -21,7 +21,7 @@ export function barView(state) {
       key: `step:${n.id}`, screen: n.screen, anchor: n.anchor, frac: n.frac,
       kicker: t('cl.guide.kicker_step', { n: n.index + 1, total: n.total }),
       goal: t(`cl.guide.step.${n.id}`, { need: n.need }),
-      why: t(`cl.guide.step.${n.id}.why`),
+      why: t(`cl.guide.step.${n.id}.why`, { need: n.need }),
       count: n.need > 1 ? t('cl.guide.count', { have: Math.floor(n.have), need: n.need }) : ''
     };
   }

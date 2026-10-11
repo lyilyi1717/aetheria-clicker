@@ -88,9 +88,7 @@
   .clwc-card, .clwc-late { transition: none; }
 }
 
-/* The preview hides every child of <body> but its own root (css/coreloop.css), which also hid the
-   reward toasts and ceremony. These two are the way every moment in this file reaches the player,
-   so they are let through (the doubled id outweighs the hiding rule's three element selectors). */
-body.coreloop > #reward-toasts#reward-toasts { display: flex !important; }
-body.coreloop > #reward-ceremony#reward-ceremony.is-open { display: flex !important; }
-body.coreloop > #reward-ceremony#reward-ceremony:not(.is-open) { display: none !important; }
+/* Reward toasts sit on <body> (js/ui/rewards.js): under the preview's header, which is taller than
+   the current game's */
+body.coreloop .reward-toasts { top: 128px; }
+@media (max-width: 767px) { body.coreloop .reward-toasts { top: 116px; } }
