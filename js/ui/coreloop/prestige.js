@@ -1,5 +1,7 @@
-// Core-loop Expand screen (CL-16, CL-32, behind ?loop=2): New Well, the upgrade tree, New Field,
-// Chronicle, Trials, Seals and Crew. The module id stays `prestige`; the tab says "Expand".
+// Core-loop Expand screen (CL-16, CL-32, CL-45, behind ?loop=2): New Well, the upgrade tree, New Field,
+// Chronicle, Trials, Seals and Crew. It opens with one "ready now" strip; only the next reset is a
+// full card (the others are one line and open on a tap); the tree, Trials and Seals are folded to a
+// title and a one-line status. Nothing is removed: everything is one tap away. The module id stays `prestige`; the tab says "Expand".
 // The shell mounts it: mount(panel, api) -> { update(api) }.
 // Staged by the guide: a section shows only when api.isOpen('prestige.<id>') and at most one closed
 // one shows, as a single locked line. Each reset says what you get, what starts over and what you keep.
@@ -15,7 +17,9 @@ import { FIELDS, FRACTIONS } from '../../systems/coreloop/shared.js';
 import * as Prestige from '../../systems/coreloop/Prestige.js';
 import * as Seals from '../../systems/coreloop/Seals.js';
 import * as Tree from '../../systems/coreloop/Tree.js';
-import { bestNode } from './tree.js';
+import * as Guide from '../../systems/coreloop/Guide.js';
+import { bestNode, mountTree, buyableCount, bankList, anyBought } from './tree.js';
+import { makeFold } from './folds.js';
 
 registerStrings(EN, AR);
 
@@ -236,6 +240,159 @@ export function crewView(state) {
   return { crew, slots: Prestige.crewSlots(state), rate: Seals.crewRate(state), free: crew < Prestige.crewSlots(state) };
 }
 
+// ---- "ready now": what the strip at the top names, and what the tab dot counts (feel study R10)
+const TRIAL_IDS = P.trials.map(([id]) => id);
+// The anchors the guide's goal can name on this screen, as the thing they point at
+export const ANCHOR_KIND = Object.freeze({
+  'prestige.newwell': 'well', 'prestige.newfield': 'field', 'prestige.chronicle': 'chronicle', 'prestige.tree': 'tree'
+});
+export const RESET_IDS = Object.freeze(['well', 'field', 'chronicle']);
+const resetOpen = (id, isOpen) => id === 'well' || isOpen(`prestige.${id}`);
+const defaultOpen = (state) => (f) => Guide.isOpen(state, f);
+
+// { ready: { well, field, chronicle, tree, trial }, order: [kinds, the strip's button goes to the
+// first], buyable, best (the tree node worth buying first), trials: [ids that can be taken], count }
+// `goalAnchor` is the bar's goal when it is on this screen: what it names goes first.
+export function readyView(state, isOpen = defaultOpen(state), goalAnchor = null) {
+  const ready = {
+    well: Prestige.canNewWell(state),
+    field: isOpen('prestige.field') && Prestige.canNewField(state),
+    chronicle: isOpen('prestige.chronicle') && Prestige.canChronicle(state),
+    tree: false, trial: false
+  };
+  const treeOpen = isOpen('prestige.tree');
+  const buyable = treeOpen ? buyableCount(state, isOpen) : 0;
+  ready.tree = buyable > 0;
+  const trials = isOpen('prestige.trials') ? TRIAL_IDS.filter(id => trialView(state, id).can) : [];
+  ready.trial = trials.length > 0;
+  let order = ['chronicle', 'field', 'well', 'tree', 'trial'].filter(k => ready[k]);
+  const first = ANCHOR_KIND[goalAnchor];
+  if (first && order.includes(first)) order = [first, ...order.filter(k => k !== first)];
+  const count = (ready.well ? 1 : 0) + (ready.field ? 1 : 0) + (ready.chronicle ? 1 : 0) + (ready.tree ? 1 : 0) + trials.length;
+  return { ready, order, buyable, best: treeOpen ? bestNode(state, isOpen) : null, trials, count };
+}
+// The tab dot: a reset that is ready, plus 1 if the tree has something affordable, plus the Trials
+// that can be taken (the shell asks this without mounting the screen)
+export const readyCount = (state) => readyView(state).count;
+
+// How far along a reset is (0..1), for choosing which one is "next"
+export function resetFraction(state, id) {
+  if (id === 'well') return wellView(state).fraction;
+  if (id === 'field') return fieldView(state).fraction;
+  const c = chronicleView(state);
+  const rec = c.hasRecord ? clamp01(Math.max(0, c.have) / Math.max(1, c.recordLog)) : 1;
+  return Math.min(c.fieldsFraction, rec);
+}
+// The one reset that is a full card: the one the bar's goal names (when it is here), else the first
+// that is ready (Chronicle, New Field, New Well), else the open one that is furthest along
+export function mainReset(state, isOpen, goal = null) {
+  if (goal && goal.here) {
+    const k = ANCHOR_KIND[goal.anchor];
+    if (k && k !== 'tree' && resetOpen(k, isOpen)) return k;
+  }
+  const rv = readyView(state, isOpen);
+  for (const k of ['chronicle', 'field', 'well']) if (rv.ready[k]) return k;
+  let best = 'well', bestF = -1;
+  for (const k of ['well', 'field', 'chronicle']) {
+    if (!resetOpen(k, isOpen)) continue;
+    const f = resetFraction(state, k);
+    if (f > bestF + 1e-9) { best = k; bestF = f; }
+  }
+  return best;
+}
+// Who gets the one solid gold button: 'well' | 'field' | 'chronicle' | 'tree' | 'strip' | 'trial' | null.
+// While the bar's goal is on this screen it is that goal's element (when it can be pressed);
+// otherwise the strip's button, or the first ready thing when the strip is not shown yet.
+export function goldOwner(goal, rv, stripShown) {
+  if (goal && goal.here) {
+    const k = ANCHOR_KIND[goal.anchor];
+    return k && rv.ready[k] ? k : null;
+  }
+  if (rv.order.length === 0) return null;
+  return stripShown ? 'strip' : rv.order[0];
+}
+// The strip shows once the player has been round the loop once; before that the screen is the
+// New Well card (and then the tree) alone
+export const stripShown = (state) => state.prestige.wells >= 2 || state.prestige.totalFields > 0 || state.prestige.chronicles > 0;
+
+// What a reset that is not the full card says in its one line
+export function resetLine(state, id, fmt = String) {
+  if (id === 'well') {
+    const v = wellView(state);
+    return v.can ? t(one(v.pending, 'cl.prestige.sum.well_ready'), { n: fmt(v.pending) }) : t('cl.prestige.sum.pct', { pct: percent(v.fraction) });
+  }
+  if (id === 'field') {
+    const v = fieldView(state);
+    return v.can ? t('cl.prestige.sum.field_ready', { n: v.shares }) : t('cl.prestige.sum.pct', { pct: v.pct });
+  }
+  const c = chronicleView(state);
+  if (c.can) return t('cl.prestige.sum.chron_ready', { n: fmt(c.pages) });
+  if (c.fieldsLeft > 0) return t('cl.prestige.sum.chron_fields', { need: c.needFields, have: c.fields });
+  return t('cl.prestige.sum.chron_record', { need: c.recordLog, have: showLog(c.have) });
+}
+// "Nothing waiting here" and what is next
+export function nextLine(state, id, fmt = String) {
+  if (id === 'well') {
+    const v = wellView(state);
+    return t(one(v.need, 'cl.prestige.ready.next_well'), { need: fmt(v.need), have: fmt(v.pending) });
+  }
+  if (id === 'field') return t('cl.prestige.ready.next_field', { pct: fieldView(state).pct });
+  const c = chronicleView(state);
+  return c.fieldsLeft > 0
+    ? t('cl.prestige.ready.next_chron', { need: c.needFields, have: c.fields })
+    : t('cl.prestige.ready.next_chron_record', { need: c.recordLog });
+}
+// The strip's title: "Ready now: a New Well (+29 Reserves), 3 upgrades you can buy"
+export function readyTitle(state, rv, fmt = String) {
+  if (rv.count === 0) return t('cl.prestige.ready.none');
+  const parts = [];
+  for (const k of rv.order) {
+    if (k === 'well') { const n = Prestige.pendingReserves(state); parts.push(t(one(n, 'cl.prestige.ready.well'), { n: fmt(n) })); }
+    else if (k === 'field') parts.push(t('cl.prestige.ready.field', { n: P.sharesPerField }));
+    else if (k === 'chronicle') parts.push(t('cl.prestige.ready.chron', { n: fmt(Prestige.pendingPages(state)) }));
+    else if (k === 'tree') parts.push(rv.buyable === 1 && rv.best ? t('cl.prestige.ready.buy', { name: t(`cl.tree.node.${rv.best}`) }) : t('cl.prestige.ready.buys', { n: rv.buyable }));
+    else if (k === 'trial') parts.push(rv.trials.length === 1 ? t('cl.prestige.ready.trial', { name: t(`cl.prestige.trial.${rv.trials[0]}`) }) : t('cl.prestige.ready.trials', { n: rv.trials.length }));
+  }
+  return t('cl.prestige.ready.title', { list: parts.join(t('cl.prestige.ready.join')) });
+}
+// The strip's button label, for the first thing it names
+export function readyButton(state, rv) {
+  const k = rv.order[0];
+  if (k === 'well') return t('cl.prestige.ready.btn_well');
+  if (k === 'field') return t('cl.prestige.ready.btn_field');
+  if (k === 'chronicle') return t('cl.prestige.ready.btn_chron');
+  if (k === 'tree') return t('cl.prestige.ready.btn_buy', { name: t(`cl.tree.node.${rv.best}`) });
+  if (k === 'trial') return t('cl.prestige.ready.btn_trial');
+  return '';
+}
+
+// ---- one-line statuses of the folded sections
+export function treeStatus(state, isOpen, fmt = String) {
+  const banks = bankList(state);
+  if (banks.length === 0) return t('cl.prestige.tree.status_empty');
+  const bank = banks.map(b => t('cl.tree.price', { n: fmt(b.n), cur: t(b.n === 1 ? `cl.tree.cur1.${b.ring}` : `cl.tree.cur.${b.ring}`) })).join(t('cl.prestige.ready.join'));
+  const n = buyableCount(state, isOpen);
+  if (n === 0) return t('cl.prestige.tree.status_none', { bank });
+  return t(one(n, 'cl.prestige.tree.status'), { bank, n });
+}
+export function trialsStatus(state) {
+  const views = TRIAL_IDS.map(id => ({ id, v: trialView(state, id) }));
+  const name = (id) => t(`cl.prestige.trial.${id}`);
+  const ready = views.find(x => x.v.can);
+  if (ready) return t('cl.prestige.trial.status_ready', { name: name(ready.id) });
+  const waiting = views.filter(x => x.v.status === 'waiting').sort((a, b) => a.v.wait - b.v.wait)[0];
+  if (waiting) return t(one(waiting.v.wait, 'cl.prestige.trial.status_wait'), { name: name(waiting.id), n: waiting.v.wait });
+  const locked = views.find(x => x.v.status === 'locked');
+  if (locked) return t(`cl.prestige.trial.status_locked_${locked.v.kind}`, { name: name(locked.id), n: locked.v.n });
+  return t('cl.prestige.trial.status_won', { n: views.length });
+}
+export function sealsStatus(state) {
+  let open = 0;
+  for (let i = 0; i < P.seals; i++) if (Seals.isSealOpen(state, i)) open++;
+  const cr = crewView(state);
+  return t('cl.prestige.seals.status', { open, total: P.seals, free: Math.max(0, cr.slots - cr.crew) });
+}
+
 // ================================================================== DOM
 function ensureStyles(doc) {
   if (doc.head.querySelector(`link[${STYLE_ATTR}]`)) return;
@@ -255,9 +412,11 @@ function setNum(node, s) {
   node.classList.remove('cp-bump'); void node.offsetWidth; node.classList.add('cp-bump');
 }
 
-function setButton(btn, can, text) {
+// A button that can be pressed is a gold outline (btn-ready); only `gold` is solid (one per screen)
+function setButton(btn, can, text, gold = false) {
   setText(btn, text);
-  btn.classList.toggle('btn-primary', can);
+  btn.classList.toggle('btn-primary', can && gold);
+  btn.classList.toggle('btn-ready', can && !gold);
   btn.classList.toggle('is-locked', !can);
   btn.setAttribute('aria-disabled', String(!can));
 }
@@ -267,42 +426,31 @@ function setBar(bar, fraction) {
   bar.setAttribute('aria-valuenow', String(pct));
 }
 
+// A fold: a <details> whose summary is a title and a one-line status
+const foldOpen = (id, cls, attrs, title, bodyHtml) => `<details class="card cp-fold ${cls}" data-sec="${id}" ${attrs}>
+      <summary class="cp-sum"><span class="cp-sumtext"><h2 class="cp-h" data-ref="${id}-title">${title}</h2><span class="cp-sumstatus" data-ref="${id}-sum"></span></span></summary>
+      <div class="cp-body">${bodyHtml}</div>
+    </details>`;
+
 export function mount(panel, api) {
   const doc = panel.ownerDocument;
   ensureStyles(doc);
-  const trialIds = P.trials.map(([id]) => id);
+  const trialIds = TRIAL_IDS;
   const bar = (ref, tone) => `<div class="bar lg ${tone}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-ref="${ref}"><i></i></div>`;
-  const row = (label, ref) => `<div class="cp-row"><span>${esc(label)}</span><strong class="num" data-ref="${ref}"></strong></div>`;
   // The three lines of a reset
   const lines = (k) => `<ul class="cp-lines">
       ${['get', 'starts', 'keep'].map(l => `<li class="cp-ln cp-ln-${l}"><span class="cp-ln-k">${esc(t(`cl.prestige.line.${l}`))}</span><span class="cp-ln-v" data-ref="${k}-${l}"></span></li>`).join('')}
     </ul>`;
 
-  panel.innerHTML = `<div class="cp-screen">
-    <div class="cp-stats" data-ref="stats">
-      ${['reserves', 'shares', 'pages', 'chronicles'].map(k => `<span class="chip gold" data-ref="chip-${k}">${esc(t(`cl.prestige.stat.${k}`))} <strong class="num" data-ref="stat-${k}"></strong></span>`).join('')}
-    </div>
-    <div class="cp-stack">
-      <section class="card cp-card cp-main" data-ref="card-well">
-        <h2 class="cp-h">${esc(t('cl.prestige.well.title'))}</h2>
+  const wellBody = `
         <p class="cp-run" data-ref="run-line" hidden></p>
         <p class="cp-lead">${esc(t('cl.prestige.well.intro'))}</p>
         ${lines('well')}
         ${bar('well-bar', 'gold')}
         <p class="cp-note" data-ref="well-bar-text"></p>
         <button type="button" class="btn btn-block btn-lg cp-act" data-guide="prestige.newwell" data-ref="well-btn"></button>
-        <p class="cp-status" role="status" aria-live="polite" data-ref="well-status"></p>
-      </section>
-
-      <section class="card cp-card" data-sec="tree" data-guide="prestige.tree" data-ref="card-tree" hidden>
-        <h2 class="cp-h">${esc(t('cl.prestige.tree.title'))}</h2>
-        <p class="cp-lead">${esc(t('cl.prestige.tree.intro'))}</p>
-        <div class="cp-banks" data-ref="tree-banks"></div>
-        <div data-ref="tree-host"></div>
-      </section>
-
-      <section class="card cp-card cp-main" data-sec="field" data-ref="card-field" hidden>
-        <h2 class="cp-h">${esc(t('cl.prestige.field.title'))}</h2>
+        <p class="cp-status" role="status" aria-live="polite" data-ref="well-status"></p>`;
+  const fieldBody = `
         <p class="cp-lead">${esc(t('cl.prestige.field.intro'))}</p>
         ${lines('field')}
         ${bar('field-bar', 'aether')}
@@ -319,11 +467,8 @@ export function mount(panel, api) {
           <p class="cp-note">${esc(t('cl.prestige.field.charter_note'))}</p>
         </details>
         <button type="button" class="btn btn-block btn-lg cp-act" data-guide="prestige.newfield" data-ref="field-btn"></button>
-        <p class="cp-status" role="status" aria-live="polite" data-ref="field-status"></p>
-      </section>
-
-      <section class="card cp-card cp-main" data-sec="chronicle" data-ref="card-chron" hidden>
-        <h2 class="cp-h">${esc(t('cl.prestige.chron.title'))}</h2>
+        <p class="cp-status" role="status" aria-live="polite" data-ref="field-status"></p>`;
+  const chronBody = `
         <p class="cp-lead">${esc(t('cl.prestige.chron.intro'))}</p>
         ${lines('chron')}
         ${bar('chron-bar', 'sand')}
@@ -331,11 +476,8 @@ export function mount(panel, api) {
         <p class="cp-note" data-ref="chron-record"></p>
         <p class="cp-hint" data-ref="chron-suggest" hidden>${esc(t('cl.prestige.chron.suggest'))}</p>
         <button type="button" class="btn btn-block btn-lg cp-act" data-guide="prestige.chronicle" data-ref="chron-btn"></button>
-        <p class="cp-status" role="status" aria-live="polite" data-ref="chron-status"></p>
-      </section>
-
-      <section class="card cp-card" data-sec="trials" data-guide="prestige.trials" data-ref="card-trials" hidden>
-        <h2 class="cp-h">${esc(t('cl.prestige.trials.title'))}</h2>
+        <p class="cp-status" role="status" aria-live="polite" data-ref="chron-status"></p>`;
+  const trialsBody = `
         <p class="cp-lead">${esc(t('cl.prestige.trials.note'))}</p>
         <div class="cp-trials">
           ${trialIds.map(id => `<div class="card-row cp-trial" data-trial="${id}">
@@ -343,14 +485,11 @@ export function mount(panel, api) {
               <span class="cp-gloss">${esc(t(`cl.prestige.trial.${id}.gloss`))}</span>
               <span class="cp-gloss" data-ref="trial-text-${id}"></span></div>
             <span class="chip" data-ref="trial-chip-${id}"></span>
-            <button type="button" class="btn btn-sm btn-primary" data-ref="trial-btn-${id}" hidden>${esc(t('cl.prestige.trial.btn'))}</button>
+            <button type="button" class="btn btn-sm btn-ready" data-ref="trial-btn-${id}" hidden>${esc(t('cl.prestige.trial.btn'))}</button>
           </div>`).join('')}
         </div>
-        <p class="cp-status" role="status" aria-live="polite" data-ref="trial-status"></p>
-      </section>
-
-      <section class="card cp-card" data-sec="seals" data-guide="prestige.seals" data-ref="card-seals" hidden>
-        <h2 class="cp-h">${esc(t('cl.prestige.seals.title'))}</h2>
+        <p class="cp-status" role="status" aria-live="polite" data-ref="trial-status"></p>`;
+  const sealsBody = `
         <p class="cp-lead">${esc(t('cl.prestige.seals.what', { crew: t('cl.name.crew') }))}</p>
         <p class="cp-line" data-ref="crew-line"></p>
         <p class="cp-note" data-ref="crew-rate"></p>
@@ -362,15 +501,41 @@ export function mount(panel, api) {
             <div class="bar dust" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-ref="seal-bar-${i}"><i></i></div>
             <span class="cp-gloss" data-ref="seal-note-${i}"></span>
           </div>`).join('')}
-        </div>
-      </section>
+        </div>`;
+  const treeBody = `
+        <p class="cp-lead">${esc(t('cl.prestige.tree.intro'))}</p>
+        <div data-ref="tree-host"></div>`;
 
+  panel.innerHTML = `<div class="cp-screen">
+    <div class="cp-stats" data-ref="stats">
+      ${['reserves', 'shares', 'pages', 'chronicles'].map(k => `<span class="chip gold" data-ref="chip-${k}">${esc(t(`cl.prestige.stat.${k}`))} <strong class="num" data-ref="stat-${k}"></strong></span>`).join('')}
+    </div>
+    <div class="cp-stack">
+      <section class="card cp-ready cl-reserve" data-ref="strip" aria-live="polite" hidden>
+        <p class="cp-ready-title" data-ref="strip-title"></p>
+        <p class="cp-ready-sub" data-ref="strip-sub"></p>
+        <button type="button" class="btn btn-lg cp-ready-btn" data-ref="strip-btn" hidden></button>
+      </section>
+      ${foldOpen('well', 'cp-reset', 'open', esc(t('cl.prestige.well.title')), wellBody)}
+      ${foldOpen('tree', '', 'data-guide="prestige.tree" hidden', esc(t('cl.prestige.tree.title')), treeBody)}
+      ${foldOpen('field', 'cp-reset', 'hidden', esc(t('cl.prestige.field.title')), fieldBody)}
+      ${foldOpen('chronicle', 'cp-reset', 'hidden', esc(t('cl.prestige.chron.title')), chronBody)}
+      ${foldOpen('trials', '', 'data-guide="prestige.trials" hidden', esc(t('cl.prestige.trials.title')), trialsBody)}
+      ${foldOpen('seals', '', 'data-guide="prestige.seals" hidden', esc(t('cl.prestige.seals.title', { crew: t('cl.name.crew') })), sealsBody)}
       <p class="cl-locked" data-ref="locked" hidden></p>
     </div>
     </div>`;
 
   const refs = {};
   for (const n of panel.querySelectorAll('[data-ref]')) refs[n.dataset.ref] = n;
+  const card = (id) => panel.querySelector(`details[data-sec="${id}"]`);
+  const SEC = ['well', 'tree', 'field', 'chronicle', 'trials', 'seals'];
+  const folds = {};
+  for (const id of SEC) folds[id] = makeFold(card(id));
+  // the full card of a reset is not a thing to collapse: its summary is only a title
+  for (const id of RESET_IDS) {
+    card(id).querySelector('summary').addEventListener('click', (e) => { if (card(id).classList.contains('is-main')) e.preventDefault(); });
+  }
 
   // --- view state kept between ticks
   let lastApi = api;
@@ -380,15 +545,24 @@ export function mount(panel, api) {
   const armed = { field: false, chron: false };
   const timers = {};
   const refresh = () => update(lastApi);
+  let stripKind = null, stripBest = null, stripTrial = null;
+  let stripMsg = '', stripMsgUntil = 0;
+  const popped = new Set();     // a section opens itself once per session when it becomes ready
+  const prevReady = {};
+  let primed = false;
+  let prevGuideOn = false;
 
-  const flash = (card) => {
-    card.classList.remove('cp-flash'); void card.offsetWidth; card.classList.add('cp-flash');
-  };
-  const say = (key, text, card) => {
+  const flash = (c) => { c.classList.remove('cp-flash'); void c.offsetWidth; c.classList.add('cp-flash'); };
+  const say = (key, text, cardId) => {
     setText(refs[key], text);
-    if (card) flash(refs[card]);
+    if (cardId) flash(card(cardId));
     clearTimeout(timers[key]);
     timers[key] = setTimeout(() => setText(refs[key], ''), 7000);
+  };
+  const stripSay = (text) => {
+    stripMsg = text; stripMsgUntil = Date.now() + 6000;
+    clearTimeout(timers.strip);
+    timers.strip = setTimeout(refresh, 6100);
   };
   const arm = (which) => {
     armed[which] = true;
@@ -397,29 +571,23 @@ export function mount(panel, api) {
   };
   const disarm = (which) => { armed[which] = false; clearTimeout(timers[`arm-${which}`]); };
 
-  // --- the tree's own view, when it exists (another item builds js/ui/coreloop/tree.js)
-  let treeView = null, treeTried = false;
-  function mountTree() {
-    if (treeTried) return;
-    treeTried = true;
-    const file = './tree.js';           // a variable, so a missing file is a failed import, not a build error
-    import(file).then((m) => {
-      if (typeof m.mountTree !== 'function') return;
-      treeView = m.mountTree(refs['tree-host'], lastApi);
-      refs['tree-banks'].hidden = true;
-      if (treeView && treeView.update) treeView.update(lastApi);
-    }).catch(() => { /* no tree view yet: the banks stay */ });
-  }
+  // --- the tree's own view
+  const treeView = mountTree(refs['tree-host'], api);
 
   // --- actions
-  refs['well-btn'].addEventListener('click', () => {
+  function doWell() {
     const s = lastApi.state;
-    if (!Prestige.canNewWell(s)) return;
+    if (!Prestige.canNewWell(s)) return false;
     const n = Prestige.pendingReserves(s);
     if (lastApi.act((st, ctx) => Prestige.newWell(st, ctx))) {
-      say('well-status', t(one(n, 'cl.prestige.well.done'), { n: lastApi.fmt(n), run: runNumber(lastApi.state) }), 'card-well');
+      const msg = t(one(n, 'cl.prestige.well.done'), { n: lastApi.fmt(n), run: runNumber(lastApi.state) });
+      say('well-status', msg, 'well');
+      stripSay(msg);
+      return true;
     }
-  });
+    return false;
+  }
+  refs['well-btn'].addEventListener('click', doWell);
   refs['field-btn'].addEventListener('click', () => {
     const s = lastApi.state;
     if (!Prestige.canNewField(s)) return;
@@ -429,7 +597,7 @@ export function mount(panel, api) {
     const charter = charterPick || undefined;
     if (lastApi.act((st, ctx) => Prestige.newField(st, choice, charter, ctx))) {
       pickId = null;
-      say('field-status', t('cl.prestige.field.done', { n: P.sharesPerField }), 'card-field');
+      say('field-status', t('cl.prestige.field.done', { n: P.sharesPerField }), 'field');
     }
   });
   refs['chron-btn'].addEventListener('click', () => {
@@ -438,16 +606,37 @@ export function mount(panel, api) {
     if (!armed.chron) { arm('chron'); refresh(); return; }
     disarm('chron');
     const pages = Prestige.pendingPages(s);
-    if (lastApi.act((st, ctx) => Prestige.chronicle(st, ctx))) say('chron-status', t('cl.prestige.chron.done', { n: pages }), 'card-chron');
+    if (lastApi.act((st, ctx) => Prestige.chronicle(st, ctx))) say('chron-status', t('cl.prestige.chron.done', { n: pages }), 'chronicle');
   });
-  for (const id of trialIds) {
-    refs[`trial-btn-${id}`].addEventListener('click', () => {
-      if (!Prestige.canWinTrial(lastApi.state, id)) return;
-      if (lastApi.act((st, ctx) => Prestige.winTrial(st, id, ctx))) say('trial-status', t('cl.prestige.trial.done', { name: t(`cl.prestige.trial.${id}`) }));
-    });
-  }
+  const takeTrial = (id) => {
+    if (!Prestige.canWinTrial(lastApi.state, id)) return false;
+    if (lastApi.act((st, ctx) => Prestige.winTrial(st, id, ctx))) {
+      const msg = t('cl.prestige.trial.done', { name: t(`cl.prestige.trial.${id}`) });
+      say('trial-status', msg); stripSay(msg);
+      return true;
+    }
+    return false;
+  };
+  for (const id of trialIds) refs[`trial-btn-${id}`].addEventListener('click', () => takeTrial(id));
   refs.choices.addEventListener('change', (e) => { if (e.target.name === 'cp-choice') { pickId = e.target.value; refresh(); } });
   refs.charters.addEventListener('change', (e) => { if (e.target.name === 'cp-charter') { charterPick = e.target.value; refresh(); } });
+
+  // the strip's one button does the first thing it names
+  refs['strip-btn'].addEventListener('click', () => {
+    if (refs['strip-btn'].getAttribute('aria-disabled') === 'true') return;
+    if (stripKind === 'well') doWell();
+    else if (stripKind === 'field' || stripKind === 'chronicle') {
+      // these two ask for a choice and a second tap: take the player to the card
+      const c = card(stripKind);
+      folds[stripKind].resolve(true, true);
+      c.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+      flash(c);
+    } else if (stripKind === 'tree' && stripBest) {
+      let ok = false;
+      lastApi.act((st) => { ok = Tree.buy(st, stripBest); });
+      if (ok) stripSay(t('cl.tree.bought', { name: t(`cl.tree.node.${stripBest}`) }));
+    } else if (stripKind === 'trial' && stripTrial) takeTrial(stripTrial);
+  });
 
   // --- update (about 4 times a second)
   function buildChoices(offered) {
@@ -461,6 +650,8 @@ export function mount(panel, api) {
     lastApi = a;
     const s = a.state, p = s.prestige;
     const st = stage(a.isOpen);
+    const goal = typeof a.goal === 'function' ? a.goal() : null;
+    const rv = readyView(s, a.isOpen, goal && goal.here ? goal.anchor : null);
 
     // the stats the player has
     const shown = statsShown(s);
@@ -471,12 +662,30 @@ export function mount(panel, api) {
     refs.stats.hidden = shown.length === 0;
 
     // sections: open ones show, the next closed one is one locked line
-    for (const id of SECTIONS) {
-      const card = refs[id === 'chronicle' ? 'card-chron' : `card-${id}`];
-      card.hidden = !st.open.includes(id);
-    }
+    for (const id of SECTIONS) card(id).hidden = !st.open.includes(id);
     setText(refs.locked, st.locked ? a.lockText(`prestige.${st.locked}`) : '');
     refs.locked.hidden = !st.locked;
+
+    // a section that has just become ready opens itself, once
+    const nowReady = { tree: rv.ready.tree && st.open.includes('tree'), trials: rv.ready.trial };
+    if (!primed) {
+      // landing on the tree for the first time (the ceremony's "Spend them"): it must be open
+      if (nowReady.tree && !anyBought(s)) { folds.tree.popOpen(); popped.add('tree'); }
+    } else {
+      for (const id of Object.keys(nowReady)) {
+        if (nowReady[id] && !prevReady[id] && !popped.has(id)) { folds[id].popOpen(); popped.add(id); }
+      }
+    }
+    Object.assign(prevReady, nowReady);
+    primed = true;
+    // the guide named the tree (a "Show me"): open it for the player
+    const guideOn = card('tree').hasAttribute('data-guide-on');
+    if (guideOn && !prevGuideOn && st.open.includes('tree')) folds.tree.popOpen();
+    prevGuideOn = guideOn;
+
+    // which reset is the full card
+    const main = mainReset(s, a.isOpen, goal);
+    const owner = goldOwner(goal, rv, stripShown(s));
 
     // New Well
     const w = wellView(s);
@@ -486,25 +695,13 @@ export function mount(panel, api) {
     setText(refs['run-line'], runLine(s));
     refs['run-line'].hidden = !(p.wells > 0);
     const wb = wellButton(s);
-    // one solid gold thing per screen: the bar's goal if it is here, else the best action; the tree's
-    // best buy wins over a New Well that can wait
-    const goal = typeof a.goal === 'function' ? a.goal() : null;
-    const treeHasBuy = st.open.includes('tree') && bestNode(s, a.isOpen) !== null;
-    const wellPrimary = goal && goal.here ? goal.anchor === 'prestige.newwell' : !treeHasBuy;
-    setButton(refs['well-btn'], wb.can, wb.text);
-    refs['well-btn'].classList.toggle('btn-primary', wb.can && wellPrimary);
-    refs['well-btn'].classList.toggle('btn-ready', wb.can && !wellPrimary);
+    setButton(refs['well-btn'], wb.can, wb.text, owner === 'well');
 
     // the tree
     if (st.open.includes('tree')) {
-      mountTree();
-      if (treeView && treeView.update) treeView.update(a);
-      const banks = treeBanks(s);
-      const host = refs['tree-banks'];
-      if (host.children.length !== banks.length) {
-        host.innerHTML = banks.map(b => `<div class="cp-row"><span>${esc(t(`cl.prestige.bank.${b.ring}`))}</span><strong class="num" data-bank="${b.ring}"></strong></div>`).join('');
-      }
-      for (const b of banks) setNum(host.querySelector(`[data-bank="${b.ring}"]`), a.fmt(b.n));
+      treeView.update(a, { gold: owner === 'tree' });
+      setText(refs['tree-sum'], treeStatus(s, a.isOpen, a.fmt));
+      folds.tree.resolve(false);
     }
 
     // New Field
@@ -520,27 +717,27 @@ export function mount(panel, api) {
       const eff = effectiveChoice(s, pickId);
       const sugg = choiceId(Prestige.suggestedChoice(s));
       for (const c of offered) {
-        const card = refs.choices.querySelector(`[data-choice="${choiceId(c)}"]`);
+        const cardEl = refs.choices.querySelector(`[data-choice="${choiceId(c)}"]`);
         const view = choiceCard(s, c);
-        setText(card.querySelector('[data-c="title"]'), view.title);
-        setText(card.querySelector('[data-c="desc"]'), view.desc);
-        card.querySelector('[data-c="sugg"]').hidden = view.id !== sugg;
-        const input = card.querySelector('input');
+        setText(cardEl.querySelector('[data-c="title"]'), view.title);
+        setText(cardEl.querySelector('[data-c="desc"]'), view.desc);
+        cardEl.querySelector('[data-c="sugg"]').hidden = view.id !== sugg;
+        const input = cardEl.querySelector('input');
         if (input.checked !== (view.id === eff)) input.checked = view.id === eff;
-        card.classList.toggle('is-picked', view.id === eff);
+        cardEl.classList.toggle('is-picked', view.id === eff);
       }
       if (charterPick === undefined) charterPick = p.charter === 'none' ? '' : p.charter;
       for (const c of Prestige.CHARTERS) {
-        const card = refs.charters.querySelector(`[data-charter="${c}"]`);
-        const input = card.querySelector('input');
+        const cardEl = refs.charters.querySelector(`[data-charter="${c}"]`);
+        const input = cardEl.querySelector('input');
         if (input.checked !== (charterPick === c)) input.checked = charterPick === c;
-        card.classList.toggle('is-picked', charterPick === c);
+        cardEl.classList.toggle('is-picked', charterPick === c);
         refs[`charter-now-${c}`].hidden = p.charter !== c;
       }
       setText(refs['charter-sum'], t('cl.prestige.field.charter_sum', { name: charterPick ? t(`cl.charter.${charterPick}`) : t('cl.prestige.field.charter_none') }));
       if (!f.can && armed.field) disarm('field');
       const fb = fieldButton(s, armed.field);
-      setButton(refs['field-btn'], fb.can, fb.text);
+      setButton(refs['field-btn'], fb.can, fb.text, owner === 'field');
     }
 
     // Chronicle
@@ -553,7 +750,18 @@ export function mount(panel, api) {
       refs['chron-suggest'].hidden = !c.suggest;
       if (!c.can && armed.chron) disarm('chron');
       const cb = chronicleButton(s, armed.chron);
-      setButton(refs['chron-btn'], cb.can, cb.text);
+      setButton(refs['chron-btn'], cb.can, cb.text, owner === 'chronicle');
+    }
+
+    // the resets: one full card, the others one line each (and open on a tap)
+    for (const id of RESET_IDS) {
+      const c = card(id);
+      const isMain = id === main;
+      c.classList.toggle('is-main', isMain);
+      if (!c.hidden) {
+        folds[id].resolve(false, isMain);
+        setText(refs[`${id}-sum`], resetLine(s, id, a.fmt));
+      }
     }
 
     // Trials
@@ -566,6 +774,8 @@ export function mount(panel, api) {
         chip.className = `chip ${v.status === 'won' ? 'life' : v.status === 'ready' ? 'gold' : ''}`;
         refs[`trial-btn-${id}`].hidden = !v.can;
       }
+      setText(refs['trials-sum'], trialsStatus(s));
+      folds.trials.resolve(false);
     }
 
     // Seals and Crew
@@ -581,6 +791,23 @@ export function mount(panel, api) {
         setText(refs[`seal-note-${i}`], sealNote(s, i));
         tag.closest('.cp-seal').classList.toggle('is-locked', !v.open);
       }
+      setText(refs['seals-sum'], sealsStatus(s));
+      folds.seals.resolve(false);
+    }
+
+    // The ready strip (after the first round of the loop; before it the screen is just the cards)
+    const showStrip = stripShown(s);
+    refs.strip.hidden = !showStrip;
+    if (showStrip) {
+      stripKind = rv.order[0] || null;
+      stripBest = rv.best;
+      stripTrial = rv.trials[0] || null;
+      setText(refs['strip-title'], readyTitle(s, rv, a.fmt));
+      const showMsg = stripMsg && Date.now() < stripMsgUntil;
+      setText(refs['strip-sub'], showMsg ? stripMsg : rv.count === 0 ? nextLine(s, main, a.fmt) : '');
+      refs['strip-sub'].hidden = !refs['strip-sub'].textContent;
+      refs['strip-btn'].hidden = rv.count === 0;
+      if (rv.count > 0) setButton(refs['strip-btn'], true, readyButton(s, rv), owner === 'strip');
     }
   }
 

@@ -105,3 +105,29 @@
 @media (prefers-reduced-motion: reduce) { .cp-bump { animation: cp-bump var(--dur-3) var(--ease-out); }
 @keyframes cp-bump { from { color: var(--gold); text-shadow: var(--glow-gold); } }
 .cp-flash { animation: none; } }
+
+/* Folded sections and the ready-now strip (feel study R10): a title and a one-line status, open on a tap */
+.cp-fold { padding: 0; display: block; }
+.cp-sum {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
+  min-height: 56px; padding: var(--sp-3) var(--sp-4); cursor: pointer; list-style: none;
+}
+.cp-sum::-webkit-details-marker { display: none; }
+.cp-sum::after { content: "\25BE"; color: var(--text-3); transition: transform var(--dur-2) var(--ease-out); }
+.cp-fold:not([open]) > .cp-sum::after { transform: rotate(90deg); }
+[dir="rtl"] .cp-fold:not([open]) > .cp-sum::after { transform: rotate(-90deg); }
+.cp-sum:focus-visible { outline: 2px solid var(--aether); outline-offset: -2px; }
+.cp-sumtext { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+.cp-sumstatus { color: var(--text-2); font-size: var(--fs-13); }
+.cp-fold[open] > .cp-sum .cp-sumstatus { display: none; }
+.cp-body { padding: 0 var(--sp-4) var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+/* the full card of a reset: its title is not a button */
+.cp-fold.is-main > .cp-sum { cursor: default; min-height: 0; padding-block-end: var(--sp-2); }
+.cp-fold.is-main > .cp-sum::after { content: none; }
+.cp-fold.is-main { border-color: var(--line-brand); }
+
+.cp-ready { --cl-reserve-h: 104px; display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); }
+.cp-ready-title { margin: 0; font-family: var(--font-display); font-size: var(--fs-16); color: var(--text-1); }
+.cp-ready-sub { margin: 0; color: var(--text-2); font-size: var(--fs-13); }
+.cp-ready-btn { align-self: flex-start; min-height: var(--tap); }
+.cp-ready-btn.is-locked { white-space: normal; text-align: center; }
