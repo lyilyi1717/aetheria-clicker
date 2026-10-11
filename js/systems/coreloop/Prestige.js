@@ -68,6 +68,7 @@ export const canNewWell = (state) => pendingReserves(state) >= newWellNeed(state
 export function newWell(state, ctx = NO_CONTEXT) {
   if (!canNewWell(state)) return false;
   const p = state.prestige, gained = pendingReserves(state);
+  const seconds = Math.max(0, state.t - state.well.runStart);
   p.reserves += gained;
   p.wells++;
   unlockTrials(state, 'well', p.wells);
@@ -77,7 +78,7 @@ export function newWell(state, ctx = NO_CONTEXT) {
     pressure: state.well.pressure * Math.min(1, Tree.bonus(state, 'keepPressure')),
     kit: Tree.bonus(state, 'startKit')
   });
-  ctx.emit('newWell', HIT.MINOR, { reserves: gained });
+  ctx.emit('newWell', HIT.MINOR, { reserves: gained, first: p.wells === 1, seconds });
   return true;
 }
 

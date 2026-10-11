@@ -27,3 +27,63 @@
 @media (min-width: 768px) {
   .clfx-line { bottom: var(--sp-4); }
 }
+
+/* The first New Well (feel study R5): a ceremony, not a line of text. The screen dims, the well
+   gushes, a card counts up what the run paid and says what it did to everything, and one button
+   goes to the tree. Reduced motion: no gush, no count-up, everything shown at once. */
+.clwc {
+  position: fixed; inset: 0; z-index: 10003; overflow: auto;
+  display: flex; align-items: center; justify-content: center; padding: var(--sp-4);
+  background: color-mix(in srgb, var(--bg-1) 90%, transparent);
+  opacity: 0; transition: opacity var(--dur-3) var(--ease-out);
+}
+.clwc.is-open, .clwc.is-reduced { opacity: 1; }
+.clwc.is-leaving { opacity: 0; pointer-events: none; }
+.clwc-fountain { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.clwc-drop {
+  position: absolute; inset-block-end: -24px; inset-inline-start: calc(8% + var(--i) * 6.2%);
+  inline-size: 10px; block-size: 18px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--gold); box-shadow: 0 0 14px var(--gold); opacity: 0;
+  animation: clwcRise 1.6s var(--ease-out) calc(var(--i) * 70ms) both;
+}
+.clwc-drop:nth-child(3n) { inline-size: 7px; block-size: 13px; }
+.clwc-drop:nth-child(3n + 1) { animation-duration: 2s; }
+.clwc.is-reduced .clwc-drop { display: none; }
+@keyframes clwcRise {
+  0% { transform: translateY(0); opacity: 0; }
+  15% { opacity: 0.95; }
+  100% { transform: translateY(calc(-1 * (55vh + var(--i) * 3vh))); opacity: 0; }
+}
+.clwc-card {
+  position: relative; inline-size: 100%; max-inline-size: 26rem; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-3); text-align: center;
+  padding: var(--sp-6) var(--sp-5); border-radius: var(--r-3, var(--r-2)); background: var(--bg-2);
+  border: 1px solid var(--gold); box-shadow: var(--glow-gold);
+  transform: scale(0.9); opacity: 0;
+  transition: transform var(--dur-3) var(--ease-pop) 350ms, opacity var(--dur-3) var(--ease-out) 350ms;
+}
+.clwc.is-open .clwc-card, .clwc.is-reduced .clwc-card { transform: none; opacity: 1; }
+.clwc.is-reduced .clwc-card { transition: none; }
+.clwc-card p, .clwc-card h2 { margin: 0; overflow-wrap: anywhere; }
+.clwc-badge { inline-size: 56px; block-size: 56px; color: var(--gold); filter: drop-shadow(0 0 12px var(--gold)); }
+.clwc-badge svg { inline-size: 100%; block-size: 100%; }
+.clwc-title { font-family: var(--font-display); font-size: var(--fs-18); font-weight: 600; color: var(--text-2); }
+.clwc-gain { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: var(--sp-1); color: var(--gold); }
+.clwc-num { font-family: var(--font-display); font-size: clamp(3rem, 16vw, 4.5rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.clwc-plus { font-size: var(--fs-32); }
+.clwc-unit { font-size: var(--fs-20); }
+.clwc-run { font-size: var(--fs-14); color: var(--text-2); }
+.clwc-mult { font-size: var(--fs-16); color: var(--text-1); }
+.clwc-mult-num { font-size: var(--fs-24); color: var(--gold); }
+.clwc-mult-was { font-size: var(--fs-13); color: var(--text-3); }
+.clwc-keep { font-size: var(--fs-13); color: var(--text-2); line-height: var(--lh-body); }
+.clwc-go { align-self: stretch; margin-block-start: var(--sp-2); }
+.clwc-late { opacity: 0; transform: translateY(8px); transition: opacity var(--dur-3) var(--ease-out), transform var(--dur-3) var(--ease-out); }
+.clwc.is-revealed .clwc-late, .clwc.is-reduced .clwc-late { opacity: 1; transform: none; }
+.clwc.is-revealed .clwc-mult-num { animation: clwcPop var(--dur-3) var(--ease-pop); }
+.clwc.is-reduced .clwc-late { transition: none; }
+@keyframes clwcPop { 0% { transform: scale(1.5); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .clwc-drop { display: none; }
+  .clwc-card, .clwc-late { transition: none; }
+}

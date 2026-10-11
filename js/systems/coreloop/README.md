@@ -72,8 +72,8 @@ What the items that depend on it can rely on:
 - **`addCrude(state, amount, ctx)` is the only way Crude is earned** (the cascade, a Gusher's
   payout of `crudePerSecond(state, PRESENCE.WATCH) x P.gusherSeconds`). It keeps `runCrude`,
   `bestRunChron` and `bestEver` and unlocks generators (`generator` event).
-- **Actions**, each with its `can…`: `buy(state, k, count)` (within the current pack of
-  `P.packSize`), `buyPressure(state)`, `buyMax(state)` (the sim's `buyAll`; Auto-Buy is the
+- **Actions**, each with its `can…`: `buy(state, k, count, ctx)` (within the current pack of
+  `P.packSize`; emits `pack` when it completes one), `buyPressure(state)`, `buyMax(state)` (the sim's `buyAll`; Auto-Buy is the
   driver calling it each tick), `flare(state, byHand, ctx)` (the sim's `maybeFlare`: only when it
   at least multiplies the current Flare by `P.flareMinGain`; `byHand` false is Auto-Flare and
   emits nothing).
@@ -117,6 +117,8 @@ What the items that depend on it can rely on:
 - **Three rings** (`P.tree`): inner, bought with the Reserves earned this New Field layer and reset
   by a New Field; middle, bought with the Shares New Fields pay (not the re-blaze ones) and reset by
   a Chronicle (which also resets the inner ring); outer, bought with Pages, never reset.
+- **The Head Start Kit applies at once** when bought into a run with no Buckets (`Tree.buy` is the one
+  place outside `state.tree` this file writes: `well.amount[1]`).
 - **Buying spends a bank** (`state.tree.bank`), never the multiplier: `prestige.reserves`, `shares`
   and `pages` count what was earned.
 - **Effects are read where they apply**, through `treeBonus(state.tree, kind, field)`
@@ -225,6 +227,7 @@ they can use. The guide is the one place that decides both.
 | Kind | Level | From | Data |
 |---|---|---|---|
 | `gusher` | 1 | Presence | |
+| `pack` | 1 | Well | `slot`, `packs`, `bought` (a purchase completed a pack of `P.packSize`; only when the caller passes `ctx` to `buy` / `buyMax`) |
 | `flare` | 2 (by hand) | Well | |
 | `generator` | 3 | Well | `n` (9..30) |
 | `order` | 2 | Refinery | `frac` |
@@ -240,7 +243,7 @@ they can use. The guide is the one place that decides both.
 | `rigGrade` | 3 | Rigs | `field`, `grade` |
 | `seal` | 3; 4 from tier `P.sealBigTier` | Seals | `seal`, `tier` |
 | `trial` | 4 | Prestige | `id` |
-| `newWell` | 1 | Prestige | `reserves` |
+| `newWell` | 1 (the screen makes the first one a ceremony) | Prestige | `reserves`, `first` (true for the player's first New Well), `seconds` (the run's length) |
 | `newField` | 3 | Prestige | `n` |
 | `chronicle` | 4 | Prestige | `pages` |
 | `guide` | 1 | Guide | `step` |

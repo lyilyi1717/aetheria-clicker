@@ -314,4 +314,23 @@ console.log('--- past 1e308: the game keeps counting where the sim stops ---');
   assert.ok(a.eq(b), 'a loaded Well makes the same Crude');
 }
 
+{
+  // a purchase that completes a pack emits `pack` (level 1); one that does not, emits nothing
+  const w = createCoreLoopState();
+  w.well.crude = new BigNum(1e9);
+  const c = makeContext();
+  assert.equal(Well.buy(w, 1, P.packSize - 1, c), true);
+  assert.deepEqual(c.events, [], 'nine of ten: no pack yet');
+  assert.equal(Well.buy(w, 1, 1, c), true);
+  assert.deepEqual(c.events, [{ kind: 'pack', level: HIT.MINOR, slot: 1, packs: 1, bought: P.packSize }]);
+  assert.equal(Well.buy(w, 1, 1, c), true);
+  assert.equal(c.events.length, 1, 'the first of the next pack: nothing');
+  assert.equal(Well.buy(w, 1, 1), true, 'without a context it is silent and still works');
+  const m = createCoreLoopState();
+  m.well.crude = new BigNum(1e12);
+  const mc = makeContext();
+  Well.buyMax(m, mc);
+  assert.ok(mc.events.some(e => e.kind === 'pack'), 'buyMax passes the context on');
+}
+
 console.log('test_cl_well.js OK');

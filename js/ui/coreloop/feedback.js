@@ -2,7 +2,7 @@
 // ctx.emit gets feedback at the right tier, in this one place. The moment comes first (sound,
 // colour, motion), then a short line naming what happened.
 //
-//   hit level 1 (gusher, newWell)          T1  sound + a quiet line
+//   hit level 1 (gusher, pack)             T1  sound + a quiet line
 //   hit level 2 (order, bubble, vial, ...) T2  sound + colour cue + a line
 //   hit level 3 (generator, grade, ...)    T2  the same, with a named toast
 //   hit level 4 (weekly, royal, trial ...) T3  the rewards ceremony (queue and cooldown apply)
@@ -22,6 +22,8 @@ import '../../i18n/coreloop/guide-strings.js';
 import { feedback as defaultFeedback } from '../feedback.js';
 import { rewards as defaultRewards } from '../rewards.js';
 import { icon, iconToken, fromToken } from './icons.js';
+import * as WellCeremony from './wellCeremony.js';
+import { sound as defaultSound } from '../../engine/AudioEngine.js';
 
 registerStrings(FX_EN, FX_AR);
 
@@ -48,24 +50,31 @@ const keyParts = (key) => String(key).split(':').map(Number);
 // icon is for toasts and ceremonies.
 const MAP = {
   gusher: { level: 1, key: 'gusher', sound: 'pluck', color: '--gold', target: 'crude' },
-  guide: { level: 1, key: 'guide', sound: 'pluck', color: '--gold', target: 'crude', params: (e) => ({ goal: t(`cl.guide.step.${e.step}`, { need: STEPS.find(s => s.id === e.step)?.need ?? '' }) }) },
+  guide: { level: 1, key: 'guide', sound: 'pluck', color: '--gold', target: 'crude', params: (e) => ({ goal: t(`cl.guide.step.${e.step}`, { need: STEPS.find(s => s.id === e.step)?.need ?? '' }).replace(/[.!?:،؟]+$/, '') }) },
   unlock: { level: 3, key: 'unlock', sound: 'achievement', color: '--gold', target: 'panel', icon: iconToken('unlock'), params: (e) => ({ name: t(`cl.feature.${e.feature}`) }) },
-  newWell: { level: 1, key: 'newWell', sound: 'bell', color: '--gold', target: 'crude', icon: iconToken('well') },
+  // The first New Well is the ceremony (T3, wellCeremony.js); later ones a named toast with the run's
+  // time and the multiplier (T2). The system emits level 1: what the player makes of it is decided here.
+  newWell: {
+    level: (e) => (e.first ? 4 : 3), key: (e) => (e.first ? 'newWellFirst' : 'newWell'), sound: 'bell', color: '--gold', target: 'crude',
+    icon: iconToken('well'), ceremony: 'well', params: (e, state) => WellCeremony.bannerParams(e, state)
+  },
+  // A purchase that completed a pack of ten: the pump row's moment ("Bucket x2!")
+  pack: { level: 1, key: 'pack', sound: 'pluck', color: '--gold', target: 'row', params: (e) => ({ name: t(`cl.slot.${e.slot}`), mult: P.buyTenMult, size: P.packSize }) },
 
   flare: { level: 2, key: 'flare', sound: 'spell', color: '--danger', target: 'crude', params: () => ({ flare: t('cl.name.flare') }) },
   order: { level: 2, key: 'order', sound: 'coins', color: '--gold', target: 'crude', params: (e) => ({ frac: fracName(e.frac) }) },
   bubble: { level: 2, key: 'bubble', sound: 'mirage', color: '--mana', target: 'crude', params: (e) => ({ n: (e.cauldron ?? 0) + 1 }) },
-  vial: { level: 2, key: 'vial', sound: 'gem', color: '--mana', target: 'crude', params: (e) => { const [f, g] = keyParts(e.key); return { field: fieldName(f), grade: g }; } },
+  vial: { level: 2, key: 'vial', sound: 'gem', color: '--mana', target: 'crude', params: (e) => { const [f, g] = keyParts(e.key); return { field: fieldName(f), grade: g + 1 }; } },
   rank: {
     level: 2, key: (e) => (e.level >= 4 ? 'rankTitle' : 'rank'), sound: 'achievement', color: '--life', target: 'crude',
     params: (e) => ({ field: fieldName(e.field), rank: rankName(e.rank) })
   },
 
   generator: { level: 3, key: 'generator', sound: 'buy', color: '--gold', target: 'panel', icon: iconToken('gear'), params: (e) => ({ n: e.n }) },
-  grade: { level: 3, key: 'grade', sound: 'gem-rare', color: '--life', target: 'panel', icon: iconToken('mine'), params: (e) => ({ field: fieldName(e.field), grade: e.grade }) },
-  rigGrade: { level: 3, key: 'rigGrade', sound: 'gem-rare', color: '--life', target: 'panel', icon: iconToken('wrench'), params: (e) => ({ rig: rigName(e.field), grade: e.grade }) },
+  grade: { level: 3, key: 'grade', sound: 'gem-rare', color: '--life', target: 'panel', icon: iconToken('mine'), params: (e) => ({ field: fieldName(e.field), grade: e.grade + 1 }) },
+  rigGrade: { level: 3, key: 'rigGrade', sound: 'gem-rare', color: '--life', target: 'panel', icon: iconToken('wrench'), params: (e) => ({ rig: rigName(e.field), grade: e.grade + 1 }) },
   compound: { level: 3, key: 'compound', sound: 'gem-epic', color: '--mana', target: 'panel', icon: iconToken('refinery'), params: (e) => ({ n: e.recipe + 1 }) },
-  vialTier: { level: 3, key: 'vialTier', sound: 'gem-rare', color: '--mana', target: 'panel', icon: iconToken('vial'), params: (e) => { const [f, g] = keyParts(e.key); return { field: fieldName(f), grade: g, tier: e.tier }; } },
+  vialTier: { level: 3, key: 'vialTier', sound: 'gem-rare', color: '--mana', target: 'panel', icon: iconToken('vial'), params: (e) => { const [f, g] = keyParts(e.key); return { field: fieldName(f), grade: g + 1, tier: e.tier }; } },
   bubbleFamily: { level: 3, key: 'bubbleFamily', sound: 'mirage', color: '--mana', target: 'panel', icon: iconToken('bubbles'), params: (e) => ({ n: e.n }) },
   gilded: { level: 3, key: 'gilded', sound: 'gem-legendary', color: '--gold', target: 'panel', icon: iconToken('sparkle'), params: (e) => ({ n: e.recipe + 1 }) },
   seal: {
@@ -87,10 +96,11 @@ export const KINDS = Object.freeze(Object.keys(MAP));
  * toast (hit level 3). Returns null for a kind it does not know. `state` is accepted for symmetry
  * with the loop's data; nothing here reads it yet.
  */
-export function describe(event, state) { // eslint-disable-line no-unused-vars
+export function describe(event, state) {
   const m = event && MAP[event.kind];
   if (!m) return null;
-  const level = Number.isFinite(event.level) ? event.level : m.level;
+  // a kind whose level depends on the event (the first New Well) decides it here; else the event's own wins
+  const level = typeof m.level === 'function' ? m.level(event) : Number.isFinite(event.level) ? event.level : m.level;
   const e = { ...event, level };
   const key = typeof m.key === 'function' ? m.key(e) : m.key;
   return {
@@ -98,12 +108,14 @@ export function describe(event, state) { // eslint-disable-line no-unused-vars
     tier: tierOfLevel(level),
     named: level === 3,
     textKey: `cl.fx.${key}`,
-    params: m.params ? m.params(e) : {},
+    params: m.params ? m.params(e, state) : {},
     sound: m.sound,
     target: m.target || 'crude',
     color: m.color,
     icon: m.icon || '',
-    epic: !!m.epic
+    epic: !!m.epic,
+    ceremony: m.ceremony && level >= 4 ? m.ceremony : null,
+    event: e
   };
 }
 
@@ -112,8 +124,9 @@ const hasDom = () => typeof document !== 'undefined' && !!document.body;
 const MAX_SUMMARIES = 3;
 
 export class CoreLoopFeedback {
-  constructor(api, { fx = defaultFeedback, rewards = defaultRewards, doc = (typeof document !== 'undefined' ? document : null), schedule = (fn) => setTimeout(fn, 0) } = {}) {
-    Object.assign(this, { api, fx, rewards, doc, schedule });
+  constructor(api, { fx = defaultFeedback, rewards = defaultRewards, sound = defaultSound, doc = (typeof document !== 'undefined' ? document : null), schedule = (fn) => setTimeout(fn, 0) } = {}) {
+    Object.assign(this, { api, fx, rewards, sound, doc, schedule });
+    this.wellCer = null;
     this.pending = [];
     this.scheduled = false;
     this.lastT = api.state?.t ?? 0;
@@ -141,9 +154,12 @@ export class CoreLoopFeedback {
     this.lastT = now;
     if (!events.length || this.doc?.hidden) return;           // nothing fires while the page is hidden
     if (this.api.presence?.() === PRESENCE.AWAY) return;      // or for what happens while away
+    // The first New Well's ceremony brings the player to the tree itself: no "New: the upgrade tree" line on top
+    const firstWell = events.some(e => e.kind === 'newWell' && e.first);
     const byKind = new Map();
     for (const e of events) {
       if (!MAP[e.kind]) continue;
+      if (firstWell && e.kind === 'unlock' && e.feature === 'prestige.tree') continue;
       if (!byKind.has(e.kind)) byKind.set(e.kind, []);
       byKind.get(e.kind).push(e);
     }
@@ -168,6 +184,7 @@ export class CoreLoopFeedback {
 
   show(d, solo) {
     if (!d) return;
+    if (d.ceremony === 'well') { this.openWellCeremony(d); return; }
     const text = t(d.textKey, d.params);
     const el = this.cueTarget(d);
     // 1. The moment: sound first, then colour and motion on the element
@@ -190,6 +207,30 @@ export class CoreLoopFeedback {
     } else if (solo || d.tier === 2) this.line(text, d.tier);
   }
 
+  // The first New Well: a dimmed screen, the well gushing, a card counting up what it paid, and one
+  // button to the tree (the Reserves are already banked, so closing it loses nothing)
+  openWellCeremony(d) {
+    if (this.wellCer) this.wellCer.close();
+    const sum = WellCeremony.summary(d.event, this.api.state);
+    this.wellCer = WellCeremony.open(sum, {
+      doc: this.doc,
+      sound: () => this.sound?.playTier?.('big'),
+      onSpend: () => this.toTree()
+    });
+    return this.wellCer;
+  }
+
+  // "Spend them": the Expand screen, scrolled to the tree and flashed once
+  toTree() {
+    this.api.go?.('prestige');
+    this.schedule(() => {
+      const card = this.doc?.querySelector?.('#coreloop-root [data-guide="prestige.tree"]');
+      if (!card) return;
+      card.scrollIntoView?.({ block: 'start', behavior: 'auto' });
+      this.fx.cue?.(card, 'clfx-cue-t2', 700);
+    });
+  }
+
   colorOf(token) {
     if (!this.doc?.documentElement || typeof getComputedStyle !== 'function') return undefined;
     return getComputedStyle(this.doc.documentElement).getPropertyValue(token).trim() || undefined;
@@ -198,6 +239,10 @@ export class CoreLoopFeedback {
   cueTarget(d) {
     const root = this.doc?.getElementById?.('coreloop-root');
     if (!root) return null;
+    if (d.target === 'row') {
+      const row = root.querySelector(`[data-guide="well.buy.${d.event?.slot}"]`)?.closest('.clw-slot');
+      if (row) return row;
+    }
     return d.target === 'panel' ? root.querySelector('.cl-panel:not([hidden])') : root.querySelector('.cl-crude');
   }
 
@@ -252,6 +297,8 @@ export class CoreLoopFeedback {
     this.lineEl?.remove();
     this.lineEl = null;
     this.pending = [];
+    this.wellCer?.close();
+    this.wellCer = null;
   }
 }
 

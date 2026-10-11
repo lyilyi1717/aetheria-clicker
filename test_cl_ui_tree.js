@@ -64,7 +64,7 @@ ok(views.slice(0, cheapFirst.length).every(v => v.can), 'buyable nodes come firs
 ok(cheapFirst.every((v, i) => i === 0 || cheapFirst[i - 1].cost <= v.cost), 'cheapest first');
 const flags = views.filter(v => v.flag);
 eq(views.slice(-flags.length).map(v => v.id).sort(), flags.map(v => v.id).sort(), 'flags are last');
-ok(flags.length === 3 && flags.every(v => !v.can && V.sectionOf(v) === 'done'), 'flags are never buyable');
+ok(flags.length === 3 && flags.every(v => !v.can && V.sectionOf(v) === 'later'), 'flags are never buyable and wait under arriving later');
 s.tree.bank.reserves = 1000;
 ok(V.nodeView(s, Tree.nodes(s, 'reserves').find(n => n.id === 'alchemist')).can === false, 'a flag stays unbuyable with a full bank');
 const soon = V.sortNodes(Tree.nodes(fresh(), 'reserves').map(n => V.nodeView(fresh(), n))).filter(v => V.sectionOf(v) === 'soon');
@@ -86,5 +86,41 @@ s = fresh(); s.tree.bank.reserves = 1000;
 ok(V.buyAllWorthIt(s, 'reserves'), 'buy all is offered with a full bank');
 V.buyRing(s, 'reserves');
 ok(!Tree.has(s, 'alchemist') && !Tree.has(s, 'wakeel') && !Tree.has(s, 'leylines'), 'buy all never buys a flag');
+
+console.log('--- nodes that name things not yet met wait under arriving later ---');
+{
+  const closed = () => false;
+  s = fresh(); s.prestige.wells = 1; s.tree.bank.reserves = 1000;
+  const view = (id, isOpen) => V.nodeView(s, Tree.nodes(s, 'reserves').find(n => n.id === id), isOpen);
+  for (const id of ['covenant', 'drill', 'hourglass']) {
+    const v = view(id, closed);
+    ok(v.later && !v.can && V.sectionOf(v) === 'later' && v.missing === 0, `${id} waits while its part of the game is closed`);
+    const o = view(id, () => true);
+    ok(!o.later && o.can && V.sectionOf(o) === 'now', `${id} is buyable once its part is open`);
+  }
+  eq(V.needsFeature(P.tree.find(n => n.id === 'covenant')), 'fields.rig', 'the Falaj node needs the Rigs');
+  eq(V.needsFeature(P.tree.find(n => n.id === 'hourglass')), 'shell.presence', 'Gusher nodes need Gushers');
+  ok(view('kit', closed).can && view('idle_hands', closed).can, 'the Kit and Idle Hands name nothing unmet');
+  const ids = V.buyRing(s, 'reserves', closed);
+  ok(!ids.includes('covenant') && !ids.includes('drill') && !ids.includes('hourglass'), 'buy all skips what has not arrived');
+  for (const k of Object.keys(TEN).filter(k => k.startsWith('cl.tree.arrives.'))) ok(TEN[k] && TAR[k], k);
+  s = fresh(); s.prestige.reserves = 12;
+  eq(V.reserveMult(s), +(1 + P.resPer * 12).toFixed(2), 'the multiplier the keep line names');
+  s.tree.bank.reserves = 12;
+  const mult = V.reserveMult(s);
+  Tree.buy(s, 'kit'); Tree.buy(s, 'idle_hands');
+  eq(V.reserveMult(s), mult, 'spending the bank does not change the multiplier it names');
+}
+
+console.log('--- the Head Start Kit applies at once to an empty run ---');
+{
+  s = fresh(); s.tree.bank.reserves = 100;
+  const v0 = V.nodeView(s, Tree.nodes(s, 'reserves').find(n => n.id === 'kit'));
+  eq(V.kitNote(s, v0), 'now', 'no Buckets: it says it gives them at once');
+  ok(Tree.buy(s, 'kit'), 'bought');
+  eq(s.well.amount[1].toNumber ? s.well.amount[1].toNumber() : Number(s.well.amount[1]), P.tree.find(n => n.id === 'kit').value, 'the Buckets are in the run now');
+  const v1 = V.nodeView(s, Tree.nodes(s, 'reserves').find(n => n.id === 'kit'));
+  eq(V.kitNote(s, v1), 'next', 'a run with Buckets says it starts at the next New Well');
+}
 
 console.log(`cl-ui-tree: ${checks} checks passed`);
