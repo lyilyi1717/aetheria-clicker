@@ -42,7 +42,15 @@ const MAX_TICK_S = 5;       // a longer gap (a throttled tab) is settled as time
 const TAB_KEY = 'AETHERIA_CORELOOP_TAB';
 
 // Plain helpers, also used by the screens
-export const fmt = (x) => (x && typeof x.format === 'function' ? x.format() : String(Math.round(Number(x) || 0)));
+// Numbers for a person: a big number keeps three figures ("447K", "3.98K", "12.3M"), never five
+export function shorten(text) {
+  const m = /^(-?\d+(?:\.\d+)?)([A-Za-z]+)$/.exec(text);
+  if (!m) return text;
+  const n = Number(m[1]), a = Math.abs(n);
+  const out = a >= 100 ? String(Math.min(999, Math.round(a)) * Math.sign(n)) : a >= 10 ? n.toFixed(1) : n.toFixed(2);
+  return out.replace(/\.0+$|(\.\d*[1-9])0+$/, '$1') + m[2];
+}
+export const fmt = (x) => (x && typeof x.format === 'function' ? shorten(x.format()) : String(Math.round(Number(x) || 0)));
 export function fmtDuration(seconds) {
   const s = Math.max(0, Math.floor(seconds));
   return t('cl.shell.time_hm', { h: Math.floor(s / 3600), m: Math.floor((s % 3600) / 60) });
