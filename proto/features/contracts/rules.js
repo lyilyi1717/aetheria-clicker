@@ -288,6 +288,7 @@ export const contracts = use({
   // if it takes too long (leaving is free). It reports to globalThis.digContractsLog if a sim set one.
   bot: { shop(s, api) {
     const { ev, ctx, trk } = api;
+    if (!ctx || !trk) return 0;   // called outside the timeline sim (a test's bare api): nothing to plan with
     const log = (what, id) => { if (globalThis.digContractsLog) globalThis.digContractsLog({ what, id, best: s.best, boss: s.boss && +(s.boss.hp / s.boss.max).toFixed(2), down: s.bossesDown, real: trk.real, act: trk.act, hps: ctx.p.hps, ctx }); };
     ctx.cTried = ctx.cTried || {}; ctx.cOpen = ctx.cOpen || {}; ctx.cLogged = ctx.cLogged || {};
     if (contractsOpen(s)) for (let t = 1; t <= contractTiers(); t++) if (!ctx.cOpen[t] && tierOpen(s, t)) { ctx.cOpen[t] = 1; log('tier open', t); }
