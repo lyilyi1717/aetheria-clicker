@@ -17,6 +17,7 @@ export * from './fusion/rules.js';
 export * from './ground/rules.js';
 export * from './land2/rules.js';
 export * from './map/rules.js';
+export * from './moods/rules.js';
 export * from './museum/rules.js';
 export * from './oil/rules.js';
 export * from './ores/rules.js';

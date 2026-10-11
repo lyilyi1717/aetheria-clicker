@@ -1,0 +1,11 @@
+/* The Foreman panel: one big button per job. */
+#foreman .jobs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#foreman .job { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; background: var(--panel-2); border: 2px solid var(--line); border-radius: 12px; padding: 10px 6px 8px; transition: transform .08s, border-color .15s, box-shadow .15s; }
+#foreman .job:hover { border-color: var(--muted); }
+#foreman .job:active { transform: scale(.96); }
+#foreman .job b { font-size: 14px; }
+#foreman .job .key { position: absolute; inset-block-start: 5px; inset-inline-start: 8px; font-size: 12px; font-weight: 800; color: var(--muted); }
+#foreman .job.on { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(255,210,63,.3), 0 0 18px rgba(255,210,63,.25); background: #3a2a17; }
+#foreman .job.on b { color: var(--gold); }
+#foreman .job:last-child:nth-child(odd) { grid-column: 1 / -1; }
+#foreman .say { min-height: 2.6em; margin-block: 8px 0; }

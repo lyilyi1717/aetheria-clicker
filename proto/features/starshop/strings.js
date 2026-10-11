@@ -1,0 +1,30 @@
+// Strings of the Star shop. One line per level where a perk has levels (key `up_<id>_d<level>`),
+// so a language can word each one whole. English only for now.
+export default { en: {
+  starshop: 'Star Shop',
+  star_note: 'Spending Stars never lowers your Star bonus.',
+  star_note_none: 'Earn Stars at a New Site, then spend them here.',
+  star_next: 'Works from your next New Site.',
+  star_pointer: 'You have Stars. Spend them in the Star Shop.',
+  star_pointer_d: 'Perks that last for ever.',
+
+  up_sp_head: 'Rafeeq Waiting', up_sp_head_d1: 'A Rafeeq is hired and waiting at every new site.', up_sp_head_d2: 'Two Rafeeqs are waiting at every new site.', up_sp_head_d3: 'Three Rafeeqs are waiting at every new site.',
+  up_sp_keep: 'Lucky Pocket', up_sp_keep_d1: 'One relic you choose crosses the move, at level 1.', up_sp_keep_d2: 'The relic you choose crosses the move, up to level 2.', up_sp_keep_d3: 'The relic you choose crosses the move, up to level 3.',
+  up_sp_cards: 'Wide Hands', up_sp_cards_d1: 'Every chest shows 4 cards, not 3.',
+  up_sp_reroll: 'Shake the Chest', up_sp_reroll_d1: 'Once at each site, shake a chest for new cards. Free.',
+  up_sp_map: 'Treasure Map', up_sp_map_d1: 'The first chest of each site is close to the top.',
+  up_sp_eyes: 'Boom Eyes', up_sp_eyes_d1: 'TNT glows red, even in the dark.',
+  up_sp_wake: 'Rock Friend', up_sp_wake_d1: 'While you are away, Rafeeqs walk past a Big Rock you have broken before.',
+  up_sp_warm: 'Warm Pick', up_sp_warm_d1: 'Each site starts with your pick at half your best level.', up_sp_warm_d2: 'Each site starts with your pick at 70% of your best level.',
+  up_sp_bone: 'Bone Whistle', up_sp_bone_d1: 'A bone sits close to the top of each site.',
+  up_sp_oil: 'Oil Sniffer', up_sp_oil_d1: 'An oil well sits close to the top of each site.',
+  up_sp_gift: 'Pocket Chest', up_sp_gift_d1: 'A chest is waiting in your pocket at each new site.', up_sp_gift_d2: 'Two chests are waiting in your pocket at each new site.',
+
+  keep_title: 'Lucky Pocket: carry this one',
+  keep_auto: 'Your best relic goes by itself.',
+  keep_none: 'No relic yet.',
+  keep_level: 'Keeps level {n}',
+  reroll_btn: 'Shake the chest (free)',
+  reroll_done: 'Shaken! New cards.',
+  t_wake: 'Your Rafeeqs walked past {n} m of Big Rock land.',
+} };

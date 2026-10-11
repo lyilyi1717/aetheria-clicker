@@ -16,6 +16,7 @@ import './fusion/ui.js';
 import './ground/ui.js';
 import './land2/ui.js';
 import './map/ui.js';
+import './moods/ui.js';
 import './museum/ui.js';
 import './oil/ui.js';
 import './ores/ui.js';
