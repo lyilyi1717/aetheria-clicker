@@ -4,27 +4,31 @@
 .clw-h { font-family: var(--font-display); font-size: var(--fs-16); color: var(--gold); margin: 0; }
 .clw-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); }
 .clw-titlebox { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.clw-max { min-width: 120px; min-height: var(--tap); }
+.clw-max { min-block-size: var(--tap); white-space: normal; line-height: var(--lh-tight); }
 .clw-note { margin: 0; color: var(--text-3); font-size: var(--fs-12); line-height: var(--lh-body); }
+.clw-note.is-warn { color: var(--text-1); font-weight: 600; }
 .clw-line { margin: 0 0 var(--sp-2); color: var(--text-2); font-size: var(--fs-14); line-height: var(--lh-body); }
 .clw-would { margin: 0 0 var(--sp-2); color: var(--text-1); font-size: var(--fs-14); font-weight: 600; }
 
-/* 1. The well */
-.clw-hero { display: flex; flex-direction: column; align-items: center; gap: var(--sp-4); text-align: center; }
-.clw-stage { position: relative; display: flex; justify-content: center; width: 100%; }
+/* 1. The well. The barrel is on the left and the numbers beside it at every width, and every part of
+   the side column keeps its room from the first second, so nothing moves when it fills in. */
+.clw-hero { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: var(--sp-4); }
+.clw-stage { position: relative; display: flex; justify-content: center; flex: none; }
 .clw-well {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-1);
   inline-size: 168px; block-size: 168px; padding: var(--sp-3); border-radius: 50%; cursor: pointer;
-  border: 3px solid var(--gold); color: var(--text-1); font: inherit; touch-action: manipulation;
+  border: 3px solid var(--line-2); color: var(--text-2); font: inherit; touch-action: manipulation;
   background: radial-gradient(circle at 50% 35%, var(--bg-4), var(--bg-2) 70%);
-  box-shadow: 0 0 0 6px var(--gold-dim), var(--glow-gold);
   -webkit-tap-highlight-color: transparent; user-select: none;
-  transition: transform var(--dur-1) var(--ease-out);
+  transition: transform var(--dur-1) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
 }
+/* It glows only when it is what to do (the bar names it) or a Gusher is up */
+.clw-well.is-lit { border-color: var(--gold); box-shadow: 0 0 0 6px var(--gold-dim), var(--glow-gold); color: var(--text-1); }
 .clw-well:active { transform: scale(0.94); }
 .clw-well.is-tapped { animation: clw-squash var(--dur-3) var(--ease-pop); }
 .clw-well-icon { font-size: 3.5rem; line-height: 1; }
-.clw-well-text { font-size: var(--fs-13); font-weight: 700; color: var(--gold); }
+.clw-well-text { font-size: var(--fs-13); font-weight: 700; color: var(--text-2); }
+.clw-well.is-lit .clw-well-text { color: var(--gold); }
 .clw-well.is-gusher {
   background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--gold) 55%, var(--bg-2)), var(--gold-dim) 80%);
   animation: clw-bob 0.7s var(--ease-out) infinite alternate;
@@ -39,20 +43,30 @@
 }
 @keyframes clw-float { to { transform: translate(-50%, -140px); opacity: 0; } }
 
-.clw-side { display: flex; flex-direction: column; gap: var(--sp-3); width: 100%; max-inline-size: 420px; }
+.clw-side { display: flex; flex-direction: column; gap: var(--sp-2); flex: 1 1 0; min-inline-size: 0; max-inline-size: 380px; text-align: start; }
+.clw-ratebox { display: flex; align-items: center; min-block-size: 4.2rem; }
+.clw-intro { margin: 0; font-size: var(--fs-16); font-weight: 600; color: var(--text-1); line-height: var(--lh-tight); }
 .clw-rate { font-size: var(--fs-32); line-height: 1.1; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
 .clw-ratelabel { color: var(--text-2); font-size: var(--fs-13); }
-.clw-heat { display: flex; flex-direction: column; gap: var(--sp-2); text-align: start; }
-.clw-paid { margin: 0; color: var(--gold); font-weight: 700; }
+.clw-ratelabel.is-paid { color: var(--gold); font-weight: 700; }
+.clw-heat, .clw-run { display: flex; flex-direction: column; gap: var(--sp-1); }
+.clw-heat { min-block-size: 3.4rem; }
+.clw-run { min-block-size: 6rem; }
+.clw-heat.is-off, .clw-run.is-off { visibility: hidden; }
+.clw-heat .bar-row { margin: 0; }
+.clw-heatname { display: inline-flex; align-items: baseline; gap: var(--sp-1); flex-wrap: wrap; font-size: var(--fs-13); font-weight: 600; color: var(--text-1); }
+.clw-gloss { color: var(--text-3); font-weight: 400; font-size: var(--fs-12); }
+.clw-heat .val { color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; }
+.clw-runtext { margin: 0; color: var(--text-2); font-size: var(--fs-13); line-height: var(--lh-tight); }
+.clw-run .bar { margin: 0; }
+.clw-run-go { inline-size: 100%; min-block-size: var(--tap); white-space: normal; line-height: var(--lh-tight); }
 
-/* 2. This run */
 .clw-card .card-head { margin-bottom: var(--sp-2); }
 .clw-card > .clw-h { margin-block-end: var(--sp-2); }
 .clw-card .bar { margin-block-end: var(--sp-2); }
-.clw-run-go { margin-block-start: var(--sp-2); min-height: var(--tap); }
 .clw-card .btn-block { margin-block-start: var(--sp-2); min-height: var(--tap); }
 
-/* 3. Pumps */
+/* 2. Pumps */
 .clw-slots { display: flex; flex-direction: column; gap: var(--sp-2); }
 .clw-slot { flex-wrap: wrap; align-items: stretch; }
 .clw-icon { font-size: 2rem; line-height: 1; align-self: center; inline-size: 2.4rem; text-align: center; }
@@ -60,17 +74,25 @@
 .clw-title strong { font-size: var(--fs-16); }
 .clw-have { color: var(--gold); font-size: var(--fs-20); font-weight: 700; font-variant-numeric: tabular-nums; }
 .clw-sub { color: var(--text-2); font-size: var(--fs-13); font-variant-numeric: tabular-nums; }
-.clw-prog { margin-block-start: var(--sp-1); }
-.clw-prog .val { min-width: 0; font-weight: 500; color: var(--text-2); white-space: nowrap; }
-.clw-acts { display: flex; flex-direction: column; gap: var(--sp-2); flex: 1 1 100%; }
+/* The crate: ten pips fill one by one, and the line under them says what the tenth does */
+.clw-pips { display: flex; gap: 3px; margin-block-start: var(--sp-1); }
+.clw-pips i { flex: 1 1 0; block-size: 6px; border-radius: 3px; background: var(--bg-4); transition: background var(--dur-2) var(--ease-out); }
+.clw-pips i.on { background: var(--gold); }
+.clw-crate { color: var(--text-3); font-size: var(--fs-12); line-height: var(--lh-body); min-block-size: 2.6em; }
+.clw-crate.is-done { color: var(--gold); font-weight: 700; }
+.clw-acts { display: flex; flex-direction: row; gap: var(--sp-2); flex: 1 1 100%; }
 .clw .btn-buy {
+  position: relative; overflow: hidden; flex: 1 1 0; min-width: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-  min-height: var(--tap); width: 100%; height: auto; padding-block: var(--sp-2); white-space: normal; font-variant-numeric: tabular-nums;
+  min-height: var(--tap); width: 100%; height: auto; padding-block: var(--sp-2) calc(var(--sp-2) + 3px); white-space: normal; font-variant-numeric: tabular-nums;
 }
-.clw .btn-buy .lbl { font-weight: 700; }
+.clw .btn-buy .lbl { font-weight: 700; font-size: var(--fs-13); line-height: var(--lh-tight); text-align: center; }
 .clw .btn-buy .cost { font-size: var(--fs-13); }
 .clw .btn-buy .when { font-size: var(--fs-12); color: var(--text-2); text-align: center; }
-.clw-pack { opacity: 0.9; }
+/* How full a price is: a thin bar along the bottom of a button that cannot be paid yet */
+.clw-fill { position: absolute; inset-inline: 0; inset-block-end: 0; block-size: 3px; background: var(--bg-4); }
+.clw-fill i { display: block; block-size: 100%; inline-size: 0; background: var(--gold); transition: inline-size var(--dur-3) linear; }
+.clw-pack { opacity: 0.95; }
 
 .cl-pulse { animation: clw-pulse var(--dur-3) var(--ease-out); }
 @keyframes clw-pulse { 0% { box-shadow: 0 0 0 2px var(--gold); } 100% { box-shadow: 0 0 0 0 transparent; } }
@@ -80,25 +102,31 @@
 @keyframes clw-nope { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 
 @media (min-width: 560px) {
-  .clw-acts { flex-direction: row; flex: 0 1 auto; }
-  .clw .btn-buy { min-width: 130px; }
+  .clw-acts { flex: 0 1 auto; }
+  .clw .btn-buy { min-width: 150px; }
 }
 @media (min-width: 768px) {
-  .clw-hero { flex-direction: row; justify-content: center; text-align: start; }
-  .clw-stage { width: auto; }
   .clw-slot { flex-wrap: nowrap; }
-  .clw-rate { text-align: start; }
 }
 @media (prefers-reduced-motion: reduce) {
   .clw-well, .clw-well.is-gusher, .clw-well.is-tapped, .cl-pulse, .cl-nope, .clw-float { animation: none; transition: none; }
+  .clw-fill i, .clw-pips i { transition: none; }
   .cl-flash { animation: none; color: var(--text-1); }
 }
 :root[data-motion="reduced"] .clw-well, :root[data-motion="reduced"] .clw-well.is-gusher { animation: none; }
 @media (max-width: 480px) {
-  .clw-well { inline-size: 136px; block-size: 136px; }
-  .clw-well-icon { font-size: 2.75rem; }
+  .clw-hero { gap: var(--sp-3); }
+  .clw-well { inline-size: 116px; block-size: 116px; padding: var(--sp-2); border-width: 2px; }
+  .clw-well.is-lit { box-shadow: 0 0 0 4px var(--gold-dim), var(--glow-gold); }
+  .clw-well-icon { font-size: 2.25rem; }
+  .clw-rate { font-size: var(--fs-24); }
+  /* the lines beside the barrel wrap at this width: keep room for the longest so nothing jumps */
+  .clw-heat .clw-note { min-block-size: 3.6em; }
+  .clw-runtext { min-block-size: 2.4em; }
+  .clw-ratebox { min-block-size: 3.6rem; }
 }
 /* The label inside the well wraps and stays inside the circle ("Gusher! Tap! 13 s left") */
-.clw-well-text { text-align: center; max-inline-size: 124px; line-height: 1.15; white-space: normal; text-wrap: balance; }
+.clw-well-text { text-align: center; max-inline-size: 100px; line-height: 1.15; white-space: normal; text-wrap: balance; }
+@media (min-width: 481px) { .clw-well-text { max-inline-size: 124px; } }
 .clw-well.is-gusher .clw-well-text { font-size: var(--fs-14); }
 .clw-well.is-gusher .cl-icon { inline-size: 72px; block-size: 72px; }
