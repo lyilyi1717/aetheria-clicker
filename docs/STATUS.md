@@ -10,19 +10,15 @@ Owner decisions live in issue #23; if it has no answer, use the default listed t
 
 ## In progress
 
-- **Feel pass on the `?loop=2` preview** (`docs/core-loop-feel-study.md`). Built and merged: R1-R9 and
-  R11 of the study (see Done). **Still to build from it:**
-  - R10 for Expand and the Collection (one "ready now" strip, sections folded, only the next reset
-    as a full card); the Refinery has it.
-  - The Well's sticky strip on a phone: the shell offers the hooks (`.cl-stick`, `--cl-strip-h`,
-    comment near the end of `css/coreloop.css`), `well.js` does not use them yet.
-  - R8 leftovers: one notation for big numbers (prices still print "446.68K"), names for the twelve
-    skills (generic "Mine skill 1" today; the owner was asked for a direction), the localised sign
-    in `fracText` (`refinery.js`) for Arabic.
-  - Small: the unlock toast reads "New: the Refinery x2" when two parts open together; the first
-    Bucket row already names the next crate's price ("446.68K each") at second five.
-  - **Not yet done by anyone:** a real-time play on a phone-sized frame of the combined build, and
-    a combined look in Arabic.
+- Nothing is being built. **The owner is trying the `?loop=2` preview after the feel pass**; what they
+  say next decides the next item. Owner rules added 2026-10-11: **no phone-width testing or phone
+  layout work** (#292 closed unbuilt; at 375 x 667 the bar's goal sits below the fold through the
+  Bucket phase, if phones ever come back), and names must be oil-world words a 7 year old knows.
+- Left from the feel study, none started: one notation for very big numbers (two-letter suffixes
+  like "2.26af" remain), the localised sign in `fracText` (`refinery.js`) for Arabic, the first
+  Bucket row naming the next crate's price at second five, a single-ring tree showing two titles.
+- Not checked by anyone: sound; the combined build in Arabic (each sub-agent looked at its own
+  screen in Arabic).
 
 ## Next up
 
@@ -148,6 +144,7 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-C | R106 CL-39 The crew has a verb | #279 | R102 |
 | CL-C | R107 CL-40 Orders refill on haul; Trials are earned | #285 | – |
 | CL-C | R108 CL-41 The Refinery in three lines a card | #287 | R107 |
+| CL-C | R110 CL-45 Expand and the Collection folded | #293 | R105 |
 | CL-C2 | R88 CL-21 Tower as a Field | #238 | R84, R93 |
 | CL-C2 | R89 CL-22 Mine as a Field | #239 | R84, R93 |
 | CL-C2 | R90 CL-23 Oasis as a Field | #240 | R84, R93 |
@@ -157,6 +154,19 @@ R0–R30, R32–R40 and R41–R43 are done.
 | CL-C2 | R94 CL-27 Codex hosts achievements, leaderboard, community, settings, about | #244 | R86 |
 
 ## Done
+
+- R110 #293 (CL-45, PR #295, no player change): Expand and the Collection open with a "ready now"
+  strip and one button; only the next reset is a full card, the others one line; the tree (one ring
+  open at a time), Trials, Seals and the Collection's sections are folds with a one-line status
+  (`js/ui/coreloop/folds.js` remembers them for the session). The first New Well's ceremony and its
+  landing on the tree are unchanged (checked by the coordinator on main). R109 #292 (the Well on a
+  phone) was closed unbuilt on the owner's word.
+- R102 follow-up (PR #294): the twelve Mastery skills have names (`cl.skill.<field>.<k>`: Climbing,
+  Welding, Heavy lifting, Night watch; Digging, Drilling, Blasting, Cart pushing; Water finding,
+  Pipe laying, Palm planting, Camel care); `api.fmt` keeps three figures ("447K"); two parts
+  opening together are two toasts. Merged worktrees and local branches of the redesign were
+  removed (the owner allowed it); the old game's worktrees (`r44`-`r51` and the `clicker-*` ones)
+  were left.
 
 - **Feel pass, R102-R108** (2026-10-11, no player change; the preview only). The owner said a third
   time that the preview was confusing, and a first-time play-through in real time found why
