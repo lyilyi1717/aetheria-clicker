@@ -179,6 +179,14 @@ Everything else is a player action: brew, fill, offer, mix, level, buy, flare, r
   `cl.charter.*`, `cl.dallah.*`, `cl.rank.*`. Dynamic keys go in template literals
   (`` t(`cl.tab.${id}`) ``) so `test_r37_i18n.js` doesn't read them as literal keys.
 - Styles: `css/coreloop.css` (tokens only, phone first: tabs at the bottom below 768 px).
+- **The frame holds still** (CL-37): the next-step bar is a fixed height (its reason opens as a
+  card below it on a tap), the header's rate is the steady one (`Well.crudePerSecond(state,
+  PRESENCE.WATCH)`), tabs are appended in the order they arrived, a toast sits under the header.
+  A screen opens new sections BELOW what is in use (or in a box whose height is reserved from the
+  first frame), and may export `readyCount(state)` (a number): the shell imports the module to
+  ask, and shows a dot on its tab when it is above 0. The CSS hooks for screens (`--cl-header-h`,
+  `--cl-strip-h`, `.cl-stick`, `.cl-pair`, `.cl-reserve`, scroll margins on `[data-guide]`) are
+  documented in the comment near the end of `css/coreloop.css`.
 
 ## The guide (`Guide.js`, CL-28)
 

@@ -2,6 +2,9 @@
    Phone first: tabs along the bottom; from 768px they sit under the header. */
 
 body.coreloop > :not(#coreloop-root):not(script):not(link) { display: none !important; }
+/* The page's scrollbar keeps its room: a tab that is shorter than the window must not make the
+   whole page jump sideways by the scrollbar's width */
+html:has(body.coreloop) { scrollbar-gutter: stable; }
 body.coreloop { background: var(--bg-0); color: var(--text-1); font-family: var(--font-ui); margin: 0; }
 
 #coreloop-root {
@@ -26,7 +29,10 @@ body.coreloop { background: var(--bg-0); color: var(--text-1); font-family: var(
 }
 .cl-chip[data-state="hands"] { color: var(--life); border-color: color-mix(in srgb, var(--life) 50%, transparent); }
 .cl-chip[data-state="away"] { color: var(--text-3); }
-.cl-heat { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+/* The presence chip (Playing / Leaning back) has its room from the first frame; until the guide
+   opens shell.presence it is only invisible, so nothing in the header moves when it appears. */
+.cl-presence .cl-chip { min-inline-size: 7.5em; text-align: center; box-sizing: border-box; }
+.cl-chip[data-shown="false"] { visibility: hidden; }
 
 .cl-welcome {
   margin: var(--sp-3) var(--sp-4) 0; padding: var(--sp-3); border-radius: var(--r-2);
@@ -60,7 +66,9 @@ body.coreloop { background: var(--bg-0); color: var(--text-1); font-family: var(
 .cl-reset { margin-inline-start: auto; font-size: var(--fs-12); }
 
 @media (min-width: 768px) {
-  #coreloop-root { padding-block-end: 0; }
+  #coreloop-root { padding-block-end: 0; --cl-tabs-h: 45px; --cl-bottom-h: 0px; }
+  /* The tab row keeps its room even with one tab, so the first new tab moves nothing */
+  #coreloop-root .cl-tabs[hidden] { display: flex !important; visibility: hidden; }
   .cl-title { flex: 0 0 auto; }
   .cl-tabs {
     position: sticky; inset-block-start: var(--cl-header-h, 56px); inset-block-end: auto;
@@ -76,8 +84,10 @@ body.coreloop { background: var(--bg-0); color: var(--text-1); font-family: var(
 @media (prefers-reduced-motion: reduce) { #coreloop-root * { transition: none !important; animation: none !important; } }
 
 /* A panel that is not the open one is gone, whatever display its screen gives it */
-#coreloop-root .cl-panel[hidden], #coreloop-root .cl-tabs[hidden], #coreloop-root .cl-tab[hidden] { display: none !important; }
-.cl-tabs { grid-template-columns: repeat(var(--cl-tabs, 5), 1fr); }
+#coreloop-root .cl-panel[hidden], #coreloop-root .cl-tab[hidden] { display: none !important; }
+/* The phone's tab bar has five fixed columns: a tab that arrives takes the next one and none of the
+   ones already there move. With one tab there is no bar (it is fixed, so it takes no room). */
+#coreloop-root .cl-tabs[hidden] { display: none !important; }
 .cl-tab { position: relative; }
 .cl-tab-new {
   position: absolute; inset-block-start: 4px; inset-inline-end: 12%; font-style: normal;
@@ -86,30 +96,50 @@ body.coreloop { background: var(--bg-0); color: var(--text-1); font-family: var(
 }
 .cl-tab-new[hidden] { display: none; }
 @keyframes cl-new { from { transform: scale(1); } to { transform: scale(1.12); } }
-#coreloop-root.cl-one-tab { padding-block-end: 0; }
+.cl-tab-dot {
+  position: absolute; inset-block-start: 6px; inset-inline-end: 22%;
+  inline-size: 9px; block-size: 9px; border-radius: 50%; background: var(--gold);
+  box-shadow: 0 0 0 2px var(--bg-1);
+}
+.cl-tab-dot[hidden] { display: none; }
+.cl-tab-new:not([hidden]) ~ .cl-tab-dot { display: none; }
 
-/* The next-step bar: the one thing to do now */
-.cl-guide-slot { flex: 1 1 100%; max-inline-size: 1068px; margin-inline: auto; }
+/* The next-step bar: the one thing to do now. A FIXED height on every layout (--cl-bar-h): the
+   goal truncates to its lines, the full step and its reason open as a card BELOW the bar on a tap
+   (.cl-guide-pop), so the bar never grows or shrinks and "Show me" never moves. */
+#coreloop-root { --cl-bar-h: 84px; }
+.cl-guide-slot { position: relative; flex: 1 1 100%; max-inline-size: 1068px; margin-inline: auto; }
 .cl-guide {
-  position: relative; overflow: hidden;
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3);
-  padding: var(--sp-3) var(--sp-3) calc(var(--sp-3) + 4px);
+  position: relative; overflow: hidden; box-sizing: border-box; block-size: var(--cl-bar-h);
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3) calc(var(--sp-2) + 4px);
   border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); border-radius: var(--r-2);
   background: var(--gold-dim);
 }
-.cl-guide-text { flex: 1 1 220px; min-inline-size: 0; display: flex; flex-direction: column; gap: 2px; }
-.cl-guide-kicker { font-size: var(--fs-11); letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
-.cl-guide-goal { font-size: var(--fs-16); color: var(--text-1); line-height: var(--lh-tight); }
-.cl-guide-why { font-size: var(--fs-13); color: var(--text-2); }
-.cl-guide-why:empty, .cl-guide-count:empty { display: none; }
-.cl-guide-side { display: flex; align-items: center; gap: var(--sp-3); margin-inline-start: auto; }
-.cl-guide-count { font-size: var(--fs-16); font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
-.cl-guide-go { white-space: nowrap; }
+.cl-guide-text { flex: 1 1 0; min-inline-size: 0; display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
+.cl-guide-text:focus-visible { outline: 2px solid var(--aether); outline-offset: 2px; }
+.cl-guide-kicker { font-size: var(--fs-11); letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cl-guide-goal { font-size: var(--fs-16); color: var(--text-1); line-height: var(--lh-tight); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cl-guide-why { font-size: var(--fs-13); color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-block-size: 1.3em; }
+/* The side is anchored to the end: the count may come and go, "Show me" stays where it is */
+.cl-guide-side { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-3); flex: 0 0 auto; }
+.cl-guide-count { font-size: var(--fs-16); font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; min-inline-size: 3.2em; text-align: end; }
+.cl-guide-go { white-space: nowrap; min-inline-size: 6.5em; }
 .cl-guide-bar { position: absolute; inset-inline: 0; inset-block-end: 0; block-size: 4px; background: color-mix(in srgb, var(--gold) 18%, transparent); }
 .cl-guide-bar[hidden] { display: none; }
 .cl-guide-bar i { display: block; block-size: 100%; inline-size: 0; background: var(--gold); transition: inline-size var(--dur-3) var(--ease-out); }
-.cl-guide-changed { animation: cl-guide-in var(--dur-3) var(--ease-pop); }
-@keyframes cl-guide-in { from { transform: translateY(-6px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+/* A new goal glows once; it does not move */
+.cl-guide-changed { animation: cl-guide-in 600ms var(--ease-out); }
+@keyframes cl-guide-in { from { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 55%, transparent); } to { box-shadow: 0 0 0 0 transparent; } }
+.cl-guide-pop {
+  position: absolute; z-index: 4; inset-inline: 0; inset-block-start: calc(100% + 4px);
+  display: flex; flex-direction: column; gap: var(--sp-1); padding: var(--sp-3);
+  background: var(--bg-3); border: 1px solid var(--gold); border-radius: var(--r-2); box-shadow: var(--el-3);
+}
+.cl-pop-goal { font-size: var(--fs-16); color: var(--text-1); }
+.cl-pop-why { font-size: var(--fs-14); color: var(--text-2); }
+.cl-pop-why:empty { display: none; }
+.cl-guide-pop[hidden] { display: none; }
 
 /* What the bar points at: a steady ring, and a pulse on "Show me" */
 [data-guide-on] { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: var(--r-2); }
@@ -152,25 +182,52 @@ body.coreloop { background: var(--bg-0); color: var(--text-1); font-family: var(
   .cl-tab-new { position: static; }
 }
 
-/* Phone: the header stays small, so the screen keeps the screen. The bar is one row (goal and
-   "Show me"); its reason opens for a few seconds when the goal changes, and on a tap. */
+/* Phone: the header stays small, so the screen keeps the screen. The bar is 64px: the kicker, the
+   goal on up to two lines, the count and "Show me". The reason is in the card a tap opens below it. */
 @media (max-width: 767px) {
+  #coreloop-root { --cl-bar-h: 64px; --cl-tabs-h: 0px; --cl-bottom-h: 64px; }
   .cl-title { display: none; }
   .cl-header { padding: var(--sp-2) var(--sp-3); gap: var(--sp-2); }
-  .cl-guide { flex-wrap: nowrap; padding: var(--sp-2) var(--sp-3) calc(var(--sp-2) + 4px); }
-  .cl-guide-text { flex: 1 1 0; cursor: pointer; }
+  .cl-guide { padding: var(--sp-1) var(--sp-3) calc(var(--sp-1) + 4px); gap: var(--sp-2); }
   .cl-guide-kicker { font-size: 0.625rem; }
-  .cl-guide-goal { font-size: var(--fs-14); }
+  .cl-guide-goal { font-size: var(--fs-14); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
   .cl-guide-why { display: none; }
-  .cl-guide-open .cl-guide-why { display: block; }
-  .cl-guide-side { gap: var(--sp-2); flex: 0 0 auto; }
-  .cl-guide-count { font-size: var(--fs-13); }
-  .cl-guide-go { padding-inline: var(--sp-3); }
+  .cl-guide-side { gap: var(--sp-2); }
+  .cl-guide-count { font-size: var(--fs-13); min-inline-size: 2.6em; }
+  .cl-guide-go { padding-inline: var(--sp-3); min-inline-size: 5.5em; }
   .cl-head { margin-block-end: var(--sp-3); }
   .cl-head-title { font-size: var(--fs-16); }
   .cl-head-line { font-size: var(--fs-13); }
+  /* Toasts and status lines sit under the header, never over the tab bar or the buttons below */
+  #coreloop-root .clfx-line { inset-block-start: calc(var(--cl-header-h, 120px) + var(--sp-2)); inset-block-end: auto; }
+}
+@media (min-width: 768px) {
+  #coreloop-root .clfx-line { inset-block-start: calc(var(--cl-header-h, 120px) + var(--cl-tabs-h) + var(--sp-2)); inset-block-end: auto; }
 }
 
+/* ---- For the screens (the frame owns the page's geometry; a screen owns its own markup) ----
+   --cl-header-h   height of the sticky header, set by the shell (px, kept true by a ResizeObserver)
+   --cl-tabs-h     height of the desktop tab row under the header (0 on a phone, where tabs are at the bottom)
+   --cl-bottom-h   height of the phone's bottom tab bar (0 on desktop)
+   --cl-strip-h    set by a screen that keeps a sticky strip (the Well's barrel / rate strip) to its
+                   height, on #coreloop-root or the panel; the scroll margins below then clear it too.
+   [data-guide]    every anchor already gets scroll margins that clear the header, the strip and the
+                   bottom bar, so "Show me" never lands its target underneath them.
+   .cl-stick       (phone only) sticks an element just under the header; it has a background.
+   .cl-pair        (phone only) two buttons side by side instead of stacked (pump rows: half the height).
+   .cl-reserve     reserves a block's height before it fills: set --cl-reserve-h on it.
+   Rule for screens: a section that opens is APPENDED below what is already in use, or sits in a
+   box whose height was reserved from the first frame; never inserted above it. */
+#coreloop-root { --cl-strip-h: 0px; }
+#coreloop-root [data-guide] {
+  scroll-margin-block-start: calc(var(--cl-header-h, 120px) + var(--cl-tabs-h, 0px) + var(--cl-strip-h, 0px) + var(--sp-3));
+  scroll-margin-block-end: calc(var(--cl-bottom-h, 0px) + var(--sp-4));
+}
+.cl-reserve { min-block-size: var(--cl-reserve-h, 0); }
+@media (max-width: 767px) {
+  .cl-stick { position: sticky; inset-block-start: var(--cl-header-h, 120px); z-index: 1; background: var(--bg-0); }
+  .cl-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+}
 /* One gold thing per screen (the feel study, R3): solid gold (btn-primary) is the bar's goal or
    the single best action; anything else that can be pressed now is btn-ready. */
 #coreloop-root .btn-ready { background: transparent; border-color: var(--gold); color: var(--gold); }
