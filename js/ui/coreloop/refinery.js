@@ -674,7 +674,10 @@ export function mount(panel, firstApi) {
 
     // Orders
     const anchor = anchorSlot(s);
-    orderListUI.set(s.refinery.orders.map((_, slot) => ({ key: 's' + slot, slot, anchor: slot === anchor, view: orderView(s, slot) })));
+    // Posted Orders keep their places (a card never moves because it became fillable); empty slots go last
+    const rank = (v) => (v.empty ? 1 : 0);
+    orderListUI.set(s.refinery.orders.map((_, slot) => ({ key: 's' + slot, slot, anchor: slot === anchor, view: orderView(s, slot) }))
+      .sort((x, y) => rank(x.view) - rank(y.view) || x.slot - y.slot));
 
     // The ready strip
     const view = sectionsView(api.isOpen);
