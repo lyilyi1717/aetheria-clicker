@@ -1,0 +1,182 @@
+// Dig: the core rules. Damage and breaking, the player's swing, the step, shops and tools.
+// Pure logic over one state object; no DOM, no audio. Everything that should be seen or heard is
+// reported with emit(s, ev, kind, data). What each kind of block, relic, site or layer does lives in
+// proto/features/ and plugs in through the hooks named here (the full list is in proto/README.md).
+import { use, BLOCKS, ITEMS, SHOPS, TOOLS, QUEUE, layersOf, run, fold, emit, pollUnlocks } from './registry.js';
+import { layerOf, cellAt, setCell, reachable, dirtVal, scroll } from './grid.js';
+
+const NOEV = () => {};
+const NONE = Object.freeze({});
+
+// where the core's own work sits among the `step` hooks
+export const STEP_QUEUE = 500, STEP_SCROLL = 900;
+
+use({
+  id: 'core',
+  params: {
+    powGrow: 1.25,                  // each pick or training level: hits x1.25
+    // hp of dirt at row r = hp0 * hpGrow^r for the first layer, then hpGrow2 per row below it
+    hp0: 5, hpGrow: 1.12, hpGrow2: 1.12,
+    val0: 1, valGrow: 1.10, valGrow2: 1.10,   // coins of dirt, the same way
+    sight: 2,                       // how many blocks from open space you can see
+  },
+  legacy: { powGrow: 'powGrow', hp0: 'hp0', hpGrow: 'hpGrow', hpGrow2: 'hpGrow2', val0: 'val0', valGrow: 'valGrow', valGrow2: 'valGrow2' },
+  state: {
+    coins:    { init: () => 0 },
+    total:    { init: () => 0 },
+    top:      { init: () => 0, perSite: true },            // absolute row of rows[0]
+    best:     { init: () => 0, perSite: true },            // deepest row ever opened
+    rows:     { init: () => [], perSite: true },
+    hits:     { init: () => 0 },
+    relics:   { init: () => ({}) },                          // id -> level
+    queue:    { init: () => [], perSite: true, transient: true },   // delayed effects: { at, kind, r, c, ... }
+    t:        { init: () => 0, perSite: true },
+    seen:     { init: () => ({}), survives: ['site', 'land'] },     // first-time flags of the page and the tutorial
+    unlocked: { init: () => ({}), survives: ['site', 'land'] },     // content found so far (see unlocks())
+    land:     { init: () => 'desert', survives: ['site'] },
+    contract: { init: () => null, perSite: true },         // id of the contract this site is dug under
+    savedAt:  { init: () => 0 },
+    _pb:      { init: () => -1, transient: true },         // the depth the layer unlocks were last checked at
+  },
+  queue: {
+    pop(s, q, ev) { if (cellAt(s, q.r, q.c)) breakCell(s, q.r, q.c, q.src, ev, { chain: q.chain, veinLeft: q.veinLeft }); },
+    dmg(s, q, ev) { damage(s, q.r, q.c, q.dmg, q.src, ev, { chain: 1 }); },
+  },
+  hooks: {
+    step: [{ at: STEP_QUEUE, fn: runQueue }, { at: STEP_SCROLL, fn: runScroll }],
+  },
+  firsts: {
+    break: d => 'type:' + d.t,
+    relic: d => ['relic:' + d.id, d.level >= 2 && `relic:${d.id}:${d.level}`],
+    buy: d => ['shop:' + d.id, d.level >= 2 && `${d.id}:${d.level}`],
+    newSite: (d, s) => 'site:' + s.site,
+    tool: d => 'tool:' + d.id,
+    contractDone: d => 'contract:' + d.id,
+  },
+  polls: [s => {
+    if (s.best === s._pb) return null;
+    s._pb = s.best;
+    const L = Math.min(layerOf(s.best - 1), layersOf(s.land).length - 1), out = [];
+    for (let i = 1; i <= L; i++) out.push('layer' + (i + 1));
+    return out;
+  }],
+});
+
+// ---------- numbers every feature can bend ----------
+
+export const rel = (s, id) => s.relics[id] || 0;
+export const coinMult = s => fold('coinMult', s, 1);
+export const pickPower = s => fold('pickPower', s, 1);
+
+export function addCoins(s, n, src) {
+  s.coins += n; s.total += n;
+  run('earned', s, n, src);
+}
+// later(s, delay, kind, q): a delayed effect; QUEUE[kind](s, q, ev) runs it when its time comes
+export function later(s, delay, kind, q) { q.at = s.t + delay; q.kind = kind; s.queue.push(q); }
+
+// ---------- hitting ----------
+
+// damage one block; returns true if it broke
+export function damage(s, r, c, dmg, src, ev, info = NONE) {
+  const cell = cellAt(s, r, c);
+  if (!cell) return false;
+  const B = BLOCKS[cell.t];
+  dmg = fold('damage', s, dmg, cell, src, info, r);
+  if (B.damage) return B.damage(s, r, c, cell, dmg, src, ev, info);
+  cell.hp -= dmg;
+  if (cell.hp > 0) {
+    emit(s, ev, 'hit', { r, c, t: cell.t, dmg, src, crit: info.crit, frac: cell.hp / cell.max });
+    if (B.hit) B.hit(s, r, c, cell, dmg, src, ev, info);
+    return false;
+  }
+  breakCell(s, r, c, src, ev, info);
+  return true;
+}
+
+export function breakCell(s, r, c, src, ev, info = NONE) {
+  const cell = cellAt(s, r, c);
+  if (!cell) return;
+  setCell(s, r, c, null);
+  if (r + 1 > s.best) s.best = r + 1;
+  const B = BLOCKS[cell.t];
+  const b = { r, c, cell, t: cell.t, B, src, byHand: src === 'you', info, chain: info.chain || 0, coins: 0, data: null };
+  run('breaking', s, b);
+  if (B.val > 0) {
+    let coins = dirtVal(r) * B.val * coinMult(s) * fold('blockPay', s, 1, b);
+    coins = fold('breakCoins', s, coins, b);
+    b.coins = coins = Math.max(1, Math.round(coins));
+    addCoins(s, coins, src);
+  }
+  const d = { r, c, t: cell.t, coins: b.coins, src, chain: b.chain, seed: cell.s };
+  if (b.data) Object.assign(d, b.data);
+  emit(s, ev, 'break', d);
+  if (B.broke) B.broke(s, b, ev);
+  run('broke', s, b, ev);
+}
+
+// The player's swing at one block. Returns false if nothing could be hit there.
+export function swing(s, r, c, ev = NOEV) {
+  if (!reachable(s, r, c)) return false;
+  if (!fold('canSwing', s, true, r, c)) return false;
+  s.hits++;
+  const sw = { r, c, B: BLOCKS[cellAt(s, r, c).t], dmg: fold('swingDmg', s, pickPower(s)), crit: false, twice: false };
+  run('swing', s, sw);
+  emit(s, ev, 'swing', { r, c, crit: sw.crit, twice: sw.twice });
+  damage(s, r, c, sw.dmg, 'you', ev, { crit: sw.crit });
+  run('swung', s, sw, ev);
+  return true;
+}
+
+// ---------- time ----------
+
+function runQueue(s, dt, ev) {
+  if (!s.queue.length) return;
+  const due = s.queue.filter(q => q.at <= s.t);
+  if (!due.length) return;
+  s.queue = s.queue.filter(q => q.at > s.t);
+  for (const q of due) QUEUE[q.kind](s, q, ev);
+}
+function runScroll(s, dt, ev) {
+  const n = scroll(s);
+  if (n) { run('scrolled', s, n); emit(s, ev, 'scroll', { n }); }
+}
+
+export function step(s, dt, ev = NOEV) {
+  s.t += dt;
+  run('step', s, dt, ev);
+  pollUnlocks(s, ev);
+}
+
+// ---------- shops ----------
+
+export const itemLevel = (s, id) => s[SHOPS[ITEMS[id].shop].levels][id] || 0;
+export const itemOpen = (s, id) => { const u = ITEMS[id]; return !u.open || !!u.open(s); };
+export function upgradeCost(s, id) {
+  const u = ITEMS[id], lv = itemLevel(s, id);
+  return u.cost ? u.cost(s, lv) : Math.ceil(u.base * Math.pow(u.grow, lv));
+}
+export function canBuy(s, id) {
+  const u = ITEMS[id];
+  return (u.max === undefined || itemLevel(s, id) < u.max) && s[SHOPS[u.shop].wallet] >= upgradeCost(s, id);
+}
+export function buy(s, id, ev = NOEV) {
+  if (!ITEMS[id] || !canBuy(s, id)) return false;
+  const u = ITEMS[id], sh = SHOPS[u.shop];
+  s[sh.wallet] -= upgradeCost(s, id);
+  const level = ++s[sh.levels][id];
+  if (u.bought) u.bought(s, level, ev);
+  emit(s, ev, 'buy', { id, level, shop: u.shop });
+  return true;
+}
+
+// ---------- tools ----------
+
+export const toolOpen = (s, id) => { const T = TOOLS[id]; return !!T && (!T.open || !!T.open(s)); };
+export const canUseTool = (s, id, r, c) => toolOpen(s, id) && (!TOOLS[id].can || !!TOOLS[id].can(s, r, c));
+export function useTool(s, id, r, c, ev = NOEV) {
+  if (!canUseTool(s, id, r, c)) return false;
+  TOOLS[id].use(s, r, c, ev);
+  emit(s, ev, 'tool', { id, r, c });
+  return true;
+}

@@ -12,32 +12,13 @@
       <h1 data-t="title">Dig</h1>
       <span class="tagline" data-t="tagline"></span>
       <span class="grow"></span>
-      <span id="stars" class="stars" hidden><svg width="20" height="20" viewBox="0 0 32 32"><path d="M16 3 L20 12 L30 13 L22.5 19.5 L25 29 L16 24 L7 29 L9.5 19.5 L2 13 L12 12 Z" fill="#ffd23f" stroke="#7a5a00" stroke-width="2"/></svg><b id="stars-n">0</b></span>
+      <span id="chips"></span>
       <button id="auto" class="ghost"></button>
       <button id="mute" class="ghost"></button>
     </header>
 
     <div class="layout">
-      <aside class="side" id="left">
-        <section class="panel">
-          <h2 data-t="relics"></h2>
-          <p class="muted" id="relic-none" data-t="relics_none"></p>
-          <div id="relic-list"></div>
-        </section>
-        <section class="panel" id="museum" hidden>
-          <h2 data-t="museum"></h2>
-          <p class="muted" id="museum-none" data-t="museum_none"></p>
-          <div id="museum-list"></div>
-        </section>
-        <section class="panel" id="site" hidden>
-          <h2 data-t="site_title"></h2>
-          <p id="site-now"></p>
-          <p class="muted" id="site-d"></p>
-          <p id="site-get"></p>
-          <p class="muted" id="site-keep"></p>
-          <button id="site-btn" class="primary" hidden></button>
-        </section>
-      </aside>
+      <aside class="side" id="left"></aside>
 
       <section class="mid">
         <div id="goal"><span id="goal-text"></span><div class="bar"><i id="goal-fill"></i></div></div>
@@ -49,17 +30,11 @@
           <div id="toast"></div>
           <div id="banner"></div>
           <div id="hint" data-t="hint_start"></div>
-          <button id="chest-btn" hidden><span data-t="chest_btn"></span><b id="chest-n">1</b></button>
+          <div id="tools" hidden></div>
         </div>
       </section>
 
-      <aside class="side" id="right">
-        <section class="panel">
-          <h2 data-t="shop"></h2>
-          <div id="shop-list"></div>
-          <p class="muted" id="shop-locked"></p>
-        </section>
-      </aside>
+      <aside class="side" id="right"></aside>
     </div>
 
     <footer>

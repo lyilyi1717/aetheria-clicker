@@ -1,0 +1,29 @@
+// Dig: the list of features (page side). One line per feature that shows or sounds anything,
+// kept in A to Z order. Each module registers itself with ui({...}) when it loads.
+import './autos/ui.js';
+import './away/ui.js';
+import './boss/ui.js';
+import './chest/ui.js';
+import './combo/ui.js';
+import './contracts/ui.js';
+import './crits/ui.js';
+import './crystal/ui.js';
+import './deep/ui.js';
+import './diggers/ui.js';
+import './foreman/ui.js';
+import './forge/ui.js';
+import './fusion/ui.js';
+import './ground/ui.js';
+import './land2/ui.js';
+import './map/ui.js';
+import './museum/ui.js';
+import './oil/ui.js';
+import './ores/ui.js';
+import './relics/ui.js';
+import './relics2/ui.js';
+import './shop/ui.js';
+import './sites/ui.js';
+import './starshop/ui.js';
+import './tnt/ui.js';
+import './water/ui.js';
+import './wing2/ui.js';

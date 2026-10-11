@@ -1,4 +1,4 @@
-// Dig prototype: a rough pacing check. A scripted player digs for 25 minutes; prints when each depth
+// Dig: a rough pacing check (not seeded; the timeline sim is the careful one). A scripted player digs for 25 minutes; prints when each depth
 // and Big Rock was reached (seconds). Usage: node sim/proto/dig-pacing.mjs [active|idle] ['{"hpGrow":1.13}']
 import * as G from '../../proto/game.js';
 function run(seedless, hps = 4.5, active = true) {
@@ -11,7 +11,7 @@ function run(seedless, hps = 4.5, active = true) {
       // policy: reachable ore/chest anywhere in view else deepest reachable in/near column
       let best = null, bs = -1e9;
       for (let i = 0; i < G.VIEW_ROWS; i++) for (let c = 0; c < G.COLS; c++) { const r = s.top + i; const cell = s.rows[i][c]; if (!cell || !G.reachable(s, r, c)) continue;
-        let sc = i * 3 - Math.abs(c - col) * 2; if (G.ORES.includes(cell.t) || ['chest','fossil','oil','tnt'].includes(cell.t)) sc += 30; if (cell.t === 'hard') sc -= 8; if (sc > bs) { bs = sc; best = [r, c]; } }
+        let sc = i * 3 - Math.abs(c - col) * 2; if (G.BLOCKS[cell.t].notice) sc += 30; if (cell.t === 'hard') sc -= 8; if (sc > bs) { bs = sc; best = [r, c]; } }
       if (best) { col = best[1]; G.swing(s, best[0], best[1], ev); }
     }
     G.step(s, dt, ev);
@@ -24,5 +24,5 @@ function run(seedless, hps = 4.5, active = true) {
   return { marks: Object.fromEntries(Object.entries(marks).map(([k, v]) => [k, Math.round(v)])), log, relics: s.relics };
 }
 const mode = process.argv[2] || 'active';
-const ov = JSON.parse(process.argv[3] || '{}'); for (const k in ov) { if (k in G.P) G.P[k] = ov[k]; else { const [a,b]=k.split('.'); G.UPGRADES[a][b]=ov[k]; } }
+const ov = JSON.parse(process.argv[3] || '{}'); for (const k in ov) G.setParam(k, ov[k]);   // any path: "hpGrow", "tnt.power", "crew.base"
 const r = run(0, 5, mode === 'active'); console.log(mode, JSON.stringify(r.marks)); console.log(r.log.join('\n')); console.log(JSON.stringify(r.relics));
