@@ -82,6 +82,15 @@ export function newWell(state, ctx = NO_CONTEXT) {
   return true;
 }
 
+// How far this run is toward its New Well, 0..1, for a bar. Crude grows by decades, fast at first
+// and slower later, so the plain share of decades reads 40% at the first Hand Pump and then
+// crawls; squared, it tracks the run's time closely (a quarter of the way at a quarter of the
+// run). Rises with every Crude made and never moves back within a run.
+export function newWellProgress(state) {
+  const x = Math.max(0, log10Big(state.well.runCrude)) / newWellRunLog(state);
+  return canNewWell(state) ? 1 : Math.min(1, x * x);
+}
+
 // --- New Field -----------------------------------------------------------------------------------
 // log10 of the best run this Chronicle that the next New Field needs
 export const fieldGateLog = (state) =>

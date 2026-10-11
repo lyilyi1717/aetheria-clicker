@@ -50,7 +50,7 @@ const keyParts = (key) => String(key).split(':').map(Number);
 // icon is for toasts and ceremonies.
 const MAP = {
   gusher: { level: 1, key: 'gusher', sound: 'pluck', color: '--gold', target: 'crude' },
-  guide: { level: 1, key: 'guide', sound: 'pluck', color: '--gold', target: 'crude', params: (e) => ({ goal: t(`cl.guide.step.${e.step}`, { need: STEPS.find(s => s.id === e.step)?.need ?? '' }).replace(/[.!?:،؟]+$/, '') }) },
+  guide: { quiet: true, level: 1, key: 'guide', sound: 'pluck', color: '--gold', target: 'crude', params: (e) => ({ goal: t(`cl.guide.step.${e.step}`, { need: STEPS.find(s => s.id === e.step)?.need ?? '' }).replace(/[.!?:،؟]+$/, '') }) },
   unlock: { level: 3, key: 'unlock', sound: 'achievement', color: '--gold', target: 'panel', icon: iconToken('unlock'), params: (e) => ({ name: t(`cl.feature.${e.feature}`) }) },
   // The first New Well is the ceremony (T3, wellCeremony.js); later ones a named toast with the run's
   // time and the multiplier (T2). The system emits level 1: what the player makes of it is decided here.
@@ -114,6 +114,7 @@ export function describe(event, state) {
     color: m.color,
     icon: m.icon || '',
     epic: !!m.epic,
+    quiet: !!m.quiet,   // a cue and a sound, no line of text (a passed guide step: the bar already changed)
     ceremony: m.ceremony && level >= 4 ? m.ceremony : null,
     event: e
   };
@@ -206,7 +207,7 @@ export class CoreLoopFeedback {
     if (d.named) {
       this.rewards.toast({ tier: 'medium', kind: `clfx-${d.kind}`, title: text, icon: d.icon, color: d.color, sound: false, source: el });
       this.watchIcons();
-    } else if (solo || d.tier === 2) this.line(text, d.tier);
+    } else if (!d.quiet && (solo || d.tier === 2)) this.line(text, d.tier);
   }
 
   // The first New Well: a dimmed screen, the well gushing, a card counting up what it paid, and one

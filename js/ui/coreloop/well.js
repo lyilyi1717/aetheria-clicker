@@ -175,13 +175,12 @@ export function heroView(state, presence) {
   return { mode: g.up ? 'gusher' : 'well', left: g.left, heat: h };
 }
 
-// The run bar: one bar for the whole run, log10(Crude made this run) over log10 of the Crude a New
-// Well needs (the same fraction the guide's bar uses). Shown with the guide's `well.run`.
+// The run bar: one bar for the whole run, Prestige.newWellProgress (the same fraction the guide's
+// bar uses). Shown with the guide's `well.run`.
 export function runView(state, open = state.guide?.open?.['well.run'] === true) {
   const pending = Prestige.pendingReserves(state), need = Prestige.newWellNeed(state);
-  const goal = Prestige.newWellRunLog(state);
   const ready = Prestige.canNewWell(state);
-  const frac = ready ? 1 : clamp01(goal > 0 ? log10Big(state.well.runCrude) / goal : 0);
+  const frac = Prestige.newWellProgress(state);
   return {
     show: open || state.prestige.wells > 0, first: state.prestige.wells === 0,
     frac, pct: ready ? 100 : Math.min(99, Math.floor(frac * 100)), pending, need, ready
@@ -436,7 +435,7 @@ export function mount(panel, api) {
   const pumpTitle = el('div', 'clw-titlebox');
   pumpTitle.append(el('h2', 'clw-h', t('cl.well.pumps_title')), el('p', 'clw-note', t('cl.well.pumps_help')));
   pumpHead.appendChild(pumpTitle);
-  const maxAll = button('clw-max btn-block', () => api.act((s) => Well.buyMax(s)));
+  const maxAll = button('clw-max btn-block', () => api.act((s, ctx) => Well.buyMax(s, ctx)));
   maxAll.dataset.guide = 'well.maxall';
   maxAll.textContent = t('cl.well.max_all');
   maxAll.title = t('cl.well.max_all_hint');
@@ -461,9 +460,9 @@ export function mount(panel, api) {
     const crateNote = el('div', 'clw-crate');
     info.append(title, have, makes, pips, crateNote);
     const acts = el('div', 'clw-acts');
-    const b1 = buyButton(() => api.act((s) => Well.canBuy(s, k, 1) && Well.buy(s, k, 1) && restart(row, 'cl-pulse')));
+    const b1 = buyButton(() => api.act((s, ctx) => Well.canBuy(s, k, 1) && Well.buy(s, k, 1, ctx) && restart(row, 'cl-pulse')));
     b1.dataset.guide = `well.buy.${k}`;
-    const bp = buyButton(() => api.act((s) => Well.canBuy(s, k, Well.packLeft(s, k)) && Well.buy(s, k, Well.packLeft(s, k)) && restart(row, 'cl-pulse')));
+    const bp = buyButton(() => api.act((s, ctx) => Well.canBuy(s, k, Well.packLeft(s, k)) && Well.buy(s, k, Well.packLeft(s, k), ctx) && restart(row, 'cl-pulse')));
     bp.classList.add('clw-pack');
     acts.append(b1, bp);
     row.append(pumpIcon, info, acts);

@@ -220,7 +220,7 @@ const fresh = () => createCoreLoopState(7);
   ok(r.first && r.frac === 0 && r.pct === 0, 'first run, empty bar');
   s.well.runCrude = new BigNum(1, 3);
   r = W.runView(s, true);
-  ok(Math.abs(r.frac - 3 / Prestige.newWellRunLog(s)) < 1e-9, 'bar is log10 run Crude over log10 the run needs');
+  ok(Math.abs(r.frac - Math.pow(3 / Prestige.newWellRunLog(s), 2)) < 1e-9 && r.frac === Prestige.newWellProgress(s), 'the bar is Prestige.newWellProgress: the share of decades, squared');
   ok(r.pct === Math.floor(r.frac * 100) && r.pct < 100, 'whole percent');
   s.well.runCrude = new BigNum(1, 20);
   r = W.runView(s, true);
