@@ -92,6 +92,15 @@ export function kitNote(state, v) {
   return state.well.amount[1] && state.well.amount[1].lte(0) ? 'now' : 'next';
 }
 
+// The one node worth a solid gold button on this screen: the cheapest buyable one, innermost ring first
+export function bestNode(state, isOpen) {
+  for (const ring of RING_IDS) {
+    const v = sortNodes(Tree.nodes(state, ring).map(n => nodeView(state, n, isOpen))).find(x => x.can);
+    if (v) return v.id;
+  }
+  return null;
+}
+
 // Buys this ring's affordable nodes, cheapest first (never a flag). Returns the ids bought.
 export function buyRing(state, ring, isOpen) {
   const bought = [];
@@ -206,7 +215,7 @@ export function mountTree(host, api) {
     container.replaceChildren(...wanted);
   }
 
-  function updateCard(c, v, first, state) {
+  function updateCard(c, v, first, state, primary) {
     const { card } = c;
     if (c.rank !== v.rank) {
       if (c.rank !== null && v.rank > c.rank) { flash(card, 'is-bought'); }
@@ -244,7 +253,8 @@ export function mountTree(host, api) {
     c.note.hidden = !kn;
     if (kn) setText(c.note, t(`cl.tree.kit.${kn}`));
     if (showBuy) {
-      c.btn.classList.toggle('btn-primary', v.can);
+      c.btn.classList.toggle('btn-primary', v.can && primary);
+      c.btn.classList.toggle('btn-ready', v.can && !primary);
       c.btn.classList.toggle('is-locked', !v.can);
       c.btn.setAttribute('aria-disabled', String(!v.can));
       setText(c.btn.firstChild, v.can ? t('cl.tree.buy') : t('cl.tree.need', { n: api.fmt(v.missing) }));
@@ -259,6 +269,9 @@ export function mountTree(host, api) {
     root.hidden = !open;
     if (!open) return;
     const { shown, next } = ringsShown(s);
+    // one solid gold thing per screen: when the bar's goal is another button here (the New Well), none
+    const goal = typeof a.goal === 'function' ? a.goal() : null;
+    const best = goal && goal.here && goal.anchor !== 'prestige.tree' ? null : bestNode(s, a.isOpen);
     // status line sits at the top of the group
     for (const ring of RING_IDS) {
       let r = rings.get(ring);
@@ -272,7 +285,7 @@ export function mountTree(host, api) {
       const views = sortNodes(Tree.nodes(s, ring).map(n => nodeView(s, n, a.isOpen)));
       const by = { now: [], soon: [], later: [], done: [] };
       for (const v of views) by[sectionOf(v)].push(v);
-      for (const v of views) updateCard(r.cards.get(v.id), v, first, s);
+      for (const v of views) updateCard(r.cards.get(v.id), v, first, s, v.id === best);
       place(r.lists.now, by.now.map(v => r.cards.get(v.id).card));
       place(r.lists.soon, by.soon.map(v => r.cards.get(v.id).card));
       place(r.laterGrid, by.later.map(v => r.cards.get(v.id).card));

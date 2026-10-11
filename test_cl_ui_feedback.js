@@ -94,6 +94,11 @@ console.log('--- R5: the first New Well is a ceremony, later ones a named banner
   assert.equal(opened.length, 1, 'one ceremony');
   assert.equal(log.toast.length, 1, 'only the other unlock keeps its toast');
   assert.equal(log.ceremony.length, 0, 'not the generic rewards ceremony');
+  const pk = rig();
+  pk.fb.push({ kind: 'pack', level: 1, slot: 1, packs: 1, bought: P.packSize });
+  pk.fb.push({ kind: 'guide', level: 1, step: 'pack' });
+  pk.fb.flush();
+  assert.equal(pk.log.fire.length, 1, 'the pack moment fires once and the "Done: own ten" line does not cover it');
   const again = rig();
   again.api.state.prestige = { reserves: 40, wells: 2 };
   again.fb.openWellCeremony = () => assert.fail('a later New Well is not a ceremony');

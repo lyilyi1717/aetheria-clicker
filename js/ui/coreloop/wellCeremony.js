@@ -88,7 +88,8 @@ export function open(sum, opts = {}) {
   go.type = 'button';
   card.append(badge, title, gain, runLine, multLine, keep, go);
   root.append(fountain, card);
-  doc.body.appendChild(root);
+  // inside the shell's root: the preview hides every other child of <body>
+  (doc.getElementById?.('coreloop-root') || doc.body).appendChild(root);
 
   let closed = false;
   const timers = [];

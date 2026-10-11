@@ -16,6 +16,7 @@ export default {
   'cl.tree.reset.reserves': 'A New Field clears these upgrades and any Reserves you have not spent.',
   'cl.tree.reset.shares': 'A Chronicle clears these upgrades and any Shares you have not spent.',
   'cl.tree.reset.pages': 'Never reset. These stay with you forever.',
+  'cl.tree.next.reserves': 'A New Well pays Reserves, which are spent here on upgrades.',
   'cl.tree.next.shares': 'A New Field pays Shares, which open a second ring of upgrades.',
   'cl.tree.next.pages': 'A Chronicle pays Pages, which open a third ring of upgrades that is never reset.',
   'cl.tree.buyall': 'Buy all I can afford here',

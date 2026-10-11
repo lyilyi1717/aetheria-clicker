@@ -15,6 +15,7 @@ import { FIELDS, FRACTIONS } from '../../systems/coreloop/shared.js';
 import * as Prestige from '../../systems/coreloop/Prestige.js';
 import * as Seals from '../../systems/coreloop/Seals.js';
 import * as Tree from '../../systems/coreloop/Tree.js';
+import { bestNode } from './tree.js';
 
 registerStrings(EN, AR);
 
@@ -484,7 +485,14 @@ export function mount(panel, api) {
     setText(refs['run-line'], runLine(s));
     refs['run-line'].hidden = !(p.wells > 0);
     const wb = wellButton(s);
+    // one solid gold thing per screen: the bar's goal if it is here, else the best action; the tree's
+    // best buy wins over a New Well that can wait
+    const goal = typeof a.goal === 'function' ? a.goal() : null;
+    const treeHasBuy = st.open.includes('tree') && bestNode(s, a.isOpen) !== null;
+    const wellPrimary = goal && goal.here ? goal.anchor === 'prestige.newwell' : !treeHasBuy;
     setButton(refs['well-btn'], wb.can, wb.text);
+    refs['well-btn'].classList.toggle('btn-primary', wb.can && wellPrimary);
+    refs['well-btn'].classList.toggle('btn-ready', wb.can && !wellPrimary);
 
     // the tree
     if (st.open.includes('tree')) {

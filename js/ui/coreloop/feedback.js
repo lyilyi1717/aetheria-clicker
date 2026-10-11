@@ -156,10 +156,12 @@ export class CoreLoopFeedback {
     if (this.api.presence?.() === PRESENCE.AWAY) return;      // or for what happens while away
     // The first New Well's ceremony brings the player to the tree itself: no "New: the upgrade tree" line on top
     const firstWell = events.some(e => e.kind === 'newWell' && e.first);
+    const hasPack = events.some(e => e.kind === 'pack');
     const byKind = new Map();
     for (const e of events) {
       if (!MAP[e.kind]) continue;
       if (firstWell && e.kind === 'unlock' && e.feature === 'prestige.tree') continue;
+      if (hasPack && e.kind === 'guide' && e.step === 'pack') continue;   // the pack moment says it better
       if (!byKind.has(e.kind)) byKind.set(e.kind, []);
       byKind.get(e.kind).push(e);
     }
@@ -226,6 +228,7 @@ export class CoreLoopFeedback {
     this.schedule(() => {
       const card = this.doc?.querySelector?.('#coreloop-root [data-guide="prestige.tree"]');
       if (!card) return;
+      card.style.scrollMarginTop = '9rem';   // clear of the sticky header and tabs
       card.scrollIntoView?.({ block: 'start', behavior: 'auto' });
       this.fx.cue?.(card, 'clfx-cue-t2', 700);
     });
