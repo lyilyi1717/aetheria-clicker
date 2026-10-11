@@ -1,0 +1,11 @@
+/* The Forge: charges on the tool bar buttons. */
+.tool { padding: 5px 7px 14px; transition: transform .12s, opacity .12s; }
+.tool .fg { position: absolute; inset-inline: 5px; inset-block-end: 3px; height: 7px; border-radius: 4px; background: rgba(0,0,0,.55); overflow: hidden; }
+.tool .fg u { position: absolute; inset-block: 0; inset-inline-start: 0; width: calc(var(--k, 0) * 100%); background: var(--gold); transition: width .25s; }
+.tool .fg.full u { background: #7be08a; }
+.tool .ch { position: absolute; inset-block-start: -7px; inset-inline-start: -7px; min-width: 20px; height: 20px; padding-inline: 4px; border-radius: 10px; background: var(--gold); color: #1b1410; font-style: normal; font-weight: 900; font-size: 13px; line-height: 20px; text-align: center; border: 2px solid #1b1410; }
+.tool.empty .ch { background: #55504a; color: #bbb; }
+.tool.can:hover { transform: translateY(-3px); }
+.tool.pulse { animation: forge-pulse .9s ease-out; }
+@keyframes forge-pulse { 0% { box-shadow: 0 0 0 0 rgba(255,210,63,.9); transform: scale(1.18); } 100% { box-shadow: 0 0 0 16px rgba(255,210,63,0); transform: scale(1); } }
+.forge-ore { margin-block: 6px 0; font-size: 12px; }
