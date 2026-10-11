@@ -17,20 +17,21 @@ const log10Big = (b) => (b.m > 0 ? Math.log10(b.m) + b.e : -Infinity);
 function unlockTrials(state, kind, count) {
   for (const [id, k, n] of P.trials) {
     const tr = state.prestige.trials[id];
-    if (k === kind && count === n && tr.unlockedAt === null) tr.unlockedAt = state.t;
+    if (k === kind && count === n && tr.unlockedAt === null) { tr.unlockedAt = state.t; tr.wellsAt = state.prestige.wells; }
   }
 }
 export const trialUnlocked = (state, id) => state.prestige.trials[id].unlockedAt !== null;
 // The automations: 'autoBuy', 'autoWell', 'autoFlare'. Auto-Well only acts with Auto-Buy.
 export const hasAutomation = (state, id) => state.prestige.trials[id].won === true;
-// Loop time from which Trial `id` can be won (null while locked)
-export function trialReadyAt(state, id) {
-  const at = state.prestige.trials[id].unlockedAt;
-  return at === null ? null : at + P.trialDelay;
+// New Wells still to drill before Trial `id` can be taken (null while locked). A Trial is earned,
+// never waited for.
+export function trialWellsLeft(state, id) {
+  const tr = state.prestige.trials[id];
+  return tr.unlockedAt === null ? null : Math.max(0, P.trialWells - (state.prestige.wells - tr.wellsAt));
 }
 export const canWinTrial = (state, id) => {
   const tr = state.prestige.trials[id];
-  return !tr.won && tr.unlockedAt !== null && state.t - tr.unlockedAt >= P.trialDelay;
+  return !tr.won && tr.unlockedAt !== null && trialWellsLeft(state, id) === 0;
 };
 export function winTrial(state, id, ctx = NO_CONTEXT) {
   if (!canWinTrial(state, id)) return false;

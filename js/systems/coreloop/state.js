@@ -54,7 +54,7 @@ export function createCoreLoopState(seed = 1) {
       lastResetAt: 0,           // loop time of the last New Field or Chronicle
       charter: 'none',          // 'wildcatter' | 'operator' | 'baron' | 'none'
       crew: 0,                  // Crew hired (Seals.js reads it)
-      trials: Object.fromEntries(P.trials.map(([id]) => [id, { unlockedAt: null, won: false }]))
+      trials: Object.fromEntries(P.trials.map(([id]) => [id, { unlockedAt: null, wellsAt: 0, won: false }]))
     },
 
     // --- Fields (Fields.js, Rigs.js). One entry per Field, in shared.FIELDS order.
@@ -171,7 +171,7 @@ export function deserializeCoreLoop(raw) {
   s.prestige.charter = Object.keys(P.charter).includes(p.charter) ? p.charter : 'none';
   for (const [id] of P.trials) {
     const tr = isObj(p.trials) && isObj(p.trials[id]) ? p.trials[id] : {};
-    s.prestige.trials[id] = { unlockedAt: tr.unlockedAt === null || tr.unlockedAt === undefined ? null : Math.max(0, num(tr.unlockedAt)), won: tr.won === true };
+    s.prestige.trials[id] = { unlockedAt: tr.unlockedAt === null || tr.unlockedAt === undefined ? null : Math.max(0, num(tr.unlockedAt)), wellsAt: int(tr.wellsAt), won: tr.won === true };
   }
 
   const fields = Array.isArray(data.fields) ? data.fields : [];

@@ -56,7 +56,7 @@ console.log('--- a state survives a save, field for field ---');
   s.well.pressure = 40; s.well.pressureBest = 120; s.well.flare = 37.5; s.well.generators = 21;
   s.well.bestRunChron = new BigNum(9, 190); s.well.bestEver = new BigNum(9, 201); s.well.recordAtChron = new BigNum(4, 150);
   Object.assign(s.prestige, { wells: 300, reserves: 4000, newFields: 5, totalFields: 77, shares: 31, chronicles: 9, pages: 40, lastResetAt: 9000, charter: 'baron', crew: 6 });
-  s.prestige.trials.autoBuy = { unlockedAt: 500, won: true };
+  s.prestige.trials.autoBuy = { unlockedAt: 500, wellsAt: 3, won: true };
   s.fields[1] = { frontier: 123.4, bestGrade: 12, inventory: [0, 5.5, 0, 1e6], hauled: 2e6, rig: 3, rigBestGrade: 8 };
   s.mastery[2] = { hours: [70, 20, 6.5, 0.3], ranks: [6, 4, 3, 1] };
   s.refinery.frac[3] = { level: 55, bubble: 1.25, vial: 0.4, compound: 0.06, seal: 0.09 };
@@ -122,7 +122,7 @@ console.log('--- saves that lack fields, or are garbage, still load (rule 2) ---
   assert.equal(bad.prestige.pages, 0);
   assert.equal(bad.prestige.charter, 'none');
   assert.equal(bad.prestige.crew, 1);
-  assert.deepEqual(bad.prestige.trials.autoBuy, { unlockedAt: 0, won: false });
+  assert.deepEqual(bad.prestige.trials.autoBuy, { unlockedAt: 0, wellsAt: 0, won: false });
   assert.deepEqual(bad.fields[0].inventory, [0, 0, 3]);
   assert.equal(bad.fields[0].rig, 0);
   assert.equal(bad.refinery.frac[0].level, 0);
