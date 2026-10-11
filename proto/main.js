@@ -8,6 +8,7 @@ import { icon } from './icons.js';
 
 const SAVE_KEY = 'DIG_PROTO_SAVE_V1';
 const MUTE_KEY = 'DIG_PROTO_MUTE';
+const AUTO_KEY = 'DIG_PROTO_AUTO';
 const params = new URLSearchParams(location.search);
 const SPEED = Math.max(1, Number(params.get('speed')) || 1);
 const $ = id => document.getElementById(id);
@@ -16,6 +17,7 @@ let state = null;
 let paused = false;          // a chest or a card is open
 let hitStop = 0;
 let holding = false, holdCd = 0, lastSwing = 0;
+let autoDig = false;       // dig where the mouse is without holding the button (key A)
 let shownCoins = 0;
 let coinLands = 0;
 let toastT = 0, bannerT = 0;
@@ -412,7 +414,7 @@ function frame(now) {
   if (hitStop > 0) hitStop -= dt;
   else if (!paused) {
     fx.target = fx.mouse.inside ? targetAt(fx.mouse.x, fx.mouse.y) : null;
-    if (holding && fx.mouse.inside) { holdCd -= dt; if (holdCd <= 0) doSwing(); }
+    if ((holding || autoDig) && fx.mouse.inside) { holdCd -= dt; if (holdCd <= 0) doSwing(); }
     G.step(state, dt * SPEED, ev);
   }
   updateFx(dt);
@@ -451,6 +453,12 @@ function start() {
   let m = false; try { m = localStorage.getItem(MUTE_KEY) === '1'; } catch { /* ignore */ }
   setMuted(m); mute.textContent = t(m ? 'unmute' : 'mute');
   mute.addEventListener('click', () => { unlock(); setMuted(!isMuted()); mute.textContent = t(isMuted() ? 'unmute' : 'mute'); try { localStorage.setItem(MUTE_KEY, isMuted() ? '1' : '0'); } catch { /* ignore */ } });
+  const auto = $('auto');
+  try { autoDig = localStorage.getItem(AUTO_KEY) === '1'; } catch { /* ignore */ }
+  const setAuto = (on) => { autoDig = on; auto.textContent = t(on ? 'auto_on' : 'auto_off'); auto.classList.toggle('on', on); try { localStorage.setItem(AUTO_KEY, on ? '1' : '0'); } catch { /* ignore */ } };
+  setAuto(autoDig);
+  auto.addEventListener('click', () => { unlock(); setAuto(!autoDig); });
+  window.addEventListener('keydown', e => { if ((e.key === 'a' || e.key === 'A') && !e.ctrlKey && !e.metaKey && !e.altKey) { unlock(); setAuto(!autoDig); } });
   const reset = $('reset');
   let armed = 0;
   reset.addEventListener('click', () => {

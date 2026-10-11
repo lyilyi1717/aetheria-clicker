@@ -88,6 +88,7 @@ const en = {
   stars: 'Stars',
 
   mute: 'Sound: on', unmute: 'Sound: off',
+  auto_on: 'Auto dig: on (A)', auto_off: 'Auto dig: off (A)',
   reset: 'Start over', reset_sure: 'Click again to wipe this save',
   footer: 'A prototype of a new game. It has its own save and does not touch your Aetheria save.',
   min: '{n} min', hours: '{h} h {m} min',
