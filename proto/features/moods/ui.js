@@ -16,7 +16,7 @@ const MOODS = {
   laugh: { pr: 3, secs: 2.2 }, guilty: { pr: 3, secs: 1.6 }, cold: { pr: 2, secs: 4 }, wet: { pr: 2, secs: 4 },
   tea: { pr: 1, secs: 6 }, doze: { pr: 1, secs: 6 },
 };
-const P = { bubbleGap: 4, bubbleOwn: 14, bubbleChance: 0.55, slackGap: 18, laughGap: 14, near: 2.2, pickNear: 75, hitsToKick: 9 };
+const P = { bubbleGap: 4, bubbleOwn: 14, bubbleChance: 0.55, slackGap: 18, laughGap: 30, near: 2.2, pickNear: 75, hitsToKick: 24 };
 const SKIN = '#f8d9b0';
 const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
