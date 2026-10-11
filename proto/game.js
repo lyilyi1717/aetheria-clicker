@@ -33,7 +33,7 @@ export const P = {
   val0: 1, valGrow: 1.10, valGrow2: 1.10,   // coins of dirt, the same way
   critChance: 0.08, critMult: 5,
   comboWindow: 2.6, comboStep: 0.04, comboCap: 50,
-  crewRate: 1.25,                 // digger hits per second
+  crewRate: 4,                    // digger hits per second
   bossHp: 20,                     // Big Rock hp, in dirt blocks of its row
   bossPay: 120,
   weakMult: 3, weakSeconds: 1.7,  // the Big Rock's crack: hits on it count 3 times, and it moves                   // Big Rock coins, in dirt blocks of its row
@@ -47,7 +47,7 @@ export const P = {
 export const UPGRADES = {
   pick:    { base: 10,  grow: 1.5 },
   crew:    { base: 30,  grow: 4.2, max: 8 },
-  crewPow: { base: 40,  grow: 1.5 },
+  crewPow: { base: 12,  grow: 1.5 },
   luck:    { base: 120, grow: 1.7, max: 20 },
 };
 
