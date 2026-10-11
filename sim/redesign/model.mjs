@@ -45,7 +45,7 @@ export function newState(profile, seed = 1) {
       hours: new Array(P.actionsPerField).fill(0), ranks: new Array(P.actionsPerField).fill(0)
     })),
     frac: Object.keys(FRAC).map(() => ({ level: 0, bub: 0, vial: 0, extra: 0 })),
-    orders: new Array(P.orderSlots).fill(null).map(() => ({ empty: true, refillAt: 0 })),
+    orders: new Array(P.orderSlots).fill(null).map(() => ({ empty: true, haulFrom: -Infinity })),
     caul: P.cauldrons.map(() => ({ fill: 0, n: 0, bars: 0, speed: 1 })),
     bubbles: [],
     vials: {}, vialOffers: 0, vialDay: -1,
@@ -247,6 +247,7 @@ export const handRateBase = (s) => {
 export function addInv(f, g, units) {
   while (f.inv.length <= g) f.inv.push(0);
   f.inv[g] += units;
+  f.hauled = (f.hauled || 0) + units;   // lifetime haul: an empty Order slot refills on it
 }
 export const invAtLeast = (f, g) => { let n = 0; for (let k = g; k < f.inv.length; k++) n += f.inv[k]; return n; };
 export function takeAtLeast(f, g, units) {
@@ -329,13 +330,19 @@ export function orderField(s, src) {
   s.fields.forEach((f, i) => { const n = invAtLeast(f, 0); if (n > most) { most = n; best = i; } });
   return best;
 }
+// Units hauled by every Field, ever, and what the crew and Rigs haul in a second of Watching
+export const totalHauled = (s) => s.fields.reduce((n, f) => n + (f.hauled || 0), 0);
+export const haulRate = (s) => s.fields.reduce((n, _, i) => n + rigRate(s, i, 'watch'), 0) + P.orderRefillHand * handRateBase(s);
 export function postOrders(s) {
+  let first = s.frac.every(fr => fr.level === 0) && s.orders.every(o => o.empty);
   for (const o of s.orders) {
-    if (!o.empty || s.t < o.refillAt) continue;
+    if (!o.empty || totalHauled(s) - o.haulFrom < P.orderRefill * haulRate(s)) continue;
     const taken = new Set(s.orders.filter(x => !x.empty).map(x => x.frac));
     let frac = 0, lo = Infinity;
     s.frac.forEach((fr, i) => { if (!taken.has(i) && fr.level < lo) { lo = fr.level; frac = i; } });
-    const fi = orderField(s, P.orderSource[Object.keys(FRAC)[frac]]);
+    // The first Order ever speeds the Well and asks for what the first Field hauls
+    let fi = orderField(s, P.orderSource[Object.keys(FRAC)[frac]]);
+    if (first) { frac = FRAC.naphtha; fi = 0; first = false; }
     const f = s.fields[fi];
     const grade = f.rig > 0 ? rigGrade(f) : Math.max(0, gradeOf(f.F) - 1);
     const qty = P.orderSeconds * (rigRate(s, fi, 'watch') + P.orderHandShare * handRateBase(s));
@@ -353,7 +360,9 @@ export function fillOrders(s) {
     s.vialOffers++;
     if (s.t - o.posted <= 86400) s.orderStats.filledIn24h++;
     event(s, 'order', 2, { frac: o.frac });
-    Object.assign(o, { empty: true, refillAt: s.t + P.orderRefill });
+    // The slot refills when the crew and the Rigs have hauled what P.orderRefill seconds of
+    // Watching bring at today's rates: earned by hauling, never by waiting
+    Object.assign(o, { empty: true, haulFrom: totalHauled(s) });
   }
 }
 // Units of a Field that open Orders still need

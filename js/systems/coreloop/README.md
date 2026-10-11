@@ -41,7 +41,7 @@ names, with the differences listed under "Game vs sim" below.
 | `t`, `rng` | the loop driver (CL-10 sim, later the game loop); `rand()` advances `rng` | |
 | `well.*` | `Well.js` (CL-8) | `runCrude`, `runStart`, `bought`, `amount`, `pressure`, `flare` reset on a New Well, done by `Well.resetRun(state)`, which Prestige calls |
 | `prestige.*` | `Prestige.js` (CL-9) | includes `crew` and `charter` |
-| `fields[i].frontier`, `bestGrade`, `inventory` | `Fields.js` (CL-2) | `Fields.addMaterial / takeMaterial / countAtLeast` are the only way anyone changes an inventory |
+| `fields[i].frontier`, `bestGrade`, `inventory`, `hauled` | `Fields.js` (CL-2) | `Fields.addMaterial / takeMaterial / countAtLeast` are the only way anyone changes an inventory |
 | `fields[i].rig`, `rigBestGrade` | `Rigs.js` (CL-2); `rig` is raised by Prestige through `Rigs.build / levelUp` | |
 | `mastery[i]` | `Mastery.js` (CL-3) | |
 | `refinery.frac[i].level`, `orders`, `weekly` | `Refinery.js` (CL-4) | |

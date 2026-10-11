@@ -97,7 +97,10 @@ export const P = {
   orderSource: { gas: 'any', naphtha: 'mine', kerosene: 'oasis', diesel: 'tower', bitumen: 'any' },
   orderMult: 1.015,
   // Orders cost Materials only: a Crude price tied to current output kept failing right after resets
-  orderSeconds: 900, orderHandShare: 0.25, orderRefill: 1800,
+  orderSeconds: 900, orderHandShare: 0.25,
+  // An empty slot refills when the crew and the Rigs have hauled what orderRefill seconds would
+  // bring at the Watching rate plus orderRefillHand of hand work: earned by hauling, not by waiting
+  orderRefill: 1800, orderRefillHand: 0.5,
   orderSlots: 3,
   // Weekly big Order (the old Weekly Ledger): posted each 7 days, needs weeklyHours of every Field's Rig
   // output (Watching rate) at its Rig grade; pays +1 level on every Fraction (L4)

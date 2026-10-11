@@ -49,7 +49,7 @@ function sameOrders(g, s, what) {
   s.orders.forEach((so, i) => {
     const go = g.refinery.orders[i];
     assert.equal(go.empty, so.empty, `${what} slot ${i} empty`);
-    if (so.empty) { assert.equal(go.refillAt, so.refillAt, `${what} slot ${i} refillAt`); return; }
+    if (so.empty) { if (Number.isFinite(so.haulFrom)) near(go.haulFrom, so.haulFrom, `${what} slot ${i} haulFrom`); else assert.equal(go.haulFrom, null); return; }
     for (const k of ['frac', 'field', 'grade', 'posted']) assert.equal(go[k], so[k], `${what} slot ${i} ${k}`);
     near(go.qty, so.qty, `${what} slot ${i} qty`);
   });
@@ -150,18 +150,27 @@ console.log('--- done-when: Materials only, grade, refill ---');
   assert.equal(R.fillOrder(g, 0, ctx), true);
   near(before - Fields.countAtLeast(g, fld, grd), qty, 'the Order took its quantity');
   assert.equal(g.refinery.frac[fr].level, 1);
-  assert.deepEqual(g.refinery.orders[0], { empty: true, refillAt: 100 + P.orderRefill });
+  // the slot refills on haul, never on the clock: orderRefill seconds' worth at the Watching rate
+  const need = R.haulNeed(g);
+  near(need, P.orderRefill * R.haulRate(g), 'the need follows the rates of the moment');
+  assert.deepEqual(g.refinery.orders[0], { empty: true, haulFrom: R.totalHauled(g) });
+  assert.ok(need > 0);
   assert.equal(JSON.stringify(serializeCoreLoop(g).well), wellBefore, 'nothing in state.well changed');
   assert.deepEqual(events, [{ kind: 'order', level: HIT.BIG, frac: fr, slot: 0, age: 100 }]);
-  near(R.orderInfo(g, 0).refillIn, P.orderRefill, 'refillIn');
+  near(R.orderInfo(g, 0).refillIn, P.orderRefill, 'refillIn: an estimate at the Watching rate');
+  near(R.orderInfo(g, 0).progress, 0, 'nothing hauled toward it yet');
   assert.ok(qty > 0);
-  // the slot stays empty until refillAt, then step posts it again
-  g.t = 100 + P.orderRefill - 1;
+  // waiting does nothing; hauling does
+  g.t = 100 + 50 * P.orderRefill;
   R.step(g, 5, PRESENCE.WATCH);
-  assert.equal(g.refinery.orders[0].empty, true, 'not yet');
-  g.t = 100 + P.orderRefill;
+  assert.equal(g.refinery.orders[0].empty, true, 'a year of waiting posts nothing');
+  Fields.addMaterial(g, 1, 0, need / 2);
   R.step(g, 5, PRESENCE.WATCH);
-  assert.equal(g.refinery.orders[0].empty, false, 'refilled after P.orderRefill');
+  assert.equal(g.refinery.orders[0].empty, true, 'half the haul: not yet');
+  near(R.orderInfo(g, 0).progress, 0.5, 'half way, and the screen can say so');
+  Fields.addMaterial(g, 2, 0, need / 2);
+  R.step(g, 5, PRESENCE.WATCH);
+  assert.equal(g.refinery.orders[0].empty, false, 'refilled by the haul, from any Field');
   assert.equal(g.refinery.orders[0].posted, g.t);
   // a Fraction is on one open Order at a time
   const fracs = g.refinery.orders.map(o => o.frac);
@@ -260,8 +269,9 @@ console.log('--- UI info ---');
   near(info.have, o.qty / 2, 'have'); near(info.progress, 0.5, 'progress');
   assert.equal(info.ready, false); assert.equal(info.age, 50);
   near(info.before, fracValue(g, o.frac), 'before'); near(info.after, fracValue(g, o.frac) * P.orderMult, 'after');
-  g.refinery.orders[1] = { empty: true, refillAt: 80 };
-  near(R.orderInfo(g, 1).refillIn, 30, 'refillIn');
+  g.refinery.orders[1] = { empty: true, haulFrom: R.totalHauled(g) - R.haulNeed(g) / 4 };
+  near(R.orderInfo(g, 1).progress, 0.25, 'haul progress');
+  near(R.orderInfo(g, 1).refillIn, 0.75 * P.orderRefill, 'refillIn');
   assert.equal(R.orderInfo(g, 1).empty, true);
   assert.equal(R.weeklyInfo(g).open, false);
   assert.equal(R.weeklyInfo(g).need, null);
@@ -273,17 +283,21 @@ console.log('--- open Orders survive a save ---');
   g.fields.forEach(f => { f.rig = 2; f.frontier = 30; });
   g.t = 2 * WEEK + 100;
   R.step(g, 5, PRESENCE.WATCH);
-  g.refinery.orders[1] = { empty: true, refillAt: g.t + 500 };
+  g.refinery.orders[1] = { empty: true, haulFrom: R.totalHauled(g) };
   const back = deserializeCoreLoop(JSON.parse(JSON.stringify(serializeCoreLoop(g))));
-  // an open Order keeps its ask; refillAt only means something on an empty slot
-  const strip = (os) => os.map(({ refillAt, ...o }) => (o.empty ? { empty: true, refillAt } : o));
-  assert.deepEqual(strip(back.refinery.orders), strip(g.refinery.orders));
+  assert.deepEqual(back.refinery.orders, g.refinery.orders);
+  assert.deepEqual(back.fields.map(f => f.hauled), g.fields.map(f => f.hauled));
   assert.deepEqual(back.refinery.weekly, g.refinery.weekly);
   assert.ok(back.refinery.weekly.need && !back.refinery.orders[0].empty);
   // and the loaded state goes on from the same place
-  back.t += P.orderRefill;
+  Fields.addMaterial(back, 0, 0, R.haulNeed(back));
   R.step(back, 5, PRESENCE.WATCH);
   assert.equal(back.refinery.orders[1].empty, false);
+  // a save from before the haul gate (a refill time): the slot simply posts
+  const old = serializeCoreLoop(g); old.refinery.orders[1] = { empty: true, refillAt: 1e12 }; old.fields.forEach(f => delete f.hauled);
+  const o2 = deserializeCoreLoop(old);
+  assert.deepEqual(o2.refinery.orders[1], { empty: true, haulFrom: null });
+  assert.deepEqual(o2.fields.map(f => f.hauled), [0, 0, 0]);
 }
 
 console.log('Refinery tests passed');

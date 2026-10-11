@@ -62,6 +62,7 @@ export function createCoreLoopState(seed = 1) {
       frontier: 0,              // levels pushed by hand; grade = floor(frontier / P.gradeSpan)
       bestGrade: 0,
       inventory: [0],           // Material units by grade
+      hauled: 0,                // units ever added to the inventory (Order slots refill on it)
       rig: 0,                   // Rig level, 0 = no Rig yet
       rigBestGrade: 0           // highest grade the Rig has hauled
     })),
@@ -72,7 +73,10 @@ export function createCoreLoopState(seed = 1) {
     // --- Refinery (Refinery.js owns level, orders, weekly; the other fields have one writer each)
     refinery: {
       frac: FRACTIONS.map(() => ({ level: 0, bubble: 0, vial: 0, compound: 0, seal: 0 })),
-      orders: Array.from({ length: P.orderSlots }, () => ({ empty: true, refillAt: 0 })),
+      // An empty slot: { empty, haulFrom }: it posts once Refinery.haulNeed units have been hauled
+      // since haulFrom (Refinery.totalHauled; null = post at once). An open one:
+      // { frac, field, grade, qty, posted }.
+      orders: Array.from({ length: P.orderSlots }, () => ({ empty: true, haulFrom: null })),
       weekly: { week: -1, need: null }
     },
 
@@ -176,6 +180,7 @@ export function deserializeCoreLoop(raw) {
     f.frontier = Math.max(0, num(d.frontier));
     f.bestGrade = Math.max(Math.floor(f.frontier / P.gradeSpan), int(d.bestGrade));
     f.inventory = Array.isArray(d.inventory) && d.inventory.length ? d.inventory.map(x => Math.max(0, num(x))) : [0];
+    f.hauled = Math.max(0, num(d.hauled));
     f.rig = int(d.rig);
     f.rigBestGrade = int(d.rigBestGrade);
   });
@@ -195,7 +200,8 @@ export function deserializeCoreLoop(raw) {
   });
   s.refinery.orders = s.refinery.orders.map((empty, i) => {
     const o = Array.isArray(r.orders) && isObj(r.orders[i]) ? r.orders[i] : null;
-    if (!o || o.empty !== false) return { empty: true, refillAt: Math.max(0, num(o?.refillAt)) };
+    // (a save from before the haul gate had a refill time: its slot posts at once)
+    if (!o || o.empty !== false) return { empty: true, haulFrom: Number.isFinite(o?.haulFrom) && o.haulFrom >= 0 ? o.haulFrom : null };
     const frac = int(o.frac), field = int(o.field);
     if (frac >= FRACTIONS.length || field >= FIELDS.length || !(num(o.qty) > 0)) return empty;
     return { empty: false, frac, field, grade: int(o.grade), qty: num(o.qty), posted: Math.max(0, num(o.posted)) };
