@@ -224,6 +224,14 @@ const noCrit = () => G.setParam('crits.chance', 0);
   f2.rows[0][4] = cell('tnt', 1); f2.rows[1][4] = null;
   const ev2 = log(); run(f2, 0.6, ev2);
   ok(ev2.of('blast').length === 1, 'level 2: falling TNT goes off');
+  { // a block that lands on a Big Rock hurts it, but only a little
+    const b = field({ fall: 1 }, 100);
+    for (let c = 0; c < G.COLS; c++) { b.rows[2][c] = { t: 'boss', hp: 1, max: 1, s: c }; b.rows[1][c] = null; }
+    b.boss = { row: 2, hp: 1000, max: 1000, weak: 9, wt: 99 };
+    b.rows[0][4] = cell('dirt', 100); for (let c = 0; c < G.COLS; c++) if (c !== 4) b.rows[0][c] = null;
+    run(b, 0.4);
+    ok(Math.abs(b.boss.hp - (1000 - 100 * P.fallFrac * P.wallShare)) < 1e-6, 'a block that lands on a Big Rock takes a small bite of it');
+  }
   const none = field({}, 100); none.rows[1][4] = null; run(none, 0.5);
   ok(none.rows[0][4] !== null, 'without the relic nothing falls');
   const boss = field({ fall: 1 }, 100);

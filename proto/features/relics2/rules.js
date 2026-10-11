@@ -45,6 +45,7 @@ const p = {
   hopRange: 3, hopDmg: 0.5, hopGap: 0.08, hopJumps: [0, 1, 2, 2], hopMax: 8,
   twinEvery: 5, twinCount: [0, 1, 2, 2], twinNot: ['chest'],
   flingFrac: 0.5,               // a flying block hits for this share of its own strength
+  wallShare: 0.25,              // a flying or falling block does only this much of that to a Big Rock
   flingSide: 3, flingUp: 1, flingDown: 2, flingTime: 0.35, flingBounce: [0, 0, 1, 3],
   magEvery: 4, magRange: 6, magCount: [0, 1, 1, 6],
   fireHeat: [0, 2, 3, 3],       // how many steps a fire can spread
@@ -148,7 +149,7 @@ function flingLand(s, q, ev) {
   if (!o) return;
   const kind = o.t, max = o.max, wall = kindOf(o).wall;
   emit(s, ev, 'relics2Thud', { r, c: q.c });
-  const broke = damage(s, r, q.c, q.dmg, 'you', ev, { chain: 1, fling: 1 });
+  const broke = damage(s, r, q.c, q.dmg * (wall ? p.wallShare : 1), 'you', ev, { chain: 1, fling: 1 });
   if (broke && !wall && q.left > 0) fling(s, r, q.c, kind, max, q.left - 1, ev);
 }
 
@@ -231,7 +232,8 @@ function land(s, r, c, o, ev) {
   if (lv >= 2 && kindOf(o).chain) { breakCell(s, r, c, 'you', ev, { chain: 1, fall: 1 }); return; }   // falling TNT goes off
   const dmg = o.max * p.fallFrac * (lv >= 2 ? Math.min(rows, p.fallMaxRows) : 1);
   const info = { chain: 1, fall: 1 };
-  damage(s, r + 1, c, dmg, 'you', ev, info);
+  const under = cellAt(s, r + 1, c);
+  damage(s, r + 1, c, dmg * (under && kindOf(under).wall ? p.wallShare : 1), 'you', ev, info);
   if (lv >= 3) { damage(s, r + 1, c - 1, dmg * p.fallSide, 'you', ev, info); damage(s, r + 1, c + 1, dmg * p.fallSide, 'you', ev, info); }
   if (cellAt(s, r, c) === o) damage(s, r, c, dmg, 'you', ev, info);
 }
