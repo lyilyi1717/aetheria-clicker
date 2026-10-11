@@ -162,13 +162,16 @@ function spend(state, cost) {
 }
 
 // Buys up to `count` units of slot k within its current pack. True if any were bought.
-export function buy(state, k, count = 1) {
+export function buy(state, k, count = 1, ctx = NO_CONTEXT) {
   const n = Math.min(Math.floor(count), affordable(state, k));
   if (!(n > 0)) return false;
   const w = state.well;
+  const packs = Math.floor((w.bought[k] + n) / P.packSize) - Math.floor(w.bought[k] / P.packSize);
   spend(state, slotCost(state, k).mul(n));
   w.bought[k] += n;
   w.amount[k] = w.amount[k].add(n);
+  // a purchase that completes a pack (every P.packSize bought): the "x2" moment
+  if (packs > 0) ctx.emit('pack', HIT.MINOR, { slot: k, packs, bought: w.bought[k] });
   return true;
 }
 
@@ -186,14 +189,14 @@ export function buyPressure(state) {
 
 // "Max all" (the sim's buyAll): slots from the top down in packs, then Pressure. True if it
 // bought anything. Auto-Buy is the loop driver calling this each tick.
-export function buyMax(state) {
+export function buyMax(state, ctx = NO_CONTEXT) {
   let any = false;
   for (let k = P.slots; k >= 1; k--) {
     for (let guard = 0; guard < MAX_PACKS; guard++) {
       const left = packLeft(state, k);
       const n = affordable(state, k);
       if (n <= 0) break;
-      buy(state, k, n);
+      buy(state, k, n, ctx);
       any = true;
       if (n < left) break;
     }

@@ -104,7 +104,7 @@ console.log('--- Reserves and the New Well gate (reference §3.3) ---');
   g.well.bought[1] = 30; g.well.amount[1] = new BigNum(1e5); g.well.pressure = 4; g.well.pressureBest = 4; g.well.flare = 3;
   g.well.bestRunChron = new BigNum(1, 10); g.well.bestEver = new BigNum(1, 10);
   assert.equal(Prestige.newWell(g, ctx), true);
-  assert.deepEqual(ctx.events, [{ kind: 'newWell', level: HIT.MINOR, reserves: 16 }]);
+  assert.deepEqual(ctx.events, [{ kind: 'newWell', level: HIT.MINOR, reserves: 16, first: true, seconds: 600 }], 'carries the run length; the first New Well');
   assert.equal(g.prestige.reserves, 36);
   assert.equal(g.prestige.wells, 1);
   assert.equal(g.well.crude.toNumber(), P.startCrude);
@@ -300,4 +300,18 @@ console.log('--- a prestige state survives a save ---');
   assert.equal(Prestige.pendingReserves(back), Prestige.pendingReserves(g));
 }
 
+{
+  // the first New Well says so, with the run's length in seconds
+  const f = createCoreLoopState();
+  f.well.runStart = 100; f.t = 100 + 1020; f.well.runCrude = new BigNum(1, 10);
+  const c1 = makeContext();
+  assert.equal(Prestige.newWell(f, c1), true);
+  assert.equal(c1.events[0].first, true, 'wells was 0');
+  assert.equal(c1.events[0].seconds, 1020, 'the run took 17 minutes');
+  f.t += 5; f.well.runCrude = new BigNum(1, 400);
+  const c2 = makeContext();
+  assert.equal(Prestige.newWell(f, c2), true);
+  assert.equal(c2.events[0].first, false, 'the second is not the first');
+  assert.equal(c2.events[0].seconds, 5);
+}
 console.log('test_cl_prestige.js OK');

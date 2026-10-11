@@ -1,8 +1,9 @@
 // The one tree (docs/core-loop-plan.md CL-24): the old Reserve shop, Shard tree, talents, Page
 // upgrades and Quartermaster as three rings of one tree. Inner ring: bought with the Reserves
 // earned this New Field layer, reset by a New Field. Middle ring: bought with the Shares New Fields
-// pay, reset by a Chronicle. Outer ring: bought with Pages, never reset. Writes state.tree only.
+// pay, reset by a Chronicle. Outer ring: bought with Pages, never reset. Writes state.tree (and, for the Head Start Kit, well.amount[1]).
 // The nodes are P.tree; the arithmetic is treeMath.js, which the model (sim/redesign) shares.
+import { BigNum } from '../../engine/BigNum.js';
 import { P } from './params.js';
 import * as M from './treeMath.js';
 
@@ -20,7 +21,17 @@ export const rank = (state, id) => M.rankOf(state.tree, id);
 // Price of a node's next rank in its ring's currency (Infinity at the top rank)
 export const cost = (state, id) => M.nodeCost(state.tree, id);
 export const canBuy = (state, id) => M.canBuyNode(state.tree, id);
-export const buy = (state, id) => M.buyNode(state.tree, id);
+// Buying the Head Start Kit while this run has no Buckets drops them in at once (the kit would
+// otherwise wait for the next New Well and the purchase would change nothing the player can see).
+export function buy(state, id) {
+  if (!M.buyNode(state.tree, id)) return false;
+  const node = P.tree.find(n => n.id === id);
+  const w = state.well;
+  if (node && node.kind === 'startKit' && w && w.amount && w.amount[1] && w.amount[1].lte(0)) {
+    w.amount[1] = new BigNum(bonus(state, 'startKit'));
+  }
+  return true;
+}
 // Buys the cheapest affordable node again and again (the model's policy). Returns the ids bought.
 export const buyAll = (state) => M.buyAffordable(state.tree);
 

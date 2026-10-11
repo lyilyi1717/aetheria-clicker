@@ -230,4 +230,22 @@ console.log('--- the tree survives a save; a bad save is cleaned ---');
   assert.deepEqual(deserializeCoreLoop({ tree: 'x' }).tree.ranks, {});
 }
 
+{
+  // The Head Start Kit fills an empty run at once; a run with Buckets waits for the next New Well
+  const k = createCoreLoopState();
+  k.tree.bank.reserves = 100;
+  const unit = P.tree.find(n => n.id === 'kit').value;
+  assert.equal(Tree.buy(k, 'kit'), true);
+  assert.equal(k.well.amount[1].toNumber(), unit, 'the Buckets are in the Well right after buying');
+  assert.equal(Tree.buy(k, 'kit'), true);
+  assert.equal(k.well.amount[1].toNumber(), unit, 'a run that has Buckets is left alone');
+  Well.resetRun(k, { kit: Tree.bonus(k, 'startKit') });
+  assert.equal(k.well.amount[1].toNumber(), 2 * unit, 'the next New Well starts with every rank');
+  const other = createCoreLoopState();
+  other.tree.bank.reserves = 100;
+  assert.equal(Tree.buy(other, 'idle_hands'), true);
+  assert.equal(other.well.amount[1].toNumber(), 0, 'no other node touches the Well');
+  assert.equal(Tree.buy(createCoreLoopState(), 'kit'), false, 'nothing to spend: nothing happens');
+}
+
 console.log('test_cl_tree.js OK');

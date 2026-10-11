@@ -1,12 +1,26 @@
 // Core-loop feedback lines (CL-17): the short text shown after the sound and colour of an event.
 // Dynamic keys are built in js/ui/coreloop/feedback.js as template literals.
 export default {
-  'cl.fx.guide': 'Done: {goal}.',
+  'cl.fx.guide': 'Done: {goal}',
   'cl.fx.unlock': 'New: {name}',
   'cl.fx.kind.guide': 'steps done',
   'cl.fx.kind.unlock': 'new parts opened',
   'cl.fx.gusher': 'Gusher caught.',
-  'cl.fx.newWell': 'New Well opened.',
+  'cl.fx.newWell': 'New Well: +{n} Reserves. Everything x{after}, was x{before}. The run took {time}.',
+  'cl.fx.newWellFirst': 'Your first New Well.',
+  'cl.fx.pack': '{name} x{mult}! {size} bought.',
+  'cl.fx.kind.pack': 'pump boosts',
+  // the first New Well's ceremony (js/ui/coreloop/wellCeremony.js)
+  'cl.fx.wc.title': 'Your first New Well',
+  'cl.fx.wc.unit': 'Reserves',
+  'cl.fx.wc.run': 'Run {n} took {time}.',
+  'cl.fx.wc.mult_lead': 'Everything now runs',
+  'cl.fx.wc.mult': 'x{n}',
+  'cl.fx.wc.mult_was': '(was x{n})',
+  'cl.fx.wc.keep': 'Reserves are yours for good. Spending them never lowers this.',
+  'cl.fx.wc.go': 'Spend them',
+  'cl.fx.wc.time_ms': '{m}:{s}',
+  'cl.fx.wc.time_hm': '{h} h {m} min',
   'cl.fx.flare': '{flare} lit.',
   'cl.fx.order': 'Order filled: {frac}.',
   'cl.fx.bubble': 'A Bubble rose from Cauldron {n}.',

@@ -15,6 +15,7 @@ import { FIELDS, FRACTIONS } from '../../systems/coreloop/shared.js';
 import * as Prestige from '../../systems/coreloop/Prestige.js';
 import * as Seals from '../../systems/coreloop/Seals.js';
 import * as Tree from '../../systems/coreloop/Tree.js';
+import { bestNode } from './tree.js';
 
 registerStrings(EN, AR);
 
@@ -74,10 +75,26 @@ export function wellView(state) {
     reserves: R, mult: 1 + P.resPer * R, multAfter: 1 + P.resPer * (R + pending)
   };
 }
+// "Reserve" with one, "Reserves" with more: a key per number so Arabic can have its own forms
+const one = (n, key) => (n === 1 ? `${key}1` : key);
 export function wellButton(state) {
   const v = wellView(state);
-  if (v.can) return { can: true, text: t('cl.prestige.well.btn', { n: v.pending }) };
-  return { can: false, text: t('cl.prestige.well.btn_need', { n: v.missing }) };
+  if (v.can) return { can: true, text: t(one(v.pending, 'cl.prestige.well.btn'), { n: v.pending }) };
+  return { can: false, text: t(one(v.missing, 'cl.prestige.well.btn_need'), { n: v.missing }) };
+}
+// The run the player is in (the first run is 1) and what the Reserves earned so far multiply
+export const runNumber = (state) => state.prestige.wells + 1;
+export function runLine(state) {
+  const R = state.prestige.reserves;
+  if (!(state.prestige.wells > 0)) return '';
+  return t('cl.prestige.well.run', { n: runNumber(state), mult: Math.round((1 + P.resPer * R) * 100) / 100 });
+}
+// The line under the bar: before the first New Well what it takes; after it, which run this is
+export function wellBarText(state, fmt = String) {
+  const v = wellView(state);
+  if (v.missing <= 0) return t('cl.prestige.well.bar_enough');
+  const key = state.prestige.wells > 0 ? 'cl.prestige.well.bar_run' : 'cl.prestige.well.bar';
+  return t(key, { have: fmt(v.pending), need: fmt(v.need), n: runNumber(state) });
 }
 
 export function fieldView(state) {
@@ -148,8 +165,11 @@ export function resetLines(state, layer, fmt = String) {
     const v = wellView(state);
     const mult = (x) => x.toFixed(2);
     return {
-      get: v.pending > 0 ? t('cl.prestige.well.get_now', { n: fmt(v.pending), mult: mult(v.multAfter) }) : t('cl.prestige.well.get_soon', { mult: mult(v.mult) }),
-      starts: t('cl.prestige.well.starts', { pressure: t('cl.name.pressure'), flare: t('cl.name.flare') }),
+      get: v.pending > 0 ? t(one(v.pending, 'cl.prestige.well.get_now'), { n: fmt(v.pending), mult: mult(v.multAfter) }) : t('cl.prestige.well.get_soon', { mult: mult(v.mult) }),
+      // a name the player has not met (the burn) is not listed among what they will lose
+      starts: state.guide.open['well.flare'] === true || state.well.flare > 1
+        ? t('cl.prestige.well.starts', { pressure: t('cl.name.pressure'), flare: t('cl.name.flare') })
+        : t('cl.prestige.well.starts_plain', { pressure: t('cl.name.pressure') }),
       keep: t('cl.prestige.well.keep')
     };
   }
@@ -264,6 +284,7 @@ export function mount(panel, api) {
     <div class="cp-stack">
       <section class="card cp-card cp-main" data-ref="card-well">
         <h2 class="cp-h">${esc(t('cl.prestige.well.title'))}</h2>
+        <p class="cp-run" data-ref="run-line" hidden></p>
         <p class="cp-lead">${esc(t('cl.prestige.well.intro'))}</p>
         ${lines('well')}
         ${bar('well-bar', 'gold')}
@@ -394,7 +415,9 @@ export function mount(panel, api) {
     const s = lastApi.state;
     if (!Prestige.canNewWell(s)) return;
     const n = Prestige.pendingReserves(s);
-    if (lastApi.act((st, ctx) => Prestige.newWell(st, ctx))) say('well-status', t('cl.prestige.well.done', { n: lastApi.fmt(n) }), 'card-well');
+    if (lastApi.act((st, ctx) => Prestige.newWell(st, ctx))) {
+      say('well-status', t(one(n, 'cl.prestige.well.done'), { n: lastApi.fmt(n), run: runNumber(lastApi.state) }), 'card-well');
+    }
   });
   refs['field-btn'].addEventListener('click', () => {
     const s = lastApi.state;
@@ -458,11 +481,18 @@ export function mount(panel, api) {
     const w = wellView(s);
     setLines('well', resetLines(s, 'well', a.fmt));
     setBar(refs['well-bar'], w.fraction);
-    setText(refs['well-bar-text'], w.missing > 0
-      ? t('cl.prestige.well.bar', { have: a.fmt(w.pending), need: a.fmt(w.need) })
-      : t('cl.prestige.well.bar_enough'));
+    setText(refs['well-bar-text'], wellBarText(s, a.fmt));
+    setText(refs['run-line'], runLine(s));
+    refs['run-line'].hidden = !(p.wells > 0);
     const wb = wellButton(s);
+    // one solid gold thing per screen: the bar's goal if it is here, else the best action; the tree's
+    // best buy wins over a New Well that can wait
+    const goal = typeof a.goal === 'function' ? a.goal() : null;
+    const treeHasBuy = st.open.includes('tree') && bestNode(s, a.isOpen) !== null;
+    const wellPrimary = goal && goal.here ? goal.anchor === 'prestige.newwell' : !treeHasBuy;
     setButton(refs['well-btn'], wb.can, wb.text);
+    refs['well-btn'].classList.toggle('btn-primary', wb.can && wellPrimary);
+    refs['well-btn'].classList.toggle('btn-ready', wb.can && !wellPrimary);
 
     // the tree
     if (st.open.includes('tree')) {

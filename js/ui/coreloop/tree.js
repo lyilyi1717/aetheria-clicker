@@ -29,27 +29,41 @@ export function ringsShown(state) {
   return { shown, next };
 }
 
-// A node as the card needs it. A flag is never buyable (its effect belongs to a later item).
-export function nodeView(state, n) {
+// The part of the game a node needs the player to have met (a guide feature id), or null. A node
+// that names a thing not yet met (the Falaj Rig, the Hmar al-Naft Rig, Gushers, Da'sa) waits under
+// "Arriving later" until that part is open (feel study R5).
+export function needsFeature(n) {
+  if (n.kind === 'rig') return 'fields.rig';
+  if (n.kind === 'gusherWindow' || n.kind === 'gusherRate') return 'shell.presence';
+  if (n.kind === 'heat' || n.kind === 'handsWell') return 'well.heat';
+  return null;
+}
+
+// A node as the card needs it. A flag is never buyable (its effect belongs to a later item). `isOpen`
+// is api.isOpen: a node whose part of the game is not open yet is `later` and cannot be bought.
+export function nodeView(state, n, isOpen = () => true) {
   const flag = n.kind === 'flag';
   const complete = n.rank >= n.max;
   const bank = Tree.bank(state, n.ring);
-  const can = !flag && !complete && n.canBuy;
+  const need = needsFeature(n);
+  const waiting = !flag && !complete && need !== null && !isOpen(need);
+  const can = !flag && !complete && !waiting && n.canBuy;
   return {
     id: n.id, ring: n.ring, kind: n.kind, field: n.field, value: n.value, rank: n.rank, max: n.max,
-    flag, complete, can, cost: n.cost, bank,
-    missing: !flag && !complete && !can ? n.cost - bank : 0,
-    frac: !flag && !complete && n.cost > 0 ? Math.min(1, bank / n.cost) : 0
+    flag, complete, can, cost: n.cost, bank, later: flag || waiting, needs: waiting ? need : null,
+    missing: !flag && !complete && !waiting && !can ? n.cost - bank : 0,
+    frac: !flag && !complete && !waiting && n.cost > 0 ? Math.min(1, bank / n.cost) : 0
   };
 }
 
-// Where a node sits in its ring: 'now' (can be paid), 'soon' (not yet), 'done' (complete or a flag)
-export const sectionOf = (v) => (v.can ? 'now' : v.flag || v.complete ? 'done' : 'soon');
+// Where a node sits in its ring: 'now' (can be paid), 'soon' (not yet), 'later' (names a part of the
+// game not met yet, or a flag), 'done' (complete)
+export const sectionOf = (v) => (v.can ? 'now' : v.complete ? 'done' : v.later ? 'later' : 'soon');
 
 // Buyable first, then by price; the unaffordable by price; complete ones, then flags, last
 export function sortNodes(views) {
   const order = new Map(P.tree.map((n, i) => [n.id, i]));
-  const rankOf = (v) => (v.can ? 0 : v.flag ? 3 : v.complete ? 2 : 1);
+  const rankOf = (v) => (v.can ? 0 : v.flag ? 4 : v.later ? 3 : v.complete ? 2 : 1);
   return [...views].sort((a, b) => rankOf(a) - rankOf(b)
     || (rankOf(a) <= 1 ? a.cost - b.cost : 0)
     || order.get(a.id) - order.get(b.id));
@@ -62,17 +76,36 @@ export function effectLine(t, n) {
   if (k === 'flag') return t('cl.tree.fx.flag');
   if (k === 'fieldPower' && n.field !== undefined) return t('cl.tree.fx.fieldPower.field', { n: pct(n.value), field: t(`cl.field.${FIELDS[n.field]}`) });
   if (k === 'rig' && n.field !== undefined) return t('cl.tree.fx.rig.field', { n: pct(n.value), rig: t(`cl.rig.${FIELDS[n.field]}`) });
-  if (k === 'startKit') return t('cl.tree.fx.startKit', { n: n.value, slot: t('cl.slot.1') });
+  if (k === 'startKit') return t('cl.tree.fx.startKit', { n: n.value, slot: t('cl.tree.kit.units') });
   const plain = ['offlineHours', 'gusherWindow', 'startShares', 'pageBank'].includes(k);
   return t(`cl.tree.fx.${k}`, { n: plain ? n.value : pct(n.value) });
 }
 export const nodeName = (t, id) => t(`cl.tree.node.${id}`);
 
+// The Crude multiplier the Reserves earned give (spending a bank never lowers it), as "2.2"
+export const reserveMult = (state) => Math.round((1 + P.resPer * state.prestige.reserves) * 100) / 100;
+
+// What the Head Start Kit does for this player right now: 'now' (it would fill an empty run at
+// once), 'next' (this run already has Buckets, so it starts at the next New Well) or null (not the Kit)
+export function kitNote(state, v) {
+  if (v.kind !== 'startKit' || v.complete) return null;
+  return state.well.amount[1] && state.well.amount[1].lte(0) ? 'now' : 'next';
+}
+
+// The one node worth a solid gold button on this screen: the cheapest buyable one, innermost ring first
+export function bestNode(state, isOpen) {
+  for (const ring of RING_IDS) {
+    const v = sortNodes(Tree.nodes(state, ring).map(n => nodeView(state, n, isOpen))).find(x => x.can);
+    if (v) return v.id;
+  }
+  return null;
+}
+
 // Buys this ring's affordable nodes, cheapest first (never a flag). Returns the ids bought.
-export function buyRing(state, ring) {
+export function buyRing(state, ring, isOpen) {
   const bought = [];
   for (let guard = 0; guard < 500; guard++) {
-    const best = sortNodes(Tree.nodes(state, ring).map(n => nodeView(state, n))).find(v => v.can);
+    const best = sortNodes(Tree.nodes(state, ring).map(n => nodeView(state, n, isOpen))).find(v => v.can);
     if (!best || !Tree.buy(state, best.id)) break;
     bought.push(best.id);
   }
@@ -80,9 +113,9 @@ export function buyRing(state, ring) {
 }
 
 // Would "buy all" buy two or more here? (it never touches the real state)
-export function buyAllWorthIt(state, ring) {
+export function buyAllWorthIt(state, ring, isOpen) {
   const probe = { tree: { bank: { ...state.tree.bank }, ranks: { ...state.tree.ranks } } };
-  return buyRing(probe, ring).length >= 2;
+  return buyRing(probe, ring, isOpen).length >= 2;
 }
 
 // --- DOM -----------------------------------------------------------------------------------------
@@ -122,6 +155,7 @@ export function mountTree(host, api) {
     const rankText = el('span', 'cl-tree-rank');
     head.append(name, rankText);
     const fx = el('p', 'cl-tree-fx');
+    const note = el('p', 'cl-tree-note');
     const pips = el('div', 'cl-tree-pips');
     pips.setAttribute('aria-hidden', 'true');
     const bar = el('div', 'bar cl-tree-bar'); bar.append(el('i'));
@@ -135,8 +169,8 @@ export function mountTree(host, api) {
       api.act((s) => { ok = Tree.buy(s, id); });
       if (ok) status.textContent = t('cl.tree.bought', { name: nodeName(t, id) });
     });
-    card.append(head, fx, pips, bar, btn, done);
-    return { id, ring, card, rankText, fx, pips, pipEls: [], bar, btn, done, rank: null };
+    card.append(head, fx, note, pips, bar, btn, done);
+    return { id, ring, card, rankText, fx, note, pips, pipEls: [], bar, btn, done, rank: null };
   }
 
   function buildRing(ring) {
@@ -149,23 +183,30 @@ export function mountTree(host, api) {
     bankBox.append(bankNum, el('span', 'cl-tree-bankword', t(`cl.tree.spend.${ring}`)));
     head.append(title, bankBox);
     const reset = el('p', 'cl-tree-reset', t(`cl.tree.reset.${ring}`));
+    // Spending a bank never lowers the multiplier (it counts what was earned): said where it is spent
+    const keep = el('p', 'cl-tree-keep');
+    keep.hidden = ring !== 'reserves';
     const all = el('button', 'btn btn-sm cl-tree-all', t('cl.tree.buyall'));
     all.type = 'button'; all.title = t('cl.tree.buyall_hint');
     all.addEventListener('click', () => {
       let bought = [];
-      api.act((s) => { bought = buyRing(s, ring); });
+      api.act((s) => { bought = buyRing(s, ring, api.isOpen); });
       if (bought.length) status.textContent = t('cl.tree.bought_all', { n: bought.length });
     });
     const lists = { now: el('div', 'cl-tree-grid'), soon: el('div', 'cl-tree-grid') };
+    const laterBox = el('details', 'cl-tree-donebox cl-tree-laterbox');
+    const laterSum = el('summary', 'cl-tree-sec');
+    const laterGrid = el('div', 'cl-tree-grid');
+    laterBox.append(laterSum, laterGrid);
     const heads = { now: el('h4', 'cl-tree-sec', t('cl.tree.sec.now')), soon: el('h4', 'cl-tree-sec', t('cl.tree.sec.soon')) };
     const doneBox = el('details', 'cl-tree-donebox');
     const doneSum = el('summary', 'cl-tree-sec');
     const doneGrid = el('div', 'cl-tree-grid');
     doneBox.append(doneSum, doneGrid);
-    sec.append(head, reset, all, heads.now, lists.now, heads.soon, lists.soon, doneBox);
+    sec.append(head, keep, reset, all, heads.now, lists.now, heads.soon, lists.soon, laterBox, doneBox);
     const cards = new Map();
     for (const n of P.tree) if (n.ring === ring) cards.set(n.id, buildCard(ring, n.id));
-    return { ring, sec, bankNum, bankLast: null, all, lists, heads, doneBox, doneSum, doneGrid, cards };
+    return { ring, sec, bankNum, bankLast: null, keep, all, lists, heads, laterBox, laterSum, laterGrid, doneBox, doneSum, doneGrid, cards };
   }
 
   function place(container, wanted) {
@@ -174,7 +215,7 @@ export function mountTree(host, api) {
     container.replaceChildren(...wanted);
   }
 
-  function updateCard(c, v, first) {
+  function updateCard(c, v, first, state, primary) {
     const { card } = c;
     if (c.rank !== v.rank) {
       if (c.rank !== null && v.rank > c.rank) { flash(card, 'is-bought'); }
@@ -201,12 +242,19 @@ export function mountTree(host, api) {
     card.classList.toggle('is-flag', v.flag);
     c.bar.hidden = !(v.missing > 0);
     if (v.missing > 0) c.bar.firstChild.style.width = Math.round(v.frac * 100) + '%';
-    const showBuy = !v.flag && !v.complete;
+    const showBuy = !v.later && !v.complete;
     c.btn.hidden = !showBuy;
     c.done.hidden = showBuy;
-    if (!showBuy) setText(c.done, v.flag ? t('cl.tree.later') : t('cl.tree.complete'));
+    card.classList.toggle('is-later', v.later);
+    if (!showBuy) {
+      setText(c.done, v.complete ? t('cl.tree.complete') : v.needs ? t(`cl.tree.arrives.${v.needs}`) : t('cl.tree.later'));
+    }
+    const kn = kitNote(state, v);
+    c.note.hidden = !kn;
+    if (kn) setText(c.note, t(`cl.tree.kit.${kn}`));
     if (showBuy) {
-      c.btn.classList.toggle('btn-primary', v.can);
+      c.btn.classList.toggle('btn-primary', v.can && primary);
+      c.btn.classList.toggle('btn-ready', v.can && !primary);
       c.btn.classList.toggle('is-locked', !v.can);
       c.btn.setAttribute('aria-disabled', String(!v.can));
       setText(c.btn.firstChild, v.can ? t('cl.tree.buy') : t('cl.tree.need', { n: api.fmt(v.missing) }));
@@ -221,6 +269,9 @@ export function mountTree(host, api) {
     root.hidden = !open;
     if (!open) return;
     const { shown, next } = ringsShown(s);
+    // one solid gold thing per screen: when the bar's goal is another button here (the New Well), none
+    const goal = typeof a.goal === 'function' ? a.goal() : null;
+    const best = goal && goal.here && goal.anchor !== 'prestige.tree' ? null : bestNode(s, a.isOpen);
     // status line sits at the top of the group
     for (const ring of RING_IDS) {
       let r = rings.get(ring);
@@ -231,18 +282,25 @@ export function mountTree(host, api) {
       setText(r.bankNum, a.fmt(bank));
       if (r.bankLast !== null && r.bankLast !== bank) flash(r.bankNum, 'is-bump');
       r.bankLast = bank;
-      const views = sortNodes(Tree.nodes(s, ring).map(n => nodeView(s, n)));
-      const by = { now: [], soon: [], done: [] };
+      const views = sortNodes(Tree.nodes(s, ring).map(n => nodeView(s, n, a.isOpen)));
+      const by = { now: [], soon: [], later: [], done: [] };
       for (const v of views) by[sectionOf(v)].push(v);
-      for (const v of views) updateCard(r.cards.get(v.id), v, first);
+      for (const v of views) updateCard(r.cards.get(v.id), v, first, s, v.id === best);
       place(r.lists.now, by.now.map(v => r.cards.get(v.id).card));
       place(r.lists.soon, by.soon.map(v => r.cards.get(v.id).card));
+      place(r.laterGrid, by.later.map(v => r.cards.get(v.id).card));
       place(r.doneGrid, by.done.map(v => r.cards.get(v.id).card));
       r.heads.now.hidden = r.lists.now.hidden = by.now.length === 0;
       r.heads.soon.hidden = r.lists.soon.hidden = by.soon.length === 0;
+      r.laterBox.hidden = by.later.length === 0;
+      setText(r.laterSum, t('cl.tree.sec.later', { n: by.later.length }));
       r.doneBox.hidden = by.done.length === 0;
+      if (ring === 'reserves') {
+        r.keep.hidden = !(s.prestige.reserves > 0);
+        setText(r.keep, t('cl.tree.keep', { mult: reserveMult(s) }));
+      }
       setText(r.doneSum, t('cl.tree.sec.done', { n: by.done.length }));
-      r.all.hidden = by.now.length < 2 || !buyAllWorthIt(s, ring);
+      r.all.hidden = by.now.length < 2 || !buyAllWorthIt(s, ring, a.isOpen);
     }
     // order: groups innermost first, then the status line and the one locked line
     const wanted = [];
