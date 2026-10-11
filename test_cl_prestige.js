@@ -118,6 +118,24 @@ console.log('--- Reserves and the New Well gate (reference §3.3) ---');
   assert.ok(Number.isSafeInteger(Prestige.pendingReserves(g)));
 }
 
+console.log('--- progress of a run toward its New Well: 0 to 1, never back, 1 exactly when it can ---');
+{
+  const g = createCoreLoopState();
+  assert.equal(Prestige.newWellProgress(g), 0);
+  let last = 0;
+  for (let e = 0; e <= 12; e += 0.5) {
+    g.well.runCrude = new BigNum(Math.pow(10, e % 1), Math.floor(e));
+    const x = Prestige.newWellProgress(g);
+    assert.ok(x >= last && x <= 1, `rises with the run (1e${e}: ${x})`);
+    assert.equal(x === 1, Prestige.canNewWell(g), `full exactly when a New Well can start (1e${e})`);
+    last = x;
+  }
+  assert.equal(last, 1);
+  // a quarter of the decades is a sixteenth of the bar: early Crude comes fast
+  g.well.runCrude = new BigNum(1, 0); g.well.runCrude = BigNum.from(Math.pow(10, Prestige.newWellRunLog(g) / 4));
+  assert.ok(Math.abs(Prestige.newWellProgress(g) - 1 / 16) < 1e-6);
+}
+
 console.log('--- New Field gate, choices and Charter ---');
 {
   const g = createCoreLoopState();

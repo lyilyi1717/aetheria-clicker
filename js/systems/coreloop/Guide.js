@@ -89,7 +89,6 @@ export function markSeen(state, feature) { delete state.guide.fresh[feature]; }
 // features opened when the step is reached, so "Show me" always has somewhere to go. Order is the
 // order of play. No step passes by itself and none waits on the clock: each is something the
 // player does.
-const runLog = (state) => Math.max(0, log10Big(state.well.runCrude));
 export const STEPS = Object.freeze([
   { id: 'tap', screen: 'well', anchor: 'well.tap', need: 5, have: (s) => (s.well.bought[1] > 0 ? 5 : s.well.taps) },
   { id: 'buy1', screen: 'well', anchor: 'well.buy.1', need: 1, needs: ['well.pumps'], have: (s) => s.well.bought[1] },
@@ -101,7 +100,7 @@ export const STEPS = Object.freeze([
   {
     id: 'reserves', screen: 'well', anchor: 'well.rate', need: P.wellMinReserves,
     have: (s) => (wells(s) > 0 ? P.wellMinReserves : Prestige.pendingReserves(s)),
-    frac: (s) => runLog(s) / Prestige.newWellRunLog(s)   // moves from the first second, never back
+    frac: (s) => Prestige.newWellProgress(s)   // moves from the first second, never back
   },
   { id: 'newwell', screen: 'prestige', anchor: 'prestige.newwell', need: 1, needs: ['tab.prestige'], have: wells },
   { id: 'tree', screen: 'prestige', anchor: 'prestige.tree', need: 1, needs: ['prestige.tree'], have: (s) => (anyNode(s) ? 1 : 0) },
@@ -163,7 +162,7 @@ export function suggestion(state) {
     const frac = Math.max(0, log10Big(state.well.bestRunChron)) / Prestige.fieldGateLog(state);
     return { id: 'goal_field', screen: 'prestige', anchor: 'prestige.newfield', frac: Math.min(1, frac) };
   }
-  return { id: 'goal_well', screen: 'prestige', anchor: 'prestige.newwell', n: Prestige.newWellNeed(state), frac: Math.min(1, runLog(state) / Prestige.newWellRunLog(state)) };
+  return { id: 'goal_well', screen: 'prestige', anchor: 'prestige.newwell', n: Prestige.newWellNeed(state), frac: Prestige.newWellProgress(state) };
 }
 
 // What the bar shows: the current step, else the standing suggestion

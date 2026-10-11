@@ -1,7 +1,9 @@
 /* Core-loop shell (?loop=2). Loaded by js/ui/coreloop/shell.js; tokens only (css/tokens.css).
    Phone first: tabs along the bottom; from 768px they sit under the header. */
 
-body.coreloop > :not(#coreloop-root):not(script):not(link) { display: none !important; }
+/* Everything of the current game is hidden, except the reward toasts and ceremonies, which the
+   preview's feedback uses (js/ui/rewards.js puts them on <body>) */
+body.coreloop > :not(#coreloop-root):not(script):not(link):not(#reward-toasts):not(#reward-ceremony) { display: none !important; }
 /* The page's scrollbar keeps its room: a tab that is shorter than the window must not make the
    whole page jump sideways by the scrollbar's width */
 html:has(body.coreloop) { scrollbar-gutter: stable; }

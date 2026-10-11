@@ -52,7 +52,7 @@ export default {
   'cl.help.how': 'How it works',
   'cl.help.well.line': 'Buy pumps to make Crude. Every pump makes the one before it.',
   'cl.help.well.more': "While you tap, Da'sa heats up and the Well runs faster. While you only watch, Gushers surface. While you are away the Well keeps pumping, slower, for up to 12 hours.",
-  'cl.help.fields.line': 'Your crew works one Field at a time and hauls Materials. Pick the Field your Orders ask for.',
+  'cl.help.fields.line': 'Your crew hauls from one Field at a time. Send them where your Orders need it.',
   'cl.help.fields.more': 'A Field moves while you play; nothing is lost when you stop. Deeper levels give higher grades of Material. Later a Rig works each Field for you, even while you are away.',
   'cl.help.refinery.line': 'Spend Materials on Orders. Every Order raises a Fraction: a multiplier you keep.',
   'cl.help.refinery.more': 'There are five Fractions and each one speeds up a different part of the game. Everything else here adds to a Fraction too.',
