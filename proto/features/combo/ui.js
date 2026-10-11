@@ -18,7 +18,7 @@ ui({
       for (const m of [10, 25, 50]) if (d.combo >= m && !called[m]) {
         called[m] = true;
         text(W / 2, SKY + 60, G.t('t_combo', { n: G.comboMult(app.state).toFixed(1) }), '#ff8a3c', 34, 1.3);
-        sfx.comboUp(m / 10);
+        sfx.comboUp(Math.round(m / 10));   // a whole step: the scale has no note 2.5
       }
     },
     comboEnd() { called[10] = called[25] = called[50] = false; },

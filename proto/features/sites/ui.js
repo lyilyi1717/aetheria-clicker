@@ -15,7 +15,7 @@ function openSites(app) {
   m.querySelector('.more').textContent = t('site_get', { n: G.starsFor(state) });
   const back = m.querySelector('.ghost'); back.textContent = t('site_stay'); back.addEventListener('click', () => app.modal.close());
   const wrap = m.querySelector('.cards');
-  Object.keys(G.SITES).forEach((id, i) => {
+  Object.keys(G.SITES).filter(id => G.siteOpen(state, id)).forEach((id, i) => {
     const b = document.createElement('button');
     b.className = 'relic-card'; b.style.animationDelay = `${i * 0.08}s`;
     b.innerHTML = `<span class="ic">${icon('site_' + id, 56)}</span><b></b><span class="d"></span>`;

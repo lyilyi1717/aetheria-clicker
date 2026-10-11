@@ -21,10 +21,10 @@ export const ores = use({
   params: p,
   strings,
   blocks: {
-    copper: { at: 40, hp: 2, val: 6, ore: true },
-    silver: { at: 50, hp: 3, val: 16, ore: true },
-    gold:   { at: 60, hp: 4, val: 45, ore: true },
-    gem:    { at: 70, hp: 5, val: 160, ore: true },
+    copper: { at: 40, hp: 2, val: 6, ore: true, notice: true },
+    silver: { at: 50, hp: 3, val: 16, ore: true, notice: true },
+    gold:   { at: 60, hp: 4, val: 45, ore: true, notice: true },
+    gem:    { at: 70, hp: 5, val: 160, ore: true, notice: true },
   },
   gen: {
     // veins run on

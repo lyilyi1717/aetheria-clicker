@@ -11,6 +11,13 @@ export const SETS = {
   djinn: { pieces: 6, fromLayer: 2 },
 };
 
+// another feature adds sets with addSets({ id: { pieces, fromLayer, coin: false } }) (coin: false = no +25%;
+// what such a set unlocks is that feature's business: a site's open(s), a relic's when(s))
+export function addSets(sets) {
+  for (const [k, v] of Object.entries(sets)) { if (SETS[k]) throw new Error(`Dig: Museum set "${k}" twice`); SETS[k] = v; }
+}
+const coinSets = s => { let n = 0; for (const k of Object.keys(s.sets)) if (!SETS[k] || SETS[k].coin !== false) n++; return n; };
+
 const p = {
   chance: 0.075,     // a bone in a row (times the site's `bone`)
   setBonus: 0.25,    // coins per full set
@@ -50,14 +57,14 @@ export const museum = use({
     sets:    { init: () => ({}), survives: ['site', 'land'] },   // completed sets
   },
   blocks: {
-    fossil: { at: 100, hp: 3, val: 0, broke: foundFossil },
+    fossil: { at: 100, hp: 3, val: 0, notice: true, broke: foundFossil },
   },
   gen: { row: [{ at: 40, fn(c) {
     const s = c.s;
     if (c.r === 13 && !s.seen.fossil) { c.put('fossil'); s.seen.fossil = true; }
     else if (c.r > 13 && rnd() < p.chance * siteMult(c.site, 'bone')) c.put('fossil');
   } }] },
-  mods: { coinMult: { at: 30, fn: (v, s) => v * (1 + p.setBonus * Object.keys(s.sets).length) } },
+  mods: { coinMult: { at: 30, fn: (v, s) => v * (1 + p.setBonus * coinSets(s)) } },
   unlocks: () => {
     const out = [];
     for (const [k, v] of Object.entries(SETS)) {

@@ -54,7 +54,7 @@ export const tnt = use({
   legacy: { tntPower: 'power' },
   strings,
   blocks: {
-    tnt: { at: 90, hp: 1, val: 0, chain: true, broke(s, b) {
+    tnt: { at: 90, hp: 1, val: 0, chain: true, notice: true, broke(s, b) {
       blastAt(s, b.r, b.c, { rad: 1 + rel(s, 'bang'), dmg: dirtHp(b.r) * p.power, src: b.src });
     } },
   },

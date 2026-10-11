@@ -36,14 +36,19 @@ export function newState() {
   return s;
 }
 
-// reset(s, name): everything goes back to its default except the slices that declare
-// `survives: [name]`. Then the `reset` hooks run and the ground is dug fresh.
+// reset(s, name, patch): everything goes back to its default except the slices that declare
+// `survives: [name]`. `resetting` hooks run first and may put things in `keep` (a perk that carries
+// one relic over); then the slices are wiped, `patch` is applied (the contract of the new site),
+// the `reset` hooks run with the same `keep`, and the ground is dug fresh.
 // (The throwaway fresh state is built first so a reset draws the same chance as a fresh start does.)
-export function reset(s, name) {
+export function reset(s, name, patch) {
+  const keep = {};
+  run('resetting', s, name, keep);
   const f = newState();
   for (const k of Object.keys(s)) if (!SLICES[k] && k !== 'v') delete s[k];
   for (const sl of Object.values(SLICES)) if (!sl.survives.includes(name)) s[sl.key] = f[sl.key];
-  run('reset', s, name);
+  if (patch) Object.assign(s, patch);
+  run('reset', s, name, keep);
   dig(s);
 }
 

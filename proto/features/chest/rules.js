@@ -41,7 +41,7 @@ export const chest = use({
     chestsOpened: { init: () => 0 },
   },
   blocks: {
-    chest: { at: 80, hp: 4, val: 0, broke(s, b, ev) { s.chests++; emit(s, ev, 'chest', { r: b.r, c: b.c, src: b.src }); } },
+    chest: { at: 80, hp: 4, val: 0, notice: true, broke(s, b, ev) { s.chests++; emit(s, ev, 'chest', { r: b.r, c: b.c, src: b.src }); } },
   },
   gen: { row: [{ at: 20, fn(c) {
     const s = c.s;

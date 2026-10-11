@@ -18,7 +18,7 @@ export const oil = use({
   strings,
   state: { rush: { init: () => 0, perSite: true } },   // seconds of oil rush left
   blocks: {
-    oil: { at: 110, hp: 2, val: 0, broke(s, b, ev) {
+    oil: { at: 110, hp: 2, val: 0, notice: true, broke(s, b, ev) {
       const pay = Math.round(dirtVal(b.r) * p.pay * coinMult(s));
       addCoins(s, pay, b.src);
       s.rush = p.rushSeconds;

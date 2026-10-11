@@ -1,9 +1,12 @@
 // Dig prototype: content timeline for human-paced players (measure only; imports the real rules).
 // Usage:
 //   node sim/proto/dig-timeline.mjs [--seeds 7] [--only all|active|mixed|idle|diggers|away] [--set '{"UPGRADES.crew.base":20}'] [--ab '{"UPGRADES.crew.base":12}'] [--quick]
-// --set overrides parameters for the whole run (keys: "P.x" | "x" in P | "UPGRADES.id.field" | "crew.base" | "TYPES.t.hp" ...).
+// --set overrides numbers for the whole run. A key is a path G.setParam understands: "tnt.power" (feature.key),
+//   "ITEMS.crew.base" or "crew.base", "BLOCKS.gold.val", "SITES.boom.tnt", "RELICS.boom.max", "SETS.camel.pieces",
+//   and the old names ("P.tntPower", "tntPower", "UPGRADES.crew.base", "TYPES.gold.val").
 // --ab runs the baseline and then the same suite with the override and prints both side by side (diggers + milestones).
-// Content definition: see UNITS below (63 core units + 42 grind units = 105).
+// Content definition: G.unlocks(), the list every feature adds to. The rules send ev('unlock') the first time each is reached,
+// so a new feature is counted here without an edit. A feature may also bring a bot (use({ bot: { shop(s, api) } })) so the scripted player uses it.
 import * as G from '../../proto/game.js';
 
 // ---------- args ----------
@@ -17,38 +20,19 @@ const AB = arg('ab', null) ? JSON.parse(arg('ab')) : null;
 
 // ---------- overrides ----------
 let saved = [];
-function restore() { for (const [o, k, v] of saved.reverse()) o[k] = v; saved = []; }
+function restore() { for (const undo of saved.reverse()) undo(); saved = []; }
 function applyOv(ov) {
   restore();
-  for (const [key, val] of Object.entries(ov)) {
-    const p = key.split('.');
-    let root, path;
-    if (['P', 'UPGRADES', 'TYPES', 'SITES', 'RELICS', 'SETS'].includes(p[0])) { root = G[p[0]]; path = p.slice(1); }
-    else if (p.length === 1 && p[0] in G.P) { root = G.P; path = p; }
-    else { root = G.UPGRADES; path = p; }
-    let o = root; for (const k of path.slice(0, -1)) o = o[k];
-    const last = path[path.length - 1];
-    saved.push([o, last, o[last]]); o[last] = val;
-  }
+  for (const [key, val] of Object.entries(ov)) saved.push(G.setParam(key, val));
 }
 
 // ---------- rng ----------
-function mulberry(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-const rnd = () => Math.random();
+const mulberry = G.mulberry;
+const reseed = n => G.setRng(mulberry(n));   // the rules and this script draw from the same stream
+const rnd = G.rnd;
 
 // ---------- content ----------
-const TYPES12 = ['dirt', 'stone', 'hard', 'copper', 'silver', 'gold', 'gem', 'chest', 'tnt', 'fossil', 'oil', 'boss'];
-const UNITS = [];   // { id, cat }
-for (const t of TYPES12) UNITS.push({ id: 'type:' + t, cat: 'core' });
-for (const r of Object.keys(G.RELICS)) UNITS.push({ id: 'relic:' + r, cat: 'core' });
-for (const l of [1, 2, 3]) UNITS.push({ id: 'boss:L' + l, cat: 'core' });
-for (const l of [2, 3, 4]) UNITS.push({ id: 'layer' + l, cat: 'core' });
-for (const [k, v] of Object.entries(G.SETS)) { for (let i = 0; i < v.pieces; i++) UNITS.push({ id: `bone:${k}.${i}`, cat: 'core' }); UNITS.push({ id: 'set:' + k, cat: 'core' }); }
-for (const id of ['pick', 'crew', 'crewPow', 'luck']) UNITS.push({ id: 'shop:' + id, cat: 'core' });
-for (let n = 2; n <= G.UPGRADES.crew.max; n++) UNITS.push({ id: 'crew:' + n, cat: 'core' });
-for (const s of ['boom', 'gold', 'bones']) UNITS.push({ id: 'site:' + s, cat: 'core' });
-for (const [r, v] of Object.entries(G.RELICS)) for (let l = 2; l <= v.max; l++) UNITS.push({ id: `relic:${r}:${l}`, cat: 'grind' });
-for (let n = 2; n <= G.UPGRADES.luck.max; n++) UNITS.push({ id: 'luck:' + n, cat: 'grind' });
+const UNITS = G.unlocks().list;   // { id, cat: 'core' | 'grind', group }
 const UCAT = Object.fromEntries(UNITS.map(u => [u.id, u.cat]));
 const N_ALL = UNITS.length, N_CORE = UNITS.filter(u => u.cat === 'core').length;
 
@@ -63,9 +47,9 @@ const PROFILES = {
   mid:  { hps: 5.0, lag: 0.35, notice: 0.6, buyEvery: 6, react: 1.0, relicT: 3.5, weak: 0.15, clear: 0.5 },
   fast: { hps: 6.2, lag: 0.2, notice: 0.8, buyEvery: 4, react: 0.7, relicT: 2.5, weak: 0.3, clear: 0.8 },
 };
-const VAL = new Set([...G.ORES, 'chest', 'tnt', 'fossil', 'oil']);
+const VAL = new Set(Object.keys(G.BLOCKS).filter(t => G.BLOCKS[t].notice));   // what a player goes for when he sees it
 const PRIO = ['boom', 'vein', 'deep', 'wide', 'lucky', 'heavy', 'shiny', 'streak', 'echo', 'karak', 'nose', 'bang', 'lamp'];
-const SITE_ORDER = ['boom', 'gold', 'bones'];
+const SITE_ORDER = Object.keys(G.SITES).filter(id => !G.SITES[id].start);
 
 // ---------- tracker ----------
 class Trk {
@@ -80,39 +64,36 @@ const WINS = ['0-5', '5-10', '10-20', '20-40', '40-60', '60-120', '120+'];
 
 function mkEv(s, trk) {
   return (k, d) => {
-    if (k === 'break') {
-      trk.unit('type:' + d.t);
+    if (k === 'unlock') trk.unit(d.id);     // a first time, as the rules report it
+    else if (k === 'break') {
       const w = trk.w();
       if (d.src === 'you') { w.hb++; w.hc += d.coins; } else { w.cb++; w.cc += d.coins; }
       if (d.t === 'chest') trk.mark('first chest found');
       if (d.t === 'chest') trk.chestN++;
       if (G.ORES.includes(d.t)) trk.mark('first ore');
     } else if (k === 'relic') {
-      trk.unit('relic:' + d.id); if (d.level >= 2) trk.unit(`relic:${d.id}:${d.level}`); trk.mark('first relic'); trk.dec();
+      trk.mark('first relic'); trk.dec();
     } else if (k === 'buy') {
-      trk.unit('shop:' + d.id === 'shop:pick' ? 'shop:pick' : 'shop:' + d.id);
-      if (d.id === 'crew' && d.level >= 2) trk.unit('crew:' + d.level);
-      if (d.id === 'luck' && d.level >= 2) trk.unit('luck:' + d.level);
       if (d.id === 'crew' && d.level === 1) trk.mark('first digger bought');
       trk.dec();
     } else if (k === 'bossDown') {
-      trk.chestN++; if (d.layer <= 3) trk.unit('boss:L' + d.layer); trk.unit('type:boss'); trk.mark('boss down ' + d.layer);
+      trk.chestN++; trk.mark('boss down ' + d.layer);
     } else if (k === 'fossil') {
-      if (d.isNew) { trk.unit(`bone:${d.set}.${d.piece}`); trk.mark('first bone'); } else trk.mark('first duplicate bone');
-    } else if (k === 'set') { trk.unit('set:' + d.set); trk.mark('first set'); }
+      if (d.isNew) trk.mark('first bone'); else trk.mark('first duplicate bone');
+    } else if (k === 'set') trk.mark('first set');
     else if (k === 'gusher') trk.mark('first oil gusher');
-    else if (k === 'newSite') { trk.unit('site:' + s.site); trk.visited.add(s.site); trk.mark('new site #' + trk.visited.size); trk.dec(); }
+    else if (k === 'newSite') { trk.visited.add(s.site); trk.mark('new site #' + trk.visited.size); trk.dec(); }
   };
 }
 
 // ---------- the human ----------
 function mkCtx(profile) { return { p: { ...PROFILES[profile] }, clock: 0, next: 0, busy: 0, buyT: 3, tg: null, col: 4, lagNext: 0, clearRow: -1, clear: false }; }
 
-const visible = (s, id) => id === 'pick' || (id === 'crew' && (s.total >= 60 || s.up.crew > 0)) || (id === 'crewPow' && s.up.crew > 0) || (id === 'luck' && (s.bossesDown >= 1 || s.up.luck > 0));
+const COIN_ITEMS = Object.keys(G.ITEMS).filter(id => G.ITEMS[id].shop === 'coin');
 function shopCheck(s, ev, noCrew = false) {
   let n = 0;
   for (let guard = 0; guard < 50; guard++) {
-    const ids = ['pick', 'crew', 'crewPow', 'luck'].filter(id => visible(s, id) && G.canBuy(s, id) && !(noCrew && (id === 'crew' || id === 'crewPow')));
+    const ids = COIN_ITEMS.filter(id => G.itemOpen(s, id) && G.canBuy(s, id) && !(noCrew && (id === 'crew' || id === 'crewPow')));
     if (!ids.length) break;
     let id;
     if (s.up.crew === 0 && ids.includes('crew')) id = 'crew';     // the new thing first
@@ -191,8 +172,8 @@ function play(s, ctx, secs, trk, opts = {}) {
       const t = ctx.p.relicT; el += t; trk.real += t; trk.act += t; ctx.clock += t; trk.w().secs += t;   // the game is paused while the card is open
       continue;
     }
-    if (G.canNewSite(s) && trk.visited.size < 4 && ctx.busy <= 0) {
-      const left = SITE_ORDER.filter(x => !trk.visited.has(x));
+    if (G.canNewSite(s) && ctx.busy <= 0 && SITE_ORDER.some(x => !trk.visited.has(x) && G.siteOpen(s, x))) {
+      const left = SITE_ORDER.filter(x => !trk.visited.has(x) && G.siteOpen(s, x));
       G.newSite(s, left[Math.floor(rnd() * left.length)], ev);
       trk.lastTotal = s.total; ctx.tg = null; ctx.busy = 4; ctx.col = 4;
       continue;
@@ -206,17 +187,17 @@ function play(s, ctx, secs, trk, opts = {}) {
     ctx.buyT -= dt;
     if (ctx.buyT <= 0) {
       ctx.buyT = ctx.p.buyEvery;
-      const n = shopCheck(s, ev, ctx.noCrew);
+      let n = shopCheck(s, ev, ctx.noCrew);
+      for (const b of G.BOTS) if (b.shop) n += b.shop(s, { ev, ctx, trk, rnd }) || 0;   // a feature's own shop, tools, jobs
       if (n) ctx.busy += n * ctx.p.react * (hand ? 1 : 0.3);
     }
     // depth marks and layers
     const be = s.best; if (be > trk.bestEver) {
       trk.bestEver = be;
       for (const m of [10, 25, 30, 50, 75, 100]) if (be >= m) trk.mark('depth ' + m);
-      if (be >= 26) trk.unit('layer2'); if (be >= 51) trk.unit('layer3'); if (be >= 76) trk.unit('layer4');
     }
-    if (!trk.marks.has('affordable:pick') || !trk.marks.has('affordable:crew') || !trk.marks.has('affordable:crewPow') || !trk.marks.has('affordable:luck')) {
-      for (const id of ['pick', 'crew', 'crewPow', 'luck']) if (G.canBuy(s, id)) trk.mark('affordable:' + id);
+    if (COIN_ITEMS.some(id => !trk.marks.has('affordable:' + id))) {
+      for (const id of COIN_ITEMS) if (G.canBuy(s, id)) trk.mark('affordable:' + id);
     }
     if (!trk.firstDig && s.up.crew === 0 && G.canBuy(s, 'crew')) {
       const up = G.UPGRADES; let k = 0, sum = 0; const cost = G.upgradeCost(s, 'crew');
@@ -232,18 +213,19 @@ function play(s, ctx, secs, trk, opts = {}) {
 
 function sample(s, trk) { const w = trk.w(); w.dig = s.diggers.length; w.crewPow = s.up.crewPow; w.pick = s.up.pick; }
 function awayFor(s, ctx, secs, trk) {
-  const out = G.settleAway(s, secs);
-  trk.real += secs; ctx.tg = null; ctx.clock += secs;
+  trk.real += secs;                       // first times found while away are stamped at the return
+  const out = G.settleAway(s, secs, mkEv(s, trk));
+  ctx.tg = null; ctx.clock += secs;
   sample(s, trk); const w = trk.w(); w.ac += out.coins; w.am += out.metres; w.tot += out.coins; trk.lastTotal = s.total;
   trk.mark('first away');
-  if (s.best > trk.bestEver) { trk.bestEver = s.best; for (const m of [10, 25, 30, 50, 75, 100]) if (s.best >= m) trk.mark('depth ' + m); if (s.best >= 26) trk.unit('layer2'); if (s.best >= 51) trk.unit('layer3'); if (s.best >= 76) trk.unit('layer4'); }
+  if (s.best > trk.bestEver) { trk.bestEver = s.best; for (const m of [10, 25, 30, 50, 75, 100]) if (s.best >= m) trk.mark('depth ' + m); }
   return out;
 }
 
 // ---------- scenarios ----------
 const SNAPS = { '3m': 180, '5m': 300, '10m': 600, '20m': 1200, '40m': 2400, '60m': 3600 };
 function newRun(profile, seed, noCrew = false) {
-  Math.random = mulberry(seed * 7919 + 13);
+  G.setRng(mulberry(seed * 7919 + 13));
   const s = G.newState(); const ctx = mkCtx(profile); ctx.noCrew = noCrew; const trk = new Trk();
   return { s, ctx, trk };
 }
@@ -424,12 +406,12 @@ function awayCompare(runs) {
     const ss = runs.map(r => r.snaps[lab]).filter(Boolean); if (!ss.length) continue;
     const act = ss.map((x, j) => {
       const s = structuredClone(x.s), c = structuredClone(x.ctx); const tr = new Trk(); tr.lastTotal = s.total; tr.bestEver = s.best; tr.visited = new Set(x.visited);
-      Math.random = mulberry(99 + j); const b0 = s.best; play(s, c, 300, tr);
+      reseed(99 + j); const b0 = s.best; play(s, c, 300, tr);
       const coins = Object.values(tr.win).reduce((a, w) => a + w.tot, 0);
       return { c: coins, m: tr.bestEver - b0, h: tr.chestN };
     });
     const cols = [act];
-    for (const secs of [1800, 7200, 28800, 43200]) cols.push(ss.map((x, j) => { const s = structuredClone(x.s); Math.random = mulberry(500 + j); const o = G.settleAway(s, secs); return { c: o.coins, m: o.metres, h: o.chests, b: o.atBoss }; }));
+    for (const secs of [1800, 7200, 28800, 43200]) cols.push(ss.map((x, j) => { const s = structuredClone(x.s); reseed(500 + j); const o = G.settleAway(s, secs); return { c: o.coins, m: o.metres, h: o.chests, b: o.atBoss }; }));
     const f = a => `${fmtN(med(a.map(x => x.c)))} / ${med(a.map(x => x.m)).toFixed(0)} m / ${med(a.map(x => x.h)).toFixed(0)}` + (a[0].b !== undefined ? ` (BR ${a.filter(x => x.b).length}/${a.length})` : '');
     console.log(`| ${lab} (${med(ss.map(x => x.s.diggers.length)).toFixed(0)} diggers, pick ${med(ss.map(x => x.s.up.pick)).toFixed(0)}) | ${cols.map(f).join(' | ')} |`);
   }
@@ -457,7 +439,8 @@ function suite(label, ov) {
 
 function report(label, out, ov) {
   console.log(`\n=================== ${label} ${JSON.stringify(ov)} ===================`);
-  console.log(`Content: ${N_ALL} units = ${N_CORE} core (12 block types, 13 relics, 3 Big Rock layers, 3 deeper layers, 15 bones + 3 sets, 4 shop items + 7 more diggers, 3 new sites) + ${N_ALL - N_CORE} grind (23 relic levels beyond the first, 19 luck levels beyond the first).`);
+  const groups = cat => { const m = new Map(); for (const u of UNITS) if (u.cat === cat) m.set(u.group, (m.get(u.group) || 0) + 1); return [...m].map(([g, n]) => `${n} ${g}`).join(', '); };
+  console.log(`Content: ${N_ALL} units = ${N_CORE} core (${groups('core')}) + ${N_ALL - N_CORE} grind (${groups('grind')}).`);
   milestoneTable('CORE content', out, CORE_IDS, N_CORE);
   milestoneTable('FULL content (core + grind levels)', out, ALL_IDS, N_ALL);
   depthTable(out);

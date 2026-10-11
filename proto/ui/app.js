@@ -86,7 +86,9 @@ const modal = {
 // the rules' events come in here; so do the page's own (fire)
 function ev(kind, d) {
   const L = ON[kind];
-  if (L) for (let i = 0; i < L.length; i++) L[i](d, app);
+  if (!L) return;
+  // feedback must never stop the rules half way through a break: a handler that throws is logged and skipped
+  for (let i = 0; i < L.length; i++) { try { L[i](d, app); } catch (e) { console.error(`Dig: the "${kind}" handler failed`, e); } }
 }
 const fire = ev;
 const quiet = () => {};

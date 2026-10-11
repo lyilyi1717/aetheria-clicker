@@ -12,11 +12,15 @@ const p = {
 export const canNewSite = s => s.bossesDown >= p.needBosses;
 export const starsFor = s => Math.max(1, Math.floor(s.best / 10) - 2);
 
-export function newSite(s, site, ev = () => {}) {
-  if (!canNewSite(s) || !SITES[site]) return false;
+// a site may be gated: `open(s)` in its def (a Museum set that unlocks a fourth site)
+export const siteOpen = (s, site) => !!SITES[site] && (!SITES[site].open || !!SITES[site].open(s));
+
+// patch: state to set on the new site before its ground is generated, e.g. { contract: 'noDiggers' }
+export function newSite(s, site, ev = () => {}, patch) {
+  if (!canNewSite(s) || !siteOpen(s, site)) return false;
   const gain = starsFor(s);
   s.stars += gain; s.sites += 1; s.site = site;
-  reset(s, 'site');               // every slice that does not declare `survives: ['site']` starts over
+  reset(s, 'site', patch);        // every slice that does not declare `survives: ['site']` starts over
   emit(s, ev, 'newSite', { gain, stars: s.stars });
   return true;
 }
