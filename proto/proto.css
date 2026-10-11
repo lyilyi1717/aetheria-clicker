@@ -18,6 +18,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .stars { display: inline-flex; align-items: center; gap: 6px; font-size: 18px; }
 .ghost { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 5px 10px; }
 .ghost:hover { color: var(--ink); border-color: var(--muted); }
+.ghost.on { color: var(--gold); border-color: var(--gold); }
 
 .layout { display: grid; grid-template-columns: minmax(230px, 1fr) 640px minmax(260px, 1fr); gap: 16px; align-items: start; }
 .side { display: flex; flex-direction: column; gap: 12px; min-height: 200px; }
