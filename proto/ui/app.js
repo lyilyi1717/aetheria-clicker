@@ -1,10 +1,15 @@
-// Dig prototype: the page. Input, the frame loop, and turning the rules' events
-// into things you see and hear. Its own save key; nothing here touches Aetheria.
-import * as G from './game.js';
-import { fx, CELL, SKY, W, H, draw, updateFx, centre, yOf, debris, spark, coinBurst, text, ring, flash, shake, screenFlash, gush, swingAnim, blockColour } from './render.js';
-import { sfx, unlock, setMuted, isMuted } from './audio.js';
-import { t, fmt } from './strings.js';
-import { icon } from './icons.js';
+// Dig: the page. Input, the frame loop, the save, and the host for everything a feature shows:
+// panels, cards, toasts, the goal bar, the status chip, the tool bar, and the map from the rules'
+// events to what you see and hear. A feature registers its part with ui({...}); see proto/README.md.
+// Its own save key; nothing here touches Aetheria.
+import * as G from '../game.js';
+import { fx, CELL, SKY, W, H, draw, updateFx, centre, debris, spark, coinBurst, text, ring, flash, shake, swingAnim, blockColour, ART, addArt, addDraw, bindState } from './render.js';
+import { sfx, unlock, setMuted, isMuted, addSfx } from './audio.js';
+import { icon, addIcons } from './icons.js';
+import strings from './strings.js';
+
+const { t, fmt } = G;
+G.addStrings(strings, 'page');
 
 const SAVE_KEY = 'DIG_PROTO_SAVE_V1';
 const MUTE_KEY = 'DIG_PROTO_MUTE';
@@ -14,26 +19,39 @@ const SPEED = Math.max(1, Number(params.get('speed')) || 1);
 const $ = id => document.getElementById(id);
 
 let state = null;
-let paused = false;          // a chest or a card is open
+let paused = false;          // a card is open
 let hitStop = 0;
 let holding = false, holdCd = 0, lastSwing = 0;
-let autoDig = false;       // dig where the mouse is without holding the button (key A)
+let autoDig = false;         // dig where the mouse is without holding the button (key A)
 let shownCoins = 0;
 let coinLands = 0;
 let toastT = 0, bannerT = 0;
-let draftOpen = false;
-const flags = {};
+let modalId = null;
+let armed = null;            // the tool the next click uses
 
-// ---------- save ----------
+// ---------- what features register ----------
 
-function load() {
-  let s = null;
-  try { const raw = localStorage.getItem(SAVE_KEY); if (raw) s = G.deserialize(raw); } catch { /* a blocked store just means a fresh dig */ }
-  return s || G.newState();
+const DEFS = [];             // every ui() def
+const ON = {};               // event kind -> handlers
+const PANELS = [], GOALS = [], STATUS = [], KEYS = {};
+export const ITEM_TEXT = {}; // shop item id -> { desc(s, lv), noLevel }
+
+// ui({ id, css, icons, sfx, art, draw, on, panels, items, goal, status, keys, mount, start, tick, away })
+export function ui(def) {
+  DEFS.push(def);
+  if (def.css) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = def.css; document.head.appendChild(l); }
+  addIcons(def.icons); addSfx(def.sfx); addArt(def.art); addDraw(def.draw);
+  for (const [kind, fn] of Object.entries(def.on || {})) (ON[kind] || (ON[kind] = [])).push(fn);
+  for (const p of def.panels || []) PANELS.push({ at: 1000, side: 'left', ...p });
+  PANELS.sort((a, b) => a.at - b.at);
+  for (const [id, x] of Object.entries(def.items || {})) ITEM_TEXT[id] = x;
+  if (def.goal) { GOALS.push(def.goal); GOALS.sort((a, b) => a.at - b.at); }
+  if (def.status) { STATUS.push(def.status); STATUS.sort((a, b) => a.at - b.at); }
+  for (const [k, fn] of Object.entries(def.keys || {})) KEYS[k.toLowerCase()] = fn;
+  return def;
 }
-function save() { try { localStorage.setItem(SAVE_KEY, G.serialize(state)); } catch { /* ignore */ } }
 
-// ---------- small UI helpers ----------
+// ---------- what features may use ----------
 
 function toast(msg, kind = '') {
   const el = $('toast');
@@ -46,88 +64,85 @@ function banner(title, sub) {
   el.className = 'show'; bannerT = 3.6;
 }
 function bump(el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+function save() { try { localStorage.setItem(SAVE_KEY, G.serialize(state)); } catch { /* ignore */ } }
 
-// ---------- events from the rules ----------
+// One card at a time; the dig is paused while it is open.
+// open(id, html) returns the #modal element to fill in, or null if another card is open.
+const modal = {
+  open(id, html) {
+    if (modalId) return null;
+    modalId = id; paused = true; holding = false;
+    const m = $('modal'); m.innerHTML = html; m.className = 'show';
+    return m;
+  },
+  close() {
+    const m = $('modal'); m.className = ''; m.innerHTML = '';
+    const was = modalId; modalId = null; paused = false;
+    if (was) fire('modalClosed', { id: was });
+  },
+  get id() { return modalId; },
+};
 
+// the rules' events come in here; so do the page's own (fire)
 function ev(kind, d) {
-  switch (kind) {
-    case 'swing': swingAnim(d.crit); break;
-    case 'hit': {
+  const L = ON[kind];
+  if (L) for (let i = 0; i < L.length; i++) L[i](d, app);
+}
+const fire = ev;
+const quiet = () => {};
+
+export const app = {
+  get state() { return state; },
+  ev, fire, toast, banner, bump, save, modal, t, fmt, icon, sfx,
+  el: {},                                   // top, left, right, stage (filled at start)
+  flags: {},                                // a feature's own page-only flags
+  unlockAudio: unlock,
+  hitStop(x) { hitStop = Math.max(hitStop, x); },
+  dirty(id) { for (const p of PANELS) if (!id || p.id === id) p.dirty = true; },
+  refresh(force) { updatePanels(force); },
+};
+
+// ---------- events from the rules: the core's own feedback ----------
+
+ui({
+  id: 'page',
+  on: {
+    swing(d) { swingAnim(d.crit); },
+    hit(d) {
       const [x, y] = centre(d.r, d.c);
       const col = blockColour(d.t, d.r);
-      if (d.t === 'boss') { fx.bossShake = 1; fx.bossFrac = d.frac; }
+      const a = ART[d.t] || {};
       flash(d.r, d.c, d.src === 'you' ? 1 : 0.5);
+      if (a.hit && a.hit(d, x, y, col)) return;          // the kind did its own feedback
       if (d.src === 'you') {
         debris(d.r, d.c, col, d.crit ? 10 : 4, d.crit ? 1.2 : 0.7);
         if (d.crit) { text(x, y - 14, fmt(d.dmg) + '!', '#ffe14a', 30, 0.9); shake(0.3); hitStop = 0.05; sfx.crit(); spark(x, y, '#ffe14a', 12); }
-        else if (d.weak) { text(x, y - 12, fmt(d.dmg), '#ffb347', 24, 0.7); spark(x, y, '#ffb347', 8); shake(0.14); sfx.bossHit(); sfx.comboUp(0); }
-        else { text(x, y - 10, fmt(Math.max(1, d.dmg)), '#ffffff', 15, 0.5); if (d.t === 'boss') sfx.bossHit(); else sfx.hit(d.t === 'hard' || d.t === 'stone'); }
+        else { text(x, y - 10, fmt(Math.max(1, d.dmg)), '#ffffff', 15, 0.5); if (a.hitSfx) a.hitSfx(); else sfx.hit(!!a.hard); }
       } else { debris(d.r, d.c, col, 1, 0.5); sfx.crew(); }
-      break;
-    }
-    case 'break': {
+    },
+    break(d) {
       const [x, y] = centre(d.r, d.c);
       const col = blockColour(d.t, d.r);
-      const ore = G.ORES.includes(d.t);
+      const a = ART[d.t] || {};
+      const rich = !!a.rich;
       const you = d.src === 'you';
-      debris(d.r, d.c, col, you ? 14 : 7, ore ? 1.2 : 1);
-      if (ore) { ring(x, y, CELL * 0.9, col); spark(x, y, '#fff', 8); }
+      debris(d.r, d.c, col, you ? 14 : 7, rich ? 1.2 : 1);
+      if (rich) { ring(x, y, CELL * 0.9, col); spark(x, y, '#fff', 8); }
       if (d.coins > 0) {
-        coinBurst(d.r, d.c, Math.min(ore ? 9 : 3, 1 + Math.floor(Math.log2(d.coins + 1) / 2) + (ore ? 3 : 0)), ore && d.t !== 'gold' && d.t !== 'copper' ? '#dfe9f2' : '#ffd23f');
-        text(x, y - 6, '+' + fmt(d.coins), ore ? '#ffe14a' : '#ffe9a8', ore ? 24 : you ? 17 : 13, ore ? 1.0 : 0.7);
+        coinBurst(d.r, d.c, Math.min(rich ? 9 : 3, 1 + Math.floor(Math.log2(d.coins + 1) / 2) + (rich ? 3 : 0)), a.coin || '#ffd23f');
+        text(x, y - 6, '+' + fmt(d.coins), rich ? '#ffe14a' : '#ffe9a8', rich ? 24 : you ? 17 : 13, rich ? 1.0 : 0.7);
       }
       if (you) {
-        sfx.break(d.combo + d.chain * 2, ore);
-        shake(ore ? 0.16 : 0.07);
-        if (ore) hitStop = Math.max(hitStop, 0.03);
-        for (const m of [10, 25, 50]) if (d.combo >= m && !flags['c' + m]) { flags['c' + m] = true; text(W / 2, SKY + 60, t('t_combo', { n: G.comboMult(state).toFixed(1) }), '#ff8a3c', 34, 1.3); sfx.comboUp(m / 10); }
+        sfx.break((d.combo || 0) + d.chain * 2, rich);
+        shake(rich ? 0.16 : 0.07);
+        if (rich) hitStop = Math.max(hitStop, 0.03);
       } else sfx.crew();
-      if (!flags.firstBreak) { flags.firstBreak = true; $('hint').className = ''; }
-      break;
-    }
-    case 'chest':
-      sfx.chestFound();
-      { const [x, y] = centre(d.r, d.c); ring(x, y, CELL * 1.6, '#ffd23f'); spark(x, y, '#ffd23f', 24); }
-      if (d.src === 'you') setTimeout(() => openDraft(), 550); else toast(t('t_chest_crew'), 'gold');
-      break;
-    case 'blast': {
-      const [x, y] = centre(d.r, d.c);
-      ring(x, y, CELL * (d.rad + 1.1), '#ffb347'); ring(x, y, CELL * (d.rad + 0.5), '#fff');
-      spark(x, y, '#ffb347', 30); spark(x, y, '#fff', 12);
-      shake(0.65); screenFlash('#ffcf80', 0.28); hitStop = 0.07; sfx.blast();
-      break;
-    }
-    case 'fossil':
-      sfx.fossil();
-      { const [x, y] = centre(d.r, d.c); ring(x, y, CELL * 1.4, '#f6efdc'); spark(x, y, '#f6efdc', 20); }
-      toast(d.isNew ? t('t_fossil_new', { set: t('set_' + d.set) }) : t('t_fossil_dup', { n: fmt(d.coins) }), 'fossil');
-      flags.museumDirty = true;
-      break;
-    case 'set': banner(t('t_set', { set: t('set_' + d.set) }), ''); sfx.star(); screenFlash('#f6efdc', 0.3); flags.museumDirty = true; break;
-    case 'gusher': {
-      const [x, y] = centre(d.r, d.c);
-      gush(d.c, d.r); sfx.gusher(); shake(0.5);
-      coinBurst(d.r, d.c, 40); text(x, y - 30, '+' + fmt(d.coins), '#ffe14a', 34, 1.6);
-      toast(t('t_gusher', { n: fmt(d.coins) }), 'gold');
-      break;
-    }
-    case 'bossDown': {
-      sfx.bossDown(); shake(1); screenFlash('#fff', 0.6); hitStop = 0.12;
-      for (let c = 0; c < G.COLS; c++) { debris(d.r, c, '#6a6384', 16, 1.6); coinBurst(d.r, c, 8); }
-      const y = yOf(d.r) + CELL / 2;
-      ring(W / 2, y, W * 0.7, '#fff'); ring(W / 2, y, W * 0.45, '#ffd23f');
-      banner(t('boss_down'), t('boss_down_sub', { n: fmt(d.coins) }));
-      setTimeout(() => { toast(t('t_layer', { name: t('layer_' + Math.min(3, d.layer)) })); openDraft(); }, 2400);
-      break;
-    }
-    case 'buy': sfx.buy(); if (d.id === 'crew') toast(t('t_digger')); break;
-    case 'relic': sfx.relic(); flags.relicsDirty = true; break;
-    case 'comboEnd': flags.c10 = flags.c25 = flags.c50 = false; break;
-    case 'newSite': sfx.star(); screenFlash('#fff', 0.7); banner(t('site_done', { n: d.stars }), ''); flags.relicsDirty = flags.museumDirty = true; fx.cam = 0; break;
-    default: break;
-  }
-}
-const quiet = () => {};
+      if (!app.flags.firstBreak) { app.flags.firstBreak = true; $('hint').className = ''; }
+    },
+    buy() { sfx.buy(); },
+    newSite() { fx.cam = 0; shownCoins = 0; app.dirty(); },
+  },
+});
 
 // ---------- the pick ----------
 
@@ -167,244 +182,116 @@ function bindInput(cv) {
     fx.mouse.inside = true;
   };
   cv.addEventListener('pointermove', pos);
-  cv.addEventListener('pointerdown', e => { unlock(); pos(e); holding = true; fx.target = targetAt(fx.mouse.x, fx.mouse.y); doSwing(); e.preventDefault(); });
+  cv.addEventListener('pointerdown', e => {
+    unlock(); pos(e);
+    fx.target = targetAt(fx.mouse.x, fx.mouse.y);
+    if (armed) { useArmed(); e.preventDefault(); return; }
+    holding = true; doSwing(); e.preventDefault();
+  });
   window.addEventListener('pointerup', () => { holding = false; });
   cv.addEventListener('pointerleave', () => { fx.mouse.inside = false; });
   cv.addEventListener('contextmenu', e => e.preventDefault());
 }
 
-// ---------- chests ----------
+// ---------- tools: a bar of use buttons (empty until a feature registers a tool) ----------
 
-function openDraft() {
-  if (draftOpen || state.chests <= 0) return;
-  const ids = G.rollDraft(state);
-  if (!ids.length) { G.takeRelic(state, null); return; }
-  draftOpen = true; paused = true; holding = false;
-  sfx.chestOpen();
-  const m = $('modal');
-  m.innerHTML = `<div class="card draft"><div class="chest-anim">${icon('chest', 72)}</div><h2></h2><div class="cards"></div><p class="more"></p></div>`;
-  m.querySelector('h2').textContent = t('chest_title');
-  m.querySelector('.more').textContent = state.chests > 1 ? t('chest_more', { n: state.chests - 1 }) : '';
-  const wrap = m.querySelector('.cards');
-  ids.forEach((id, i) => {
-    const lv = G.rel(state, id);
-    const b = document.createElement('button');
-    b.className = 'relic-card'; b.style.animationDelay = `${0.45 + i * 0.12}s`;
-    b.innerHTML = `<span class="tag ${lv ? 'up' : 'new'}"></span><span class="ic">${icon(id, 56)}</span><b></b><span class="d"></span>`;
-    b.querySelector('.tag').textContent = lv ? t('chest_up', { n: lv + 1 }) : t('chest_new');
-    b.querySelector('b').textContent = t('r_' + id);
-    b.querySelector('.d').textContent = relicDesc(id, lv + 1);
-    b.addEventListener('click', () => {
-      G.takeRelic(state, id, ev);
-      m.className = ''; m.innerHTML = '';
-      draftOpen = false; paused = false;
-      save();
-      if (state.chests > 0) setTimeout(openDraft, 300);
-    });
-    wrap.appendChild(b);
-  });
-  m.className = 'show';
+function useArmed() {
+  const id = armed, tg = fx.target;
+  if (paused || !tg) return;
+  if (G.useTool(state, id, tg[0], tg[1], ev)) { if (!G.TOOLS[id].keep) armed = null; } else sfx.deny();
 }
-function relicDesc(id, lv) {
-  if (id === 'boom') return t('r_boom_d', { n: [0, 12, 9, 6][lv] });
-  return t('r_' + id + '_d');
+function pickTool(id) {
+  if (paused || !G.toolOpen(state, id)) return;
+  unlock();
+  // a tool that needs no aim fires at once where the pick points; the others wait for a click on the ground
+  if (G.TOOLS[id].aim === false) { armed = id; fx.target = fx.mouse.inside ? targetAt(fx.mouse.x, fx.mouse.y) : null; useArmed(); armed = null; }
+  else armed = armed === id ? null : id;
 }
-
-// ---------- a new site ----------
-
-function openSites() {
-  if (!G.canNewSite(state) || draftOpen) return;
-  paused = true; holding = false;
-  const m = $('modal');
-  m.innerHTML = `<div class="card draft"><h2></h2><p class="more"></p><div class="cards"></div><p class="more"><button class="ghost"></button></p></div>`;
-  m.querySelector('h2').textContent = t('site_pick');
-  m.querySelector('.more').textContent = t('site_get', { n: G.starsFor(state) });
-  const close = () => { m.className = ''; m.innerHTML = ''; paused = false; };
-  const back = m.querySelector('.ghost'); back.textContent = t('site_stay'); back.addEventListener('click', close);
-  const wrap = m.querySelector('.cards');
-  Object.keys(G.SITES).forEach((id, i) => {
-    const b = document.createElement('button');
-    b.className = 'relic-card'; b.style.animationDelay = `${i * 0.08}s`;
-    b.innerHTML = `<span class="ic">${icon('site_' + id, 56)}</span><b></b><span class="d"></span>`;
-    b.querySelector('b').textContent = t('site_' + id);
-    b.querySelector('.d').textContent = t('site_' + id + '_d');
-    b.addEventListener('click', () => { close(); if (G.newSite(state, id, ev)) { shownCoins = 0; save(); updatePanels(true); } });
-    wrap.appendChild(b);
-  });
-  m.className = 'show';
-}
-
-// ---------- panels ----------
-
-const SHOP = ['pick', 'crew', 'crewPow', 'luck'];
-function shopOpen(id) {
-  if (id === 'pick') return true;
-  if (id === 'crew') return state.total >= 60 || state.up.crew > 0;
-  if (id === 'crewPow') return state.up.crew > 0;
-  if (id === 'luck') return state.bossesDown >= 1 || state.up.luck > 0;
-  return false;
-}
-function buildShop() {
-  const el = $('shop-list'); el.innerHTML = '';
-  for (const id of SHOP) {
-    const b = document.createElement('button');
-    b.className = 'shop-item'; b.dataset.id = id;
-    b.innerHTML = `<span class="ic">${icon('up_' + id, 40)}</span><span class="tx"><b></b><span class="d"></span></span><span class="cost">${icon('coin', 16)}<i></i></span><span class="fill"></span>`;
-    b.addEventListener('click', () => { unlock(); if (G.buy(state, id, ev)) { bump(b); updatePanels(true); } else sfx.deny(); });
-    el.appendChild(b);
+function updateTools() {
+  const bar = $('tools');
+  const open = Object.keys(G.TOOLS).filter(id => G.toolOpen(state, id));
+  const sig = open.join(',');
+  if (bar.dataset.sig !== sig) {
+    bar.dataset.sig = sig; bar.innerHTML = '';
+    for (const id of open) {
+      const b = document.createElement('button');
+      b.className = 'tool'; b.dataset.id = id;
+      b.innerHTML = `${icon('tool_' + id, 34)}<i></i>`;
+      b.title = t('tool_' + id);
+      b.querySelector('i').textContent = G.TOOLS[id].key || '';
+      b.addEventListener('click', () => pickTool(id));
+      bar.appendChild(b);
+    }
   }
-}
-const n1 = x => x < 10 ? (Math.round(x * 10) / 10).toString() : fmt(x);
-function updateShop() {
-  let hidden = 0;
-  for (const b of $('shop-list').children) {
+  bar.hidden = !open.length;
+  for (const b of bar.children) {
     const id = b.dataset.id;
-    const open = shopOpen(id);
-    b.hidden = !open;
-    if (!open) { hidden++; continue; }
-    if (!b.dataset.seen) { b.dataset.seen = '1'; b.classList.add('arrive'); }
-    const lv = state.up[id], max = G.UPGRADES[id].max;
-    const full = max !== undefined && lv >= max;
-    const cost = G.upgradeCost(state, id);
-    b.querySelector('b').textContent = t('up_' + id) + (id === 'crew' ? '' : `  ·  ${t('lv', { n: lv })}`);
-    let d = '';
-    if (id === 'pick') { const a = G.pickPower(state); state.up.pick++; const nx = G.pickPower(state); state.up.pick--; d = t('up_pick_d', { a: n1(a), b: n1(nx) }); }
-    if (id === 'crewPow') { const a = G.crewPower(state); state.up.crewPow++; const nx = G.crewPower(state); state.up.crewPow--; d = t('up_crewPow_d', { a: n1(a), b: n1(nx) }); }
-    if (id === 'crew') d = t('up_crew_d', { a: lv });
-    if (id === 'luck') d = t('up_luck_d', { a: lv * 10 });
-    b.querySelector('.d').textContent = d;
-    b.querySelector('.cost i').textContent = full ? t('maxed') : fmt(cost);
-    const can = !full && state.coins >= cost;
-    b.classList.toggle('can', can);
-    b.classList.toggle('full', full);
-    b.querySelector('.fill').style.width = full ? '0%' : Math.min(100, state.coins / cost * 100) + '%';
-  }
-  $('shop-locked').textContent = hidden ? (shopOpen('crew') ? t('locked_more') : t('locked_crew')) : '';
-}
-
-function updateRelics() {
-  const el = $('relic-list');
-  const ids = Object.keys(state.relics);
-  $('relic-none').hidden = ids.length > 0;
-  el.innerHTML = '';
-  for (const id of ids) {
-    const lv = state.relics[id];
-    const row = document.createElement('div');
-    row.className = 'relic';
-    row.innerHTML = `<span class="ic">${icon(id, 30)}</span><span class="tx"><b></b><span class="d"></span></span><span class="pips">${'<i class="on"></i>'.repeat(lv)}${'<i></i>'.repeat(G.RELICS[id].max - lv)}</span>`;
-    row.querySelector('b').textContent = t('r_' + id);
-    row.querySelector('.d').textContent = relicDesc(id, lv);
-    el.appendChild(row);
+    b.classList.toggle('on', armed === id);
+    b.classList.toggle('can', !G.TOOLS[id].can || !!G.TOOLS[id].can(state));
   }
 }
 
-function updateMuseum() {
-  const any = Object.keys(state.fossils).length > 0;
-  $('museum').hidden = !any;
-  $('museum-none').hidden = any;
-  const el = $('museum-list'); el.innerHTML = '';
-  const L = G.layerOf(Math.max(0, state.best - 1));
-  for (const set of Object.keys(G.SETS)) {
-    const info = G.SETS[set];
-    const row = document.createElement('div');
-    const locked = info.fromLayer > L && !Object.keys(state.fossils).some(k => k.startsWith(set));
-    row.className = 'set' + (state.sets[set] ? ' done' : '') + (locked ? ' locked' : '');
-    let bones = '';
-    for (let i = 0; i < info.pieces; i++) bones += `<span class="bone${state.fossils[`${set}.${i}`] ? ' on' : ''}">${icon('bone', 22)}</span>`;
-    row.innerHTML = `<b></b><div class="bones">${bones}</div><span class="d"></span>`;
-    row.querySelector('b').textContent = locked ? '???' : t('set_' + set);
-    row.querySelector('.d').textContent = locked ? t('set_locked') : state.sets[set] ? t('set_done') : t('set_bonus');
-    el.appendChild(row);
-  }
-}
+// ---------- panels and read-outs ----------
 
-function updateSite() {
-  const el = $('site');
-  el.hidden = !(state.bossesDown >= 1 || state.stars > 0);
-  el.classList.toggle('ready', G.canNewSite(state));
-  if (G.canNewSite(state) && !state.seen.siteToast) { state.seen.siteToast = true; setTimeout(() => toast(t('goal_site'), 'gold'), 4200); }
-  if (el.hidden) return;
-  const can = G.canNewSite(state);
-  $('site-d').textContent = can ? t('site_d') : t('site_wait');
-  $('site-get').textContent = can ? t('site_get', { n: G.starsFor(state) }) : '';
-  $('site-keep').textContent = can ? t('site_keep') : '';
-  const b = $('site-btn');
-  b.hidden = !can; b.textContent = t('site_btn', { n: G.starsFor(state) });
-  $('site-now').textContent = state.sites > 0 ? t('site_now', { name: t('site_' + state.site) }) : '';
+function buildPanels() {
+  for (const p of PANELS) {
+    const sec = document.createElement('section');
+    sec.className = 'panel'; sec.id = p.elId || 'panel-' + p.id;
+    const h = document.createElement('h2'); h.textContent = t(p.title); sec.appendChild(h);
+    app.el[p.side].appendChild(sec);
+    p.el = sec; p.dirty = true;
+    if (p.build) p.build(sec, app);
+  }
 }
 
 let panelT = 0;
 function updatePanels(force) {
-  updateShop();
-  if (force || flags.relicsDirty) { flags.relicsDirty = false; updateRelics(); }
-  if (force || flags.museumDirty) { flags.museumDirty = false; updateMuseum(); }
-  updateSite();
-  // the goal: one honest bar
-  const boss = G.bossInView(state);
-  if (boss && boss.hp > 0 && !state.seen.bossToast && boss.row - state.top <= 6) { state.seen.bossToast = true; toast(t('t_boss'), 'gold'); }
-  const fill = $('goal-fill'), gt = $('goal-text');
-  if (boss && boss.hp > 0) {
-    gt.textContent = t('goal_boss'); fill.style.width = (boss.hp / boss.max * 100) + '%'; fill.className = 'boss';
-  } else {
-    const next = (G.layerOf(state.best) + 1) * G.LAYER;
-    gt.textContent = t('goal_rock', { n: next });
-    fill.style.width = ((state.best % G.LAYER) / G.LAYER * 100) + '%'; fill.className = '';
+  for (const p of PANELS) {
+    const show = !p.when || !!p.when(state);
+    p.el.hidden = !show;
+    if (!show) continue;
+    // `live` panels are redrawn every tick; the others when one of their events came in
+    if (p.live || force || p.dirty) { p.dirty = false; p.update(p.el, state, app); }
   }
+  // the goal: one honest bar. The first feature with something to say wins.
+  let goal = null;
+  for (let i = 0; i < GOALS.length && !goal; i++) goal = GOALS[i].fn(state, app);
+  const fill = $('goal-fill');
+  $('goal').style.visibility = goal ? '' : 'hidden';
+  if (goal) { $('goal-text').textContent = goal.text; fill.style.width = (goal.frac * 100) + '%'; fill.className = goal.cls || ''; }
   $('depth').textContent = t('depth', { n: state.best });
-  const st = $('stars'); st.hidden = state.stars <= 0; $('stars-n').textContent = state.stars;
-  const cb = $('chest-btn');
-  cb.hidden = state.chests <= 0 || draftOpen;
-  $('chest-n').textContent = state.chests;
-  // combo and rush read-outs
+  // the status chip under the purse (combo, oil rush)
+  let st = null;
+  for (let i = 0; i < STATUS.length && !st; i++) st = STATUS[i].fn(state, app);
   const co = $('combo');
-  if (state.rush > 0) { co.textContent = t('rush'); co.className = 'show rush'; }
-  else if (state.combo >= 3) { co.textContent = t('combo', { n: G.comboMult(state).toFixed(2) }); co.className = 'show'; co.style.setProperty('--k', Math.max(0, state.comboT / G.P.comboWindow)); }
+  if (st) { co.textContent = st.text; co.className = 'show ' + (st.cls || ''); if (st.k !== undefined) co.style.setProperty('--k', st.k); }
   else co.className = '';
+  updateTools();
+  for (const d of DEFS) if (d.tick) d.tick(state, app);
   // first sight of a new kind of block
   const seen = G.visibleMask(state);
   for (let i = 0; i < G.VIEW_ROWS - 1; i++) for (let c = 0; c < G.COLS; c++) {
     const cell = state.rows[i][c];
     if (!cell || !seen[i][c]) continue;
-    if (cell.t === 'chest' && !state.seen.chestToast) { state.seen.chestToast = true; toast(t('t_chest_seen'), 'gold'); }
-    if (cell.t === 'tnt' && !state.seen.tntToast) { state.seen.tntToast = true; toast(t('t_tnt')); }
+    const f = ART[cell.t] && ART[cell.t].firstSight;
+    if (f && !state.seen[f.flag]) { state.seen[f.flag] = true; toast(t(f.text), f.kind || ''); }
   }
-}
-
-// ---------- time away ----------
-
-function awayCard(out) {
-  if (out.seconds < 120 || (!out.coins && !out.chests)) return;
-  paused = true;
-  const m = $('modal');
-  const mins = Math.floor(out.seconds / 60);
-  const when = mins >= 60 ? t('hours', { h: Math.floor(mins / 60), m: mins % 60 }) : t('min', { n: mins });
-  m.innerHTML = `<div class="card away"><h2></h2><p class="line"></p><div class="big">${icon('coin', 30)}<b id="away-n">0</b></div><ul></ul><button class="primary"></button></div>`;
-  m.querySelector('h2').textContent = t('away_title');
-  m.querySelector('.line').textContent = t('away_line', { t: when });
-  const ul = m.querySelector('ul');
-  const li = s => { const e = document.createElement('li'); e.textContent = s; ul.appendChild(e); };
-  if (out.metres) li(t('away_metres', { n: out.metres }));
-  if (out.chests) li(out.chests === 1 ? t('away_chest1') : t('away_chests', { n: out.chests }));
-  if (out.atBoss) li(t('away_boss'));
-  const btn = m.querySelector('button');
-  btn.textContent = t('away_ok');
-  btn.addEventListener('click', () => { unlock(); m.className = ''; m.innerHTML = ''; paused = false; if (state.chests > 0) setTimeout(openDraft, 300); });
-  m.className = 'show';
-  const t0 = performance.now(), el = m.querySelector('#away-n');
-  const tick = () => { const k = Math.min(1, (performance.now() - t0) / 1800); el.textContent = '+' + fmt(out.coins * (1 - Math.pow(1 - k, 3))); if (k < 1 && el.isConnected) requestAnimationFrame(tick); };
-  tick();
 }
 
 // ---------- the loop ----------
 
 let lastT = performance.now();
 let g2d = null;
+function away(seconds) {
+  for (const d of DEFS) if (d.away) d.away(seconds, app);
+  shownCoins = state.coins;
+}
 function frame(now) {
   if (!state) return;
   let real = (now - lastT) / 1000;
   lastT = now;
   if (real < 0) real = 0;
-  if (real > 60 && !paused) { awayCard(G.settleAway(state, real * SPEED)); shownCoins = state.coins; real = 0.016; }
+  if (real > 60 && !paused) { away(real * SPEED); real = 0.016; }
   else if (real > 0.25) {
     // the tab was in the background for a moment: catch up without the fireworks
     if (!paused) { let left = real * SPEED; while (left > 0) { G.step(state, Math.min(0.1, left), quiet); left -= 0.1; } }
@@ -414,7 +301,7 @@ function frame(now) {
   if (hitStop > 0) hitStop -= dt;
   else if (!paused) {
     fx.target = fx.mouse.inside ? targetAt(fx.mouse.x, fx.mouse.y) : null;
-    if ((holding || autoDig) && fx.mouse.inside) { holdCd -= dt; if (holdCd <= 0) doSwing(); }
+    if ((holding || autoDig) && fx.mouse.inside && !armed) { holdCd -= dt; if (holdCd <= 0) doSwing(); }
     G.step(state, dt * SPEED, ev);
   }
   updateFx(dt);
@@ -431,10 +318,17 @@ function frame(now) {
   if (panelT <= 0) { panelT = 0.1; updatePanels(false); }
 }
 
-function start() {
+function load() {
+  let s = null;
+  try { const raw = localStorage.getItem(SAVE_KEY); if (raw) s = G.deserialize(raw); } catch { /* a blocked store just means a fresh dig */ }
+  return s || G.newState();
+}
+
+export function start() {
   document.title = t('title');
   for (const el of document.querySelectorAll('[data-t]')) el.textContent = t(el.dataset.t);
   state = load();
+  bindState(state);
   shownCoins = state.coins;
   fx.cam = state.top;
   fx.coinTarget = { x: 34, y: 30 };
@@ -443,12 +337,11 @@ function start() {
   cv.width = W; cv.height = H;
   g2d = cv.getContext('2d');
   bindInput(cv);
-  buildShop();
-  if (state.total === 0) $('hint').className = 'show'; else flags.firstBreak = true;
+  app.el = { top: $('chips'), left: $('left'), right: $('right'), stage: $('stage') };
+  for (const d of DEFS) if (d.mount) d.mount(app);
+  buildPanels();
+  if (state.total === 0) $('hint').className = 'show'; else app.flags.firstBreak = true;
 
-  $('chest-btn').addEventListener('click', () => { unlock(); openDraft(); });
-  $('chest-btn').insertAdjacentHTML('afterbegin', icon('chest', 34));
-  $('site-btn').addEventListener('click', () => { unlock(); openSites(); });
   const mute = $('mute');
   let m = false; try { m = localStorage.getItem(MUTE_KEY) === '1'; } catch { /* ignore */ }
   setMuted(m); mute.textContent = t(m ? 'unmute' : 'mute');
@@ -458,21 +351,29 @@ function start() {
   const setAuto = (on) => { autoDig = on; auto.textContent = t(on ? 'auto_on' : 'auto_off'); auto.classList.toggle('on', on); try { localStorage.setItem(AUTO_KEY, on ? '1' : '0'); } catch { /* ignore */ } };
   setAuto(autoDig);
   auto.addEventListener('click', () => { unlock(); setAuto(!autoDig); });
-  window.addEventListener('keydown', e => { if ((e.key === 'a' || e.key === 'A') && !e.ctrlKey && !e.metaKey && !e.altKey) { unlock(); setAuto(!autoDig); } });
+  KEYS.a = KEYS.a || (() => setAuto(!autoDig));
+  for (const [id, T] of Object.entries(G.TOOLS)) if (T.key && !KEYS[String(T.key).toLowerCase()]) KEYS[String(T.key).toLowerCase()] = () => pickTool(id);
+  window.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === 'Escape' && armed) { armed = null; return; }
+    const f = KEYS[e.key.toLowerCase()];
+    if (f) { unlock(); f(app); }
+  });
   const reset = $('reset');
-  let armed = 0;
+  let sure = 0;
   reset.addEventListener('click', () => {
-    if (armed && performance.now() - armed < 4000) { try { localStorage.removeItem(SAVE_KEY); } catch { /* ignore */ } state = null; location.reload(); return; }
-    armed = performance.now(); reset.textContent = t('reset_sure');
-    setTimeout(() => { armed = 0; reset.textContent = t('reset'); }, 4000);
+    if (sure && performance.now() - sure < 4000) { try { localStorage.removeItem(SAVE_KEY); } catch { /* ignore */ } state = null; location.reload(); return; }
+    sure = performance.now(); reset.textContent = t('reset_sure');
+    setTimeout(() => { sure = 0; reset.textContent = t('reset'); }, 4000);
   });
 
   // time away
   if (state.savedAt) {
-    const away = (Date.now() - state.savedAt) / 1000;
-    if (away > 60) awayCard(G.settleAway(state, away));
+    const secs = (Date.now() - state.savedAt) / 1000;
+    if (secs > 60) away(secs);
     shownCoins = state.coins;
   }
+  for (const d of DEFS) if (d.start) d.start(app);
   updatePanels(true);
 
   setInterval(() => { if (state) save(); }, 5000);
@@ -487,7 +388,5 @@ function start() {
     const w = new Worker(URL.createObjectURL(new Blob(['setInterval(() => postMessage(0), 16);'], { type: 'text/javascript' })));
     w.onmessage = beat;
   } catch { setInterval(beat, 250); }
-  window.dig = { get state() { return state; }, G, save };
+  window.dig = { get state() { return state; }, G, save, app };
 }
-
-start();

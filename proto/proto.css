@@ -64,10 +64,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @keyframes nudge { to { transform: translateY(8px); } }
 
 #chest-btn { position: absolute; inset-block-end: 12px; inset-inline-end: 12px; display: flex; align-items: center; gap: 8px; background: var(--gold); color: var(--gold-ink); border: 2px solid #7a5a00; border-radius: 14px; padding: 6px 12px; font-weight: 800; animation: pulse .6s infinite alternate; }
+#chips { display: inline-flex; align-items: center; gap: 14px; }
 #chest-btn b { background: #7a2a1f; color: #fff; border-radius: 10px; padding: 0 8px; }
 
 /* shop */
-#shop-list { display: flex; flex-direction: column; gap: 8px; }
+.shop-list { display: flex; flex-direction: column; gap: 8px; }
 .shop-item { position: relative; display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 10px; text-align: start; background: var(--panel-2); border: 2px solid var(--line); border-radius: 12px; padding: 9px 10px; overflow: hidden; opacity: .78; transition: transform .08s, border-color .15s, opacity .15s; }
 .shop-item .tx { display: flex; flex-direction: column; min-width: 0; }
 .shop-item b { font-size: 15px; }
@@ -140,3 +141,9 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 #site-now { margin: 0 0 4px; font-weight: 700; }
 .side { max-height: 726px; overflow-y: auto; scrollbar-width: thin; }
 #site.ready { order: -1; }
+/* the tool bar: use buttons at the bottom of the stage (empty until a feature registers a tool) */
+#tools { position: absolute; inset-block-end: 12px; inset-inline-start: 12px; display: flex; gap: 8px; }
+.tool { position: relative; background: var(--panel-2); border: 2px solid var(--line); border-radius: 12px; padding: 5px; opacity: .6; }
+.tool.can { opacity: 1; }
+.tool.on { border-color: var(--gold); box-shadow: 0 0 14px rgba(255,210,63,.4); }
+.tool i { position: absolute; inset-block-end: 1px; inset-inline-end: 4px; font-style: normal; font-size: 11px; font-weight: 800; color: var(--muted); }
