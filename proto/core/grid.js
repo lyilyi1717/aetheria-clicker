@@ -60,12 +60,16 @@ export const dirtVal = (r, land = 'desert') => curve(r, PARAMS.core.val0, 'val',
 // (A pick level is x powGrow for x 1.5 the price, so coins turn into hits with the power log(powGrow)/log(1.5).)
 export const wallAt = (r, land = 'desert') => dirtHp(Math.max(r, 3), land) / Math.pow(dirtVal(Math.max(r, 3), land), PARAMS.core.buyPow);
 // ---------- Stars for a move ----------
-// What Stars are worth: each one adds `hit` to every hit and `coin` to every coin (the sites feature's
-// numbers), and coins turn into hits with the power buyPow. So S Stars carry a dig to a wall this many
-// times higher:  (1 + hit S) x (1 + coin S)^buyPow.
+// What Stars are worth: they are spent on tracks (the starshop feature): a step costs cost0 x costGrow^k
+// and makes the hit (or the coins) x step. The price of k steps is cost0 (g^k - 1) / (g - 1), so C Stars in
+// one track give (1 + C (g - 1) / cost0)^(ln step / ln g) (with step = g: 1 + C / 4). A player who spends
+// evenly puts a third in the Pick and a third in the Bag (coins turn into hits with the power buyPow):
+// S Stars carry a dig to a wall this many times higher:  x^e (x^(e buyPow)),  x = 1 + S (g - 1) / (3 cost0).
 export function starLift(S) {
-  const p = PARAMS.core, st = PARAMS.sites || {};
-  return (1 + (st.starPick === undefined ? 0.1 : st.starPick) * S) * Math.pow(1 + (st.starCoin === undefined ? 0.2 : st.starCoin) * S, p.buyPow);
+  const p = PARAMS.core, t = PARAMS.starshop || {};
+  const step = t.step || 1.5, c0 = t.cost0 || 2, g = t.costGrow || 1.5;
+  const x = 1 + S * (g - 1) / (3 * c0), e = Math.log(step) / Math.log(g);
+  return Math.pow(x, e * (1 + p.buyPow));
 }
 // the Stars it takes to stand at row r: the lift that turns the wall a dig with no Stars reaches
 // (starWall, in walls of row starFrom) into the wall at r

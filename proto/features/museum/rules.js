@@ -1,60 +1,54 @@
-// Dig feature: the Museum. Bones in the ground, sets of bones, and a coin bonus for ever per full set.
+// Dig feature: the bone block of the Museum. The Museum is one collection now (thirteen sets, see proto/features/wing2):
+// a bone block that breaks hands one bone to the Museum, and the Museum decides which piece it is. There is no coin
+// bonus for a set any more; each set opens a thing.
+// Old saves: `fossils` (bones found) and `sets` (finished sets) are copied into the Museum once (migrate below) and
+// are not written to again. SETS stays as a small table of the first three sets' sizes (the sims reach it by path).
+// Events sent: fossil (every bone block that breaks; `set` and `piece` say what it was), and from the Museum: set.
 import { use, emit } from '../../core/registry.js';
-import { rnd, pickOne } from '../../core/rng.js';
 import { layerOf, dirtVal, siteMult } from '../../core/grid.js';
+import { rnd } from '../../core/rng.js';
 import { addCoins, coinMult } from '../../core/rules.js';
+import { WING } from '../wing2/sets.js';
+import { wingFind } from '../wing2/rules.js';
 import strings from './strings.js';
 
-export const SETS = {
-  camel: { pieces: 4, fromLayer: 0 },
-  whale: { pieces: 5, fromLayer: 1 },
-  djinn: { pieces: 6, fromLayer: 2 },
-};
-
-// another feature adds sets with addSets({ id: { pieces, fromLayer, coin: false } }) (coin: false = no +25%;
-// what such a set unlocks is that feature's business: a site's open(s), a relic's when(s))
-export function addSets(sets) {
-  for (const [k, v] of Object.entries(sets)) { if (SETS[k]) throw new Error(`Dig: Museum set "${k}" twice`); SETS[k] = v; }
-}
-const coinSets = s => { let n = 0; for (const k of Object.keys(s.sets)) if (!SETS[k] || SETS[k].coin !== false) n++; return n; };
+export const SETS = {};
+for (const [k, W] of Object.entries(WING)) if (W.legacy) SETS[k] = { pieces: W.pieces.length, fromLayer: layerOf(W.from) };
 
 const p = {
   chance: 0.075,     // a bone in a row (times the site's `bone`)
-  setBonus: 0.25,    // coins per full set
-  dupPay: 25,        // a bone you already have sells for this many dirt blocks of its row
-  missing: 0.75,     // chance the bone is one you lack: a set is never blocked by bad luck for long
+  dupPay: 25,        // a bone no set can use sells for this many dirt blocks of its row
 };
 
 function foundFossil(s, b, ev) {
   const { r, c, src } = b;
-  const L = layerOf(r);
-  const open = Object.keys(SETS).filter(k => SETS[k].fromLayer <= L && !s.sets[k]);
-  const all = Object.keys(SETS).filter(k => SETS[k].fromLayer <= L);
-  const set = open.length ? pickOne(open) : pickOne(all);
-  const missing = [];
-  for (let i = 0; i < SETS[set].pieces; i++) if (!s.fossils[`${set}.${i}`]) missing.push(i);
-  const piece = missing.length && rnd() < p.missing ? pickOne(missing) : Math.floor(rnd() * SETS[set].pieces);
-  const key = `${set}.${piece}`;
-  const isNew = !s.fossils[key];
-  s.fossils[key] = (s.fossils[key] || 0) + 1;
+  const got = wingFind(s, { tags: ['bone'], layer: layerOf(r) }, ev, { r, c, src });
   let coins = 0;
-  if (!isNew) { coins = Math.round(dirtVal(r) * p.dupPay * coinMult(s)); addCoins(s, coins, src); }
-  emit(s, ev, 'fossil', { r, c, set, piece, isNew, coins });
-  if (isNew && missing.length === 1 && !s.sets[set]) {
-    s.sets[set] = true;
-    emit(s, ev, 'set', { set });
-  }
+  if (!got) { coins = Math.round(dirtVal(r) * p.dupPay * coinMult(s)); addCoins(s, coins, src); }
+  const key = got ? `${got.set}.${got.i}` : 'none';
+  s.fossils[key] = (s.fossils[key] || 0) + 1;     // a tally of bone blocks broken, by the piece they gave
+  emit(s, ev, 'fossil', { r, c, set: got ? got.set : '', piece: got ? got.i : -1, isNew: !!(got && got.isNew), coins: got ? got.coins : coins });
 }
 
 export const museum = use({
   id: 'museum',
   params: p,
-  legacy: { setBonus: 'setBonus' },
   tables: { SETS },
   strings,
+  version: 2,
   state: {
-    fossils: { init: () => ({}), survives: ['site', 'land'] },   // 'camel.2': count
-    sets:    { init: () => ({}), survives: ['site', 'land'] },   // completed sets
+    fossils: { init: () => ({}), survives: ['site', 'land'] },   // 'camel.2': bone blocks that gave that piece (the old Museum's list; migrate copies it once)
+    sets:    { init: () => ({}), survives: ['site', 'land'] },   // old: completed sets
+  },
+  // v2: the two museums became one. Copy what the player had; say once that the coin bonus is gone.
+  migrate(s) {
+    for (const [k, n] of Object.entries(s.fossils || {})) {
+      const set = k.split('.')[0];
+      if (WING[set] && WING[set].legacy && !(s.wingGot[k] > 0)) s.wingGot[k] = n;
+    }
+    let any = false;
+    for (const k of Object.keys(s.sets || {})) if (s.sets[k] && WING[k] && WING[k].legacy) { s.wingDone[k] = true; any = true; }
+    if (any) s.wingNote = true;
   },
   blocks: {
     fossil: { at: 100, hp: 3, val: 0, notice: true, broke: foundFossil },
@@ -64,7 +58,6 @@ export const museum = use({
     if (c.r === 13 && !s.seen.fossil) { c.put('fossil'); s.seen.fossil = true; }
     else if (c.r > 13 && rnd() < p.chance * siteMult(c.site, 'bone')) c.put('fossil');
   } }] },
-  mods: { coinMult: { at: 30, fn: (v, s) => v * (1 + p.setBonus * coinSets(s)) } },
   unlocks: () => {
     const out = [];
     for (const [k, v] of Object.entries(SETS)) {
@@ -74,7 +67,6 @@ export const museum = use({
     return out;
   },
   firsts: {
-    fossil: d => (d.isNew ? `bone:${d.set}.${d.piece}` : null),
     set: d => 'set:' + d.set,
   },
 });
