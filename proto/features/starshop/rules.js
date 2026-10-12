@@ -125,13 +125,13 @@ export function starshopMovedText(s) {
 }
 
 // Warm Pick sets the pick level, so the next level used to cost what it costs at that level: for the first
-// minute Stronger Pick could not be bought. Now the price ramps back onto the old curve (2 levels of price per
-// level bought, until you have bought as many as the warm start gave you). Done here on the shop's item.
+// minute Stronger Pick could not be bought. Now the price ramps back onto the old curve (3 levels of price per
+// level bought, until you have bought half as many as the warm start gave you). Done here on the shop's item.
 if (ITEMS.pick && !ITEMS.pick.cost) {
   const it = ITEMS.pick;
   it.cost = (s, l) => {
     const w = s.starWarm || 0;
-    const idx = w > 0 && l >= w ? l - Math.max(0, w - (l - w)) : l;
+    const idx = w > 0 && l >= w ? l - Math.max(0, w - 2 * (l - w)) : l;
     return Math.ceil(it.base * Math.pow(it.grow, idx));
   };
 }
