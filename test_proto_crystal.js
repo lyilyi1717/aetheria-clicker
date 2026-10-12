@@ -30,7 +30,7 @@ const gone = (s, r, c) => rec(s).broke.has(r + ',' + c);
   const L = G.layerAt(G.newState(), 80);
   ok(L.id === 'deep' && L.name === 'layer_crystal' && G.t(L.name) === 'Crystal Cave' && L.look.back === '#101830', 'rows 75 to 99 are the crystal layer with its own look');
   ok(Object.keys(L.blocks).join() === 'crystal_row,crystal_col,crystal_slash,crystal_back,crystal_prism', 'and its own block table');
-  ok(G.layerAt(G.newState(), 60).id === 'slate' && G.layerAt(G.newState(), 120).id === 'deep', 'other layers untouched');
+  ok(G.layerAt(G.newState(), 60).id === 'slate' && G.layerAt(G.newState(), 120).id === 'black', 'other layers untouched');
 }
 { // a row crystal cracks left and right, nothing else
   const s = field();
