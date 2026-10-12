@@ -15,13 +15,14 @@
 //
 // How it is earned (all of it is meant to move onto the Pick track of docs/dig-upgrades-study.md):
 //   Second Pick   coins, once, for ever (opens at the first Big Rock)
-//   One More Pick Stars, twice, for ever (the third and the fourth pick)
+//   One More Pick Stars, twice, for ever (the third and the fourth pick), in a small shop of its own
 //   Faster Hands  coins, five steps, per site like Stronger Pick
 //
 // Events of its own: `picksMore { n }` (a pick was added). The page side owns the timing
 // (ui.js: the look-ahead scheduler on the audio clock); this file has no clock in it.
 import { use, emit } from '../../core/registry.js';
 import { swing, itemLevel, buy } from '../../core/rules.js';
+import { starshopPunch } from '../starshop/rules.js';
 import { PICKS_BARS, MAX_PICKS, picksBarOf, stepSec, hitsPerSec, barFaults } from './beat.js';
 import strings from './strings.js';
 
@@ -56,7 +57,7 @@ const p = {
 // a tempo may never put two notes closer than the floor
 const bpmOf = lv => Math.min(p.tempos[Math.max(0, Math.min(p.tempos.length - 1, lv))], 15 / p.floor);
 
-export const picksCount = s => Math.min(MAX_PICKS, 1 + (s.picks && s.picks.second ? 1 : 0) + ((s.starUp && s.starUp.pick3) || 0));
+export const picksCount = s => Math.min(MAX_PICKS, 1 + (s.picks && s.picks.second ? 1 : 0) + ((s.picksUp && s.picksUp.pick3) || 0));
 export const picksBpm = s => bpmOf((s.up && s.up.tempo) || 0);
 export const picksStep = s => stepSec(picksBpm(s));                    // seconds per step
 export const picksBar = s => picksBarOf(picksCount(s));
@@ -98,6 +99,10 @@ export const picks = use({
   state: {
     picks: { init: () => ({ second: false }), survives: ['site', 'land'] },   // the Second Pick is for ever
   },
+  // the Star picks have a small shop of their own (the Star tracks' panel shows only its tracks)
+  shops: { picks: { at: 30, wallet: 'stars', levels: 'picksUp', survives: ['site', 'land'] } },
+  // Punch-through (core/rules.js `swing`) reads its reach from the `punch` mod: the Pick track says how far
+  mods: { punch: (v, s) => Math.max(v, starshopPunch(s)) },
   items: {
     // per site, like Stronger Pick
     tempo: { at: 12, shop: 'coin', max: p.tempos.length - 1, levels: 'grind',
@@ -109,7 +114,7 @@ export const picks = use({
       open: s => !s.picks.second && ((s.bossesDown || 0) >= p.secondRock || moved(s)),
       bought(s, lv, ev) { s.picks.second = true; more(s, ev); } },
     // the third and the fourth pick, for Stars (the Star bonus counts Stars ever earned, so spending costs nothing)
-    pick3: { at: 200, shop: 'star', max: p.starCosts.length, levels: 'core',
+    pick3: { at: 10, shop: 'picks', max: p.starCosts.length, levels: 'core',
       cost: (s, lv) => p.starCosts[Math.min(lv, p.starCosts.length - 1)],
       open: s => s.picks.second && moved(s),
       bought(s, lv, ev) { s.starSpent = (s.starSpent || 0) + p.starCosts[lv - 1]; more(s, ev); } },

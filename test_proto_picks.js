@@ -86,7 +86,7 @@ const TEMPOS = P.tempos.slice(), COUNTS = [1, 2, 3, 4];
   G.reset(s, 'site');
   ok(G.picksCount(s) === 2 && s.up.tempo === 0 && G.picksBpm(s) === 100, 'a New Site keeps the Second Pick and starts the tempo again');
   ok(!G.itemOpen(s, 'pick2') && G.upgradeCost(s, 'pick2') === Infinity, 'and the Second Pick is not sold twice');
-  ok(G.itemOpen(s, 'pick3') && G.upgradeCost(s, 'pick3') === P.starCosts[0], 'One More Pick is in the Star Shop');
+  ok(G.itemOpen(s, 'pick3') && G.upgradeCost(s, 'pick3') === P.starCosts[0] && G.ITEMS.pick3.shop === 'picks' && G.SHOPS.picks.wallet === 'stars', 'One More Pick is sold for Stars');
   const had = s.stars;
   ok(G.buy(s, 'pick3', ev) && G.picksCount(s) === 3 && s.stars === had - P.starCosts[0] && s.starSpent === P.starCosts[0], 'the third pick costs Stars, and they count as spent (the Star bonus stays)');
   ok(G.buy(s, 'pick3', ev) && G.picksCount(s) === 4 && !G.canBuy(s, 'pick3'), 'the fourth pick, and that is all');
@@ -105,14 +105,55 @@ const TEMPOS = P.tempos.slice(), COUNTS = [1, 2, 3, 4];
   ok(u.byId['shop:pick2'].cat === 'core' && u.byId['tempo:3'].cat === 'grind', 'picks are core, tempo steps are grind');
   for (const k of ['up_pick2', 'up_pick2_d', 'up_pick3', 'up_pick3_d1', 'up_pick3_d2', 'up_tempo', 'up_tempo_d', 'up_tempo_full', 'picks_beat', 't_picks_2', 't_picks_3', 't_picks_4', 't_tempo', 'bar_1', 'bar_2', 'bar_3', 'bar_4']) ok(G.hasString(k), 'string ' + k);
   const s = field(10);
-  s.picks.second = true; s.starUp.pick3 = 1; s.up.tempo = 3;
+  s.picks.second = true; s.picksUp.pick3 = 1; s.up.tempo = 3;
   const back = G.deserialize(G.serialize(s));
   ok(back && G.picksCount(back) === 3 && G.picksBpm(back) === TEMPOS[3], 'a save keeps the picks and the tempo');
   const old = JSON.parse(G.serialize(field(10)));
-  delete old.picks; delete old.up.tempo; delete old.up.pick2; delete old.starUp.pick3;
+  delete old.picks; delete old.picksUp; delete old.up.tempo; delete old.up.pick2;
   const o = G.deserialize(JSON.stringify(old));
   ok(o && o.picks && o.picks.second === false && G.picksCount(o) === 1 && G.picksBpm(o) === 100 && o.up.tempo === 0, 'an old save without the slice loads with one pick at the first tempo');
   ok(G.swing(o, o.top, 0) && G.buy(Object.assign(o, { coins: 1e9, total: 1e9 }), 'tempo'), 'and it plays');
+}
+
+{ // Punch-through: the strength left over goes into the block below (the reach is the Pick track's)
+  const undo = G.setParam('crits.chance', 0);
+  const mk = steps => { const s = field(10); s.starUp.tr_pick = steps; return s; };
+  const hit = s => G.pickPower(s);
+  const set = (s, hps) => hps.forEach((h, i) => { s.rows[i][4].hp = s.rows[i][4].max = h * hit(s); });
+  const s0 = mk(0); set(s0, [0.25, 100]);
+  G.swing(s0, 0, 4);
+  ok(s0.rows[0][4] === null && near(s0.rows[1][4].hp, 100 * hit(s0)), 'no Pick step: what is left of a hit is lost, as before');
+  const s1 = mk(1), ev = log(); set(s1, [0.25, 100]);
+  ok(G.starshopPunch(s1) === 1, 'the first Pick step is Punch-through, reach 1');
+  G.swing(s1, 0, 4, ev);
+  ok(s1.rows[0][4] === null && near(s1.rows[1][4].hp, (100 - 0.75) * hit(s1)), 'reach 1: the hit minus the block goes into the block below');
+  ok(ev.of('punch').length === 1 && ev.of('punch')[0].n === 1, 'the page is told');
+  const s1b = mk(1); set(s1b, [0.25, 0.25, 100]);
+  G.swing(s1b, 0, 4);
+  ok(s1b.rows[1][4] === null && near(s1b.rows[2][4].hp, 100 * hit(s1b)), 'reach 1 stops after one block, even with strength to spare');
+  const s2 = mk(9); set(s2, [0.25, 0.25, 100]);
+  G.swing(s2, 0, 4);
+  ok(G.starshopPunch(s2) === 2 && s2.rows[1][4] === null && near(s2.rows[2][4].hp, (100 - 0.5) * hit(s2)), 'reach 2: through two blocks, less each time');
+  const s9 = mk(29); set(s9, [0.1, 0.1, 0.1, 0.1, 0.1, 100]);
+  G.swing(s9, 0, 4);
+  ok([0, 1, 2, 3, 4].every(i => s9.rows[i][4] === null) && near(s9.rows[5][4].hp, (100 - 0.5) * hit(s9)), 'no limit: it goes on until the strength is spent');
+  const sg = mk(29); set(sg, [0.25, 100, 100]); sg.rows[1][4] = null;
+  G.swing(sg, 0, 4);
+  ok(near(sg.rows[2][4].hp, 100 * hit(sg)), 'it stops at an empty cell');
+  const sn = mk(29); set(sn, [2, 100]);
+  G.swing(sn, 0, 4);
+  ok(sn.rows[0][4] && near(sn.rows[1][4].hp, 100 * hit(sn)), 'a hit that does not break the block punches nothing');
+  // a Big Rock stops it
+  const sb = mk(29); set(sb, [0.25]);
+  for (let c = 0; c < G.COLS; c++) sb.rows[1][c] = cell('boss', 1000);
+  const bhp = sb.rows[1].map(x => x.hp).join(), boss = sb.boss ? JSON.stringify(sb.boss) : '';
+  G.swing(sb, 0, 4);
+  ok(sb.rows[0][4] === null && sb.rows[1].map(x => x.hp).join() === bhp && (sb.boss ? JSON.stringify(sb.boss) : '') === boss, 'a Big Rock stops it: the Rock is not touched');
+  // with several picks every swing punches
+  const sp = mk(1); set(sp, [0.5, 100]);
+  G.picksStrike(sp, 1, aimCol(sp, 4));
+  ok(sp.rows[0][4] === null && near(sp.rows[1][4].hp, (100 - 0.5 - 1) * hit(sp)), 'a strike of two swings: the first punches, the second carries on to the next block');
+  undo();
 }
 
 // ---------- the rhythm ----------

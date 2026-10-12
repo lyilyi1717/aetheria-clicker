@@ -19,6 +19,7 @@ import { ui } from '../../ui/app.js';
 import { AT, fx } from '../../ui/render.js';
 import { setMixer, audioTime } from '../../ui/audio.js';
 import { S, badge, pickShape } from '../../ui/icons.js';
+import { shopPanel } from '../../ui/shop.js';
 
 const { t } = G;
 const P = G.PARAMS.picks;
@@ -115,6 +116,7 @@ ui({
     },
   },
   draw: [{ at: AT.pick + 1, fn: drawExtras }],
+  panels: [shopPanel({ id: 'picks', shop: 'picks', title: 'picks_shop', side: 'right', at: 6, coin: 'star', when: s => G.itemOpen(s, 'pick3') })],
   mount(app) {
     strip = document.createElement('div'); strip.id = 'picks-beat';
     if (reduced) strip.classList.add('still');
