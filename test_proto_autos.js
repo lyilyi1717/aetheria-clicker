@@ -122,7 +122,7 @@ const own = (s, ...ids) => { for (const id of ids) { s.autoOwn[id] = 1; s.autoOn
 }
 
 { // contracts: Shop shut hands a buy back and wins the sieve buyer; Hands off needs the Forge and wins the timer
-  const s = fresh(); s.bossesDown = 2; s.best = 52; s.sites = 3;
+  const s = fresh(); s.bossesDown = 2; s.best = 52; s.sites = G.PARAMS.contracts.openSites;
   ok(G.contractList().some(c => c.id === 'shopShut' && c.tier === 1) && G.contractList().some(c => c.id === 'handsOff' && c.tier === 2), 'both are on the board');
   ok(G.contractState(s, 'shopShut') === 'open', 'tier 1 is open');
   ok(G.startContract(s, 'shopShut', NO) && s.contract === 'shopShut', 'taken');
