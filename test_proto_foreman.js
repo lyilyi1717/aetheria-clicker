@@ -19,15 +19,15 @@ const pol = (s, id) => G.POLICIES[id](s, s.diggers[0]);
   G.seedRng(1);
   const s = G.newState();
   const seen = [];
-  s.up.crew = 2; G.step(s, 0.05, k => seen.push(k));
+  s.up.crew = G.PARAMS.foreman.needCrew - 1; G.step(s, 0.05, k => seen.push(k));
   ok(!s.foremanHere && !G.foremanSet(s, 'down'), 'no Foreman with two Rafeeqs, and no orders');
-  s.up.crew = 3; G.step(s, 0.05, k => seen.push(k));
+  s.up.crew = G.PARAMS.foreman.needCrew; G.step(s, 0.05, k => seen.push(k));
   ok(s.foremanHere && seen.includes('foremanArrives'), 'the third Rafeeq brings him, with an event');
   const u = G.unlocks().list.map(x => x.id);
   ok(u.includes('foreman') && G.foremanJobs.every(j => u.includes('job:' + j)), 'his content is counted');
 }
 { // or the second Big Rock
-  const s = G.newState(); s.bossesDown = 2; G.step(s, 0.05, () => {});
+  const s = G.newState(); s.bossesDown = G.PARAMS.foreman.needBoss; G.step(s, 0.05, () => {});
   ok(s.foremanHere, 'the second Big Rock brings him');
 }
 { // follow me: next to the pick

@@ -26,213 +26,10 @@ function applyOv(ov) {
   for (const [key, val] of Object.entries(ov)) saved.push(G.setParam(key, val));
 }
 
-// ---------- rng ----------
-const mulberry = G.mulberry;
-const reseed = n => G.setRng(mulberry(n));   // the rules and this script draw from the same stream
-const rnd = G.rnd;
-
-// ---------- content ----------
-const UNITS = G.unlocks().list;   // { id, cat: 'core' | 'grind', group }
-const UCAT = Object.fromEntries(UNITS.map(u => [u.id, u.cat]));
-const N_ALL = UNITS.length, N_CORE = UNITS.filter(u => u.cat === 'core').length;
-
-// ---------- human profiles ----------
-// hps: sustained hits per second (the game caps a held mouse at 6.7/s; hit-stop and slides cost the rest)
-// lag: seconds lost per deliberate move to another block; notice: chance to spot and go for ore/chest/TNT after a break
-// buyEvery: seconds between looks at the shop; react: seconds per purchase; relicT: seconds to read and pick a relic card
-// weak: chance per swing to slide to the Big Rock's crack; clear: chance to clear the row above a Big Rock so the crack is reachable
-const PROFILES = {
-  casual: { hps: 2.5, lag: 0.8, notice: 0.3, buyEvery: 15, react: 2.0, relicT: 6, weak: 0.04, clear: 0.1 },
-  slow: { hps: 3.8, lag: 0.6, notice: 0.45, buyEvery: 10, react: 1.5, relicT: 4.5, weak: 0.08, clear: 0.2 },
-  mid:  { hps: 5.0, lag: 0.35, notice: 0.6, buyEvery: 6, react: 1.0, relicT: 3.5, weak: 0.15, clear: 0.5 },
-  fast: { hps: 6.2, lag: 0.2, notice: 0.8, buyEvery: 4, react: 0.7, relicT: 2.5, weak: 0.3, clear: 0.8 },
-};
-const VAL = new Set(Object.keys(G.BLOCKS).filter(t => G.BLOCKS[t].notice));   // what a player goes for when he sees it
-const PRIO = ['boom', 'vein', 'deep', 'wide', 'lucky', 'heavy', 'shiny', 'streak', 'echo', 'karak', 'nose', 'bang', 'lamp'];
-const SITE_ORDER = Object.keys(G.SITES).filter(id => !G.SITES[id].start);
-
-// ---------- tracker ----------
-class Trk {
-  constructor() { this.real = 0; this.act = 0; this.units = new Map(); this.marks = new Map(); this.win = {}; this.lastDec = 0; this.gaps = []; this.bestEver = 0; this.lastTotal = 0; this.lastUnit = 0; this.visited = new Set(['dunes']); this.chestN = 0; this.ugaps = []; this.lastU2 = 0; this.firstDig = null; }
-  unit(id) { if (this.units.has(id)) return false; this.units.set(id, { r: this.real, a: this.act }); this.dec(); const ug = this.act - this.lastU2; if (ug >= 300) this.ugaps.push({ start: this.lastU2, len: ug }); this.lastU2 = this.act; this.lastUnit = this.act; return true; }
-  mark(id) { if (!this.marks.has(id)) this.marks.set(id, { r: this.real, a: this.act }); }
-  dec() { const g = this.act - this.lastDec; if (g >= 90) this.gaps.push({ start: this.lastDec, len: g }); this.lastDec = this.act; }
-  w() { const m = this.real / 60; const k = m < 5 ? 0 : m < 10 ? 1 : m < 20 ? 2 : m < 40 ? 3 : m < 60 ? 4 : m < 120 ? 5 : 6;
-    return this.win[k] || (this.win[k] = { hb: 0, cb: 0, hc: 0, cc: 0, ac: 0, tot: 0, hits: 0, secs: 0, am: 0, dig: 0, crewPow: 0, pick: 0, am2: 0 }); }
-}
-const WINS = ['0-5', '5-10', '10-20', '20-40', '40-60', '60-120', '120+'];
-
-function mkEv(s, trk) {
-  return (k, d) => {
-    if (k === 'unlock') trk.unit(d.id);     // a first time, as the rules report it
-    else if (k === 'break') {
-      const w = trk.w();
-      if (d.src === 'you') { w.hb++; w.hc += d.coins; } else { w.cb++; w.cc += d.coins; }
-      if (d.t === 'chest') trk.mark('first chest found');
-      if (d.t === 'chest') trk.chestN++;
-      if (G.ORES.includes(d.t)) trk.mark('first ore');
-    } else if (k === 'relic') {
-      trk.mark('first relic'); trk.dec();
-    } else if (k === 'buy') {
-      if (d.id === 'crew' && d.level === 1) trk.mark('first digger bought');
-      trk.dec();
-    } else if (k === 'bossDown') {
-      trk.chestN++; trk.mark('boss down ' + d.layer);
-    } else if (k === 'fossil') {
-      if (d.isNew) trk.mark('first bone'); else trk.mark('first duplicate bone');
-    } else if (k === 'set') trk.mark('first set');
-    else if (k === 'gusher') trk.mark('first oil gusher');
-    else if (k === 'newSite') { trk.visited.add(s.site); trk.mark('new site #' + trk.visited.size); trk.dec(); }
-  };
-}
-
-// ---------- the human ----------
-function mkCtx(profile) { return { p: { ...PROFILES[profile] }, clock: 0, next: 0, busy: 0, buyT: 3, tg: null, col: 4, lagNext: 0, clearRow: -1, clear: false }; }
-
-const COIN_ITEMS = Object.keys(G.ITEMS).filter(id => G.ITEMS[id].shop === 'coin');
-function shopCheck(s, ev, noCrew = false) {
-  let n = 0;
-  for (let guard = 0; guard < 50; guard++) {
-    const ids = COIN_ITEMS.filter(id => G.itemOpen(s, id) && G.canBuy(s, id) && !(noCrew && (id === 'crew' || id === 'crewPow')));
-    if (!ids.length) break;
-    let id;
-    if (s.up.crew === 0 && ids.includes('crew')) id = 'crew';     // the new thing first
-    else { ids.sort((a, b) => G.upgradeCost(s, a) - G.upgradeCost(s, b)); id = ids[0]; }
-    G.buy(s, id, ev); n++;
-  }
-  return n;
-}
-function draft(s, trk, ev) {
-  const offer = G.rollDraft(s);
-  offer.sort((a, b) => ((G.rel(s, a) > 0) - (G.rel(s, b) > 0)) || (PRIO.indexOf(a) - PRIO.indexOf(b)));
-  G.takeRelic(s, offer[0] || null, ev);
-}
-
-function pickTarget(s, ctx) {
-  const p = ctx.p, col = ctx.col;
-  // a Big Rock close below: maybe clear the row above it so the crack can be reached
-  for (let i = 1; i < G.VIEW_ROWS; i++) if (G.isBossRow(s.top + i)) {
-    if (ctx.clearRow !== s.top + i) { ctx.clearRow = s.top + i; ctx.clear = rnd() < p.clear; }
-    if (ctx.clear) {
-      let best = null, bd = 99;
-      for (let c = 0; c < G.COLS; c++) { const cell = s.rows[i - 1][c]; if (cell && G.reachable(s, s.top + i - 1, c) && Math.abs(c - col) < bd) { bd = Math.abs(c - col); best = [s.top + i - 1, c]; } }
-      if (best) { ctx.lagNext = bd ? p.lag * 0.4 : 0; ctx.col = best[1]; return best; }
-    }
-    break;
-  }
-  if (rnd() < p.notice) {
-    const vis = G.visibleMask(s);
-    let best = null, bd = 1e9;
-    for (let i = 0; i < Math.min(G.VIEW_ROWS, 7); i++) for (let c = 0; c < G.COLS; c++) {
-      const cell = s.rows[i][c];
-      if (!cell || !VAL.has(cell.t) || !vis[i][c] || !G.reachable(s, s.top + i, c) || Math.abs(c - col) > 5) continue;
-      const d = Math.abs(c - col) + 0.7 * i;
-      if (d < bd) { bd = d; best = [s.top + i, c]; }
-    }
-    if (best) { const dc = Math.abs(best[1] - col); ctx.lagNext = dc ? p.lag * (0.5 + Math.min(dc, 5) / 5) : 0; ctx.col = best[1]; return best; }
-  }
-  // dig down the held column; sometimes drift one column to keep the hole wide
-  if (rnd() < 0.2) ctx.col = Math.max(0, Math.min(G.COLS - 1, col + (rnd() < 0.5 ? -1 : 1)));
-  for (let i = 0; i < G.VIEW_ROWS; i++) {
-    if (s.rows[i][ctx.col]) { if (G.reachable(s, s.top + i, ctx.col)) return [s.top + i, ctx.col]; break; }
-  }
-  let best = null, bs = 1e9;
-  for (let i = 0; i < G.VIEW_ROWS; i++) for (let c = 0; c < G.COLS; c++) {
-    if (!s.rows[i][c] || !G.reachable(s, s.top + i, c)) continue;
-    const sc = i * 3 + Math.abs(c - ctx.col) * 2; if (sc < bs) { bs = sc; best = [s.top + i, c]; }
-  }
-  if (best) { ctx.lagNext = ctx.p.lag * 0.5; ctx.col = best[1]; }
-  return best;
-}
-
-function handSwing(s, ctx, ev, trk) {
-  const p = ctx.p;
-  let tg = ctx.tg;
-  if (!tg || !G.cellAt(s, tg[0], tg[1]) || !G.reachable(s, tg[0], tg[1])) {
-    tg = pickTarget(s, ctx); ctx.tg = tg;
-    if (ctx.lagNext) { ctx.next = ctx.clock + ctx.lagNext * (0.7 + 0.6 * rnd()); ctx.lagNext = 0; return; }
-  }
-  if (!tg) { ctx.next = ctx.clock + 0.3; return; }
-  if (G.isBossRow(tg[0]) && s.boss && s.boss.row === tg[0] && tg[1] !== s.boss.weak && rnd() < p.weak && G.reachable(s, tg[0], s.boss.weak)) {
-    ctx.tg = [tg[0], s.boss.weak]; ctx.col = s.boss.weak; ctx.next = ctx.clock + p.lag * 0.4; return;
-  }
-  G.swing(s, tg[0], tg[1], ev);
-  trk.w().hits++;
-  ctx.next = ctx.clock + (1 / p.hps) * (0.8 + 0.4 * rnd());
-}
-
-// play `secs` seconds of attended time. opts.hand=false: the player only buys, picks relics and sits (diggers work).
-function play(s, ctx, secs, trk, opts = {}) {
-  const hand = opts.hand !== false, dt = 0.05;
-  const ev = mkEv(s, trk);
-  let el = 0;
-  while (el < secs - 1e-9) {
-    if (s.chests > 0 && ctx.busy <= 0) {
-      draft(s, trk, ev);
-      const t = ctx.p.relicT; el += t; trk.real += t; trk.act += t; ctx.clock += t; trk.w().secs += t;   // the game is paused while the card is open
-      continue;
-    }
-    if (G.canNewSite(s) && ctx.busy <= 0 && SITE_ORDER.some(x => !trk.visited.has(x) && G.siteOpen(s, x))) {
-      const left = SITE_ORDER.filter(x => !trk.visited.has(x) && G.siteOpen(s, x));
-      G.newSite(s, left[Math.floor(rnd() * left.length)], ev);
-      trk.lastTotal = s.total; ctx.tg = null; ctx.busy = 4; ctx.col = 4;
-      continue;
-    }
-    if (hand && ctx.busy <= 0 && ctx.clock >= ctx.next) handSwing(s, ctx, ev, trk);
-    if (ctx.busy > 0) ctx.busy = Math.max(0, ctx.busy - dt);
-    G.step(s, dt, ev);
-    trk.real += dt; trk.act += dt; ctx.clock += dt; el += dt;
-    const w = trk.w(); w.secs += dt;
-    const dTot = s.total - trk.lastTotal; trk.lastTotal = s.total; if (dTot > 0) w.tot += dTot;
-    ctx.buyT -= dt;
-    if (ctx.buyT <= 0) {
-      ctx.buyT = ctx.p.buyEvery;
-      let n = shopCheck(s, ev, ctx.noCrew);
-      for (const b of G.BOTS) if (b.shop) n += b.shop(s, { ev, ctx, trk, rnd }) || 0;   // a feature's own shop, tools, jobs
-      if (n) ctx.busy += n * ctx.p.react * (hand ? 1 : 0.3);
-    }
-    // depth marks and layers
-    const be = s.best; if (be > trk.bestEver) {
-      trk.bestEver = be;
-      for (const m of [10, 25, 30, 50, 75, 100]) if (be >= m) trk.mark('depth ' + m);
-    }
-    if (COIN_ITEMS.some(id => !trk.marks.has('affordable:' + id))) {
-      for (const id of COIN_ITEMS) if (G.canBuy(s, id)) trk.mark('affordable:' + id);
-    }
-    if (!trk.firstDig && s.up.crew === 0 && G.canBuy(s, 'crew')) {
-      const up = G.UPGRADES; let k = 0, sum = 0; const cost = G.upgradeCost(s, 'crew');
-      while (sum + Math.ceil(up.pick.base * Math.pow(up.pick.grow, s.up.pick + k)) <= cost) { sum += Math.ceil(up.pick.base * Math.pow(up.pick.grow, s.up.pick + k)); k++; }
-      const hand = ctx.p.hps * G.pickPower(s) * (1 + G.critChance(s) * (G.critMult(s) - 1));
-      trk.firstDig = { t: trk.act, cost, pick: s.up.pick, k, hand, gainHand: hand * (Math.pow(G.P.powGrow, k) - 1), digger: G.crewRate(s) * G.crewPower(s) };
-    }
-    if (trk.units.size >= N_ALL) { sample(s, trk); return true; }
-  }
-  sample(s, trk);
-  return false;
-}
-
-function sample(s, trk) { const w = trk.w(); w.dig = s.diggers.length; w.crewPow = s.up.crewPow; w.pick = s.up.pick; }
-function awayFor(s, ctx, secs, trk) {
-  trk.real += secs;                       // first times found while away are stamped at the return
-  const out = G.settleAway(s, secs, mkEv(s, trk));
-  ctx.tg = null; ctx.clock += secs;
-  sample(s, trk); const w = trk.w(); w.ac += out.coins; w.am += out.metres; w.tot += out.coins; trk.lastTotal = s.total;
-  trk.mark('first away');
-  if (s.best > trk.bestEver) { trk.bestEver = s.best; for (const m of [10, 25, 30, 50, 75, 100]) if (s.best >= m) trk.mark('depth ' + m); }
-  return out;
-}
+import { PROFILES, Trk, play, awayFor, newRun, endRun, sample, reseed, UNITS, N_ALL, N_CORE, ALL_IDS, CORE_IDS, WINS, sortN, med, fmtT, fmtN } from './player.mjs';
 
 // ---------- scenarios ----------
 const SNAPS = { '3m': 180, '5m': 300, '10m': 600, '20m': 1200, '40m': 2400, '60m': 3600 };
-function newRun(profile, seed, noCrew = false) {
-  G.setRng(mulberry(seed * 7919 + 13));
-  const s = G.newState(); const ctx = mkCtx(profile); ctx.noCrew = noCrew; const trk = new Trk();
-  return { s, ctx, trk };
-}
-function endRun(R) {
-  const dl = R.trk.act - R.trk.lastDec; if (dl >= 90) R.trk.gaps.push({ start: R.trk.lastDec, len: dl, open: true });
-  return R;
-}
 
 function runActive(profile, seed, capH = 8, snap = false, noCrew = false) {
   const R = newRun(profile, seed, noCrew); const { s, ctx, trk } = R;
@@ -245,7 +42,7 @@ function runActive(profile, seed, capH = 8, snap = false, noCrew = false) {
     prevHits = s.hits; prevT = trk.act;
   };
   while (trk.act < cap) {
-    const done = play(s, ctx, 5, trk);
+    const done = play(s, ctx, 5, trk, { stopAtAll: true });
     if (snap) {
       for (const [label, at] of Object.entries(SNAPS)) if (!R.snaps[label] && trk.act >= at) take(label);
       if (trk.units.has('boss:L1') && bossSnapAt === null) bossSnapAt = trk.act + 60;
@@ -259,11 +56,11 @@ function runActive(profile, seed, capH = 8, snap = false, noCrew = false) {
 // mixed: 10 min active, then S5 / A30m / S5 / A2h / S5 / A2h / S5 / A8h cycles
 function runMixed(seed, days = 14, profile = 'mid') {
   const R = newRun(profile, seed); const { s, ctx, trk } = R;
-  let done = play(s, ctx, 600, trk);
+  let done = play(s, ctx, 600, trk, { stopAtAll: true });
   const cyc = [['s', 300], ['a', 1800], ['s', 300], ['a', 7200], ['s', 300], ['a', 7200], ['s', 300], ['a', 28800]];
   outer: while (!done && trk.real < days * 86400) {
     for (const [k, secs] of cyc) {
-      if (k === 's') { done = play(s, ctx, secs, trk); } else awayFor(s, ctx, secs, trk);
+      if (k === 's') { done = play(s, ctx, secs, trk, { stopAtAll: true }); } else awayFor(s, ctx, secs, trk);
       if (done || trk.real >= days * 86400) break outer;
     }
   }
@@ -273,24 +70,15 @@ function runMixed(seed, days = 14, profile = 'mid') {
 // idle-only: 10 min active, then the page is closed; every `every` hours a `look`-second visit with no hand.
 function runIdle(seed, days = 14, every = 4 * 3600, look = 120, profile = 'mid') {
   const R = newRun(profile, seed); const { s, ctx, trk } = R;
-  let done = play(s, ctx, 600, trk);
+  let done = play(s, ctx, 600, trk, { stopAtAll: true });
   while (!done && trk.real < days * 86400) {
     awayFor(s, ctx, every, trk);
-    done = play(s, ctx, look, trk, { hand: false });
+    done = play(s, ctx, look, trk, { hand: false, stopAtAll: true });
   }
   return endRun(R);
 }
 
 // ---------- stats helpers ----------
-const sortN = a => a.slice().sort((x, y) => x - y);
-const med = a => { if (!a.length) return NaN; const b = sortN(a); const m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
-function fmtT(sec) {
-  if (!isFinite(sec)) return '-';
-  if (sec < 90) return sec.toFixed(0) + 's';
-  if (sec < 5400) return (sec / 60).toFixed(1) + 'm';
-  if (sec < 172800) return (sec / 3600).toFixed(1) + 'h';
-  return (sec / 86400).toFixed(1) + 'd';
-}
 function cell(vals, n) {   // median [min-max] (k/n)
   if (!vals.length) return `never (0/${n})`;
   const b = sortN(vals);
@@ -301,7 +89,6 @@ function kth(trk, k, ids, key) {   // time of the k-th earliest unit among ids
   const ts = []; for (const id of ids) { const u = trk.units.get(id); if (u) ts.push(u[key]); }
   ts.sort((x, y) => x - y); return ts.length >= k ? ts[k - 1] : NaN;
 }
-const ALL_IDS = UNITS.map(u => u.id), CORE_IDS = UNITS.filter(u => u.cat === 'core').map(u => u.id);
 
 function milestoneTable(title, runs, ids, N) {
   console.log(`\n${title}  (N=${N} units; median [min-max] over ${Object.values(runs)[0].length} seeds; real clock / attended clock)`);
@@ -416,7 +203,6 @@ function awayCompare(runs) {
     console.log(`| ${lab} (${med(ss.map(x => x.s.diggers.length)).toFixed(0)} diggers, pick ${med(ss.map(x => x.s.up.pick)).toFixed(0)}) | ${cols.map(f).join(' | ')} |`);
   }
 }
-function fmtN(x) { if (!isFinite(x)) return '-'; if (x >= 1e6) return (x / 1e6).toFixed(1) + 'M'; if (x >= 1e3) return (x / 1e3).toFixed(1) + 'k'; return x.toFixed(0); }
 
 // ---------- main ----------
 function suite(label, ov) {

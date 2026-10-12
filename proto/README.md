@@ -36,6 +36,8 @@ test_proto_dig.js          the first slice's rules
 test_proto_registry.js     every extension point once, old saves, the rules below
 test_proto_<id>.js         one per feature
 sim/proto/dig-timeline.mjs seeded players; counts content from the registries
+sim/proto/dig-month.mjs    the first month for three players, against docs/dig-pacing.md (--assert)
+sim/proto/player.mjs       the scripted player both sims share
 sim/proto/dig-pacing.mjs   a rough 25 minute check
 ```
 
@@ -260,12 +262,34 @@ node test_proto_<id>.js                         # yours: import * as G from './p
 npm test -- proto                               # all Dig tests
 node sim/proto/dig-timeline.mjs --seeds 7       # ~1 min: when each piece of content is first reached
 node sim/proto/dig-timeline.mjs --quick --ab '{"crystal.share":0.08}'   # A/B a number
+node sim/proto/dig-month.mjs --assert           # ~1 min: three players, 30 days, against the pacing curve
 node sim/proto/dig-pacing.mjs active '{"hpGrow":1.13}'
 ```
 
 A test seeds chance with `G.seedRng(1)` and builds its case by hand (`s.rows[0][3] = { t, hp, max, s }`).
 Put the timeline's before and after in your PR when you touch pace or coins. Check the page:
 `python server.py 8131`, `http://localhost:8131/proto.html?speed=4`, desktop width, no console errors.
+
+## The numbers: pacing
+
+The curve for the first month, the model behind it and what is still off are in `docs/dig-pacing.md`.
+In short:
+
+- **Depth curves** (`core/grid.js`, numbers in `PARAMS.core`): one entry per layer,
+  `{ hp, val, step, share }`. Layers 1 and 2: `hpGrow` 1.12, `valGrow` 1.10. Below, `PARAMS.core.grow`:
+  water 1.14 with a step of 2; crystal 1.17, step 20; the Deep's four 1.20, step 8; below 200 m 1.22, step 10.
+  A layer may bring its own: `layers: [{ id, ..., grow: { hp, val, step, share } }]` wins over the table.
+- **The Big Rock is the wall**: 20 dirt blocks of the row behind the step, times `1 + 0.5 x layer`.
+- **Stars for a move**: `starsAt(best, land, have)` in the core. A share (`grow[i].share`, 0.35 down
+  to 0.024) of the Stars it takes to stand where the dig stopped, at least the plain count (one per
+  10 m, less 2), at most `starCap` times the Stars earned so far. The sites feature must pay by it.
+- **Unlocks**: Foreman at 7 Rafeeqs or the third Big Rock; contracts after 14 New Sites.
+- **Check**: `node sim/proto/dig-month.mjs --assert` (three players, 30 days, about a minute).
+  Re-tune in this order: `core.grow[i].share`, `core.grow[i].step`, `core.starWall`, `boss.layerHp`.
+- **A package that touches pace or coins** runs the month before and after
+  (`--ab`, or `--without <feature>` for its relics). Anything that breaks ground or hurts a Big
+  Rock must scale with the pick's strength, never with the hardness of the ground: the walls
+  cannot hold otherwise.
 
 ## Work packages
 

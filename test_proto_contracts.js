@@ -8,7 +8,8 @@ const clear = s => { for (const row of s.rows) for (let c = 0; c < G.COLS; c++) 
 // a state that may move: two Big Rocks down, `sites` moves done
 const NEED = G.PARAMS.contracts.tierNeed.slice();
 let free = false;
-function ready(sites = 3, seed = 1) {
+const OPEN = G.PARAMS.contracts.openSites;   // the board opens after this many New Sites (a pacing number)
+function ready(sites = OPEN, seed = 1) {
   G.PARAMS.contracts.tierNeed = free ? [0, 0, 0, 0] : NEED;
   G.seedRng(seed);
   const s = G.newState();
@@ -19,9 +20,9 @@ const take = (s, id) => G.startContract(s, id, NO);
 const run = (s, secs, ev = NO) => { for (let i = 0; i < secs * 20; i++) G.step(s, 0.05, ev); };
 
 { // the board opens at the third New Site, and is told once
-  const s = ready(2);
+  const s = ready(OPEN - 1);
   ok(!G.contractsOpen(s) && G.contractState(s, 'bare') === 'locked' && !take(s, 'bare'), 'closed before the third New Site');
-  s.sites = 3;
+  s.sites = OPEN;
   const seen = [];
   G.step(s, 0.05, k => seen.push(k)); G.step(s, 0.05, k => seen.push(k));
   ok(seen.filter(k => k === 'contractsOpen').length === 1 && s.unlocked['contracts:open'], 'told once, and counted as content');
@@ -111,7 +112,7 @@ free = true;
   ok(s2.contract === 'rising', 'still in the contract');
 }
 { // TNT only: the pick does nothing to rock, a trail of TNT leads down, blasts open it
-  const s = ready(5); take(s, 'tntOnly');
+  const s = ready(OPEN); take(s, 'tntOnly');
   const tnt = [];
   for (let i = 0; i < s.rows.length; i++) { const c = s.rows[i].findIndex(x => x && x.t === 'tnt'); if (i % 2 === 0 && i <= 12) tnt.push([i, c]); }
   ok(tnt.every(([i, c]) => c >= 0), 'a TNT in every second row');
@@ -162,7 +163,7 @@ free = true;
   ok(s.total > 400 && s.rows[0][8] === null, 'they dug, near the aim');
 }
 { // feed the rock: only ore hurts it
-  const s = ready(5); take(s, 'feedRock');
+  const s = ready(OPEN); take(s, 'feedRock');
   s.top = 0; clear(s);
   s.rows = []; for (let i = 0; i < G.KEEP_ROWS; i++) s.rows.push(G.genRow(s, 20 + i));
   s.top = 20;

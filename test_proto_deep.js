@@ -16,8 +16,8 @@ function field(top, best) {
   s.rows = [];
   for (let i = 0; i < G.KEEP_ROWS; i++) s.rows.push(Array.from({ length: G.COLS }, () => D('dirt')));
   for (let c = 0; c < G.COLS; c++) s.rows[0][c] = null;
-  s.rows[0][9] = D('hard', 1e12);
-  s.rows[12] = s.rows[12].map(() => D('hard', 1e12));
+  s.rows[0][9] = D('hard', 1e300);
+  s.rows[12] = s.rows[12].map(() => D('hard', 1e300));
   s.queue = []; s.pools = {};
   return s;
 }
@@ -181,7 +181,7 @@ const A = (s, r, c) => G.cellAt(s, r, c);
   G.step(w, 0.05, evw);
   ok(A(w, 181, 2) && A(w, 181, 2).t === 'lavaglass' && has(evw, 'deepGlass'), 'water turns lava to glass');
   // glass cracks in lines
-  for (let i = 2; i < 12; i++) w.rows[i][2] = D('hard', 1e12); w.rows[1][2].hp = 1; w.rows[1][5] = D('dirt'); w.rows[1][8] = D('dirt');
+  for (let i = 2; i < 12; i++) w.rows[i][2] = D('hard', 1e300); w.rows[1][2].hp = 1; w.rows[1][5] = D('dirt'); w.rows[1][8] = D('dirt');
   G.swing(w, 181, 2, evw);
   run(w, 2, evw);
   const gone = (r, c) => evw.log.some(x => x[0] === 'break' && x[1].r === r && x[1].c === c);

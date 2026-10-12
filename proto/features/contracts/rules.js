@@ -34,7 +34,7 @@ import { bossInView } from '../boss/rules.js';
 import strings from './strings.js';
 
 const p = {
-  openSites: 3,                          // the board opens after this many New Sites
+  openSites: 14,                         // the board opens after this many New Sites
   tierNeed: [0, 0, 2, 3],                // wins in the tier below that open tier 2 and tier 3
   tierStars: [0, 2, 3, 5],               // Stars for a first win, by tier
   stars: {},                             // or one contract's own number
@@ -52,7 +52,7 @@ const p = {
   oreWeight: { copper: 1, silver: 2, gold: 4, gem: 8 },
   // the prizes
   headRows: 2,                           // rising: every site starts this many rows already dug
-  feedBend: 0.4,                         // feedRock: ore chips the Big Rock for this share of what it did in the contract
+  feedBend: 0.05,                        // feedRock: ore chips the Big Rock for this share of what it did in the contract
   firstDraftExtra: 1,                    // oneRelic: the first chest of a site shows this many more cards
   rockChests: 1,                         // dry: extra chests from every Big Rock
   // the sim's scripted player
