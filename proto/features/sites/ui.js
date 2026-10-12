@@ -5,14 +5,16 @@ import { screenFlash } from '../../ui/render.js';
 import { sfx } from '../../ui/audio.js';
 import { icon, S, badge, star } from '../../ui/icons.js';
 
+
 const { t } = G;
 
 function openSites(app) {
   const state = app.state;
   if (!G.canNewSite(state) || app.modal.id) return;
-  const m = app.modal.open('sites', `<div class="card draft"><h2></h2><p class="more"></p><div class="cards"></div><p class="more"><button class="ghost"></button></p></div>`);
+  const m = app.modal.open('sites', `<div class="card draft"><h2></h2><p class="more"></p><p class="more line"></p><div class="cards"></div><p class="more"><button class="ghost"></button></p></div>`);
   m.querySelector('h2').textContent = t('site_pick');
-  m.querySelector('.more').textContent = t('site_get', { n: G.starsFor(state) });
+  m.querySelector('.more').textContent = t('site_get', { n: G.fmt(G.starsFor(state)) });
+  m.querySelector('.line').textContent = G.starshopLineText(state);
   const back = m.querySelector('.ghost'); back.textContent = t('site_stay'); back.addEventListener('click', () => app.modal.close());
   const wrap = m.querySelector('.cards');
   Object.keys(G.SITES).filter(id => G.siteOpen(state, id)).forEach((id, i) => {
@@ -42,27 +44,28 @@ ui({
   },
   tick(s, app) {
     document.getElementById('stars').hidden = s.stars <= 0;
-    document.getElementById('stars-n').textContent = s.stars;
+    document.getElementById('stars-n').textContent = G.fmt(s.stars);
     if (G.canNewSite(s) && !s.seen.siteToast) { s.seen.siteToast = true; setTimeout(() => app.toast(t('goal_site'), 'gold'), 4200); }
   },
   on: {
-    newSite(d, app) { sfx.star(); screenFlash('#fff', 0.7); app.banner(t('site_done', { n: d.stars }), ''); },
+    newSite(d, app) { sfx.star(); screenFlash('#fff', 0.7); app.banner(t('site_done', { n: G.fmt(d.stars) }), ''); },
   },
   panels: [{
     id: 'site', elId: 'site', side: 'left', at: 30, title: 'site_title', live: true,
     when: s => s.bossesDown >= 1 || s.stars > 0,
     build(el, app) {
-      el.insertAdjacentHTML('beforeend', `<p id="site-now"></p><p class="muted" id="site-d"></p><p id="site-get"></p><p class="muted" id="site-keep"></p><button id="site-btn" class="primary" hidden></button>`);
+      el.insertAdjacentHTML('beforeend', `<p id="site-now"></p><p class="muted" id="site-d"></p><p id="site-get"></p><p class="muted" id="site-keep"></p><p class="muted" id="site-line"></p><button id="site-btn" class="primary" hidden></button>`);
       el.querySelector('#site-btn').addEventListener('click', () => { app.unlockAudio(); openSites(app); });
     },
     update(el, s) {
       const can = G.canNewSite(s);
       el.classList.toggle('ready', can);
       el.querySelector('#site-d').textContent = can ? t('site_d') : t('site_wait');
-      el.querySelector('#site-get').textContent = can ? t('site_get', { n: G.starsFor(s) }) : '';
+      el.querySelector('#site-get').textContent = can ? t('site_get', { n: G.fmt(G.starsFor(s)) }) : '';
       el.querySelector('#site-keep').textContent = can ? t('site_keep') : '';
+      el.querySelector('#site-line').textContent = can ? G.starshopLineText(s) : '';
       const b = el.querySelector('#site-btn');
-      b.hidden = !can; b.textContent = t('site_btn', { n: G.starsFor(s) });
+      b.hidden = !can; b.textContent = t('site_btn', { n: G.fmt(G.starsFor(s)) });
       el.querySelector('#site-now').textContent = s.sites > 0 ? t('site_now', { name: t('site_' + s.site) }) : '';
     },
   }],

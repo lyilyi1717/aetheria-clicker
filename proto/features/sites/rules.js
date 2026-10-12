@@ -6,7 +6,7 @@ import { starsAt } from '../../core/grid.js';
 import strings from './strings.js';
 
 const p = {
-  starCoin: 0.2, starPick: 0.1,   // each Star: coins and hits
+  starCoin: 0, starPick: 0,       // a Star gives nothing by itself now: the tracks (starshop) turn Stars into strength
   needBosses: 2,                  // Big Rocks to break before you may move
 };
 

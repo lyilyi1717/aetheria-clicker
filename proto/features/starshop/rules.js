@@ -1,66 +1,162 @@
-// Dig feature: the Star shop. Stars (paid at each New Site) buy perks that last for ever and change
-// how a new site starts and plays. Spending a Star never lowers the Star bonus (coins, hits):
-// the bonus is worked out from the Stars you have EVER earned, so a purse that goes down costs nothing.
+// Dig feature: the Star tracks. Stars (paid at each New Site) give NOTHING until you spend them. You spend
+// them on three tracks, one step at a time, in order inside a track; you choose the track:
+//   The Pick  every step: your hit x1.5; a new pick material every 4 steps (stone, copper, bronze, iron, steel,
+//             silver, gold, crystal, sky-iron, star); some steps bring a rule
+//   The Camp  every step: Rafeeq hits x1.5; the old Rafeeq perks are steps
+//   The Bag   every step: coins x1.5; the old chest and luck perks are steps
+// A step costs cost0 * costGrow^(steps you already have on that track): 2, 3, 5, 7, 10, 15, 23, 34, ...
+// The 29 named steps (STARSHOP_STEPS) hold every perk the old Star Shop had, with every level.
+// The old names stay as derived levels (starshopLevel(s, 'sp_eyes') ...) so other code and the page read them as before.
+// A save from before gets every Star it ever earned back to spend (once, in `migrate`).
 //
-// Perk list (id: what it does, Stars per level). Every one shows in the first minute of the next site,
-// except "wake", which shows when you come back from time away.
-//   sp_head    a Rafeeq is hired when you arrive (1, 2, 3 Rafeeqs)              1 / 2 / 3
-//   sp_keep    one relic you choose crosses the move (up to level 1, 2, 3)       2 / 3 / 4
-//   sp_cards   chests show one more card                                        3
-//   sp_reroll  a free re-roll of a chest's cards, once per site                 2
-//   sp_map     the first chest of a site is close to the surface               1
-//   sp_eyes    TNT is outlined through the dark (page side)                     2
-//   sp_wake    away, Rafeeqs walk past a Big Rock you have beaten at that depth  4
-//   sp_warm    the pick starts at half (then 70%) of your best level           3 / 6
-//   sp_bone    a bone sits close to the surface                                  1
-//   sp_oil     an oil well sits close to the surface                             1
-//   sp_gift    a chest is waiting in your pocket                                 2 / 4
-import { use, PARAMS, fold, RELICS } from '../../core/registry.js';
+// Opens no mod. Exports for rules other packages must build (nothing here does them):
+//   starshopPunch(s)      0 none; 1, 2, 3 blocks of reach; Infinity: Punch-through (strength left over goes into the block below)
+//   starshopCrackSlow(s)  true: the Big Rock's crack moves half as often (Crack Finder)
+//   starshopFalling(s)    true: the first swing at a new site falls to the first Big Rock (Falling Star)
+//   starshopShoes(s)      true: Rafeeqs walk twice as fast (Good Shoes)
+//   starshopKettle(s)     true: the Foreman's tea break gives its rush with no sitting (Second Kettle)
+import { use, PARAMS, fold, RELICS, ITEMS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
-import { COLS, VIEW_ROWS, LAYER, dirtHp, dirtVal, shiftRow, layerOf } from '../../core/grid.js';
-import { coinMult, buy } from '../../core/rules.js';
+import { COLS, VIEW_ROWS, LAYER, dirtHp, dirtVal, shiftRow, layerOf, cellAt } from '../../core/grid.js';
+import { coinMult, damage, pickPower, buy } from '../../core/rules.js';
+import { fmt, t } from '../../core/strings.js';
+import '../shop/rules.js';
 import strings from './strings.js';
 
 const p = {
+  step: 1.5,                                // every step of a track: x1.5
+  cost0: 2, costGrow: 1.5,                  // the first step costs 2 Stars, each next one x1.5
+  perMaterial: 4,                           // steps of The Pick per material
   chestRow: 3, boneRow: 5, oilRow: 7,       // how close to the surface (metres)
   warmFrac: [0.5, 0.7],                     // the share of your best pick level a new site starts with, by perk level
   giftChests: 1,                            // chests in your pocket per perk level
+  cardsCap: 5,                              // a chest never shows more cards than this (Wide Hands + Pearl Eye + a prize)
+  wholeCamp: 8,                             // Rafeeqs waiting with the camp's capstone
+  heavyReach: 1,                            // Heavy Hand: a big hit also strikes this many blocks left and right
+  oldFriend: 0.5,                           // the first Big Rock of a site starts with this share of its hp
 };
 
-// id -> { at, costs: Stars for level 1, 2, 3 }
+// track -> step number -> the rule that comes with it
+export const STARSHOP_STEPS = {
+  pick: { 1: 'punch1', 5: 'warm1', 9: 'punch2', 13: 'warm2', 17: 'crack', 21: 'punch3', 25: 'heavy', 29: 'punchAll', 33: 'old', 37: 'falling' },
+  camp: { 1: 'head1', 2: 'head2', 3: 'head3', 5: 'wake', 7: 'shoes', 9: 'kettle', 12: 'whole' },
+  bag:  { 1: 'map', 2: 'bone', 3: 'oil', 4: 'keep1', 5: 'gift1', 6: 'reroll', 7: 'keep2', 8: 'cards', 9: 'eyes', 10: 'gift2', 11: 'keep3', 14: 'pocket2' },
+};
+export const STARSHOP_TRACKS = ['pick', 'camp', 'bag'];
+export const STARSHOP_MATERIALS = ['stone', 'copper', 'bronze', 'iron', 'steel', 'silver', 'gold', 'crystal', 'skyiron', 'star'];
+// the old perk ids, as levels derived from steps: id -> { track, at: the steps of level 1, 2, 3 }
 export const STARSHOP_PERKS = {
-  sp_head:   { at: 10, costs: [1, 2, 3] },
-  sp_keep:   { at: 20, costs: [2, 3, 4] },
-  sp_cards:  { at: 30, costs: [3] },
-  sp_reroll: { at: 40, costs: [2] },
-  sp_map:    { at: 50, costs: [1] },
-  sp_eyes:   { at: 60, costs: [2] },
-  sp_wake:   { at: 70, costs: [4] },
-  sp_warm:   { at: 80, costs: [3, 6] },
-  sp_bone:   { at: 90, costs: [1] },
-  sp_oil:    { at: 100, costs: [1] },
-  sp_gift:   { at: 110, costs: [2, 4] },
+  sp_head:    { track: 'camp', at: [1, 2, 3] },
+  sp_keep:    { track: 'bag', at: [4, 7, 11] },
+  sp_cards:   { track: 'bag', at: [8] },
+  sp_reroll:  { track: 'bag', at: [6] },
+  sp_map:     { track: 'bag', at: [1] },
+  sp_eyes:    { track: 'bag', at: [9] },
+  sp_wake:    { track: 'camp', at: [5] },
+  sp_warm:    { track: 'pick', at: [5, 13] },
+  sp_bone:    { track: 'bag', at: [2] },
+  sp_oil:     { track: 'bag', at: [3] },
+  sp_gift:    { track: 'bag', at: [5, 10] },
+  sp_pocket2: { track: 'bag', at: [14] },
 };
 
-export const starshopLevel = (s, id) => (s.starUp && s.starUp[id]) || 0;
+export const starshopSteps = (s, track) => (s.starUp && s.starUp['tr_' + track]) || 0;
+export function starshopLevel(s, id) {
+  const d = STARSHOP_PERKS[id];
+  if (!d) return 0;
+  const n = starshopSteps(s, d.track);
+  if (id === 'sp_head' && n >= 12) return p.wholeCamp;
+  let l = 0;
+  for (const a of d.at) if (n >= a) l++;
+  return l;
+}
 const lv = starshopLevel;
+const hasStep = (s, track, rule) => {
+  const n = starshopSteps(s, track), T = STARSHOP_STEPS[track];
+  for (const k of Object.keys(T)) if (T[k] === rule && n >= +k) return true;
+  return false;
+};
 
-// ---------- keep one relic ----------
+export const starshopStepCost = steps => Math.round(p.cost0 * Math.pow(p.costGrow, steps));
+export const starshopRule = (track, n) => STARSHOP_STEPS[track][n] || null;
+// the pick on `steps` steps: { mat, n: 1..4 inside the material (0: the wooden start), plus: steps beyond the Star Pick's four }
+export function starshopPickAt(steps) {
+  if (steps <= 0) return { idx: -1, mat: 'wood', n: 0, plus: 0 };
+  const per = p.perMaterial, last = STARSHOP_MATERIALS.length - 1;
+  const idx = Math.min(last, Math.floor((steps - 1) / per));
+  return { idx, mat: STARSHOP_MATERIALS[idx], n: idx < last ? ((steps - 1) % per) + 1 : Math.min(per, steps - last * per), plus: Math.max(0, steps - (last + 1) * per) };
+}
+// how far Punch-through reaches (0: not at all)
+export function starshopPunch(s) {
+  const n = starshopSteps(s, 'pick');
+  return n >= 29 ? Infinity : n >= 21 ? 3 : n >= 9 ? 2 : n >= 1 ? 1 : 0;
+}
+export const starshopCrackSlow = s => hasStep(s, 'pick', 'crack');
+export const starshopFalling = s => hasStep(s, 'pick', 'falling');
+export const starshopShoes = s => hasStep(s, 'camp', 'shoes');
+export const starshopKettle = s => hasStep(s, 'camp', 'kettle');
+// a number of hits for the page: one decimal while small
+export const starshopNum = x => (x < 10 ? String(Math.round(x * 10) / 10) : fmt(x));
+const ROMAN = ['', 'I', 'II', 'III', 'IV'];
+// "Stone II", "Wooden", "Star +3"
+export const starshopPickName = pk => (pk.mat === 'wood' ? t('pick_wood') : pk.plus > 0 ? t('pick_star_plus', { n: pk.plus }) : t('pick_name', { mat: t('mat_' + pk.mat), n: ROMAN[pk.n] }));
+// the level a new site starts with, by the Warm Pick steps, from your best pick
+const warmLevel = s => { const w = lv(s, 'sp_warm'); return w ? Math.floor(Math.max(s.starBestPick, s.up.pick || 0) * p.warmFrac[w - 1]) : 0; };
+// your first hit at the next site (the pick track and the warm start only)
+export const starshopNextHit = s => Math.pow(p.step, starshopSteps(s, 'pick')) * Math.pow(PARAMS.core.powGrow, warmLevel(s));
+// the line of the New Site card: the pick this site started with -> the pick the next one starts with
+export function starshopLine(s) {
+  const cur = s.starLine && s.starLine.cur;
+  const a = cur ? cur.steps : 0, b = starshopSteps(s, 'pick');
+  return { from: starshopPickAt(a), to: starshopPickAt(b), hitFrom: cur ? cur.hit : 1, hitTo: starshopNextHit(s), changed: a !== b };
+}
+
+// "Stone II -> Stone III. Your first hit: 2.2 -> 3.4." (one name and one hit when nothing changed)
+export function starshopLineText(s) {
+  const L = starshopLine(s);
+  if (!L.changed && Math.abs(L.hitTo - L.hitFrom) < 1e-9) return t('site_line_same', { a: starshopPickName(L.to), y: starshopNum(L.hitTo) });
+  return t('site_line', { a: starshopPickName(L.from), b: starshopPickName(L.to), x: starshopNum(L.hitFrom), y: starshopNum(L.hitTo) });
+}
+
+// the same line after a move: the pick the last site started with -> the pick this one started with
+export function starshopMovedText(s) {
+  const L = s.starLine || {}, prev = L.prev || { steps: 0, hit: 1 }, cur = L.cur || prev;
+  return t('site_line', { a: starshopPickName(starshopPickAt(prev.steps)), b: starshopPickName(starshopPickAt(cur.steps)), x: starshopNum(prev.hit), y: starshopNum(cur.hit) });
+}
+
+// Warm Pick sets the pick level, so the next level used to cost what it costs at that level: for the first
+// minute Stronger Pick could not be bought. Now the price ramps back onto the old curve (2 levels of price per
+// level bought, until you have bought as many as the warm start gave you). Done here on the shop's item.
+if (ITEMS.pick && !ITEMS.pick.cost) {
+  const it = ITEMS.pick;
+  it.cost = (s, l) => {
+    const w = s.starWarm || 0;
+    const idx = w > 0 && l >= w ? l - Math.max(0, w - (l - w)) : l;
+    return Math.ceil(it.base * Math.pow(it.grow, idx));
+  };
+}
+
+// ---------- keep relics ----------
 export const starshopKeepOptions = s => Object.keys(s.relics).filter(id => s.relics[id] > 0);
 export function starshopSetKeep(s, id) {
   if (id && !(s.relics[id] > 0)) return false;
   s.starKeep = id || null;
   return true;
 }
-// the relic that would cross the move now, and the level it keeps (null: none)
-export function starshopKeepNow(s) {
+// the relics that would cross the move now, with the level each keeps (empty: none). The one you chose first,
+// then (with Second Pocket) the best of the rest.
+export function starshopKeepList(s) {
   const n = lv(s, 'sp_keep');
   const held = starshopKeepOptions(s);
-  if (!n || !held.length) return null;
-  let id = s.starKeep && s.relics[s.starKeep] > 0 ? s.starKeep : null;
-  if (!id) { id = held[0]; for (const h of held) if (s.relics[h] > s.relics[id]) id = h; }   // else the best one you hold
-  return { id, level: Math.min(s.relics[id], n) };
+  if (!n || !held.length) return [];
+  const best = list => { let id = list[0]; for (const h of list) if (s.relics[h] > s.relics[id]) id = h; return id; };
+  const first = s.starKeep && s.relics[s.starKeep] > 0 ? s.starKeep : best(held);
+  const out = [{ id: first, level: Math.min(s.relics[first], n) }];
+  const rest = held.filter(h => h !== first);
+  if (lv(s, 'sp_pocket2') && rest.length) { const id = best(rest); out.push({ id, level: Math.min(s.relics[id], n) }); }
+  return out;
 }
+export const starshopKeepNow = s => starshopKeepList(s)[0] || null;
 
 // ---------- free re-roll ----------
 export const starshopRerollsLeft = s => Math.max(0, lv(s, 'sp_reroll') - (s.starRerolls || 0));
@@ -79,30 +175,50 @@ function blocked(s, r) {
 }
 const trail = new WeakMap();      // an away's `out` -> what its rows have cost so far
 
+// what this site started with, for the line on the New Site card
+function noteStart(s) {
+  const line = s.starLine || { prev: null, cur: null };
+  s.starLine = { prev: line.cur, cur: { steps: starshopSteps(s, 'pick'), hit: pickPower(s) } };
+}
+
 export const starshop = use({
   id: 'starshop',
   params: p,
   strings,
+  version: 2,
+  // v1 -> v2: the Star Shop became three tracks. Every Star ever spent comes back, once; the old perks are gone.
+  migrate(s) {
+    const old = Object.keys(s.starUp || {}).filter(k => k.startsWith('sp_'));
+    const spent = s.starSpent || 0;
+    if (spent > 0) { s.starRefund = spent; s.stars += spent; s.starSpent = 0; }
+    for (const k of old) delete s.starUp[k];
+  },
   state: {
-    starSpent:    { init: () => 0, survives: ['site', 'land'] },     // Stars spent, ever: the bonus counts them still
+    starSpent:    { init: () => 0, survives: ['site', 'land'] },     // Stars spent, ever (the pacing counts Stars earned: stars + starSpent)
     starKeep:     { init: () => null, survives: ['site', 'land'] },  // the relic you chose to carry over
     starBestPick: { init: () => 0, survives: ['site', 'land'] },     // your best pick level, ever
     starBoss:     { init: () => 0, survives: ['site', 'land'] },     // the deepest Big Rock you ever broke
+    starRefund:   { init: () => 0, survives: ['site', 'land'] },     // Stars that came back from the old Star Shop; shown until you spend
+    starLine:     { init: () => ({ prev: null, cur: null }), survives: ['site', 'land'] },   // { steps, hit } of the pick at the start of this and the last site
     starRerolls:  { init: () => 0, perSite: true },                  // free re-rolls used at this site
+    starWarm:     { init: () => 0, perSite: true },                  // the pick level this site started with (Warm Pick)
+    starOld:      { init: () => false, perSite: true },              // Old Friend has cracked this site's first Big Rock
   },
   shops: { star: { wallet: 'stars', levels: 'starUp', survives: ['site', 'land'] } },
-  items: Object.fromEntries(Object.entries(STARSHOP_PERKS).map(([id, d]) => [id, {
-    at: d.at, shop: 'star', base: d.costs[0], grow: 1, max: d.costs.length, levels: d.costs.length > 1 ? 'core' : 'grind',
-    cost: (s, l) => d.costs[l],
+  items: Object.fromEntries(STARSHOP_TRACKS.map((tr, i) => ['tr_' + tr, {
+    at: 10 + i * 10, shop: 'star', base: p.cost0, grow: p.costGrow, levels: 'grind',
+    cost: (s, l) => starshopStepCost(l),
     open: s => s.stars > 0 || s.starSpent > 0,
-    bought(s, level) { s.starSpent += d.costs[level - 1]; },
+    bought(s, level) { s.starSpent += starshopStepCost(level - 1); s.starRefund = 0; },
   }])),
+  unlocks: STARSHOP_TRACKS.flatMap(tr => Object.keys(STARSHOP_STEPS[tr]).map(n => ({ id: `tr:${tr}:${n}`, cat: 'grind', group: 'Star track steps' }))),
+  firsts: { buy: d => (d.shop === 'star' && d.id.startsWith('tr_') && STARSHOP_STEPS[d.id.slice(3)][d.level] ? `tr:${d.id.slice(3)}:${d.level}` : null) },
   mods: {
-    // the bonus of every Star ever earned stays: put back what was spent
-    coinMult:  { at: 21, fn: (v, s) => v * (1 + PARAMS.sites.starCoin * (s.stars + s.starSpent)) / (1 + PARAMS.sites.starCoin * s.stars) },
-    pickPower: { at: 21, fn: (v, s) => v * (1 + PARAMS.sites.starPick * (s.stars + s.starSpent)) / (1 + PARAMS.sites.starPick * s.stars) },
-    crewPower: { at: 21, fn: (v, s) => v * (1 + PARAMS.sites.starPick * (s.stars + s.starSpent)) / (1 + PARAMS.sites.starPick * s.stars) },
-    draftCards: (v, s) => v + lv(s, 'sp_cards'),
+    pickPower: { at: 21, fn: (v, s) => v * Math.pow(p.step, starshopSteps(s, 'pick')) },
+    crewPower: { at: 21, fn: (v, s) => v * Math.pow(p.step, starshopSteps(s, 'camp')) },
+    coinMult:  { at: 21, fn: (v, s) => v * Math.pow(p.step, starshopSteps(s, 'bag')) },
+    // Wide Hands adds a card; the cap comes last, so Wide Hands + Pearl Eye + a prize never show more than cardsCap
+    draftCards: { at: 9999, fn: (v, s) => Math.min(p.cardsCap, v + lv(s, 'sp_cards')) },
   },
   gen: { row: [{ at: 15, fn(c) {
     const s = c.s;
@@ -114,18 +230,30 @@ export const starshop = use({
     bossDown(s, r) { s.starBoss = Math.max(s.starBoss, layerOf(r)); },
     resetting(s, name, keep) {
       s.starBestPick = Math.max(s.starBestPick, s.up.pick || 0);
-      const k = starshopKeepNow(s);
-      if (k) keep.starshop = k;
+      const k = starshopKeepList(s);
+      if (k.length) keep.starshop = k;
     },
-    reset(s, name, keep) {
+    reset: { at: 100, fn(s, name, keep) {
       const k = keep && keep.starshop;
-      if (k && RELICS[k.id]) s.relics[k.id] = Math.min(k.level, RELICS[k.id].max);
+      if (k) for (const x of [].concat(k)) if (RELICS[x.id]) s.relics[x.id] = Math.min(x.level, RELICS[x.id].max);
       const crew = lv(s, 'sp_head');
       for (let i = 0; i < crew; i++) s.diggers.push({ c: Math.floor(rnd() * COLS), r: s.top, tc: -1, tr: -1, cd: 0.3, swing: 0 });
       if (crew) s.up.crew = Math.max(s.up.crew, crew);     // so the next Rafeeq costs what it would after these
-      const w = lv(s, 'sp_warm');
-      if (w) s.up.pick = Math.max(s.up.pick, Math.floor(s.starBestPick * p.warmFrac[w - 1]));
+      const w = warmLevel(s);
+      if (w) { s.up.pick = Math.max(s.up.pick, w); s.starWarm = s.up.pick; }
       s.chests += lv(s, 'sp_gift') * p.giftChests;
+      noteStart(s);
+    } },
+    // Heavy Hand: a big hit also strikes the blocks beside it
+    swung(s, sw, ev) {
+      if (!sw.crit || !hasStep(s, 'pick', 'heavy')) return;
+      for (let k = 1; k <= p.heavyReach; k++) for (const dc of [-k, k]) if (cellAt(s, sw.r, sw.c + dc)) damage(s, sw.r, sw.c + dc, sw.dmg, 'you', ev, { chain: 1 });
+    },
+    // Old Friend: the first Big Rock of a site is already cracked
+    step(s) {
+      if (s.starOld || !s.boss || s.bossesDown > 0 || !hasStep(s, 'pick', 'old')) return;
+      s.starOld = true;
+      s.boss.hp = Math.min(s.boss.hp, s.boss.max * p.oldFriend);
     },
     awayRow(s, r, out) { trail.set(out, (trail.get(out) || 0) + dirtHp(r) * COLS * PARAMS.away.rowCost); },
     // the crew was held at a Big Rock: with the perk it walks on past the ones you have beaten
@@ -151,10 +279,10 @@ export const starshop = use({
       out.atBoss = blocked(s, s.top);
     } },
   },
-  // the scripted player: one perk a look, in this order, like a player who chooses
+  // the scripted player: the cheapest step, the Pick first, then Bag, Camp, Pick ... (an even spend)
   bot: { shop(s, api) {
-    const order = ['sp_head', 'sp_warm', 'sp_gift', 'sp_keep', 'sp_wake', 'sp_cards', 'sp_map', 'sp_reroll', 'sp_bone', 'sp_oil', 'sp_eyes'];
-    for (const id of order) if (buy(s, id, api && api.ev)) return 1;
-    return 0;
+    let best = 'pick', bn = Infinity;
+    for (const tr of ['pick', 'bag', 'camp']) { const n = starshopSteps(s, tr); if (n < bn) { bn = n; best = tr; } }
+    return buy(s, 'tr_' + best, api && api.ev) ? 1 : 0;
   } },
 });

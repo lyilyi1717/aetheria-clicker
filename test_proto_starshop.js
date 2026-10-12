@@ -1,114 +1,128 @@
-// The Star shop (proto/features/starshop). Run: node test_proto_starshop.js
+// The Star tracks (proto/features/starshop). Run: node test_proto_starshop.js
 import * as G from './proto/game.js';
 
 let failed = 0;
 const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg); } };
-const give = (s, id, lv = 1) => { s.starUp[id] = lv; };
-// a state that has beaten two Big Rocks and may move
+const give = (s, tr, n) => { s.starUp['tr_' + tr] = n; };
 function ready(bossesDown = 2) { G.seedRng(7); const s = G.newState(); s.bossesDown = bossesDown; s.best = 60; s.starBoss = bossesDown; return s; }
 const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); };
 
-{ // the shop and its prices
+{ // costs, order, and Stars doing nothing until spent
   const s = G.newState();
-  ok(Object.keys(G.STARSHOP_PERKS).length >= 10 && Object.keys(G.STARSHOP_PERKS).every(id => G.ITEMS[id] && G.ITEMS[id].shop === 'star'), 'ten or more perks in the star shop');
-  ok(!G.itemOpen(s, 'sp_head'), 'the shop is shut until you have a Star');
-  s.stars = 1;
-  ok(G.itemOpen(s, 'sp_head') && G.buy(s, 'sp_head') && s.stars === 0 && s.starUp.sp_head === 1, 'a perk costs Stars');
-  ok(!G.buy(s, 'sp_head'), 'cannot pay with no Stars');
-  s.stars = 2; ok(G.upgradeCost(s, 'sp_head') === 2 && G.buy(s, 'sp_head') && s.starUp.sp_head === 2, 'level 2 costs 2');
-  s.stars = 9; give(s, 'sp_head', 3); ok(!G.canBuy(s, 'sp_head'), 'a full perk cannot be bought');
+  ok([0, 1, 2, 3, 4, 5, 6, 7].map(G.starshopStepCost).join() === '2,3,5,7,10,15,23,34', 'costs 2, 3, 5, 7, 10, 15, 23, 34');
+  ok(!G.itemOpen(s, 'tr_pick'), 'shut until you have a Star');
+  s.stars = 100;
+  ok(G.pickPower(s) === 1 && G.coinMult(s) === 1 && G.crewPower(s) === 1, 'unspent Stars give nothing');
+  ok(G.buy(s, 'tr_pick') && s.stars === 98 && s.starSpent === 2 && Math.abs(G.pickPower(s) - 1.5) < 1e-9, 'Stone Pick: 2 Stars, hit x1.5');
+  ok(G.buy(s, 'tr_pick') && s.stars === 95 && Math.abs(G.pickPower(s) - 2.25) < 1e-9, 'step 2 costs 3, hit x2.25');
+  ok(G.buy(s, 'tr_camp') && Math.abs(G.crewPower(s) - 1.5) < 1e-9, 'Camp: Rafeeq hits x1.5');
+  ok(G.buy(s, 'tr_bag') && Math.abs(G.coinMult(s) - 1.5) < 1e-9, 'Bag: coins x1.5');
+  s.stars = 1; ok(!G.buy(s, 'tr_pick'), 'cannot pay with too few Stars');
 }
 
-{ // spending never lowers the Star bonus
-  const s = G.newState(); s.stars = 3;
-  const coin = G.coinMult(s), hit = G.pickPower(s), crew = G.crewPower(s);
-  G.buy(s, 'sp_keep'); G.buy(s, 'sp_map');
-  ok(s.stars === 0 && s.starSpent === 3, 'the purse went down, the spent count went up');
-  ok(Math.abs(G.coinMult(s) - coin) < 1e-9 && Math.abs(G.pickPower(s) - hit) < 1e-9 && Math.abs(G.crewPower(s) - crew) < 1e-9, 'coins, hits and Rafeeq hits are the same after spending');
+{ // materials
+  const m = n => G.starshopPickAt(n);
+  ok(m(0).mat === 'wood' && m(1).mat === 'stone' && m(1).n === 1 && m(4).mat === 'stone' && m(4).n === 4 && m(5).mat === 'copper' && m(5).n === 1, 'a new material every 4 steps');
+  ok(m(37).mat === 'star' && m(40).n === 4 && m(43).plus === 3, 'the Star Pick goes on');
+  ok(G.starshopPickName(m(2)) === 'Stone II' && G.starshopPickName(m(0)) === 'Wooden', 'names');
+  ok(G.STARSHOP_MATERIALS.length === 10, 'ten materials');
 }
 
-{ // Rafeeqs waiting, pick at half, a chest in the pocket, a relic kept
+{ // 29 named steps hold every old perk with every level
+  const n = G.STARSHOP_TRACKS.reduce((a, tr) => a + Object.keys(G.STARSHOP_STEPS[tr]).length, 0);
+  ok(n === 29, '29 named steps');
+  const s = G.newState();
+  give(s, 'bag', 11); give(s, 'camp', 5); give(s, 'pick', 13);
+  ok(G.starshopLevel(s, 'sp_keep') === 3 && G.starshopLevel(s, 'sp_gift') === 2 && G.starshopLevel(s, 'sp_cards') === 1 && G.starshopLevel(s, 'sp_eyes') === 1, 'bag steps give the old perks');
+  ok(G.starshopLevel(s, 'sp_head') === 3 && G.starshopLevel(s, 'sp_wake') === 1 && G.starshopLevel(s, 'sp_warm') === 2, 'camp and pick steps give the old perks');
+  give(s, 'camp', 12); ok(G.starshopLevel(s, 'sp_head') === 8, 'the whole camp waits');
+  give(s, 'pick', 0); ok(G.starshopPunch(s) === 0, 'no punch-through at step 0');
+  give(s, 'pick', 1); ok(G.starshopPunch(s) === 1, 'punch-through reach 1');
+  give(s, 'pick', 29); ok(G.starshopPunch(s) === Infinity, 'no end');
+}
+
+{ // Rafeeqs waiting, warm pick (and its price), pocket chests, relics kept (two with Second Pocket)
   const s = ready();
-  s.up.pick = 20; s.relics.boom = 3; s.relics.lamp = 1;
-  give(s, 'sp_head', 2); give(s, 'sp_warm', 1); give(s, 'sp_gift', 1); give(s, 'sp_keep', 2);
+  s.up.pick = 20; s.relics.boom = 3; s.relics.lamp = 1; s.relics.vein = 2;
+  give(s, 'camp', 2); give(s, 'pick', 5); give(s, 'bag', 14);
   G.starshopSetKeep(s, 'boom');
   move(s);
-  ok(s.diggers.length === 2 && s.up.crew === 2, 'two Rafeeqs wait at the new site');
-  ok(s.up.pick === 10, 'the pick starts at half the best level');
-  ok(s.chests === 1, 'a chest in the pocket');
-  ok(s.relics.boom === 2 && !s.relics.lamp, 'the chosen relic crossed, up to level 2; the other did not');
-  ok(G.pickPower(s) > 1, 'the warm pick hits harder at once');
-  // a second move: the best level is remembered even though this site's pick is lower
-  s.bossesDown = 2; s.best = 60; s.up.pick = 4; move(s);
-  ok(s.up.pick === 10, 'the best level counts, not the last site');
+  ok(s.diggers.length === 2 && s.up.crew === 2, 'two Rafeeqs wait');
+  ok(s.up.pick === 10 && s.starWarm === 10, 'the pick starts at half the best level');
+  ok(s.chests === 2, 'two pocket chests');
+  ok(s.relics.boom === 3 && s.relics.vein === 2 && !s.relics.lamp, 'two relics crossed with Second Pocket');
+  ok(G.upgradeCost(s, 'pick') === 10, 'Warm Pick does not lock the Pick button: the next level costs 10');
+  s.up.pick = 11; ok(G.upgradeCost(s, 'pick') < 10 * Math.pow(1.5, 11) / 5, 'the price ramps back');
+  s.up.pick = 30; ok(G.upgradeCost(s, 'pick') === Math.ceil(10 * Math.pow(1.5, 30)), 'and joins the old curve');
+  ok(s.starLine.cur.steps === 5 && s.starLine.cur.hit > 7, 'the first hit of the site is remembered');
 }
 
-{ // keep with no choice: the best relic; with no relic: nothing; without the perk: nothing
-  const s = ready(); s.relics.lamp = 1; s.relics.vein = 2; give(s, 'sp_keep', 1);
-  ok(G.starshopKeepNow(s).id === 'vein' && G.starshopKeepNow(s).level === 1, 'with no choice, the best relic goes, at the perk level');
-  G.starshopSetKeep(s, 'lamp'); ok(G.starshopKeepNow(s).id === 'lamp', 'a choice is respected');
-  ok(!G.starshopSetKeep(s, 'echo'), 'only a relic you hold can be chosen');
-  s.starUp.sp_keep = 0; move(s); ok(Object.keys(s.relics).length === 0, 'without the perk nothing crosses');
-}
-
-{ // four cards; a free re-roll once per site
+{ // cards: Wide Hands + Pearl Eye never show more than the cap; the text says one more
   const s = G.newState(); G.seedRng(3);
   const before = G.rollDraft(s).length;
-  give(s, 'sp_cards', 1);
-  ok(G.rollDraft(s).length === before + 1, 'a chest offers one more card');
-  ok(G.starshopRerollsLeft(s) === 0 && !G.starshopReroll(s), 'no re-roll without the perk');
-  give(s, 'sp_reroll', 1);
-  ok(G.starshopRerollsLeft(s) === 1 && G.starshopReroll(s) && !G.starshopReroll(s), 'one re-roll, then none');
-  s.bossesDown = 2; s.best = 60; move(s);
-  ok(G.starshopRerollsLeft(s) === 1, 'a new site brings it back');
+  give(s, 'bag', 8);
+  ok(G.rollDraft(s).length === before + 1, 'Wide Hands: one more card');
+  ok(G.fold('draftCards', s, 99) === 5, 'never more than 5 cards');
+  ok(/one more/.test(G.t('rule_cards_d')), 'the text is true');
+  give(s, 'bag', 5); ok(G.starshopRerollsLeft(s) === 0, 'no re-roll before step 6');
+  give(s, 'bag', 6);
+  ok(G.starshopRerollsLeft(s) === 1 && G.starshopReroll(s) && !G.starshopReroll(s), 'one re-roll');
 }
 
 { // close chest, bone and oil
-  const s = ready(); give(s, 'sp_map', 1); give(s, 'sp_bone', 1); give(s, 'sp_oil', 1);
+  const s = ready(); give(s, 'bag', 3);
   move(s);
   const at = t => s.rows.findIndex(r => r.some(c => c && c.t === t));
-  ok(at('chest') === 3, 'a chest is close to the top');
-  ok(at('fossil') === 5 && at('oil') === 7, 'a bone and an oil well are close too');
+  ok(at('chest') === 3 && at('fossil') === 5 && at('oil') === 7, 'a chest, a bone and an oil well are close');
 }
 
-{ // away: past a Big Rock you have beaten, only with the perk, only for beaten depths
+{ // heavy hand
+  const s = ready(); give(s, 'pick', 25);
+  for (const c of [2, 3, 4]) s.rows[0][c] = { t: 'dirt', hp: 5, max: 5, s: 1 };
+  G.run('swung', s, { r: 0, c: 3, dmg: 2, crit: true }, () => {});
+  ok(s.rows[0][2].hp === 3 && s.rows[0][4].hp === 3, 'a big hit strikes left and right');
+  G.run('swung', s, { r: 0, c: 3, dmg: 2, crit: false }, () => {});
+  ok(s.rows[0][2].hp === 3, 'a plain hit does not');
+}
+
+{ // away: past a Big Rock you have beaten
   const run = (perk, beaten) => {
     G.seedRng(5);
-    const s = G.newState(); s.starBoss = beaten; if (perk) give(s, 'sp_wake', 1);
+    const s = G.newState(); s.starBoss = beaten; if (perk) give(s, 'camp', 5);
     for (let i = 0; i < 6; i++) s.diggers.push({ c: 0, r: 0, tc: -1, tr: -1, cd: 0, swing: 0 });
     s.up.crewPow = 40; s.up.crew = 6;
-    const out = G.settleAway(s, 12 * 3600);
-    return { s, out };
+    return { s, out: G.settleAway(s, 12 * 3600) };
   };
-  const a = run(false, 2), b = run(true, 0), c = run(true, 1), d = run(true, 3);
-  ok(a.out.atBoss && a.s.top < 25, 'without the perk the crew waits at the first Big Rock');
-  ok(b.out.atBoss && b.s.top < 25, 'with the perk but no Big Rock beaten, it still waits');
-  ok(c.s.top > 25 && c.s.top < 50 && c.out.atBoss, 'one Big Rock beaten: it passes the first and waits at the second');
-  ok(d.s.top > c.s.top && d.out.metres > c.out.metres, 'more beaten, further');
-  ok(c.out.passed > 0 && c.out.coins > a.out.coins && c.s.best > a.s.best, 'the extra rows paid and counted');
-  ok(Math.abs(c.s.coins - c.out.coins) < 1 && c.s.total === c.s.coins, 'the coins were paid once');
+  const a = run(false, 2), c = run(true, 1);
+  ok(a.out.atBoss && a.s.top < 25, 'without the step the crew waits at the first Big Rock');
+  ok(c.s.top > 25 && c.out.passed > 0 && c.out.coins > a.out.coins, 'with it, past the first');
 }
 
-{ // the deepest Big Rock is remembered over the move
-  const s = G.newState(); G.seedRng(1);
-  G.run('bossDown', s, 50); ok(s.starBoss === 2, 'a broken Big Rock is remembered');
-  s.bossesDown = 2; s.best = 60; G.newSite(s, 'dunes'); ok(s.starBoss === 2 && s.bossesDown === 0, 'it lives through the move');
+{ // the pacing function and the flat bonus
+  ok(G.PARAMS.sites.starPick === 0 && G.PARAMS.sites.starCoin === 0, 'the flat Star bonus is gone');
+  ok(Math.abs(G.starLift(153) - Math.pow(1 + 153 / 12, 1.55)) < 1e-6 && G.starLift(0) === 1, 'starLift is the lift of an even spend');
 }
 
-{ // the bot buys; save round-trip; an old save has no slice
-  const s = ready(); s.stars = 6;
-  const api = { ev: () => {} };
-  let n = 0; for (const b of G.BOTS) if (b.shop) n += b.shop(s, api) || 0;
-  ok(n >= 1 && s.starSpent > 0, 'the sim bot buys a perk');
-  s.starKeep = 'boom'; s.relics.boom = 1;
-  const t = G.deserialize(G.serialize(s));
-  ok(t && t.starUp.sp_head === s.starUp.sp_head && t.starSpent === s.starSpent && t.starKeep === 'boom' && t.starBoss === s.starBoss, 'a save round-trips');
-  const o = JSON.parse(G.serialize(s));
-  for (const k of ['starSpent', 'starKeep', 'starBestPick', 'starBoss', 'starRerolls', 'starUp']) delete o[k];
+{ // the line on the New Site card
+  const s = ready(); give(s, 'pick', 1);
+  ok(/Wooden -> Stone I\. Your first hit: 1 -> 1\.5\./.test(G.starshopLineText(s)), 'the line: ' + G.starshopLineText(s));
+  move(s);
+  ok(/Stone I/.test(G.starshopMovedText(s)), 'after the move too');
+}
+
+{ // old save: every Star comes back, once; the bot buys; the tracks are content
+  const s = ready(); s.stars = 3; s.starSpent = 9;
+  const o = JSON.parse(G.serialize(s)); delete o.fv; o.starUp = { sp_head: 2, sp_map: 1 }; delete o.starRefund; delete o.starLine;
   const old = G.deserialize(JSON.stringify(o));
-  ok(old && old.starSpent === 0 && old.starKeep === null && old.starUp.sp_head === 0 && old.starRerolls === 0, 'an old save without the slices loads with defaults');
+  ok(old && old.stars === 12 && old.starSpent === 0 && old.starRefund === 9 && old.starUp.sp_head === undefined && old.starUp.tr_pick === 0, 'an old save gets its Stars back to spend');
+  const again = G.deserialize(G.serialize(old));
+  ok(again.stars === 12 && again.starRefund === 9, 'only once');
+  const t = ready(); t.stars = 9;
+  for (let i = 0; i < 4; i++) for (const b of G.BOTS) if (b.shop) b.shop(t, { ev: () => {} });
+  ok(t.starUp.tr_pick >= 1 && t.starUp.tr_bag >= 1 && t.starUp.tr_camp >= 1, 'the bot buys Pick, then Bag, then Camp');
+  G.buy(t, 'tr_pick'); ok(t.starRefund === 0, 'spending clears the note');
   const u = G.unlocks();
-  ok(u.byId['shop:sp_head'] && u.byId['sp_head:3'] && u.byId['sp_warm:2'], 'the perks are counted as content');
+  ok(u.byId['shop:tr_pick'] && u.byId['tr:pick:1'] && u.byId['tr:bag:14'], 'the tracks are counted as content');
 }
 
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
