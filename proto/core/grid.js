@@ -26,10 +26,12 @@ scope(s => { const l = frontLayer(s); return l && l.law; });
 
 // ---------- the depth curves ----------
 // How hard the ground is and what it pays is a table with one entry per layer (25 rows):
-//   { hp, val, step, pay }
+//   { hp, val, step, pay, share }
 //   hp, val   growth per row inside the layer (1.12 = each metre is 12% harder)
 //   step      the ground of this layer starts this many times harder than the last row above it:
 //             the wall behind a Big Rock. pay: the same for coins (default 1).
+//   share     Stars for a move from this layer, as a share of the Stars it takes to stand there (default starShare):
+//             about 1.2 / share moves are spent at the Big Rock that closes the layer.
 // Where an entry comes from, first hit wins:
 //   1. the layer's own def:  layers: [{ id, at, ..., grow: { hp, val, step, pay } }]   (the Deep's layers bring theirs)
 //   2. PARAMS.core.grow[i]   by layer index; the last entry goes on for ever
@@ -79,10 +81,14 @@ export function starsToStand(r, land = 'desert') {
 // Stars it takes to stand there, and never less than the plain count (one per starPer metres, less
 // starLess) that the first moves pay. A share of what you need, so every move carries the next dig
 // about as much further as the last one did, however deep you are.
-export function starsAt(best, land = 'desert') {
+// `have`: every Star earned so far (stars + spent). When given, one move pays at most starCap times that
+// (and never less than the plain count): a lucky dig that tunnels far past its strength cannot run away.
+export function starsAt(best, land = 'desert', have) {
   const p = PARAMS.core, r = Math.max(0, best - 1);
-  const plain = Math.floor(best / p.starPer) - p.starLess;
-  return Math.max(1, plain, Math.floor(p.starShare * starsToStand(r, land)));
+  const plain = Math.max(1, Math.floor(best / p.starPer) - p.starLess);
+  const g = growOf(Math.floor((r > 0 && r % LAYER === 0 ? r - 1 : r) / LAYER), layersOf(land), p);   // a Big Rock's row: the layer above
+  const fair = Math.floor((g.share === undefined ? p.starShare : g.share) * starsToStand(r, land));
+  return Math.max(plain, have === undefined ? fair : Math.min(fair, Math.floor(p.starCap * have)));
 }
 
 // a block of kind t at row r (k: the site's hardness)

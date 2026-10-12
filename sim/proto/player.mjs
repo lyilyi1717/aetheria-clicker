@@ -93,7 +93,7 @@ export function mkEv(s, trk) {
     else if (k === 'newSite') {
       // The Star curve lives in the core (G.starsAt). Until the sites feature pays by it, the sim pays the
       // difference here so the model can be checked; once it is wired this is a no-op (see docs/dig-pacing.md).
-      const want = G.starsAt(trk.curBest);
+      const want = G.starsAt(trk.curBest, s.land, d.stars - d.gain + (s.starSpent || 0));
       if (d.gain !== want) { s.stars += want - d.gain; trk.starShim++; }
       trk.visited.add(s.site);
       trk.resets.push({ r: trk.real, a: trk.act, best: trk.curBest, gain: want, had: s.stars + (s.starSpent || 0) - want, need: G.starsToStand(Math.max(0, trk.curBest - 1)), stars: s.stars + (s.starSpent || 0), contract: trk.curContract || null });
@@ -193,7 +193,7 @@ function wantsMove(s, ctx, trk) {
   let cheap = Infinity;
   for (const id of ['pick', 'crewPow']) if (G.itemOpen(s, id)) cheap = Math.min(cheap, G.upgradeCost(s, id));
   if (cheap - s.coins < ctx.inc * MOVE.far) return null;
-  const can = G.canNewSite(s) && !s.contract, gain = can ? G.starsAt(s.best) : 0;
+  const can = G.canNewSite(s) && !s.contract, gain = can ? G.starsAt(s.best, s.land, lifeStars(s)) : 0;
   if (can && gain >= Math.max(1, MOVE.share * lifeStars(s))) return 'move';
   if (stalled < MOVE.giveUp) return null;
   if (can && gain >= Math.max(1, MOVE.low * lifeStars(s))) return 'move';

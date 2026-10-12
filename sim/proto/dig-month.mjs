@@ -6,6 +6,7 @@
 //   node sim/proto/dig-month.mjs --seeds 5 --days 30 --only mixed
 //   node sim/proto/dig-month.mjs --set '{"core.starExp":0.55}'          override numbers for the run
 //   node sim/proto/dig-month.mjs --ab '{"core.grow.0.step":4}'          baseline and variant, ladders side by side
+//   node sim/proto/dig-month.mjs --without relics2                       the same month with one feature's relics never offered
 //   node sim/proto/dig-month.mjs --dt 0.1                coarser attended step: twice as fast; early times move by up to ~10%
 //   node sim/proto/dig-month.mjs --jobs 4                worker processes (default: cores - 1)
 // A key of --set / --ab is any path G.setParam understands ("core.grow.1.hp", "boss.layerHp", "contracts.openSites").
@@ -20,6 +21,8 @@ const arg = (k, d) => { const i = argv.indexOf('--' + k); return i < 0 ? d : (ar
 const SEEDS = Number(arg('seeds', 3)), DAYS = Number(arg('days', 30)), ONLY = arg('only', 'all');
 const SET = JSON.parse(arg('set', '{}')), AB = arg('ab', null) ? JSON.parse(arg('ab')) : null;
 const ASSERT = !!arg('assert', false), DT = Number(arg('dt', 0.05));
+// --without relics2: the relics a feature owns are never offered (to see what a package does to the curve)
+for (const f of String(arg('without', '')).split(',').filter(Boolean)) for (const r of Object.values(G.RELICS)) if (r.owner === f) SET[`RELICS.${r.id}.max`] = 0;
 const JOBS = Math.max(1, Number(arg('jobs', Math.max(1, os.cpus().length - 1))));
 const H = 3600, D = 86400;
 
@@ -27,7 +30,7 @@ const H = 3600, D = 86400;
 // at: hours of the day a session starts (the clock starts at the first one); len: minutes of each;
 // first: minutes of the very first session. Away gaps longer than the rules' cap simply stop paying.
 export const PLAYERS = {
-  active: { profile: 'mid',  at: [19],            len: 120, first: 120, note: 'one long session a day (2 h)' },
+  active: { profile: 'mid',  at: [19],            len: 90, first: 90, note: 'one long session a day (90 min)' },
   mixed:  { profile: 'mid',  at: [8, 13, 18, 22], len: 12,  first: 15,  note: 'four 12 minute sessions a day (the main target)' },
   idle:   { profile: 'slow', at: [8, 20],         len: 4,   first: 10,  note: 'two 4 minute visits a day' },
 };
