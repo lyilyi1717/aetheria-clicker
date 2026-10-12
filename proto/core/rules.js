@@ -15,9 +15,20 @@ use({
   id: 'core',
   params: {
     powGrow: 1.25,                  // each pick or training level: hits x1.25
-    // hp of dirt at row r = hp0 * hpGrow^r for the first layer, then hpGrow2 per row below it
+    // The depth curves (core/grid.js): layer 1 and layer 2 here, the layers below in `grow`.
     hp0: 5, hpGrow: 1.12, hpGrow2: 1.12,
-    val0: 1, valGrow: 1.10, valGrow2: 1.10,   // coins of dirt, the same way
+    val0: 1, valGrow: 1.10, valGrow2: 1.10,
+    // layers 3, 4, then the Deep's four (placeholders until the Deep brings its own `grow`); the last goes on for ever
+    grow: [
+      { hp: 1.12, val: 1.10, step: 1 },
+      { hp: 1.12, val: 1.10, step: 1 },
+      { hp: 1.12, val: 1.10, step: 1 },
+    ],
+    buyPow: 0.55,                   // coins -> hits: log(powGrow) / log(1.5), the price growth of a pick level
+    // Stars for a move (starsAt in core/grid.js)
+    starPer: 10, starLess: 2,       // the plain count: one Star per 10 m, less 2
+    starShare: 0.35,                // deeper down: this share of the Stars it takes to stand where the dig got to
+    starFrom: 50, starWall: 20,     // a dig with no Stars reaches a wall this many times the wall at 50 m
     sight: 2,                       // how many blocks from open space you can see
   },
   legacy: { powGrow: 'powGrow', hp0: 'hp0', hpGrow: 'hpGrow', hpGrow2: 'hpGrow2', val0: 'val0', valGrow: 'valGrow', valGrow2: 'valGrow2' },

@@ -24,10 +24,66 @@ scope(siteOf);
 scope(s => s.contract && CONTRACTS[s.contract]);
 scope(s => { const l = frontLayer(s); return l && l.law; });
 
-const curve = (r, a, g1, g2) => a * Math.pow(g1, Math.min(r, LAYER)) * Math.pow(g2, Math.max(0, r - LAYER));
+// ---------- the depth curves ----------
+// How hard the ground is and what it pays is a table with one entry per layer (25 rows):
+//   { hp, val, step, pay }
+//   hp, val   growth per row inside the layer (1.12 = each metre is 12% harder)
+//   step      the ground of this layer starts this many times harder than the last row above it:
+//             the wall behind a Big Rock. pay: the same for coins (default 1).
+// Where an entry comes from, first hit wins:
+//   1. the layer's own def:  layers: [{ id, at, ..., grow: { hp, val, step, pay } }]   (the Deep's layers bring theirs)
+//   2. PARAMS.core.grow[i]   by layer index; the last entry goes on for ever
+//   layers 0 and 1 read the old knobs hpGrow / valGrow and hpGrow2 / valGrow2 unless (1) says otherwise.
+// A missing key falls through to the next source. The curves are for the desert unless a land is given.
+// docs/dig-pacing.md says how the numbers were chosen.
+function growOf(i, L, p) {
+  const own = i < L.length ? L[i].grow : undefined;
+  const tab = i === 0 ? { hp: p.hpGrow, val: p.valGrow } : i === 1 ? { hp: p.hpGrow2, val: p.valGrow2 } : p.grow[Math.min(i - 2, p.grow.length - 1)];
+  return own ? { ...tab, ...own } : tab;
+}
+function curve(r, a, key, stepKey, land) {
+  const p = PARAMS.core, L = layersOf(land), n = Math.floor(r / LAYER);
+  let v = a;
+  for (let i = 0; i <= n; i++) {
+    const g = growOf(i, L, p);
+    if (i > 0 && g[stepKey] !== undefined) v *= g[stepKey];
+    v *= Math.pow(g[key], i < n ? LAYER : r - n * LAYER);
+  }
+  return v;
+}
 // the first three rows are soft, so the very first block breaks in two hits
-export const dirtHp = r => { const p = PARAMS.core; return r < 3 ? 2 + r : curve(r, p.hp0, p.hpGrow, p.hpGrow2); };
-export const dirtVal = r => { const p = PARAMS.core; return curve(r, p.val0, p.valGrow, p.valGrow2); };
+export const dirtHp = (r, land = 'desert') => (r < 3 ? 2 + r : curve(r, PARAMS.core.hp0, 'hp', 'step', land));
+export const dirtVal = (r, land = 'desert') => curve(r, PARAMS.core.val0, 'val', 'pay', land);
+// How strong a dig has to be to stand at row r: hardness over what the coins of that depth can buy.
+// (A pick level is x powGrow for x 1.5 the price, so coins turn into hits with the power log(powGrow)/log(1.5).)
+export const wallAt = (r, land = 'desert') => dirtHp(Math.max(r, 3), land) / Math.pow(dirtVal(Math.max(r, 3), land), PARAMS.core.buyPow);
+// ---------- Stars for a move ----------
+// What Stars are worth: each one adds `hit` to every hit and `coin` to every coin (the sites feature's
+// numbers), and coins turn into hits with the power buyPow. So S Stars carry a dig to a wall this many
+// times higher:  (1 + hit S) x (1 + coin S)^buyPow.
+export function starLift(S) {
+  const p = PARAMS.core, st = PARAMS.sites || {};
+  return (1 + (st.starPick === undefined ? 0.1 : st.starPick) * S) * Math.pow(1 + (st.starCoin === undefined ? 0.2 : st.starCoin) * S, p.buyPow);
+}
+// the Stars it takes to stand at row r: the lift that turns the wall a dig with no Stars reaches
+// (starWall, in walls of row starFrom) into the wall at r
+export function starsToStand(r, land = 'desert') {
+  const p = PARAMS.core;
+  const want = wallAt(r % LAYER === 0 ? r - 1 : r, land) / (p.starWall * wallAt(p.starFrom - 1, land));   // a Big Rock's row counts as the layer above it
+  if (!(want > 1)) return 0;
+  let lo = -3, hi = 300;                         // log10 of S
+  for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (starLift(Math.pow(10, m)) < want) lo = m; else hi = m; }
+  return Math.pow(10, hi);
+}
+// Stars a move pays for a dig whose deepest open metre is `best`: a steady share (starShare) of the
+// Stars it takes to stand there, and never less than the plain count (one per starPer metres, less
+// starLess) that the first moves pay. A share of what you need, so every move carries the next dig
+// about as much further as the last one did, however deep you are.
+export function starsAt(best, land = 'desert') {
+  const p = PARAMS.core, r = Math.max(0, best - 1);
+  const plain = Math.floor(best / p.starPer) - p.starLess;
+  return Math.max(1, plain, Math.floor(p.starShare * starsToStand(r, land)));
+}
 
 // a block of kind t at row r (k: the site's hardness)
 export function makeCell(r, t, k = 1) {
