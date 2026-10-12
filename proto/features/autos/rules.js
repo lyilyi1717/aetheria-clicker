@@ -155,6 +155,7 @@ function crackSpot(s) {
   return b && b.hp > 0 && free(s, b.row, b.weak) ? [b.row, b.weak] : null;
 }
 function around(s, r, c, rad, f, mask) {
+  rad = Math.floor(rad);
   let n = 0;
   for (let dr = -rad; dr <= rad; dr++) for (let dc = -rad; dc <= rad; dc++) {
     const i = r + dr - s.top;
