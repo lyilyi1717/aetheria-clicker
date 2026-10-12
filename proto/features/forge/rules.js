@@ -8,7 +8,7 @@
 //   Magnet    L1 pops the ore you can see near the pointer   L2 also ore hiding in the dark   L3 chests too
 // Tools are strong against the Big Rock if aimed: dynamite on the crack hits three times as hard.
 import { use, emit, fold, BLOCKS, PARAMS } from '../../core/registry.js';
-import { COLS, cellAt, reachable, visibleMask, dirtHp } from '../../core/grid.js';
+import { COLS, cellAt, reachable, visibleMask } from '../../core/grid.js';
 import { later, damage, breakCell, itemLevel, itemOpen, canBuy, upgradeCost, buy, useTool, pickPower } from '../../core/rules.js';
 import strings from './strings.js';
 
@@ -25,7 +25,9 @@ const p = {
   grow: 5,                      // each level costs this much more
   drillDepth: 5, drillGap: 0.07, drillSide: 2, drillBang: 1,
   drillBoss: 6,                 // a Drill on the Big Rock: this many pick hits
-  dynFuse: 1.1, dynRad: 2, dynPower: 12, dynThrow: 2,
+  dynFuse: 1.1, dynRad: 2, dynPower: 14, dynThrow: 2,   // dynPower: what the blast does to each block, in your hits
+  drillPower: 6,                // the Drill, to each block in its column, in your hits
+  openSites: 1,                 // the Forge opens with the first gold once you have moved to a New Site this many times
   dynBoss: 14,                  // dynamite on the Big Rock: this many pick hits (three times that on the crack)
   magRad: 4.5, magGap: 0.06, magLead: 0.25,
 };
@@ -118,6 +120,7 @@ function pop(s, q, ev) {
   if (!cell) return;
   asTool(s, q.tool, () => {
     if (BLOCKS[cell.t].wall) damage(s, q.r, q.c, hits(s) * p.drillBoss, 'you', ev, { chain: 1, tool: 1 });
+    else if (q.tool === 'drill') damage(s, q.r, q.c, hits(s) * p.drillPower, 'you', ev, { chain: 1, tool: 1 });
     else breakCell(s, q.r, q.c, 'you', ev, { chain: 1 });
   });
 }
@@ -142,12 +145,12 @@ function boom(s, r, c, rad, dmg, centre, ev) {
   }
 }
 function bang(s, q, ev) {
-  asTool(s, q.tool, () => boom(s, q.r, q.c, q.rad, dirtHp(q.r) * p.dynPower, false, ev));
+  asTool(s, q.tool, () => boom(s, q.r, q.c, q.rad, hits(s) * p.dynPower, false, ev));
 }
 function dyn(s, q, ev) {
   const wall = isWall(s, q.r, q.c);
   asTool(s, 'dynamite', () => {
-    boom(s, q.r, q.c, p.dynRad, dirtHp(q.r) * p.dynPower, !wall, ev);
+    boom(s, q.r, q.c, p.dynRad, hits(s) * p.dynPower, !wall, ev);
     if (wall) {
       let dmg = hits(s) * p.dynBoss;
       // a stuck stick remembers the crack: three times, wherever the crack has moved to since
@@ -188,7 +191,7 @@ export const forge = use({
       if (s._tool) st.blocks++;
       if (b.B.ore && p.metalVal[b.t]) {
         s.ore[b.t]++; s.metal += p.metalVal[b.t];
-        if (b.t === 'gold' && !s.forgeOn) { s.forgeOn = true; emit(s, ev, 'forgeOpen', { r: b.r, c: b.c }); }
+        if (b.t === 'gold' && !s.forgeOn && s.sites >= p.openSites) { s.forgeOn = true; emit(s, ev, 'forgeOpen', { r: b.r, c: b.c }); }
       }
       if (!s._tool) addFuel(s, (b.B.ore ? p.oreFuel : p.fuel) * (b.src === 'crew' ? p.crewFuel : 1), ev);
     },

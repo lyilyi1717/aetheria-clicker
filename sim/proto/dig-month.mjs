@@ -93,7 +93,7 @@ function runOne(player, seed, days, ov) {
     player, seed, units: obj(trk.units), marks: obj(trk.marks), resets: trk.resets, series, src: trk.src, shim: trk.starShim,
     goalGaps: trk.goalGaps, act: trk.act, best: trk.bestEver, stars: s.stars + (s.starSpent || 0),
     core: CORE_IDS.filter(id => trk.units.has(id)).length, lastCore: Math.max(0, ...CORE_IDS.map(id => trk.units.get(id)?.r ?? 0)),
-    won: Object.keys(s.contractsWon || {}).length, left: trk.left, sessions: trk.sessions,
+    dmg: R.dmg, won: Object.keys(s.contractsWon || {}).length, left: trk.left, sessions: trk.sessions,
   };
 }
 
@@ -216,6 +216,15 @@ function report(title, res) {
   for (const p of players) {
     const rs = by(res, p), sh = k => med(rs.map(r => { const t = r.src.hand + r.src.crew + r.src.tools + r.src.away; return t ? 100 * r.src[k] / t : 0; })).toFixed(0) + '%';
     console.log(`| ${p} | ${sh('hand')} | ${sh('crew')} | ${sh('tools')} | ${sh('away')} |`);
+  }
+
+  console.log('\nWhere the damage to the ground comes from (attended play; share of the ground\'s hp taken, median over seeds). "effects" = blasts, lines, tools, relics, fire, falling blocks; a Big Rock is counted apart.');
+  console.log('| player | ground: your swings | ground: effects | Big Rock: your swings | Big Rock: effects |');
+  console.log('|---|---|---|---|---|');
+  for (const p of players) {
+    const rs = by(res, p), sh = (a, b) => med(rs.map(r => { const t = r.dmg[a] + r.dmg[b]; return t ? 100 * r.dmg[a] / t : 0; }));
+    const g = sh('hand', 'fx'), b = sh('rockHand', 'rockFx');
+    console.log(`| ${p} | ${g.toFixed(0)}% | ${(100 - g).toFixed(0)}% | ${b.toFixed(0)}% | ${(100 - b).toFixed(0)}% |`);
   }
 
   for (const p of players) {

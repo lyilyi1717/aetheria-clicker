@@ -29,7 +29,7 @@ const throws = f => { try { f(); return false; } catch { return true; } };
   const undo = G.setParam('tnt.power', 99);
   ok(G.PARAMS.tnt.power === 99 && G.P.tntPower === 99, 'setParam by feature path');
   undo();
-  ok(G.PARAMS.tnt.power === 7, 'and its undo');
+  ok(G.PARAMS.tnt.power === 8, 'and its undo');
   const undos = [G.setParam('P.critChance', 0.5), G.setParam('crew.base', 20), G.setParam('UPGRADES.crew.max', 9), G.setParam('TYPES.gold.val', 50), G.setParam('SITES.boom.tnt', 2), G.setParam('SETS.camel.pieces', 3), G.setParam('hpGrow', 1.2)];
   ok(G.PARAMS.crits.chance === 0.5 && G.ITEMS.crew.base === 20 && G.ITEMS.crew.max === 9 && G.BLOCKS.gold.val === 50 && G.SITES.boom.tnt === 2 && G.SETS.camel.pieces === 3 && G.PARAMS.core.hpGrow === 1.2, 'every old --set key form resolves');
   undos.reverse().forEach(u => u());

@@ -28,7 +28,7 @@
 import { use, CONTRACTS, SITES, emit } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, KEEP_ROWS, genRow, cellAt } from '../../core/grid.js';
-import { damage, upgradeCost } from '../../core/rules.js';
+import { damage, upgradeCost, pickPower } from '../../core/rules.js';
 import { newSite, canNewSite, siteOpen } from '../sites/rules.js';
 import { bossInView } from '../boss/rules.js';
 import strings from './strings.js';
@@ -47,12 +47,12 @@ const p = {
   tntGap: 2, tntStart: 4,                // a TNT every 2nd row, the next one a column left, right or the same
   glassEvery: 30,                        // every 30th hit the pick falls back to level 1
   lazyCoins: 400,                        // what the rich Rafeeq-owner starts with
-  feedUnit: 0.06,                        // share of the Big Rock's hp that one copper thrown at it takes
+  feedUnit: 6,                           // in the contract: your hits that one copper thrown at the Big Rock takes (silver 2x, gold 4x, gem 8x)
   feedRows: 8,                           // the rows above a Big Rock that are sure to hold one silver, so the contract can always be won
   oreWeight: { copper: 1, silver: 2, gold: 4, gem: 8 },
   // the prizes
   headRows: 2,                           // rising: every site starts this many rows already dug
-  feedBend: 0.05,                        // feedRock: ore chips the Big Rock for this share of what it did in the contract
+  feedBend: 2,                           // feedRock prize: your hits that one copper takes off a Big Rock in view (silver 2x, gold 4x, gem 8x)
   firstDraftExtra: 1,                    // oneRelic: the first chest of a site shows this many more cards
   rockChests: 1,                         // dry: extra chests from every Big Rock
   // the sim's scripted player
@@ -157,7 +157,7 @@ const noCrew = {
 const dark = { mods: { sight: () => p.darkSight } };
 
 // ore breaks while a Big Rock is in view: the ore is thrown at the Rock
-function feed(s, b, ev, share) {
+function feed(s, b, ev, hits) {
   if (!b.B.ore) return;
   const bo = bossInView(s);
   if (!bo || bo.hp <= 0) return;
@@ -166,7 +166,7 @@ function feed(s, b, ev, share) {
   if (col < 0) return;
   const w = p.oreWeight[b.t] || 1;
   emit(s, ev, 'feed', { r: b.r, c: b.c, to: bo.row, col, w });
-  damage(s, bo.row, col, Math.max(1, Math.round(bo.max * p.feedUnit * w * share)), 'ore', ev, { feed: 1 });
+  damage(s, bo.row, col, Math.max(1, Math.round(pickPower(s) * hits * w)), 'ore', ev, { feed: 1 });
 }
 
 // the sand refills the hole: the ground is dug fresh from the top (same site, same shop, same coins)
@@ -246,7 +246,7 @@ export const contracts = use({
     feedRock: { at: 10, tier: 3, site: 'gold', goal: rockGoal('feedRocks'),
       mods: { damage: (v, s, cell, src, info) => (cell.t === 'boss' && !(info && info.feed) ? 0 : v) },
       hooks: {
-        broke(s, b, ev) { feed(s, b, ev, 1); },
+        broke(s, b, ev) { feed(s, b, ev, p.feedUnit); },
         row(s, ctx) { const m = ctx.r % 25; if (ctx.r > 0 && m >= 25 - p.feedRows && m < 25) ctx.put('silver'); },
       } },
     dry: { at: 20, tier: 3, site: 'bones', goal: rockGoal('dryRocks'),

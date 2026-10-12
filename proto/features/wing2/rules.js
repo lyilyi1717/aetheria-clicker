@@ -8,7 +8,7 @@
 // and the old `set` event (once per finished old set) so the sims' first-set marks still work.
 import { use, emit, BLOCKS } from '../../core/registry.js';
 import { rnd, pickOne } from '../../core/rng.js';
-import { COLS, cellAt, setCell, makeCell, reachable, dirtVal, dirtHp, layerOf, siteMult } from '../../core/grid.js';
+import { COLS, cellAt, setCell, makeCell, reachable, dirtVal, layerOf, siteMult } from '../../core/grid.js';
 import { addCoins, coinMult, damage, later, pickPower } from '../../core/rules.js';
 import { WING, wingKeys, wingPiece, wingMatches } from './sets.js';
 import strings from './strings.js';
@@ -279,7 +279,7 @@ export const wing2 = use({
       const lv = s.relics.derrick;
       if (++s.wingN % p.derrickEvery[lv]) return;
       const dmg = pickPower(s) * p.derrickMult;
-      for (let k = 1; k <= p.derrickDepth[lv]; k++) if (cellAt(s, b.r + k, b.c)) later(s, 0.07 * k, 'dmg', { r: b.r + k, c: b.c, dmg: Math.max(dmg, dirtHp(b.r + k) * 0.2), src: 'you' });
+      for (let k = 1; k <= p.derrickDepth[lv]; k++) if (cellAt(s, b.r + k, b.c)) later(s, 0.07 * k, 'dmg', { r: b.r + k, c: b.c, dmg, src: 'you' });
       emit(s, ev, 'wingPulse', { r: b.r, c: b.c, n: p.derrickDepth[lv] });
     } } },
   },
