@@ -30,8 +30,11 @@ export function t(key, vars) {
 export function fmt(n) {
   if (!isFinite(n)) return '0';
   if (n < 1000) return String(Math.floor(n));
-  const units = ['K', 'M', 'B', 'T', 'Qa', 'Qi'];
+  const units = ['K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+  // past the last name: three figures and a power of ten ("4.30e55"), never a raw float
+  if (n >= 9.995e35) { const e = Math.floor(Math.log10(n)); return (n / Math.pow(10, e)).toFixed(2) + 'e' + e; }
   let u = -1;
   while (n >= 1000 && u < units.length - 1) { n /= 1000; u++; }
+  if (n >= 999.5 && u < units.length - 1) { n /= 1000; u++; }   // 999.6K reads 1.00M, not 1000K
   return (n >= 100 ? n.toFixed(0) : n >= 10 ? n.toFixed(1) : n.toFixed(2)) + units[u];
 }
