@@ -1,0 +1,12 @@
+/* the Big Rock bar: ticks for the rubble, and who did the damage */
+#goal .bar { position: relative; }
+#goal-split[hidden], #goal-ticks[hidden] { display: none; }
+#goal-split { position: absolute; inset-block: 0; inset-inline-end: 0; display: flex; pointer-events: auto; }
+#goal-split i { display: block; height: 100%; }
+#goal-split .you { background: #ffd23f; }
+#goal-split .crew { background: #4aa8ff; }
+#goal-ticks { position: absolute; inset: 0; pointer-events: none; }
+#goal-ticks i { position: absolute; inset-block: 0; width: 2px; background: rgba(255,255,255,.35); }
+#goal-ticks i.paid { background: rgba(0,0,0,.55); }
+#hud-record { position: absolute; inset-block-start: 56px; inset-inline-end: 10px; padding: 2px 12px; border-radius: 14px; background: rgba(15,10,6,.72); border: 1px solid rgba(255,210,63,.4); color: var(--gold); font-weight: 700; font-size: 15px; pointer-events: none; }
+#hud-record[hidden] { display: none; }
