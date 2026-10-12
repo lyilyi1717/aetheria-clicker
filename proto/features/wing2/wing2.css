@@ -42,3 +42,23 @@
 @keyframes wglint { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
 @keyframes whop { 0% { transform: none; } 35% { transform: translateY(-14px) rotate(-8deg) scale(1.1); } 70% { transform: translateY(0) rotate(5deg); } 100% { transform: none; } }
 @keyframes wmarch { 0% { transform: translateX(-330px); } 50% { transform: translateX(80px) translateY(-6px); } 100% { transform: translateX(480px); } }
+
+/* the one Museum: what your sets do, the prize line, the Lamp's wish */
+.wdoes { background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px 8px; margin-bottom: 8px; }
+.wdoes h3 { margin: 0 0 4px; font-size: 13px; color: var(--gold); }
+.wdoes ul { list-style: none; margin: 0; padding: 0; }
+.wdoes li { display: flex; gap: 8px; align-items: center; padding-block: 3px; font-size: 12px; color: var(--muted); }
+.wdoes li .ico { flex: none; }
+.wdoes li b { color: var(--text, #f3e9d8); }
+.wdoes li i { font-style: normal; }
+.wdoes .hint { color: var(--muted); font-size: 11px; margin: 3px 0 0; }
+.wset .wr { display: flex; gap: 6px; align-items: center; }
+.wset .wr .ico { flex: none; }
+.wing-card .wrew { display: flex; gap: 10px; align-items: center; justify-content: center; text-align: start; }
+.wish-card { min-width: 380px; }
+.wish-card .wsub { color: var(--muted); margin: 0 0 12px; }
+.wishes { display: flex; gap: 10px; justify-content: center; }
+.wishbtn { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 120px; padding: 12px 8px; border-radius: 12px; border: 2px solid var(--line); background: rgba(255,255,255,.06); color: inherit; cursor: pointer; font: inherit; }
+.wishbtn:hover { border-color: var(--gold); transform: translateY(-2px); }
+.wishbtn b { font-size: 14px; }
+.wishbtn span { color: var(--muted); font-size: 12px; }
