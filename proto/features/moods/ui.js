@@ -1,11 +1,12 @@
 // Dig feature (page side): Rafeeq moods. LOOKS ONLY: it reads the state and the events, draws a face and
 // props over each Rafeeq, and never writes to the state. Mood state lives here, per Rafeeq (a WeakMap).
-// The diggers feature draws the body and the pick; a mood paints over the face (same bob) and adds
-// arms, props, puffs and a speech bubble. It cannot make the body itself sit or hop (see the PR).
+// The Rafeeq's own drawing (../diggers/art.js) reads `look` (set here every frame) and does the body, the pose (sitting,
+// lying, flat, hurt), the goggle eyes, the mouth, the fez and the pick. This file adds arms, props, puffs and a speech bubble.
 // Other features: `moodsPoke` in ./rules.js, or `app.fire('mood', { mood, r, c })`.
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { fx, AT, W, rr, centre } from '../../ui/render.js';
+import { look } from '../diggers/art.js';
 
 const { t } = G;
 
@@ -17,7 +18,6 @@ const MOODS = {
   tea: { pr: 1, secs: 6 }, doze: { pr: 1, secs: 6 },
 };
 const P = { bubbleGap: 4, bubbleOwn: 14, bubbleChance: 0.55, slackGap: 18, laughGap: 30, near: 2.2, pickNear: 75, hitsToKick: 24 };
-const SKIN = '#f8d9b0';
 const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const MS = new WeakMap();           // digger -> { mood, left, age, bubble, bubbleLeft, ownCool, blk, hits, with }
@@ -124,28 +124,6 @@ ui({
 // ---------- drawing ----------
 
 function arc(g, x, y, r, a0, a1) { g.beginPath(); g.arc(x, y, r, a0, a1); }
-function eyes(g, kind, tt) {
-  g.fillStyle = '#111'; g.strokeStyle = '#111'; g.lineWidth = 1.8; g.lineCap = 'round';
-  for (const ex of [-4, 4]) {
-    if (kind === 'closed') { arc(g, ex, -9, 2.4, 0.15, Math.PI - 0.15); g.stroke(); }
-    else if (kind === 'happy') { arc(g, ex, -8, 2.6, Math.PI + 0.3, -0.3); g.stroke(); }
-    else if (kind === 'wide') { g.fillStyle = '#fff'; arc(g, ex, -9, 3.4, 0, 7); g.fill(); g.stroke(); g.fillStyle = '#111'; arc(g, ex, -9, 1.3, 0, 7); g.fill(); }
-    else if (kind === 'coin') { g.fillStyle = '#ffd23f'; arc(g, ex, -9, 3.6, 0, 7); g.fill(); g.stroke(); g.fillStyle = '#b8860b'; g.fillRect(ex - 0.6, -11, 1.2, 4); }
-    else if (kind === 'spiral') { g.beginPath(); for (let a = 0; a < 12; a += 0.4) { const rad = 0.4 + a * 0.28, px = ex + Math.cos(a + tt * 6) * rad, py = -9 + Math.sin(a + tt * 6) * rad; if (a) g.lineTo(px, py); else g.moveTo(px, py); } g.lineWidth = 1.2; g.stroke(); g.lineWidth = 1.8; }
-    else if (kind === 'white') { g.fillStyle = '#fff'; arc(g, ex, -9, 3.3, 0, 7); g.fill(); }
-    else if (kind === 'angry') { arc(g, ex, -8, 1.8, 0, 7); g.fill(); g.beginPath(); g.moveTo(ex - Math.sign(ex) * 4, -13.5); g.lineTo(ex + Math.sign(ex) * 1, -10.5); g.lineWidth = 2.4; g.stroke(); g.lineWidth = 1.8; }
-    else { arc(g, ex, -9, 1.6, 0, 7); g.fill(); }
-  }
-}
-function mouth(g, kind) {
-  g.strokeStyle = '#111'; g.fillStyle = '#7a1c1c'; g.lineWidth = 1.8;
-  if (kind === 'smile') { arc(g, 0, -5, 4, 0.15, Math.PI - 0.15); g.stroke(); }
-  else if (kind === 'open') { arc(g, 0, -5.5, 4, 0, Math.PI); g.closePath(); g.fill(); g.stroke(); }
-  else if (kind === 'grit') { g.fillStyle = '#fff'; g.fillRect(-4.5, -6.5, 9, 3.6); g.strokeRect(-4.5, -6.5, 9, 3.6); g.beginPath(); g.moveTo(-1.5, -6.5); g.lineTo(-1.5, -2.9); g.moveTo(1.5, -6.5); g.lineTo(1.5, -2.9); g.stroke(); }
-  else if (kind === 'flat') { g.beginPath(); g.moveTo(-3, -4); g.lineTo(3, -4); g.stroke(); }
-  else if (kind === 'wavy') { g.beginPath(); g.moveTo(-4, -4); g.quadraticCurveTo(-2, -6.5, 0, -4); g.quadraticCurveTo(2, -1.5, 4, -4); g.stroke(); }
-  else if (kind === 'o') { arc(g, 0, -4, 2, 0, 7); g.fill(); g.stroke(); }
-}
 function cup(g, x, y) {
   g.fillStyle = '#fff'; g.strokeStyle = '#111'; g.lineWidth = 1.6;
   g.beginPath(); g.moveTo(x - 5, y - 6); g.lineTo(x + 5, y - 6); g.lineTo(x + 3.5, y + 3); g.lineTo(x - 3.5, y + 3); g.closePath(); g.fill(); g.stroke();
@@ -155,7 +133,7 @@ function cup(g, x, y) {
   const w = reduced ? 0 : Math.sin(fx.t * 4) * 1.5;
   g.beginPath(); g.moveTo(x - 2, y - 8); g.quadraticCurveTo(x - 4 + w, y - 12, x - 2, y - 15); g.moveTo(x + 2, y - 8); g.quadraticCurveTo(x + 4 - w, y - 12, x + 2, y - 15); g.stroke();
 }
-function arm(g, x0, y0, x1, y1) { g.strokeStyle = '#111'; g.lineWidth = 5.2; g.lineCap = 'round'; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); g.strokeStyle = SKIN; g.lineWidth = 3; g.stroke(); }
+function arm(g, x0, y0, x1, y1) { g.strokeStyle = '#1b1410'; g.lineWidth = 2.4; g.lineCap = 'round'; g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo((x0 + x1) / 2 + (y1 - y0) * 0.18, (y0 + y1) / 2 - (x1 - x0) * 0.18, x1, y1); g.stroke(); }
 function puff(x, y, col, vx = 0, vy = -26) { if (reduced || puffs.length > 24) return; puffs.push({ x, y, vx: vx + (Math.random() - 0.5) * 14, vy, life: 0.9, col }); }
 
 function bubble(g, x, y, str, alpha) {
@@ -168,13 +146,6 @@ function bubble(g, x, y, str, alpha) {
   g.fillStyle = '#111'; g.fillText(str, bx, by + 1);
   g.restore();
 }
-
-const FACE = {
-  angry: ['angry', 'grit'], kick: ['angry', 'grit'], happy: ['happy', 'open'], rich: ['coin', 'open'], laugh: ['happy', 'open'],
-  sooty: ['white', 'flat'], tea: ['happy', 'smile'], doze: ['closed', 'o'], guilty: ['wide', 'wavy'], scared: ['wide', 'o'],
-  dizzy: ['spiral', 'wavy'], proud: ['happy', 'smile'], cold: ['closed', 'wavy'], wet: ['wide', 'flat'],
-};
-const TINT = { angry: '#ef5a45', kick: '#ef5a45', sooty: '#3b3330', scared: '#f4efe6', cold: '#a9c9ee' };
 
 function drawMoods(g, s, dt) {
   dt = Math.min(dt || 0.016, 0.1);
@@ -194,48 +165,35 @@ function drawMoods(g, s, dt) {
     const [x, y] = centre(d.r, d.c);
     const bob = Math.sin(fx.t * 9 + i * 2) * 2;
     const mo = m.mood;
+    look.set(d, mo ? { mood: mo, age: m.age } : null);
     if (mo) {
       const tt = m.age;
       g.save(); g.translate(x, y - 14 + bob);
-      g.save(); arc(g, 0, -10, 9.2, 0, 7); g.clip();      // repaint the face, below the helmet band
-      g.fillStyle = TINT[mo] || SKIN; g.fillRect(-11, -11, 22, 22);
-      if (mo === 'sooty') { g.fillStyle = 'rgba(0,0,0,0.25)'; g.fillRect(-11, -11, 22, 5); }
-      if (mo === 'laugh' && !reduced) g.translate(0, Math.sin(tt * 30) * 0.8);
-      eyes(g, FACE[mo][0], tt); mouth(g, FACE[mo][1]);
-      g.restore();
-      g.strokeStyle = '#111'; g.lineWidth = 2; arc(g, 0, -10, 10, 0.05, Math.PI - 0.05); g.stroke();
-      if (mo === 'sooty') {       // wild hair out from under the helmet, and now and then smoke
-        g.strokeStyle = '#1b1614'; g.lineWidth = 2.4;
-        for (let k = -3; k <= 3; k++) { const a = -Math.PI / 2 + k * 0.42, w = reduced ? 0 : Math.sin(fx.t * 14 + k) * 0.12; g.beginPath(); g.moveTo(Math.cos(a) * 11, -13 + Math.sin(a) * 11); g.lineTo(Math.cos(a + w) * 19, -13 + Math.sin(a + w) * 19); g.stroke(); }
-        if (Math.random() < 0.08) puff(x, y - 40 + bob, '#555');
-      }
+      if (mo === 'sooty' && Math.random() < 0.08) puff(x, y - 38 + bob, '#555');
       if (mo === 'angry' || mo === 'kick') {
-        if (Math.random() < 0.18) puff(x + (Math.random() < 0.5 ? -9 : 9), y - 34 + bob, '#f4f4f4');
-        if (tt < 0.1) { puff(x - 10, y + 4, '#d8c9a8', -20, -8); puff(x + 10, y + 4, '#d8c9a8', 20, -8); }     // the stamp
-        if (mo === 'kick') { const k = Math.sin(Math.min(1, tt / 0.5) * Math.PI); g.save(); g.translate(8, 14); g.rotate(-0.4 - k * 1.1); g.strokeStyle = '#111'; g.lineWidth = 6; g.lineCap = 'round'; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, 11); g.stroke(); g.fillStyle = '#7a4a1c'; g.fillRect(-4, 9, 9, 5); g.restore(); }
+        if (Math.random() < 0.18) puff(x + (Math.random() < 0.5 ? -9 : 9), y - 36 + bob, '#f4f4f4');
+        if (tt < 0.1) { puff(x - 10, y + 12, '#d8c9a8', -20, -8); puff(x + 10, y + 12, '#d8c9a8', 20, -8); }     // the stamp
+        if (mo === 'kick') { const k = Math.sin(Math.min(1, tt / 0.5) * Math.PI); g.save(); g.translate(6, 17); g.rotate(-0.4 - k * 1.1); g.strokeStyle = '#111'; g.lineWidth = 6; g.lineCap = 'round'; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, 11); g.stroke(); g.fillStyle = '#7a4a1c'; g.fillRect(-4, 9, 9, 5); g.restore(); }
       }
       if (mo === 'happy' || mo === 'rich' || mo === 'proud') {     // arms up; the right arm holds the pick
         const up = reduced ? 0 : Math.abs(Math.sin(tt * 14)) * 4;
-        arm(g, -11, 4, -17, -14 - up);
-        if (mo !== 'happy') arm(g, 11, 4, 15, -16 - up);
+        arm(g, -11, 5, -17, -14 - up);
         if (mo === 'rich' && !reduced && Math.random() < 0.3) { g.fillStyle = '#fff6b0'; arc(g, (Math.random() - 0.5) * 30, -26 + Math.random() * 10, 1.6, 0, 7); g.fill(); }
       }
-      if (mo === 'tea') { cup(g, -17, 4); arm(g, -11, 5, -14, 3); }
+      if (mo === 'tea') { cup(g, -17, 10); arm(g, -11, 8, -14, 9); }
       if (mo === 'doze') {
         for (let k = 0; k < 3; k++) {
-          const ph = (tt * 0.8 + k * 0.33) % 1, zx = 8 + ph * 12, zy = -26 - ph * 16 - k * 3;
+          const ph = (tt * 0.8 + k * 0.33) % 1, zx = -26 + ph * 12, zy = 6 - ph * 16 - k * 3;
           g.globalAlpha = 1 - ph; g.font = `bold ${9 + k * 3}px system-ui, sans-serif`; g.textAlign = 'start'; g.strokeStyle = '#111'; g.lineWidth = 2.4; g.fillStyle = '#e8f1ff';
           g.strokeText('z', zx, zy); g.fillText('z', zx, zy);
         }
         g.globalAlpha = 1;
       }
       if (mo === 'guilty') {
-        g.fillStyle = '#7fd3ff'; g.strokeStyle = '#111'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(11, -17); g.quadraticCurveTo(15, -11, 11, -9); g.quadraticCurveTo(7, -11, 11, -17); g.fill(); g.stroke();
-        arm(g, -11, 5, -6, 8);
+                arm(g, -11, 5, -6, 8);
       }
       if (mo === 'scared' && !reduced) { g.strokeStyle = '#111'; g.lineWidth = 1.6; for (const sx of [-17, 17]) { g.beginPath(); g.moveTo(sx, -14); g.lineTo(sx + Math.sign(sx) * 3, -10); g.moveTo(sx, -8); g.lineTo(sx + Math.sign(sx) * 3, -4); g.stroke(); } }
-      if (mo === 'dizzy') for (let k = 0; k < 3; k++) { const a = fx.t * 5 + k * 2.09; g.fillStyle = '#ffd23f'; arc(g, Math.cos(a) * 14, -27 + Math.sin(a) * 4, 2.4, 0, 7); g.fill(); }
-      if (mo === 'cold') { g.fillStyle = '#fff'; for (const k of [-1, 1]) { arc(g, k * 17, -2 + (reduced ? 0 : Math.sin(fx.t * 18 + k) * 1.5), 2, 0, 7); g.fill(); } }
+            if (mo === 'cold') { g.fillStyle = '#fff'; for (const k of [-1, 1]) { arc(g, k * 17, -2 + (reduced ? 0 : Math.sin(fx.t * 18 + k) * 1.5), 2, 0, 7); g.fill(); } }
       if (mo === 'wet') { g.fillStyle = '#6cc4ff'; for (let k = 0; k < 3; k++) { const ph = (fx.t * 1.4 + k * 0.33) % 1; arc(g, -8 + k * 8, -24 + ph * 30, 1.8, 0, 7); g.fill(); } }
       g.restore();
       if (mo === 'laugh' && m.with) {     // he points at the one he laughs at

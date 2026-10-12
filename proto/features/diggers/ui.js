@@ -5,26 +5,17 @@ import { fx, AT, rr, centre, text } from '../../ui/render.js';
 import { gap } from '../../ui/audio.js';
 import { n1 } from '../../ui/shop.js';
 import { S, badge, helmet } from '../../ui/icons.js';
+import { drawRafeeq, BLUES } from './art.js';
 
 const { t, fmt } = G;
-const SHIRTS = ['#3b82f6', '#22c55e', '#ef4444', '#a855f7', '#f97316', '#14b8a6', '#eab308', '#ec4899'];
+const SHIRTS = BLUES;      // the blue of each Rafeeq (the dot in the crew panel matches)
 const nameOf = (d, i) => d.name || t('crew_name', { n: d.id || i + 1 });   // a name can be given later
 
-function drawDigger(g, d, i) {
+function drawDigger(g, s, d, i, dt) {
   const [x, y] = centre(d.r, d.c);
-  const bob = Math.sin(fx.t * 9 + i * 2) * 2;
-  d.swing = Math.max(0, (d.swing || 0) - 0.12);
+  const bob = Math.sin(fx.t * 9 + i * 2) * 2;       // the same bob the hats and goggles of other features use
   g.save(); g.translate(x, y - 14 + bob);
-  g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(0, 20 - bob, 15, 5, 0, 0, 7); g.fill();
-  const body = SHIRTS[i % 8];
-  rr(g, -12, -6, 24, 24, 9); g.fillStyle = body; g.fill(); g.strokeStyle = '#111'; g.lineWidth = 2; g.stroke();
-  g.fillStyle = '#f8d9b0'; g.beginPath(); g.arc(0, -10, 10, 0, 7); g.fill(); g.stroke();
-  g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(0, -13, 11, Math.PI, 0); g.closePath(); g.fill(); g.stroke();
-  g.fillRect(-13, -14, 26, 3);
-  g.fillStyle = '#111'; g.beginPath(); g.arc(-4, -9, 1.6, 0, 7); g.arc(4, -9, 1.6, 0, 7); g.fill();
-  g.translate(12, 2); g.rotate(-0.9 + d.swing * 1.6);
-  g.strokeStyle = '#7a4a1c'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, -20); g.stroke();
-  g.strokeStyle = '#cfd8dc'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(-9, -17); g.quadraticCurveTo(0, -25, 9, -17); g.stroke();
+  drawRafeeq(g, s, d, i, bob, dt);
   g.restore();
 }
 
@@ -39,7 +30,7 @@ ui({
     crew: { noLevel: true, desc: (s, lv) => t('up_crew_d', { a: lv }) },
     crewPow: { desc(s) { const a = G.crewPower(s); s.up.crewPow++; const b = G.crewPower(s); s.up.crewPow--; return t('up_crewPow_d', { a: n1(a), b: n1(b) }); } },
   },
-  draw: [{ at: AT.actors, fn(g, s) { s.diggers.forEach((d, i) => drawDigger(g, d, i)); } }],
+  draw: [{ at: AT.actors, fn(g, s, dt) { s.diggers.forEach((d, i) => drawDigger(g, s, d, i, dt)); } }],
   css: new URL('./diggers.css', import.meta.url).href,
   // the line under the purse: what the Rafeeqs earn, always
   mount() {
