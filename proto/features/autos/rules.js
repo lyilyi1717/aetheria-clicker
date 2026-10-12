@@ -37,7 +37,7 @@ const p = {
   magOre: 3,            // magnet 'ore3'
   handMult: 0.25,       // Hands off: what the pick does
   shopDepth: 25, handDepth: 25,
-  botContracts: true,   // the sim player also tries the two contracts of this feature
+  botContracts: false,   // the sim player also tries the two contracts of this feature
 };
 
 export const AUTOS = [
