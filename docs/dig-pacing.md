@@ -18,7 +18,7 @@ Three players. Early steps are in attended minutes (the same for everyone); late
 | Big Rock 2 down (50 m), first water | 6 to 12 min | 6 to 12 min | 7 to 15 min |
 | first New Site, Star Shop | 9 to 20 min | 9 to 20 min | 10 to 30 min |
 | Foreman | 12 to 45 min | 12 to 45 min | 12 to 60 min |
-| Forge | 12 to 45 min | 12 to 45 min | 12 to 60 min |
+| Forge (first gold after the first New Site, `forge.openSites`) | 12 to 45 min | 12 to 45 min | 12 to 60 min |
 | Big Rock 3 down (75 m), crystal | day 1 | day 1 to 2.5 | day 2 to 7 |
 | Contracts | day 1 to 2.5 | day 1.5 to 3.5 | day 6 to 16 |
 | Big Rock 4 down (100 m), the Deep | day 1.5 to 4 | day 3 to 5.5 | day 8 to 18 |
@@ -107,61 +107,59 @@ next pick or training level is more than 90 seconds of income away; the Stars on
 lets the Rafeeqs work. It takes an open contract first, else a site it has not seen. It buys every
 feature's things through the feature's own `bot` step.
 
-## 5. Where it stands (seeds 1 to 3, 30 days)
-
-**With the twelve paired relics never offered** (`--without relics2`), the curve holds:
+## 5. Where it stands (seeds 1 to 3, 30 days, `--assert` passes)
 
 | Step | active | mixed | idle |
 |---|---|---|---|
-| Big Rock 1 | 2.6 min | 3.1 min | 4.5 min |
-| Big Rock 2 | 6.6 min | 8.1 min | 10.6 min |
-| first New Site | 13.5 min | 13.9 min | 15.8 min |
-| Foreman | 11.1 min | 15.1 min | 10.3 min |
-| Big Rock 3 | 0.7 h | 10 h | day 3.0 |
-| Contracts | day 1.0 | day 3.2 | day 13.8 |
-| Big Rock 4 (100 m) | day 3.0 | day 2.6 | day 10.5 |
-| Big Rock 5 | day 7.0 | day 7.2 | day 27 (1 seed of 3) |
-| Big Rock 6 | day 11.0 | day 11.0 | never |
-| Big Rock 7 | day 13.0 | day 12.6 | never |
-| Big Rock 8 (200 m) | day 17.0 | day 18.0 | never |
+| Big Rock 1 | 3.1 min | 3.2 min | 4.6 min |
+| Big Rock 2 | 10.0 min | 9.3 min | 11 min |
+| first New Site | 16.9 min | 14.6 min | 15.3 min |
+| Foreman | 23.3 min | 18.6 min | 10.3 min |
+| Forge | 18.4 min | 15.4 min | 16.9 min |
+| Big Rock 3 | 0.9 h | 14 h | day 2 |
+| Big Rock 4 (100 m) | day 3.0 | day 3.2 | later |
+| Big Rock 5 | day 9 | day 8 | never |
+| Big Rock 6 | day 15 | day 13.2 | never |
+| Big Rock 7 | day 20 | day 16.6 | never |
+| Big Rock 8 (200 m) | day 28.5 (2 of 3 seeds) | day 22.4 | never |
 
-New Sites a day: 3.7 (active and mixed), 0.6 (idle). Coins of the mixed player: 31% hand, 5% Rafeeqs
-while he plays, 10% tools, 52% away. Longest early dead stretch 2.6 min; later 95th percentile 4.3 min.
+Before the hits rule (main, 2 seeds) the mixed player was at Rock 7 on day 11.8 and Rock 8 on day 16.8
+(both too early) and the active player at Rock 4 on day 5.0 (too late). Both now sit inside their ranges.
 
-**As the game is on `main` today, the curve does not hold past the first days.** Two seeds: the
-mixed player is at 136 m on day 3 and 12,900 m on day 5; the active player passes 200 m on day 4 to
-9 and is at 18,500 m on day 10. `--assert` fails. The causes are in section 6.
+Where the damage to the ground comes from (attended play, the report prints it): your swings and
+Rafeeqs' own swings 6% / 3% / 12% (active / mixed / idle) before, 15% / 15% / 27% after. A TNT barrel
+is still 8 hits on each of up to 8 blocks, and a chain of them is the point of the build; what changed
+is that the size of a barrel no longer grows with the depth. The Big Rock took 76 to 94% of its damage
+from the pick before, 73 to 92% now.
+
+**The curve changes.** `core.grow[2..5].step` 8 to 6 and `core.grow[6].step` 10 to 8; the shares and
+`core.powGrow` (1.25) are unchanged. The study asked for about x4 and shares of 0.05. Both were tried
+(14-day runs, mixed): step 4 to 5 with share 0.05 puts Rock 5 on day 4 to 6 and Rock 8 on day 11 to 14,
+far ahead of the ladder. A move pays a share of the Stars it takes to stand where the dig stopped, so
+a lower wall and a higher share both bring every Rock closer. Step 6 with the old shares is the
+setting that keeps the ladder where the targets are.
 
 ## 6. What is off
 
-1. **Some of the twelve new relics dig by the ground's own hardness.** A flying or falling block
-   hits for a share of its own hp, fire and fuses burn by the block, twins double what chains. Once
-   a build of them is running, depth no longer needs strength, a Big Rock is chipped away by the
-   blocks above it, and the dig runs for thousands of metres. The Star cap keeps Stars sane; depth
-   still runs. Until those effects are tied to the pick (or capped against a Rock), no hardness
-   curve can pace the Deep. This is the one thing that breaks the month.
-2. **Stars are not paid by this curve yet.** `starsFor` in `proto/features/sites/rules.js` is still
-   `floor(best / 10) - 2`. The sim pays the difference at every New Site and says so in its report.
-   On the page, the game is slower than the sim after the first few moves until that line reads
-   `starsAt(s.best, s.land, s.stars + s.starSpent)`.
-3. **A move does not get noticeably deeper each time.** With the Rock as the wall a player stands at
-   the same Rock for many moves (the Rock's bar goes further each time, the Stars on offer are the
-   same), then gains 25 m at once. Only 10 to 13% of moves end deeper than every dig before. The
-   early game does better (2 to 3 moves a Rock). Making the ground between Rocks a wall too needs
-   item 1 and the tools' free charges at a wall (`forge.swingFuel`) dealt with first.
-4. **A player can be carried past the point where he may move.** With the Star perk that lets
-   Rafeeqs walk past beaten Rocks, time away can bring a fresh dig to a deep Rock with fewer than two
-   Rocks broken in that dig; `canNewSite` is then false and the Rock cannot be broken. One seed sat
-   there for days.
-5. **The Forge opens at about 2.4 minutes** (first gold, and one gold is placed at row 21). The
-   target is 12 to 45 minutes. It is not a number in params.
-6. **Contract Stars are fixed** (2, 3, 5): worth something in the first days only.
-7. **Big Rock 3 is early** for the mixed player (10 h; target day 1 to 2.5 was relaxed to 0.4 days),
-   and Big Rocks 7 and 8 come 3 days early (day 12.6 and 18). The idle player reaches 125 m in a
-   month, not 150.
-8. **The model's weak points.** The scripted player buys the instant it can, never tires, and
-   resets by a rule; a person plays longer digs and aims better. It was tuned on three seeds. Rock
-   fights under the Deep's laws are played without the care a person would take (torches, water).
+1. **Moves do not end deeper.** The share of moves that end deeper than every dig before is 8 / 12 / 12%
+   (was 9 / 13 / 10%). The target (above 60%) was not reached and no setting tried moved it (step 3
+   to 8, ground growth 1.20 to 1.29 a metre, share 0.03 to 0.05: 9 to 17% in every case). A dig still
+   ends at the Rock: Rafeeqs, relics and the pick's own growth carry it through the ground between
+   Rocks, and the sim player moves when it stalls at the Rock. A fix needs a different lever than a
+   hardness curve (for example that a move is only worth taking when the dig has gone deeper, or a
+   ground hp that grows faster than the pick), and is the next job.
+2. **Blasts are still most of the ground damage** (73 to 85%), though counted in hits. Under 50% would
+   need a barrel of about 3 hits; at that size the barrels at 8 m do not open a hole for a new player.
+3. **Flying and falling blocks, fire, Echo and the other relics** were already counted in hits. Water
+   and lava turn or wash soft blocks and ore and deal no damage, so there was nothing to convert.
+4. **A player can be carried past the point where he may move** (Star perk that lets Rafeeqs walk past
+   beaten Rocks): `canNewSite` can then be false at a Rock that cannot be broken. Not touched.
+5. **Contract Stars are fixed** (2, 3, 5): worth something in the first days only.
+6. **Big Rock 3 is early** for the mixed player (14 h; the range is 0.4 to 2.5 days). The idle player
+   reaches 125 m in a month, not 150.
+7. **The model's weak points.** The scripted player buys the instant it can, never tires, and resets by
+   a rule; a person plays longer digs and aims better. It was tuned on three seeds. Rock fights under
+   the Deep's laws are played without the care a person would take (torches, water).
 
 ## 7. How to re-tune
 
@@ -178,4 +176,4 @@ held / Stars needed. Then, in this order:
 
 New relics and Museum sets add strength in small steps: a few percent of a wall. A relic or tool
 that breaks ground or hurts a Rock by anything but the pick's strength is not a tuning matter: it
-has to be bounded in its own feature (see 6.1).
+has to be counted in hits (section 2.7).
