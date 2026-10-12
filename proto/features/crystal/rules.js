@@ -10,23 +10,24 @@
 //     It is counted as content ("type:crystal_prism").
 // A line is a travelling crack (queue kind 'crystalRay', one step every `gap` seconds) that:
 //   - sets off any block marked `chain` or `ore` at once (another crystal, TNT, copper to gem),
-//   - hurts anything else for `power` dirt blocks of its row (soft ground goes, hard rock cracks),
+//   - hurts anything else for `power` hits of whoever set it off,
 //   - flies over holes, and stops at a `wall` (the Big Rock) and at the edge of the held rows.
 // The crystal layer is the ground feature's fourth layer ('deep'); this file gives it its look, its
 // ore edges, its block table and its name (see `claim` below).
 // Events: crystalLine { r, c, t, depth, src } when a crystal breaks; crystalCrack { r, c, dr, dc, k, depth, t }
 // for every cell a line passes. Neither changes a field of an existing event.
 import { use, emit, BLOCKS, LAYERS } from '../../core/registry.js';
-import { cellAt, dirtHp, LAYER } from '../../core/grid.js';
+import { cellAt, LAYER } from '../../core/grid.js';
 import { later } from '../../core/rules.js';
 import { breakCell, damage } from '../../core/rules.js';
 import { rnd } from '../../core/rng.js';
+import { hitOf } from '../tnt/rules.js';
 import '../ground/rules.js';          // the layer is registered there; load it first
 import strings from './strings.js';
 
 const p = {
   row: 0.045, col: 0.045, slash: 0.02, back: 0.02, prism: 0.006,   // shares of the layer's cells
-  power: 4,          // what a line does to plain ground, in dirt blocks of its row
+  power: 4,          // what a line does to plain ground, in hits of whoever set it off
   gap: 0.05,         // seconds for the crack to cross one cell
   start: 0.04,       // seconds from the break to the first cell
   reach: 12,         // cells a line can run
@@ -53,7 +54,7 @@ function crystalRay(s, q, ev) {
   emit(s, ev, 'crystalCrack', { r: q.r, c: q.c, dr: q.dr, dc: q.dc, k: q.k, depth: q.depth, t: cell ? cell.t : null, src: q.src });
   if (cell) {
     if (B.chain || B.ore) breakCell(s, q.r, q.c, q.src, ev, { chain: 1, cry: q.depth });
-    else damage(s, q.r, q.c, dirtHp(q.r) * p.power, q.src, ev, { chain: 1 });
+    else damage(s, q.r, q.c, hitOf(s, q.src) * p.power, q.src, ev, { chain: 1 });
   }
   if (q.k < p.reach) ray(s, q.r + q.dr, q.c + q.dc, q.dr, q.dc, q.k + 1, q.depth, q.src);
 }

@@ -289,12 +289,25 @@ export function awayFor(s, ctx, secs, trk) {
   return out;
 }
 
+// Where the damage to the ground comes from (attended play). "hand" = your swing and a Rafeeq's own swing;
+// "fx" = every effect (blasts, lines, tools, relics, fire, falling blocks). A Big Rock counts apart.
+export const DMG = new WeakMap();
+G.use({ id: 'simprobe', mods: { damage: { at: 9999, fn(v, s, cell, src, info) {
+  let t = DMG.get(s); if (!t) DMG.set(s, t = { hand: 0, fx: 0, rockHand: 0, rockFx: 0 });
+  const direct = (src === 'you' && info.crit !== undefined) || (src === 'crew' && !info.chain);
+  const rock = cell.t === 'boss', a = Math.min(v, cell.hp);
+  if (a > 0 && !rock) { const k = src + ':' + Object.keys(info).sort().join('+'); (t.by || (t.by = {}))[k] = (t.by[k] || 0) + a; }
+  if (a > 0) t[(rock ? 'rock' : '') + (direct ? (rock ? 'Hand' : 'hand') : (rock ? 'Fx' : 'fx'))] += a;
+  return v;
+} } } });
+
 export function newRun(profile, seed, noCrew = false) {
   G.setRng(mulberry(seed * 7919 + 13));
   const s = G.newState(); const ctx = mkCtx(profile); ctx.noCrew = noCrew; const trk = new Trk();
   return { s, ctx, trk };
 }
 export function endRun(R) {
+  R.dmg = DMG.get(R.s) || { hand: 0, fx: 0, rockHand: 0, rockFx: 0 };
   const dl = R.trk.act - R.trk.lastDec; if (dl >= 90) R.trk.gaps.push({ start: R.trk.lastDec, len: dl, open: true });
   return R;
 }

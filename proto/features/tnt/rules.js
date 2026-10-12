@@ -1,17 +1,20 @@
 // Dig feature: TNT and blasts. A blast is a delayed effect any feature can order with blastAt()
 // (the Boom Pick does). It chains to blocks marked `chain`, and never reaches past a `wall` row.
-import { use, BLOCKS, emit } from '../../core/registry.js';
+import { use, BLOCKS, emit, fold } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
-import { cellAt, dirtHp, siteMult } from '../../core/grid.js';
-import { damage, later, rel } from '../../core/rules.js';
+import { cellAt, siteMult } from '../../core/grid.js';
+import { damage, later, rel, pickPower } from '../../core/rules.js';
 import strings from './strings.js';
 
 const p = {
-  power: 7,                 // TNT damage, in dirt blocks of its row
+  power: 8, bangHits: 4,    // TNT damage to each block around it, in hits of whoever set it off; Big Bang adds bangHits a level
   chance: 0.2, chanceCap: 0.9, second: 0.35,   // TNT in a row; a second barrel in the same row
   bangStep: 0.5,            // Big Bang: this much more TNT per level
   fuse: 0.12,               // seconds from break to blast
 };
+
+// one hit of whoever caused it: your pick, or a Rafeeq's swing when a Rafeeq set it off
+export const hitOf = (s, src) => (src === 'crew' ? fold('crewPower', s, 1) : pickPower(s));
 
 // order a blast: opts { rad, dmg, src, delay, centre } (centre: the middle block is hit too)
 export function blastAt(s, r, c, opts) {
@@ -55,7 +58,7 @@ export const tnt = use({
   strings,
   blocks: {
     tnt: { at: 90, hp: 1, val: 0, chain: true, notice: true, broke(s, b) {
-      blastAt(s, b.r, b.c, { rad: 1 + rel(s, 'bang'), dmg: dirtHp(b.r) * p.power, src: b.src });
+      blastAt(s, b.r, b.c, { rad: 1 + rel(s, 'bang'), dmg: hitOf(s, b.src) * (p.power + p.bangHits * rel(s, 'bang')), src: b.src });
     } },
   },
   queue: { blast },

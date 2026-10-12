@@ -84,7 +84,7 @@ const gone = (s, r, c) => rec(s).broke.has(r + ',' + c);
 }
 { // plain ground is hurt by a line, hard stuff only cracks; walls stop it
   const s = field();
-  put(s, 77, 1, 'crystal_row'); put(s, 77, 4, 'stone', 3 * G.dirtHp(77)); put(s, 77, 7, 'hard', 8 * G.dirtHp(77) * 5);
+  put(s, 77, 1, 'crystal_row'); put(s, 77, 4, 'stone', 3 * G.pickPower(s)); put(s, 77, 7, 'hard', 8 * G.pickPower(s) * 5);   // a line does 4 hits
   hit(s, 77, 1); run(s);
   ok(gone(s, 77, 4), 'stone breaks to a line');
   ok(!gone(s, 77, 7) && rec(s).hits.has('77,7') && at(s, 77, 7).hp < at(s, 77, 7).max, 'hard rock only cracks');

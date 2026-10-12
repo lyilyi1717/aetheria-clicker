@@ -24,6 +24,7 @@ import { use, BLOCKS, RELICS, emit } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, cellAt, setCell, makeCell, siteOf, siteMult } from '../../core/grid.js';
 import { later, rel } from '../../core/rules.js';
+import { hitOf } from '../tnt/rules.js';
 import { relics2Ignite } from '../relics2/rules.js';
 import { boomEvery } from '../relics/rules.js';
 import { ORES } from '../ores/rules.js';
@@ -39,7 +40,7 @@ const p = {
   flameHeat: 2, flameReach: 4, torchHeat: 2,
   barrels: 2,
   drillDepth: [2, 4], drillMult: 3,
-  bombDmg: 1,
+  bombHits: 4,   // a bomb of the fusions, to each block around it, in your hits
   sweepDmg: 0.5,
   bringDepth: 5,
 };
@@ -234,12 +235,12 @@ const TWIST = {
   // every jump ends in a small blast
   bombhop: { broke: live3('bombhop', (s, b) => {
     if (!b.info.hop) return;
-    later(s, 0.05, 'blast', { r: b.r, c: b.c, rad: 1, dmg: b.cell.max * p.bombDmg, src: 'you' });
+    later(s, 0.05, 'blast', { r: b.r, c: b.c, rad: 1, dmg: hitOf(s, 'you') * p.bombHits, src: 'you' });
   }) },
   // a flying rock goes off where it lands
   rockbomb: { broke: live3('rockbomb', (s, b) => {
     if (!b.info.fling) return;
-    later(s, 0.05, 'blast', { r: b.r, c: b.c, rad: 1, dmg: b.cell.max * p.bombDmg, src: 'you' });
+    later(s, 0.05, 'blast', { r: b.r, c: b.c, rad: 1, dmg: hitOf(s, 'you') * p.bombHits, src: 'you' });
   }) },
   // the boom goes down the column as well
   drillboom: { swung: { at: 42, fn: live3('drillboom', (s, sw) => {
