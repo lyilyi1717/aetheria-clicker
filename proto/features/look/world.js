@@ -293,9 +293,8 @@ export function makeWorld(R) {
   }
 
   function drawRuler(g, s) {   // fixed to the screen: layer bands, a tick every 5 m, a number every 25 m, a rock at each Big Rock, you
-    const x = 6, w = 14, y0 = SKY + 10, len = H - SKY - 20, ppm = len / RULER_MAX;
+    const x = 0, w = 6, y0 = SKY + 10, len = H - SKY - 20, ppm = len / RULER_MAX;   // a thin strip at the very edge: it must not hide the first column
     g.save();
-    g.fillStyle = 'rgba(8,6,10,0.62)'; g.beginPath(); g.roundRect(x - 3, y0 - 6, w + 28, len + 12, 6); g.fill();
     const Ls = layersOf(s.land);
     for (let i = 0; i * LAYER < RULER_MAX; i++) {
       const L = pal(Ls[Math.min(i, Ls.length - 1)].id);
@@ -306,18 +305,17 @@ export function makeWorld(R) {
     g.font = '700 9px system-ui, sans-serif'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
     for (let m = 0; m <= RULER_MAX; m += 5) {
       const y = y0 + m * ppm, major = m % LAYER === 0;
-      g.beginPath(); g.moveTo(x + w, y); g.lineTo(x + w - (major ? 8 : 4), y); g.stroke();
-      if (major && m > 0 && m < RULER_MAX) g.fillText(String(m), x + w + 3, y);
+      if (major) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + w + 3, y); g.stroke(); }
+      if (major && m > 0 && m < RULER_MAX) { g.lineWidth = 3; g.strokeStyle = 'rgba(8,6,10,0.85)'; g.strokeText(String(m), x + w + 5, y); g.fillText(String(m), x + w + 5, y); g.lineWidth = 1; g.strokeStyle = 'rgba(255,255,255,0.7)'; }
     }
     for (let k = 1; k * LAYER < RULER_MAX; k++) {
       const y = y0 + k * LAYER * ppm, done = (s.bossesDown || 0) >= k;
       g.fillStyle = done ? '#6b6560' : '#d9d2c4'; g.strokeStyle = '#1b1410'; g.lineWidth = 1.5;
-      g.beginPath(); g.moveTo(x - 1, y + 4); g.lineTo(x + 1, y - 3); g.lineTo(x + 6, y - 5); g.lineTo(x + 10, y - 1); g.lineTo(x + 8, y + 4); g.closePath(); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(x, y + 3); g.lineTo(x + 1, y - 2); g.lineTo(x + 4, y - 4); g.lineTo(x + 7, y - 1); g.lineTo(x + 6, y + 3); g.closePath(); g.fill(); g.stroke();
     }
     const yy = y0 + Math.min(RULER_MAX, Math.max(0, s.best)) * ppm;
     g.fillStyle = '#ffd23f'; g.strokeStyle = '#1b1410'; g.lineWidth = 1.5;
-    g.beginPath(); g.moveTo(x - 4, yy - 5); g.lineTo(x + 5, yy); g.lineTo(x - 4, yy + 5); g.closePath(); g.fill(); g.stroke();
-    g.fillStyle = 'rgba(255,210,63,0.9)'; g.fillRect(x + 3, yy - 1, w - 3, 2);
+    g.beginPath(); g.moveTo(x, yy - 5); g.lineTo(x + 9, yy); g.lineTo(x, yy + 5); g.closePath(); g.fill(); g.stroke();
     g.restore();
   }
 
