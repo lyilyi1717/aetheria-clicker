@@ -4,6 +4,7 @@ import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { fx, AT, CELL, W, yOf, baseBlock, shade, rr, centre, ring, spark, shake, debris, coinBurst, text, screenFlash } from '../../ui/render.js';
 import { sfx, gap, tone, noise } from '../../ui/audio.js';
+import { oreBacking } from '../look/palette.js';
 
 const { t } = G;
 const GLOW = '#9dffd0', FLAME = '#ffb347', LAVA = '#ff7a1a';
@@ -30,7 +31,7 @@ const lantern = (g, p, v) => {
 };
 const gemOn = (base, col, rim, hi) => (g, p, v) => {
   baseBlock(g, p[base], v, 4);
-  g.fillStyle = shade(p[base], -0.35); g.beginPath(); g.ellipse(32, 36, 22, 18, 0, 0, 7); g.fill();
+  g.fillStyle = oreBacking(p[base], col, -0.35); g.beginPath(); g.ellipse(32, 36, 22, 18, 0, 0, 7); g.fill();
   g.fillStyle = col; g.strokeStyle = rim; g.lineWidth = 2.4;
   g.beginPath(); g.moveTo(32, 14); g.lineTo(47, 28); g.lineTo(40, 50); g.lineTo(24, 50); g.lineTo(17, 28); g.closePath(); g.fill(); g.stroke();
   g.fillStyle = hi; g.beginPath(); g.moveTo(32, 14); g.lineTo(38, 28); g.lineTo(32, 46); g.lineTo(26, 28); g.closePath(); g.fill();
