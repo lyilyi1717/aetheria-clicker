@@ -8,20 +8,21 @@
 //   - Picks that land on the same step are one note. Its hits go to the block under the pointer; when
 //     that block breaks the rest go on to the next block the pointer finds (picksStrike), so a strong
 //     hand sweeps down a column and no hit is wasted.
-//   - Faster Hands raises the tempo of the whole bar: 100, 112, 126, 140, 160, 180 beats a minute.
+//   - Faster Hands raises the tempo of the whole bar: 100, 110, 120, 132, 144, 160 beats a minute.
 //   - `heft`: a strike on the eighth note is two swings of the rules landing together, so one pick at
 //     100 beats a minute does exactly what the old held mouse did (3.33 x 2 = 6.67 swings a second),
 //     and every rule that counts swings (Boom Pick, big hits, Echo, the glass pick) is untouched.
 //
 // How it is earned (all of it is meant to move onto the Pick track of docs/dig-upgrades-study.md):
 //   Second Pick   coins, once, for ever (opens at the first Big Rock)
-//   One More Pick Stars, twice, for ever (the third and the fourth pick), in a small shop of its own
+//   One More Pick Stars, twice, for ever (the third and the fourth pick), in a small shop of its own;
+//                 the third is sold once you have broken Big Rock 4 (100 m), the fourth after Big Rock 6 (150 m)
 //   Faster Hands  coins, five steps, per site like Stronger Pick
 //
 // Events of its own: `picksMore { n }` (a pick was added). The page side owns the timing
 // (ui.js: the look-ahead scheduler on the audio clock); this file has no clock in it.
 import { use, emit } from '../../core/registry.js';
-import { swing, itemLevel, buy } from '../../core/rules.js';
+import { swing, itemLevel, itemOpen, buy } from '../../core/rules.js';
 import { starshopPunch } from '../starshop/rules.js';
 import { PICKS_BARS, MAX_PICKS, picksBarOf, stepSec, hitsPerSec, barFaults } from './beat.js';
 import strings from './strings.js';
@@ -29,7 +30,7 @@ import strings from './strings.js';
 export { PICKS_BARS, picksBarOf, picksSeq, barText as picksBarText, barFaults as picksBarFaults, stepSec as picksStepSec, hitsPerSec as picksHitsPerSec, notesPerSec as picksNotesPerSec } from './beat.js';
 
 const p = {
-  tempos: [100, 112, 126, 140, 160, 180],   // beats a minute, by Faster Hands level
+  tempos: [100, 110, 120, 132, 144, 160],   // beats a minute, by Faster Hands level
   // The least time between two notes, in seconds. 75 ms = 13 notes a second: the hit sound's own
   // body is 74 ms long (4 ms in, 70 ms out), so two notes this far apart never overlap, and it is the
   // sixteenth note at 200 beats a minute, about the fastest a hand drummer plays as separate notes.
@@ -48,8 +49,9 @@ const p = {
   backMix: 'grid', backGain: 0.8, back: ['hit', 'break', 'crit', 'coin'],   // your own delayed hits, chain breaks, coin ticks
   // prices
   secondRock: 1,           // Second Pick opens when this many Big Rocks are down (or you have ever moved)
-  secondCost: 4000,        // coins, once
-  starCosts: [40, 160],    // Stars for the third and the fourth pick
+  secondCost: 12000,       // coins, once (the mid player of the sim buys it about minute 8 to 10)
+  starCosts: [150, 50000], // Stars for the third and the fourth pick
+  starRocks: [4, 6],       // and the Big Rock you must have broken once, ever, before each is sold (100 m, 150 m)
   tempoOpen: 150,          // Faster Hands opens when this many coins have been dug at the site
   tempoBase: 250, tempoGrow: 6,
 };
@@ -116,9 +118,9 @@ export const picks = use({
     // the third and the fourth pick, for Stars (the Star bonus counts Stars ever earned, so spending costs nothing)
     pick3: { at: 10, shop: 'picks', max: p.starCosts.length, levels: 'core',
       cost: (s, lv) => p.starCosts[Math.min(lv, p.starCosts.length - 1)],
-      open: s => s.picks.second && moved(s),
+      open: s => s.picks.second && moved(s) && (s.starBoss || 0) >= (p.starRocks[itemLevel(s, 'pick3')] || 0),
       bought(s, lv, ev) { s.starSpent = (s.starSpent || 0) + p.starCosts[lv - 1]; more(s, ev); } },
   },
   // the scripted player: coin items are bought by the sim itself; the Star one is bought here
-  bot: { shop(s, api) { return itemLevel(s, 'pick3') < p.starCosts.length && s.picks.second && buy(s, 'pick3', api && api.ev) ? 1 : 0; } },
+  bot: { shop(s, api) { return itemLevel(s, 'pick3') < p.starCosts.length && itemOpen(s, 'pick3') && buy(s, 'pick3', api && api.ev) ? 1 : 0; } },
 });

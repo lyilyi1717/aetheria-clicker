@@ -18,7 +18,7 @@ function field(hp = 10) {
 // the pointer rests on column c: the pick lands on the first block down that column
 const aimCol = (s, c) => () => { for (let i = 0; i < G.VIEW_ROWS; i++) if (s.rows[i][c]) return G.reachable(s, s.top + i, c) ? [s.top + i, c] : null; return null; };
 const log = () => { const L = []; const ev = (k, d) => L.push([k, d]); ev.of = k => L.filter(x => x[0] === k).map(x => x[1]); return ev; };
-const TEMPOS = P.tempos.slice(), COUNTS = [1, 2, 3, 4];
+const TEMPOS = P.tempos.slice(), COUNTS = [1, 2, 3, 4], TOP = Math.max(...TEMPOS);
 
 // ---------- rules ----------
 { // a fresh dig: one pick, the first tempo, the old pace
@@ -80,21 +80,25 @@ const TEMPOS = P.tempos.slice(), COUNTS = [1, 2, 3, 4];
   const seen = [G.picksBpm(s)];
   while (G.buy(s, 'tempo', ev)) seen.push(G.picksBpm(s));
   ok(seen.join() === TEMPOS.join() && s.up.tempo === TEMPOS.length - 1, 'each step is the next tempo, and it stops at the last (' + seen.join(', ') + ')');
-  ok(near(G.picksStep(s), 15 / 180) && near(G.picksHps(s), 2 * 8 * 180 / 240), 'the step and the hits a second follow the tempo');
+  ok(near(G.picksStep(s), 15 / TOP) && near(G.picksHps(s), 2 * 8 * TOP / 240), 'the step and the hits a second follow the tempo');
   // a New Site: the picks stay, the tempo starts again
-  s.stars = 500; s.starSpent = 0;
+  s.stars = P.starCosts[0] + P.starCosts[1]; s.starSpent = 0;
   G.reset(s, 'site');
   ok(G.picksCount(s) === 2 && s.up.tempo === 0 && G.picksBpm(s) === 100, 'a New Site keeps the Second Pick and starts the tempo again');
   ok(!G.itemOpen(s, 'pick2') && G.upgradeCost(s, 'pick2') === Infinity, 'and the Second Pick is not sold twice');
+  ok(!G.itemOpen(s, 'pick3'), 'One More Pick waits for Big Rock ' + P.starRocks[0]);
+  s.starBoss = P.starRocks[0];
   ok(G.itemOpen(s, 'pick3') && G.upgradeCost(s, 'pick3') === P.starCosts[0] && G.ITEMS.pick3.shop === 'picks' && G.SHOPS.picks.wallet === 'stars', 'One More Pick is sold for Stars');
   const had = s.stars;
   ok(G.buy(s, 'pick3', ev) && G.picksCount(s) === 3 && s.stars === had - P.starCosts[0] && s.starSpent === P.starCosts[0], 'the third pick costs Stars, and they count as spent (the Star bonus stays)');
-  ok(G.buy(s, 'pick3', ev) && G.picksCount(s) === 4 && !G.canBuy(s, 'pick3'), 'the fourth pick, and that is all');
+  ok(!G.itemOpen(s, 'pick3'), 'the fourth pick waits for Big Rock ' + P.starRocks[1]);
+  s.starBoss = P.starRocks[1];
+  ok(G.itemOpen(s, 'pick3') && G.buy(s, 'pick3', ev) && G.picksCount(s) === 4 && !G.canBuy(s, 'pick3'), 'the fourth pick, and that is all');
   ok(near(G.picksPace(s), 4), 'four picks: four times the swings');
   G.reset(s, 'site'); G.reset(s, 'land');
   ok(G.picksCount(s) === 4, 'four picks cross a New Site and a new land');
   // the scripted player buys the Star picks
-  const b = field(10); b.picks.second = true; b.stars = P.starCosts[0];
+  const b = field(10); b.picks.second = true; b.stars = P.starCosts[0]; b.starBoss = 9;
   const bot = G.BOTS.find(x => x.id === 'picks');
   ok(bot && bot.shop(b, {}) === 1 && G.picksCount(b) === 3 && bot.shop(b, {}) === 0, 'the sim player buys a pick when it has the Stars');
 }
@@ -160,7 +164,7 @@ const TEMPOS = P.tempos.slice(), COUNTS = [1, 2, 3, 4];
 const FLOOR = P.floor;
 ok(FLOOR >= 0.07 && FLOOR <= 0.08, 'the floor between two notes is 70 to 80 ms');
 ok(Math.max(...TEMPOS) <= 15 / FLOOR && TEMPOS.every((b, i) => !i || b > TEMPOS[i - 1]) && TEMPOS.every(Number.isInteger), 'tempos are whole beats a minute, rising, never past the floor (200)');
-ok(TEMPOS.slice(1).every((b, i) => b / TEMPOS[i] > 1.1 && b / TEMPOS[i] < 1.16), 'each tempo step is the same musical step (about one eighth faster)');
+ok(TEMPOS.slice(1).every((b, i) => b / TEMPOS[i] > 1.08 && b / TEMPOS[i] < 1.12), 'each tempo step is the same musical step (about one tenth faster)');
 
 for (const n of COUNTS) {
   const bar = G.picksBarOf(n);
@@ -223,7 +227,7 @@ for (const n of COUNTS) for (const bpm of TEMPOS) {
   ok(most <= 12, `four picks at ${top}: at most ${most} notes in any one second (12 or fewer)`);
   const sizes = new Set(r.notes.map(x => x.n)), vels = new Set(r.notes.map(x => x.v));
   ok(sizes.size >= 3 && vels.size === 3, 'at the top the bar still has three loudnesses and chords of several sizes: no machine gun');
-  ok(near(G.picksHitsPerSec(4, top), 24) && G.picksNotesPerSec(4, top) < 9, 'more picks made the notes heavier (24 hits a second), not closer (under 9 notes a second)');
+  ok(near(G.picksHitsPerSec(4, top), 4 * top / 30) && G.picksNotesPerSec(4, top) < 9 && G.picksNotesPerSec(4, top) < G.picksNotesPerSec(3, top), 'more picks made the notes heavier, not closer (under 9 notes a second, fewer than three picks play)');
 }
 
 { // the floor holds whatever the numbers say
@@ -271,7 +275,7 @@ for (const n of COUNTS) for (const bpm of TEMPOS) {
 }
 
 { // a frame that hangs: no burst afterwards
-  const bar = G.picksBarOf(4), step = G.picksStepSec(180), seq = G.picksSeq(P), got = [];
+  const bar = G.picksBarOf(4), step = G.picksStepSec(TOP), seq = G.picksSeq(P), got = [];
   let now = 0;
   for (; now < 1; now += 1 / 60) for (const x of seq.advance(now, true, bar, step)) got.push({ ...x, handed: now });
   now += 0.4;                                // the page hangs for 400 ms
@@ -294,7 +298,7 @@ for (const n of COUNTS) for (const bpm of TEMPOS) {
 }
 
 if (process.argv.includes('--table')) {
-  console.log('| picks | groove | the bar (16 steps: X accent, x plain, o soft, . rest) | picks landing on each step | notes a second at 100 / 180 | hits a second at 100 / 180 | closest notes at 180 |');
+  console.log(`| picks | groove | the bar (16 steps: X accent, x plain, o soft, . rest) | picks landing on each step | notes a second at ${TEMPOS[0]} / ${TOP} | hits a second at ${TEMPOS[0]} / ${TOP} | closest notes at ${TOP} |`);
   console.log('|---|---|---|---|---|---|---|');
   for (const n of COUNTS) {
     const a = rows.find(r => r.n === n && r.bpm === TEMPOS[0]), b = rows.find(r => r.n === n && r.bpm === TEMPOS[TEMPOS.length - 1]);

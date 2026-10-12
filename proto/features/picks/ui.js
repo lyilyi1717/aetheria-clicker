@@ -13,7 +13,7 @@
 //   - Rafeeq hits are quieter and wait for the next off-beat eighth (`crewMix: 'offbeat'`): the clap;
 //   - your own delayed hits, chain breaks and coin ticks wait for the next step (`backMix: 'grid'`).
 //   So every one of those sounds starts on a step of the bar: never two starts closer than a step
-//   (83 ms at the top tempo), at most 12 starts a second however much is going on.
+//   (94 ms at the top tempo), at most 11 starts a second however much is going on.
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { AT, fx } from '../../ui/render.js';

@@ -179,7 +179,7 @@ Built in: `pop` (break a cell), `dmg`, `blast` (`blastAt` in `tnt/rules.js`).
 |---|---|---|
 | `step` | `s, dt, ev` | every step. Core: delayed effects at 500, scroll at 900. Built: oil 100, combo 200, Big Rock 300, crew 600 |
 | `swing` | `s, sw` | before your hit lands; `sw = { r, c, B, dmg, crit, twice }` may be changed (big hits) |
-| `swung` | `s, sw, ev` | after it landed (spill-over, echo) |
+| `swung` | `s, sw, ev` | after it landed and after Punch-through (spill-over, echo) |
 | `breaking` | `s, b` | a block is about to pay |
 | `broke` | `s, b, ev` | a block broke (after its own `broke`) |
 | `earned` | `s, n, src` | coins were paid |
@@ -192,12 +192,14 @@ Built in: `pop` (break a cell), `dmg`, `blast` (`blastAt` in `tnt/rules.js`).
 
 **Mods** (`mods: { name: (v, s, ...) => v }`): `fold(name, s, v, ...)` passes the value through.
 `coinMult`, `pickPower`, `crewPower`, `crewRate`, `critChance`, `critMult`, `sight`, `swingDmg`,
+`punch (v, s)` (Punch-through: how many blocks below a broken one a hit's left-over strength reaches;
+0 none, `Infinity` no limit; a Big Rock, an empty cell or a block it does not break stops it),
 `damage (v, s, cell, src, info, r)`, `canSwing (v, s, r, c)`, `blockPay (v, s, b)`,
 `breakCoins (v, s, b)`, `chestChance`, `draftPool`, `draftCards`, `awayDps`.
 A feature may open its own: `fold('myPoint', s, v)` in your code, and say so in your header.
 
 **Events** (`emit(s, ev, kind, data)`): `swing hit break chest blast fossil set gusher rushEnd
-bossDown buy relic comboEnd newSite scroll tool unlock`. Add your own kinds freely; never change
+bossDown buy relic comboEnd newSite scroll tool unlock punch`. Add your own kinds freely; never change
 the fields of one that exists.
 
 **Content and first times.** The list of content is `G.unlocks()`: built from the registries
@@ -237,12 +239,14 @@ ui({
 | `mount(app)`, `start(app)`, `tick(s, app)` | build your own DOM once (`app.el.top / left / right / stage`); after load; every 0.1 s |
 | `away(seconds, app)` | the page was closed or asleep for over a minute |
 | `keys: { k: fn(app) }` | a hotkey |
+| `cadence: { frame(dig, app) }` | owns the swing rhythm (one feature only; `picks` has it). Called every frame, also through a hit-stop; `dig` = the player is digging now (held or auto dig, something under the pick). The core then swings nothing by itself: the feature calls `G.swing` (or `G.picksStrike`) at `app.target()` when its beat says so |
 | `icons`, `sfx`, `css` | `addIcons`, `addSfx`, `css: new URL('./x.css', import.meta.url).href` |
 
 `app`: `state`, `ev` (pass it to rules calls), `toast(text, kind)`, `banner(title, sub)`,
 `modal.open(id, html)` (one card at a time; returns null if another is up; the dig pauses),
 `modal.close()`, `dirty(panelId)`, `refresh(force)`, `save()`, `hitStop(sec)`, `fire(kind, d)`,
-`bump(el)`, `unlockAudio()`. A handler that throws is logged and skipped; it cannot stop the rules.
+`bump(el)`, `unlockAudio()`, `target()` (the block the pick would hit now, worked out afresh: `[r, c]` or null),
+`flags.hand` (set it above 0 while an extra pick of yours swings: the core then leaves its own pick still). A handler that throws is logged and skipped; it cannot stop the rules.
 Follow `docs/game-feel-guide.md`: the moment should feel good before the number is read.
 
 ## Several sites at once
@@ -311,3 +315,21 @@ Each has its folder and its index lines already. "Needs" = must be merged first.
 | `autos` | auto-open chests by a rule, auto-buy, each won | `contracts` |
 | `map` | several sites at once, a second crew | `foreman`, `starshop` |
 | `land2` | the second reset: a new land | `deep`, `map` |
+
+## Sound in time: the mixer and the bar
+
+`ui/audio.js` has one mixer slot. `setMixer(name => null | false | { at, gain })` is asked each time a
+sound function runs (`sfx.hit`, `sfx.break`, a feature's own from `addSfx`): `null` plays it now,
+`false` drops it, `{ at, gain }` plays the same sound `at` seconds later with every volume times
+`gain`. `tone`, `noise` and `gap` read that shift, so the sound itself is never changed.
+`audioTime()` is the audio clock (null before the first click).
+
+The `picks` feature uses both. The player's swings are the notes of a 16-step bar
+(`features/picks/beat.js`): each pick count has its groove, a tempo sets the step (15 / bpm seconds),
+picks that land on one step are one note, and no two notes are closer than `picks.floor` (75 ms).
+The page hands a note's hits to the rules up to `picks.look` (40 ms) before the note and schedules
+the sounds those hits make at the note's exact audio time. While the bar plays, Rafeeq hits wait for
+the next off-beat and delayed hits, chain breaks and coin ticks for the next step (`picks.crewMix`,
+`picks.backMix`). A sound a feature adds joins the grid if its name is put in `picks.back`.
+`node test_proto_picks.js --table` prints the bars. The sim's hand follows the same bar:
+`G.picksPace(s)` (1 = one pick at the first tempo = the old held mouse) scales every profile's `hps`.
