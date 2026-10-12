@@ -2,7 +2,7 @@ export default { en: {
   goal_site: 'New: you can move to a New Site (on the left).',
   site_title: 'New Site',
   site_d: 'Pack up and dig somewhere new. You start at the top with a new shop and new relics.',
-  site_get: 'You get: {n} Stars. Each Star: coins +20%, hits +10%, for ever.',
+  site_get: 'You get: {n} Stars. Spend them on your Pick, Camp or Bag.',
   site_keep: 'You keep: Stars and the Museum.',
   site_btn: 'Move: +{n} Stars',
   site_pick: 'Where do you dig next?', site_stay: 'Not yet. Keep digging here.',
