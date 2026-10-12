@@ -45,6 +45,7 @@ const p = {
   hopRange: 3, hopDmg: 0.5, hopGap: 0.08, hopJumps: [0, 1, 2, 2], hopMax: 8,
   twinEvery: 5, twinCount: [0, 1, 2, 2], twinNot: ['chest'],
   flingFrac: 0.5,               // a flying block hits for this share of its own strength
+  throwCap: 4,                  // and never more than this many hits of your own pick: the ground cannot dig itself
   wallShare: 0.25,              // a flying or falling block does only this much of that to a Big Rock
   flingSide: 3, flingUp: 1, flingDown: 2, flingTime: 0.35, flingBounce: [0, 0, 1, 3],
   magEvery: 4, magRange: 6, magCount: [0, 1, 1, 6],
@@ -140,7 +141,7 @@ function fling(s, r, c, kind, max, left, ev) {
     to = pick(spots);
   }
   emit(s, ev, 'relics2Fling', { fr: r, fc: c, r: to.r, c: to.c, t: kind, dur: p.flingTime });
-  later(s, p.flingTime, 'relics2Land', { r: to.r, c: to.c, dmg: max * p.flingFrac, left });
+  later(s, p.flingTime, 'relics2Land', { r: to.r, c: to.c, dmg: Math.min(max * p.flingFrac, pickPower(s) * p.throwCap), left });
 }
 function flingLand(s, q, ev) {
   let r = q.r;
@@ -230,7 +231,7 @@ function land(s, r, c, o, ev) {
   delete o.fd;
   emit(s, ev, 'relics2Thud', { r, c, fall: rows });
   if (lv >= 2 && kindOf(o).chain) { breakCell(s, r, c, 'you', ev, { chain: 1, fall: 1 }); return; }   // falling TNT goes off
-  const dmg = o.max * p.fallFrac * (lv >= 2 ? Math.min(rows, p.fallMaxRows) : 1);
+  const dmg = Math.min(o.max * p.fallFrac, pickPower(s) * p.throwCap) * (lv >= 2 ? Math.min(rows, p.fallMaxRows) : 1);
   const info = { chain: 1, fall: 1 };
   const under = cellAt(s, r + 1, c);
   damage(s, r + 1, c, dmg * (under && kindOf(under).wall ? p.wallShare : 1), 'you', ev, info);

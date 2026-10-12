@@ -117,7 +117,7 @@ const noCrit = () => G.setParam('crits.chance', 0);
 
 { // fling and magnet
   const undo = noCrit();
-  const s = field({ fling: 1 }, 20);
+  const s = field({ fling: 1 }, 20); s.up.pick = 20;   // a pick strong enough that the cap (throwCap) does not bind
   s.rows[0][4] = cell('dirt', 1); s.rows[0][4].max = 20;
   const ev = log();
   G.swing(s, 0, 4, ev);
@@ -213,7 +213,7 @@ const noCrit = () => G.setParam('crits.chance', 0);
   for (let c = 0; c < G.COLS; c++) if (c !== 4) lone.rows[0][c] = null;
   G.swing(lone, 0, 4); ok(G.swing(lone, 0, 4), 'with nothing beside the block it is a plain hit at full speed');
 
-  const f = field({ fall: 1 }, 100);
+  const f = field({ fall: 1 }, 100); f.up.pick = 20;
   f.rows[1][4] = null; f.rows[2][4] = null;
   const evf = log(); run(f, 0.5, evf);
   ok(f.rows[0][4] === null && f.rows[2][4] && f.rows[2][4].t === 'dirt', 'a block with nothing under it falls to the bottom of the hole');
@@ -224,8 +224,14 @@ const noCrit = () => G.setParam('crits.chance', 0);
   f2.rows[0][4] = cell('tnt', 1); f2.rows[1][4] = null;
   const ev2 = log(); run(f2, 0.6, ev2);
   ok(ev2.of('blast').length === 1, 'level 2: falling TNT goes off');
+  { // with a weak pick the fall is capped at throwCap hits of that pick: the ground cannot dig itself
+    const w = field({ fall: 1 }, 1e6);
+    w.rows[1][4] = null; w.rows[2][4] = null;
+    run(w, 0.5);
+    ok(Math.abs(w.rows[3][4].hp - (1e6 - G.pickPower(w) * P.throwCap)) < 1e-3, 'a weak pick caps what a falling block does');
+  }
   { // a block that lands on a Big Rock hurts it, but only a little
-    const b = field({ fall: 1 }, 100);
+    const b = field({ fall: 1 }, 100); b.up.pick = 20;
     for (let c = 0; c < G.COLS; c++) { b.rows[2][c] = { t: 'boss', hp: 1, max: 1, s: c }; b.rows[1][c] = null; }
     b.boss = { row: 2, hp: 1000, max: 1000, weak: 9, wt: 99 };
     b.rows[0][4] = cell('dirt', 100); for (let c = 0; c < G.COLS; c++) if (c !== 4) b.rows[0][c] = null;

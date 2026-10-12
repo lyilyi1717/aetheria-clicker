@@ -93,10 +93,17 @@ export function later(s, delay, kind, q) { q.at = s.t + delay; q.kind = kind; s.
 
 // ---------- hitting ----------
 
+// Nothing reaches below a Big Rock that still stands: no blast, fire, thrown rock, line or pulse. The
+// Rock is the wall of the pacing curve; a way round it is a way round the whole curve.
+export function sealed(s, r) {
+  for (let w = s.top; w < r; w++) { const x = cellAt(s, w, 0); if (x && BLOCKS[x.t].wall) return true; }
+  return false;
+}
+
 // damage one block; returns true if it broke
 export function damage(s, r, c, dmg, src, ev, info = NONE) {
   const cell = cellAt(s, r, c);
-  if (!cell) return false;
+  if (!cell || sealed(s, r)) return false;
   const B = BLOCKS[cell.t];
   dmg = fold('damage', s, dmg, cell, src, info, r);
   if (B.damage) return B.damage(s, r, c, cell, dmg, src, ev, info);
@@ -112,7 +119,7 @@ export function damage(s, r, c, dmg, src, ev, info = NONE) {
 
 export function breakCell(s, r, c, src, ev, info = NONE) {
   const cell = cellAt(s, r, c);
-  if (!cell) return;
+  if (!cell || sealed(s, r)) return;
   setCell(s, r, c, null);
   if (r + 1 > s.best) s.best = r + 1;
   const B = BLOCKS[cell.t];

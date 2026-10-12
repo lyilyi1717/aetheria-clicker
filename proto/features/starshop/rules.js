@@ -146,6 +146,8 @@ export const starshop = use({
       out.coins += coins; out.metres += rows; out.chests += chests; out.passed = rows;
       s.coins += coins; s.total += coins;
       if (s.top + 1 > s.best) s.best = s.top + 1;
+      // a Rock they walked past counts as down in this dig too: the next Rock can be fought and a move made
+      s.bossesDown = Math.max(s.bossesDown, layerOf(Math.max(0, s.top - 1)));
       out.atBoss = blocked(s, s.top);
     } },
   },

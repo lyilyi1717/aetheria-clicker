@@ -2,6 +2,7 @@
 // ground. Moving to a New Site starts the dig over and pays Stars, which last for ever.
 import { use, SITES, emit } from '../../core/registry.js';
 import { reset } from '../../core/state.js';
+import { starsAt } from '../../core/grid.js';
 import strings from './strings.js';
 
 const p = {
@@ -10,7 +11,8 @@ const p = {
 };
 
 export const canNewSite = s => s.bossesDown >= p.needBosses;
-export const starsFor = s => Math.max(1, Math.floor(s.best / 10) - 2);
+// Stars a move pays: the core's curve (starsAt), never more than the Stars earned so far allow
+export const starsFor = s => starsAt(s.best, s.land, s.stars + (s.starSpent || 0));
 
 // a site may be gated: `open(s)` in its def (a Museum set that unlocks a fourth site)
 export const siteOpen = (s, site) => !!SITES[site] && (!SITES[site].open || !!SITES[site].open(s));

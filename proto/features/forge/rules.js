@@ -117,7 +117,7 @@ function pop(s, q, ev) {
   const cell = cellAt(s, q.r, q.c);
   if (!cell) return;
   asTool(s, q.tool, () => {
-    if (BLOCKS[cell.t].wall) damage(s, q.r, q.c, hits(s) * p.drillBoss, 'you', ev, { chain: 1 });
+    if (BLOCKS[cell.t].wall) damage(s, q.r, q.c, hits(s) * p.drillBoss, 'you', ev, { chain: 1, tool: 1 });
     else breakCell(s, q.r, q.c, 'you', ev, { chain: 1 });
   });
 }
@@ -152,7 +152,7 @@ function dyn(s, q, ev) {
       let dmg = hits(s) * p.dynBoss;
       // a stuck stick remembers the crack: three times, wherever the crack has moved to since
       if (q.weak && s.boss && s.boss.weak !== q.c) dmg *= PARAMS.boss.weakMult;
-      damage(s, q.r, q.c, dmg, 'you', ev, { chain: 1 });
+      damage(s, q.r, q.c, dmg, 'you', ev, { chain: 1, tool: 1 });
     }
   });
   emit(s, ev, 'forgeBoom', { r: q.r, c: q.c, rad: p.dynRad, wall });
