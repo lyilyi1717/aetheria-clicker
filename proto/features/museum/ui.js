@@ -1,9 +1,8 @@
-// Dig feature (page side): the bone block, the Museum panel, the "new bone" and "set complete" moments.
+// Dig feature (page side): the bone block. The Museum panel and its moments are in wing2/ui.js.
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
-import { CELL, baseBlock, shade, rr, centre, ring, spark, screenFlash } from '../../ui/render.js';
+import { CELL, baseBlock, shade, rr, centre, ring, spark } from '../../ui/render.js';
 import { sfx, gap, tone } from '../../ui/audio.js';
-import { icon } from '../../ui/icons.js';
 
 const { t, fmt } = G;
 
@@ -27,33 +26,12 @@ ui({
     } },
   },
   on: {
+    // the Museum panel and the "new bone" moments live in proto/features/wing2/ui.js; here only a bone no set wanted
     fossil(d, app) {
+      if (d.set) return;
       sfx.fossil();
       const [x, y] = centre(d.r, d.c); ring(x, y, CELL * 1.4, '#f6efdc'); spark(x, y, '#f6efdc', 20);
-      app.toast(d.isNew ? t('t_fossil_new', { set: t('set_' + d.set) }) : t('t_fossil_dup', { n: fmt(d.coins) }), 'fossil');
-      app.dirty('museum');
+      app.toast(t('t_fossil_none', { n: fmt(d.coins) }), 'fossil');
     },
-    set(d, app) { app.banner(t('t_set', { set: t('set_' + d.set) }), ''); sfx.star(); screenFlash('#f6efdc', 0.3); app.dirty('museum'); },
   },
-  panels: [{
-    id: 'museum', elId: 'museum', side: 'left', at: 20, title: 'museum',
-    when: s => Object.keys(s.fossils).length > 0,
-    build(el) { el.insertAdjacentHTML('beforeend', `<div id="museum-list"></div>`); },
-    update(el, s) {
-      const list = el.querySelector('#museum-list'); list.innerHTML = '';
-      const L = G.layerOf(Math.max(0, s.best - 1));
-      for (const set of Object.keys(G.SETS)) {
-        const info = G.SETS[set];
-        const row = document.createElement('div');
-        const locked = info.fromLayer > L && !Object.keys(s.fossils).some(k => k.startsWith(set));
-        row.className = 'set' + (s.sets[set] ? ' done' : '') + (locked ? ' locked' : '');
-        let bones = '';
-        for (let i = 0; i < info.pieces; i++) bones += `<span class="bone${s.fossils[`${set}.${i}`] ? ' on' : ''}">${icon('bone', 22)}</span>`;
-        row.innerHTML = `<b></b><div class="bones">${bones}</div><span class="d"></span>`;
-        row.querySelector('b').textContent = locked ? '???' : t('set_' + set);
-        row.querySelector('.d').textContent = locked ? t('set_locked') : s.sets[set] ? t('set_done') : t('set_bonus');
-        list.appendChild(row);
-      }
-    },
-  }],
 });
