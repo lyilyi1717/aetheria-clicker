@@ -32,7 +32,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 if __name__ == '__main__':
     # Enable address reuse so restarts don't hit TIME_WAIT port conflicts
     socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("127.0.0.1", PORT), Handler) as httpd:
+    # One thread per request and a long queue: a page that loads a hundred modules at once must not
+    # have some of them refused (the page then fails to start until a reload)
+    socketserver.ThreadingTCPServer.daemon_threads = True
+    socketserver.ThreadingTCPServer.request_queue_size = 256
+    with socketserver.ThreadingTCPServer(("127.0.0.1", PORT), Handler) as httpd:
         print(f"=====================================================")
         print(f"  Aetheria: Chronicles of Eternity is now live at:   ")
         print(f"  http://localhost:{PORT}                           ")
