@@ -37,6 +37,7 @@ const p = {
   magOre: 3,            // magnet 'ore3'
   handMult: 0.25,       // Hands off: what the pick does
   shopDepth: 25, handDepth: 25,
+  botContracts: true,   // the sim player also tries the two contracts of this feature
 };
 
 export const AUTOS = [
@@ -282,7 +283,7 @@ export const autos = use({
   // its habit keeps the job it already uses (ore), so it does not fight the Foreman bot.
   bot: { shop(s) {
     const W = PARAMS.contracts && PARAMS.contracts.botWill;
-    if (W) for (const id of ['shopShut', 'handsOff']) if (!W.includes(id)) W.push(id);
+    if (W && p.botContracts) for (const id of ['shopShut', 'handsOff']) if (!W.includes(id)) W.push(id);
     for (const A of AUTOS) if (s.autoOwn[A.id] && s.autoOn[A.id] === undefined) s.autoOn[A.id] = true;
     if (s.autoOwn.sorter) {
       const ids = Object.keys(RELICS).sort((a, b) => ((RELICS[a].at || 0) - (RELICS[b].at || 0)) || (a < b ? -1 : 1));
