@@ -14,7 +14,8 @@ export const N_ALL = UNITS.length, N_CORE = UNITS.filter(u => u.cat === 'core').
 export const ALL_IDS = UNITS.map(u => u.id), CORE_IDS = UNITS.filter(u => u.cat === 'core').map(u => u.id);
 
 // ---------- human profiles ----------
-// hps: sustained hits per second (the game caps a held mouse at 6.7/s; hit-stop and slides cost the rest)
+// hps: sustained hits per second (the game caps a held mouse at 6.7/s; hit-stop and slides cost the rest).
+//      That is the pace of one pick at the first tempo; more picks and a faster beat scale it (`pace` below).
 // lag: seconds lost per deliberate move to another block; notice: chance to spot and go for ore/chest/TNT after a break
 // buyEvery: seconds between looks at the shop; react: seconds per purchase; relicT: seconds to read and pick a relic card
 // weak: chance per swing to slide to the Big Rock's crack; clear: chance to clear the row above a Big Rock so the crack is reachable
@@ -25,6 +26,9 @@ export const PROFILES = {
   mid:  { hps: 5.0, lag: 0.35, notice: 0.6, buyEvery: 6, react: 1.0, relicT: 3.5, weak: 0.15, clear: 0.5, stall: 45 },
   fast: { hps: 6.2, lag: 0.2, notice: 0.8, buyEvery: 4, react: 0.7, relicT: 2.5, weak: 0.3, clear: 0.8, stall: 35 },
 };
+// The hand follows the picks' bar: its swings a second from the number of picks and the tempo,
+// as a share of the old held mouse (1 with one pick at the first tempo). See proto/features/picks.
+const pace = s => (G.picksPace ? G.picksPace(s) : 1);
 const VAL = new Set(Object.keys(G.BLOCKS).filter(t => G.BLOCKS[t].notice));   // what a player goes for when he sees it
 const PRIO = ['boom', 'vein', 'deep', 'wide', 'lucky', 'heavy', 'shiny', 'streak', 'echo', 'karak', 'nose', 'bang', 'lamp'];
 export const DEPTHS = [10, 25, 30, 50, 60, 75, 100, 125, 150, 175, 200, 225, 250];
@@ -175,7 +179,9 @@ function handSwing(s, ctx, ev, trk) {
   }
   G.swing(s, tg[0], tg[1], ev);
   trk.w().hits++;
-  ctx.next = ctx.clock + (1 / p.hps) * (0.8 + 0.4 * rnd());
+  // swings that come faster than the step are counted from when the last one was due, so none is lost
+  const iv = (1 / (p.hps * pace(s))) * (0.8 + 0.4 * rnd()), dt = ctx.dt || 0.05;
+  ctx.next = (iv < dt ? Math.max(ctx.next, ctx.clock - dt) : ctx.clock) + iv;
 }
 
 // ---------- moving ----------
@@ -218,6 +224,7 @@ function afterMove(s, ctx, trk) {
 export function play(s, ctx, secs, trk, opts = {}) {
   const hand = opts.hand !== false, dt = opts.dt || 0.05;
   const ev = mkEv(s, trk);
+  ctx.dt = dt;
   probe = trk;
   let el = 0;
   while (el < secs - 1e-9) {
@@ -227,7 +234,7 @@ export function play(s, ctx, secs, trk, opts = {}) {
       ctx.bestAt += t;                                                                                   // (reading a card is not a stall)
       continue;
     }
-    if (hand && ctx.busy <= 0 && ctx.clock >= ctx.next) handSwing(s, ctx, ev, trk);
+    if (hand && ctx.busy <= 0) for (let k = 0; k < 16 && ctx.clock >= ctx.next; k++) handSwing(s, ctx, ev, trk);   // several a step when the bar is fast
     if (ctx.busy > 0) ctx.busy = Math.max(0, ctx.busy - dt);
     G.step(s, dt, ev);
     trk.real += dt; trk.act += dt; ctx.clock += dt; el += dt;
@@ -263,7 +270,7 @@ export function play(s, ctx, secs, trk, opts = {}) {
     if (!trk.firstDig && s.up.crew === 0 && G.canBuy(s, 'crew')) {
       const up = G.UPGRADES; let k = 0, sum = 0; const cost = G.upgradeCost(s, 'crew');
       while (sum + Math.ceil(up.pick.base * Math.pow(up.pick.grow, s.up.pick + k)) <= cost) { sum += Math.ceil(up.pick.base * Math.pow(up.pick.grow, s.up.pick + k)); k++; }
-      const hd = ctx.p.hps * G.pickPower(s) * (1 + G.critChance(s) * (G.critMult(s) - 1));
+      const hd = ctx.p.hps * pace(s) * G.pickPower(s) * (1 + G.critChance(s) * (G.critMult(s) - 1));
       trk.firstDig = { t: trk.act, cost, pick: s.up.pick, k, hand: hd, gainHand: hd * (Math.pow(G.P.powGrow, k) - 1), digger: G.crewRate(s) * G.crewPower(s) };
     }
     if (opts.stopAtAll && trk.units.size >= N_ALL) { sample(s, trk); probe = null; return true; }

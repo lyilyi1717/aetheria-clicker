@@ -21,6 +21,7 @@ export * from './moods/rules.js';
 export * from './museum/rules.js';
 export * from './oil/rules.js';
 export * from './ores/rules.js';
+export * from './picks/rules.js';
 export * from './relics/rules.js';
 export * from './relics2/rules.js';
 export * from './shop/rules.js';

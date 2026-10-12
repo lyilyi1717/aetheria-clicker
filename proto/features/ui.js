@@ -20,6 +20,7 @@ import './moods/ui.js';
 import './museum/ui.js';
 import './oil/ui.js';
 import './ores/ui.js';
+import './picks/ui.js';
 import './relics/ui.js';
 import './relics2/ui.js';
 import './shop/ui.js';

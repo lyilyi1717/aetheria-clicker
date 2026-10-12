@@ -28,6 +28,7 @@ let coinLands = 0;
 let toastT = 0, bannerT = 0;
 let modalId = null;
 let armed = null;            // the tool the next click uses
+let cadence = null;          // a feature that owns the swing rhythm: ui({ cadence: { frame(dig, app) } })
 
 // ---------- what features register ----------
 
@@ -36,9 +37,10 @@ const ON = {};               // event kind -> handlers
 const PANELS = [], GOALS = [], STATUS = [], KEYS = {};
 export const ITEM_TEXT = {}; // shop item id -> { desc(s, lv), noLevel }
 
-// ui({ id, css, icons, sfx, art, draw, on, panels, items, goal, status, keys, mount, start, tick, away })
+// ui({ id, css, icons, sfx, art, draw, on, panels, items, goal, status, keys, mount, start, tick, away, cadence })
 export function ui(def) {
   DEFS.push(def);
+  if (def.cadence) { if (cadence) throw new Error('Dig: two features want the swing rhythm'); cadence = def.cadence; }
   if (def.css) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = def.css; document.head.appendChild(l); }
   addIcons(def.icons); addSfx(def.sfx); addArt(def.art); addDraw(def.draw);
   for (const [kind, fn] of Object.entries(def.on || {})) (ON[kind] || (ON[kind] = [])).push(fn);
@@ -101,6 +103,8 @@ export const app = {
   unlockAudio: unlock,
   hitStop(x) { hitStop = Math.max(hitStop, x); },
   dirty(id) { for (const p of PANELS) if (!id || p.id === id) p.dirty = true; },
+  // the block the pick would hit now, worked out afresh (a cadence asks again after every hit)
+  target() { return (fx.target = !paused && fx.mouse.inside ? targetAt(fx.mouse.x, fx.mouse.y) : null); },
   refresh(force) { updatePanels(force); },
 };
 
@@ -109,7 +113,7 @@ export const app = {
 ui({
   id: 'page',
   on: {
-    swing(d) { swingAnim(d.crit); },
+    swing(d) { if (!app.flags.hand) swingAnim(d.crit); },   // flags.hand: an extra pick is swinging (its feature draws it)
     hit(d) {
       const [x, y] = centre(d.r, d.c);
       const col = blockColour(d.t, d.r);
@@ -188,7 +192,7 @@ function bindInput(cv) {
     unlock(); pos(e);
     fx.target = targetAt(fx.mouse.x, fx.mouse.y);
     if (armed) { useArmed(); e.preventDefault(); return; }
-    holding = true; doSwing(); e.preventDefault();
+    holding = true; if (!cadence) doSwing(); e.preventDefault();
   });
   window.addEventListener('pointerup', () => { holding = false; });
   cv.addEventListener('pointerleave', () => { fx.mouse.inside = false; });
@@ -300,10 +304,13 @@ function frame(now) {
     real = 0.016;
   }
   const dt = Math.min(0.05, real);
+  // A feature that owns the swing rhythm is asked every frame, also through a hit-stop: its bar must
+  // not stumble. dig = the player is digging now (held or auto, on the ground, something to hit).
+  if (cadence) cadence.frame((holding || autoDig) && !armed && !!app.target(), app);
   if (hitStop > 0) hitStop -= dt;
   else if (!paused) {
     fx.target = fx.mouse.inside ? targetAt(fx.mouse.x, fx.mouse.y) : null;
-    if ((holding || autoDig) && fx.mouse.inside && !armed) { holdCd -= dt; if (holdCd <= 0) doSwing(); }
+    if (!cadence && (holding || autoDig) && fx.mouse.inside && !armed) { holdCd -= dt; if (holdCd <= 0) doSwing(); }
     G.step(state, dt * SPEED, ev);
   }
   updateFx(dt);
