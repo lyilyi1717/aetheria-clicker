@@ -146,9 +146,27 @@ export function swing(s, r, c, ev = NOEV) {
   const sw = { r, c, B: BLOCKS[cellAt(s, r, c).t], dmg: fold('swingDmg', s, pickPower(s)), crit: false, twice: false };
   run('swing', s, sw);
   emit(s, ev, 'swing', { r, c, crit: sw.crit, twice: sw.twice });
-  damage(s, r, c, sw.dmg, 'you', ev, { crit: sw.crit });
+  const hp0 = cellAt(s, r, c).hp;
+  const broke = damage(s, r, c, sw.dmg, 'you', ev, { crit: sw.crit });
+  if (broke && !sw.B.wall) punch(s, r, c, sw.dmg - hp0, ev);
   run('swung', s, sw, ev);
   return true;
+}
+
+// Punch-through: the strength a hit has left after it broke a block goes into the block below, then
+// the one below that, for up to `punch` blocks (a mod: 0 = none, Infinity = no limit). It stops at an
+// empty cell, at a block it does not break, and at a wall (the Big Rock).
+function punch(s, r, c, left, ev) {
+  const reach = fold('punch', s, 0);
+  let n = 0;
+  for (let rr = r + 1; left > 0 && n < reach; rr++, n++) {
+    const cell = cellAt(s, rr, c);
+    if (!cell || BLOCKS[cell.t].wall) break;
+    const hp = cell.hp;
+    if (!damage(s, rr, c, left, 'you', ev, { chain: 1, punch: true })) { n++; break; }
+    left -= hp;
+  }
+  if (n) emit(s, ev, 'punch', { r, c, n });
 }
 
 // ---------- time ----------

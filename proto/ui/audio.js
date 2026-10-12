@@ -1,9 +1,34 @@
 // Dig: sound, made in code with Web Audio. No files. The core sounds are in `sfx` below;
 // a feature adds its own with addSfx({ name() { if (!gap('name', 0.1)) return; tone(...); noise(...); } }).
+//
+// The mixer: one feature may say WHEN and HOW LOUD a named sound plays, without touching the sound.
+//   setMixer(name => null | false | { at, gain })
+// It is asked each time a sound function (sfx.hit, sfx.break, a feature's own) is called:
+//   null            play it now, as written
+//   false           do not play it
+//   { at, gain }    play it `at` seconds from now, every volume in it times `gain`
+// While the sound function runs, tone(), noise() and gap() all read that shift, so a sound keeps its
+// own shape and its own rule against stacking. audioTime() is the audio clock (null: no sound yet),
+// for a feature that schedules ahead of time (the picks' bar).
 
 let ctx = null, master = null, noiseBuf = null;
 let muted = false;
 const last = {};     // last play time per sound class (keeps fast repeats from stacking)
+let mixer = null;    // see "The mixer" above
+let shift = 0, level = 1;   // in force while a mixed sound function runs
+
+export function setMixer(fn) { if (mixer && fn) throw new Error('Dig: two mixers'); mixer = fn; }
+export const audioTime = () => (ctx && ctx.state === 'running' ? ctx.currentTime : null);
+function mixed(name, f) {
+  return (...a) => {
+    const m = mixer ? mixer(name) : null;
+    if (m === false) return undefined;
+    if (!m) return f(...a);
+    const s0 = shift, l0 = level;
+    shift = Math.max(0, m.at || 0); level = m.gain === undefined ? 1 : m.gain;
+    try { return f(...a); } finally { shift = s0; level = l0; }
+  };
+}
 
 export function setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : 0.5; }
 export const isMuted = () => muted;
@@ -25,7 +50,7 @@ export function unlock() {
 
 export function gap(name, seconds) {
   if (!ctx || muted) return false;
-  const now = ctx.currentTime;
+  const now = ctx.currentTime + shift;
   if (last[name] && now - last[name] < seconds) return false;
   last[name] = now;
   return true;
@@ -33,7 +58,8 @@ export function gap(name, seconds) {
 
 export function tone(freq, { type = 'triangle', a = 0.004, d = 0.15, vol = 0.25, slide = 0, at = 0 } = {}) {
   if (!ctx) return;   // no sound before the first click; a feature's handler must not fail on it
-  const t0 = ctx.currentTime + at;
+  const t0 = ctx.currentTime + at + shift;
+  vol *= level;
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.type = type;
   o.frequency.setValueAtTime(freq, t0);
@@ -47,7 +73,8 @@ export function tone(freq, { type = 'triangle', a = 0.004, d = 0.15, vol = 0.25,
 
 export function noise({ d = 0.15, vol = 0.3, from = 3000, to = 300, at = 0, type = 'lowpass' } = {}) {
   if (!ctx) return;   // no sound before the first click; a feature's handler must not fail on it
-  const t0 = ctx.currentTime + at;
+  const t0 = ctx.currentTime + at + shift;
+  vol *= level;
   const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
   const f = ctx.createBiquadFilter(); f.type = type;
   f.frequency.setValueAtTime(from, t0);
@@ -109,6 +136,8 @@ export const sfx = {
   },
 };
 
+for (const k of Object.keys(sfx)) sfx[k] = mixed(k, sfx[k]);
+
 export function addSfx(map) {
-  for (const [k, f] of Object.entries(map || {})) { if (sfx[k]) throw new Error(`Dig: sound "${k}" twice`); sfx[k] = f; }
+  for (const [k, f] of Object.entries(map || {})) { if (sfx[k]) throw new Error(`Dig: sound "${k}" twice`); sfx[k] = mixed(k, f); }
 }
