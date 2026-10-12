@@ -8,7 +8,7 @@ import strings from './strings.js';
 
 const p = {
   hp: 20,                         // Big Rock hp, in dirt blocks of its row
-  layerHp: 0.25,                  // and this much more per layer
+  layerHp: 0.5,                   // and this much more per layer
   pay: 120,                       // Big Rock coins, in dirt blocks of its row
   weakMult: 3, weakSeconds: 1.7,  // the crack: hits on it count 3 times, and it moves
 };

@@ -15,9 +15,25 @@ use({
   id: 'core',
   params: {
     powGrow: 1.25,                  // each pick or training level: hits x1.25
-    // hp of dirt at row r = hp0 * hpGrow^r for the first layer, then hpGrow2 per row below it
+    // The depth curves (core/grid.js): layer 1 and layer 2 here, the layers below in `grow`.
     hp0: 5, hpGrow: 1.12, hpGrow2: 1.12,
-    val0: 1, valGrow: 1.10, valGrow2: 1.10,   // coins of dirt, the same way
+    val0: 1, valGrow: 1.10, valGrow2: 1.10,
+    // layers 3 and 4, the Deep's four, then everything below (the last entry goes on for ever)
+    grow: [
+      { hp: 1.14, val: 1.10, step: 2, share: 0.35 },    // 50 m: water
+      { hp: 1.17, val: 1.10, step: 20, share: 0.03 },    // 75 m: crystal
+      { hp: 1.20, val: 1.10, step: 8, share: 0.03 },    // 100 m: The Black
+      { hp: 1.20, val: 1.10, step: 8, share: 0.028 },   // 125 m: The Living Rock
+      { hp: 1.20, val: 1.10, step: 8, share: 0.026 },   // 150 m: The Angry Layer
+      { hp: 1.20, val: 1.10, step: 8, share: 0.024 },   // 175 m: The Hot Layer
+      { hp: 1.22, val: 1.10, step: 10, share: 0.02 },   // 200 m and below: nothing new yet
+    ],
+    buyPow: 0.55,                   // coins -> hits: log(powGrow) / log(1.5), the price growth of a pick level
+    // Stars for a move (starsAt in core/grid.js)
+    starPer: 10, starLess: 2,       // the plain count: one Star per 10 m, less 2
+    starShare: 0.35,                // deeper down: this share of the Stars it takes to stand where the dig got to
+    starCap: 1,                     // one move pays at most this many times the Stars you have ever earned
+    starFrom: 50, starWall: 20,     // a dig with no Stars reaches a wall this many times the wall at 50 m
     sight: 2,                       // how many blocks from open space you can see
   },
   legacy: { powGrow: 'powGrow', hp0: 'hp0', hpGrow: 'hpGrow', hpGrow2: 'hpGrow2', val0: 'val0', valGrow: 'valGrow', valGrow2: 'valGrow2' },

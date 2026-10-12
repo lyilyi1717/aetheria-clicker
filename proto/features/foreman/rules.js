@@ -13,8 +13,8 @@ import { COLS, VIEW_ROWS, reachable, visibleMask } from '../../core/grid.js';
 import strings from './strings.js';
 
 const p = {
-  needCrew: 3,        // the Foreman comes when the player owns this many Rafeeqs ...
-  needBoss: 2,        // ... or has broken this many Big Rocks
+  needCrew: 7,        // the Foreman comes when the player owns this many Rafeeqs ...
+  needBoss: 3,        // ... or has broken this many Big Rocks
   mate: 3,            // a block a mate is already on counts as this many blocks farther away
   rowWeight: 1.5,     // follow: a row away is this many columns away
   downPull: 4,        // dig down: how much one row deeper is worth

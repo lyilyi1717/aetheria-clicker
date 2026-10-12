@@ -87,5 +87,36 @@ const clearRow = (s, i) => { for (let c = 0; c < G.COLS; c++) s.rows[i][c] = nul
   ok(s.coins === 0 && !s.relics.vein && s.top === 0 && s.bossesDown === 0, 'the dig itself starts over');
 }
 
+{ // the depth curves: one entry per layer, and Stars that follow the wall
+  ok(Math.abs(G.dirtHp(10) - 5 * Math.pow(1.12, 10)) < 1e-6 && Math.abs(G.dirtVal(30) - Math.pow(1.10, 30)) < 1e-6, 'the first two layers keep their old curve');
+  for (let r = 4; r < 260; r++) if (!(G.dirtHp(r) > G.dirtHp(r - 1) && G.dirtVal(r) > G.dirtVal(r - 1))) { ok(false, 'the ground gets harder and richer every metre (row ' + r + ')'); break; }
+  const g = G.PARAMS.core.grow[0];
+  ok(Math.abs(G.dirtHp(50) / G.dirtHp(49) - g.step * G.PARAMS.core.hpGrow2) < 1e-6, 'a layer starts with its step: the wall behind the Big Rock');
+  const undo = G.setParam('core.grow.0.hp', 1.5);
+  ok(Math.abs(G.dirtHp(52) / G.dirtHp(51) - 1.5) < 1e-6, 'the growth of a layer is a number a sim can set');
+  undo();
+  const L = G.layersOf('desert')[2], had = L.grow;
+  L.grow = { hp: 2, step: 1 };
+  ok(Math.abs(G.dirtHp(52) / G.dirtHp(51) - 2) < 1e-6 && Math.abs(G.dirtHp(50) / G.dirtHp(49) - G.PARAMS.core.hpGrow2) < 1e-6, 'a layer may bring its own growth');
+  if (had === undefined) delete L.grow; else L.grow = had;
+  ok(G.starsAt(51) === 3 && G.starsAt(75) === 5, 'the first moves pay the plain count');
+  let up = true; for (let d = 52; d < 230; d++) if (G.starsAt(d) < G.starsAt(d - 1)) up = false;
+  ok(up && G.starsAt(200) > 1000 * G.starsAt(100), 'deeper pays more Stars, and far more in the Deep');
+  ok(G.starsAt(200, 'desert', 40) === 40 && G.starsAt(200, 'desert', 0) === G.starsAt(51) + 15, 'one move at most doubles the Stars you have (never less than the plain count)');
+  ok(G.starsToStand(40) === 0 && G.starLift(0) === 1 && G.starLift(10) > 3, 'Stars lift the wall');
+}
+{ // a save from before the curves changed: the ground it holds is kept, new ground follows the new curve
+  const s = G.newState();
+  for (let n = 0; n < 60; n++) { clearRow(s, 0); G.step(s, 0.01); }
+  const old = JSON.parse(G.serialize(s));
+  for (const row of old.rows) for (const c of row) if (c) { c.hp = 7; c.max = 7; }
+  old.stars = 9;
+  const back = G.deserialize(JSON.stringify(old));
+  ok(back && back.stars === 9 && back.top === s.top && back.rows[3].every(c => !c || c.max === 7), 'an old save loads with its ground and its Stars as they were');
+  clearRow(back, 0); G.step(back, 0.01);
+  const deep = back.rows[back.rows.length - 1].find(c => c && c.t === 'dirt');
+  ok(!deep || deep.max === Math.round(G.dirtHp(back.top + back.rows.length - 1)), 'the next row it digs is the new ground');
+}
+
 if (failed) { console.error(`${failed} check(s) failed`); process.exit(1); }
 console.log('Dig prototype rules OK');
