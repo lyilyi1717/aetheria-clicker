@@ -3,7 +3,7 @@
 import { use, emit, run, layersOf } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, LAYER, layerOf, dirtHp, dirtVal, setCell } from '../../core/grid.js';
-import { addCoins, coinMult } from '../../core/rules.js';
+import { addCoins, coinMult, pickPower } from '../../core/rules.js';
 import strings from './strings.js';
 
 const p = {
@@ -11,6 +11,7 @@ const p = {
   layerHp: 0.5,                   // and this much more per layer
   pay: 120,                       // Big Rock coins, in dirt blocks of its row
   weakMult: 3, weakSeconds: 1.7,  // the crack: hits on it count 3 times, and it moves
+  chainCap: 12,                   // a blast or a thrown thing does at most this many of your hits to a Big Rock
 };
 
 export const isBossRow = r => r > 0 && r % LAYER === 0;
@@ -51,6 +52,9 @@ export const boss = use({
     boss: { at: 120, hp: 1, val: 0, wall: true, damage(s, r, c, cell, dmg, src, ev, info) {
       const b = ensureBoss(s, r);
       if (b.hp <= 0) return false;
+      // A blast, a thrown rock, a tool: strong by the ground's measure, so capped by yours. The Rock is
+      // the wall of the pacing curve (docs/dig-pacing.md) and only your own strength brings it down.
+      if (info.chain && !info.tool) dmg = Math.min(dmg, pickPower(s) * p.chainCap);   // a Forge tool is counted in your hits already
       const weak = src === 'you' && c === b.weak;       // the glowing crack: aim for it
       if (weak) dmg *= p.weakMult;
       b.hp -= dmg;
