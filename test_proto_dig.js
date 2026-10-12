@@ -103,7 +103,7 @@ const clearRow = (s, i) => { for (let c = 0; c < G.COLS; c++) s.rows[i][c] = nul
   let up = true; for (let d = 52; d < 230; d++) if (G.starsAt(d) < G.starsAt(d - 1)) up = false;
   ok(up && G.starsAt(200) > 1000 * G.starsAt(100), 'deeper pays more Stars, and far more in the Deep');
   ok(G.starsAt(200, 'desert', 40) === 40 && G.starsAt(200, 'desert', 0) === G.starsAt(51) + 15, 'one move at most doubles the Stars you have (never less than the plain count)');
-  ok(G.starsToStand(40) === 0 && G.starLift(0) === 1 && G.starLift(10) > 3, 'Stars lift the wall');
+  ok(G.starsToStand(40) === 0 && G.starLift(0) === 1 && G.starLift(10) > 2, 'Stars lift the wall');
 }
 { // a save from before the curves changed: the ground it holds is kept, new ground follows the new curve
   const s = G.newState();

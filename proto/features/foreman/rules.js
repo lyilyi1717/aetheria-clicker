@@ -2,7 +2,7 @@
 // Big Rock) and gives the Rafeeqs a job: a digger policy picked by `s.crewJob` (README, "Digger jobs").
 //   Follow me      dig next to where the player's pick last hit
 //   Go for ore     walk to the nearest ore or chest in sight; dig a tunnel to it if it is buried
-//   Clear the top  today's behaviour (the policy `nearest` from the diggers feature)
+//   Beside me      the default (id `nearest`): next to where the pick last hit, and the rows under it (diggers)
 //   Dig down       race for the deepest block that can be hit
 //   Tea break      sit for a while, then dig at double speed for as long: a trade, never a gate
 // Away: the away rules do not ask which job runs (the crew is always spent straight down), so the
@@ -24,7 +24,7 @@ const p = {
   botJob: 'smart',    // the sim player: 'smart' tries each job once then goes for ore; or a job id; or 'none'
 };
 
-export const foremanJobs = ['follow', 'ore', 'nearest', 'down', 'tea'];
+export const foremanJobs = ['nearest', 'follow', 'ore', 'down', 'tea'];
 
 const taken = (s, d, r, c) => s.diggers.some(o => o !== d && o.tr === r && o.tc === c);
 

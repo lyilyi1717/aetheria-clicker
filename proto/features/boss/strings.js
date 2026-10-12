@@ -1,7 +1,15 @@
 export default { en: {
   goal_rock: 'The Big Rock is at {n} m',
   goal_boss: 'Break the Big Rock!',
+  goal_boss_hits: 'Big Rock: about {n} of your hits left',
   t_boss: 'The Big Rock! Hit the glowing crack: 3 times the damage.',
   boss_down: 'The Big Rock is broken!',
   boss_down_sub: '+{n} coins and a chest. New ground below.',
+  rubble_t: 'The Rock sheds rubble: +{n}',
+  rubble_chest: 'A chest fell out of the Rock!',
+  bar_you: 'You', bar_crew: 'Rafeeqs',
+  record_line: 'Your record: {n} m',
+  record_new: 'New record: {n} m!',
+  record_new_sub: 'You beat {old} m. Nobody has dug deeper.',
+  record_flag: 'Your record {n} m',
 } };

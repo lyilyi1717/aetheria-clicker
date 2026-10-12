@@ -3,6 +3,8 @@
 // draws on top are registered: addArt({ kind: {...} }) and addDraw([{ at, fn }]). See proto/README.md.
 import { COLS, VIEW_ROWS, KEEP_ROWS, layerOf, layerAt, reachable, visibleMask } from '../core/grid.js';
 import { layersOf } from '../core/registry.js';
+import { lookFor } from '../features/look/palette.js';
+import { makeWorld } from '../features/look/world.js';
 
 export const CELL = 64;
 export const SKY = 104;
@@ -35,7 +37,8 @@ export function addDraw(list) { for (const d of list || []) DRAW.push(d); DRAW.s
 export function onFx(fn) { TICKS.push(fn); }
 export function bindState(s) { S = s; }
 
-const look = r => layerAt(S, Math.max(0, r)).look;
+// the colours of a row: the layer's own palette (features/look/palette.js) with the site's small tint on the dirt
+const look = r => { const L = layerAt(S, Math.max(0, r)); return lookFor(L.id, L.look, S.site); };
 const layerIdx = r => Math.min(Math.max(0, layerOf(r)), layersOf(S.land).length - 1);
 
 export function shade(hex, k) {
@@ -189,38 +192,6 @@ export function updateFx(dt) {
 
 // ---------- the core draw layers ----------
 
-function drawBack(g) {
-  // the dug-out earth behind everything
-  const first = Math.floor(fx.cam) - 2;
-  for (let r = first; r < first + VIEW_ROWS + 5; r++) {
-    const y = yOf(r);
-    g.fillStyle = look(r).back; g.fillRect(-20, y, W + 40, CELL + 1);
-    g.fillStyle = 'rgba(0,0,0,0.12)';
-    const rnd = seeded(r + 3);
-    for (let i = 0; i < 5; i++) g.fillRect(rnd() * W, y + rnd() * CELL, 14 + rnd() * 30, 4);
-  }
-}
-
-function drawSky(g) {
-  const y0 = -fx.cam * CELL;
-  if (y0 + SKY < -4) return;
-  const grad = g.createLinearGradient(0, y0, 0, y0 + SKY);
-  grad.addColorStop(0, '#2b6cb0'); grad.addColorStop(0.75, '#f6c177'); grad.addColorStop(1, '#f2a65a');
-  g.fillStyle = grad; g.fillRect(0, y0, W, SKY);
-  g.fillStyle = '#fff3c4'; g.beginPath(); g.arc(W - 90, y0 + 40, 22, 0, 7); g.fill();
-  g.fillStyle = 'rgba(255,243,196,0.25)'; g.beginPath(); g.arc(W - 90, y0 + 40, 34, 0, 7); g.fill();
-  g.fillStyle = '#e0b467';
-  g.beginPath(); g.moveTo(0, y0 + SKY);
-  for (let x = 0; x <= W; x += 20) g.lineTo(x, y0 + SKY - 14 - Math.sin(x / 70) * 9 - Math.sin(x / 23) * 2);
-  g.lineTo(W, y0 + SKY); g.closePath(); g.fill();
-  // a palm and a tent, so it is a place
-  g.strokeStyle = '#5b3a1a'; g.lineWidth = 5; g.beginPath(); g.moveTo(92, y0 + SKY - 12); g.quadraticCurveTo(84, y0 + 60, 96, y0 + 42); g.stroke();
-  g.strokeStyle = '#2f7d3a'; g.lineWidth = 4;
-  for (const a of [-2.7, -2.1, -1.2, -0.5, 0.1]) { g.beginPath(); g.moveTo(96, y0 + 42); g.quadraticCurveTo(96 + Math.cos(a) * 20, y0 + 30 + Math.sin(a) * 14, 96 + Math.cos(a) * 34, y0 + 46 + Math.sin(a) * 18); g.stroke(); }
-  g.fillStyle = '#f4ead5'; g.beginPath(); g.moveTo(400, y0 + SKY - 14); g.lineTo(440, y0 + SKY - 52); g.lineTo(480, y0 + SKY - 14); g.closePath(); g.fill();
-  g.fillStyle = '#b5633c'; g.beginPath(); g.moveTo(432, y0 + SKY - 14); g.lineTo(440, y0 + SKY - 36); g.lineTo(448, y0 + SKY - 14); g.closePath(); g.fill();
-}
-
 function drawBlocks(g, s) {
   const mouseOn = fx.target;
   const seen = visibleMask(s);
@@ -231,7 +202,7 @@ function drawBlocks(g, s) {
     // a kind that draws its whole row (the Big Rock)
     const any = s.rows[i].find(x => x);
     if (any && ART[any.t] && ART[any.t].row) { ART[any.t].row(g, s, r, y); continue; }
-    const L = layerIdx(r), p = look(r), key0 = s.land + '|' + L + '|';
+    const L = layerIdx(r), p = look(r), key0 = s.land + '|' + s.site + '|' + L + '|';
     for (let c = 0; c < COLS; c++) {
       const cell = s.rows[i][c];
       if (!cell) continue;
@@ -264,13 +235,6 @@ function drawBlocks(g, s) {
       }
     }
   }
-}
-
-function drawFog(g) {
-  // darker with depth, so the bottom of the view is a promise
-  const fog = g.createLinearGradient(0, H - CELL * 2.2, 0, H);
-  fog.addColorStop(0, 'rgba(8,5,12,0)'); fog.addColorStop(1, 'rgba(8,5,12,0.6)');
-  g.fillStyle = fog; g.fillRect(-20, H - CELL * 2.2, W + 40, CELL * 2.2 + 20);
 }
 
 function drawFx(g) {
@@ -319,14 +283,20 @@ function drawPick(g) {
   g.restore();
 }
 
+// the sky, the wall, the strata, the light and the ruler live in features/look/world.js
+const world = makeWorld({ fx, yOf, W, H, SKY, CELL, seeded });
+
 addDraw([
-  { at: AT.back, fn: drawBack },
-  { at: AT.sky, fn: drawSky },
+  { at: AT.back, fn: world.drawBack },
+  { at: AT.sky, fn: world.drawSky },
   { at: AT.blocks, fn: drawBlocks },
-  { at: AT.fog, fn: drawFog },
+  { at: AT.blocks + 4, fn: world.drawStrata },
+  { at: AT.fog, fn: world.drawLight },
+  { at: AT.fog + 10, fn: world.drawDrift },
   { at: AT.fx, fn: drawFx },
   { at: AT.pick, fn: drawPick },
   { at: AT.screen, fn: g => g.restore() },   // the shake ends here
+  { at: AT.screen + 5, fn: world.drawRuler },   // fixed to the screen
   { at: AT.flash, fn(g) { if (fx.screenFlash > 0) { g.globalAlpha = fx.screenFlash; g.fillStyle = fx.flashCol; g.fillRect(0, 0, W, H); g.globalAlpha = 1; } } },
 ]);
 

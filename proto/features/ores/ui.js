@@ -1,7 +1,8 @@
 // Dig feature (page side): how ore looks. `rich` gives a break its ring, sparks and bigger coins.
 import { ui } from '../../ui/app.js';
-import { baseBlock, shade } from '../../ui/render.js';
+import { baseBlock } from '../../ui/render.js';
 import { S, badge, gem } from '../../ui/icons.js';
+import { oreBacking } from '../look/palette.js';
 
 const COL = { copper: ['#f08a3c', '#ffc38a'], silver: ['#dfe9f2', '#ffffff'], gold: ['#ffcf33', '#fff3a8'], gem: ['#3ee6e0', '#d6fffd'] };
 
@@ -21,7 +22,7 @@ function gemShape(g, x, y, s, cols) {
   g.fillStyle = cols[1]; g.fill();
 }
 const nuggets = t => (g, p, v) => {
-  baseBlock(g, shade(p.dirt, -0.18), v, 3);
+  baseBlock(g, oreBacking(p.dirt, COL[t][0]), v, 3);   // dark enough that the ore reads on every layer
   const cols = COL[t];
   nugget(g, 21, 24, 10, cols, 0.3 + v); nugget(g, 43, 38, 11, cols, 1.2 + v); nugget(g, 40, 17, 6, cols, 2 + v); nugget(g, 20, 45, 6, cols, 4 + v);
 };
@@ -37,7 +38,7 @@ ui({
     silver: { rich: true, twinkle: true, colour: COL.silver[0], coin: '#dfe9f2', sprite: nuggets('silver') },
     gold:   { rich: true, twinkle: true, colour: COL.gold[0], sprite: nuggets('gold') },
     gem:    { rich: true, twinkle: true, colour: COL.gem[0], coin: '#dfe9f2', sprite(g, p, v) {
-      baseBlock(g, shade(p.dirt, -0.18), v, 3);
+      baseBlock(g, oreBacking(p.dirt, COL.gem[0]), v, 3);
       gemShape(g, 22, 26, 12, COL.gem); gemShape(g, 43, 40, 10, COL.gem); gemShape(g, 40, 17, 6, COL.gem);
     } },
   },

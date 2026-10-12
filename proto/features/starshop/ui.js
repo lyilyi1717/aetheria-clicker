@@ -1,44 +1,129 @@
-// Dig feature (page side): the Star Shop panel, the "which relic crosses" picker, the free re-roll
-// button on a chest's card, the TNT outline, and the pointer that shows up with a New Site.
+// Dig feature (page side): the three Star tracks panel, the "Your hit" chip with the drawn pick, the
+// "which relic crosses" picker, the free re-roll button on a chest's card, the TNT outline, and the pointer
+// that shows up with a New Site.
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
-import { shopPanel } from '../../ui/shop.js';
-import { S, badge, star, icon, pickShape, helmet, chest as chestShape } from '../../ui/icons.js';
+import { S, badge, star, icon, pickShape, helmet, chest as chestShape, gem } from '../../ui/icons.js';
 import { AT, CELL, yOf, fx } from '../../ui/render.js';
 import { openDraft } from '../chest/ui.js';
 
 const { t } = G;
 
-// a perk's line: what the NEXT level does (or the last one, when full), from the per-level strings
-const perkText = id => (s, lv) => t(`up_${id}_d${Math.min(lv + 1, G.STARSHOP_PERKS[id].costs.length)}`);
-const items = {};
-for (const id of Object.keys(G.STARSHOP_PERKS)) items[id] = { desc: perkText(id) };
+// ---------- the pick, drawn ----------
+// Four shapes (stone, curved, flat, gem); the materials that share a shape differ in colour and shine.
+const HANDLE = '<path d="M9 25 L21 11" stroke="#1b1410" stroke-width="5" stroke-linecap="round"/><path d="M9 25 L21 11" stroke="#a8672c" stroke-width="2.6" stroke-linecap="round"/>';
+const MATS = {
+  wood:    { shape: 'curved', c: '#b98a52', hi: '#e2c08c' },
+  stone:   { shape: 'stone',  c: '#9aa0a6', hi: '#d5d9dc' },
+  copper:  { shape: 'curved', c: '#d9824a', hi: '#ffd0a8' },
+  bronze:  { shape: 'curved', c: '#a9753a', hi: '#e9c58a' },
+  iron:    { shape: 'flat',   c: '#7b858f', hi: '#c3ccd4' },
+  steel:   { shape: 'flat',   c: '#b3c2d1', hi: '#f2f8ff' },
+  silver:  { shape: 'curved', c: '#dfe7ee', hi: '#ffffff' },
+  gold:    { shape: 'curved', c: '#ffd23f', hi: '#fff3a8' },
+  crystal: { shape: 'gem',    c: '#7fe3ff', hi: '#e8fbff' },
+  skyiron: { shape: 'gem',    c: '#3a3f5c', hi: '#7ff0ff' },
+  star:    { shape: 'gem',    c: '#ffd23f', hi: '#fff3a8', star: true },
+};
+// n-1 bands on the handle: the steps between two materials
+const bands = n => {
+  let o = '';
+  for (let i = 0; i < n - 1; i++) {
+    const f = 0.28 + i * 0.17, x = 9 + 12 * f, y = 25 - 14 * f;
+    o += `<path d="M${(x - 1.7).toFixed(1)} ${(y - 1.5).toFixed(1)} L${(x + 1.7).toFixed(1)} ${(y + 1.5).toFixed(1)}" stroke="#3b2412" stroke-width="1.6" stroke-linecap="round"/>`;
+  }
+  return o;
+};
+function head(m) {
+  const k = MATS[m];
+  if (k.shape === 'stone') return `<path d="M9 11 L16 5 L25 8 L28 15 L24 17 L18 12 L12 15 Z" fill="${k.c}" ${S}/><path d="M16 5.5 L22 8.5 M13 13 L17 10" stroke="${k.hi}" stroke-width="1.3" stroke-linecap="round"/>`;
+  if (k.shape === 'flat') return `<path d="M5 13 L13 7 L27 15 L25 18.5 L13 11.5 L8 16 Z" fill="${k.c}" ${S}/><path d="M13 8.4 L24 15" stroke="${k.hi}" stroke-width="1.3" stroke-linecap="round"/>`;
+  const base = `<path d="M12 7 Q22 6 26 16" fill="none" stroke="#1b1410" stroke-width="5.4" stroke-linecap="round"/><path d="M12 7 Q22 6 26 16" fill="none" stroke="${k.c}" stroke-width="3" stroke-linecap="round"/><path d="M13 7.2 Q20 6.6 24.4 11.5" fill="none" stroke="${k.hi}" stroke-width="1" stroke-linecap="round" opacity=".85"/>`;
+  if (k.shape === 'gem') return base + (k.star ? star(25.5, 7, 4.2, 1.9, 5, '#fff3a8') : gem(25, 8, 4, k.hi));
+  return base;
+}
+export const pickArt = (mat, n = 0) => HANDLE + bands(n) + head(mat);
+const pickSvg = (mat, n, size) => `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true">${pickArt(mat, n)}</svg>`;
+const matIcons = Object.fromEntries(Object.keys(MATS).map(m => ['pick_' + m, pickArt(m, 0)]));
 
-const affordable = s => Object.keys(G.STARSHOP_PERKS).some(id => G.itemOpen(s, id) && G.canBuy(s, id));
+// ---------- what a step says ----------
+const RULE_ICON = { head1: 'up_sp_head', head2: 'up_sp_head', head3: 'up_sp_head', whole: 'up_sp_head', shoes: 'up_sp_head', kettle: 'up_sp_head', wake: 'up_sp_wake', keep1: 'up_sp_keep', keep2: 'up_sp_keep', keep3: 'up_sp_keep', pocket2: 'up_sp_keep', cards: 'up_sp_cards', reroll: 'up_sp_reroll', map: 'up_sp_map', eyes: 'up_sp_eyes', bone: 'up_sp_bone', oil: 'up_sp_oil', gift1: 'up_sp_gift', gift2: 'up_sp_gift' };
+// step n (1, 2, 3 ...) of a track: { title, desc, ic }
+function stepInfo(track, n) {
+  const rule = G.starshopRule(track, n);
+  if (track === 'pick') {
+    const pk = G.starshopPickAt(n);
+    return { title: t('pick_title', { name: G.starshopPickName(pk) }), desc: rule ? t('rule_' + rule + '_d') : t('track_more_pick'), ic: 'pick_' + pk.mat };
+  }
+  if (rule) return { title: t('rule_' + rule), desc: t('rule_' + rule + '_d'), ic: RULE_ICON[rule] || 'up_sp_head' };
+  return { title: t('track_plain_' + track), desc: t('track_more_' + track), ic: track === 'camp' ? 'up_sp_head' : 'coin' };
+}
 
-// the panel is the plain shop panel plus a note and the picker for Lucky Pocket
+const affordable = s => G.STARSHOP_TRACKS.some(tr => G.canBuy(s, 'tr_' + tr));
+
+// ---------- the panel ----------
 function panel() {
-  const base = shopPanel({ id: 'starshop', shop: 'star', title: 'starshop', side: 'right', at: 5, coin: 'star' });
-  base.when = s => s.stars > 0 || s.starSpent > 0;
-  const build = base.build, update = base.update;
-  let note, pick, sig = '';
-  base.build = function (el, app) {
-    build(el, app);
-    note = document.createElement('p'); note.className = 'muted star-note';
-    pick = document.createElement('div'); pick.className = 'star-pick'; pick.hidden = true;
-    el.insertBefore(note, el.firstChild.nextSibling);
-    el.appendChild(pick);
+  let note, back, box, pick, sig = '', pickSig = '';
+  return {
+    id: 'starshop', side: 'right', at: 5, title: 'starshop', live: true,
+    when: s => s.stars > 0 || s.starSpent > 0,
+    build(el) {
+      note = document.createElement('p'); note.className = 'muted star-note';
+      back = document.createElement('p'); back.className = 'star-back'; back.hidden = true;
+      box = document.createElement('div'); box.className = 'trk-list';
+      pick = document.createElement('div'); pick.className = 'star-pick'; pick.hidden = true;
+      el.append(note, back, box, pick);
+    },
+    update(el, s, app) {
+      note.textContent = t('star_note') + ' ' + t('star_next');
+      back.hidden = !(s.starRefund > 0);
+      if (!back.hidden) back.textContent = t('star_back', { n: G.fmt(s.starRefund) });
+      el.classList.toggle('ready', affordable(s));
+      const key = s.stars + '|' + G.STARSHOP_TRACKS.map(tr => G.starshopSteps(s, tr)).join();
+      if (key !== sig) {
+        sig = key;
+        box.innerHTML = '';
+        for (const tr of G.STARSHOP_TRACKS) box.appendChild(track(s, tr, app));
+      }
+      keeper(s, app);
+    },
   };
-  base.update = function (el, s, app) {
-    update(el, s, app);
-    note.textContent = t('star_note') + ' ' + t('star_next');
-    el.classList.toggle('ready', affordable(s));
+  function track(s, tr, app) {
+    const id = 'tr_' + tr, n = G.starshopSteps(s, tr), id1 = n + 1;
+    const sec = document.createElement('section'); sec.className = 'trk trk-' + tr;
+    const h = document.createElement('div'); h.className = 'trk-h';
+    const pk = tr === 'pick' ? G.starshopPickAt(n) : null;
+    h.innerHTML = `<span class="ic">${tr === 'pick' ? pickSvg(pk.mat, pk.n, 30) : icon(tr === 'camp' ? 'up_sp_head' : 'coin', 30)}</span><b></b><span class="trk-n"></span><span class="d"></span>`;
+    h.querySelector('b').textContent = t('up_' + id);
+    h.querySelector('.trk-n').textContent = t('track_step', { n });
+    h.querySelector('.d').textContent = t('up_' + id + '_d');
+    sec.appendChild(h);
+    const info = stepInfo(tr, id1), cost = G.upgradeCost(s, id), can = s.stars >= cost;
+    const b = document.createElement('button');
+    b.className = 'shop-item trk-next' + (can ? ' can' : '');
+    b.innerHTML = `<span class="ic">${info.ic.startsWith('pick_') ? icon(info.ic, 40) : icon(info.ic, 40)}</span><span class="tx"><b></b><span class="d"></span></span><span class="cost">${icon('star', 16)}<i></i></span><span class="fill"></span>`;
+    b.querySelector('b').textContent = info.title;
+    b.querySelector('.d').textContent = info.desc;
+    b.querySelector('.cost i').textContent = G.fmt(cost);
+    b.querySelector('.fill').style.width = Math.min(100, s.stars / cost * 100) + '%';
+    b.addEventListener('click', () => { app.unlockAudio(); if (G.buy(app.state, id, app.ev)) { app.bump(b); app.refresh(true); app.dirty('starshop'); } else app.sfx.deny(); });
+    sec.appendChild(b);
+    const soon = document.createElement('ol'); soon.className = 'trk-soon';
+    for (let k = 2; k <= 4; k++) {
+      const i = stepInfo(tr, n + k), li = document.createElement('li');
+      li.textContent = `${n + k}. ${i.title}`;
+      soon.appendChild(li);
+    }
+    sec.appendChild(soon);
+    return sec;
+  }
+  function keeper(s, app) {
     pick.hidden = !G.starshopLevel(s, 'sp_keep');
     if (pick.hidden) return;
-    const held = G.starshopKeepOptions(s), now = G.starshopKeepNow(s);
-    const key = held.join() + '|' + (now ? now.id + now.level : '') + '|' + s.starKeep;
-    if (key === sig) return;
-    sig = key;
+    const held = G.starshopKeepOptions(s), now = G.starshopKeepList(s);
+    const key = held.join() + '|' + now.map(x => x.id + x.level).join() + '|' + s.starKeep;
+    if (key === pickSig) return;
+    pickSig = key;
     pick.innerHTML = '';
     const h = document.createElement('p'); h.className = 'muted';
     h.textContent = held.length ? t('keep_title') + (s.starKeep ? '' : '  ·  ' + t('keep_auto')) : t('keep_none');
@@ -46,22 +131,33 @@ function panel() {
     const row = document.createElement('div'); row.className = 'star-pick-row';
     for (const id of held) {
       const b = document.createElement('button');
-      b.className = 'ghost' + (now && now.id === id ? ' on' : '');
+      b.className = 'ghost' + (now.some(x => x.id === id) ? ' on' : '');
       b.title = t('r_' + id);
       b.innerHTML = icon(id, 28);
       b.addEventListener('click', () => { app.unlockAudio(); G.starshopSetKeep(s, id); app.refresh(true); });
       row.appendChild(b);
     }
     pick.appendChild(row);
-    if (now) { const k = document.createElement('p'); k.className = 'muted'; k.textContent = t('r_' + now.id) + ': ' + t('keep_level', { n: now.level }); pick.appendChild(k); }
-  };
-  return base;
+    for (const k of now) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = t('r_' + k.id) + ': ' + t('keep_level', { n: k.level }); pick.appendChild(p); }
+  }
+}
+
+// the chip beside the purse: the pick, its material, and your hit
+let chip, chipN, chipName, chipIc, lastHit = -1, lastMat = '';
+function mountChip(app) {
+  chip = document.createElement('span');
+  chip.id = 'hit-chip'; chip.className = 'hit-chip';
+  chip.innerHTML = `<span class="hc-ic"></span><span class="hc-tx"><small></small><b></b></span><i></i>`;
+  chip.querySelector('small').textContent = t('hit_label');
+  chipN = chip.querySelector('b'); chipName = chip.querySelector('i'); chipIc = chip.querySelector('.hc-ic');
+  app.el.top.appendChild(chip);
 }
 
 ui({
   id: 'starshop',
   css: new URL('./starshop.css', import.meta.url).href,
   icons: {
+    ...matIcons,
     up_sp_head: badge('#2f8f5b', helmet),
     up_sp_keep: badge('#6b4aa0', `<path d="M8 12 H24 V26 H8 Z" fill="#e8d7b0" ${S}/><path d="M8 12 Q16 20 24 12" fill="none" ${S}/>${star(16, 8, 5, 2.2, 5, '#ffd23f')}`),
     up_sp_cards: badge('#8a5bc4', `<rect x="5" y="10" width="9" height="14" rx="2" fill="#fff" ${S}/><rect x="11.5" y="8" width="9" height="14" rx="2" fill="#ffe9a8" ${S}/><rect x="18" y="10" width="9" height="14" rx="2" fill="#fff" ${S}/>`),
@@ -73,11 +169,23 @@ ui({
     up_sp_bone: badge('#4b4460', `<g transform="rotate(-35 16 16)" fill="#f6efdc" ${S}><rect x="7" y="13.5" width="18" height="5" rx="2.5"/><circle cx="7" cy="12.5" r="3.6"/><circle cx="7" cy="19.5" r="3.6"/><circle cx="25" cy="12.5" r="3.6"/><circle cx="25" cy="19.5" r="3.6"/></g>`),
     up_sp_oil: badge('#2a2622', `<path d="M16 5 Q25 15 21 22 Q16 28 11 22 Q7 15 16 5 Z" fill="#111" stroke="#6b6560" stroke-width="1.6"/><circle cx="13" cy="19" r="2" fill="rgba(255,255,255,.5)"/>`),
     up_sp_gift: badge('#3d2a1a', chestShape + star(25, 7, 4, 1.8, 5, '#ffd23f')),
+    up_tr_pick: badge('#b5532a', pickShape('#ffd9a0')),
+    up_tr_camp: badge('#2f8f5b', helmet),
+    up_tr_bag: badge('#3d2a1a', chestShape + star(25, 7, 4, 1.8, 5, '#ffd23f')),
   },
-  items,
+  items: {
+    tr_pick: { desc: () => t('up_tr_pick_d'), noLevel: true },
+    tr_camp: { desc: () => t('up_tr_camp_d'), noLevel: true },
+    tr_bag: { desc: () => t('up_tr_bag_d'), noLevel: true },
+  },
   panels: [panel()],
   // the pointer: shown while you can buy something and have bought nothing yet
   goal: { at: 5, fn: s => (s.stars > 0 && s.starSpent === 0 && affordable(s) ? { text: t('star_pointer'), frac: 1, cls: 'gold' } : null) },
+  mount: mountChip,
+  start(app) {
+    const s = app.state;
+    if (s.starRefund > 0) setTimeout(() => app.toast(t('star_back', { n: G.fmt(s.starRefund) }), 'gold'), 1500);
+  },
   // TNT outlined through the dark
   draw: [{ at: AT.fog + 20, fn(g, s) {
     if (!G.starshopLevel(s, 'sp_eyes')) return;
@@ -95,6 +203,13 @@ ui({
     }
   } }],
   tick(s, app) {
+    // the Your hit chip
+    if (chip) {
+      const hit = G.pickPower(s), pk = G.starshopPickAt(G.starshopSteps(s, 'pick'));
+      const mk = pk.mat + pk.n;
+      if (mk !== lastMat) { lastMat = mk; chipIc.innerHTML = pickSvg(pk.mat, pk.n, 34); chipName.textContent = G.starshopPickName(pk); }
+      if (hit !== lastHit) { const first = lastHit < 0; lastHit = hit; chipN.textContent = G.starshopNum(hit); if (!first) app.bump(chip); }
+    }
     // the free re-roll: a button on a chest's card, while it is open
     if (app.modal.id !== 'draft' || !G.starshopRerollsLeft(s)) return;
     const card = document.querySelector('#modal .card.draft');
@@ -110,7 +225,11 @@ ui({
     card.insertBefore(b, card.querySelector('.more'));
   },
   on: {
-    newSite(d, app) { if (d.stars > 0) setTimeout(() => app.toast(t('star_pointer'), 'gold'), 1800); app.dirty('starshop'); },
+    newSite(d, app) {
+      if (d.stars > 0) setTimeout(() => app.toast(t('star_pointer'), 'gold'), 1800);
+      setTimeout(() => app.toast(G.starshopMovedText(app.state), 'gold'), 3200);
+      app.dirty('starshop');
+    },
     awayDone(out, app) { if (out && out.passed) app.toast(t('t_wake', { n: out.passed }), 'gold'); },
   },
 });
