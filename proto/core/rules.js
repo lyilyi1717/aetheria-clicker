@@ -22,11 +22,11 @@ use({
     grow: [
       { hp: 1.14, val: 1.10, step: 2, share: 0.35 },    // 50 m: water
       { hp: 1.17, val: 1.10, step: 20, share: 0.03 },    // 75 m: crystal
-      { hp: 1.20, val: 1.10, step: 8, share: 0.03 },    // 100 m: The Black
-      { hp: 1.20, val: 1.10, step: 8, share: 0.028 },   // 125 m: The Living Rock
-      { hp: 1.20, val: 1.10, step: 8, share: 0.026 },   // 150 m: The Angry Layer
-      { hp: 1.20, val: 1.10, step: 8, share: 0.024 },   // 175 m: The Hot Layer
-      { hp: 1.22, val: 1.10, step: 10, share: 0.02 },   // 200 m and below: nothing new yet
+      { hp: 1.20, val: 1.10, step: 6, share: 0.03 },    // 100 m: The Black
+      { hp: 1.20, val: 1.10, step: 6, share: 0.028 },   // 125 m: The Living Rock
+      { hp: 1.20, val: 1.10, step: 6, share: 0.026 },   // 150 m: The Angry Layer
+      { hp: 1.20, val: 1.10, step: 6, share: 0.024 },   // 175 m: The Hot Layer
+      { hp: 1.22, val: 1.10, step: 8, share: 0.02 },   // 200 m and below: nothing new yet
     ],
     buyPow: 0.55,                   // coins -> hits: log(powGrow) / log(1.5), the price growth of a pick level
     // Stars for a move (starsAt in core/grid.js)

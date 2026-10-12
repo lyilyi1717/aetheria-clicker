@@ -44,8 +44,8 @@ Two changes to the shape that was first proposed, and why:
    `hp` and `val` are the growth per metre, `step` is how many times harder the ground gets behind
    the Big Rock that opens the layer. Layers 1 and 2 are unchanged (1.12 and 1.10 a metre).
 2. **The Big Rock is the wall.** Inside a layer the ground can be passed without much strength
-   (TNT, crystals, water, tools and several relics break ground by the hardness of the ground itself,
-   not by the strength of the pick). The Rock cannot: its hp is 20 dirt blocks of the row below the
+   (until the hits rule below, TNT, crystals, tools and several relics broke ground by the hardness of
+   the ground itself, not by the strength of the pick). The Rock cannot: its hp is 20 dirt blocks of the row below the
    step, times `1 + 0.5 x layer`. So each layer is `step` times a real wall, and the walls get
    higher: x2 at 50 m, x20 at 75 m, x8 at each Rock of the Deep, x10 below 200 m.
 3. **Stars follow the wall** (`starsAt` in `core/grid.js`). `starLift(S)` says how many times higher
@@ -62,9 +62,14 @@ Two changes to the shape that was first proposed, and why:
    doubles the Stars.
 6. **Unlocks moved** (numbers in the features' params): the Foreman comes with 7 Rafeeqs or the third
    Big Rock (was 3 or the second); the contracts board opens after 14 New Sites (was 3).
-7. **Two feature numbers changed for the wall**: `boss.layerHp` 0.25 to 0.5 (deeper Rocks are
-   sturdier); `contracts.feedBend` 0.4 to 0.05 (the Feed the Rock prize took a share of the Rock's
-   whole hp with every ore, which removed every later wall).
+7. **Everything that breaks ground is counted in hits** (`pickPower` times a count; a Rafeeq's blast in
+   Rafeeq hits). TNT `tnt.power` 8 hits to each block around it (Big Bang adds `bangHits` 4 a level: 12,
+   16); crystal line `crystal.power` 4; Dynamite `forge.dynPower` 14; the Drill `forge.drillPower` 6 a
+   block; fusion bombs `fusion.bombHits` 4; the Derrick pulse 1.5 hits with no floor from the ground;
+   Feed the Rock `contracts.feedUnit` 6 hits per copper inside the contract and `feedBend` 2 hits per
+   copper for the prize (silver x2, gold x4, gem x8). Flying and falling blocks were already capped at
+   `relics2.throwCap` 4 hits and stay as they are. Water and lava only wash or turn soft blocks and
+   ore and deal no damage. `boss.layerHp` is 0.5 (deeper Rocks are sturdier).
 8. **Away is unchanged.** It was measured as 0.7 to 3 times five active minutes for two hours away.
    With the Rock as the wall it does what it should: the Rafeeqs bring the dig to the Rock and sieve;
    the Rock is the player's. Half of the mixed player's coins come from time away.
