@@ -79,7 +79,6 @@ const nextOre = kind => { const k = ORES.indexOf(kind); return k >= 0 && k < ORE
 
 // ---------- the rules of fusing ----------
 
-export const fusionMelted = (s, half) => !!s.fusion.melted[half];
 export const fusionHeld = (s, id) => !!s.relics[fusionRelic(id)];
 const live = (s, id) => { const f = BY[id]; return !!(s.relics[fusionRelic(id)] && rel(s, f.a) && rel(s, f.b)); };
 export const fusionNeed = (s, id) => (s.fusionBook.stamped[id] ? p.masterNeed : p.fullNeed);

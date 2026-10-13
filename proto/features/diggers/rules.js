@@ -94,6 +94,9 @@ function sieve(s, d, dt, ev) {
   }
 }
 
+// one Rafeeq, with his tally; every creator (the shop, the Camp perks, the start kit) uses this. `c`: the column he starts in (random if left out)
+export const newRafeeq = (s, c) => ({ id: s.diggers.reduce((m, d) => Math.max(m, d.id || 0), 0) + 1, broke: 0, coins: 0, c: c === undefined ? Math.floor(rnd() * COLS) : c, r: s.top, tc: -1, tr: -1, cd: 0.3, swing: 0 });
+
 export const diggers = use({
   id: 'diggers',
   params: p,
@@ -117,7 +120,7 @@ export const diggers = use({
   items: {
     crew: { at: 20, shop: 'coin', base: 30, grow: 4.2, max: 8, levels: 'core', open: s => s.total >= 60 || s.up.crew > 0,
       // id, broke, coins: his tally (a name can join them later) for the Rafeeq panel
-      bought(s) { s.diggers.push({ id: s.diggers.reduce((m, d) => Math.max(m, d.id || 0), 0) + 1, broke: 0, coins: 0, c: Math.floor(rnd() * COLS), r: s.top, tc: -1, tr: -1, cd: 0.3, swing: 0 }); } },
+      bought(s) { s.diggers.push(newRafeeq(s)); } },
     crewPow: { at: 30, shop: 'coin', base: 12, grow: 1.5, open: s => s.up.crew > 0 },
   },
   policies: { nearest },

@@ -93,7 +93,6 @@ function pic(g, id, x, y, size, redraw, alpha = 1, grey = false) {
 // ---------- paths ----------
 const PTS = new Map();
 const ptsOf = e => { let p = PTS.get(e); if (!p) { p = pathPoints(e); PTS.set(e, p); } return p; };
-export function pathLength(e) { const p = ptsOf(e); let n = 0; for (let i = 1; i < p.length; i++) n += Math.hypot(p[i].x - p[i - 1].x, p[i].y - p[i - 1].y); return n; }
 // the point a share (0 to 1) of the way along a path
 export function along(e, u) {
   const p = ptsOf(e), f = Math.max(0, Math.min(1, u)) * (p.length - 1), i = Math.min(p.length - 2, Math.floor(f)), k = f - i;

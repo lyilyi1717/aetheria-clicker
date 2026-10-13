@@ -11,6 +11,8 @@ import { nextMap, newThingKey, medalsHtml } from '../sites/ui.js';
 import { buildMap, PW, HH } from './layout.js';
 import { paint, along } from './draw.js';
 
+// a chevron pointing toward the start of the text (the left one); the right button turns it round, both follow the text direction
+const CHEVRON = '<svg viewBox="0 0 12 20" width="14" height="24" aria-hidden="true"><path d="M10 2 L2 10 L10 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const { t } = G;
 G.addStrings(strings, 'worldmap');
 
@@ -44,7 +46,7 @@ function start(app, m, map, opts) {
   $('h2').textContent = t('wm_title');
   $('.wm-sub').textContent = map.nextIdx < G.ROAD.length ? t('fin_next_level', { n: map.nextIdx + 1, of: G.ROAD.length }) : t('wm_hub_open');
   $('.wm-back').textContent = t('wm_back'); $('.wm-back').addEventListener('click', () => app.modal.close());
-  $('.wm-pan.l').textContent = '<'; $('.wm-pan.r').textContent = '>';
+  $('.wm-pan.l').innerHTML = CHEVRON; $('.wm-pan.r').innerHTML = CHEVRON;
   $('.wm-pan.l').title = t('wm_pan_left'); $('.wm-pan.r').title = t('wm_pan_right');
   $('.wm-skip').textContent = t('wm_skip');
   const goBtn = $('.wm-go');
@@ -111,23 +113,23 @@ function start(app, m, map, opts) {
     if (n.type === 'road') {
       const f = G.ROAD[n.i];
       name.textContent = t('site_' + n.site);
-      line.textContent = t('look_zone_' + n.zone) + ', ' + t('fin_next_level', { n: n.level, of: G.ROAD.length });
-      gt.textContent = t('next_gate', { n: n.floor }) + '   ' + t('next_par', { t: clock(G.sitePar(n.floor)) });
+      line.textContent = t('zone_level', { zone: t('look_zone_' + n.zone), level: t('fin_next_level', { n: n.level, of: G.ROAD.length }) });
+      gt.textContent = t('gate_par', { gate: t('next_gate', { n: n.floor }), par: t('next_par', { t: clock(G.sitePar(n.floor)) }) });
       nw.textContent = t(newThingKey(f, n.i)); nw.classList.toggle('hard', !!n.prove);
       if (n.state === 'locked') pay.textContent = t('wm_locked', { n: n.level - 1 });
-      else if (c) pay.textContent = t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }) + '   ' + t('next_medal_each', { n: G.fmt(c.medalStars) });
+      else if (c) pay.textContent = t('pay_medal', { reward: t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }), medal: t('next_medal_each', { n: G.fmt(c.medalStars) }) });
       else pay.textContent = n.stamp && n.stamp.best ? t('wm_best', { t: clock(n.stamp.best) }) : t('wm_not_yet');
       mrow.innerHTML = medalsHtml(n.stamp);
     } else if (n.type === 'hub') {
       name.textContent = t('wm_beyond');
       line.textContent = n.state === 'done' ? t('wm_hub_open') : t('wm_hub_locked', { n: G.ROAD.length });
     } else {
-      name.textContent = t('site_' + n.site) + (n.twist ? ', ' + t('twist_' + n.twist) : '');
-      line.textContent = c ? t('tag_' + c.kind) + (c.hard ? ', ' + t('next_hard', { rule: ruleLine(c.hard) }) : '') : t('wm_island');
+      name.textContent = n.twist ? t('site_twist', { site: t('site_' + n.site), twist: t('twist_' + n.twist) }) : t('site_' + n.site);
+      line.textContent = c ? c.hard ? t('tag_hard', { tag: t('tag_' + c.kind), rule: t('next_hard', { rule: ruleLine(c.hard) }) }) : t('tag_' + c.kind) : t('wm_island');
       if (c) {
-        gt.textContent = t('next_gate', { n: c.floor }) + '   ' + t('next_par', { t: clock(c.par) });
+        gt.textContent = t('gate_par', { gate: t('next_gate', { n: c.floor }), par: t('next_par', { t: clock(c.par) }) });
         nw.textContent = n.twist ? t('twist_' + n.twist + '_d') : t('site_' + n.site + '_d');
-        pay.textContent = t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }) + '   ' + t('next_medal_each', { n: G.fmt(c.medalStars) });
+        pay.textContent = t('pay_medal', { reward: t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }), medal: t('next_medal_each', { n: G.fmt(c.medalStars) }) });
         mrow.innerHTML = medalsHtml(c.medals);
       } else { nw.textContent = t('site_' + n.site + '_d'); pay.textContent = t('wm_island_wait'); }
     }
@@ -190,7 +192,9 @@ function start(app, m, map, opts) {
   cv.addEventListener('pointerup', up);
   cv.addEventListener('pointercancel', () => { drag = null; cv.classList.remove('drag'); });
   const pan = dir => { if (walking) finishWalk(); camTo = clamp(camTo + dir * PW * 0.6, 0, maxCam()); };
-  $('.wm-pan.l').addEventListener('click', () => pan(-1)); $('.wm-pan.r').addEventListener('click', () => pan(1));
+  // the left button is the one at the start of the line: in a right-to-left language it sits on the right and pans that way
+  const rtl = () => getComputedStyle(m).direction === 'rtl' ? -1 : 1;
+  $('.wm-pan.l').addEventListener('click', () => pan(-rtl())); $('.wm-pan.r').addEventListener('click', () => pan(rtl()));
   const onKey = e => {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { pan(e.key === 'ArrowLeft' ? -1 : 1); }
     else if (e.key === 'Enter' || e.key === ' ') { if (walking) finishWalk(); else if (!goBtn.hidden) dig(); }
