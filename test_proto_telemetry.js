@@ -105,3 +105,10 @@ assert.equal(telemetryGate({ hostname: 'a.b', protocol: 'file:' }), false);
   }
   console.log('test_proto_telemetry: ok');
 })().catch(e => { console.error(e); process.exit(1); });
+
+// players reach Dig through ?loop=3 on the published site: that must send
+{
+  const { telemetryGate } = await import('./proto/features/telemetry/queue.js');
+  if (!telemetryGate({ hostname: 'lyilyi1717.github.io', protocol: 'https:', search: '?loop=3' })) throw new Error('published ?loop=3 must send');
+  console.log('ok published ?loop=3 sends');
+}

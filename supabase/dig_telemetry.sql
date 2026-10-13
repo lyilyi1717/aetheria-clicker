@@ -99,8 +99,9 @@ create index if not exists dig_sessions_pid_idx on public.dig_sessions (pid, cre
 -- Guard: runs before every insert. The server clock sets created_at; a row bigger than the cap, or one past the
 -- player's per-minute limit, is quietly skipped (the request still succeeds, so a client never loops on it).
 -- Limits per player id per minute: tries 12, choices 60, pace 12, sessions 6 (the arguments).
+-- Security definer: the guard counts the player's recent rows, which the anon role itself may not read.
 create or replace function public.dig_guard() returns trigger
-language plpgsql
+language plpgsql security definer
 set search_path = public
 as $$
 declare

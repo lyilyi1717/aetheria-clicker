@@ -8,13 +8,13 @@ export const TEL_TABLES = { tries: 'dig_tries', choices: 'dig_choices', pace: 'd
 export const TEL_KEYS = { consent: 'DIG_TELEMETRY', pid: 'DIG_PID', start: 'DIG_TEL_START', queue: 'DIG_TEL_Q', last: 'DIG_TEL_LAST' };
 export const TEL_LIMITS = { perTable: 200, batch: 50 };
 
-// May this page send at all? Only the published site; never a test, sim or speed-up run, never localhost or a bare IP,
+// May this page send at all? Only the published site; never a test, sim or speed-up run (players reach Dig through ?loop=3, so that one is allowed), never localhost or a bare IP,
 // never an automated browser, unless the address carries ?telemetry=1.
 export function telemetryGate({ hostname = '', protocol = '', search = '', webdriver = false } = {}) {
   const q = new URLSearchParams(search);
   if (q.get('telemetry') === '1') return true;
   if (protocol !== 'https:' && protocol !== 'http:') return false;
-  for (const k of ['speed', 'test', 'sim', 'loop']) if (q.has(k)) return false;
+  for (const k of ['speed', 'test', 'sim']) if (q.has(k)) return false;
   if (webdriver) return false;
   const h = String(hostname).toLowerCase();
   if (!h || h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local') || h.includes(':') || /^[0-9.]+$/.test(h)) return false;
