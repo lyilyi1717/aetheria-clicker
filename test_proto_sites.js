@@ -78,11 +78,11 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
 }
 { // the deal: three distinct cards from a road that is done; it is kept until you pick; mixes kinds
   const s = fresh();
-  for (const f of G.FIXED) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 };
-  s.road.reach = 75; s.bossesDown = 2; G.siteRun(s); s.run.done = true;
+  for (const f of G.ROAD) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 };
+  s.road.reach = 200; s.bossesDown = 2; G.siteRun(s); s.run.done = true;
   const d = G.dealCards(s);
   ok(d.length === 3 && new Set(d.map(c => c.key)).size === 3, 'three different cards');
-  ok(d.some(c => c.kind === 'stretch' && c.floor === 100), 'one is a stretch: the next floor');
+  ok(d.some(c => c.kind === 'stretch' && c.floor === 225), 'one is a stretch: the next floor');
   ok(d.every(c => c.par > 0 && c.stars >= 1 && c.medals && G.SITES[c.site]), 'each shows its par, its reward and its medals');
   ok(G.dealCards(s) === d, 'the deal is kept until you pick');
   ok(d.some(c => c.twist || c.kind === 'medal' || c.kind === 'new'), 'it mixes a new place, a medal or a twist with the stretch');
@@ -91,7 +91,7 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
 }
 { // the Museum's sites join the deal when their set is done
   const s = fresh();
-  for (const f of G.FIXED) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 1, hard: 1, best: 400, n: 1 };
+  for (const f of G.ROAD) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 1, hard: 1, best: 400, n: 1 };
   s.road.reach = 75; G.siteRun(s);
   G.SITES.sharks.open_ = G.SITES.sharks.open; G.SITES.sharks.open = () => true;
   let seen = false;
@@ -114,7 +114,7 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
 }
 { // the Hard medal: a card with a hard rule starts the dig under its contract; winning it is the third medal
   const s = fresh();
-  for (const f of G.FIXED) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 };
+  for (const f of G.ROAD) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 };
   s.road.reach = 50; s.bossesDown = 2; G.siteRun(s);
   ok(G.hardOf('dunes', 50) === 'bare' && G.hardOf('dunes', 75) === 'rising' && G.hardOf('boom', 50) === 'tntOnly', 'each site has its hard rule: a contract, deeper floors the next one');
   ok(G.pickCard(s, { site: 'dunes', floor: 50, twist: '', hard: 'bare' }, NO) && s.contract === 'bare' && s.run.hard === 'bare', 'the dig starts under the contract');
@@ -145,10 +145,31 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
 }
 { // the cards are drawn from rules only: no DOM, nothing random outside the core source
   const a = fresh(7), b = fresh(7);
-  for (const s of [a, b]) { for (const f of G.FIXED) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 }; s.road.reach = 75; G.siteRun(s); }
+  for (const s of [a, b]) { for (const f of G.ROAD) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 }; s.road.reach = 75; G.siteRun(s); }
   G.seedRng(5); const da = G.dealCards(a).map(c => c.key).join();
   G.seedRng(5); const db = G.dealCards(b).map(c => c.key).join();
   ok(da === db, 'the same seed deals the same cards');
+}
+
+{ // the road: fourteen levels in order; a level stays until it is finished; stuck brings side cards
+  const s = fresh();
+  const fin = (f, n = 1) => { s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n }; };
+  ok(G.ROAD.length === 14 && G.ROAD[13].floor === 200 && G.ROAD.slice(0, 4).every((f, i) => f === G.FIXED[i]), 'fourteen levels, the first four as before');
+  ok([50, 75, 100, 125, 150, 175, 200].every(fl => G.ROAD.filter(f => f.floor === fl).length === 2), 'every depth is met twice');
+  for (const f of G.FIXED) fin(f);
+  s.road.reach = 75;
+  let d = G.dealCards(s);
+  ok(d.length === 1 && d[0].kind === 'fixed' && d[0].level === 5 && d[0].of === 14 && d[0].site === 'dunes' && d[0].floor === 100, 'after the four: level 5 of 14, one card');
+  ok(G.roadLevel(s).level === 5, 'the road knows the level');
+  s.road.stamps[G.siteKey('dunes', 100)] = { site: 'dunes', floor: 100, twist: '', fin: 0, fast: 0, hard: 0, best: 0, n: 1 };
+  s.road.deal = null; d = G.dealCards(s);
+  ok(d.length === 1, 'one failed try: still one card');
+  s.road.stamps[G.siteKey('dunes', 100)].n = 2;
+  s.road.deal = null; d = G.dealCards(s);
+  ok(d.length > 1 && d[0].kind === 'fixed' && d[0].level === 5 && d.slice(1).every(c => c.kind !== 'fixed' && c.floor <= 75), 'two failed tries: the level stays first, side cards on finished floors beside it');
+  ok(G.fixedNext(s).level === 5, 'a level past the fourth is never skipped');
+  for (const f of G.ROAD) fin(f);
+  ok(G.fixedNext(s) === null && G.roadLevel(s).level === 15, 'the road ends');
 }
 
 if (failed) { console.error(failed + ' failed'); process.exit(1); }

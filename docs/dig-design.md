@@ -43,16 +43,16 @@ Measured on `main` (13 October 2026, mixed player, 30 days, 2 seeds): the player
 
 So the owner's words are right. Level 2 is level 1 again with more barrels, started from nothing, and from the fifth level on there is no road at all: a random deal and a pile of replays.
 
-### 2.2 The rule (not built)
+### 2.2 The rule (part 1 built, parts 2 to 4 not built)
 
 **The game is a road of numbered levels. Each one is built for the player who arrives at it.** Four parts:
 
-1. **One main level at a time, in a fixed order.** The screen says "Level 5 of 14". No random deal on the main road.
+1. **One main level at a time, in a fixed order.** The screen says "Level 5 of 14". No random deal on the main road. **Built**: `ROAD` in `proto/features/sites/rules.js`. A level stays until it is finished; after two failed tries two side cards (a Fast medal, a twist) are dealt beside it.
 2. **A level starts where the player is.** From level 2 on, nobody starts with a bare pick. Each level gives a start kit sized so the ground already learned (the first 25 m) passes in about a minute and the level's new thing is on screen inside three minutes. Warm Pick stops being a Star step and becomes how levels work.
 3. **A Gate is sized by a test, not by a formula.** For every level the sim must show: a player who has spent the Stars the road has paid so far breaks this Gate within the number of tries in the table below. If he fails twice, the road offers one **side level** that pays what is missing and says so ("This pays 12 Stars: enough for the next Pick step"). The Gate itself is never made softer for a weak player; if it were, upgrades would mean nothing.
 4. **A level ends.** Gate down, the finish card, spend the Stars, the next level. Digging on below the Gate stays possible but is a side choice, not the default. The road has a last level and an end card. The deal of three cards moves to after the end: that is where open-ended play belongs.
 
-### 2.3 The road: fourteen levels to 200 m (not built past level 4)
+### 2.3 The road: fourteen levels to 200 m (the order is built; kits, Gate sizes and looks are not)
 
 Each depth is met twice: once at a kind place to learn its new thing, once at a harder place to prove it. The first four levels already work this way.
 
@@ -78,6 +78,24 @@ Each depth is met twice: once at a kind place to learn its new thing, once at a 
 - The time column is a target for the mixed player (four 12 minute visits a day). An active player may run ahead; nothing holds him back by the clock.
 - Places for levels 5 to 14 reuse the four built ones. Each needs its own sky and ground colours before the road feels like travel (not built).
 
+### 2.3a How the built road plays (sim, mixed player, 2 seeds, 13 October 2026)
+
+| Level | Finished | Tries | What it shows |
+|---|---|---|---|
+| 1 to 4 | 8, 15, 28, 33 min | 1 each | As designed. |
+| 5 (Dunes 100 m) | day 1.0 | 3 | Fits. |
+| 6 (Powder Valley 100 m) | day 1.2 | 1 | **Too easy.** A player who broke the 100 m Gate once breaks it again in five minutes. |
+| 7 (Beasts 125 m) | day 2.0 to 2.4 | 3 to 4 | Fits. |
+| 8 (Golden Wadi 125 m) | day 2.0 to 2.6 | 1 to 2 | Too easy. |
+| 9 (Dunes 150 m) | day 3.4 to 3.6 | 3 to 4 | Fits, but days early against 2.3. |
+| 10 (Powder Valley 150 m) | day 3.6 | 1 | Too easy. |
+| 11 (Beasts 175 m) | day 5.2 to 5.4 | 4 | One try over. |
+| 12 (Golden Wadi 175 m) | day 5.4 to 5.6 | 1 | Too easy. |
+| 13 (Dunes 200 m) | day 17.4 to 18.4 | 8, with about 100 other digs between | **A cliff.** Twelve days at one Gate. Lowering the 200 m step from 8 to 2 still leaves 50 to 66 digs, so the wall is in the Hot Layer itself, not in the step. |
+| 14 (Golden Wadi 200 m) | same day as 13 | 1 | Too easy. |
+
+Three things to do, in this order: make the second level of each depth a real test (harder ground or a rule of its own, so "prove it" means something); bring level 13 down to three tries; then stretch levels 5 to 12 toward the days in 2.3, which the start kit and the Star prices decide.
+
 ### 2.4 From one level to the next
 
 | | Built today | The design |
@@ -97,7 +115,7 @@ Each depth is met twice: once at a kind place to learn its new thing, once at a 
 | Chests and relics, fusion | Pick 1 of 3; 17 recipes | built |
 | The Big Rock | The wall every 25 m; the crack | built |
 | The Deep | Four layers with a law each, 100 to 200 m | built |
-| Levels, medals, the stopwatch | Section 2 | four fixed levels built; the road is not |
+| Levels, medals, the stopwatch | Section 2 | the fourteen levels in order are built; start kits, Gate sizes, the end card are not |
 | Star tracks | The Pick, The Camp, The Bag: x1.5 a step, named rules on 29 steps | built |
 | The Museum | 13 sets; each finished set opens a thing | built |
 | The Forge | Drill, Dynamite, Magnet | built |
@@ -152,7 +170,7 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 ## 6. Work order
 
 1. **Reward correctness.** Faults 1 to 6: done. Faults 8 and 9 next, each with a sim before and after.
-2. **The road.** Section 2: levels 1 to 14 as fixed cards with a number, the start kit, the finish card that shows what you keep and what is next, the end card. Then size each Gate by the "Tries" column, and replace the sim's targets with that table.
+2. **The road.** Fixed cards with a number: done. Next, from 2.3a: the second level of each depth as a real test, level 13 down to three tries. Then the start kit, the finish card that shows what you keep and what is next, the end card. Then size each Gate by the "Tries" column, and replace the sim's targets with that table.
 3. **A first goal that lasts.** Second Pick shown as a savings goal after the first Rock; one pinned goal on screen (this level's Gate, a Museum set, or a fusion).
 4. **Rafeeqs that matter while you watch** (fault 10): an early choice of job, and time away paying toward the pinned goal, not only coins.
 5. **Looks.** A sky and ground colours per place; faults 14 to 16.
@@ -172,6 +190,7 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 
 | Date | Change |
 |---|---|
+| 13 Oct 2026 | The road's order built: fourteen levels, one card at a time, side cards when stuck. Measured level by level (2.3a). |
 | 13 Oct 2026 | This file made the one design file. The road of fourteen levels written (section 2). Faults 1 to 6 fixed (PR #338). |
 | 13 Oct 2026 | The 100 m wall lowered: it was three hours high (PR #337). |
 | 13 Oct 2026 | The Deep refitted for sites with a bottom (PR #336). |
