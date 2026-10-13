@@ -8,6 +8,7 @@ import { sfx, unlock, setMuted, isMuted, addSfx } from './audio.js';
 import { icon, addIcons } from './icons.js';
 import strings from './strings.js';
 import { drawer, tabOf } from './drawer.js';
+import { createLessons } from './lessons.js';
 
 const { t, fmt } = G;
 G.addStrings(strings, 'page');
@@ -61,6 +62,43 @@ function toast(msg, kind = '') {
   const el = $('toast');
   el.textContent = msg; el.className = 'show ' + kind; toastT = 3.2;
 }
+// first-sight lessons: queued, shown >= 3 s or until clicked, marked taught only then (lessons.js)
+const TIPS_KEY = 'DIG_TIPS';
+let tipHist = [];
+try { tipHist = JSON.parse(localStorage.getItem(TIPS_KEY) || '[]').filter(x => x && typeof x.text === 'string'); } catch { /* ignore */ }
+const lessons = createLessons({
+  history: tipHist,
+  onTaught(flag) {
+    if (state) state.seen[flag] = true;
+    try { localStorage.setItem(TIPS_KEY, JSON.stringify(lessons.history)); } catch { /* ignore */ }
+    paintTips();
+  },
+});
+function lesson(flag, msg, kind = '') { return lessons.request(flag, msg, kind); }
+function paintLesson() {
+  const el = $('lesson'); if (!el) return;
+  const c = lessons.current, on = !!c && !(bannerT > 0) && !modalId;
+  if (on && el.dataset.f !== c.flag) { el.textContent = c.text; el.dataset.f = c.flag; }
+  el.className = on ? 'show ' + (c.kind || '') : '';
+  if (!c) delete el.dataset.f;
+}
+function paintTips() {
+  const box = $('tips-list'); if (!box) return;
+  box.textContent = '';
+  const h = lessons.history.reverse();
+  if (!h.length) { const p = document.createElement('p'); p.textContent = t('tips_none'); box.appendChild(p); return; }
+  for (const x of h) { const p = document.createElement('p'); p.textContent = x.text; box.appendChild(p); }
+}
+function buildLessonUi() {
+  const stage = $('stage');
+  const les = document.createElement('div'); les.id = 'lesson'; les.setAttribute('role', 'status');
+  les.addEventListener('click', () => { lessons.click(); paintLesson(); });
+  const btn = document.createElement('button'); btn.id = 'tips-btn'; btn.type = 'button'; btn.className = 'ghost'; btn.textContent = t('tips');
+  const box = document.createElement('div'); box.id = 'tips-list'; box.hidden = true;
+  btn.addEventListener('click', () => { box.hidden = !box.hidden; paintTips(); });
+  stage.append(les, btn, box);
+  paintTips();
+}
 function banner(title, sub) {
   const el = $('banner');
   el.innerHTML = `<b></b><span></span>`;
@@ -99,7 +137,7 @@ const quiet = () => {};
 
 export const app = {
   get state() { return state; },
-  ev, fire, toast, banner, bump, save, modal, t, fmt, icon, sfx,
+  ev, fire, toast, lesson, banner, bump, save, modal, t, fmt, icon, sfx,
   el: {},                                   // top, left, right, stage (filled at start)
   flags: {},                                // a feature's own page-only flags
   unlockAudio: unlock,
@@ -290,7 +328,7 @@ function updatePanels(force) {
     const cell = state.rows[i][c];
     if (!cell || !seen[i][c]) continue;
     const f = ART[cell.t] && ART[cell.t].firstSight;
-    if (f && !state.seen[f.flag]) { state.seen[f.flag] = true; toast(t(f.text), f.kind || ''); }
+    if (f && !state.seen[f.flag]) lesson(f.flag, t(f.text), f.kind || '');
   }
 }
 
@@ -333,6 +371,7 @@ function frame(now) {
   if (coinLands > 0) { coinLands = 0; bump($('hud-coins')); sfx.coin(Math.floor(fx.t * 12)); }
   if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('toast').className = ''; }
   if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) $('banner').className = ''; }
+  lessons.tick(dt, bannerT > 0 || !!modalId); paintLesson();
   panelT -= dt;
   if (panelT <= 0) { panelT = 0.1; updatePanels(false); }
 }
@@ -358,6 +397,7 @@ export function start() {
   bindInput(cv);
   app.el = { top: $('chips'), left: $('tabbody'), right: $('tabbody'), stage: $('stage') };   // the purse; the drawer body (old left/right)
   drawer.build($('tabs'), $('tabbody'), app);
+  buildLessonUi();
   for (const d of DEFS) if (d.mount) d.mount(app);
   buildPanels();
   if (state.total === 0) $('hint').className = 'show'; else app.flags.firstBreak = true;
