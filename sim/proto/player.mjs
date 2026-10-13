@@ -88,6 +88,7 @@ export function mkEv(s, trk) {
     } else if (k === 'buy') {
       if (d.id === 'crew' && d.level === 1) trk.mark('first digger bought');
       if (d.shop === 'star') trk.mark('first Star perk');
+      if (d.shop === 'forge') (trk.fbuys || (trk.fbuys = [])).push({ a: trk.act, id: d.id, level: d.level, best: trk.curBest });
       trk.dec();
     } else if (k === 'bossDown') {
       trk.chestN++; trk.mark('boss down ' + d.layer); trk.found();
@@ -321,6 +322,7 @@ G.use({ id: 'simprobe', mods: { damage: { at: 9999, fn(v, s, cell, src, info) {
   let t = DMG.get(s); if (!t) DMG.set(s, t = { hand: 0, fx: 0, rockHand: 0, rockFx: 0, crew: 0, crewRock: 0 });
   const direct = (src === 'you' && info.crit !== undefined) || (src === 'crew' && !info.chain);
   const rock = cell.t === 'boss', a = Math.min(v, cell.hp);
+  if (a > 0 && info.tool) t.toolDmg = (t.toolDmg || 0) + a;
   if (a > 0 && !rock) { const k = src + ':' + Object.keys(info).sort().join('+'); (t.by || (t.by = {}))[k] = (t.by[k] || 0) + a; }
   if (a > 0 && src === 'crew' && !info.chain) t[rock ? 'crewRock' : 'crew'] += a;     // a Rafeeq's own swings (not the blasts he sets off)
   if (a > 0) t[(rock ? 'rock' : '') + (direct ? (rock ? 'Hand' : 'hand') : (rock ? 'Fx' : 'fx'))] += a;
@@ -334,6 +336,7 @@ export function newRun(profile, seed, noCrew = false) {
 }
 export function endRun(R) {
   R.dmg = DMG.get(R.s) || { hand: 0, fx: 0, rockHand: 0, rockFx: 0, crew: 0, crewRock: 0 };
+  const fs = R.s.forgeStat; R.dmg.forge = { uses: fs.uses, toolBlocks: fs.blocks, all: fs.all, metal: R.s.metal, buys: R.trk.fbuys || [], coins: fs.coins, allCoins: fs.allCoins, log: (R.trk.forgeUse || []).filter((x, i) => i % 6 === 0) };
   const dl = R.trk.act - R.trk.lastDec; if (dl >= 90) R.trk.gaps.push({ start: R.trk.lastDec, len: dl, open: true });
   return R;
 }

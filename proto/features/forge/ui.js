@@ -62,7 +62,7 @@ ui({
       },
     };
   })()],
-  items: Object.fromEntries(['drill', 'dynamite', 'magnet'].map(id => [id, { desc: (s, lv) => t(`up_${id}_d${Math.min(lv, 3) + 1}`) }])),
+  items: Object.fromEntries(['drill', 'dynamite', 'magnet'].map(id => [id, { desc: (s, lv) => t(`up_${id}_d${Math.min(lv, 5) + 1}`) }])),
   on: {
     forgeOpen(d, app) {
       const [x, y] = centre(d.r, d.c);
@@ -125,15 +125,16 @@ function badges(s) {
     if (!(id in s.toolCh)) continue;
     let fg = b.querySelector('.fg');
     if (!fg) {
-      fg = document.createElement('span'); fg.className = 'fg'; fg.innerHTML = '<u></u>';
+      fg = document.createElement('span'); fg.className = 'fg'; fg.innerHTML = '';
       const ch = document.createElement('em'); ch.className = 'ch';
       b.append(fg, ch);
     }
-    const full = s.toolCh[id] >= G.PARAMS.forge.cap;
-    fg.style.setProperty('--k', full ? 1 : s.toolFuel[id] / G.PARAMS.forge.need[id]);
+    const full = s.toolCh[id] >= G.forgeCap(s, id);
+    fg.style.setProperty('--k', full ? 1 : Math.min(1, s.toolFuel[id] / G.forgeNeed(s, id)));
     fg.classList.toggle('full', full);
     const ch = b.querySelector('.ch');
     ch.textContent = s.toolCh[id];
+    b.title = `${s.toolCh[id]} / ${G.forgeCap(s, id)}`;
     b.classList.toggle('empty', s.toolCh[id] <= 0);
   }
 }
@@ -225,7 +226,7 @@ function drawPulls(g, s, dt) {
       const k = Math.min(1, p.t / Math.max(0.01, popAt));
       if (p.t > popAt + 0.12) return;
       // the block slides toward the pointer, a streak behind it
-      const ex = cx + (px - cx) * k * 0.55, ey = cy + (py - cy) * k * 0.55;
+      const ex = cx + (px - cx) * k * 0.9, ey = cy + (py - cy) * k * 0.9;
       g.strokeStyle = `rgba(190,215,255,${0.75 * (1 - k * 0.6)})`; g.lineWidth = 3 + 4 * k;
       g.beginPath(); g.moveTo(cx, cy); g.lineTo(ex, ey); g.stroke();
       g.fillStyle = '#fff'; g.beginPath(); g.arc(ex, ey, 6 + 4 * k, 0, 7); g.fill();
