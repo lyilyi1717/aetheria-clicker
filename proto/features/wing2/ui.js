@@ -82,7 +82,7 @@ function drawHats(g, s) {
     const [x, y] = centre(d.r, d.c);
     const bob = Math.sin(fx.t * 9 + i * 2) * 2;
     g.save(); g.translate(x, y - 14 + bob);
-    if (hats) hatDraw(g, i, i);
+    if (hats) { g.translate(0, 2); hatDraw(g, i, i); g.translate(0, -2); }
     if (goggles) {
       g.strokeStyle = '#d9a15a'; g.lineWidth = 2;
       g.beginPath(); g.moveTo(-10, -11); g.lineTo(10, -11); g.stroke();
@@ -226,7 +226,7 @@ ui({
     if (app.state.wingNote) { app.toast(t('wing_note'), 'gold'); G.wingNoteSeen(app.state); app.save(); }
   },
   panels: [{
-    id: 'wing2', elId: 'wing2', side: 'left', at: 25, title: 'wing_title',
+    id: 'wing2', elId: 'wing2', side: 'left', at: 25, fold: true, title: 'wing_title',
     when: s => s.wingDeep >= 12 || Object.keys(s.wingGot).length > 0,
     build(el, app) {
       el.insertAdjacentHTML('beforeend', '<div id="wing-does"></div><div id="wing-hall"></div><div id="wing-list"></div><p class="wjar" id="wing-jar"></p>');

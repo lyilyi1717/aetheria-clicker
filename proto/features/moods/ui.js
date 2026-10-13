@@ -136,10 +136,19 @@ function cup(g, x, y) {
 function arm(g, x0, y0, x1, y1) { g.strokeStyle = '#1b1410'; g.lineWidth = 2.4; g.lineCap = 'round'; g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo((x0 + x1) / 2 + (y1 - y0) * 0.18, (y0 + y1) / 2 - (x1 - x0) * 0.18, x1, y1); g.stroke(); }
 function puff(x, y, col, vx = 0, vy = -26) { if (reduced || puffs.length > 24) return; puffs.push({ x, y, vx: vx + (Math.random() - 0.5) * 14, vy, life: 0.9, col }); }
 
+const drawn = [];                   // the bubbles drawn this frame
 function bubble(g, x, y, str, alpha) {
   g.save(); g.globalAlpha = alpha; g.font = 'bold 14px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   const w = g.measureText(str).width + 16, h = 24;
-  const bx = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, x)), by = Math.max(h / 2 + 2, y);
+  const bx = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, x));
+  let by = Math.max(h / 2 + 2, y);
+  // two Rafeeqs side by side: a bubble that would sit on another one goes up a step (or below it at the top edge)
+  for (let k = 0; k < 4; k++) {
+    const hit = drawn.find(b => Math.abs(b.x - bx) < (b.w + w) / 2 + 2 && Math.abs(b.y - by) < h + 2);
+    if (!hit) break;
+    by = hit.y - h - 3 < h / 2 + 2 ? hit.y + h + 3 : hit.y - h - 3;
+  }
+  drawn.push({ x: bx, y: by, w });
   rr(g, bx - w / 2, by - h / 2, w, h, 9); g.fillStyle = '#fffdf2'; g.fill(); g.strokeStyle = '#111'; g.lineWidth = 2; g.stroke();
   g.fillStyle = '#fffdf2'; g.beginPath(); g.moveTo(x - 4, by + h / 2 - 1); g.lineTo(x, by + h / 2 + 7); g.lineTo(x + 5, by + h / 2 - 1); g.fill();
   g.beginPath(); g.moveTo(x - 4, by + h / 2); g.lineTo(x, by + h / 2 + 7); g.lineTo(x + 5, by + h / 2); g.stroke();
@@ -149,6 +158,7 @@ function bubble(g, x, y, str, alpha) {
 
 function drawMoods(g, s, dt) {
   dt = Math.min(dt || 0.016, 0.1);
+  drawn.length = 0;
   counters.globalBubble -= dt; counters.slack -= dt; counters.laugh -= dt;
   for (let i = puffs.length - 1; i >= 0; i--) {
     const q = puffs[i]; q.life -= dt; if (q.life <= 0) { puffs.splice(i, 1); continue; }
