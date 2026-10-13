@@ -163,10 +163,9 @@ const rockGoal = key => s => ({ kind: 'rocks', now: Math.min(s.bossesDown, p[key
 const noCrew = {
   mods: { crewPower: () => 0, awayDps: () => 0 },
   step(s, dt, ev) {
-    if (!s.up.crew && !s.up.crewPow && !s.diggers.length) return;
+    if (!s.up.crew && !s.diggers.length) return;
     const before = s.coins;
     while (s.up.crew > 0) { s.up.crew--; s.coins += upgradeCost(s, 'crew'); }
-    while (s.up.crewPow > 0) { s.up.crewPow--; s.coins += upgradeCost(s, 'crewPow'); }
     s.diggers.length = 0;
     emit(s, ev, 'contractNote', { id: s.contract, key: s.coins > before ? 'refund' : 'home' });
   },

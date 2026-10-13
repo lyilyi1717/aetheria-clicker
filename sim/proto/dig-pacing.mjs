@@ -17,7 +17,7 @@ function run(seedless, hps = 4.5, active = true) {
     G.step(s, dt, ev);
     while (s.chests > 0) { const d = G.rollDraft(s); G.takeRelic(s, d[0], ev); }
     // buy: cheapest affordable
-    if (Math.abs(t % 3) < 0.05) for (;;) { const ids = ['pick','crew','crewPow','luck'].filter(id => G.canBuy(s, id) && (id !== 'crewPow' || s.up.crew > 0) && (id!=='luck' || s.best>=12)); if (!ids.length) break; ids.sort((a, b) => G.upgradeCost(s, a) - G.upgradeCost(s, b)); G.buy(s, ids[0], ev); }
+    if (Math.abs(t % 3) < 0.05) for (;;) { const ids = ['pick','crew','luck'].filter(id => G.canBuy(s, id) && (id!=='luck' || s.best>=12)); if (!ids.length) break; ids.sort((a, b) => G.upgradeCost(s, a) - G.upgradeCost(s, b)); G.buy(s, ids[0], ev); }
     for (const m of [5, 10, 15, 20, 25, 35, 50, 60, 75]) if (s.best >= m && !marks[m]) marks[m] = t;
     if (Math.abs(t % 120) < 0.05) log.push(`${(t/60).toFixed(0)}m depth ${s.best} coins ${Math.round(s.total)} up ${JSON.stringify(s.up)}`);
   }

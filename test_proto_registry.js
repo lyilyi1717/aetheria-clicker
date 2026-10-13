@@ -17,7 +17,7 @@ const throws = f => { try { f(); return false; } catch { return true; } };
   ok(u.byId['crew:2'].cat === 'core' && u.byId['luck:2'].cat === 'grind' && u.byId['relic:vein:2'].cat === 'grind', 'levels are core or grind as declared');
   const inOrder = (table, ids) => Object.keys(table).filter(id => ids.includes(id)).join() === ids.join();
   ok(inOrder(G.RELICS, ['boom', 'vein', 'lucky', 'heavy', 'deep', 'wide', 'bang', 'karak', 'shiny', 'streak', 'nose', 'echo', 'lamp']), 'relics keep their order whatever order features load in');
-  ok(inOrder(G.SITES, ['dunes', 'boom', 'gold', 'bones']) && inOrder(G.ITEMS, ['pick', 'crew', 'crewPow', 'luck']) && G.layersOf('desert').slice(0, 4).map(l => l.id).join() === 'sand,clay,slate,deep', 'sites, shop items and layers keep their order');
+  ok(inOrder(G.SITES, ['dunes', 'boom', 'gold', 'bones']) && inOrder(G.ITEMS, ['pick', 'crew', 'luck']) && G.layersOf('desert').slice(0, 4).map(l => l.id).join() === 'sand,clay,slate,deep', 'sites, shop items and layers keep their order');
   ok(G.P.tntPower === G.PARAMS.tnt.power && 'offlineCapHours' in G.P && G.TYPES === G.BLOCKS && G.UPGRADES === G.ITEMS, 'the old names of the numbers still work');
   for (const id of Object.keys(G.RELICS)) ok(G.hasString('r_' + id) && G.hasString('r_' + id + '_d'), `relic ${id} has its words`);
   for (const id of Object.keys(G.ITEMS)) ok(G.hasString('up_' + id), `shop item ${id} has its words`);
@@ -222,7 +222,7 @@ const kit = G.use({
   ok(G.POLICIES.nearest && G.POLICIES.kitLeft, 'policies are registered by name');
 }
 { // several sites: park one, work it in the background, come back
-  const s = G.newState(); s.coins = 1e6; s.total = 1e6; G.buy(s, 'crew'); for (let i = 0; i < 20; i++) G.buy(s, 'crewPow');
+  const s = G.newState(); s.coins = 1e6; s.total = 1e6; G.buy(s, 'crew'); for (let i = 0; i < 20; i++) G.buy(s, 'pick');
   const coins = s.coins, top = s.top;
   const other = G.freshSite(s, 'gold');
   ok(other.site === 'gold' && other.rows.length === G.KEEP_ROWS && other.diggers.length === 0 && s.site === 'dunes' && s.top === top && s.diggers.length === 1, 'a second site is a bag of the per-site slices');

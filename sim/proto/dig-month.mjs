@@ -95,7 +95,7 @@ function runOne(player, seed, days, ov) {
   endRun(R);
   const obj = m => Object.fromEntries([...m].map(([k, v]) => [k, { r: +v.r.toFixed(1), a: +v.a.toFixed(1) }]));
   return {
-    player, seed, units: obj(trk.units), marks: obj(trk.marks), resets: trk.resets, series, src: trk.src, shim: trk.starShim,
+    player, seed, units: obj(trk.units), marks: obj(trk.marks), resets: trk.resets, series, src: trk.src, blk: trk.blk, dmg: R.dmg, shim: trk.starShim,
     goalGaps: trk.goalGaps, act: trk.act, best: trk.bestEver, stars: s.stars + (s.starSpent || 0),
     core: CORE_IDS.filter(id => trk.units.has(id)).length, lastCore: Math.max(0, ...CORE_IDS.map(id => trk.units.get(id)?.r ?? 0)),
     fin: trk.finishes, medals: trk.medals, dmg: R.dmg, won: Object.keys(s.contractsWon || {}).length, left: trk.left, sessions: trk.sessions,
@@ -292,7 +292,7 @@ async function main() {
   if (!arg('sum', false)) console.log(`Dig, the first ${DAYS} days. ${SEEDS} seed(s), step ${DT} s. Players: ` + Object.entries(PLAYERS).map(([k, v]) => `${k} = ${v.note}`).join('; ') + '.');
   if (!arg('sum', false)) console.log(`Move policy (player.mjs): finished = Next site at once; else stalled ${PROFILES.mid.stall} s (mid), next level more than ${MOVE.far} s of income away, ${MOVE.budget} x par spent; or stalled ${MOVE.giveUp} s.`);
   const base = await runAll(SET);
-  if (arg('dump', false)) (await import('node:fs')).writeFileSync(arg('dump'), JSON.stringify(base.map(r => ({ player: r.player, seed: r.seed, fin: r.fin, medals: r.medals, resets: r.resets, series: r.series, marks: r.marks }))));
+  if (arg('dump', false)) (await import('node:fs')).writeFileSync(arg('dump'), JSON.stringify(base.map(r => ({ player: r.player, seed: r.seed, fin: r.fin, medals: r.medals, resets: r.resets, series: r.series, marks: r.marks, blk: r.blk, dmg: r.dmg }))));
   if (arg('sum', false)) { const out = v => console.log('SUM ' + JSON.stringify(v.ov) + ' ' + sumLine(v.res).split(String.fromCharCode(10)).join(' | ')); out({ ov: SET, res: base }); if (AB) for (const v of (Array.isArray(AB) ? AB : [AB])) out({ ov: v, res: await runAll({ ...SET, ...v }) }); return; }
   const fails = report(`=== ${AB ? 'BASELINE' : 'RUN'} ${JSON.stringify(SET)} ===`, base);
   if (AB) for (const v of (Array.isArray(AB) ? AB : [AB])) { const ov = { ...SET, ...v }; report(`=== VARIANT ${JSON.stringify(v)} ===`, await runAll(ov)); }
