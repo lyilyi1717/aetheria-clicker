@@ -1,0 +1,3 @@
+/* "Buy all (N)": a wide gold button above a shop list */
+.buyall { width: 100%; margin-block-end: 8px; font-weight: 800; }
+.buyall[hidden] { display: none; }
