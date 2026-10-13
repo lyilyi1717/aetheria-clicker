@@ -1,5 +1,8 @@
 # Redesign v3: a new game, not a better oil well
 
+> **History, not the design.** The one design file for Dig is [`docs/dig-design.md`](dig-design.md); where this file
+> disagrees with it, that file wins. This file is kept for its reasoning: the first proposal for Dig (why the old game was dull, three concepts, the first design).
+
 Written 2026-10-11. This is a proposal plus a prototype you can play now:
 **`proto.html`** (see §5 for how to open it). It has its own save
 (`DIG_PROTO_SAVE_V1`). It does not read or write the Aetheria save or the `?loop=2` save.

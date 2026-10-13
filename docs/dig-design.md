@@ -1,0 +1,180 @@
+# Dig: the design
+
+**This is the one design file for the Dig prototype** (`proto.html`, `/?loop=3`, code in `proto/`).
+If another file disagrees with this one, this one wins. Change the design here first, then the code.
+
+| File | What it is |
+|---|---|
+| `docs/dig-design.md` (this file) | What the game is, the levels, what is built, what is broken, what is next. |
+| `proto/README.md` | How the code is laid out (for whoever writes code). Not design. |
+| `docs/dig-player-progression-study.html` | Evidence: the progression study of 13 October 2026. Its findings are folded in here. |
+| `docs/redesign-v3.md`, `dig-pacing.md`, `dig-design-review.md`, `dig-upgrades-study.md` | History. Each carries a note that points here. |
+
+Every line below is marked **built**, **broken** or **not built**. Nothing is described as if it exists when it does not.
+
+---
+
+## 1. The game in ten lines
+
+1. You hold the mouse on desert ground and your pick breaks blocks to a beat. Deeper ground is harder and pays more.
+2. The ground is full of things that act on each other: ore, TNT that chains, water, crystal lines, chests, bones.
+3. A chest shows three relics; you take one. Two relics that fit can be fused into a stronger one.
+4. Rafeeqs dig beside you and go on digging while you are away.
+5. Every 25 m a Big Rock blocks the whole dig. It has a glowing crack; hits on the crack count three times.
+6. A **level** is one place with a bottom. The Big Rock at the bottom is its **Gate**. Breaking the Gate finishes the level.
+7. A finished level pays **Stars**. Stars are spent on three tracks: The Pick, The Camp, The Bag. That strength stays for ever.
+8. The next level starts on new ground. Coins, coin upgrades, hired Rafeeqs and relics start again; Stars, tracks, the Museum, the Forge and extra picks stay.
+9. Below 100 m each layer has one law that changes how you dig (the dark, the moss, the rock that hits back, the heat).
+10. Nothing in the game waits on the clock, and nothing is lost by staying away.
+
+## 2. Levels: fitted to the player, not open ended
+
+### 2.1 What the game does today, and why it feels wrong
+
+| | Today (built) |
+|---|---|
+| The first four levels | Fixed, in order: The Dunes 50 m, Powder Valley 50 m, Valley of Beasts 75 m, Golden Wadi 75 m. |
+| After the fourth | The game deals three cards at random (a deeper floor, a new place, a medal to win, a twist) and the player picks. This goes on for ever. |
+| What makes a place different | Only how much of each thing is in the ground: Powder Valley has 3.2 times the TNT, Golden Wadi 2.2 times the ore, Valley of Beasts 4 times the bones. Same blocks, same colours of ground, same order of events. The five skies were never drawn. |
+| How level 2 starts | With a bare pick, no Rafeeqs, no relics, on ground as hard as level 1 times 1.25. The first Star step (x1.5 on the hit) is the only thing that came along. Warm Pick, which starts you at half your best pick level, is step 5 of The Pick and costs 27 Stars in all: every Star of the first three or four levels, with nothing left for the other two tracks. |
+| After the Gate | You may dig on below it with no end. |
+
+Measured on `main` (13 October 2026, mixed player, 30 days, 2 seeds): the player digs **277 sites in a month and only 52 of them are new**. Four digs in five are a place and depth already finished. The average dig ends 15 m shallower than his best. The last new thing in the game arrives on day 15.
+
+So the owner's words are right. Level 2 is level 1 again with more barrels, started from nothing, and from the fifth level on there is no road at all: a random deal and a pile of replays.
+
+### 2.2 The rule (not built)
+
+**The game is a road of numbered levels. Each one is built for the player who arrives at it.** Four parts:
+
+1. **One main level at a time, in a fixed order.** The screen says "Level 5 of 14". No random deal on the main road.
+2. **A level starts where the player is.** From level 2 on, nobody starts with a bare pick. Each level gives a start kit sized so the ground already learned (the first 25 m) passes in about a minute and the level's new thing is on screen inside three minutes. Warm Pick stops being a Star step and becomes how levels work.
+3. **A Gate is sized by a test, not by a formula.** For every level the sim must show: a player who has spent the Stars the road has paid so far breaks this Gate within the number of tries in the table below. If he fails twice, the road offers one **side level** that pays what is missing and says so ("This pays 12 Stars: enough for the next Pick step"). The Gate itself is never made softer for a weak player; if it were, upgrades would mean nothing.
+4. **A level ends.** Gate down, the finish card, spend the Stars, the next level. Digging on below the Gate stays possible but is a side choice, not the default. The road has a last level and an end card. The deal of three cards moves to after the end: that is where open-ended play belongs.
+
+### 2.3 The road: fourteen levels to 200 m (not built past level 4)
+
+Each depth is met twice: once at a kind place to learn its new thing, once at a harder place to prove it. The first four levels already work this way.
+
+| Level | Place | Gate | The new thing | Starts with | Tries | Mixed player gets here |
+|---|---|---|---|---|---|---|
+| 1 | The Dunes | 50 m | The hit, ore, TNT, the first Rafeeq, the Big Rock and its crack | A bare pick | 1 | 10 min |
+| 2 | Powder Valley | 50 m | TNT chains; spend the first Stars | Pick at the level you ended level 1 on at 25 m; 1 Rafeeq | 1 | 20 min |
+| 3 | Valley of Beasts | 75 m | Water (50 to 75 m); bones and chests; the Museum opens | Kit for 50 m | 1 | 35 min |
+| 4 | Golden Wadi | 75 m | Rich ore; the Forge and its first tool | Kit for 50 m; 1 relic kept | 1 to 2 | 1 h |
+| 5 | The Dunes | 100 m | Crystal lines (75 to 100 m); the first fusion | Kit for 75 m | 1 to 2 | day 1 |
+| 6 | Powder Valley | 100 m | Crystal and TNT together; contracts open | Kit for 75 m | 2 | day 2 |
+| 7 | Valley of Beasts | 125 m | The Black: you dig by light | Kit for 100 m | 2 | days 3 to 4 |
+| 8 | Golden Wadi | 125 m | The Black, harder ground; the Foreman's jobs matter | Kit for 100 m | 2 to 3 | days 5 to 6 |
+| 9 | The Dunes | 150 m | The Living Rock: moss grows back | Kit for 125 m | 2 to 3 | days 7 to 9 |
+| 10 | Powder Valley | 150 m | Moss against blasts | Kit for 125 m | 2 to 3 | days 10 to 12 |
+| 11 | Valley of Beasts | 175 m | The Angry Layer: the Rock hits back | Kit for 150 m | 2 to 3 | days 13 to 16 |
+| 12 | Golden Wadi | 175 m | The Angry Layer, harder ground | Kit for 150 m | 3 | days 17 to 20 |
+| 13 | The Dunes | 200 m | The Hot Layer: water against heat | Kit for 175 m | 3 | days 21 to 25 |
+| 14 | Golden Wadi | 200 m | The last Gate. The end card of chapter one. | Kit for 175 m | 3 | days 26 to 30 |
+
+- "Kit for 75 m" means: pick level, Rafeeqs and coins that put a player at the 75 m Rock of this place in about the time level 1 takes to reach its first Rock. The exact kit per level is a number to tune with the sim, not to guess here.
+- **Side levels** sit beside the main one, always optional, each labelled with what it pays toward: a Fast or Hard medal on a finished level, a twist, and the two Museum places (Shark Bay, The Mirage) once their sets are done.
+- The time column is a target for the mixed player (four 12 minute visits a day). An active player may run ahead; nothing holds him back by the clock.
+- Places for levels 5 to 14 reuse the four built ones. Each needs its own sky and ground colours before the road feels like travel (not built).
+
+### 2.4 From one level to the next
+
+| | Built today | The design |
+|---|---|---|
+| Starts again | Coins, coin upgrades, depth, hired Rafeeqs, relics | The same, but replaced by the level's start kit |
+| Stays | Stars and tracks, medals, the Museum, Forge tools and metal, extra picks, the Foreman | The same |
+| Shown at the finish | Stars counted up, two buttons | "You keep" and "Level N starts with", then one obvious Star purchase, then the next level's card with its new thing named |
+
+## 3. The systems
+
+| System | What it does for the player | State |
+|---|---|---|
+| The pick and the beat | Up to four picks hit on a 16-step bar; tempo upgrades | built; nobody has yet listened to it with care |
+| Coin shop | Stronger Pick, Rafeeqs, Faster Hands, Second Pick | built; Second Pick (12,000 coins) is rarely bought early because cheap upgrades eat the coins |
+| Rafeeqs, Foreman, moods | Helpers; five jobs once the Foreman arrives | built; feel weak while you play (section 5) |
+| TNT, water, crystal, oil, ores | Things in the ground that act on each other | built |
+| Chests and relics, fusion | Pick 1 of 3; 17 recipes | built |
+| The Big Rock | The wall every 25 m; the crack | built |
+| The Deep | Four layers with a law each, 100 to 200 m | built |
+| Levels, medals, the stopwatch | Section 2 | four fixed levels built; the road is not |
+| Star tracks | The Pick, The Camp, The Bag: x1.5 a step, named rules on 29 steps | built |
+| The Museum | 13 sets; each finished set opens a thing | built |
+| The Forge | Drill, Dynamite, Magnet | built |
+| Contracts | Hard rules for the Hard medal | built |
+| Time away | The crew digs up to 12 hours, then sieves at a Rock | built; the sums are wrong in two places (section 5) |
+| Several sites at once, earned automation, a second land | | not built, and not planned for chapter one |
+| Arabic | | not built |
+
+## 4. The numbers
+
+The numbers live in the code: `PARAMS` in each feature's `rules.js`, the growth table in `proto/core/rules.js`.
+The check is `node sim/proto/dig-month.mjs` (one at a time, three workers at most).
+
+Measured on `main` on 13 October 2026 (30 days, 2 seeds; median):
+
+| | Active (90 min a day) | Mixed (4 x 12 min) | Idle (2 x 4 min) |
+|---|---|---|---|
+| First level finished | 10.0 min | 8.6 min | 10.3 min |
+| Fourth level finished | 0.6 h | 10 h | day 2.3 |
+| 100 m Rock down | 1.2 h | 19 h | day 3.8 |
+| 125 m Rock down | day 2.0 | day 2.5 | day 10 |
+| 150 m Rock down | day 3.0 | day 4.1 | day 23 |
+| 175 m Rock down | day 5.0 | day 7.4 | never |
+| 200 m Rock down | day 13 | day 19 | never |
+| Sites dug / new ones | 518 / 52 | 277 / 52 | 40 / 21 |
+| Stars earned by day 30 | 7.3 million | 3.2 million | 24,500 |
+| Coins that came from time away | 51% | 78% | 58% |
+
+Against the road in 2.3 the middle is now **too fast**: the mixed player breaks the 150 m Rock on day 4 (the road says days 10 to 12) and has seen everything by day 19. The old sim targets in `dig-month.mjs` are from before the road and nine of them fail; they are to be replaced by the "Tries" and time columns of 2.3 when the road is built.
+
+## 5. Bugs and open faults
+
+| # | Fault | State |
+|---|---|---|
+| 1 | Four Star steps had a name and no rule (Crack Finder, Falling Star, Good Shoes, Second Kettle) | fixed (PR #338) |
+| 2 | Three fusions could never be made the first time (Barrel Boom, Golden Dinar, Deep Boom asked for level 3 of a relic that stops at 2) | fixed (PR #338) |
+| 3 | The Dhab Lizard's bone and the Bag's bone gave coins, never a Museum piece | fixed (PR #338) |
+| 4 | A locked item could be bought through the rules; only the page hid it | fixed (PR #338) |
+| 5 | The Star count on the finish card took three minutes for a big prize | fixed (PR #338) |
+| 6 | The track note said a step works from the next site; it works at once | fixed (PR #338) |
+| 7 | The 100 m Rock took a perfect player three hours and 42 tries | fixed (PR #337) |
+| 8 | Time away counts a tea-break rush without using it up, and Rock Friend is paid for time already paid | open |
+| 9 | Leaving a 150 m dig unfinished pays 418 Stars; finishing it again pays 308 | open |
+| 10 | Time away is 78% of the mixed player's coins, so the Rafeeqs seem to do nothing while you watch | open |
+| 11 | A deal can offer the same place three times | open; goes away with the road |
+| 12 | Stars reach millions by day 30 | open; goes away with the road (14 paid levels, not 277) |
+| 13 | Lessons share one message slot; a new one wipes the last | open |
+| 14 | Contract hats are drawn 2 px high | open |
+| 15 | Never looked at on a real screen: water, crystal lines, lava, Forge tools in use, fusion twists, pick materials, the wish card | open |
+| 16 | Rock bar colours are red and yellow, the design says gold and blue | open |
+
+## 6. Work order
+
+1. **Reward correctness.** Faults 1 to 6: done. Faults 8 and 9 next, each with a sim before and after.
+2. **The road.** Section 2: levels 1 to 14 as fixed cards with a number, the start kit, the finish card that shows what you keep and what is next, the end card. Then size each Gate by the "Tries" column, and replace the sim's targets with that table.
+3. **A first goal that lasts.** Second Pick shown as a savings goal after the first Rock; one pinned goal on screen (this level's Gate, a Museum set, or a fusion).
+4. **Rafeeqs that matter while you watch** (fault 10): an early choice of job, and time away paying toward the pinned goal, not only coins.
+5. **Looks.** A sky and ground colours per place; faults 14 to 16.
+6. **After chapter one.** Not designed. No second land, no several sites at once, until a person has played levels 1 to 14 and wanted more.
+
+## 7. Rules that never bend
+
+- No gate waits on the clock. A gate is a resource, a depth, a Rock or a count. Timers count up and nothing expires.
+- Nothing punishes being away. No fake scarcity. Nothing can be skipped by paying.
+- Every addition changes what the player does or sees, not only a number.
+- Everything that breaks ground is counted in the player's hits, so the pick is the base of all strength.
+- Words a 7 year old understands. No emoji; faces and icons are drawn.
+- Desktop only for now. Old saves always load.
+- A change to the economy comes with sim numbers before and after.
+
+## 8. What changed, newest first
+
+| Date | Change |
+|---|---|
+| 13 Oct 2026 | This file made the one design file. The road of fourteen levels written (section 2). Faults 1 to 6 fixed (PR #338). |
+| 13 Oct 2026 | The 100 m wall lowered: it was three hours high (PR #337). |
+| 13 Oct 2026 | The Deep refitted for sites with a bottom (PR #336). |
+| 13 Oct 2026 | Every site has a Gate, three medals, four fixed sites and a deal of three (PR #335). |
+| 13 Oct 2026 | Month sim limited to three workers after it froze the owner's PC (PR #334). |
+| Earlier | See `git log -- proto` and the history files named at the top. |

@@ -1,5 +1,8 @@
 # Dig: the pacing curve for the first month
 
+> **History, not the design.** The one design file for Dig is [`docs/dig-design.md`](dig-design.md); where this file
+> disagrees with it, that file wins. This file is kept for its reasoning: the working notes of the pacing curve (how the walls were sized, how to re-tune); its targets and results are out of date.
+
 What should arrive when, how the numbers make that happen, how to check it, and what is still off.
 The numbers live in `proto/core/rules.js` (`PARAMS.core`) and the curves in `proto/core/grid.js`.
 The check is `node sim/proto/dig-month.mjs`.

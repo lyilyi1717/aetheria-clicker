@@ -1,5 +1,7 @@
 # Dig: the contract
 
+> The design of the game (levels, what is built, what is broken, what is next) is in `docs/dig-design.md`. This file is only about the code.
+
 Dig is built from a small core and many features. A feature is a folder of its own plus nothing
 else. This file says what a feature may add, how, and what it must not touch. Read it before you
 write a line. Words for players: the diggers are called **Rafeeq** (plural **Rafeeqs**) in every

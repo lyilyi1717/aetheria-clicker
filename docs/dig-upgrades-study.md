@@ -1,5 +1,8 @@
 # Dig: a study of upgrades and the permanent layer
 
+> **History, not the design.** The one design file for Dig is [`docs/dig-design.md`](dig-design.md); where this file
+> disagrees with it, that file wins. This file is kept for its reasoning: the study of upgrades (the three Star tracks and the count-in-hits rule came from it).
+
 For the owner. This is a study and a recommendation. No game file was changed.
 
 Your question was: "talents look useless in general, no actual damage progression happens there.
