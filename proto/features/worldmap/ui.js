@@ -32,7 +32,7 @@ export function openMap(app, opts = {}) {
   const m = app.modal.open('worldmap', `<div class="card wmcard"><div class="wm-head"><h2></h2><span class="wm-sub"></span><button class="ghost wm-back"></button></div>`
     + `<div class="wm-lands"></div><div class="wm-stage"><canvas></canvas><button class="wm-pan l"></button><button class="wm-pan r"></button><span class="wm-skip"></span></div>`
     + `<div class="wm-info"><span class="wm-ic"></span><div class="wm-txt"><b></b><span class="line"></span><span class="gt"></span><span class="nw"></span><span class="pay"></span></div>`
-    + `<div class="mrow"></div><button class="primary gold wm-go"></button></div><p class="wm-leave"></p></div>`);
+    + `<div class="mrow"></div><div class="wm-btns"><button class="primary gold wm-go"></button><button class="ghost wm-go2"></button></div></div><p class="wm-leave"></p></div>`);
   if (!m) return false;
   try { active = start(app, m, map, opts); } catch (e) { stopActive(); app.modal.close(); throw e; }
   return true;
@@ -49,8 +49,9 @@ function start(app, m, map, opts) {
   $('.wm-pan.l').innerHTML = CHEVRON; $('.wm-pan.r').innerHTML = CHEVRON;
   $('.wm-pan.l').title = t('wm_pan_left'); $('.wm-pan.r').title = t('wm_pan_right');
   $('.wm-skip').textContent = t('wm_skip');
-  const goBtn = $('.wm-go');
-  goBtn.textContent = t('wm_dig');
+  const goBtn = $('.wm-go'), goBtn2 = $('.wm-go2');
+  goBtn.textContent = t('wm_dig'); goBtn2.textContent = t('wm_hard_way');
+  let c1 = null, c2 = null;              // the cards the two buttons start
   const leave = $('.wm-leave');
   if (viewOnly) leave.textContent = t('wm_wait');
   else {
@@ -106,6 +107,7 @@ function start(app, m, map, opts) {
     sel = n;
     const ic = $('.wm-ic'), name = $('b'), line = $('.line'), gt = $('.gt'), nw = $('.nw'), pay = $('.pay'), mrow = $('.mrow');
     nw.classList.remove('hard');
+    c1 = c2 = null; goBtn2.hidden = true;
     if (!n) { ic.innerHTML = ''; name.textContent = ''; line.textContent = t('wm_go_hint'); gt.textContent = nw.textContent = pay.textContent = ''; mrow.innerHTML = ''; goBtn.hidden = true; return; }
     const c = n.card;
     ic.innerHTML = icon(n.type === 'hub' ? 'gate' : 'site_' + n.site, 48);
@@ -117,7 +119,16 @@ function start(app, m, map, opts) {
       gt.textContent = t('gate_par', { gate: t('next_gate', { n: n.floor }), par: t('next_par', { t: clock(G.sitePar(n.floor)) }) });
       nw.textContent = t(newThingKey(f, n.i)); nw.classList.toggle('hard', !!n.prove);
       if (n.state === 'locked') pay.textContent = t('wm_locked', { n: n.level - 1 });
-      else if (c) pay.textContent = t('pay_medal', { reward: t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }), medal: t('next_medal_each', { n: G.fmt(c.medalStars) }) });
+      else if (n.state === 'done' && n.stamp && n.stamp.fin) {
+        const again = G.replayCard(s, G.siteKey(n.site, n.floor), false);
+        const all = n.stamp.fast && n.stamp.hard;
+        pay.textContent = all ? t('wm_all_won') : t('wm_again_line', { t: clock(n.stamp.best), par: clock(G.sitePar(n.floor)) });
+        if (again && !viewOnly) {
+          c1 = again;
+          goBtn.textContent = t('wm_again');
+          if (!n.stamp.hard) { c2 = G.replayCard(s, again.key, true); if (c2) { goBtn2.hidden = false; nw.textContent = t('next_hard', { rule: ruleLine(c2.hard) }); nw.classList.add('hard'); } }
+        }
+      } else if (c) pay.textContent = t('pay_medal', { reward: t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }), medal: t('next_medal_each', { n: G.fmt(c.medalStars) }) });
       else pay.textContent = n.stamp && n.stamp.best ? t('wm_best', { t: clock(n.stamp.best) }) : t('wm_not_yet');
       mrow.innerHTML = medalsHtml(n.stamp);
     } else if (n.type === 'hub') {
@@ -133,16 +144,18 @@ function start(app, m, map, opts) {
         mrow.innerHTML = medalsHtml(c.medals);
       } else { nw.textContent = t('site_' + n.site + '_d'); pay.textContent = t('wm_island_wait'); }
     }
-    goBtn.hidden = !c || viewOnly;
+    if (c) { c1 = c; goBtn.textContent = t('wm_dig'); }
+    goBtn.hidden = !c1 || viewOnly;
   };
-  const dig = () => {
-    const n = sel, c = n && n.card;
+  const dig = c => {
+    if (!c) c = c1;
     if (!c || viewOnly) return;
     app.unlockAudio();
     app.modal.close();
     if (G.pickCard(s, c, app.ev)) { app.save(); app.refresh(true); }
   };
-  goBtn.addEventListener('click', dig);
+  goBtn.addEventListener('click', () => dig(c1));
+  goBtn2.addEventListener('click', () => dig(c2));
 
   // ---------- the walk, and what ends it ----------
   const pop = () => ({ nodeId: fromNode && fromNode.id, ages });
@@ -197,7 +210,7 @@ function start(app, m, map, opts) {
   $('.wm-pan.l').addEventListener('click', () => pan(-rtl())); $('.wm-pan.r').addEventListener('click', () => pan(rtl()));
   const onKey = e => {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { pan(e.key === 'ArrowLeft' ? -1 : 1); }
-    else if (e.key === 'Enter' || e.key === ' ') { if (walking) finishWalk(); else if (!goBtn.hidden) dig(); }
+    else if (e.key === 'Enter' || e.key === ' ') { if (walking) finishWalk(); else if (!goBtn.hidden) dig(c1); }
     else if (e.key === 'Escape') { app.modal.close(); }
     else return;
     e.preventDefault(); e.stopPropagation();

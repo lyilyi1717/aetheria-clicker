@@ -84,5 +84,16 @@ const dealKeys = s => G.dealCards(s).map(c => c.key).sort().join();
   ok(en.wm_map_btn && readFileSync('proto/features/track/ui.js', 'utf8').includes('openMap'), 'the Map button (top right, now the track feature) opens the map');
 }
 
+{ // a finished stone offers both buttons' cards; the road level stays the go node
+  const s = fresh();
+  for (let i = 0; i < 4; i++) stamp(s, i, { fin: 1, fast: 0, hard: 0, best: 120 });
+  const map = buildMap(s), n = map.nodes.find(x => x.type === 'road' && x.i === 1);
+  const key = G.siteKey(n.site, n.floor), a = G.replayCard(s, key, false), h = G.replayCard(s, key, true);
+  ok(n.state === 'done' && a && a.kind === 'replay' && h && h.hard === G.hardOf(n.site, n.floor), 'a done stone has a plain and a hard replay card');
+  ok(map.go.i === 4 && map.go.card.kind === 'fixed', 'the road level is still the main Dig here');
+  const src = readFileSync(new URL('./proto/features/worldmap/strings.js', import.meta.url), 'utf8');
+  ok(src.includes('wm_again') && src.includes('wm_hard_way'), 'the two button words exist');
+}
+
 if (failed) { console.error(`${failed} check(s) failed`); process.exit(1); }
 console.log('Dig world map OK');

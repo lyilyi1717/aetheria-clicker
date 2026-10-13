@@ -264,7 +264,17 @@ export function newSite(s, site, ev = () => {}, patch, pick) {
   emit(s, ev, 'newSite', { gain, stars: s.stars, key: run.key });
   return true;
 }
-export const pickCard = (s, c, ev) => newSite(s, c.site, ev, undefined, c);
+// a finished level dug again, from the map: plain rules (for the Fast time) or under its hard rule (for the Hard medal).
+// null for a level you have not finished, one that is not open, or a hard card for a level with no hard rule or whose Hard medal is won.
+export function replayCard(s, key, hard = false) {
+  const st = s.road.stamps[key];
+  if (!st || !st.fin || !siteOpen(s, st.site)) return null;
+  const hr = hard ? hardOf(st.site, st.floor) : '';
+  if (hard && (!hr || st.hard)) return null;
+  return card(s, st.site, st.floor, st.twist, 'replay', hr);
+}
+// a replay card must be for a stamp that is finished; every other card is taken as it is
+export const pickCard = (s, c, ev) => (c.kind === 'replay' && !replayCard(s, c.key, !!c.hard)) ? false : newSite(s, c.site, ev, undefined, c);
 
 const twistOf = s => (s.run && s.run.twist) || '';
 
