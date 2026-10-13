@@ -14,8 +14,10 @@ function arrive(app) {
   if (!r) return;
   const i = (G.ROAD || []).findIndex(f => f.site === r.site && f.floor === r.floor);
   const place = G.hasString('site_' + r.site) ? t('site_' + r.site) : r.site;
-  const title = i >= 0 && !r.twist ? t('look_arrive_title', { n: i + 1, of: G.ROAD.length, place }) : t('look_arrive_title_side', { place });
-  app.banner(title, t('look_arrive_sub', { m: r.floor }));
+  const zone = i >= 0 ? G.ROAD[i].zone : '';
+  const inZone = G.ROAD.filter(f => f.zone === zone);
+  const title = i >= 0 && !r.twist ? t('look_arrive_zone', { zone: t('look_zone_' + zone), n: G.ROAD.slice(0, i + 1).filter(f => f.zone === zone).length, of: inZone.length }) : t('look_arrive_title_side', { place });
+  app.banner(title, i >= 0 && !r.twist ? t('look_arrive_sub_place', { place, m: r.floor }) : t('look_arrive_sub', { m: r.floor }));
 }
 
 ui({

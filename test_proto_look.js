@@ -1,5 +1,5 @@
 // Dig look: every layer has its own hue, ore stays readable on every layer and site, every site has a sky.
-import { LAYER_LOOK, SITE_LOOK, ORES, oreBacking, contrast, lookFor, siteKey, MIN_CONTRAST, luminance } from './proto/features/look/palette.js';
+import { LAYER_LOOK, SITE_LOOK, ORES, oreBacking, contrast, lookFor, siteKey, MIN_CONTRAST, luminance, ZONE_LOOK, placeLook } from './proto/features/look/palette.js';
 let bad = 0;
 const ok = (c, m) => { if (!c) { bad++; console.log('FAIL', m); } };
 const hue = h => { const n = parseInt(h.slice(1), 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255, M = Math.max(r, g, b), m = Math.min(r, g, b); if (M === m) return 0; const d = M - m; const x = M === r ? ((g - b) / d) % 6 : M === g ? (b - r) / d + 2 : (r - g) / d + 4; return (x * 60 + 360) % 360; };
@@ -29,5 +29,21 @@ const places = ['dunes', 'boom', 'gold', 'bones', 'shark', 'mirage'];
 const dist = (a, b) => { const n = h => { const v = parseInt(h.slice(1), 16); return [v >> 16, (v >> 8) & 255, v & 255]; }; const A = n(a), B = n(b); return Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]); };
 for (let i = 0; i < places.length; i++) for (let j = i + 1; j < places.length; j++) ok(dist(lookFor('sand', {}, places[i]).dirt, lookFor('sand', {}, places[j]).dirt) > 25, `${places[i]} and ${places[j]} ground look alike`);
 ok(lookFor('sand', {}, 'boom').back !== LAYER_LOOK.sand.back, 'the wall behind is tinted too');
+// continents: every zone of the road has a sky; Arabia is the home look; ground tints gently; ore still reads
+import { ZONES, ROAD, roadZone } from './proto/game.js';
+ok(ZONES.every(z => ZONE_LOOK[z]), 'a look for every zone');
+for (const z of ZONES) for (const s of places) ok(placeLook(s, z).sky.length === 2 && placeLook(s, z).far, `sky for ${s} in ${z}`);
+ok(placeLook('dunes', 'arabia').sky === SITE_LOOK.dunes.sky && lookFor('sand', {}, 'boom', 'arabia').dirt === lookFor('sand', {}, 'boom', '').dirt, 'Arabia is unchanged');
+const skies = ZONES.map(z => placeLook('dunes', z).sky[0]);
+ok(new Set(skies).size === ZONES.length, 'each continent has its own sky');
+for (const z of ZONES.slice(1)) {
+  ok(dist(lookFor('sand', {}, 'dunes', z).dirt, lookFor('sand', {}, 'dunes', 'arabia').dirt) < 60, `${z} ground shifts gently`);
+  ok(dist(lookFor('sand', {}, 'boom', z).dirt, lookFor('sand', {}, 'dunes', z).dirt) > 25, `places still read in ${z}`);
+  for (const [o, col] of Object.entries(ORES)) for (const id of ids) for (const p of places) {
+    const k0 = base[o] === 'dirt' ? -0.18 : -0.35;
+    ok(contrast(col, oreBacking(lookFor(id, {}, p, z)[base[o]], col, k0)) >= MIN_CONTRAST - 0.05, `${o} reads on ${id} at ${p} in ${z}`);
+  }
+}
+ok(ROAD.every(f => roadZone({ run: { site: f.site, floor: f.floor, twist: '' } }) === f.zone), 'roadZone follows the road');
 console.log(bad ? `${bad} failed` : 'look: all ok');
 process.exit(bad ? 1 : 0);

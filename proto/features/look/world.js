@@ -3,7 +3,9 @@
 // state and never changes it. render.js hands in what it owns (makeWorld) so this file does not import it back.
 import { LAYER, layerAt } from '../../core/grid.js';
 import { layersOf } from '../../core/registry.js';
-import { LAYER_LOOK, SITE_LOOK, siteKey, lookFor, placeLook } from './palette.js';
+import * as G from '../../game.js';
+import { LAYER_LOOK, SITE_LOOK, siteKey, lookFor, placeLook, setZone } from './palette.js';
+import { makeZoneProps } from './zones.js';
 
 const reduced = (() => {
   try { return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
@@ -12,8 +14,8 @@ const canvas = (w, h) => { const c = document.createElement('canvas'); c.width =
 const TILE = 256, RULER_MAX = 200;   // a wall tile is 256 px tall; the ruler shows the first 200 m of a site
 const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
 
-// the zone of the road (a later change); until it exists there is none
-const G_zone = s => (s && s.zone) || '';
+// the zone (continent) of the dig in play, from the road
+const G_zone = s => { try { return (G.roadZone && s && G.roadZone(s)) || 'arabia'; } catch { return 'arabia'; } };
 export function makeWorld(R) {
   const { fx, yOf, W, H, SKY, CELL, seeded } = R;
   const lid = (s, r) => layerAt(s, Math.max(0, r)).id;
@@ -133,6 +135,7 @@ export function makeWorld(R) {
       hump(g, SITE_LOOK.mirage.far, 8, 4, 6);
     },
   };
+  const ZONE_PROPS = makeZoneProps({ W, SKY, sun });
   function skyOf(key, zone) {
     const ck = key + '|' + (zone || '');
     let c = skies.get(ck);
@@ -141,7 +144,7 @@ export function makeWorld(R) {
       const g = c.getContext('2d'), L = placeLook(key, zone);
       const gr = g.createLinearGradient(0, 0, 0, SKY); gr.addColorStop(0, L.sky[0]); gr.addColorStop(0.85, L.sky[1]); gr.addColorStop(1, L.sky[1]);
       g.fillStyle = gr; g.fillRect(0, 0, W, SKY);
-      SKY_PROPS[key](g);
+      if (ZONE_PROPS[zone]) ZONE_PROPS[zone](g); else SKY_PROPS[key](g);
       skies.set(ck, c);
     }
     return c;
@@ -177,7 +180,8 @@ export function makeWorld(R) {
   function drawSky(g, s) {
     const y0 = -fx.cam * CELL;
     if (y0 + SKY < -4) return;
-    const key = siteKey(s.site), c = skyOf(key, G_zone(s));
+    const key = siteKey(s.site), zone = G_zone(s), c = skyOf(key, zone);
+    setZone(zone);
     g.drawImage(c, 0, y0);
     if (key === 'mirage') shimmer(g, c, y0);
     drift(g, key, y0);

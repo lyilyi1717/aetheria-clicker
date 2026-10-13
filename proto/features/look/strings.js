@@ -1,5 +1,11 @@
 export default { en: {
-  look_arrive_title: 'Level {n} of {of}: {place}',
   look_arrive_title_side: '{place}',
+  look_arrive_zone: '{zone}, level {n} of {of}',
+  look_zone_arabia: 'Arabia',
+  look_zone_africa: 'Africa',
+  look_zone_eastasia: 'East Asia',
+  look_zone_americas: 'The Americas',
+  look_zone_europe: 'Europe',
   look_arrive_sub: 'Gate at {m} m',
+  look_arrive_sub_place: '{place}. Gate at {m} m',
 } };
