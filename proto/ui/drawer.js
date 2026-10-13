@@ -31,6 +31,22 @@ let nav = null, host = null, app = null, cur = 'shop';
 const els = {};            // tab id -> { btn, pane, next, main, list, dot }
 const mem = {};            // tab id -> Set of what was ready when last seen
 let first = true;
+// Forge metal lives in the purse pill, and only once the Forge is open (a chip that floated in the top bar is gone)
+let metal = null, metalN = null, metalV = -1;
+function purseMetal(s) {
+  if (!metal) {
+    const host = app && app.el && app.el.top;
+    if (!host) return;
+    metal = document.createElement('span'); metal.id = 'purse-metal'; metal.className = 'pchip'; metal.hidden = true;
+    metal.title = t('metal');
+    metal.innerHTML = `${icon('metal', 22)}<b></b>`;
+    metalN = metal.querySelector('b');
+    host.appendChild(metal);
+  }
+  metal.hidden = !s.forgeOn;
+  const v = Math.floor(s.metal || 0);
+  if (s.forgeOn && v !== metalV) { metalV = v; metalN.textContent = G.fmt(v); }
+}
 
 function show(id) {
   cur = id;
@@ -81,6 +97,7 @@ export const drawer = {
   },
   // every tick: lock, dot, next line, main button
   tick(s) {
+    purseMetal(s);
     for (const tb of TABS) {
       const e = els[tb.id], info = tabInfo(tb, s);
       const locked = !!info.lock;

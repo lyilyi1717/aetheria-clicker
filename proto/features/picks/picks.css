@@ -1,15 +1,15 @@
 /* the bar as a row of dots: one per step, bigger for an accent, lit when its note lands */
-#picks-beat { position: absolute; inset-block-start: 16px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; height: 26px; padding: 0 12px; border-radius: 14px; background: rgba(15,10,6,.72); border: 1px solid rgba(255,255,255,.14); pointer-events: none; }
-#picks-beat i { display: block; width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,.16); transition: transform .09s ease-out, background-color .09s; }
-#picks-beat i.beat { margin-inline-start: 5px; }
+#picks-beat { position: absolute; inset-block-start: 2px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 3px; height: 12px; padding: 0 8px; border-radius: 0 0 8px 8px; background: rgba(15,10,6,.5); pointer-events: none; }
+#picks-beat i { display: block; width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,.16); transition: transform .09s ease-out, background-color .09s; }
+#picks-beat i.beat { margin-inline-start: 3px; }
 #picks-beat i.beat:first-child { margin-inline-start: 0; }
 #picks-beat i.n { background: #8a7a66; }
-#picks-beat i.v-o { width: 6px; height: 6px; }
-#picks-beat i.v-x { width: 8px; height: 8px; }
-#picks-beat i.v-X { width: 12px; height: 12px; background: #b89a5a; }
-#picks-beat i.on { background: var(--gold, #ffd23f); transform: scale(1.5); transition: none; box-shadow: 0 0 8px rgba(255,210,63,.8); }
+#picks-beat i.v-o { width: 4px; height: 4px; }
+#picks-beat i.v-x { width: 5px; height: 5px; }
+#picks-beat i.v-X { width: 7px; height: 7px; background: #b89a5a; }
+#picks-beat i.on { background: var(--gold, #ffd23f); transform: scale(1.4); transition: none; box-shadow: 0 0 5px rgba(255,210,63,.8); }
 #picks-beat i.v-X.on { background: #fff3b0; }
-#picks-beat b { margin-inline-start: 8px; font-size: 12px; font-weight: 700; color: #d9c9ae; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#picks-beat b { margin-inline-start: 5px; font-size: 10px; font-weight: 700; color: #b9a58c; font-variant-numeric: tabular-nums; white-space: nowrap; }
 #picks-beat.still i, #picks-beat.still i.on { transition: none; transform: none; box-shadow: none; }
 @media (prefers-reduced-motion: reduce) { #picks-beat i, #picks-beat i.on { transition: none; transform: none; box-shadow: none; } }
 
