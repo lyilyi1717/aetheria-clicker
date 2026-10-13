@@ -32,6 +32,9 @@ function mount(app) {
   msg.id = 'trk-msg';
   for (const id of ['lesson', 'toast']) { const x = $(id); if (x) msg.appendChild(x); }
   track.insertBefore(msg, goal);
+  // the Tips button sits in this line, beside the message line (its list still opens over the stage)
+  const tips = $('tips-btn');
+  if (tips) track.insertBefore(tips, goal);
   el = { level: $('trk-level'), clock: $('trk-clock'), medals: $('trk-medals'), gate: $('trk-gate') };
   const mb = $('mapbtn');
   if (mb) { mb.innerHTML = app.icon('btn_map', 22); mb.title = mb.ariaLabel = t('trk_map'); mb.addEventListener('click', () => { app.unlockAudio(); openMap(app); }); }

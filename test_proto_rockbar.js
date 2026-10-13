@@ -6,7 +6,7 @@ let failed = 0;
 const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg); } };
 const clearRow = (s, i) => { for (let c = 0; c < G.COLS; c++) s.rows[i][c] = null; };
 const bossIdx = s => { for (let i = 0; i < s.rows.length; i++) if (G.isBossRow(s.top + i) && s.rows[i].some(x => x)) return i; return -1; };
-const HOLD = G.VIEW_ROWS - 2;
+const HOLD = G.VIEW_ROWS - 3;
 
 { // the view follows the dig until the Rock is in the bottom rows, then stops
   const s = G.newState();
@@ -15,7 +15,8 @@ const HOLD = G.VIEW_ROWS - 2;
     G.step(s, 0.01);
   }
   const b = bossIdx(s);
-  ok(b === HOLD, 'the Rock settles in the second row from the bottom (index ' + b + ')');
+  ok(b === HOLD, 'the Rock settles in the third row from the bottom (index ' + b + ')');
+  ok(G.VIEW_ROWS - 1 - b >= 2, 'two rows under the Rock stay clear for the tool buttons and the hint');
   const top = s.top;
   for (let n = 0; n < 50; n++) G.step(s, 0.05);
   ok(s.top === top, 'the view does not move while the Rock stands');

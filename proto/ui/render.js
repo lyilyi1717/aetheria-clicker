@@ -137,8 +137,14 @@ export function coinBurst(r, c, n, col = '#ffd23f') {
     fx.coins.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, t: 0, hold: 0.22 + Math.random() * 0.25, col, s: 5 + Math.random() * 2 });
   }
 }
+// A feature can name a row to keep clear (fx.keepClear = the row of a standing Big Rock): numbers that would start on it
+// start just above it instead, smaller and shorter, so they never sit on its bar.
 export function text(x, y, str, col = '#fff', size = 18, life = 0.8) {
   if (fx.texts.length > 40) fx.texts.shift();
+  if (fx.keepClear != null) {
+    const top = yOf(fx.keepClear);
+    if (y > top - 6 && y < top + CELL) { y = top - 10; size = Math.min(size, 15); life = Math.min(life, 0.5); }
+  }
   fx.texts.push({ x: x + (Math.random() - 0.5) * 16, y, str, col, size, life, max: life });
 }
 export function ring(x, y, rad, col = '#fff') { fx.rings.push({ x, y, rad, col, life: 0.4, max: 0.4 }); }

@@ -89,7 +89,8 @@ function drawBar(g, s, b) {
   for (let i = 1; i < 10; i++) { g.fillStyle = i <= (b.rub || 0) ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.35)'; g.fillRect(bx + bw * (1 - i / 10) - 1, by, 2, bh); }
   g.restore();
   rr(g, bx, by, bw, bh, 7); g.strokeStyle = '#1c1830'; g.lineWidth = 2; g.stroke();
-  const label = t('rock_hits', { n: fmt(Math.max(1, Math.ceil(b.hp / G.pickPower(s)))) });
+  const left = fmt(Math.max(1, Math.ceil(b.hp / G.pickPower(s))));
+  const label = s.run && !s.run.done && s.run.floor === b.row ? t('rock_gate_hits', { n: left }) : t('rock_hits', { n: left });
   g.save(); g.font = '800 12px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.lineJoin = 'round'; g.lineWidth = 3.5; g.strokeStyle = 'rgba(14,10,7,.95)'; g.fillStyle = '#fff';
   g.strokeText(label, W / 2, by + bh / 2 + 0.5); g.fillText(label, W / 2, by + bh / 2 + 0.5);
@@ -192,6 +193,7 @@ ui({
   draw: [{ at: AT.fog + 1, fn(g, s) {
     // the flag: where this dig's record stood when it began
     if (!(s.recMark >= G.PARAMS.boss.recordMin)) return;
+    if (G.bossInView(s) || G.isBossRow(s.recMark)) return;     // never on a Rock row; while a Rock stands the record shows in the corner
     const y = yOf(s.recMark);
     if (y < SKY - 10 || y > H) return;
     g.save();
@@ -230,6 +232,7 @@ ui({
     }
     paintHint(s, app);
     const b = G.bossInView(s);
+    fx.keepClear = b && b.hp > 0 ? b.row : null;
     if (b && b.hp > 0 && !s.seen.bossToast && b.row - s.top <= 6) { s.seen.bossToast = true; app.toast(t('t_boss'), 'gold'); }
   },
 });
