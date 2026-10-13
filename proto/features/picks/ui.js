@@ -46,6 +46,13 @@ setMixer(name => {
   return { at: Math.max(0, seq.gridAfter(now, stepNow, mode === 'offbeat' ? 2 : -1) - now), gain: crew ? P.crewGain : P.backGain };
 });
 
+// For the sound test page (proto/soundboard.html): play one sound the way a note of the bar does, `at` seconds
+// from now, accented by `gain`. It does not change the sound or the rule; it is the same shift the bar uses.
+export function picksPlayAt(at, gain, fn) {
+  note = { at, gain };
+  try { fn(); } finally { note = null; }
+}
+
 // ---------- the bar on screen ----------
 let strip = null, dots = [], label = null, shown = '', lit = -1, litEnd = 0;
 function showBar(s) {

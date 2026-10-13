@@ -13,6 +13,7 @@
 
 let ctx = null, master = null, noiseBuf = null;
 let muted = false;
+let volume = 0.5;    // the master level (the sound test page has a slider for it; the game keeps 0.5)
 const last = {};     // last play time per sound class (keeps fast repeats from stacking)
 let mixer = null;    // see "The mixer" above
 let shift = 0, level = 1;   // in force while a mixed sound function runs
@@ -48,7 +49,8 @@ function mixed(name, f) {
   };
 }
 
-export function setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : 0.5; }
+export function setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : volume; }
+export function setVolume(v) { volume = v; if (master && !muted) master.gain.value = v; }
 export const isMuted = () => muted;
 
 // Browsers only allow sound after a click or key press; call this from one.
@@ -58,7 +60,7 @@ export function unlock() {
   if (!AC) return;
   ctx = new AC();
   master = ctx.createGain();
-  master.gain.value = muted ? 0 : 0.5;
+  master.gain.value = muted ? 0 : volume;
   const comp = ctx.createDynamicsCompressor();
   master.connect(comp); comp.connect(ctx.destination);
   noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
