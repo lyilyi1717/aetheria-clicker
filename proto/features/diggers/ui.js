@@ -9,12 +9,16 @@ import { drawRafeeq, BLUES } from './art.js';
 const { t, fmt } = G;
 const SHIRTS = BLUES;      // the blue of each Rafeeq (the dot in the crew panel matches)
 
-function drawDigger(g, s, d, i, dt) {
+function drawDigger(g, s, d, i, dt, rock) {
+  // at a standing Big Rock he stands on the open ground in the row above it and swings down at it (a drawing rule only)
+  const r0 = d.r, tr0 = d.tr, up = rock ? rock.row - 1 : -1;
+  if (rock) { if (d.r > up) d.r = up; if (d.tr >= rock.row) d.tr = up; }
   const [x, y] = centre(d.r, d.c);
   const bob = Math.sin(fx.t * 9 + i * 2) * 2;       // the same bob the hats and goggles of other features use
   g.save(); g.translate(x, y - 14 + bob);
   drawRafeeq(g, s, d, i, bob, dt);
   g.restore();
+  d.r = r0; d.tr = tr0;
 }
 
 ui({
@@ -26,27 +30,15 @@ ui({
   items: {
     crew: { noLevel: true, desc: (s, lv) => t('up_crew_d', { a: lv, p: Math.round(100 * G.crewShare(s)) }) },
   },
-  draw: [{ at: AT.actors, fn(g, s, dt) { s.diggers.forEach((d, i) => drawDigger(g, s, d, i, dt)); } }],
+  draw: [{ at: AT.actors, fn(g, s, dt) { const rock = G.bossInView(s); s.diggers.forEach((d, i) => drawDigger(g, s, d, i, dt, rock)); } }],
   css: new URL('./diggers.css', import.meta.url).href,
-  // the line under the purse: what the Rafeeqs earn, always
-  mount() {
-    const el = document.createElement('div');
-    el.id = 'hud-crew'; el.hidden = true;
-    document.getElementById('stage').appendChild(el);
-  },
-  tick(s) {
-    const el = document.getElementById('hud-crew');
-    if (!el) return;
-    el.hidden = !s.diggers.length;
-    if (el.hidden) return;
-    const pct = s.allCps > 0 ? Math.min(100, Math.round(100 * s.crewCps / s.allCps)) : 0;
-    el.textContent = t('crew_line', { n: fmt(Math.round(s.crewCps || 0)), p: pct });
-  },
   panels: [{
     id: 'crew', elId: 'crew', side: 'left', at: 14, title: 'crew_title', live: true,
     when: s => s.diggers.length > 0,
-    build(el) { el.insertAdjacentHTML('beforeend', '<div class="crew-share"></div><div class="crew-rows"></div>'); },
+    build(el) { el.insertAdjacentHTML('beforeend', '<div class="crew-line"></div><div class="crew-share"></div><div class="crew-rows"></div>'); },
     update(el, s, app) {
+      const pct = s.allCps > 0 ? Math.min(100, Math.round(100 * s.crewCps / s.allCps)) : 0;
+      el.querySelector('.crew-line').textContent = t('crew_line', { n: fmt(Math.round(s.crewCps || 0)), p: pct });
       el.querySelector('.crew-share').textContent = t('crew_share', { p: Math.round(100 * G.crewShare(s)) });
       const box = el.querySelector('.crew-rows');
       while (box.children.length > s.diggers.length) box.lastChild.remove();

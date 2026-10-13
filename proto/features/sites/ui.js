@@ -215,6 +215,8 @@ function drawGate(g, s) {
   if (!r || r.done) return;
   const y = yOf(r.floor) + CELL / 2;
   if (y < SKY - CELL || y > H) return;
+  const rk = G.bossInView(s);
+  if (rk && rk.row === r.floor) return;       // the Gate Rock says "The Gate" on its own bar
   g.save();
   g.font = '800 13px system-ui, sans-serif'; g.textBaseline = 'middle';
   const label = t('gate_flag', { n: r.floor }), w = g.measureText(label).width + 40;
