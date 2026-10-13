@@ -138,6 +138,14 @@ Sim (mixed, 2 seeds, 30 days): levels 1 to 12 by day 7 to 8; level 13 (Americas 
 - **Sound test page:** `proto/soundboard.html` (every sound and beat by axes, speed, land, depth).
 - Not folded yet: the depth ruler labels and the beat strip on the dig.
 
+## 2.6 The Rafeeqs as characters (built 13 October 2026)
+
+All of it is flavour: nothing here changes how strong a Rafeeq is.
+- **Seats (`proto/features/rafeeqs/`):** eight lasting seats. A seat has a name (rename on the card), one of six traits (Eager, Sleepy, Joker, Careful, Proud, Hungry), a friend, sometimes a rival, and a life record (blocks, coins, best find, levels). The crew is cleared at every new site, so identity goes with the seat number. A row in the Rafeeqs tab opens the card; the finish card names the Rafeeq of the level; the away summary uses names.
+- **Wardrobe (`proto/features/wardrobe/`):** in the Rafeeqs tab: the Rafeeq drawn large, arrows for Hat (14), Clothes (6), Colour (10) and Cloth pattern (6), a switch "All Rafeeqs / This Rafeeq", Surprise me, Undo. Starters are free; the rest are earned by play (contracts, Museum sets, levels finished, medals, reaching the Deep) and say how; none is bought or timed. Contract and Museum hats are items here.
+- **Chatter (`proto/features/chatter/`, `moods/`):** idle moves by trait, a name tag when the pick rests on a Rafeeq, right click pats, Y cheers, short bubbles for a hire, TNT, the Big Rock, a new land, the Deep and a finish, friends high-five and take tea, rivals flex. Limits: one bubble per 4 s, one per Rafeeq per 14 s, 12 a minute, none in the last third of a Rock fight. "Rafeeqs talk: on/off" in the Rafeeqs tab.
+- Open: hats thrown at a finish are a plain fez, not the worn hat; the app digs on any mouse button (the pat swallows right click on a Rafeeq); looks are not counted by the timeline sim.
+
 ## 3. The systems
 
 | System | What it does for the player | State |
@@ -196,7 +204,7 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 | 10 | Time away is 78% of the mixed player's coins, so the Rafeeqs seem to do nothing while you watch | open |
 | 11 | A deal can offer the same place three times | open; goes away with the road |
 | 12 | Stars reach millions by day 30 | open; goes away with the road (14 paid levels, not 277) |
-| 13 | Lessons share one message slot; a new one wipes the last | open |
+| 13 | Lessons share one message slot; a new one wipes the last | fixed (PR #356); other features' own tips still use the plain toast |
 | 14 | Contract hats are drawn 2 px high | fixed (PR #342) |
 | 15 | Never looked at on a real screen: water, crystal lines, lava, Forge tools in use, fusion twists, pick materials, the wish card | open |
 | 16 | The Rock bar did not show how much was left | fixed (PR #342): three layers, blue over yellow over red over an empty dark bar, with a thin gold (you) / blue (Rafeeqs) strip |
@@ -224,6 +232,7 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 
 | Date | Change |
 |---|---|
+| 13 Oct 2026 | Rafeeqs as characters: names, traits and records (#359), the wardrobe (#360), chatter (#361). Lessons queue (#356), last clutter folded (#357, #358). |
 | 13 Oct 2026 | The drawer and the level track (#354), the world map (#352), the sound test page (#349), save for the Second Pick and pin one goal (#350), a won contract frees the site (#351). |
 | 13 Oct 2026 | Stars paid at the prove level; leaving pays less; the finish card (2.3d). |
 | 13 Oct 2026 | Twenty levels, four per land; a beat and a look per land (PRs #344, #345); walls below 175 m softened (2.3c). |
