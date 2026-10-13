@@ -18,7 +18,7 @@
 import { use, emit, PARAMS, fold, RELICS, ITEMS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, LAYER, dirtHp, dirtVal, shiftRow, layerOf, cellAt } from '../../core/grid.js';
-import { coinMult, damage, pickPower, buy } from '../../core/rules.js';
+import { coinMult, damage, pickPower, buy, grantFree } from '../../core/rules.js';
 import { fmt, t } from '../../core/strings.js';
 import '../shop/rules.js';
 import { newRafeeq } from '../diggers/rules.js';
@@ -128,8 +128,10 @@ export function starshopMovedText(s) {
 }
 
 // Warm Pick sets the pick level, so the next level used to cost what it costs at that level: for the first
-// minute Stronger Pick could not be bought. Now the price ramps back onto the old curve (3 levels of price per
-// level bought, until you have bought half as many as the warm start gave you). Done here on the shop's item.
+// minute Stronger Pick could not be bought. The price ramps back onto the old curve (3 levels of price per
+// level bought, until you have bought half as many as the warm start gave you). Free pick levels as a flat
+// discount were tried and made every level about 5 times faster: strength grows 1.25 a level, price 1.5, and the
+// deep ground pays so much that cheap levels never run out. So this one perk keeps its ramp.
 if (ITEMS.pick && !ITEMS.pick.cost) {
   const it = ITEMS.pick;
   it.cost = (s, l) => {
@@ -187,12 +189,19 @@ export const starshop = use({
   params: p,
   strings,
   version: 2,
-  // v1 -> v2: the Star Shop became three tracks. Every Star ever spent comes back, once; the old perks are gone.
-  migrate(s) {
-    const old = Object.keys(s.starUp || {}).filter(k => k.startsWith('sp_'));
-    const spent = s.starSpent || 0;
-    if (spent > 0) { s.starRefund = spent; s.stars += spent; s.starSpent = 0; }
-    for (const k of old) delete s.starUp[k];
+  // v1 -> v2: the Star Shop became three tracks. Every Star ever spent on the OLD shop comes back, once; the old perks are gone.
+  //   Stars paid for the third and fourth pick (picks feature, counted in starSpent) are not refunded: those picks stay owned.
+  migrate(s, from) {
+    {
+      const old = Object.keys(s.starUp || {}).filter(k => k.startsWith('sp_'));
+      const costs = PARAMS.picks ? PARAMS.picks.starCosts : [];
+      let kept = 0;
+      for (let i = 0; i < ((s.picksUp && s.picksUp.pick3) || 0); i++) kept += costs[Math.min(i, costs.length - 1)] || 0;
+      const spent = s.starSpent || 0, back = spent >= kept ? spent - kept : spent;
+      if (back > 0) { s.starRefund = back; s.stars += back; }
+      s.starSpent = spent - back;
+      for (const k of old) delete s.starUp[k];
+    }
   },
   state: {
     starSpent:    { init: () => 0, survives: ['site', 'land'] },     // Stars spent, ever (the pacing counts Stars earned: stars + starSpent)
@@ -243,8 +252,8 @@ export const starshop = use({
       if (k) for (const x of [].concat(k)) if (RELICS[x.id]) s.relics[x.id] = Math.min(x.level, RELICS[x.id].max);
       const crew = lv(s, 'sp_head');
       for (let i = 0; i < crew; i++) s.diggers.push(newRafeeq(s));
-      if (crew) s.up.crew = Math.max(s.up.crew, crew);     // so the next Rafeeq costs what it would after these
-      const w = warmLevel(s);
+      grantFree(s, 'crew', crew);                          // free seats: the next Rafeeq still costs the first price
+      const w = warmLevel(s);                              // Warm Pick: priced by the ramp above, which brings the cost back onto the curve
       if (w) { s.up.pick = Math.max(s.up.pick, w); s.starWarm = s.up.pick; }
       s.chests += lv(s, 'sp_gift') * p.giftChests;
       noteStart(s);

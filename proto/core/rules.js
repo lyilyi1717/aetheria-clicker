@@ -49,6 +49,7 @@ use({
     unlocked: { init: () => ({}), survives: ['site', 'land'] },     // content found so far (see unlocks())
     land:     { init: () => 'desert', survives: ['site'] },
     contract: { init: () => null, perSite: true },         // id of the contract this site is dug under
+    free:     { init: () => ({}), perSite: true },         // item id -> levels handed out free at the start of this site (see grantFree)
     savedAt:  { init: () => 0 },
     _pb:      { init: () => -1, transient: true },         // the depth the layer unlocks were last checked at
   },
@@ -191,8 +192,27 @@ export function step(s, dt, ev = NOEV) {
 
 export const itemLevel = (s, id) => s[SHOPS[ITEMS[id].shop].levels][id] || 0;
 export const itemOpen = (s, id) => { const u = ITEMS[id]; return !u.open || !!u.open(s); };
+// FREE LEVELS ARE A DISCOUNT. Anything that hands out levels of an item at the start of a site (the start kit, Warm Pick,
+// the Camp's waiting Rafeeqs ...) goes through grantFree: the levels count for strength, but the price counts only the
+// levels the player bought at this site, so the next purchase costs what the first one costs. `free` is per site.
+export const itemFree = (s, id) => (s.free && s.free[id]) || 0;
+// give the item `n` free levels (the larger grant wins, as the kit and a perk may both give some); returns the levels added
+export function grantFree(s, id, n) {
+  const u = ITEMS[id];
+  if (!u) return 0;
+  if (!s.free) s.free = {};
+  n = Math.min(Math.floor(n), u.max === undefined ? Infinity : u.max);
+  const have = s.free[id] || 0;
+  if (!(n > have)) return 0;
+  const lv = SHOPS[u.shop].levels;
+  s[lv][id] = (s[lv][id] || 0) + (n - have);
+  s.free[id] = n;
+  return n - have;
+}
 export function upgradeCost(s, id) {
-  const u = ITEMS[id], lv = itemLevel(s, id);
+  const u = ITEMS[id], have = itemLevel(s, id), fr = itemFree(s, id);
+  if (have < fr) return 0;              // below the free mark (a contract took levels away): getting them back is free, and selling them back pays nothing
+  const lv = have - fr;
   return u.cost ? u.cost(s, lv) : Math.ceil(u.base * Math.pow(u.grow, lv));
 }
 export function canBuy(s, id) {
