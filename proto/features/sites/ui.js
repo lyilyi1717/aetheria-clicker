@@ -11,7 +11,7 @@ const { t } = G;
 
 // m:ss for a number of seconds
 const clock = sec => { const n = Math.max(0, Math.floor(sec)); return Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0'); };
-const siteName = (site, twist) => t('site_' + site) + (twist ? ', ' + t('twist_' + twist) : '');
+const siteName = (site, twist) => twist ? t('site_twist', { site: t('site_' + site), twist: t('twist_' + twist) }) : t('site_' + site);
 const ruleLine = id => (id && G.hasString('c_' + id + '_d') ? t('c_' + id + '_d') : '');
 
 const MEDALS = ['fin', 'fast', 'hard'];
@@ -57,7 +57,7 @@ function openNext(app) {
     b.querySelector('.hr').textContent = c.hard ? t('next_hard', { rule: ruleLine(c.hard) }) : '';
     b.querySelector('.gate i').textContent = t('next_gate', { n: c.floor });
     b.querySelector('.par i').textContent = t('next_par', { t: clock(c.par) });
-    b.querySelector('.pay').textContent = t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }) + '  ' + t('next_medal_each', { n: G.fmt(c.medalStars) });
+    b.querySelector('.pay').textContent = t('pay_medal_s', { reward: t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }), medal: t('next_medal_each', { n: G.fmt(c.medalStars) }) });
     b.addEventListener('click', () => { app.modal.close(); if (G.pickCard(s, c, app.ev)) { app.save(); app.refresh(true); } });
     wrap.appendChild(b);
   });
@@ -151,13 +151,13 @@ function showFinish(app, d) {
   m.querySelector('.gate').textContent = t('fin_gate', { n: d.floor });
   m.querySelector('.time').innerHTML = `${icon('watch', 26)}<b>${clock(d.time)}</b>`;
   const st = s.road.stamps[d.key];
-  m.querySelector('.fast').textContent = d.fast ? t('fin_fast', { t: clock(d.par) }) : t('fin_slow', { t: clock(d.par) }) + (st && st.best ? '  ' + t('fin_best', { t: clock(st.best) }) : '');
+  m.querySelector('.fast').textContent = d.fast ? t('fin_fast', { t: clock(d.par) }) : (st && st.best ? t('fin_slow_best', { slow: t('fin_slow', { t: clock(d.par) }), best: t('fin_best', { t: clock(st.best) }) }) : t('fin_slow', { t: clock(d.par) }));
   m.querySelector('.fast').classList.toggle('yes', !!d.fast);
   const f = d.found, bits = [];
   if (f.chest) bits.push(t('fin_chests', { n: f.chest }));
   if (f.ore) bits.push(t('fin_ore', { n: f.ore }));
   if (f.bone) bits.push(t('fin_bones', { n: f.bone }));
-  m.querySelector('.found').textContent = t('fin_found') + ': ' + (bits.length ? bits.join(', ') : t('fin_nothing'));
+  m.querySelector('.found').textContent = bits.length ? t('fin_found', { list: G.listOf(bits) }) : t('fin_found', { list: t('fin_nothing') });
   ofLevel(m.querySelector('.rq-of'), s);
   m.querySelector('.mrow').innerHTML = medalsHtml(d.medals);
   const earn = m.querySelector('.earn'); earn.textContent = t('fin_stars', { n: 0 });

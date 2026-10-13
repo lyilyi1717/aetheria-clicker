@@ -21,6 +21,7 @@ import { COLS, VIEW_ROWS, LAYER, dirtHp, dirtVal, shiftRow, layerOf, cellAt } fr
 import { coinMult, damage, pickPower, buy, grantFree } from '../../core/rules.js';
 import { fmt, t } from '../../core/strings.js';
 import '../shop/rules.js';
+import { newRafeeq } from '../diggers/rules.js';
 import strings from './strings.js';
 
 const p = {
@@ -160,7 +161,6 @@ export function starshopKeepList(s) {
   if (lv(s, 'sp_pocket2') && rest.length) { const id = best(rest); out.push({ id, level: Math.min(s.relics[id], n) }); }
   return out;
 }
-export const starshopKeepNow = s => starshopKeepList(s)[0] || null;
 
 // ---------- free re-roll ----------
 export const starshopRerollsLeft = s => Math.max(0, lv(s, 'sp_reroll') - (s.starRerolls || 0));
@@ -251,7 +251,7 @@ export const starshop = use({
       const k = keep && keep.starshop;
       if (k) for (const x of [].concat(k)) if (RELICS[x.id]) s.relics[x.id] = Math.min(x.level, RELICS[x.id].max);
       const crew = lv(s, 'sp_head');
-      for (let i = 0; i < crew; i++) s.diggers.push({ c: Math.floor(rnd() * COLS), r: s.top, tc: -1, tr: -1, cd: 0.3, swing: 0 });
+      for (let i = 0; i < crew; i++) s.diggers.push(newRafeeq(s));
       grantFree(s, 'crew', crew);                          // free seats: the next Rafeeq still costs the first price
       const w = warmLevel(s);                              // Warm Pick: priced by the ramp above, which brings the cost back onto the curve
       if (w) { s.up.pick = Math.max(s.up.pick, w); s.starWarm = s.up.pick; }

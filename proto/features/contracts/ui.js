@@ -175,7 +175,7 @@ ui({
       app.banner(t('won_title'), t('c_' + d.id) + (d.stars ? '  ' + t('won_stars', { n: d.stars }) : ''));
       const x = W / 2, y = SKY + 200; ring(x, y, W * 0.6, '#59d37a'); ring(x, y, W * 0.4, '#ffd23f'); spark(x, y, '#ffd23f', 40);
       app.dirty('contracts');
-      setTimeout(() => { if (!app.modal.id) openBoard(app); }, 2200);   // the next contract (or Next site) can be taken at once
+      if (d.board) setTimeout(() => { if (!app.modal.id) openBoard(app); }, 2200);   // the next contract (or Next site) can be taken at once
     },
     contractLeft(d, app) { app.toast(t('left_toast')); app.dirty('contracts'); },
     contractNote(d, app) { app.toast(t('note_' + d.key)); },

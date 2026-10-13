@@ -36,6 +36,7 @@ import { reset } from '../../core/state.js';
 import { grantFree } from '../../core/rules.js';
 import { starsAt, LAYER, COLS } from '../../core/grid.js';
 import { rnd, pickOne } from '../../core/rng.js';
+import { newRafeeq } from '../diggers/rules.js';
 import strings from './strings.js';
 
 const p = {
@@ -314,7 +315,8 @@ export const sites = use({
       // free seats (core grantFree): they add strength, the next purchase still costs the first price
       const best = Math.max(s.starBestPick || 0, s.up.pick || 0);
       if (p.kitPick > 0) { s.up.pick = Math.max(s.up.pick || 0, Math.floor(best * p.kitPick)); s.starWarm = Math.max(s.starWarm || 0, s.up.pick); }   // priced by the Warm Pick ramp
-      for (let i = s.diggers.length; i < p.kitCrew; i++) s.diggers.push({ c: (COLS >> 1) + i, r: s.top, tc: -1, tr: -1, cd: 0.3, swing: 0 });
+      // a free Rafeeq: a free seat, so the next one costs the first price and a no-Rafeeq contract pays nothing back
+      for (let i = s.diggers.length; i < p.kitCrew; i++) s.diggers.push(newRafeeq(s, (COLS >> 1) + i));
       grantFree(s, 'crew', s.diggers.length);       // every Rafeeq standing here at the start is a free seat
     } },
     // a twist is stacked on the ground as it is made

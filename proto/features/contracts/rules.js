@@ -102,6 +102,7 @@ export function startContract(s, id, ev = () => {}) {
   const C = CONTRACTS[id];
   if (!C || !canTake(s, id)) return false;
   if (!newSite(s, contractSite(s, C), ev, { contract: id })) return false;
+  s.contractRun.board = true;
   emit(s, ev, 'contractStart', { id });
   return true;
 }
@@ -136,7 +137,8 @@ function win(s, ev) {
   end(s);
   s.contractFree = true;                                           // a won contract: the next site (or contract) may start now
   if (s.run && s.run.hard === id) siteMedal(s, 'hard', ev);        // the site's third medal (sites feature)
-  emit(s, ev, 'contractDone', { id, stars, tier: C.tier, cosmetic: C.cosmetic || null });
+  const board = !!(s.contractRun && s.contractRun.board);          // taken from the board, not a road card's hard rule
+  emit(s, ev, 'contractDone', { id, stars, tier: C.tier, cosmetic: C.cosmetic || null, board });
 }
 
 // the board opens, and later tiers open: told once each
@@ -162,10 +164,11 @@ const noCrew = {
   mods: { crewPower: () => 0, awayDps: () => 0 },
   step(s, dt, ev) {
     if (!s.up.crew && !s.up.crewPow && !s.diggers.length) return;
+    const before = s.coins;
     while (s.up.crew > 0) { s.up.crew--; s.coins += upgradeCost(s, 'crew'); }
     while (s.up.crewPow > 0) { s.up.crewPow--; s.coins += upgradeCost(s, 'crewPow'); }
     s.diggers.length = 0;
-    emit(s, ev, 'contractNote', { id: s.contract, key: 'refund' });
+    emit(s, ev, 'contractNote', { id: s.contract, key: s.coins > before ? 'refund' : 'home' });
   },
 };
 const dark = { mods: { sight: () => p.darkSight } };
@@ -216,7 +219,7 @@ export const contracts = use({
   state: {
     contractsWon: { init: () => ({}), survives: ['site', 'land'] },
     contractLook: { init: () => ({ skin: '', hat: '' }), survives: ['site', 'land'] },
-    contractRun:  { init: () => ({ n: 0, col: -1, fills: 0, refill: false }), perSite: true },
+    contractRun:  { init: () => ({ n: 0, col: -1, fills: 0, refill: false, board: false }), perSite: true },
     contractAim:  { init: () => null, transient: true },
     contractFree: { init: () => false, perSite: true },             // a contract was won at this site: you may move on at once
   },

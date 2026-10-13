@@ -14,7 +14,7 @@ const p = {
 
 export const boomEvery = s => p.boomEvery[s.relics.boom || 0];
 
-export const hitRelics = use({
+use({
   id: 'relics',
   params: p,
   strings,
