@@ -81,7 +81,7 @@ const dealKeys = s => G.dealCards(s).map(c => c.key).sort().join();
     for (const m of src.matchAll(/t\('(wm_\w+)'/g)) ok(en[m[1]], `${f}: string ${m[1]} exists`);
   }
   ok(Object.values(en).every(v => !/\p{Extended_Pictographic}/u.test(v)), 'no emoji in the words');
-  ok(readFileSync('proto/features/sites/ui.js', 'utf8').includes('wm_map_btn') && en.wm_map_btn, 'the panel button has its words');
+  ok(en.wm_map_btn && readFileSync('proto/features/track/ui.js', 'utf8').includes('openMap'), 'the Map button (top right, now the track feature) opens the map');
 }
 
 if (failed) { console.error(`${failed} check(s) failed`); process.exit(1); }

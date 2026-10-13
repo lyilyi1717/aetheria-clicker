@@ -9,19 +9,16 @@
 <body>
   <div id="app">
     <header class="top">
-      <h1 data-t="title">Dig</h1>
-      <span class="tagline" data-t="tagline"></span>
+      <div id="chips" class="purse"></div>
       <span class="grow"></span>
-      <span id="chips"></span>
-      <button id="auto" class="ghost"></button>
-      <button id="mute" class="ghost"></button>
+      <button id="mapbtn" class="rbtn" type="button"></button>
+      <button id="auto" class="rbtn" type="button"></button>
+      <button id="mute" class="rbtn" type="button"></button>
     </header>
 
     <div class="layout">
-      <aside class="side" id="left"></aside>
-
       <section class="mid">
-        <div id="goal"><span id="goal-text"></span><div class="bar"><i id="goal-fill"></i></div></div>
+        <div id="track"><div id="goal"><span id="goal-text"></span><div class="bar"><i id="goal-fill"></i></div></div></div>
         <div id="stage">
           <canvas id="cv" width="640" height="680"></canvas>
           <div id="hud-coins"><svg width="30" height="30" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="#ffd23f" stroke="#7a5a00" stroke-width="2.4"/><circle cx="16" cy="16" r="8" fill="none" stroke="#b98a00" stroke-width="2"/><circle cx="11.5" cy="11" r="2.6" fill="#fff6c8"/></svg><b id="coins">0</b></div>
@@ -34,13 +31,12 @@
         </div>
       </section>
 
-      <aside class="side" id="right"></aside>
+      <aside id="drawer">
+        <div id="tabbody"></div>
+        <nav id="tabs"></nav>
+        <button id="reset" class="ghost" data-t="reset"></button>
+      </aside>
     </div>
-
-    <footer>
-      <span data-t="footer"></span>
-      <button id="reset" class="ghost" data-t="reset"></button>
-    </footer>
   </div>
   <div id="modal"></div>
   <script type="module" src="proto/main.js"></script>
