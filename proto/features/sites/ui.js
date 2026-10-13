@@ -15,7 +15,19 @@ const ruleLine = id => (id && G.hasString('c_' + id + '_d') ? t('c_' + id + '_d'
 
 const MEDALS = ['fin', 'fast', 'hard'];
 const medalChip = (kind, on) => `<span class="mchip ${kind}${on ? ' on' : ''}" title="${t('medal_' + kind + '_d')}">${icon('medal_' + kind, 18)}<i>${t('medal_' + kind)}</i></span>`;
-const medalsHtml = m => MEDALS.map(k => medalChip(k, m && m[k])).join('');
+export const medalsHtml = m => MEDALS.map(k => medalChip(k, m && m[k])).join('');
+
+// ---------- the next site: the road map (worldmap feature), or, if it cannot draw, the cards ----------
+export const nextMap = { open: null };
+let lastFin = null;                       // the last finish: the map walks from there
+function goNext(app, from, lookOnly) {
+  if ((!lookOnly && !G.canNewSite(app.state)) || app.modal.id) return;
+  if (nextMap.open) {
+    try { nextMap.open(app, { from }); return; }
+    catch (e) { console.error('Dig: the road map failed, showing the cards', e); if (app.modal.id === 'worldmap') app.modal.close(); }
+  }
+  openNext(app);
+}
 
 // ---------- the next site: one card on the fixed road, three on the deal ----------
 function openNext(app) {
@@ -79,7 +91,7 @@ const kitCrew = s => Math.max(G.PARAMS.sites.kitCrew, G.starshopLevel(s, 'sp_hea
 
 // the new thing a level brings, in one line: a key into strings, by the level's place and depth
 const DEPTH_NEW = { 100: 'black', 125: 'living', 150: 'angry', 175: 'hot' };
-function newThingKey(f, idx) {
+export function newThingKey(f, idx) {
   if (f.prove) return 'new_prove';
   if (idx < 4) return 'new_site_' + f.site;
   return 'new_layer_' + (DEPTH_NEW[f.floor] || 'more');
@@ -117,7 +129,7 @@ function showEnd(app) {
     + row('medal_fin', t('end_medals', { n: medals })) + row('watch', t('end_time', { t: clock(time) }));
   m.querySelector('.deal').textContent = t('end_deal');
   const go = m.querySelector('.gold'); go.textContent = t('end_go');
-  go.addEventListener('click', () => { app.modal.close(); openNext(app); });
+  go.addEventListener('click', () => { app.modal.close(); goNext(app, lastFin); });
   sfx.star(); screenFlash('#fff', 0.8); shake(0.8);
   return true;
 }
@@ -150,7 +162,7 @@ function showFinish(app, d) {
   const go = m.querySelector('.gold'), stay = m.querySelector('.ghost');
   go.textContent = t('fin_next'); stay.textContent = t('fin_stay');
   stay.addEventListener('click', () => { app.modal.close(); app.dirty('site'); });
-  go.addEventListener('click', () => { app.modal.close(); openNext(app); });
+  go.addEventListener('click', () => { app.modal.close(); goNext(app, { key: d.key }); });
 
   // "You keep" and "Level N starts with", drawn again after a Star purchase
   const note = m.querySelector('.spendnote');
@@ -236,7 +248,7 @@ ui({
     if (pending && !app.modal.id && showFinish(app, pending)) pending = null;
   },
   on: {
-    siteFinished(d, app) { pending = d; if (!app.modal.id && showFinish(app, d)) pending = null; app.dirty('site'); },
+    siteFinished(d, app) { pending = d; lastFin = { key: d.key }; if (!app.modal.id && showFinish(app, d)) pending = null; app.dirty('site'); },
     siteMedal(d, app) { if (d.medal === 'hard') { sfx.star(); app.toast(t('medal_got', { name: t('medal_hard'), n: d.stars }), 'gold'); } app.dirty('site'); },
     newSite(d, app) { pending = null; sfx.star(); screenFlash('#fff', 0.7); app.banner(t('site_done', { n: G.fmt(d.stars) }), ''); app.dirty('site'); },
   },
@@ -258,9 +270,10 @@ ui({
       el.insertAdjacentHTML('beforeend', `<div class="nowrow"><span class="nic"></span><div><b class="nname"></b><span class="muted nrule"></span></div></div>`
         + `<div class="gaterow"><span class="gtxt"></span><span class="gbar"><i></i></span></div>`
         + `<div class="clockrow">${icon('watch', 22)}<b class="clk">0:00</b><span class="muted par"></span></div>`
-        + `<div class="mrow"></div><p class="muted pay"></p><p class="muted hardnote"></p><button class="primary nextbtn" hidden></button><p class="muted wait"></p>`
+        + `<div class="mrow"></div><p class="muted pay"></p><p class="muted hardnote"></p><button class="primary nextbtn" hidden></button><p class="muted wait"></p><button class="ghost mapbtn"></button>`
         + `<h3 class="roadh"></h3><div class="road"></div>`);
-      el.querySelector('.nextbtn').addEventListener('click', () => { app.unlockAudio(); openNext(app); });
+      el.querySelector('.nextbtn').addEventListener('click', () => { app.unlockAudio(); const r = G.siteRun(app.state); goNext(app, r.done ? { key: r.key } : null); });
+      el.querySelector('.mapbtn').addEventListener('click', () => { app.unlockAudio(); goNext(app, null, true); });
     },
     update(el, s) {
       const r = G.siteRun(s), st = G.siteStamp(s), can = G.canNewSite(s);
@@ -288,6 +301,7 @@ ui({
       b.hidden = !can; b.classList.toggle('gold', r.done);
       b.textContent = r.done ? t('site_btn_next') : gain > 0 ? t('site_btn_leave', { n: G.fmt(gain) }) : t('site_btn_leave_0');
       el.querySelector('.wait').textContent = can ? '' : t('site_wait');
+      el.querySelector('.mapbtn').textContent = t('wm_map_btn');
       // the road so far: stamps in the order they were first dug
       const stamps = G.roadStamps(s), rsig = stamps.map(x => x.key + x.fin + x.fast + x.hard).join(',');
       if (el._rsig !== rsig) {

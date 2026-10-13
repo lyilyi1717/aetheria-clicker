@@ -30,3 +30,4 @@ import './starshop/ui.js';
 import './tnt/ui.js';
 import './water/ui.js';
 import './wing2/ui.js';
+import './worldmap/ui.js';
