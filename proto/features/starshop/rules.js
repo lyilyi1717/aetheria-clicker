@@ -175,7 +175,6 @@ function blocked(s, r) {
   for (let R = r; R <= r + VIEW_ROWS - 1; R++) if (R > 0 && R % LAYER === 0 && !passable(s, R)) return true;
   return false;
 }
-const trail = new WeakMap();      // an away's `out` -> what its rows have cost so far
 
 // what this site started with, for the line on the New Site card
 function noteStart(s) {
@@ -273,12 +272,10 @@ export const starshop = use({
       s.starOld = true;
       s.boss.hp = Math.min(s.boss.hp, s.boss.max * p.oldFriend);
     },
-    awayRow(s, r, out) { trail.set(out, (trail.get(out) || 0) + dirtHp(r) * COLS * PARAMS.away.rowCost); },
-    // the crew was held at a Big Rock: with the perk it walks on past the ones you have beaten
-    awayEnd: { at: 5, fn(s, out) {
+    awayWalk: { at: 5, fn(s, out) {
       if (!out.atBoss || !lv(s, 'sp_wake')) return;
       const A = PARAMS.away;
-      let budget = fold('awayDps', s, 0) * out.seconds - (trail.get(out) || 0);
+      let budget = out.budget;
       let rows = 0, coins = 0, chests = 0;
       while (out.metres + rows < A.maxRows && !blocked(s, s.top)) {
         const cost = dirtHp(s.top) * COLS * A.rowCost;
@@ -288,9 +285,8 @@ export const starshop = use({
         if (rnd() < PARAMS.chest.chance * fold('chestChance', s, 1)) chests++;
         shiftRow(s); rows++;
       }
-      coins = Math.round(coins);
+      out.budget = budget;
       out.coins += coins; out.metres += rows; out.chests += chests; out.passed = rows;
-      s.coins += coins; s.total += coins;
       if (s.top + 1 > s.best) s.best = s.top + 1;
       // a Rock they walked past counts as down in this dig too: the next Rock can be fought and a move made
       s.bossesDown = Math.max(s.bossesDown, layerOf(Math.max(0, s.top - 1)));

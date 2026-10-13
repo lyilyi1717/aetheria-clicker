@@ -2,11 +2,15 @@
 // is spent row by row on the ground below. Never a loss: the cap only stops the gain.
 //   awayStop(s, r, out)  -> a hook returns true to end it early (the crew waits at a Big Rock)
 //   awayRow(s, r, out)   -> what a passed row adds to `out` (chests)
+//   awayWalk(s, out)     -> at a Big Rock with time left: spend `out.budget` (damage still unspent) walking on
+//                           past Rocks the player has beaten; lower out.budget, add to out.coins/metres.
+//                           Time away is spent once: walking on, then the sieve gets only what is left.
 //   awayEnd(s, out, ev)  -> settle what was found; `out` is what the welcome-back card shows
+// Timed crew boosts (the tea rush, a crew wish) count only for the seconds they have left (see awayRate).
 // When the crew has reached a Big Rock and still has time, it does not stop: it sieves the rubble
 // beside the Rock (coins, bones, now and then a chest). The Rock itself stays the player's fight.
 // The sieve slows down gently the longer you are away (tau), up to the 12 hour cap.
-import { use, run, fold, pollUnlocks, BLOCKS } from '../../core/registry.js';
+import { use, run, PARAMS, fold, pollUnlocks, BLOCKS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, dirtHp, dirtVal, shiftRow } from '../../core/grid.js';
 import { coinMult } from '../../core/rules.js';
@@ -31,14 +35,37 @@ const p = {
 
 // time that counts for the sieve: leftover seconds, thinning out gently
 export const awaySieveTime = left => p.tau * (1 - Math.exp(-left / p.tau));
+
+// The crew's damage per second while away, and the state left behind. A boost that lasts a while
+// (a crew wish: a number of blocks) counts only until it runs out; the tea job is averaged over its
+// break and rush, so it is never a free rush for the whole absence.
+function awayRate(s, secs) {
+  const wb = s.wingBoon, wished = wb && wb.left > 0 && wb.kind === 'crew' ? wb.left : 0;
+  const tea = !!(s.foremanHere && s.crewJob === 'tea');
+  const F = PARAMS.foreman;
+  const avg = tea && F ? F.teaRush * F.teaMult / (fold('teaBreak', s, F.teaBreak) + F.teaRush) : 1;
+  const T = s.foreTea, ph = T && T.ph;
+  if (tea) T.ph = 'break';                                  // read the plain rate, then scale it
+  let hot = fold('awayDps', s, 0) * avg, plain = hot;
+  if (wished) { wb.left = 0; plain = fold('awayDps', s, 0) * avg; wb.left = wished; }
+  if (tea) { T.ph = 'break'; T.t = 0; } else if (T && ph) T.ph = ph;
+  let boosted = 0;
+  if (wished && hot > plain) {
+    const bps = s.diggers.length * fold('crewRate', s, PARAMS.diggers.rate);   // blocks the crew hits per second
+    const need = bps > 0 ? wished / bps : 0;
+    boosted = Math.min(need, secs);
+    wb.left = need > boosted ? Math.floor(wished * (1 - boosted / need)) : 0;   // used up while away
+  }
+  return plain + (hot - plain) * boosted / secs;
+}
 const count = x => Math.floor(x + rnd());
 
 export function settleAway(s, seconds, ev = () => {}) {
   const secs = Math.min(seconds, p.capHours * 3600);
   const out = { seconds: secs, coins: 0, metres: 0, chests: 0, atBoss: false,
     sieveSeconds: 0, sieveCoins: 0, bones: 0, newBones: 0, boneCoins: 0, sieveChests: 0, joke: 0, capped: seconds > secs };
-  const dps = fold('awayDps', s, 0);
-  if (!(dps > 0) || secs < p.minSeconds) return out;
+  if (!(fold('awayDps', s, 0) > 0) || secs < p.minSeconds) return out;
+  const dps = awayRate(s, secs);
   let budget = dps * secs;
   let r = s.top;
   let rows = 0;
@@ -53,6 +80,13 @@ export function settleAway(s, seconds, ev = () => {}) {
     r++; rows++;
   }
   out.metres = rows;
+  // at a Big Rock with time to spare: first walk on past Rocks already beaten (a Star perk), then sieve
+  if (out.atBoss && budget > 0) {
+    out.budget = budget;
+    run('awayWalk', s, out);
+    budget = out.budget; delete out.budget;
+    r = s.top;
+  }
   // the Rafeeqs stand at the Big Rock with time to spare: they sieve
   if (out.atBoss && budget > 0) {
     const left = budget / dps;
