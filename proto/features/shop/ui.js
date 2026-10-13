@@ -46,6 +46,10 @@ ui({
   tick(st, app) { app0 = app; },
   panels: [shopPanel({
     id: 'shop', shop: 'coin', title: 'shop', side: 'right', at: 10,
-    locked: (s, hidden) => (hidden ? (G.ITEMS.crew && !G.itemOpen(s, 'crew') ? t('locked_crew') : t('locked_more')) : ''),
+    locked: (s, hidden) => {
+      const tempo = G.picksTempoLock ? G.picksTempoLock(s) : '';     // Faster Hands past 132: says which finish opens it
+      const base = hidden ? (G.ITEMS.crew && !G.itemOpen(s, 'crew') ? t('locked_crew') : t('locked_more')) : '';
+      return tempo && (s.up.tempo || 0) > 0 ? (base ? base + ' ' : '') + t('locked_tempo', { why: tempo }) : base;
+    },
   })],
 });
