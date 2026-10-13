@@ -57,3 +57,28 @@
 .finish .primary.gold { animation: nextPulse 1.2s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) { .finish .seal, #site .nextbtn.gold, .finish .primary.gold { animation: none; } }
 @keyframes siteStampIn { from { transform: rotate(-9deg) scale(2.4); opacity: 0; } }
+
+/* the finish card: what you keep, what the next level starts with, one Star purchase */
+.finish { width: 640px; max-height: 94vh; overflow-y: auto; }
+.finish .seal { width: 120px; height: 120px; margin-block-end: 2px; }
+.finish .time { font-size: 30px; }
+.finish .earn { font-size: 24px; margin-block: 4px; }
+.finish .fcols { display: flex; gap: 14px; text-align: start; margin-block: 8px; }
+.finish .fcols section { flex: 1 1 0; padding: 8px 10px; background: #0e0a07; border: 1px solid var(--line); border-radius: 10px; }
+.finish .fcols h3 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
+.finish .fcols ul, .finish .tot { list-style: none; margin: 0; padding: 0; }
+.finish .fcols li, .finish .tot li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; margin-block: 3px; }
+.finish .nextlvl { display: flex; align-items: center; gap: 10px; margin-block-start: 8px; padding-block-start: 8px; border-block-start: 1px dashed var(--line); font-size: 13px; }
+.finish .nextlvl div { display: flex; flex-direction: column; gap: 1px; }
+.finish .nextlvl .pl, .finish .nextlvl .gt { color: var(--muted); font-size: 12px; }
+.finish .nextlvl .nw { color: var(--good); font-weight: 700; }
+.finish .nextlvl .nw.hard { color: var(--bad); }
+.finish .spend { display: inline-flex; align-items: center; gap: 8px; margin-block: 4px 0; }
+.finish .spendnote { margin-block: 4px 8px; color: var(--gold); min-height: 1.3em; }
+.finish .btns { margin-block-start: 6px; }
+.finish.end { width: 460px; }
+.finish.end .seal { width: 150px; height: 150px; }
+.finish.end .tot { display: inline-block; text-align: start; margin-block: 8px; }
+.finish.end .tot li { font-size: 17px; }
+.finish.end .deal { color: var(--gold); font-weight: 700; }
+.finish .seal .word { font-size: 14px; letter-spacing: 1px; } .finish.end .seal .word { font-size: 16px; }
