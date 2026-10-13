@@ -2,6 +2,7 @@
 export default { en: {
   title: 'Dig',
   hint_start: 'Hold the mouse on the ground to dig',
+  tips: 'Tips', tips_none: 'Tips you have seen show up here.',
   coins: 'Coins',
   depth: '{n} m',
   mute: 'Sound: on', unmute: 'Sound: off',

@@ -179,3 +179,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* the level track shows the Gate and the medals now: the Level tab drops its own copies */
 #site .gaterow, #site .mrow { display: none; }
+
+/* lessons: first-sight notes that wait their turn, and the Tips list */
+#lesson { position: absolute; inset-block-start: 176px; inset-inline: 0; margin-inline: auto; width: max-content; max-width: 88%; text-align: center; background: rgba(15,10,6,.92); border: 2px solid rgba(255,255,255,.35); border-radius: 12px; padding: 9px 18px; font-weight: 700; opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .2s; pointer-events: none; }
+#lesson.show { opacity: 1; transform: none; pointer-events: auto; cursor: pointer; }
+#lesson.gold { border-color: var(--gold); color: var(--gold); }
+#tips-btn { position: absolute; inset-block-end: 12px; inset-inline-end: 12px; padding: 4px 12px; font-size: 14px; }
+#tips-list { position: absolute; inset-block-end: 48px; inset-inline-end: 12px; width: 280px; max-height: 50%; overflow: auto; background: rgba(15,10,6,.94); border: 1px solid rgba(255,255,255,.25); border-radius: 12px; padding: 6px 12px; font-size: 14px; }
+#tips-list p { margin: 6px 0; padding-block-end: 6px; border-block-end: 1px solid rgba(255,255,255,.12); }
+#tips-list p:last-child { border-block-end: 0; }
