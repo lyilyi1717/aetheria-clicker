@@ -3,6 +3,7 @@
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { fx, AT, CELL, W, H, SKY, rr, seeded, centre, yOf, onFx, debris, spark, text, shake, ring, coinBurst, screenFlash } from '../../ui/render.js';
+import { nextMap } from '../sites/ui.js';
 import { sfx, gap, tone, noise, wob } from '../../ui/audio.js';
 
 const { t, fmt } = G;
@@ -95,6 +96,27 @@ function drawBar(g, s, b) {
   g.restore();
 }
 
+// The stuck hint: one kind line under the Rock's bar, drawn as a small box in the row below the Rock. Once per fight.
+function paintHint(s, app) {
+  const h = document.getElementById('boss-hint');
+  if (!h) return;
+  const b = G.bossInView(s);
+  const show = !!b && !b.off && G.bossStuck(s);
+  if (!show) { if (!h.hidden) h.hidden = true; return; }
+  const a = G.bossAdvice(s);
+  const sig = a.kind + ':' + a.n;
+  if (h._sig !== sig) {
+    h._sig = sig; h._advice = a;
+    h.querySelector('.bh-t').textContent = t('stuck_' + a.kind, { n: fmt(a.n) });
+    const go = h.querySelector('.bh-go');
+    go.hidden = a.kind === 'more';
+    go.textContent = t(a.kind === 'spend' ? 'stuck_btn_spend' : 'stuck_btn_map');
+    h.querySelector('.bh-x').textContent = t('stuck_close');
+  }
+  h.style.top = ((yOf(b.row) + CELL + 6) / H * 100) + '%';
+  h.hidden = false;
+}
+
 ui({
   id: 'boss',
   sfx: {
@@ -183,10 +205,22 @@ ui({
     g.strokeText(label, fxp + 26, y - 14); g.fillText(label, fxp + 26, y - 14);
     g.restore();
   } }],
-  mount() {
+  mount(app) {
     const rec = document.createElement('div');
     rec.id = 'hud-record'; rec.hidden = true;
     document.getElementById('stage').appendChild(rec);
+    const h = document.createElement('div');
+    h.id = 'boss-hint'; h.hidden = true;
+    h.innerHTML = '<span class="bh-t"></span><button class="bh-go" type="button"></button><button class="bh-x" type="button"></button>';
+    h.querySelector('.bh-x').addEventListener('click', () => { const b = G.bossInView(app.state); if (b) b.off = true; h.hidden = true; });
+    h.querySelector('.bh-go').addEventListener('click', () => {
+      const b = G.bossInView(app.state), a = h._advice;
+      if (!a || !b) return;
+      if (a.kind === 'spend') { app.unlockAudio(); if (G.buy(app.state, 'tr_pick', app.ev)) { app.bump(h); app.refresh(true); app.dirty('starshop'); } else app.sfx.deny(); }
+      else if (!app.modal.id && nextMap.open) { try { nextMap.open(app, { from: null }); } catch (e) { console.error(e); } }
+      b.off = true; h.hidden = true;
+    });
+    document.getElementById('stage').appendChild(h);
   },
   tick(s, app) {
     const rec = document.getElementById('hud-record');
@@ -194,6 +228,7 @@ ui({
       rec.hidden = !(s.bestEver >= 1);
       if (!rec.hidden) rec.textContent = t('record_line', { n: s.bestEver });
     }
+    paintHint(s, app);
     const b = G.bossInView(s);
     if (b && b.hp > 0 && !s.seen.bossToast && b.row - s.top <= 6) { s.seen.bossToast = true; app.toast(t('t_boss'), 'gold'); }
   },
