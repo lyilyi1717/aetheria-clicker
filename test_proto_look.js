@@ -24,5 +24,10 @@ for (const s of ['dunes', 'boom', 'gold', 'bones', 'shark', 'mirage']) ok(SITE_L
 ok(siteKey('nope') === 'dunes' && siteKey('sharks') === 'shark', 'unknown sites fall back to the dunes');
 const t = lookFor('sand', {}, 'boom');
 ok(t.dirt !== LAYER_LOOK.sand.dirt && t.hard === LAYER_LOOK.sand.hard, 'a site tints dirt, not the rock');
+// each place has its own ground: the sand of one place is not the sand of another (a visible gap in colour)
+const places = ['dunes', 'boom', 'gold', 'bones', 'shark', 'mirage'];
+const dist = (a, b) => { const n = h => { const v = parseInt(h.slice(1), 16); return [v >> 16, (v >> 8) & 255, v & 255]; }; const A = n(a), B = n(b); return Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]); };
+for (let i = 0; i < places.length; i++) for (let j = i + 1; j < places.length; j++) ok(dist(lookFor('sand', {}, places[i]).dirt, lookFor('sand', {}, places[j]).dirt) > 25, `${places[i]} and ${places[j]} ground look alike`);
+ok(lookFor('sand', {}, 'boom').back !== LAYER_LOOK.sand.back, 'the wall behind is tinted too');
 console.log(bad ? `${bad} failed` : 'look: all ok');
 process.exit(bad ? 1 : 0);

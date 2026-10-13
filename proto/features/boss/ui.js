@@ -163,12 +163,24 @@ ui({
     const ticks = document.createElement('div');
     ticks.id = 'goal-ticks'; ticks.hidden = true;
     for (let i = 1; i < 10; i++) { const k = document.createElement('i'); k.style.insetInlineStart = (100 - i * 10) + '%'; ticks.appendChild(k); }
-    bar.append(box, ticks);
+    const layers = document.createElement('div');   // the Rock's health in three stacked layers: blue, then yellow, then red
+    layers.id = 'goal-layers'; layers.hidden = true; layers.innerHTML = '<i></i>';
+    bar.append(layers, box, ticks);
     const rec = document.createElement('div');
     rec.id = 'hud-record'; rec.hidden = true;
     document.getElementById('stage').appendChild(rec);
   },
   tick(s, app) {
+    const layers = document.getElementById('goal-layers');
+    if (layers) {
+      const b = G.bossInView(s), on = !!(b && b.hp > 0);
+      layers.hidden = !on;
+      if (on) {
+        const f = Math.max(0, Math.min(1, b.hp / b.max)), n = Math.min(2, Math.floor(f * 3 - 1e-9)), part = f * 3 - n;
+        layers.dataset.layer = n;   // 2 blue on top of yellow, 1 yellow on top of red, 0 red on dark
+        layers.firstChild.style.width = (Math.min(1, part) * 100) + '%';
+      }
+    }
     const box = document.getElementById('goal-split'), ticks = document.getElementById('goal-ticks'), rec = document.getElementById('hud-record');
     if (box) {
       const b = G.bossInView(s);
