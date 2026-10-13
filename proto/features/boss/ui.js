@@ -38,6 +38,7 @@ function drawBoss(g, s, r, y) {
       g.strokeStyle = 'rgba(255,170,60,0.55)'; g.lineWidth = 1.6; g.stroke();
     }
   }
+  drawGateCracks(g, b, r);
   // the crack to aim for
   if (b && b.hp > 0 && b.weak !== undefined) {
     const wx = b.weak * CELL + CELL / 2, pulse = 0.6 + Math.sin(fx.t * 10) * 0.4;
@@ -65,6 +66,23 @@ function drawBoss(g, s, r, y) {
   g.stroke();
   g.restore();
   if (b && b.hp > 0) drawBar(g, s, b);
+  g.restore();
+}
+
+// The Gate remembers: the damage kept from the last try is cracked into the stone from the start, in proportion
+// (the more banked, the more long cracks; they are dark with a faint blue edge, so they differ from this try's cracks).
+function drawGateCracks(g, b, r) {
+  const bank = G.bossGateBank(b);
+  if (!(bank > 0)) return;
+  const rk = seeded(r * 13 + 5), n = Math.max(2, Math.round(bank * 18));
+  g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+  for (let i = 0; i < n; i++) {
+    let x = (i + rk()) / n * W, yy = 3;
+    g.beginPath(); g.moveTo(x, yy);
+    while (yy < CELL - 5) { x += (rk() - 0.5) * 30; yy += 9 + rk() * 9; g.lineTo(x, Math.min(CELL - 4, yy)); }
+    g.strokeStyle = 'rgba(8,4,20,0.85)'; g.lineWidth = 3.5; g.stroke();
+    g.strokeStyle = 'rgba(120,200,255,0.5)'; g.lineWidth = 1; g.stroke();
+  }
   g.restore();
 }
 
@@ -232,6 +250,7 @@ ui({
     }
     paintHint(s, app);
     const b = G.bossInView(s);
+    if (b && b.gate && b.bank0 > 0 && !b.said && b.row - s.top <= 8) { b.said = true; app.lesson('gate:' + s.run.key + ':' + Math.round(b.bank0 * 1000), t('gate_remember', { n: Math.round(b.bank0 * 100) }), 'gold'); }
     fx.keepClear = b && b.hp > 0 ? b.row : null;
     if (b && b.hp > 0 && !s.seen.bossToast && b.row - s.top <= 6) { s.seen.bossToast = true; app.toast(t('t_boss'), 'gold'); }
   },
