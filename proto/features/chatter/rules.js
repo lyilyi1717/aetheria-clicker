@@ -12,6 +12,7 @@ import { use, emit } from '../../core/registry.js';
 import { t } from '../../core/strings.js';
 import * as G from '../../game.js';     // read lazily (a circular import is fine): the rafeeqs feature may not be merged yet
 import strings from './strings.js';
+import { NICK_LINES } from './nicklines.js';
 
 export const CHATTER_TRAITS = ['eager', 'sleepy', 'joker', 'careful', 'proud', 'hungry'];
 export const CHATTER_MOMENTS = ['hired', 'ore', 'tnt', 'rock', 'land', 'finish', 'patted', 'deep', 'cheer', 'five', 'flex', 'stamp'];
@@ -99,3 +100,97 @@ export const chatterWords = text => String(text).trim().split(/\s+/).length;
 export function chatterSay(s, ev, who, moment) { emit(s, ev, 'chatter', { who, moment }); }
 export function chatterCheer(s, ev) { emit(s, ev, 'cheer', {}); }
 export function chatterSetQuiet(s, quiet) { s.chatterQuiet = !!quiet; return s.chatterQuiet; }
+
+// ---------- his own line and speech ----------
+// the line shown for a Rafeeq's trait: his nickname's own line, else the base trait's name
+export function chatterLine(s, i) {
+  if (G && G.rafeeqLine) { const v = G.rafeeqLine(s, i); if (v) return v; }
+  return t('chat_trait_' + chatterTrait(s, i));
+}
+const nickId = (s, i) => { const n = G && G.rafeeqNick ? G.rafeeqNick(s, i) : null; return n && NICK_LINES[n.id] ? n.id : null; };
+// what only his nickname would say (empty for a renamed seat or an old first name)
+export function chatterNickLines(s, i) {
+  const id = nickId(s, i); if (!id) return [];
+  const n = Number(t(`nk_say_${id}_n`));
+  return Array.from({ length: n }, (_, k) => t(`nk_say_${id}_${k}`));
+}
+export const CHATTER_NICK_MOMENTS = ['hired', 'ore', 'land', 'finish', 'patted', 'deep', 'cheer'];
+// the lines a Rafeeq may say at a moment: his base trait's, plus his nickname's at the friendly moments
+export function chatterMomentLines(s, i, moment) {
+  const base = chatterLines(chatterTrait(s, i), moment);
+  return CHATTER_NICK_MOMENTS.includes(moment) ? base.concat(chatterNickLines(s, i)) : base;
+}
+
+// ---------- almodeer, the manager (NOT a Rafeeq: no seat, no digger, no number; a drawn figure with a text box) ----------
+export const chatterBossParams = {
+  minHired: 3,        // he is on screen with this many Rafeeqs or more
+  first: 5,           // seconds to his first order
+  gapMin: 20, gapMax: 30,
+  sleepAfter: 8,      // seconds with no digging (auto dig off) before he nods off
+  sipEvery: 3.5, sipSpread: 3, sipAfterOrder: 1.6,
+  answerAfter: 1.6,   // the addressed Rafeeq may answer this long after
+  tea: 0.15, all: 0.3, nick: 0.6,
+};
+export const chatterBossShown = (s, p = chatterBossParams) => s.diggers.length >= p.minHired;
+export const chatterBossMem = (p = chatterBossParams) => ({
+  clock: 0, next: p.first, idle: 0, asleep: false, line: '', lineLeft: 0, lineTo: -1, last: '',
+  answerIn: -1, answerTo: -1, welcome: false, backN: 0, sipT: 2, sipLeft: 0, jump: 0, spill: 0, wave: 0, orders: 0,
+});
+const bossList = (key) => { const n = Number(t(key + '_n')); return Array.from({ length: n }, (_, k) => t(`${key}_${k}`)); };
+const fillName = (text, name) => text.replace('{name}', name);
+// the choice of one order: who (-1 = everyone) and the text. r = three numbers in [0,1).
+export function chatterBossOrder(s, mem, r, p = chatterBossParams) {
+  const n = s.diggers.length;
+  const all = r[0] < p.all;
+  const who = all ? -1 : Math.min(n - 1, Math.floor(r[1] * n));
+  let pool;
+  if (who < 0) pool = bossList('boss_all');
+  else {
+    const name = chatterName(s, who), id = nickId(s, who), pickR = r[2];
+    pool = [];
+    if (id && pickR < p.nick) pool = [fillName(t('nk_boss_' + id, {}), name)];
+    else if (pickR > 1 - p.tea) pool = bossList('boss_tea').map(x => fillName(x, name));
+    if (!pool.length || (pool.length === 1 && pool[0] === mem.last)) pool = bossList('boss_' + chatterTrait(s, who)).map(x => fillName(x, name));
+  }
+  const ok = pool.filter(x => x !== mem.last);
+  const use = ok.length ? ok : pool;
+  return { who, text: use[Math.min(use.length - 1, Math.floor(r[2] * 7.31 % 1 * use.length))] };
+}
+// One step. c = { muted (a card is open / last third of a Rock fight), digging (the player digs or auto dig is on), rnd }.
+// Time counts only while the game is being played; nothing here changes the dig. Returns 'order' | 'wake' | 'welcome' | ''.
+export function chatterBossStep(s, mem, dt, c, p = chatterBossParams) {
+  if (!chatterBossShown(s, p)) { Object.assign(mem, chatterBossMem(p), { backN: mem.backN, last: mem.last }); return ''; }
+  const rnd = c.rnd, quiet = !!s.chatterQuiet;
+  mem.lineLeft = Math.max(0, mem.lineLeft - dt); if (!mem.lineLeft) mem.line = '';
+  mem.jump = Math.max(0, mem.jump - dt); mem.spill = Math.max(0, mem.spill - dt); mem.wave = Math.max(0, mem.wave - dt);
+  mem.sipLeft = Math.max(0, mem.sipLeft - dt);
+  if (!mem.asleep) { mem.sipT -= dt; if (mem.sipT <= 0) { mem.sipLeft = 1.5; mem.sipT = p.sipEvery + rnd() * p.sipSpread; } }
+  let ev = '';
+  if (c.digging) {
+    mem.idle = 0;
+    if (mem.asleep) {
+      mem.asleep = false; mem.jump = 0.5; mem.spill = 1.4; mem.sipT = 3;
+      if (!quiet && !c.muted) { mem.line = bossList('boss_wake')[Math.floor(rnd() * 3)]; mem.lineLeft = 3.2; mem.lineTo = -1; mem.last = mem.line; ev = 'wake'; }
+      return ev;
+    }
+  } else if (!mem.asleep && (mem.idle += dt) >= p.sleepAfter) { mem.asleep = true; mem.line = ''; mem.lineLeft = 0; mem.answerIn = -1; return ''; }
+  if (mem.asleep || c.muted) return '';
+  if (mem.answerIn >= 0) { mem.answerIn -= dt; if (mem.answerIn < 0) mem.answerIn = -2; }       // -2 = the answer is due now (the page takes it)
+  if (quiet) { mem.welcome = false; return ''; }
+  if (mem.welcome) {
+    const back = bossList('boss_back'); mem.backN++;
+    mem.welcome = false; mem.line = mem.backN === 1 ? back[0] : back[Math.floor(rnd() * back.length)]; mem.lineLeft = 4; mem.lineTo = -1; mem.last = mem.line;
+    mem.wave = 2; mem.sipLeft = 2; mem.next = mem.clock + p.gapMin;
+    return 'welcome';
+  }
+  mem.clock += dt;
+  if (mem.clock >= mem.next) {
+    const o = chatterBossOrder(s, mem, [rnd(), rnd(), rnd()], p);
+    mem.line = o.text; mem.lineLeft = 6; mem.lineTo = o.who; mem.last = o.text; mem.orders++;
+    mem.next = mem.clock + p.gapMin + rnd() * (p.gapMax - p.gapMin);
+    mem.sipT = p.sipAfterOrder;
+    if (o.who >= 0) { mem.answerIn = p.answerAfter; mem.answerTo = o.who; }
+    return 'order';
+  }
+  return '';
+}

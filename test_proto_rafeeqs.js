@@ -13,6 +13,7 @@ const tick = s => G.step(s, 0.05, () => {});
   const names = s.rafeeqSeats.map(x => x.name);
   ok(new Set(names).size === 8 && names.every(n => G.RAFEEQ_NAMES.includes(n)), 'names are unique and from the list');
   ok(new Set(s.rafeeqSeats.slice(0, 6).map(x => x.trait)).size === 6, 'the first six seats have six different traits');
+  ok(s.rafeeqSeats.every(x => x.name === x.given && G.rafeeqNick(s, s.rafeeqSeats.indexOf(x)).base === x.trait), 'each seat carries a nickname and its base trait');
   ok(s.rafeeqSeats.every(x => G.RAFEEQ_TRAITS.includes(x.trait)), 'every trait is known');
   ok(G.rafeeqName(s, 0) === names[0] && G.rafeeqTrait(s, 2) === s.rafeeqSeats[2].trait, 'name and trait read back');
   ok(G.rafeeqPair(s, 1).friend === 0 && G.rafeeqPair(s, 0).friend === 1, 'friends are the seats hired side by side');
@@ -48,7 +49,7 @@ const tick = s => G.step(s, 0.05, () => {});
   const names = s.rafeeqSeats.map(x => x.name);
   s.run = { ...(s.run || {}), done: true };
   G.reset(s, 'site');
-  ok(s.rafeeqSeats.length === 3 && s.rafeeqSeats.map(x => x.name).join() === names.join(), 'seats survive New Site');
+  ok(s.rafeeqSeats.length === 3 && new Set(s.rafeeqSeats.map(x => x.name)).size === 3, 'seats survive New Site (with new nicknames)');
   ok(s.rafeeqSeats[0].life.broke === 40 && s.rafeeqSeats[0].life.coins === 1200 && s.rafeeqSeats[0].life.levels === 1, 'totals banked, level counted');
   ok(s.rafeeqSeats[0].life.best.kind === 'gold', 'best find banked');
   s.diggers[0].broke = 5; s.diggers[0].coins = 100;      // the start kit has already hired some
@@ -56,6 +57,41 @@ const tick = s => G.step(s, 0.05, () => {});
   ok(st.life.broke === 45 && st.level.broke === 5, 'the next level adds on top');
   G.reset(s, 'land');
   ok(s.rafeeqSeats.length === 3, 'seats survive Land');
+}
+{ // the nickname list: data is complete
+  ok(G.RAFEEQ_NICKS.length === 61, 'sixty-one nicknames');
+  const ids = G.RAFEEQ_NICKS.map(n => n.id);
+  ok(new Set(ids).size === ids.length, 'no id twice');
+  for (const n of G.RAFEEQ_NICKS) {
+    ok(n.ar && /[؀-ۿ]/.test(n.ar), n.id + ' has Arabic');
+    ok(G.RAFEEQ_TRAITS.includes(n.base), n.id + ' has a valid base');
+    ok(n.line && n.line.split(/\s+/).length <= 6, n.id + ' line is at most 6 words');
+    ok(n.id === n.id.toLowerCase() && n.id.length <= 12 && G.t('nk_line_' + n.id) === n.line, n.id + ' is lowercase, fits, and its line is a string');
+  }
+  for (const gone of ['alzal3', 'al7beeb', 'abo5aled', 'kabsa', 'altheeb', 'alkabtn', 'alghali']) ok(!ids.includes(gone), gone + ' is left out');
+  ok(ids.includes('alfazza3') && G.RAFEEQ_NICKS.find(n => n.id === 'alfazza3').line === 'Rushes to help', 'alfazza3 rushes to help');
+}
+{ // dealing: unique on a site, re-dealt on a new site, a hand name stays, old first names get a nickname
+  const s = crew(10); tick(s);
+  ok(new Set(s.rafeeqSeats.map(x => x.name)).size === 10, 'no two alike on one site');
+  G.rafeeqRename(s, 2, 'Abu Saif');
+  const trait2 = s.rafeeqSeats[2].trait, before = s.rafeeqSeats.map(x => x.name);
+  let changed = 0;
+  for (let k = 0; k < 4; k++) { G.reset(s, 'site'); const now = s.rafeeqSeats.map(x => x.name); changed += now.filter((n, i) => i !== 2 && n !== before[i]).length; ok(new Set(now).size === 10, 'unique again'); ok(now[2] === 'Abu Saif' && s.rafeeqSeats[2].trait === trait2, 'a hand name and its base trait stay'); ok(G.rafeeqNick(s, 2) === null && G.rafeeqLine(s, 2).length > 0, 'a renamed seat shows his base line'); }
+  ok(changed > 10, 'a new site re-deals the others');
+  s.rafeeqSeats.forEach((x, i) => { if (i !== 2) ok(G.rafeeqNick(s, i) && G.rafeeqLine(s, i) === G.rafeeqNick(s, i).line, 'his own line'); });
+  s.rafeeqSeats.forEach((x, i) => { if (x.rival >= 0) ok(s.rafeeqSeats[x.rival].rival === i, 'rivals still go both ways'); });
+  ok(G.rafeeqRename(s, 2, '   ') === s.rafeeqSeats[2].given && G.rafeeqNick(s, 2), 'an empty rename brings his nickname back');
+}
+{ // an old save: seats with the old first names load, and are dealt a nickname at the next site
+  const s = crew(3); tick(s);
+  const old = JSON.parse(G.serialize(s));
+  old.rafeeqSeats.forEach((x, i) => { x.name = x.given = ['Saif', 'Hamad', 'Nasser'][i]; });
+  old.rafeeqSeats[1].name = 'Mine';
+  const o = G.deserialize(JSON.stringify(old));
+  ok(G.rafeeqName(o, 0) === 'Saif' && G.rafeeqNick(o, 0) === null && G.rafeeqLine(o, 0).length > 0, 'old save loads, old name shown with a base line');
+  G.reset(o, 'site');
+  ok(G.rafeeqNick(o, 0) && G.rafeeqNick(o, 2) && G.rafeeqName(o, 1) === 'Mine', 'next site: nicknames dealt, the hand name kept');
 }
 { // the best find comes from the broke hook
   const s = crew(2); tick(s);

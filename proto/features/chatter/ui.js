@@ -10,6 +10,7 @@
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { fx, AT, W, H, rr, centre, spark, ring } from '../../ui/render.js';
+import { drawManager, managerMount, managerHit, managerAway, managerOnOrder } from './manager.js';
 import { moodsSet, moodsSay, moodsTalk, moodsTrait, moodsMem } from '../moods/ui.js';
 
 const { t } = G;
@@ -34,7 +35,7 @@ const best = (s, f) => { let r = null; s.diggers.forEach((d, i) => { if (!r && f
 // one Rafeeq speaks a moment line (the rate rule decides if it shows)
 function momentLine(s, d, moment, o = {}) {
   const i = seat(s, d); if (i < 0) return false;
-  const text = G.chatterPick(moodsMem, i, G.chatterLines(G.chatterTrait(s, i), moment), Math.random());
+  const text = G.chatterPick(moodsMem, i, G.chatterMomentLines(s, i, moment), Math.random());
   return moodsSay(d, text, o);
 }
 // whoever suits the moment: the first one of that trait, else a random one
@@ -128,7 +129,10 @@ ui({
   css: new URL('./chatter.css', import.meta.url).href,
   keys: { y: app => { if (app.state.diggers.length) G.chatterCheer(app.state, app.ev); } },
   panels: [panel],
+  away(seconds, app) { managerAway(app.state); },
   mount(app) {
+    managerMount(app);
+    managerOnOrder(d => { if (d) emote(d, 'bang', 1.4); });
     // right click on a Rafeeq pats him (and does not dig); anywhere else it digs as before
     app.el.stage.addEventListener('pointerdown', e => {
       if (e.button !== 2 || !(e.target instanceof HTMLCanvasElement)) return;
@@ -143,6 +147,7 @@ ui({
   },
   on: {
     cheer(d, app) { cheer(app.state); },
+    hit(d) { managerHit(d); },
     chatter(d, app) { const s = app.state, x = s.diggers[d.who]; if (x) momentLine(s, x, d.moment); },
     blast(d, app) {
       const s = app.state;
@@ -190,7 +195,7 @@ ui({
     }
     if (ds.length) { idle(s); rivals(s); }
   },
-  draw: [{ at: AT.actors + 2, fn: drawChatter }],
+  draw: [{ at: AT.actors + 2, fn: drawChatter }, { at: AT.screen + 2, fn: drawManager }],
 });
 
 // ---------- drawing ----------
@@ -308,7 +313,7 @@ function drawChatter(g, s, dt) {
   if (mem.hover && mem.hoverT >= P.tagAfter) {       // the name tag, under the Rafeeq
     const d = mem.hover, i = ds.indexOf(d);
     if (i < 0) return;
-    const name = G.chatterName(s, i), line = t('chat_tag_line', { trait: t('chat_trait_' + G.chatterTrait(s, i)), n: G.fmt(d.broke || 0) });
+    const name = G.chatterName(s, i), line = t('chat_tag_line', { trait: G.chatterLine(s, i), n: G.fmt(d.broke || 0) });
     const [x, y] = centre(d.r, d.c);
     g.save(); g.textAlign = 'center'; g.textBaseline = 'middle';
     g.font = 'bold 14px system-ui, sans-serif'; const w1 = g.measureText(name).width;

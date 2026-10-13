@@ -107,4 +107,88 @@ assert.equal(run(false), run(true), 'chatter must not change the state');
 // nothing in the folder writes a saved number: the only state key is the switch, and no Math.random in rules
 const rules = fs.readFileSync('./proto/features/chatter/rules.js', 'utf8');
 assert.ok(!/Math\.random|Date\.now/.test(rules), 'rules use no clock and no random');
+
+// ---- nicknames: every name has a speech line and a manager line; almodeer's rules ----
+{
+  const EM = /[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
+  let seed = 12345; const rng = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const st = (s, m, dt, c) => G.chatterBossStep(s, m, dt, { ...c, rnd: rng });
+  for (const n of G.RAFEEQ_NICKS) {
+    const s = G.newState(); s.coins = 1e12; s.total = 1e12; G.buy(s, 'crew'); G.step(s, 0.05, () => {});
+    s.rafeeqSeats[0].name = s.rafeeqSeats[0].given = n.id; s.rafeeqSeats[0].trait = n.base;
+    const say = G.chatterNickLines(s, 0);
+    assert.ok(say.length >= 1 && say.every(l => G.chatterWords(l) <= 5 && !EM.test(l)), n.id + ' has a short speech line');
+    assert.notEqual(G.t('nk_boss_' + n.id), 'nk_boss_' + n.id, n.id + ' has a manager line');
+    assert.ok(G.chatterMomentLines(s, 0, 'hired').includes(say[0]), n.id + ' says it at a friendly moment');
+    assert.ok(!G.chatterMomentLines(s, 0, 'tnt').includes(say[0]), 'but not at the TNT');
+    assert.equal(G.chatterLine(s, 0), n.line);
+  }
+  for (const tr of G.CHATTER_TRAITS) assert.ok(Number(G.t('boss_' + tr + '_n')) >= 3, tr + ' has 3 manager lines');
+  assert.ok(Number(G.t('boss_all_n')) >= 10, 'ten general lines');
+  assert.equal(G.t('boss_back_0'), 'ar7boooo');
+  assert.equal(G.t('boss_name'), 'almodeer');
+  for (const k of ['all', 'tea', 'wake', 'back', ...G.CHATTER_TRAITS]) for (let i = 0; i < Number(G.t('boss_' + k + '_n')); i++) {
+    const l = G.t('boss_' + k + '_' + i);
+    assert.ok(!EM.test(l) && !/fat|ugly|stupid|fired|religio/i.test(l), l + ' is kind');
+  }
+
+  const mk = n => { const s = G.newState(); s.coins = 1e12; s.total = 1e12; for (let i = 0; i < n; i++) G.buy(s, 'crew'); G.step(s, 0.05, () => {}); return s; };
+  assert.equal(G.chatterBossShown(mk(2)), false); assert.equal(G.chatterBossShown(mk(3)), true, 'shown at 3 hired');
+  const run = (s, secs, ctx, mem = G.chatterBossMem()) => {
+    const lines = [];
+    for (let t = 0; t < secs; t += 0.1) { const before = mem.orders; st(s, mem, 0.1, ctx); if (mem.orders > before) lines.push({ at: t, text: mem.line, who: mem.lineTo }); }
+    return { lines, mem };
+  };
+  const s5 = mk(5), on = { muted: false, digging: true };
+  const { lines } = run(s5, 600, on);
+  assert.ok(lines.length >= 18 && lines.length <= 32, 'about one a 20 to 30 s: ' + lines.length);
+  for (let i = 1; i < lines.length; i++) {
+    const gap = lines[i].at - lines[i - 1].at;
+    assert.ok(gap >= 19.5 && gap <= 30.5, 'gap ok ' + gap);
+    assert.notEqual(lines[i].text, lines[i - 1].text, 'no repeat back to back');
+  }
+  assert.ok(lines.every(l => !l.text.includes('{')), 'no raw {name}');
+  assert.ok(lines.some(l => l.who === -1) && lines.some(l => l.who >= 0), 'sometimes to all, sometimes to one');
+  assert.equal(run(s5, 300, { muted: true, digging: true }).lines.length, 0, 'never while a card is open or in the Rock fight');
+  const q = mk(5); q.chatterQuiet = true;
+  assert.equal(run(q, 300, on).lines.length, 0, 'silent when Rafeeqs talk is off');
+  assert.equal(run(mk(2), 300, on).lines.length, 0, 'nothing at 2 hired');
+  // he leaves when fewer than 3
+  const m = G.chatterBossMem(); run(s5, 40, on, m); assert.ok(m.orders >= 1);
+  s5.diggers.length = 2; st(s5, m, 0.1, on); assert.equal(m.line, '', 'line gone when fewer than 3'); assert.equal(G.chatterBossShown(s5), false);
+  // the addressed Rafeeq may answer
+  const sa = mk(4), ma = G.chatterBossMem(); let due = 0, orders1 = 0;
+  for (let t = 0; t < 300; t += 0.1) { const e = st(sa, ma, 0.1, on); if (e === 'order' && ma.lineTo >= 0) orders1++; if (ma.answerIn === -2) { due++; ma.answerIn = -1; } }
+  assert.ok(due >= 1 && due <= orders1, 'an answer follows an order to one Rafeeq');
+  // asleep and awake
+  const sw = mk(3), mw = G.chatterBossMem();
+  run(sw, 5, { muted: false, digging: false }, mw); assert.equal(mw.asleep, false, 'awake after 5 s idle');
+  run(sw, 5, { muted: false, digging: false }, mw); assert.equal(mw.asleep, true, 'asleep after about 8 s idle');
+  const ob = mw.orders; run(sw, 120, { muted: false, digging: false }, mw); assert.equal(mw.orders, ob, 'no orders while asleep');
+  const e = st(sw, mw, 0.1, on);
+  assert.equal(e, 'wake'); assert.equal(mw.asleep, false);
+  assert.ok(['I was checking the rocks!', 'I was not sleeping.', 'Back to work, everyone!'].includes(mw.line) && mw.jump > 0 && mw.spill > 0, 'wakes with a start and a flustered line');
+  const sx = mk(3), mx = G.chatterBossMem(); run(sx, 300, on, mx); assert.equal(mx.asleep, false, 'awake while digging goes on (auto dig)');
+  // the welcome back: plain ar7boooo first, once per return, not on a nap
+  const sb = mk(3), mb = G.chatterBossMem(); mb.welcome = true;
+  assert.equal(st(sb, mb, 0.1, on), 'welcome'); assert.equal(mb.line, 'ar7boooo'); assert.ok(mb.wave > 0 && mb.sipLeft > 0);
+  assert.equal(st(sb, mb, 0.1, on), '', 'once per return');
+  const mm = G.chatterBossMem(); mm.welcome = true;
+  assert.equal(st(sb, mm, 0.1, { muted: true, digging: true }), '', 'waits while the away card is open');
+  assert.equal(st(sb, mm, 0.1, on), 'welcome', 'then says it');
+  // he keeps sipping while silent
+  const ss = mk(3), ms = G.chatterBossMem(); let sips = 0, was = 0;
+  for (let t = 0; t < 60; t += 0.1) { st(ss, ms, 0.1, { muted: true, digging: true }); if (ms.sipLeft > 0 && !was) sips++; was = ms.sipLeft > 0 ? 1 : 0; }
+  assert.ok(sips >= 8, 'he keeps sipping: ' + sips);
+  // NOT a Rafeeq: nothing in the state moves; the cap, the hires and the power are the same
+  const sn = mk(3), snap = G.serialize(sn).replace(/"savedAt":[0-9]+/, ''), power = G.crewPower(sn);
+  run(sn, 120, on); run(sn, 30, { muted: false, digging: false });
+  assert.ok(G.serialize(sn).replace(/"savedAt":[0-9]+/, '') === snap, 'the manager writes nothing to the state');
+  assert.equal(sn.diggers.length, 3); assert.equal(G.crewPower(sn), power);
+  const hireAll = pre => { const s = G.newState(); s.coins = 1e15; s.total = 1e15; for (let i = 0; i < 3; i++) G.buy(s, 'crew'); if (pre) run(s, 60, on); for (let i = 0; i < 12; i++) G.buy(s, 'crew'); return s.diggers.length; };
+  const withHim = hireAll(true), without = hireAll(false);
+  assert.ok(withHim >= 8, 'an 8th Rafeeq can be hired: ' + withHim);
+  assert.equal(withHim, without, 'the cap is the same with him showing');
+}
+
 console.log('Dig chatter OK');
