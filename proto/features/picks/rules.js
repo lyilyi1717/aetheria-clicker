@@ -141,7 +141,7 @@ export const picks = use({
       cost: s => (s.picks.second ? Infinity : p.secondCost),
       open: s => !s.picks.second && ((s.bossesDown || 0) >= p.secondRock || moved(s)),
       bought(s, lv, ev) { s.picks.second = true; s.picks.pin = 'gate'; more(s, ev); } },
-    // the third and the fourth pick, for Stars (the Star bonus counts Stars ever earned, so spending costs nothing)
+    // the third and the fourth pick, for Stars (counted in starSpent, like the Star tracks, so the pacing still sees the Stars earned)
     pick3: { at: 10, shop: 'picks', max: p.starCosts.length, levels: 'core',
       cost: (s, lv) => p.starCosts[Math.min(lv, p.starCosts.length - 1)],
       open: s => s.picks.second && moved(s) && (s.starBoss || 0) >= (p.starRocks[itemLevel(s, 'pick3')] || 0),

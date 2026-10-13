@@ -103,32 +103,27 @@ function idle(s) {
   emote(d, IDLE[moodsTrait(d)] || 'hop');
 }
 
-// The panel names its tab itself (the README allows it); it is a variable so the drawer test's map check, which
-// wants every literal panel in PANEL_TAB (a coordinator file), does not trip. See "Needs from the coordinator".
-const panel = {
-  id: 'chatter', elId: 'chatter', tab: 'camp', at: 16, title: 'chat_panel',
-  when: s => s.diggers.length > 0,
-  build(el, app) {
-    el.insertAdjacentHTML('beforeend', '<div class="chat-row"><button class="chat-btn" data-a="talk"></button><button class="chat-btn" data-a="cheer"></button></div><p class="muted chat-hint"></p>');
-    el.querySelector('[data-a=talk]').addEventListener('click', () => { G.chatterSetQuiet(app.state, !app.state.chatterQuiet); app.save(); app.dirty('chatter'); });
-    const c = el.querySelector('[data-a=cheer]');
-    c.addEventListener('click', () => G.chatterCheer(app.state, app.ev));
-    c.title = t('chat_cheer_d');
-  },
-  update(el, s) {
-    const b = el.querySelector('[data-a=talk]'), on = !s.chatterQuiet;
-    b.textContent = t(on ? 'chat_talk_on' : 'chat_talk_off'); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    el.querySelector('[data-a=cheer]').textContent = t('chat_cheer');
-    el.querySelector('.chat-hint').textContent = t('chat_pat_hint');
-  },
-
-};
-
 ui({
   id: 'chatter',
   css: new URL('./chatter.css', import.meta.url).href,
   keys: { y: app => { if (app.state.diggers.length) G.chatterCheer(app.state, app.ev); } },
-  panels: [panel],
+  panels: [{
+    id: 'chatter', elId: 'chatter', at: 16, title: 'chat_panel',
+    when: s => s.diggers.length > 0,
+    build(el, app) {
+      el.insertAdjacentHTML('beforeend', '<div class="chat-row"><button class="chat-btn" data-a="talk"></button><button class="chat-btn" data-a="cheer"></button></div><p class="muted chat-hint"></p>');
+      el.querySelector('[data-a=talk]').addEventListener('click', () => { G.chatterSetQuiet(app.state, !app.state.chatterQuiet); app.save(); app.dirty('chatter'); });
+      const c = el.querySelector('[data-a=cheer]');
+      c.addEventListener('click', () => G.chatterCheer(app.state, app.ev));
+      c.title = t('chat_cheer_d');
+    },
+    update(el, s) {
+      const b = el.querySelector('[data-a=talk]'), on = !s.chatterQuiet;
+      b.textContent = t(on ? 'chat_talk_on' : 'chat_talk_off'); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      el.querySelector('[data-a=cheer]').textContent = t('chat_cheer');
+      el.querySelector('.chat-hint').textContent = t('chat_pat_hint');
+    },
+  }],
   away(seconds, app) { managerAway(app.state); },
   mount(app) {
     managerMount(app);

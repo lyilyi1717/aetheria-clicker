@@ -13,8 +13,8 @@
 //             under that contract, and the contracts feature calls `siteMedal(s, 'hard', ev)` when it is won.
 // A medal pays a few Stars, once per version.
 //
-// THE ROAD (docs/dig-design.md, section 2). Fourteen levels in a fixed order (ROAD): every depth from 50 m to 200 m is
-// met twice, once at a kind place and once at a harder one. "Next site" deals ONE card, the next level, until that
+// THE ROAD (docs/dig-design.md, section 2). Twenty levels in a fixed order (ROAD): the four lessons, then every depth from
+// 100 m to 275 m is met twice (learn it at a kind place, prove it at a harder one), in five lands. "Next site" deals ONE card, the next level, until that
 // level is finished. A level tried twice and not finished brings side cards beside it (a medal still to win, a twist
 // on a finished floor): Stars to come back stronger with. The road is never made softer and no level is skipped
 // (the first four pass after two tries: they are lessons, and old saves visited them). When the last level is
@@ -167,12 +167,14 @@ export function siteMedal(s, medal, ev = () => {}) {
   const r = siteRun(s);
   if (medal !== 'hard' || r.medals.hard) return 0;
   r.medals.hard = 1;
+  s.road.deal = null;                      // the dealt cards carry medals: deal them again
   return award(s, ev, stampOf(s, r.site, r.floor, r.twist), r.key, 'hard', medalPay(r.floor));
 }
 
 function finish(s, ev) {
   const r = siteRun(s);
   r.done = true; r.time = r.clock;
+  s.road.deal = null;                      // cards dealt before this finish (a look from the leave button) show the road as it was
   const st = stampOf(s, r.site, r.floor, r.twist);
   const first = !st.fin, fast = r.time <= r.par;
   let stars = first ? firstPay(r.floor, roadKind(r.site, r.floor, r.twist)) : replayPay(r.floor);

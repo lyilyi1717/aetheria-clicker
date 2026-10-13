@@ -323,12 +323,15 @@ function updatePanels(force) {
   updateTools();
   for (const d of DEFS) if (d.tick) d.tick(state, app);
   // first sight of a new kind of block
-  const seen = G.visibleMask(state);
+  // (the mask is a whole-view sweep: it is built only once a block with a lesson still to teach is in the view)
+  let seen = null;
   for (let i = 0; i < G.VIEW_ROWS - 1; i++) for (let c = 0; c < G.COLS; c++) {
     const cell = state.rows[i][c];
-    if (!cell || !seen[i][c]) continue;
+    if (!cell) continue;
     const f = ART[cell.t] && ART[cell.t].firstSight;
-    if (f && !state.seen[f.flag]) lesson(f.flag, t(f.text), f.kind || '');
+    if (!f || state.seen[f.flag]) continue;
+    if (!seen) seen = G.visibleMask(state);
+    if (seen[i][c]) lesson(f.flag, t(f.text), f.kind || '');
   }
 }
 
