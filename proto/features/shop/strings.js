@@ -8,4 +8,5 @@ export default { en: {
   maxed: 'Full',
   locked_crew: 'Opens when you have dug a little.',
   locked_more: 'More opens as you go deeper.',
+  locked_tempo: 'Faster beats: {why}',
 } };

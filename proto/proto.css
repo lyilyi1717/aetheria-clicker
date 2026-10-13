@@ -140,11 +140,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tool i { position: absolute; inset-block-end: 1px; inset-inline-end: 4px; font-style: normal; font-size: 11px; font-weight: 800; color: var(--muted); }
 
 /* panels fold on a click of their title */
-.fold-h { cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; }
-.fold-h::after { content: ''; width: 8px; height: 8px; border-inline-end: 2px solid var(--muted); border-block-end: 2px solid var(--muted); transform: rotate(45deg); margin-inline-end: 4px; transition: transform .15s; }
-.panel.folded > .fold-h::after { transform: rotate(-45deg); }
-.panel.folded > :not(h2) { display: none !important; }
-.panel.folded h2 { margin-block-end: 0; }
 
 @media (max-height: 800px) { #hud-coins, #hud-depth { zoom: .85; } #combo { inset-block-start: 52px; } }
 
