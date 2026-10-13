@@ -244,6 +244,13 @@ function buildPanels() {
     const sec = document.createElement('section');
     sec.className = 'panel'; sec.id = p.elId || 'panel-' + p.id;
     const h = document.createElement('h2'); h.textContent = t(p.title); sec.appendChild(h);
+    // a click on the title folds the panel; a long one (fold: true) starts folded. The choice is remembered.
+    h.className = 'fold-h'; h.tabIndex = 0;
+    let mem = null; try { mem = localStorage.getItem('DIG_FOLD_' + p.id); } catch { /* ignore */ }
+    sec.classList.toggle('folded', mem === null ? !!p.fold : mem === '1');
+    const flip = () => { const f = sec.classList.toggle('folded'); try { localStorage.setItem('DIG_FOLD_' + p.id, f ? '1' : '0'); } catch { /* ignore */ } };
+    h.addEventListener('click', flip);
+    h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } });
     app.el[p.side].appendChild(sec);
     p.el = sec; p.dirty = true;
     if (p.build) p.build(sec, app);

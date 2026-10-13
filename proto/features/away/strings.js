@@ -3,7 +3,7 @@ export default { en: {
   away_line: 'You were away {t}. Here is what your Rafeeqs did.',
   away_cap: 'Your Rafeeqs work for up to {h} hours while you are away. Nothing is lost after that, they just wait.',
   away_metres: '{n} m deeper',
-  away_sieve: 'Sieved the rubble for {t}',
+  away_sieve: 'Sieved rubble for {t}',
   away_bone1: '1 bone', away_bones: '{n} bones',
   away_newbone1: '1 is new for the Museum', away_newbones: '{n} are new for the Museum',
   away_chests: '{n} chests to open', away_chest1: '1 chest to open',
