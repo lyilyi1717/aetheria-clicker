@@ -30,6 +30,7 @@ export * from './relics2/rules.js';
 export * from './shop/rules.js';
 export * from './sites/rules.js';
 export * from './starshop/rules.js';
+export * from './telemetry/rules.js';
 export * from './tnt/rules.js';
 export * from './track/rules.js';
 export * from './wardrobe/rules.js';

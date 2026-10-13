@@ -230,6 +230,27 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 - Desktop only for now. Old saves always load.
 - A change to the economy comes with sim numbers before and after.
 
+## 7.5 Player data (anonymous play times)
+
+The published page sends numbers about play, without a name, so the sims can be checked against real players. Code:
+`proto/features/telemetry/`; tables and functions: `supabase/dig_telemetry.sql`; reader: `sim/proto/player-stats.mjs`.
+
+**Sent** (a random id made on the device, the game version, days since the device started):
+- one row per road try that ends (finished, left, new site): site, floor, twist, road level, try number, attended and total seconds,
+  par, depth, Gate health left, Big Rocks, Stars, coins earned, pick power, Rafeeqs, forge levels;
+- one row per purchase or pick: what, the level reached, the price, coins and Stars before, the cards offered (relic, site card);
+- about one pace sample per attended minute: depth gained, coins/s, blocks/s, hits/s, idle share;
+- one row when the page hides: session length, attended time, time since the last session, offline time and coins settled.
+
+**Not sent**: name, email, address (no IP is read or stored), the save, anything typed. Nothing is sent from `?speed=`, test, sim,
+`localhost` or `127.0.0.1` pages, or an automated browser, unless the address has `?telemetry=1`. A line under the Tips list says what
+is sent and has a Turn off switch: Off sends nothing and drops what was waiting. Rows queue in the browser and go in small batches
+(about once a minute and when the page hides); offline just waits.
+
+**Reading it**: nobody reads raw rows. `node sim/proto/player-stats.mjs` prints the overview and a table per road level (players,
+tries and attended minutes to finish, day, share who stopped there); `--choices` shows what was bought and picked; `--pace` shows how
+fast people dig; `--vs dump.json` (from `dig-month.mjs --dump`) puts the sim beside the real players. A median needs 3 players.
+
 ## 8. What changed, newest first
 
 | Date | Change |

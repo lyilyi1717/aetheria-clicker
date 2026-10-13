@@ -1,0 +1,105 @@
+// Dig feature: anonymous play data, the sending side without a page. Plain functions over injected parts (storage, fetch,
+// clock), so a test runs them with fakes and no network. The page (ui.js) hands it real ones.
+//
+// What it keeps: a random player id made on the device (no account, no email), a consent switch, a start day, and a queue of
+// rows waiting to go. What it never does: send from a test, sim, `?speed=` or local page (see telemetryGate), send when the
+// switch is Off, or throw into the game (every call is guarded; offline simply leaves the rows queued, up to a cap).
+export const TEL_TABLES = { tries: 'dig_tries', choices: 'dig_choices', pace: 'dig_pace', sessions: 'dig_sessions' };
+export const TEL_KEYS = { consent: 'DIG_TELEMETRY', pid: 'DIG_PID', start: 'DIG_TEL_START', queue: 'DIG_TEL_Q', last: 'DIG_TEL_LAST' };
+export const TEL_LIMITS = { perTable: 200, batch: 50 };
+
+// May this page send at all? Only the published site; never a test, sim or speed-up run (players reach Dig through ?loop=3, so that one is allowed), never localhost or a bare IP,
+// never an automated browser, unless the address carries ?telemetry=1.
+export function telemetryGate({ hostname = '', protocol = '', search = '', webdriver = false } = {}) {
+  const q = new URLSearchParams(search);
+  if (q.get('telemetry') === '1') return true;
+  if (protocol !== 'https:' && protocol !== 'http:') return false;
+  for (const k of ['speed', 'test', 'sim']) if (q.has(k)) return false;
+  if (webdriver) return false;
+  const h = String(hostname).toLowerCase();
+  if (!h || h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local') || h.includes(':') || /^[0-9.]+$/.test(h)) return false;
+  return h.includes('.');
+}
+
+const uuid = rand => {
+  const h = []; for (let i = 0; i < 16; i++) h.push(Math.floor(rand() * 256));
+  h[6] = (h[6] & 15) | 64; h[8] = (h[8] & 63) | 128;
+  const x = h.map(b => b.toString(16).padStart(2, '0')).join('');
+  return `${x.slice(0, 8)}-${x.slice(8, 12)}-${x.slice(12, 16)}-${x.slice(16, 20)}-${x.slice(20)}`;
+};
+
+// env: { store, fetch, url, key, ver, now (ms), rand, allowed }
+export function createTelemetry(env) {
+  const get = k => { try { return env.store.getItem(k); } catch { return null; } };
+  const set = (k, v) => { try { env.store.setItem(k, v); } catch { /* a blocked store: nothing is kept */ } };
+  const del = k => { try { env.store.removeItem(k); } catch { /* ignore */ } };
+  let q = null, busy = false;
+
+  const load = () => {
+    if (q) return q;
+    q = {};
+    try { const o = JSON.parse(get(TEL_KEYS.queue) || '{}'); for (const t of Object.keys(TEL_TABLES)) q[t] = Array.isArray(o[t]) ? o[t] : []; } catch { for (const t of Object.keys(TEL_TABLES)) q[t] = []; }
+    return q;
+  };
+  const save = () => { const n = size(); if (n) set(TEL_KEYS.queue, JSON.stringify(q)); else del(TEL_KEYS.queue); };
+  const size = () => { load(); return Object.keys(TEL_TABLES).reduce((a, t) => a + q[t].length, 0); };
+
+  const api = {
+    consent: () => get(TEL_KEYS.consent) !== 'off',
+    // Off: nothing is sent and what waits is dropped
+    setConsent(on) { if (on) del(TEL_KEYS.consent); else { set(TEL_KEYS.consent, 'off'); q = {}; for (const t of Object.keys(TEL_TABLES)) q[t] = []; del(TEL_KEYS.queue); } },
+    active: () => !!env.allowed && api.consent(),
+    pid() {
+      let id = get(TEL_KEYS.pid);
+      if (!id || !/^[0-9a-f-]{36}$/.test(id)) { id = uuid(env.rand); set(TEL_KEYS.pid, id); }
+      return id;
+    },
+    // days since this device started playing (the start is set the first time it is asked)
+    days() {
+      let st = Number(get(TEL_KEYS.start));
+      if (!(st > 0)) { st = env.now(); set(TEL_KEYS.start, String(st)); }
+      return Math.max(0, Math.round((env.now() - st) / 8640000) / 10);
+    },
+    size,
+    queued: t => (load(), q[t].length),
+    peek: () => (load(), q),
+    // add a row for a table; the player, version and day are put on here
+    add(table, row) {
+      if (!TEL_TABLES[table] || !api.active()) return false;
+      try {
+        load();
+        q[table].push({ pid: api.pid(), ver: String(env.ver).slice(0, 16), ...row, days: api.days() });
+        if (q[table].length > TEL_LIMITS.perTable) q[table].splice(0, q[table].length - TEL_LIMITS.perTable);
+        save();
+        return true;
+      } catch { return false; }
+    },
+    // send what waits: one request per table with rows. Offline or a server error keeps the rows; a refusal (4xx) drops them.
+    async flush(keepalive = false) {
+      if (busy || !api.active() || !size()) return 0;
+      busy = true; let sent = 0;
+      try {
+        load();
+        for (const t of Object.keys(TEL_TABLES)) {
+          const rows = q[t].slice(0, TEL_LIMITS.batch);
+          if (!rows.length) continue;
+          let res;
+          try {
+            res = await env.fetch(`${env.url}/rest/v1/${TEL_TABLES[t]}`, {
+              method: 'POST', keepalive,
+              headers: { apikey: env.key, Authorization: `Bearer ${env.key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+              body: JSON.stringify(rows),
+            });
+          } catch { break; }                                    // offline: try again later
+          if (res && (res.ok || (res.status >= 400 && res.status < 500))) { q[t].splice(0, rows.length); if (res.ok) sent += rows.length; save(); }
+          else break;
+        }
+      } catch { /* never reaches the game */ } finally { busy = false; }
+      return sent;
+    },
+    // when the page last went away, for "time away" on the next session
+    markLast() { set(TEL_KEYS.last, String(env.now())); },
+    awayBefore() { const l = Number(get(TEL_KEYS.last)); return l > 0 ? Math.max(0, Math.round((env.now() - l) / 1000)) : null; },
+  };
+  return api;
+}
