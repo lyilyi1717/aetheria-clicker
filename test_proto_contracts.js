@@ -40,7 +40,7 @@ free = true;
 }
 { // bare hands: Rafeeqs are sent home and paid back
   const s = ready(); take(s, 'bare');
-  s.coins = 1000;
+  s.coins = 1000; s.total = 1000;
   G.buy(s, 'crew'); const paid = s.coins;
   const notes = [];
   run(s, 0.2, k => notes.push(k));

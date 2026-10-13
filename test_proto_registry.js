@@ -41,7 +41,7 @@ const throws = f => { try { f(); return false; } catch { return true; } };
 {
   const run = () => {
     G.seedRng(42);
-    const s = G.newState(); s.coins = 500; G.buy(s, 'crew'); G.buy(s, 'pick');
+    const s = G.newState(); s.coins = 500; s.total = 500; G.buy(s, 'crew'); G.buy(s, 'pick');
     for (let i = 0; i < 600; i++) { if (i % 4 === 0) for (let c = 0; c < G.COLS; c++) if (G.swing(s, s.top, c)) break; G.step(s, 0.05); while (s.chests > 0) G.takeRelic(s, G.rollDraft(s)[0]); }
     const o = JSON.parse(G.serialize(s)); delete o.savedAt;
     return JSON.stringify(o);
@@ -214,7 +214,7 @@ const kit = G.use({
   ok(!G.swing(s, 0, 1), 'a contract can forbid the pick');
 }
 { // digger policy
-  const s = G.newState(); s.coins = 1e6; G.buy(s, 'crew'); G.buy(s, 'crew');
+  const s = G.newState(); s.coins = 1e6; s.total = 1e6; G.buy(s, 'crew'); G.buy(s, 'crew');
   s.crewJob = 'kitLeft';
   for (let i = 0; i < 200; i++) G.step(s, 0.05);
   ok(s.diggers.every(d => d.tc === 0 || d.tr < 0), 'the crew follows the job that is set');
@@ -222,7 +222,7 @@ const kit = G.use({
   ok(G.POLICIES.nearest && G.POLICIES.kitLeft, 'policies are registered by name');
 }
 { // several sites: park one, work it in the background, come back
-  const s = G.newState(); s.coins = 1e6; G.buy(s, 'crew'); for (let i = 0; i < 20; i++) G.buy(s, 'crewPow');
+  const s = G.newState(); s.coins = 1e6; s.total = 1e6; G.buy(s, 'crew'); for (let i = 0; i < 20; i++) G.buy(s, 'crewPow');
   const coins = s.coins, top = s.top;
   const other = G.freshSite(s, 'gold');
   ok(other.site === 'gold' && other.rows.length === G.KEEP_ROWS && other.diggers.length === 0 && s.site === 'dunes' && s.top === top && s.diggers.length === 1, 'a second site is a bag of the per-site slices');

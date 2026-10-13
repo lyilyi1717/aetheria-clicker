@@ -18,11 +18,13 @@ for (const [k, W] of Object.entries(WING)) if (W.legacy) SETS[k] = { pieces: W.p
 const p = {
   chance: 0.075,     // a bone in a row (times the site's `bone`)
   dupPay: 25,        // a bone no set can use sells for this many dirt blocks of its row
+  firstRow: 13,      // the first row with bones: a bone placed above it (a prize, a Star step) counts as one from here
 };
 
 function foundFossil(s, b, ev) {
   const { r, c, src } = b;
-  const got = wingFind(s, { tags: ['bone'], layer: layerOf(r) }, ev, { r, c, src });
+  const fr = Math.max(r, p.firstRow);
+  const got = wingFind(s, { tags: ['bone'], layer: layerOf(fr) }, ev, { r: fr, c, src });
   let coins = 0;
   if (!got) { coins = Math.round(dirtVal(r) * p.dupPay * coinMult(s)); addCoins(s, coins, src); }
   const key = got ? `${got.set}.${got.i}` : 'none';
@@ -55,8 +57,8 @@ export const museum = use({
   },
   gen: { row: [{ at: 40, fn(c) {
     const s = c.s;
-    if (c.r === 13 && !s.seen.fossil) { c.put('fossil'); s.seen.fossil = true; }
-    else if (c.r > 13 && rnd() < p.chance * siteMult(c.site, 'bone')) c.put('fossil');
+    if (c.r === p.firstRow && !s.seen.fossil) { c.put('fossil'); s.seen.fossil = true; }
+    else if (c.r > p.firstRow && rnd() < p.chance * siteMult(c.site, 'bone')) c.put('fossil');
   } }] },
   unlocks: () => {
     const out = [];

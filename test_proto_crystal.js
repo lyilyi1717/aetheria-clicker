@@ -104,7 +104,7 @@ const gone = (s, r, c) => rec(s).broke.has(r + ',' + c);
 { // Rafeeqs set them off too
   const s = field();
   put(s, 77, 2, 'crystal_row'); s.rows[0][9] = null;   // nothing else for him to chew on up top
-  s.coins = 1e9; G.buy(s, 'crew'); s.up.crewPow = 40;
+  s.coins = 1e9; s.total = 1e9; G.buy(s, 'crew'); s.up.crewPow = 40;
   let guard = 0; const e = ev(s);
   while (!gone(s, 77, 2) && guard++ < 6000) G.step(s, 0.05, e);
   run(s);

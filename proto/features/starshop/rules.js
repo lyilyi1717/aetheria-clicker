@@ -9,13 +9,13 @@
 // The old names stay as derived levels (starshopLevel(s, 'sp_eyes') ...) so other code and the page read them as before.
 // A save from before gets every Star it ever earned back to spend (once, in `migrate`).
 //
-// Opens no mod. Exports for rules other packages must build (nothing here does them):
+// Folds `crackSeconds` (boss), `crewWalk` (diggers) and `teaBreak` (foreman) for three of its steps. Exports:
 //   starshopPunch(s)      0 none; 1, 2, 3 blocks of reach; Infinity: Punch-through (strength left over goes into the block below)
 //   starshopCrackSlow(s)  true: the Big Rock's crack moves half as often (Crack Finder)
 //   starshopFalling(s)    true: the first swing at a new site falls to the first Big Rock (Falling Star)
 //   starshopShoes(s)      true: Rafeeqs walk twice as fast (Good Shoes)
 //   starshopKettle(s)     true: the Foreman's tea break gives its rush with no sitting (Second Kettle)
-import { use, PARAMS, fold, RELICS, ITEMS } from '../../core/registry.js';
+import { use, emit, PARAMS, fold, RELICS, ITEMS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, LAYER, dirtHp, dirtVal, shiftRow, layerOf, cellAt } from '../../core/grid.js';
 import { coinMult, damage, pickPower, buy } from '../../core/rules.js';
@@ -34,6 +34,8 @@ const p = {
   wholeCamp: 8,                             // Rafeeqs waiting with the camp's capstone
   heavyReach: 1,                            // Heavy Hand: a big hit also strikes this many blocks left and right
   oldFriend: 0.5,                           // the first Big Rock of a site starts with this share of its hp
+  crackSlow: 2,                             // Crack Finder: the crack stays this many times longer
+  shoes: 2,                                 // Good Shoes: Rafeeqs walk this many times faster
 };
 
 // track -> step number -> the rule that comes with it
@@ -203,6 +205,7 @@ export const starshop = use({
     starRerolls:  { init: () => 0, perSite: true },                  // free re-rolls used at this site
     starWarm:     { init: () => 0, perSite: true },                  // the pick level this site started with (Warm Pick)
     starOld:      { init: () => false, perSite: true },              // Old Friend has cracked this site's first Big Rock
+    starFell:     { init: () => false, perSite: true },              // Falling Star has dropped this site's first swing
   },
   shops: { star: { wallet: 'stars', levels: 'starUp', survives: ['site', 'land'] } },
   items: Object.fromEntries(STARSHOP_TRACKS.map((tr, i) => ['tr_' + tr, {
@@ -219,6 +222,9 @@ export const starshop = use({
     coinMult:  { at: 21, fn: (v, s) => v * Math.pow(p.step, starshopSteps(s, 'bag')) },
     // Wide Hands adds a card; the cap comes last, so Wide Hands + Pearl Eye + a prize never show more than cardsCap
     draftCards: { at: 9999, fn: (v, s) => Math.min(p.cardsCap, v + lv(s, 'sp_cards')) },
+    crackSeconds: (v, s) => (starshopCrackSlow(s) ? v * p.crackSlow : v),      // Crack Finder
+    crewWalk: (v, s) => (starshopShoes(s) ? v * p.shoes : v),                  // Good Shoes
+    teaBreak: (v, s) => (starshopKettle(s) ? 0 : v),                           // Second Kettle
   },
   gen: { row: [{ at: 15, fn(c) {
     const s = c.s;
@@ -246,6 +252,18 @@ export const starshop = use({
     } },
     // Heavy Hand: a big hit also strikes the blocks beside it
     swung(s, sw, ev) {
+      // Falling Star: the first swing at a site drops the dig to its first Big Rock; the ground it passes pays as it does while away
+      if (!s.starFell && s.bossesDown === 0 && starshopFalling(s)) {
+        s.starFell = true;
+        let coins = 0, rows = 0;
+        while (rows < LAYER && !blocked(s, s.top)) { coins += dirtVal(s.top) * COLS * PARAMS.away.rowPay * coinMult(s); shiftRow(s); rows++; }
+        coins = Math.round(coins);
+        s.coins += coins; s.total += coins;
+        if (s.top + 1 > s.best) s.best = s.top + 1;
+        for (const d of s.diggers) { d.r = Math.max(d.r, s.top); d.tr = -1; d.tc = -1; }
+        emit(s, ev, 'starFell', { rows, coins });
+        return;
+      }
       if (!sw.crit || !hasStep(s, 'pick', 'heavy')) return;
       for (let k = 1; k <= p.heavyReach; k++) for (const dc of [-k, k]) if (cellAt(s, sw.r, sw.c + dc)) damage(s, sw.r, sw.c + dc, sw.dmg, 'you', ev, { chain: 1 });
     },

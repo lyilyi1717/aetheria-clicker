@@ -127,7 +127,7 @@ const has = (ev, k) => ev.log.some(x => x[0] === k);
 { // the dig still plays through the layer with water around
   G.seedRng(5);
   const s = G.newState();
-  s.coins = 1e9; for (let i = 0; i < 6; i++) G.buy(s, 'crew');
+  s.coins = 1e9; s.total = 1e9; for (let i = 0; i < 6; i++) G.buy(s, 'crew');
   s.up.crewPow = 40; s.up.pick = 40;
   for (let i = 0; i < 4000 && s.best < 70; i++) {
     for (let c = 0; c < G.COLS; c++) if (G.swing(s, s.top + 3, c)) break;

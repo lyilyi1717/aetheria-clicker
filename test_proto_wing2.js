@@ -193,5 +193,11 @@ const cellOf = (s, r, c, t) => { s.rows[r - s.top][c] = G.makeCell(r, t); };
   ok(u.wingNote === true, 'the friendly line will show once');
   G.wingNoteSeen(u); ok(G.deserialize(G.serialize(u)).wingNote === false, 'and not again');
 }
+{ // a bone above the first bone row (the Dhab Lizard's, row 4) gives a piece, not only coins
+  G.seedRng(3); const s = G.newState(); const got = [];
+  G.BLOCKS.fossil.broke(s, { r: 4, c: 2, cell: null, t: 'fossil', B: G.BLOCKS.fossil, src: 'you', byHand: true, chain: 0, info: {}, coins: 0 }, (k, d) => { if (k === 'fossil') got.push(d); });
+  if (!(got.length === 1 && got[0].set && got[0].isNew)) { console.error('FAIL: a bone in row 4 gives a new piece'); process.exitCode = 1; }
+}
+
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('wing2 ok');

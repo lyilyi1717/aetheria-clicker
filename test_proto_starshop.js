@@ -125,5 +125,26 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
   ok(u.byId['shop:tr_pick'] && u.byId['tr:pick:1'] && u.byId['tr:bag:14'], 'the tracks are counted as content');
 }
 
+{ // the four steps that were named and did nothing
+  const s = ready(0);
+  ok(G.fold('crackSeconds', s, 2) === 2 && G.fold('crewWalk', s, 6) === 6 && G.fold('teaBreak', s, 6) === 6, 'nothing without the steps');
+  give(s, 'pick', 17); ok(G.fold('crackSeconds', s, 2) === 4, 'Crack Finder: the crack stays twice as long');
+  give(s, 'camp', 7); ok(G.fold('crewWalk', s, 6) === 12, 'Good Shoes: Rafeeqs walk twice as fast');
+  give(s, 'camp', 9); ok(G.fold('teaBreak', s, 6) === 0, 'Second Kettle: no sitting');
+  // Falling Star: the first swing drops the dig to the first Big Rock, once a site
+  const f = ready(0); f.best = 0; give(f, 'pick', 37);
+  const top = f.top, coins = f.coins, seen = [];
+  G.run('swung', f, { r: f.top, c: 3, dmg: 1 }, (k, d) => seen.push(k));
+  ok(f.top > top && f.top < G.LAYER && f.coins > coins && f.starFell && seen.includes('starFell'), 'Falling Star: the dig falls and the ground pays');
+  let rock = false; for (let r = f.top; r < f.top + G.VIEW_ROWS; r++) if (r === G.LAYER) rock = true;
+  ok(rock, 'the first Big Rock is in sight');
+  const at = f.top; G.run('swung', f, { r: f.top, c: 3, dmg: 1 }, () => {});
+  ok(f.top === at, 'only the first swing');
+  // a locked item cannot be bought, whatever the page shows
+  const l = G.newState(); l.coins = 1e9;
+  const shut = Object.keys(G.ITEMS).filter(id => !G.itemOpen(l, id));
+  ok(shut.length > 0 && shut.every(id => !G.canBuy(l, id) && !G.buy(l, id)), 'a locked item cannot be bought');
+}
+
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('starshop: ok');

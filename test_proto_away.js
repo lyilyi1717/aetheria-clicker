@@ -6,7 +6,7 @@ const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg)
 
 const crewState = () => {
   const s = G.newState();
-  s.coins = 1e9; G.buy(s, 'crew'); for (let i = 0; i < 30; i++) G.buy(s, 'crewPow');
+  s.coins = 1e9; s.total = 1e9; G.buy(s, 'crew'); for (let i = 0; i < 30; i++) G.buy(s, 'crewPow');
   s.coins = 0; s.total = 0;
   return s;
 };

@@ -120,5 +120,13 @@ const count = (s, t) => s.rows.flat().filter(x => x && x.t === t).length;
   ok(n.fusionBook.stamped.mirror === 1 && !Object.keys(n.fusion.melted).length, 'a New Site keeps the book, melted halves start over');
 }
 
+{ // every recipe can be made: a half that tops out at 2 is ready at 2
+  for (const f of G.FUSIONS) {
+    const s = G.newState();
+    s.relics[f.a] = G.RELICS[f.a].max; s.relics[f.b] = G.RELICS[f.b].max;
+    ok(G.fusionCan(s, f.id), `${f.id}: both halves at their top level fuse`);
+  }
+}
+
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('test_proto_fusion: ok');
