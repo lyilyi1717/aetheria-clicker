@@ -1,4 +1,4 @@
-// Dig feature (rules): relic fusion. Two relics at level 3 that can fuse light a Fuse button; fusing
+// Dig feature (rules): relic fusion. Two relics that go together light a Fuse button; fusing
 // melts them into ONE new relic with a twist neither had.
 //
 // How it is built (composition, not copies):
@@ -13,14 +13,18 @@
 //  - Fused relics are never offered in a chest (`when` is false; the `draftPool` mod also drops them).
 //
 // Recipes (17): all six relics2 pairs plus eleven across the old relics, relics2 and wing2.
-//   A recipe that has been fused once may be fused at level 2 + 2 on later sites (`masterNeed`).
+//   The very first fuse needs only level 1 + 1 (`firstNeed`), so a new player fuses in the first minutes. After that a
+//   new recipe needs 2 + 2 (`fullNeed`) and a recipe fused once needs 1 + 1 (`masterNeed`). Fusing lifts both halves to
+//   their top level, so the first fuse is a real jump in power.
+// The guide (`draftPool` mod, only until the first fuse): the first chest offers relics that have a partner, and once you
+//   hold one, a later chest offers its partner among the cards. You still choose; the match is just on the table.
 // The Recipe Book (`fusionBook`, survives New Site and the second reset):
 //   seen    both halves have been held at once (shows the two halves, the result still "?")
 //   stamped it has been fused once
 // Hints from a Museum set or a contract prize are not built: they would need a hook into those folders.
 // Events: fusionSeen { id }, fusionDone { id, a, b }, and for the page: fusionCopy, fusionRipe,
 // fusionDrop, fusionBurst, fusionBring.
-import { use, BLOCKS, RELICS, emit } from '../../core/registry.js';
+import { use, BLOCKS, RELICS, emit, fold } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, cellAt, setCell, makeCell, siteOf, siteMult } from '../../core/grid.js';
 import { later, rel } from '../../core/rules.js';
@@ -31,7 +35,7 @@ import { ORES } from '../ores/rules.js';
 import strings from './strings.js';
 
 const p = {
-  fullNeed: 3, masterNeed: 2,
+  firstNeed: 1, fullNeed: 2, masterNeed: 1,
   bloomEvery: 8,
   quakeReach: 4, quakeDmg: 0.7, quakeDelay: 0.3,
   buddyDmg: 0.5,
@@ -43,6 +47,8 @@ const p = {
   bombHits: 4,   // a bomb of the fusions, to each block around it, in your hits
   sweepDmg: 0.5,
   bringDepth: 5,
+  pity: 2,                 // chests opened before an offered partner is forced onto the card
+  guide: ['hop', 'twin'],   // offered from the first chest until the first fuse
 };
 
 // the recipes: the result is the relic fz_<id>, named r_fz_<id>
@@ -81,7 +87,8 @@ const nextOre = kind => { const k = ORES.indexOf(kind); return k >= 0 && k < ORE
 
 export const fusionHeld = (s, id) => !!s.relics[fusionRelic(id)];
 const live = (s, id) => { const f = BY[id]; return !!(s.relics[fusionRelic(id)] && rel(s, f.a) && rel(s, f.b)); };
-export const fusionNeed = (s, id) => (s.fusionBook.stamped[id] ? p.masterNeed : p.fullNeed);
+export const fusionFused = s => Object.keys(s.fusionBook.stamped).length;     // recipes fused so far, ever
+export const fusionNeed = (s, id) => (s.fusionBook.stamped[id] ? p.masterNeed : fusionFused(s) ? p.fullNeed : p.firstNeed);
 // a half that tops out below that (Bigger Bang, the Dinar, the Derrick: two levels) is ready at its top level
 export const fusionHalfNeed = (s, id, half) => Math.min(fusionNeed(s, id), (RELICS[half] && RELICS[half].max) || Infinity);
 export function fusionCan(s, id) {
@@ -102,6 +109,36 @@ export function fusionDo(s, id, ev = () => {}) {
 }
 // for the book: 0 unknown, 1 seen (both halves met), 2 stamped (fused once)
 export const fusionState = (s, id) => (s.fusionBook.stamped[id] ? 2 : s.fusionBook.seen[id] ? 1 : 0);
+
+// ---------- the guide: put a match on the table until the first fuse ----------
+// Returns the pool the draft draws from (relic ids). Pure; the draw itself stays random. `p.guide` is a pair that is
+// offered from the first chest (the pacing gate of the relics2 pairs would hold them back for a while), so a new player
+// meets a pair at once. The recipe of the pair is the first one to make.
+export function fusionGuide(s, pool, cards) {
+  if (fusionFused(s) || cards < 2) return pool;
+  // a partner the pacing gate holds back is always let in; one that is already on offer is put on the card after `pity` chests
+  const open = id => RELICS[id] && !s.fusion.melted[id] && rel(s, id) < RELICS[id].max && (pool.includes(id) || p.guide.includes(id));
+  const held = id => rel(s, id) > 0;
+  const gated = id => !!RELICS[id].when && !RELICS[id].when(s);
+  const sure = id => gated(id) || s.chestsOpened >= p.pity;
+  // a half you hold whose partner can be offered: that partner goes on the table, with other cards
+  const partners = [];
+  for (const f of FUSIONS) {
+    if (held(f.a) && !held(f.b) && open(f.b) && sure(f.b)) partners.push(f.b);
+    if (held(f.b) && !held(f.a) && open(f.a) && sure(f.a)) partners.push(f.a);
+  }
+  const fill = (out, from) => {
+    const take = list => { while (out.length < cards && list.length) out.push(list.splice(Math.floor(rnd() * list.length), 1)[0]); };
+    take(from.filter(id => !out.includes(id) && !partners.includes(id)));
+    take(from.filter(id => !out.includes(id)));      // too few other cards: another partner will do
+    return out;
+  };
+  if (partners.length) return fill([pickOne(partners)], pool);
+  // a half is held but its partner cannot be offered yet: leave the draft alone
+  if (FUSIONS.some(f => held(f.a) || held(f.b))) return pool;
+  // nothing held: the guide pair, and the other cards as they come
+  return fill(p.guide.filter(open), pool);
+}
 
 // ---------- the twists ----------
 
@@ -284,7 +321,8 @@ export const fusion = use({
   },
   mods: {
     // a fused relic is never offered; melted halves have left the pool for this site
-    draftPool: { at: 950, fn: (pool, s) => pool.filter(id => !(id.startsWith('fz_') || s.fusion.melted[id])) },
+    // (until the first fuse a match is put on the table, see fusionGuide)
+    draftPool: { at: 950, fn: (pool, s) => fusionGuide(s, pool.filter(id => !(id.startsWith('fz_') || s.fusion.melted[id])), fold('draftCards', s, 3)) },
   },
   unlocks: () => FUSIONS.map(f => ({ id: 'fusion:' + f.id, cat: 'core', group: 'Fusions' })),
   firsts: { fusionDone: d => 'fusion:' + d.id },

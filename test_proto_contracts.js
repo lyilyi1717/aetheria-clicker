@@ -245,7 +245,7 @@ free = true;
   const c1 = rules('chili1'), c2 = rules('chili2'), c3 = rules('chili3'), c5 = rules('chili5');
   ok(G.fold('crewPower', c1, 1) === G.PARAMS.contracts.teaPace && G.fold('sight', c1, 9) === 9, 'pip 1: the crew works slowly, you still see');
   ok(G.fold('sight', c2, 9) === G.PARAMS.contracts.darkSight && G.fold('crewPower', c2, 1) === G.PARAMS.contracts.teaPace, 'pip 2 adds the dark');
-  c3.relics.deep = 1; ok(G.fold('draftPool', c3, ['deep', 'wide', 'hop'], c3).join() === 'deep' && G.fold('draftPool', c2, ['deep', 'wide'], c2).length === 2, 'pip 3 adds one relic only');
+  for (const k of Object.keys(c3.relics)) c3.relics[k] = 0; c3.relics.deep = 1; ok(G.fold('draftPool', c3, ['deep', 'wide', 'hop'], c3).join() === 'deep' && G.fold('draftPool', c2, ['deep', 'wide'], c2).length >= 2, 'pip 3 adds one relic only');
   ok(G.fold('crewPower', c5, 1) === 0, 'pip 5: no Rafeeqs at all');
   const g = G.contractGoal(c5); ok(g && g.noWin && g.kind === 'gate', 'the goal is the Gate');
   const w = ready(); G.siteRun(w); w.contract = 'chili2'; w.best = 9999; G.step(w, 0.05, NO); ok(w.contract === 'chili2' && !w.contractsWon.chili2, 'a chili contract is not won by depth');

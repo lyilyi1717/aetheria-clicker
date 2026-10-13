@@ -177,6 +177,14 @@ All of it is flavour: nothing here changes how strong a Rafeeq is.
 - **Chatter (`proto/features/chatter/`, `moods/`):** idle moves by trait, a name tag when the pick rests on a Rafeeq, right click pats, Y cheers, short bubbles for a hire, TNT, the Big Rock, a new land, the Deep and a finish, friends high-five and take tea, rivals flex. Limits: one bubble per 4 s, one per Rafeeq per 14 s, 12 a minute, none in the last third of a Rock fight. "Rafeeqs talk: on/off" in the Rafeeqs tab.
 - Open: hats thrown at a finish are a plain fez, not the worn hat; the app digs on any mouse button (the pat swallows right click on a Rafeeq); looks are not counted by the timeline sim.
 
+### 2.3e Gate sizes and TNT on Rocks (14 October 2026)
+
+- **What the numbers say.** The pick grows by about 10 times per road level (log10 of the pick at the winning try is 4.3 + 1.0 per level); the ground formula grows about 10 times per level too (x1.2 a metre). A pick step is x1.25 coins for x1.5 price, so a pick level is used up in about a metre. The Gate (one block as wide as the ground) was the ground formula x1 for a learn level and x6 for a prove level, and the bar counts it in "your hits" (Gate hp / pick power). At arrival that number jumped between 52 000 and 8 000 000 from level to level.
+- **The table.** `sites.gateMul` gives each road level from 5 on its own multiple of the formula. Learn levels 0.06 to 0.44, prove levels 4.3 to 9.5. Rule: Gate hp = (hits at the pick you bring) x (pick at that level), so the bar's number stays in the same band (about 100 000 to 1 500 000 hits at arrival, rising gently) and prove levels sit a little above their learn level. Retune by running `dig-month.mjs --dump` and `rocktable` style sums (`dump.gates` has the Gate, the bank and the pick at the first hit of every fight).
+- **Measured (mixed player, 2 seeds, before -> after).** Level 7: 4/1 tries, 52 min -> 1/2 tries, 18 min. Learn levels' median tries 4 -> 3. The road ends day 22 -> day 12 to 14: the late learn levels (17, 19) are still 4 to 5 tries because they are limited by Stars (many digs between), not by the Gate's size; lowering the Gate further did not move them. **Open:** the road is shorter than the 18 to 25 days asked; lengthening it honestly needs the Star price or the ground, not the Gate.
+- **TNT on a Rock.** A blast whose radius plus one row reaches the Rock takes `boss.blastShare` (2%) of the bar, times how big the blast is next to a plain barrel (Big Bang). Chained barrels each count. A Rock loses at most `boss.blastCap` (30%) to blasts, so TNT alone never breaks it. The Rock shows "BOOM -N%" and shakes. Before, a blast did 8 of your hits to a bar of 100 000 or more hits: nothing you could see.
+- **The bar counts swings (14 October 2026).** "About N of your hits left" divided the Rock's hp by the pick alone, but Rafeeqs, the Forge, TNT and effects do most of the damage, so it read 100k to 1M. The unit is now a swing of yours: hp left / the damage the whole team does per swing of yours, measured over your last 12 swings on this Rock (`b.sw`, dropped after 4 s of not swinging); until 5 swings are seen, an estimate: pick x (1 + Rafeeq share x Rafeeqs that hit, not sieve). Shown as "about 40 swings left, 25 s" (seconds at your measured swing rate, 3 a second until measured), rounded: exact under 20, steps of 5 to 100, two figures above. The stuck hint uses the same unit. `proto/features/boss/swings.js`, `test_proto_swings.js`.
+
 ## 3. The systems
 
 | System | What it does for the player | State |
@@ -185,12 +193,12 @@ All of it is flavour: nothing here changes how strong a Rafeeq is.
 | Coin shop | Stronger Pick, Rafeeqs, Faster Hands, Second Pick | built; Second Pick (12,000 coins) is rarely bought early because cheap upgrades eat the coins |
 | Rafeeqs, Foreman, moods | Helpers; five jobs once the Foreman arrives | built; feel weak while you play (section 5) |
 | TNT, water, crystal, oil, ores | Things in the ground that act on each other | built |
-| Chests and relics, fusion | Pick 1 of 3; 17 recipes | built |
+| Chests and relics, fusion | Pick 1 of 3; 17 recipes. The first fuse is taught and needs only level 1 + 1; the first chest offers Hop and Twin, and a later chest puts a partner on the card (a new recipe then needs 2 + 2, a known one 1 + 1). Fusing lifts both halves to level 3 | built |
 | The Big Rock | The wall every 25 m; the crack | built |
 | The Deep | Four layers with a law each, 100 to 200 m | built |
 | Levels, medals, the stopwatch | Section 2 | the fourteen levels in order are built; start kits, Gate sizes, the end card are not |
 | Star tracks | The Pick, The Camp, The Bag: x1.5 a step, named rules on 29 steps | built |
-| The Museum | 13 sets; each finished set opens a thing | built |
+| The Museum | 13 sets; each finished set opens a thing. Pieces can be seen and chased: bones and bundles that still give a piece glint (an arrow points at one just below the view), the set you are collecting is drawn faintly behind the ground and fills in piece by piece (a finished set glows), a chip in the sky counts it, and every level on the world map shows its set with found and missing pieces and names what finishing it opens | built |
 | The Forge | Drill, Dynamite, Magnet | built |
 | Chili levels | Five pips on every finished level: more rules, tougher ground, a hit bonus that stays | built (section 2.3c) |
 | Contracts | The board, goals that fit your road level | built |
@@ -285,6 +293,7 @@ fast people dig; `--vs dump.json` (from `dig-month.mjs --dump`) puts the sim bes
 
 | Date | Change |
 |---|---|
+| 14 Oct 2026 | TNT hurts Big Rocks: a blast within two rows of a Rock takes 2% of its bar ("BOOM -2%"), a Rock loses at most 30% to blasts. Gate sizes are a table (`sites.gateMul`, one per road level): a learn level's Gate is 0.1 to 0.5 of the ground formula, a prove level's 4 to 9, so the Gate in your hits (the bar's number) grows by about the same step each level instead of jumping. The stuck hint says how many of your hits the Rock needs now and after one Pick step. See 2.3e. |
 | 14 Oct 2026 | The clock counts down to the next Rock and the Gate; nothing expires; the manager shows it, shouts about it and sometimes gives extra time; almodeera joins. |
 | 13 Oct 2026 | Rafeeqs as characters: names, traits and records (#359), the wardrobe (#360), chatter (#361). Lessons queue (#356), last clutter folded (#357, #358). |
 | 13 Oct 2026 | The drawer and the level track (#354), the world map (#352), the sound test page (#349), save for the Second Pick and pin one goal (#350), a won contract frees the site (#351). |

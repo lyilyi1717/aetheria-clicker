@@ -49,18 +49,26 @@ for (const [id, [col, inner]] of Object.entries(ART)) icons['fz_' + id] = badge(
 const halfRow = (a, b, size = 40) => `<span class="fz-row">${icon(a, size)}<span class="fz-plus">+</span>${icon(b, size)}</span>`;
 const resultOf = (s, f) => (G.fusionState(s, f.id) === 2 ? t('r_fz_' + f.id) : '?');
 
-function ceremony(f) {
+function ceremony(f, first) {
   const m = app.modal.open('fusion', `<div class="card fz-card"><h2></h2><div class="fz-stage">
     <span class="half l">${icon(f.a, 56)}</span><span class="half r">${icon(f.b, 56)}</span><span class="flash"></span>
     <span class="born">${icon('fz_' + f.id, 96)}</span></div>
-    <b class="fz-name"></b><p class="d fz-name"></p><div class="fz-actions"><button class="relic-card" style="min-height:0;width:auto;padding:8px 22px"></button></div></div>`);
+    <b class="fz-name"></b><p class="d fz-name"></p><p class="d fz-name fz-grew" hidden></p><div class="fz-actions"><button class="relic-card" style="min-height:0;width:auto;padding:8px 22px"></button></div></div>`);
   if (!m) return;
   m.querySelector('h2').textContent = t('fz_done');
   m.querySelector('b.fz-name').textContent = t('r_fz_' + f.id);
   m.querySelector('p.fz-name').textContent = t('r_fz_' + f.id + '_d');
+  const grew = m.querySelector('.fz-grew');
+  if (first) { grew.hidden = false; grew.textContent = t('fz_grew'); }
   const btn = m.querySelector('button');
   btn.textContent = t('fz_close');
-  btn.addEventListener('click', () => { app.modal.close(); app.save(); });
+  btn.addEventListener('click', () => {
+    app.modal.close(); app.save();
+    if (first) {
+      app.lesson('fz_watch', t('fz_lesson_watch'), 'gold');
+      for (let k = 0; k < 3; k++) setTimeout(() => { const [x, y] = centre(app.state.top + 2 + k, 4 + (k % 2)); ring(x, y, 80, '#e8d0ff'); spark(x, y, '#e8d0ff', 14); }, 150 * k);
+    }
+  });
   fanfare();
   setTimeout(() => { shake(0.5); screenFlash('#e8d0ff', 0.5); }, 850);
 }
@@ -69,10 +77,12 @@ function choose() {
   const s = app.state;
   const ready = G.fusionReady(s);
   if (!ready.length || app.modal.id) return;
-  if (ready.length === 1) { go(ready[0]); return; }
+  const first = !G.fusionFused(s);
+  if (ready.length === 1 && !first) { go(ready[0]); return; }
   const m = app.modal.open('fusion', `<div class="card fz-card"><h2></h2><div class="cards"></div><p class="d"></p><button class="relic-card" style="min-height:0;width:auto;padding:6px 18px"></button></div>`);
   if (!m) return;
   m.querySelector('h2').textContent = t('fz_pick');
+  if (first) m.querySelector('p.d').textContent = t('fz_teach');
   const wrap = m.querySelector('.cards');
   ready.forEach((id, i) => {
     const f = G.FUSIONS.find(x => x.id === id);
@@ -85,6 +95,7 @@ function choose() {
     wrap.appendChild(b);
   });
   const close = m.querySelector('.relic-card');
+  if (!first) m.querySelector('p.d').remove();
   close.textContent = t('fz_later');
   close.addEventListener('click', () => app.modal.close());
 }
@@ -92,9 +103,10 @@ function choose() {
 function go(id) {
   const f = G.FUSIONS.find(x => x.id === id);
   if (app.modal.id) app.modal.close();
+  const first = !G.fusionFused(app.state);
   if (!G.fusionDo(app.state, id, app.ev)) return;
   app.dirty('relics'); app.dirty('fzbook');
-  ceremony(f);
+  ceremony(f, first);
 }
 
 function fanfare() {
@@ -116,13 +128,23 @@ ui({
     fzThump() { if (gap('fzthump', 0.1)) tone(120, { type: 'sine', d: 0.2, vol: 0.2, slide: -50 }); },
   },
   on: {
-    fusionSeen(d) { app.toast(t('fz_toast_seen'), 'gold'); app.sfx.fzPing(); app.dirty('fzbook'); },
+    fusionSeen(d) {
+      // the first match is taught: the line says what to press; later ones are a small note
+      if (!app.state.seen.fz_ready && !G.fusionFused(app.state)) app.lesson('fz_ready', t('fz_lesson_ready'), 'gold');
+      else app.toast(t('fz_toast_seen'), 'gold');
+      app.sfx.fzPing(); app.dirty('fzbook');
+    },
     fusionCopy(d) { link(d, '#9fd8ff'); app.sfx.fzPing(); },
     fusionRipe(d) { pop(d.r, d.c, '#ffd23f', 16); app.sfx.fzPing(); },
     fusionDrop(d) { pop(d.r, d.c, '#ff7a5a'); app.sfx.fzThump(); },
     fusionBurst(d) { link(d, '#ffb347'); app.sfx.fzThump(); },
     fusionBring(d) { link({ fr: d.fr, fc: d.c, r: d.r, c: d.c }, '#b97bff'); app.sfx.fzPing(); },
-    relic() { app.dirty('fzbook'); },
+    relic(d) {
+      app.dirty('fzbook');
+      // the first relic that has a partner: say so, once
+      const s = app.state;
+      if (!d.id.startsWith('fz_') && !G.fusionFused(s) && !s.seen.fz_half && G.FUSIONS.some(f => f.a === d.id || f.b === d.id)) app.lesson('fz_half', t('fz_lesson_half'), 'gold');
+    },
   },
   mount() {
     const b = document.createElement('button');
@@ -158,7 +180,7 @@ ui({
         const q = icon('fz_q', 28);
         row.innerHTML = `<span class="row">${st ? icon(f.a, 28) : q}<span class="fz-plus">+</span>${st ? icon(f.b, 28) : q}</span><b></b><span class="d"></span>`;
         row.querySelector('b').textContent = st === 2 ? t('r_fz_' + f.id) : st === 1 ? '?' : t('fz_unknown');
-        row.querySelector('.d').textContent = st === 2 ? t('r_fz_' + f.id + '_d') : st === 1 ? t(G.fusionState(s, f.id) && s.relics[f.a] >= G.fusionNeed(s, f.id) && s.relics[f.b] >= G.fusionNeed(s, f.id) ? 'fz_seen' : 'fz_need3') : '';
+        row.querySelector('.d').textContent = st === 2 ? t('r_fz_' + f.id + '_d') : st === 1 ? G.fusionCan(s, f.id) ? t('fz_seen') : t('fz_need', { n: G.fusionNeed(s, f.id) }) : '';
         list.appendChild(row);
       }
     },

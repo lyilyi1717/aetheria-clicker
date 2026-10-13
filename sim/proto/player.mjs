@@ -90,6 +90,10 @@ export function mkEv(s, trk) {
       if (d.shop === 'star') trk.mark('first Star perk');
       if (d.shop === 'forge') (trk.fbuys || (trk.fbuys = [])).push({ a: trk.act, id: d.id, level: d.level, best: trk.curBest });
       trk.dec();
+    } else if (k === 'hit' && d.t === 'boss' && d.src === 'you' && s.run && s.boss && s.boss.gate && !s.boss.logged) {
+      // the Gate fight starts: how many of your hits it is, at the pick you brought (for the rocks table)
+      s.boss.logged = true;
+      (trk.gates || (trk.gates = [])).push({ key: s.run.key, a: trk.act, r: trk.real, max: s.boss.max, bank: s.boss.bank0 || 0, pick: G.pickPower(s), crew: G.crewPower(s) * G.crewRate(s), coinPick: s.up.pick });
     } else if (k === 'bossDown') {
       trk.chestN++; trk.mark('boss down ' + d.layer); trk.found();
     } else if (k === 'fossil') {

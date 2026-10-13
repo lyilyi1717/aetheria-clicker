@@ -157,7 +157,8 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
   const b = ready(); b.bossesDown = 2;
   G.newSite(b, 'dunes', () => {}, undefined, { floor: 100, twist: '' });
   ok(G.roadProve(a) && !G.roadProve(b), 'Powder Valley 100 m proves, the Dunes 100 m teaches');
-  ok(G.fold('bossHp', a, 100) === 100 * G.PARAMS.sites.proveHp && G.fold('bossHp', b, 100) === 100, 'the Gate of a prove level is harder');
+  const gm = G.PARAMS.sites.gateMul;
+  ok(G.fold('bossHp', a, 100) === 100 * gm[1] && G.fold('bossHp', b, 100) === 100 * gm[0] && gm[1] > 5 * gm[0], 'the Gate of a prove level is harder (its own size in gateMul)');
 }
 
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
