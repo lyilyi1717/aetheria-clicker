@@ -132,11 +132,13 @@ Sim (mixed, 2 seeds, 30 days): levels 1 to 12 by day 7 to 8; level 13 (Americas 
 
 ## 2.5 The screen (built 13 October 2026)
 
-- **Always on screen:** the dig; one small pill (Stars, your hit); three round buttons (Map, Auto dig, Sound); the **level track** above the dig: level name, stopwatch, medals, a node for each 25 m Big Rock and the Gate at the end; during a Rock fight that Rock's segment shows its health in three layers. The pinned goal chips (the Gate, Second Pick, a Museum set) sit on the track's goal line.
+- **Always on screen:** the dig; one small pill (Stars, your hit); three round buttons (Map, Auto dig, Sound); the **level track** above the dig: level name, the countdown, medals, a node for each 25 m Big Rock and the Gate at the end; during a Rock fight that Rock's segment shows its health in three layers. The pinned goal chips (the Gate, Second Pick, a Museum set) sit on the track's goal line.
 - **One drawer** right of the dig with icon tabs: Shop, Stars, Rafeeqs, Relics, Museum, Forge, Level. Each tab starts with one "Next:" line and one main button. A dot shows only when something is really ready and clears when the tab is opened. A locked tab says what opens it, never a time. `proto/ui/drawer.js`; a panel may set `tab:`.
 - **The world map** (`proto/features/worldmap/`): after a finish, Next opens a road map of the five lands and Beyond: numbered stones with medal pips, the path draws, the digger walks, "Dig here" starts the next level; side levels branch off a level you are stuck on; Museum places are islands; after level 20 three paths fan out. Only levels the rules deal can be started. The old card list is the fallback.
 - **Sound test page:** `proto/soundboard.html` (every sound and beat by axes, speed, land, depth).
 - Not folded yet: the depth ruler labels and the beat strip on the dig.
+
+**The clock counts down, one leg at a time (14 October 2026).** A leg runs from the start (or the last Big Rock) to the next Big Rock, the last to the Gate. The level's par is split across the legs in proportion to their rows and adds up to the par exactly, so the Fast medal rule (`time <= par`) is unchanged. The clock shows the time left in the leg; seconds saved are banked into the next leg ("+0:12 banked"). At 0 nothing fails or expires: the clock turns soft red and counts "0:14 over", and a leg that ran over starts the next one fresh. The last 10 s tick softly. A leg ended under time flashes the clock green. The countdown also sits above the manager's head (from 3 Rafeeqs), who shouts about it at the start, half, 30 s, 10 s, 0, and when a Rock breaks early or late; at 0 he sometimes (1 in 3, once per leg) grants extra time (15 s or a quarter of the leg), which counts toward Fast. The manager is almodeer or almodeera (50/50 per site, kept in the save), each with her or his own lines. Code: `siteLegs`, `legLeft`, `legExtend` in `proto/features/sites/rules.js`; `chatterTimeStep` in the chatter feature.
 
 ## 2.6 The Rafeeqs as characters (built 13 October 2026)
 
@@ -232,6 +234,7 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 
 | Date | Change |
 |---|---|
+| 14 Oct 2026 | The clock counts down to the next Rock and the Gate; nothing expires; the manager shows it, shouts about it and sometimes gives extra time; almodeera joins. |
 | 13 Oct 2026 | Rafeeqs as characters: names, traits and records (#359), the wardrobe (#360), chatter (#361). Lessons queue (#356), last clutter folded (#357, #358). |
 | 13 Oct 2026 | The drawer and the level track (#354), the world map (#352), the sound test page (#349), save for the Second Pick and pin one goal (#350), a won contract frees the site (#351). |
 | 13 Oct 2026 | Stars paid at the prove level; leaving pays less; the finish card (2.3d). |

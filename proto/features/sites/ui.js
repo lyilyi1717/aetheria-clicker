@@ -291,11 +291,14 @@ ui({
       const left = Math.max(0, r.floor - s.best);
       el.querySelector('.gtxt').textContent = r.done ? t('site_gate_open') : left > 0 ? t('site_gate_left', { n: left }) : t('site_gate', { n: r.floor });
       el.querySelector('.gbar i').style.width = (r.done ? 100 : Math.min(100, 100 * s.best / r.floor)) + '%';
-      el.querySelector('.clk').textContent = clock(r.done ? r.time : r.clock);
+      const lc = G.legLeft(r, s.bossesDown), clk = el.querySelector('.clk'), lsec = Math.floor(Math.abs(lc.left));
+      clk.textContent = r.done ? clock(r.time) : lc.over ? t('clock_over', { t: clock(lsec) }) : clock(lsec);
+      clk.classList.toggle('over', !r.done && lc.over);
       const par = el.querySelector('.par');
-      par.textContent = t('site_par', { t: clock(r.par) }) + (st.best ? '  ' + t('site_best', { t: clock(st.best) }) : '');
-      par.classList.toggle('over', !r.done && r.clock > r.par);
-      el.querySelector('.clockrow').classList.toggle('good', r.done && r.time <= r.par);
+      par.textContent = t('site_par', { t: clock(G.runPar(r)) }) + (st.best ? '  ' + t('site_best', { t: clock(st.best) }) : '');
+      par.classList.toggle('over', !r.done && r.clock > G.runPar(r));
+      par.dataset.leg = lc.last ? t('site_left_gate') : t('site_left');
+      el.querySelector('.clockrow').classList.toggle('good', r.done && r.time <= G.runPar(r));
       const msig = `${st.fin}${st.fast}${st.hard}`;
       if (el._msig !== msig) { el._msig = msig; el.querySelector('.mrow').innerHTML = medalsHtml({ fin: st.fin, fast: st.fast, hard: st.hard }); }
       el.querySelector('.pay').textContent = r.done ? t('site_below') : t(st.fin ? 'site_stars_again' : 'site_stars_now', { n: st.fin ? G.replayPay(r.floor) : G.starsAt(r.floor) });

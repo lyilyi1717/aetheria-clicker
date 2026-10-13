@@ -132,7 +132,7 @@ assert.ok(!/Math\.random|Date\.now/.test(rules), 'rules use no clock and no rand
     assert.ok(!EM.test(l) && !/fat|ugly|stupid|fired|religio/i.test(l), l + ' is kind');
   }
 
-  const mk = n => { const s = G.newState(); s.coins = 1e12; s.total = 1e12; for (let i = 0; i < n; i++) G.buy(s, 'crew'); G.step(s, 0.05, () => {}); return s; };
+  const mk = n => { const s = G.newState(); s.coins = 1e12; s.total = 1e12; for (let i = 0; i < n; i++) G.buy(s, 'crew'); G.step(s, 0.05, () => {}); s.bossFem = 0; return s; };
   assert.equal(G.chatterBossShown(mk(2)), false); assert.equal(G.chatterBossShown(mk(3)), true, 'shown at 3 hired');
   const run = (s, secs, ctx, mem = G.chatterBossMem()) => {
     const lines = [];

@@ -5,6 +5,7 @@
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { medalsHtml, nextMap } from '../sites/ui.js';
+import { tone, gap } from '../../ui/audio.js';
 import strings from './strings.js';
 
 const { t } = G;
@@ -13,7 +14,7 @@ G.addStrings(strings, 'track');
 const clock = sec => { const n = Math.max(0, Math.floor(sec)); return Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0'); };
 const $ = id => document.getElementById(id);
 
-let el = {}, sig = '', msig = '';
+let el = {}, sig = '', msig = '', lastIdx = null, lastSec = null, flashT = 0, bankT = 0, lastDone = false, lastExt = null, bumpT = 0;
 
 function openMap(app) {
   if (app.modal.id || !nextMap.open) return;
@@ -25,7 +26,7 @@ function mount(app) {
   if (!track || !goal) return;
   const head = document.createElement('div');
   head.id = 'trk-head';
-  head.innerHTML = '<b id="trk-level"></b><div id="trk-sub"><span id="trk-gate"></span><span id="trk-clock"></span><span id="trk-medals"></span></div>';
+  head.innerHTML = '<b id="trk-level"></b><div id="trk-sub"><span id="trk-gate"></span><span id="trk-clock"></span><span id="trk-bank" hidden></span><span id="trk-medals"></span></div>';
   track.insertBefore(head, goal);
   // the message line: the lesson and the toast move here from the stage (a lesson wins when both show)
   const msg = document.createElement('div');
@@ -35,9 +36,31 @@ function mount(app) {
   // the Tips button sits in this line, beside the message line (its list still opens over the stage)
   const tips = $('tips-btn');
   if (tips) track.insertBefore(tips, goal);
-  el = { level: $('trk-level'), clock: $('trk-clock'), medals: $('trk-medals'), gate: $('trk-gate') };
+  el = { level: $('trk-level'), clock: $('trk-clock'), bank: $('trk-bank'), medals: $('trk-medals'), gate: $('trk-gate') };
   const mb = $('mapbtn');
   if (mb) { mb.innerHTML = app.icon('btn_map', 22); mb.title = mb.ariaLabel = t('trk_map'); mb.addEventListener('click', () => { app.unlockAudio(); openMap(app); }); }
+}
+
+// the countdown of the leg: time left to the next Big Rock (the Gate on the last leg). At 0 nothing happens but red and "over".
+function tickClock(s, r) {
+  const c = G.legLeft(r, s.bossesDown), now = performance.now();
+  const sec = Math.floor(Math.abs(c.left));
+  el.clock.textContent = c.over ? t('clock_over', { t: clock(sec) }) : clock(sec);
+  el.clock.classList.toggle('over', c.over && !r.done);
+  el.clock.classList.toggle('soon', !c.over && !r.done && c.left <= 10);
+  // a leg closed: green flash, and the seconds saved are shown as banked for a moment
+  if (lastIdx !== null && (c.idx !== lastIdx || (r.done && !lastDone)) && r.legLast) {
+    if (r.legLast.left >= 0) { flashT = now + 700; bankT = now + 2600; el.bank.textContent = t('clock_bank', { t: clock(Math.floor(r.legLast.saved)) }); }
+  }
+  if (lastExt !== null && r.legExt !== lastExt && r.legExt !== undefined) bumpT = now + 700;
+  lastExt = r.legExt;
+  el.clock.classList.toggle('bump', now < bumpT);
+  lastIdx = c.idx; lastDone = !!r.done;
+  el.clock.classList.toggle('flash', now < flashT);
+  el.bank.hidden = now >= bankT;
+  // a soft tick, once a second, in the last 10 seconds
+  if (!r.done && !c.over && c.left <= 10 && sec !== lastSec && c.left > 0) { if (lastSec !== null && gap('legTick', 0.5)) tone(c.left <= 3 ? 990 : 740, { type: 'sine', d: 0.06, vol: 0.05 }); }
+  lastSec = sec;
 }
 
 function tick(s) {
@@ -55,7 +78,7 @@ function tick(s) {
   }
   el.gate.classList.toggle('done', !!r.done);
   el.gate.textContent = r.done ? t('trk_below') : t('trk_togate', { n: G.fmt(Math.max(0, F - Math.max(0, s.best))) });
-  el.clock.textContent = clock(r.done ? r.time : r.clock);
+  tickClock(s, r);
   const st = G.siteStamp(s), ms = `${st.fin}${st.fast}${st.hard}`;
   if (msig !== ms) { msig = ms; el.medals.innerHTML = medalsHtml({ fin: st.fin, fast: st.fast, hard: st.hard }); }
 }
