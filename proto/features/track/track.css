@@ -1,5 +1,5 @@
 /* Dig track: one slim line. Where you are on the left, the message line in the middle, the goal on the right. Logical properties. */
-#trk-head { flex: 0 1 auto; min-width: 0; max-width: 54%; display: flex; flex-direction: column; justify-content: center; gap: 3px; font-size: 12.5px; line-height: 1.1; }
+#trk-head { flex: 0 1 auto; min-width: 0; max-width: 62%; display: flex; flex-direction: column; justify-content: center; gap: 3px; font-size: 12.5px; line-height: 1.1; }
 #trk-level { color: var(--gold); letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #trk-sub { display: flex; align-items: center; gap: 8px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 #trk-gate.done { color: var(--gold); }
