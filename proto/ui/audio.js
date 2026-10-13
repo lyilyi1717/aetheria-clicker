@@ -43,6 +43,7 @@ function play(name, f, a) {
   bus = MUSIC.has(name) ? 'music' : 'fx';
   const v = voices[name], g = (v && v[kit]) || f;
   const r = g(...a);
+  bus = 'fx';         // a tone played outside a named sound (a feature calling tone() itself) is an effect
   if (depth > 0 && tails.has(name) && gap('tail', 0.06)) tone(62 * depthPitch(), { type: 'sine', d: 0.1 + 0.05 * depth, vol: 0.03 + 0.012 * depth, slide: 40, at: 0.025 });
   return r;
 }
