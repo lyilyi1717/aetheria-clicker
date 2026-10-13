@@ -54,35 +54,13 @@ function hintFor(set, i) {
   return t('whint_' + how, { m: W.from });
 }
 
-function hatDraw(g, kind, i) {
-  const k = kind % 5;
-  g.lineWidth = 1.6; g.strokeStyle = '#1b1410';
-  if (k === 0) {                      // fez
-    g.fillStyle = '#c0392b'; g.beginPath(); g.moveTo(-8, -23); g.lineTo(-6, -35); g.lineTo(6, -35); g.lineTo(8, -23); g.closePath(); g.fill(); g.stroke();
-    g.strokeStyle = '#ffd23f'; g.beginPath(); g.moveTo(5, -35); g.lineTo(11, -28); g.stroke();
-  } else if (k === 1) {               // party cone
-    g.fillStyle = '#a855f7'; g.beginPath(); g.moveTo(-8, -23); g.lineTo(8, -23); g.lineTo(0, -44); g.closePath(); g.fill(); g.stroke();
-    g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(0, -44, 2.5, 0, 7); g.fill();
-  } else if (k === 2) {               // top hat
-    g.fillStyle = '#222'; g.fillRect(-6, -40, 12, 17); g.strokeRect(-6, -40, 12, 17);
-    g.fillRect(-11, -26, 22, 4); g.strokeRect(-11, -26, 22, 4);
-    g.fillStyle = '#ffd23f'; g.fillRect(-6, -31, 12, 3);
-  } else if (k === 3) {               // propeller beanie
-    g.fillStyle = '#3b82f6'; g.beginPath(); g.arc(0, -23, 8, Math.PI, 0); g.closePath(); g.fill(); g.stroke();
-    g.save(); g.translate(0, -32); g.rotate(fx.t * 14 + i);
-    g.fillStyle = '#ef4444'; g.fillRect(-9, -1.5, 18, 3); g.restore();
-  } else {                            // crown
-    g.fillStyle = '#ffd23f'; g.beginPath(); g.moveTo(-8, -23); g.lineTo(-9, -34); g.lineTo(-4, -29); g.lineTo(0, -36); g.lineTo(4, -29); g.lineTo(9, -34); g.lineTo(8, -23); g.closePath(); g.fill(); g.stroke();
-  }
-}
 function drawHats(g, s) {
-  const hats = !!s.wingDone.teapot, goggles = !!s.wingDone.pilot;
-  if (!hats && !goggles) return;
+  const goggles = !!s.wingDone.pilot;       // (the tea set's hat is a wardrobe look now)
+  if (!goggles) return;
   s.diggers.forEach((d, i) => {
     const [x, y] = centre(d.r, d.c);
     const bob = Math.sin(fx.t * 9 + i * 2) * 2;
     g.save(); g.translate(x, y - 14 + bob);
-    if (hats) { g.translate(0, 2); hatDraw(g, i, i); g.translate(0, -2); }
     if (goggles) {
       g.strokeStyle = '#d9a15a'; g.lineWidth = 2;
       g.beginPath(); g.moveTo(-10, -11); g.lineTo(10, -11); g.stroke();

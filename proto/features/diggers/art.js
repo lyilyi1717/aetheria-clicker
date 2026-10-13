@@ -1,9 +1,12 @@
 // Dig feature (page side): the drawing of the Rafeeq, all in canvas paths. DRAWING ONLY: no rules, no numbers that matter.
 // A blue bean with a yellow head, big goggles, a red fez with a tassel, thin stick arms and a pick over the shoulder.
+// What he wears (hat, clothes, colour, cloth pattern) comes from the wardrobe feature: G.wardrobeWear(s, i). The fez is the plain default.
 // The origin is the same as before: the caller translates to (x, y - 14 + bob); the head is at (0,-11), the feet at y 21.
 // Static parts (the blob, the fez, the pick) are drawn once to offscreen canvases; the rest is a few paths.
 // The moods feature sets `look` for a Rafeeq (a mood, its age) and this file turns it into a pose and a face.
 import { fx } from '../../ui/render.js';
+import * as G from '../../game.js';
+import { DRAW, COLOUR, contrast } from '../wardrobe/items.js';
 
 const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const INK = '#1b1410';
@@ -37,27 +40,23 @@ function sprite(key, w, h, ox, oy, fn) {
 const put = (g, c) => g.drawImage(c.cv, -c.ox, -c.oy, c.w, c.h);
 
 const BEAN = 'M0,-4 C8,-4 12.5,3 12.5,10 C12.5,16.5 7,20.5 0,20.5 C-7,20.5 -12.5,16.5 -12.5,10 C-12.5,3 -8,-4 0,-4 Z';
-const blob = k => sprite('blob' + k, 30, 30, 15, 7, x => {
-  const p = new Path2D(BEAN);
-  x.fillStyle = BLUES[k]; x.fill(p);
-  x.save(); x.clip(p); x.fillStyle = HILITE[k]; x.beginPath(); x.ellipse(-6, 4.5, 3, 5.6, 0.35, 0, TAU); x.fill();
-  x.fillStyle = 'rgba(10,30,90,0.22)'; x.beginPath(); x.ellipse(5, 17, 10, 6, 0, 0, TAU); x.fill();
-  x.restore();
-  x.lineWidth = 2; x.strokeStyle = INK; x.stroke(p);
-});
+// the body in his clothes, cached per (clothes, colour, pattern); blue keeps the eight near blues so the old crew still differ a little
+const bodySpr = (W, k) => {
+  const key = 'body' + W.body + W.colour + W.pattern + (W.colour === 'blue' ? k : '');
+  if (SPR.size > 160) SPR.clear();
+  return sprite(key, 30, 30, 15, 7, x => {
+    const c = W.colour === 'blue' ? BLUES[k] : COLOUR[W.colour] || COLOUR.blue;
+    (DRAW.body[W.body] || DRAW.body.shirt)(x, { c, pc: contrast(c), pat: W.pattern });
+  });
+};
 const headSpr = () => sprite('head', 26, 26, 13, 13, x => {      // origin: the head centre
   x.fillStyle = '#ffc83d'; x.beginPath(); x.arc(0, 0, 9.5, 0, TAU); x.fill();
   x.fillStyle = '#ffe27a'; x.beginPath(); x.ellipse(-4.6, -4.4, 2.4, 1.5, -0.6, 0, TAU); x.fill();
   x.lineWidth = 2; x.strokeStyle = INK; x.beginPath(); x.arc(0, 0, 9.5, 0, TAU); x.stroke();
 });
-const fezSpr = burnt => sprite('fez' + burnt, 24, 18, 12, 13, x => {      // origin: the middle of its bottom edge
-  x.beginPath(); x.moveTo(-7.8, 0); x.lineTo(7.8, 0); x.lineTo(6.2, -9); x.lineTo(-6.2, -9); x.closePath();
-  x.fillStyle = burnt ? '#7a2a26' : '#d8262c'; x.fill();
-  x.save(); x.clip(); x.fillStyle = burnt ? '#8d3a33' : '#f0555a'; x.fillRect(-8, -9, 4, 10);
-  x.fillStyle = 'rgba(80,0,0,0.25)'; x.fillRect(-8, -2.6, 16, 3); x.restore();
-  if (burnt) { x.fillStyle = '#231815'; x.beginPath(); x.ellipse(-1, -9, 5, 2.6, 0, 0, TAU); x.ellipse(3, -3, 2.4, 1.8, 0, 0, TAU); x.fill(); }
-  x.lineWidth = 2; x.strokeStyle = INK; x.beginPath(); x.moveTo(-7.8, 0); x.lineTo(7.8, 0); x.lineTo(6.2, -9); x.lineTo(-6.2, -9); x.closePath(); x.stroke();
-  x.fillStyle = burnt ? '#6a3a30' : '#ff7a74'; x.beginPath(); x.ellipse(0, -9, 6.2, 1.5, 0, 0, TAU); x.fill(); x.lineWidth = 1.4; x.stroke();
+const headItem = (id, burnt) => sprite('hat' + id + burnt, 44, 36, 22, 26, x => {      // origin: the middle of the hat's bottom edge
+  (DRAW.head[id] || DRAW.head.fez)(x, !!burnt);
+  if (burnt && id !== 'fez' && id !== 'goldfez') { x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(35,24,20,0.55)'; x.fillRect(-22, -26, 44, 36); }
 });
 const pickSpr = () => sprite('pick', 30, 40, 15, 36, x => {
   x.scale(0.82, 0.82);         // origin: the hand; the handle goes up (-y)
@@ -132,7 +131,7 @@ const HEAD_TINT = { sooty: '#8a8580', scared: '#f6f1d8', cold: '#bfe0ff', angry:
 
 // ---------- the pose ----------
 // Reads the Rafeeq and what the moods feature said. Returns a plain object; nothing is written to the state.
-function pose(d, a, i, s, dt, hatsOn) {
+function pose(d, a, i, s, dt) {
   const L = look.get(d), mo = L && L.mood, age = L ? L.age : 0;
   const moved = Math.hypot(d.c - a.c, d.r - a.r);
   const dx = d.c - a.c, dy = d.r - a.r;
@@ -155,7 +154,7 @@ function pose(d, a, i, s, dt, hatsOn) {
   }
   a.blink -= dt; if (a.blink <= 0) { a.bl = 0.13; a.blink = 2.4 + ((i * 7 + Math.floor(fx.t)) % 5) * 0.7; }
   if (a.bl > 0) a.bl -= dt;
-  const P = { mo, age, walking, dir: a.dir, side: a.side, sw, wind, pose: 'stand', blink: a.bl > 0 && !reduced, hatsOn, face: mo ? FACE[mo] : null, sieve: !!d.sv };
+  const P = { mo, age, walking, dir: a.dir, side: a.side, sw, wind, pose: 'stand', blink: a.bl > 0 && !reduced, face: mo ? FACE[mo] : null, sieve: !!d.sv };
   if (mo === 'tea') P.pose = 'sit';
   else if (mo === 'doze') P.pose = 'lie';
   else if (mo === 'sooty') P.pose = age < 0.3 ? 'hurt' : age < 1.2 ? 'flat' : 'stand';
@@ -169,8 +168,8 @@ function pose(d, a, i, s, dt, hatsOn) {
 export function drawRafeeq(g, s, d, i, bob, dt, opts = {}) {
   const k = i % 8, a = anim(d, i), t = fx.t;
   dt = Math.min(dt || 0.016, 0.1);
-  const hatsOn = !!(s.wingDone && s.wingDone.teapot) || !!(s.contractLook && s.contractLook.hat);
-  const P = pose(d, a, i, s, dt, hatsOn);
+  const W = opts.wear || (G.wardrobeWear ? G.wardrobeWear(s, i) : { head: 'fez', body: 'shirt', colour: 'blue', pattern: 'plain' });
+  const P = pose(d, a, i, s, dt);
   const front = P.dir === 'd' || !P.walking, back = P.walking && P.dir === 'u', sideV = P.walking && (P.dir === 'l' || P.dir === 'r');
   const mirror = sideV ? (P.dir === 'l' ? -1 : 1) : (P.walking || P.mo ? 1 : P.side);
   const flat = P.pose === 'flat', lie = P.pose === 'lie', sit = P.pose === 'sit', hurt = P.pose === 'hurt';
@@ -216,12 +215,12 @@ export function drawRafeeq(g, s, d, i, bob, dt, opts = {}) {
   }
 
   // the body
-  put(g, blob(k));
+  put(g, bodySpr(W, k));
   if (P.mo === 'sooty') { g.fillStyle = 'rgba(30,24,22,0.35)'; g.save(); g.clip(new Path2D(BEAN)); g.fillRect(-13, -4, 26, 26); g.restore(); }
   if (P.mo === 'cold' && !reduced) { g.fillStyle = 'rgba(190,225,255,0.3)'; g.save(); g.clip(new Path2D(BEAN)); g.fillRect(-13, -4, 26, 26); g.restore(); }
 
   // the pick and the right arm (over the shoulder, behind the head)
-  drawPick(g, P, d, hatsOn, flat);
+  drawPick(g, P, d, flat);
 
   // the head
   g.save();
@@ -251,8 +250,8 @@ export function drawRafeeq(g, s, d, i, bob, dt, opts = {}) {
   } else {
     drawFace(g, P, k, sideV, a);
   }
-  // the fez
-  if (!hatsOn && !flat) drawFez(g, P, a, i, d, back, sideV, lie);
+  // the hat
+  if (!flat) drawHead(g, W.head, P, a, i, d, back, sideV, lie);
   g.restore();
 
   // the hurt stars and the dizzy ones
@@ -261,7 +260,7 @@ export function drawRafeeq(g, s, d, i, bob, dt, opts = {}) {
   }
   // the fez and the pick on the ground, after a blast
   if (flat) {
-    g.save(); g.translate(-14, 22); g.rotate(-0.6); put(g, fezSpr(P.mo === 'sooty' ? 1 : 0)); g.restore();
+    g.save(); g.translate(-14, 22); g.rotate(-0.6); put(g, headItem(W.head, P.mo === 'sooty' ? 1 : 0)); g.restore();
   }
   g.restore();
 }
@@ -293,7 +292,7 @@ function drawFace(g, P, k, sideV, a) {
   if (P.mo === 'guilty') { g.fillStyle = '#7fd3ff'; g.strokeStyle = INK; g.lineWidth = 1.1; g.beginPath(); g.moveTo(9, -9); g.quadraticCurveTo(13, -3, 9, -1); g.quadraticCurveTo(5, -3, 9, -9); g.fill(); g.stroke(); }
 }
 
-function drawFez(g, P, a, i, d, back, sideV, lie) {
+function drawHead(g, head, P, a, i, d, back, sideV, lie) {
   const id = d.id || i + 1;
   const side = (id % 2 ? 1 : -1);
   g.save();
@@ -313,7 +312,8 @@ function drawFez(g, P, a, i, d, back, sideV, lie) {
   const frizz = P.mo === 'sooty' || P.mo === 'scared';
   const sd = back ? -side : side;
   const tx = (9.5 + sway * 10) * sd, ty = 4 - Math.abs(sway) * 2.0;
-  put(g, fezSpr(burnt));
+  put(g, headItem(head, burnt));
+  if (head !== 'fez' && head !== 'goldfez') { g.restore(); return; }       // only the fez has the tassel
   g.strokeStyle = INK; g.lineWidth = 3; g.lineCap = 'round';
   const path = () => {
     g.beginPath(); g.moveTo(0, -9);
@@ -330,7 +330,7 @@ function drawFez(g, P, a, i, d, back, sideV, lie) {
   g.restore();
 }
 
-function drawPick(g, P, d, hatsOn, flat) {
+function drawPick(g, P, d, flat) {
   // the pivot is the right hand, at the shoulder
   const sv = P.walking && (P.dir === 'l' || P.dir === 'r');
   const px = sv ? 1 : 11, py = 5;
@@ -358,4 +358,33 @@ function drawPick(g, P, d, hatsOn, flat) {
     g.lineWidth = 1.6; g.beginPath(); g.arc(0, 0, 20, a0 - Math.PI / 2 + 0.5, a1 - Math.PI / 2 - 0.25); g.stroke();
     g.restore();
   }
+}
+
+// ---------- drawing a Rafeeq away from the dig (the wardrobe page, a card, the finish card) ----------
+// The origin is the same as drawRafeeq's (his feet are at y 21); `size` is a scale (1 = as on the dig). `opts.key` keeps his blink apart
+// from another picture; `opts.mood` ('happy' waves an arm) and `opts.age` are for the moods; nothing is written to the game.
+const STAND = new Map();
+export function drawRafeeqAt(g, wear, size = 1, opts = {}) {
+  const key = opts.key || 'at';
+  let d = STAND.get(key);
+  if (!d) { d = { c: 0, r: 0, tr: -1, tc: -1, cd: 1, swing: 0 }; STAND.set(key, d); }
+  if (opts.mood) look.set(d, { mood: opts.mood, age: opts.age || 0 }); else look.delete(d);
+  g.save(); g.scale(size, size);
+  const seat = wear.seat || 0;
+  drawRafeeq(g, {}, d, seat, 0, 0.016, { wear });
+  g.restore();
+}
+// one part as a small icon: the hat on its own, the body on its own, a swatch of the colour or of the cloth
+export function drawWardrobePart(g, slot, wear, size = 1) {
+  g.save(); g.scale(size, size);
+  if (slot === 'head') { g.translate(0, 6); put(g, headItem(wear.head, 0)); }
+  else if (slot === 'body') { g.translate(0, -7); put(g, bodySpr(wear, wear.seat || 0)); }
+  else {
+    const c = wear.colour === 'blue' ? BLUES[wear.seat || 0] : COLOUR[wear.colour] || COLOUR.blue;
+    g.save(); g.beginPath(); g.roundRect(-14, -14, 28, 28, 6); g.clip();
+    g.fillStyle = c; g.fillRect(-16, -16, 32, 32);
+    if (slot === 'pattern') { g.translate(0, -3); g.scale(1.2, 1.2); (DRAW.pattern[wear.pattern] || DRAW.pattern.plain)(g, contrast(c)); }
+    g.restore(); g.lineWidth = 2; g.strokeStyle = INK; g.beginPath(); g.roundRect(-14, -14, 28, 28, 6); g.stroke();
+  }
+  g.restore();
 }

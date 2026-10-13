@@ -29,6 +29,7 @@ import './sites/ui.js';
 import './starshop/ui.js';
 import './tnt/ui.js';
 import './track/ui.js';
+import './wardrobe/ui.js';
 import './water/ui.js';
 import './wing2/ui.js';
 import './worldmap/ui.js';
