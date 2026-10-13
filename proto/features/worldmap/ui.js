@@ -56,7 +56,7 @@ function start(app, m, map, opts) {
   if (viewOnly) leave.textContent = t('wm_wait');
   else {
     const run = G.siteRun(s), gain = G.starsFor(s);
-    leave.textContent = run.done ? (gain > 0 ? t('next_reward', { n: G.fmt(gain) }) : t('next_leave_done')) : t('next_leave', { n: G.fmt(gain) });
+    leave.textContent = (run.done ? (gain > 0 ? t('next_reward', { n: G.fmt(gain) }) : t('next_leave_done')) : t('next_leave', { n: G.fmt(gain) }) + ' ' + G.bossGateKeeps(s)).trim();
   }
 
   // ---------- the walk ----------

@@ -14,6 +14,8 @@ export default { en: {
   stuck_leave: 'Leave now: +{n} Stars. You come back stronger.',
   stuck_more: 'Break more Rocks first (the second one lets you move on)',
   stuck_btn_spend: 'Buy', stuck_btn_map: 'Open map', stuck_close: 'Close',
+  gate_remember: 'The Gate remembers you: already {n}% cracked',
+  gate_keeps: 'The Gate keeps {n}% of your damage for next time.',
   record_line: 'Your record: {n} m',
   record_new: 'New record: {n} m!',
   record_new_sub: 'You beat {old} m. Nobody has dug deeper.',

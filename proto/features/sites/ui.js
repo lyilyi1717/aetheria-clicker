@@ -41,7 +41,7 @@ function openNext(app) {
   m.querySelector('.sub').textContent = t(fixed ? 'next_sub_fixed' : lvl ? 'next_sub_stuck' : 'next_sub');
   m.querySelector('.line').textContent = G.starshopLineText(s);
   const gain = G.starsFor(s);
-  m.querySelector('.leave').textContent = run.done ? (gain > 0 ? t('next_reward', { n: G.fmt(gain) }) : t('next_leave_done')) : t('next_leave', { n: G.fmt(gain) });
+  m.querySelector('.leave').textContent = (run.done ? (gain > 0 ? t('next_reward', { n: G.fmt(gain) }) : t('next_leave_done')) : t('next_leave', { n: G.fmt(gain) }) + ' ' + G.bossGateKeeps(s)).trim();
   const back = m.querySelector('.ghost'); back.textContent = t('next_stay'); back.addEventListener('click', () => app.modal.close());
   const wrap = m.querySelector('.cards');
   cards.forEach((c, i) => {

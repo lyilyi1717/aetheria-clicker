@@ -124,7 +124,7 @@ export const medalPay = floor => Math.max(1, Math.round(p.medalShare * starsAt(f
 export const replayPay = floor => Math.max(1, Math.ceil(p.replayShare * starsAt(floor)));
 
 // ---------- the road: stamps ----------
-const blankStamp = (site, floor, twist) => ({ site, floor, twist: twist || '', fin: 0, fast: 0, hard: 0, best: 0, n: 0 });
+const blankStamp = (site, floor, twist) => ({ site, floor, twist: twist || '', fin: 0, fast: 0, hard: 0, best: 0, n: 0, bank: 0 });
 function stampOf(s, site, floor, twist) {
   const k = siteKey(site, floor, twist);
   return s.road.stamps[k] || (s.road.stamps[k] = blankStamp(site, floor, twist));

@@ -4,7 +4,8 @@ import { use, emit, run, fold, layersOf, BLOCKS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, LAYER, layerOf, dirtHp, dirtVal, setCell } from '../../core/grid.js';
 import { addCoins, coinMult, pickPower, canBuy, upgradeCost } from '../../core/rules.js';
-import { canNewSite, starsFor, dealCards } from '../sites/rules.js';
+import { canNewSite, starsFor, dealCards, roadIndex, FIXED } from '../sites/rules.js';
+import { t } from '../../core/strings.js';
 import strings from './strings.js';
 
 const p = {
@@ -19,6 +20,7 @@ const p = {
   rubbleChest: 0.06,              // the chance that a tenth also drops a chest (about half a chest a Rock)
   rubbleBone: 0.18,               // and a bone (about one and a half a Rock)
   stuckWindow: 60, stuckShare: 0.1, stuckTries: 2, stuckIdle: 2,   // the hint: a minute of pick-on-Rock play that took under a tenth of its health, or the 2nd try of the level; the pick is "on it" for 2 s after a hit
+  gateShare: 0.6, gateCap: 0.9,   // the Gate remembers: a try that does not finish banks this share of the damage it dealt; the bank never takes the Gate below 1 - cap of its health
   recordMin: 10,                  // a record under this many metres is not worth a banner
 };
 
@@ -47,8 +49,40 @@ function ensureBoss(s, r) {
   if (!s.boss || s.boss.row !== r) {
     const hp = Math.round(fold('bossHp', s, dirtHp(r) * p.hp * (1 + p.layerHp * layerOf(r - 1))));
     s.boss = { row: r, hp, max: hp, weak: Math.floor(rnd() * COLS), wt: p.weakSeconds, rub: 0, you: 0, crew: 0 };
+    gateOpen(s, s.boss);
   }
   return s.boss;
+}
+
+// ---------- the Gate remembers ----------
+// The Gate Rock of a road level (learn or prove) that is not finished keeps part of the damage a try did, in the level's stamp
+// (stamp.bank: the share of its health that is already cracked). The next try starts with the Gate cracked by the bank.
+// Banked as the hits land (so closing the page loses nothing), by try, never by time. Not for replays, side levels or the deal.
+function gateStamp(s, r) {
+  const run = s.run;
+  if (!run || run.twist || run.done || run.floor !== r || roadIndex(s) < FIXED.length) return null;
+  const st = s.road && s.road.stamps && s.road.stamps[run.key];
+  return st && !st.fin ? st : null;
+}
+function gateOpen(s, b) {
+  const st = gateStamp(s, b.row);
+  if (!st) return;
+  b.gate = 1; b.dealt = 0;
+  const bank = Math.max(0, Math.min(p.gateCap, st.bank || 0));
+  b.bank0 = bank;
+  if (bank > 0) { b.hp = Math.max(1, Math.round(b.max * (1 - bank))); b.rub = bossTenths(b); }   // no rubble paid again for the part already cracked
+}
+function gateBank(s, b, done) {
+  if (!b.gate || !(done > 0)) return;
+  b.dealt += done;
+  const st = s.road.stamps[s.run && s.run.key];
+  if (st && !st.fin) st.bank = Math.min(p.gateCap, b.bank0 + p.gateShare * b.dealt / b.max);
+}
+// what the Gate has cracked already (0 to 1) for the arrival line, and the leave line
+export const bossGateBank = b => (b && b.gate && b.hp > 0 ? b.bank0 || 0 : 0);
+export function bossGateKeeps(s) {
+  const b = s.boss;
+  return b && b.gate && b.hp > 0 && b.dealt > 0 && s.run && !s.run.done ? t('gate_keeps', { n: Math.round(p.gateShare * 100) }) : '';
 }
 export function bossInView(s) {
   for (let i = 0; i < VIEW_ROWS; i++) if (isBossRow(s.top + i) && s.rows[i].some(x => x)) return ensureBoss(s, s.top + i);
@@ -78,6 +112,8 @@ function shed(s, r, b, c, src, ev) {
 }
 
 function bossDown(s, r, src, ev) {
+  const gs = s.boss && s.boss.gate && s.run ? s.road.stamps[s.run.key] : null;
+  if (gs) gs.bank = 0;                 // the Gate is down: nothing left to remember
   const pay = Math.round(dirtVal(r) * p.pay * coinMult(s));
   addCoins(s, pay, src);
   s.bossesDown = Math.max(s.bossesDown, layerOf(r));
@@ -115,6 +151,7 @@ export const boss = use({
       if (src === 'you') { b.idle = 0; if (b.w0hp === undefined) b.w0hp = b.hp; }
       if (src === 'crew') b.crew = (b.crew || 0) + done; else b.you = (b.you || 0) + done;
       b.hp -= dmg;
+      gateBank(s, b, done);
       emit(s, ev, 'hit', { r, c, t: 'boss', dmg, src, crit: info.crit, weak, frac: Math.max(0, b.hp / b.max) });
       if (b.hp <= 0) bossDown(s, r, src, ev); else shed(s, r, b, c, src, ev);
       return b.hp <= 0;
