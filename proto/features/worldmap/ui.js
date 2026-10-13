@@ -115,7 +115,7 @@ function start(app, m, map, opts) {
       gt.textContent = t('next_gate', { n: n.floor }) + '   ' + t('next_par', { t: clock(G.sitePar(n.floor)) });
       nw.textContent = t(newThingKey(f, n.i)); nw.classList.toggle('hard', !!n.prove);
       if (n.state === 'locked') pay.textContent = t('wm_locked', { n: n.level - 1 });
-      else if (c) pay.textContent = t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: c.stars }) + '   ' + t('next_medal_each', { n: c.medalStars });
+      else if (c) pay.textContent = t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }) + '   ' + t('next_medal_each', { n: G.fmt(c.medalStars) });
       else pay.textContent = n.stamp && n.stamp.best ? t('wm_best', { t: clock(n.stamp.best) }) : t('wm_not_yet');
       mrow.innerHTML = medalsHtml(n.stamp);
     } else if (n.type === 'hub') {
@@ -127,7 +127,7 @@ function start(app, m, map, opts) {
       if (c) {
         gt.textContent = t('next_gate', { n: c.floor }) + '   ' + t('next_par', { t: clock(c.par) });
         nw.textContent = n.twist ? t('twist_' + n.twist + '_d') : t('site_' + n.site + '_d');
-        pay.textContent = t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: c.stars }) + '   ' + t('next_medal_each', { n: c.medalStars });
+        pay.textContent = t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }) + '   ' + t('next_medal_each', { n: G.fmt(c.medalStars) });
         mrow.innerHTML = medalsHtml(c.medals);
       } else { nw.textContent = t('site_' + n.site + '_d'); pay.textContent = t('wm_island_wait'); }
     }

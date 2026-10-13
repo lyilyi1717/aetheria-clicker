@@ -56,7 +56,7 @@ function openNext(app) {
     b.querySelector('.hr').textContent = c.hard ? t('next_hard', { rule: ruleLine(c.hard) }) : '';
     b.querySelector('.gate i').textContent = t('next_gate', { n: c.floor });
     b.querySelector('.par i').textContent = t('next_par', { t: clock(c.par) });
-    b.querySelector('.pay').textContent = t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: c.stars }) + '  ' + t('next_medal_each', { n: c.medalStars });
+    b.querySelector('.pay').textContent = t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }) + '  ' + t('next_medal_each', { n: G.fmt(c.medalStars) });
     b.addEventListener('click', () => { app.modal.close(); if (G.pickCard(s, c, app.ev)) { app.save(); app.refresh(true); } });
     wrap.appendChild(b);
   });
