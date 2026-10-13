@@ -16,7 +16,7 @@ const { t } = G;
 const INK = '#1b1410';
 const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const P = {
-  tagAfter: 0.5, tagNear: 30, patNear: 34, emoteGap: 7, emoteSecs: 1.2, jumpStep: 0.12, hatSecs: 1.5,
+  tagAfter: 0.5, tagNear: 36, patNear: 34, emoteGap: 7, emoteSecs: 1.2, jumpStep: 0.12, hatSecs: 1.5,
   rivalLead: 3, rivalGap: 30, chestNear: 4.5, pairChance: 0.02, lookSecs: 5,
 };
 const EM = new WeakMap();            // digger -> { kind, left, age, dur, with }
