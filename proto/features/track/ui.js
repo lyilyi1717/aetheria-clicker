@@ -45,7 +45,8 @@ function mount(app) {
 function tickClock(s, r) {
   const c = G.legLeft(r, s.bossesDown), now = performance.now();
   const sec = Math.floor(Math.abs(c.left));
-  el.clock.textContent = c.over ? t('clock_over', { t: clock(sec) }) : clock(sec);
+  // below the Gate the countdown is over: show the time this dig took instead of a clock that stands still
+  el.clock.textContent = r.done ? t('clock_done', { t: clock(r.time) }) : c.over ? t('clock_over', { t: clock(sec) }) : clock(sec);
   el.clock.classList.toggle('over', c.over && !r.done);
   el.clock.classList.toggle('soon', !c.over && !r.done && c.left <= 10);
   // a leg closed: green flash, and the seconds saved are shown as banked for a moment
