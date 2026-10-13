@@ -270,10 +270,9 @@ ui({
       el.insertAdjacentHTML('beforeend', `<div class="nowrow"><span class="nic"></span><div><b class="nname"></b><span class="muted nrule"></span></div></div>`
         + `<div class="gaterow"><span class="gtxt"></span><span class="gbar"><i></i></span></div>`
         + `<div class="clockrow">${icon('watch', 22)}<b class="clk">0:00</b><span class="muted par"></span></div>`
-        + `<div class="mrow"></div><p class="muted pay"></p><p class="muted hardnote"></p><button class="primary nextbtn" hidden></button><p class="muted wait"></p><button class="ghost mapbtn"></button>`
+        + `<div class="mrow"></div><p class="muted pay"></p><p class="muted hardnote"></p><button class="primary nextbtn" hidden></button><p class="muted wait"></p>`
         + `<h3 class="roadh"></h3><div class="road"></div>`);
       el.querySelector('.nextbtn').addEventListener('click', () => { app.unlockAudio(); const r = G.siteRun(app.state); goNext(app, r.done ? { key: r.key } : null); });
-      el.querySelector('.mapbtn').addEventListener('click', () => { app.unlockAudio(); goNext(app, null, true); });
     },
     update(el, s) {
       const r = G.siteRun(s), st = G.siteStamp(s), can = G.canNewSite(s);
@@ -301,7 +300,6 @@ ui({
       b.hidden = !can; b.classList.toggle('gold', r.done);
       b.textContent = r.done ? t('site_btn_next') : gain > 0 ? t('site_btn_leave', { n: G.fmt(gain) }) : t('site_btn_leave_0');
       el.querySelector('.wait').textContent = can ? '' : t('site_wait');
-      el.querySelector('.mapbtn').textContent = t('wm_map_btn');
       // the road so far: stamps in the order they were first dug
       const stamps = G.roadStamps(s), rsig = stamps.map(x => x.key + x.fin + x.fast + x.hard).join(',');
       if (el._rsig !== rsig) {

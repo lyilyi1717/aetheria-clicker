@@ -1,5 +1,5 @@
 // Dig: the page. Input, the frame loop, the save, and the host for everything a feature shows:
-// panels, cards, toasts, the goal bar, the status chip, the tool bar, and the map from the rules'
+// panels (each in a tab of the drawer), cards, toasts, the goal bar (the level track), the status chip, the tool bar, and the map from the rules'
 // events to what you see and hear. A feature registers its part with ui({...}); see proto/README.md.
 // Its own save key; nothing here touches Aetheria.
 import * as G from '../game.js';
@@ -7,6 +7,7 @@ import { fx, CELL, SKY, W, H, draw, updateFx, centre, debris, spark, coinBurst, 
 import { sfx, unlock, setMuted, isMuted, addSfx } from './audio.js';
 import { icon, addIcons } from './icons.js';
 import strings from './strings.js';
+import { drawer, tabOf } from './drawer.js';
 
 const { t, fmt } = G;
 G.addStrings(strings, 'page');
@@ -38,13 +39,14 @@ const PANELS = [], GOALS = [], STATUS = [], KEYS = {};
 export const ITEM_TEXT = {}; // shop item id -> { desc(s, lv), noLevel }
 
 // ui({ id, css, icons, sfx, art, draw, on, panels, items, goal, status, keys, mount, start, tick, away, cadence })
+// a panel names its drawer tab with `tab` (else drawer.js's map); `side` is still accepted and ignored
 export function ui(def) {
   DEFS.push(def);
   if (def.cadence) { if (cadence) throw new Error('Dig: two features want the swing rhythm'); cadence = def.cadence; }
   if (def.css) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = def.css; document.head.appendChild(l); }
   addIcons(def.icons); addSfx(def.sfx); addArt(def.art); addDraw(def.draw);
   for (const [kind, fn] of Object.entries(def.on || {})) (ON[kind] || (ON[kind] = [])).push(fn);
-  for (const p of def.panels || []) PANELS.push({ at: 1000, side: 'left', ...p });
+  for (const p of def.panels || []) PANELS.push({ at: 1000, ...p, tab: tabOf(p) });
   PANELS.sort((a, b) => a.at - b.at);
   for (const [id, x] of Object.entries(def.items || {})) ITEM_TEXT[id] = x;
   if (def.goal) { GOALS.push(def.goal); GOALS.sort((a, b) => a.at - b.at); }
@@ -251,7 +253,7 @@ function buildPanels() {
     const flip = () => { const f = sec.classList.toggle('folded'); try { localStorage.setItem('DIG_FOLD_' + p.id, f ? '1' : '0'); } catch { /* ignore */ } };
     h.addEventListener('click', flip);
     h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } });
-    app.el[p.side].appendChild(sec);
+    drawer.body(p.tab).appendChild(sec);
     p.el = sec; p.dirty = true;
     if (p.build) p.build(sec, app);
   }
@@ -262,11 +264,12 @@ function updatePanels(force) {
   for (const p of PANELS) {
     const show = !p.when || !!p.when(state);
     p.el.hidden = !show;
-    if (!show) continue;
+    if (!show || p.tab !== drawer.current) continue;   // only the open tab is redrawn; opening a tab redraws it
     // `live` panels are redrawn every tick; the others when one of their events came in
     if (p.live || force || p.dirty) { p.dirty = false; p.update(p.el, state, app); }
   }
-  // the goal: one honest bar. The first feature with something to say wins.
+  drawer.tick(state, id => PANELS.some(p => p.tab === id && !p.el.hidden));
+  // the goal: one honest bar (it sits in the level track). The first feature with something to say wins.
   let goal = null;
   for (let i = 0; i < GOALS.length && !goal; i++) goal = GOALS[i].fn(state, app);
   const fill = $('goal-fill');
@@ -353,18 +356,20 @@ export function start() {
   cv.width = W; cv.height = H;
   g2d = cv.getContext('2d');
   bindInput(cv);
-  app.el = { top: $('chips'), left: $('left'), right: $('right'), stage: $('stage') };
+  app.el = { top: $('chips'), left: $('tabbody'), right: $('tabbody'), stage: $('stage') };   // the purse; the drawer body (old left/right)
+  drawer.build($('tabs'), $('tabbody'), app);
   for (const d of DEFS) if (d.mount) d.mount(app);
   buildPanels();
   if (state.total === 0) $('hint').className = 'show'; else app.flags.firstBreak = true;
 
   const mute = $('mute');
   let m = false; try { m = localStorage.getItem(MUTE_KEY) === '1'; } catch { /* ignore */ }
-  setMuted(m); mute.textContent = t(m ? 'unmute' : 'mute');
-  mute.addEventListener('click', () => { unlock(); setMuted(!isMuted()); mute.textContent = t(isMuted() ? 'unmute' : 'mute'); try { localStorage.setItem(MUTE_KEY, isMuted() ? '1' : '0'); } catch { /* ignore */ } });
+  const paintMute = () => { const off = isMuted(); mute.innerHTML = icon(off ? 'btn_mute' : 'btn_sound', 22); mute.title = mute.ariaLabel = t(off ? 'unmute' : 'mute'); mute.classList.toggle('off', off); };
+  setMuted(m); paintMute();
+  mute.addEventListener('click', () => { unlock(); setMuted(!isMuted()); paintMute(); try { localStorage.setItem(MUTE_KEY, isMuted() ? '1' : '0'); } catch { /* ignore */ } });
   const auto = $('auto');
   try { autoDig = localStorage.getItem(AUTO_KEY) === '1'; } catch { /* ignore */ }
-  const setAuto = (on) => { autoDig = on; auto.textContent = t(on ? 'auto_on' : 'auto_off'); auto.classList.toggle('on', on); try { localStorage.setItem(AUTO_KEY, on ? '1' : '0'); } catch { /* ignore */ } };
+  const setAuto = (on) => { autoDig = on; auto.innerHTML = icon('btn_auto', 22); auto.title = auto.ariaLabel = t(on ? 'auto_on' : 'auto_off'); auto.classList.toggle('on', on); try { localStorage.setItem(AUTO_KEY, on ? '1' : '0'); } catch { /* ignore */ } };
   setAuto(autoDig);
   auto.addEventListener('click', () => { unlock(); setAuto(!autoDig); });
   KEYS.a = KEYS.a || (() => setAuto(!autoDig));
