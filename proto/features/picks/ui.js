@@ -17,7 +17,8 @@
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { AT, fx } from '../../ui/render.js';
-import { setMixer, audioTime } from '../../ui/audio.js';
+import { setMixer, audioTime, setKit, sfx } from '../../ui/audio.js';
+import './kits.js';
 import { S, badge, pickShape } from '../../ui/icons.js';
 import { shopPanel } from '../../ui/shop.js';
 
@@ -48,7 +49,7 @@ setMixer(name => {
 // ---------- the bar on screen ----------
 let strip = null, dots = [], label = null, shown = '', lit = -1, litEnd = 0;
 function showBar(s) {
-  const bar = G.picksBar(s), bpm = G.picksBpm(s), sig = bar.count + ':' + bpm;
+  const bar = G.picksBar(s), bpm = G.picksBpm(s), sig = bar.count + ':' + bpm + ':' + bar.zone;
   if (sig === shown) return;
   shown = sig;
   for (let i = 0; i < dots.length; i++) dots[i].className = (bar.n[i] ? 'n v-' + bar.v[i] : 'r') + (i % 4 === 0 ? ' beat' : '');
@@ -60,6 +61,11 @@ function light(slot, until = 0) {
   lit = slot; litEnd = until;
   if (slot >= 0) dots[slot].classList.add('on');
 }
+
+// ---------- the kit: the sounds of the land, a little lower the deeper you are ----------
+const DEEP = { black: 1, living: 2, angry: 3, hot: 4 };
+let zoneNow = '';
+function setSound(s) { setKit(G.roadZone(s), DEEP[G.frontLayer(s).id] || 0); }
 
 // ---------- the extra picks ----------
 // where each one is held, next to the pointer's own pick: [dx, dy, mirrored, size]
@@ -124,8 +130,10 @@ ui({
     label = document.createElement('b'); strip.appendChild(label);
     app.el.stage.appendChild(strip);
   },
-  tick(s) { if (strip) showBar(s); },
+  tick(s) { if (!zoneNow) zoneNow = G.roadZone(s); setSound(s); if (strip) showBar(s); },
   on: {
+    // a level in a new land: its three-note call
+    newSite(d, app) { const z = G.roadZone(app.state); if (zoneNow && z !== zoneNow) { setSound(app.state); sfx.picksSting(z); } zoneNow = z; },
     picksMore(d, app) { app.toast(t('t_picks_' + d.n), 'gold'); for (let i = 1; i < 4; i++) swingT[i] = 1; app.dirty(); },
     buy(d, app) { if (d.id === 'tempo') app.toast(t('t_tempo', { n: G.picksBpm(app.state) }), 'gold'); },
   },

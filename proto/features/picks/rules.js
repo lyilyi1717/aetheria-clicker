@@ -24,10 +24,11 @@
 import { use, emit } from '../../core/registry.js';
 import { swing, itemLevel, itemOpen, buy } from '../../core/rules.js';
 import { starshopPunch } from '../starshop/rules.js';
-import { PICKS_BARS, MAX_PICKS, picksBarOf, stepSec, hitsPerSec, barFaults } from './beat.js';
+import { roadZone } from '../sites/rules.js';
+import { PICKS_BARS, ZONE_BARS, BAR_ZONES, MAX_PICKS, picksBarOf, stepSec, hitsPerSec, barFaults } from './beat.js';
 import strings from './strings.js';
 
-export { PICKS_BARS, picksBarOf, picksSeq, barText as picksBarText, barFaults as picksBarFaults, stepSec as picksStepSec, hitsPerSec as picksHitsPerSec, notesPerSec as picksNotesPerSec } from './beat.js';
+export { PICKS_BARS, ZONE_BARS, BAR_ZONES, picksBarOf, picksSeq, barText as picksBarText, barFaults as picksBarFaults, stepSec as picksStepSec, hitsPerSec as picksHitsPerSec, notesPerSec as picksNotesPerSec } from './beat.js';
 
 const p = {
   tempos: [100, 110, 120, 132, 144, 160],   // beats a minute, by Faster Hands level
@@ -62,7 +63,8 @@ const bpmOf = lv => Math.min(p.tempos[Math.max(0, Math.min(p.tempos.length - 1, 
 export const picksCount = s => Math.min(MAX_PICKS, 1 + (s.picks && s.picks.second ? 1 : 0) + ((s.picksUp && s.picksUp.pick3) || 0));
 export const picksBpm = s => bpmOf((s.up && s.up.tempo) || 0);
 export const picksStep = s => stepSec(picksBpm(s));                    // seconds per step
-export const picksBar = s => picksBarOf(picksCount(s));
+// the bar in play: the pick count's groove, in the beat of the land the dig is in (sites.roadZone)
+export const picksBar = s => picksBarOf(picksCount(s), roadZone(s));
 export const picksHps = s => hitsPerSec(picksCount(s), picksBpm(s));   // hits a second while the mouse is held
 // how the hand's swings a second compare with the old held mouse (1 at the start: half as many strikes, two swings each)
 export const picksPace = s => picksHps(s) * p.heft / p.oldRate;
@@ -85,9 +87,9 @@ export function picksStrike(s, n, aim, ev, before) {
   return done;
 }
 
-for (const k of Object.keys(PICKS_BARS)) {
-  const bad = barFaults(Number(k), { floor: p.floor, maxBpm: Math.max(...p.tempos) });
-  if (bad.length) throw new Error(`Dig: the bar for ${k} picks is wrong: ${bad.join('; ')}`);
+for (const zone of BAR_ZONES) for (const k of Object.keys(PICKS_BARS)) {
+  const bad = barFaults(Number(k), { floor: p.floor, maxBpm: Math.max(...p.tempos), zone });
+  if (bad.length) throw new Error(`Dig: the ${zone} bar for ${k} picks is wrong: ${bad.join('; ')}`);
 }
 
 const moved = s => (s.stars || 0) > 0 || (s.starSpent || 0) > 0;
