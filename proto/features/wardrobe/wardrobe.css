@@ -1,0 +1,25 @@
+/* the wardrobe page: the Rafeeq drawn large, four rows with arrows */
+.wd { display: flex; flex-direction: column; gap: 8px; }
+.wd-mode { display: flex; gap: 6px; }
+.wd-mode .ghost { flex: 1; text-align: center; }
+.wd-who { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.wd-name { min-inline-size: 7em; text-align: center; font-size: 17px; }
+.wd-note { margin: 0; text-align: center; }
+.wd-stage { align-self: center; inline-size: 168px; block-size: 196px; border-radius: 12px; border: 1px solid var(--line); background: radial-gradient(90px 40px at 50% 86%, rgba(224,180,103,.35), transparent), linear-gradient(#3a2a1c, #2a1d14); }
+.wd-rows { display: flex; flex-direction: column; gap: 6px; }
+.wd-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); }
+.wd-row:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.wd-arrow { flex: none; inline-size: 34px; block-size: 40px; display: grid; place-items: center; background: transparent; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); }
+.wd-arrow:hover { color: var(--gold); border-color: var(--gold); }
+.wd-ic { flex: none; inline-size: 40px; block-size: 40px; }
+.wd-lab { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; line-height: 1.2; text-align: start; }
+.wd-lab small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+.wd-lab em { font-style: normal; color: var(--muted); font-size: 12px; }
+.wd-lab em:empty { display: none; }
+.wd-row.locked .wd-ic { filter: grayscale(1) brightness(.7); opacity: .75; }
+.wd-row.locked b { color: var(--muted); }
+.wd-acts { display: flex; gap: 6px; justify-content: center; }
+/* the right arrow is the left one turned round; in a right-to-left page both turn */
+.wd-arrow[data-dir="1"] svg, .wd-arrow[data-who="1"] svg { transform: scaleX(-1); }
+[dir="rtl"] .wd-arrow svg { transform: scaleX(-1); }
+[dir="rtl"] .wd-arrow[data-dir="1"] svg, [dir="rtl"] .wd-arrow[data-who="1"] svg { transform: none; }

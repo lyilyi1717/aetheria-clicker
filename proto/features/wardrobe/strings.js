@@ -1,0 +1,23 @@
+// The wardrobe: names of looks and the line that says how to earn each one. Looks give no power.
+export default { en: {
+  wd_title: 'Dress your Rafeeqs',
+  wd_all: 'All Rafeeqs', wd_one: 'This Rafeeq',
+  wd_prev: 'Back', wd_next: 'Next', wd_prev_who: 'Earlier Rafeeq', wd_next_who: 'Next Rafeeq',
+  wd_slot_head: 'Hat', wd_slot_body: 'Clothes', wd_slot_colour: 'Colour', wd_slot_pattern: 'Cloth',
+  wd_random: 'Surprise me', wd_undo: 'Undo', wd_new: 'New look: {name}', wd_for_all: 'All Rafeeqs wear this.',
+  wd_locked: 'Not yet',
+  wd_head_fez: 'Fez', wd_head_ghutra: 'Ghutra', wd_head_hard: 'Hard Hat', wd_head_bare: 'Bare Head', wd_head_cap: 'Red Cap', wd_head_crown: 'Crown',
+  wd_head_cosy: 'Tea Cosy', wd_head_pilot: 'Pilot Cap', wd_head_pearlband: 'Pearl Band', wd_head_straw: 'Straw Hat', wd_head_rice: 'Rice Hat',
+  wd_head_wide: 'Wide Hat', wd_head_flat: 'Flat Cap', wd_head_goldfez: 'Gold Fez',
+  wd_body_shirt: 'Work Shirt', wd_body_thobe: 'Thobe', wd_body_vest: 'Vest', wd_body_bisht: 'Bisht', wd_body_diver: 'Diver Suit', wd_body_overalls: 'Oil Overalls',
+  wd_colour_blue: 'Blue', wd_colour_sand: 'Sand', wd_colour_green: 'Green', wd_colour_red: 'Red', wd_colour_white: 'White', wd_colour_teal: 'Teal',
+  wd_colour_purple: 'Purple', wd_colour_orange: 'Orange', wd_colour_gold: 'Gold Thread', wd_colour_night: 'Night Black',
+  wd_pattern_plain: 'Plain', wd_pattern_stripes: 'Stripes', wd_pattern_check: 'Shemagh Check', wd_pattern_dots: 'Big Dots', wd_pattern_zigzag: 'Zigzag', wd_pattern_stars: 'Stars',
+  wd_why_cap: 'Win the Bare Hands contract.', wd_why_crown: 'Win the Blind Alone contract.',
+  wd_why_cosy: 'Finish the Grandma’s Tea Set in the Museum.', wd_why_pilot: 'Finish the Lost Pilot’s Kit in the Museum.', wd_why_pearlband: 'Finish the Pearl Necklace in the Museum.',
+  wd_why_straw: 'Finish {n} levels.', wd_why_rice: 'Finish {n} levels.', wd_why_wide: 'Finish {n} levels.', wd_why_flat: 'Finish {n} levels.',
+  wd_why_goldfez: 'Win all three medals on one level.',
+  wd_why_bisht: 'Win {n} Hard medals.', wd_why_diver: 'Finish the Dune Shark in the Museum.', wd_why_overalls: 'Finish the Old Oil Rig in the Museum.',
+  wd_why_gold: 'Win {n} medals.', wd_why_night: 'Dig down to the Deep.',
+  wd_why_zigzag: 'Win {n} contracts.', wd_why_stars: 'Finish {n} levels.',
+} };

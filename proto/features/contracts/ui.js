@@ -40,25 +40,7 @@ function drawSkin(g, s) {
   g.strokeStyle = sk[1]; g.globalAlpha = 0.5 + tw * 0.5; g.lineWidth = 2; g.beginPath(); g.moveTo(10, -40); g.quadraticCurveTo(28, -41, 38, -26); g.stroke();
   g.globalAlpha = 1; g.restore();
 }
-function drawHats(g, s) {
-  const hat = s.contractLook && s.contractLook.hat;
-  if (!hat) return;
-  s.diggers.forEach((d, i) => {
-    const [x, y] = centre(d.r, d.c);
-    const bob = Math.sin(fx.t * 9 + i * 2) * 2;
-    g.save(); g.translate(x, y - 14 + bob - 11);
-    g.strokeStyle = '#111'; g.lineWidth = 2;
-    if (hat === 'cap') {
-      g.fillStyle = '#d7332b'; g.beginPath(); g.arc(0, 0, 11, Math.PI, 0); g.closePath(); g.fill(); g.stroke();
-      g.fillStyle = '#fff'; g.fillRect(-11, -3, 22, 3);
-      g.fillStyle = '#d7332b'; g.fillRect(-14, 0, 28, 3); g.strokeRect(-14, 0, 28, 3);
-    } else if (hat === 'crown') {
-      g.fillStyle = '#ffd23f'; g.beginPath(); g.moveTo(-10, 1); g.lineTo(-10, -9); g.lineTo(-5, -4); g.lineTo(0, -12); g.lineTo(5, -4); g.lineTo(10, -9); g.lineTo(10, 1); g.closePath(); g.fill(); g.stroke();
-      g.fillStyle = '#e5533d'; g.beginPath(); g.arc(0, -3, 2, 0, 7); g.fill();
-    }
-    g.restore();
-  });
-}
+// (the Rafeeq hats are worn through the wardrobe feature now: drawRafeeq draws them)
 
 // ore thrown at the Rock
 const flying = [];
@@ -115,7 +97,7 @@ function openBoard(app) {
   // looks: only what you won
   const looks = m.querySelector('.looks');
   const co = G.cosmetics(), mine = Object.values(co).filter(c => G.ownsCosmetic(s, c.id));
-  for (const slot of ['skin', 'hat']) {
+  for (const slot of ['skin']) {         // the hats are chosen in the Rafeeqs tab (wardrobe)
     const own = mine.filter(c => c.slot === slot);
     if (!own.length) continue;
     const lab = document.createElement('b'); lab.textContent = t('look_' + slot); looks.appendChild(lab);
@@ -156,7 +138,6 @@ ui({
     throwOre() { if (!gap('throwOre', 0.08)) return; tone(520, { type: 'square', d: 0.1, vol: 0.06, slide: 900 }); },
   },
   draw: [
-    { at: AT.actors + 5, fn: (g, s) => drawHats(g, s) },
     { at: AT.fx + 5, fn: drawFlying },
     { at: AT.pick + 1, fn: (g, s) => drawSkin(g, s) },
   ],
