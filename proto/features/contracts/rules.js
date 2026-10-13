@@ -134,6 +134,7 @@ function win(s, ev) {
   if (first && C.cosmetic) s.contractLook[C.slot || 'skin'] = C.cosmetic;
   if (first && C.prize) C.prize(s, ev);
   end(s);
+  s.contractFree = true;                                           // a won contract: the next site (or contract) may start now
   if (s.run && s.run.hard === id) siteMedal(s, 'hard', ev);        // the site's third medal (sites feature)
   emit(s, ev, 'contractDone', { id, stars, tier: C.tier, cosmetic: C.cosmetic || null });
 }
@@ -213,6 +214,7 @@ export const contracts = use({
     contractLook: { init: () => ({ skin: '', hat: '' }), survives: ['site', 'land'] },
     contractRun:  { init: () => ({ n: 0, col: -1, fills: 0, refill: false }), perSite: true },
     contractAim:  { init: () => null, transient: true },
+    contractFree: { init: () => false, perSite: true },             // a contract was won at this site: you may move on at once
   },
   policies: { aimed },
   contracts: {
