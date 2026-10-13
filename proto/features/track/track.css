@@ -26,3 +26,8 @@
 #trk-gate.done .arch { fill: var(--gold); stroke: #7a5a00; }
 #trk-gate.done small { color: var(--gold); }
 #goal-pin { order: 3; }
+
+/* a small window: the goal text gives way (ends in ...) so the pin chips are never cut */
+#track #goal { min-width: 0; }
+#track #goal-text { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+#track #goal .bar { min-width: 80px; }
