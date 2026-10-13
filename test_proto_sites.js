@@ -189,7 +189,7 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   ok(G.replayCard(s, 'nowhere:1', false) === null && G.replayCard(s, G.siteKey(G.ROAD[5].site, G.ROAD[5].floor), false) === null, 'no replay card for an unknown or unfinished level');
   const plain = G.replayCard(s, k0, false), hard = G.replayCard(s, k0, true);
   ok(plain && plain.kind === 'replay' && plain.hard === '' && plain.key === k0 && plain.stars === G.replayPay(plain.floor), 'a replay card pays the replay share');
-  ok(hard && hard.hard === G.hardOf(plain.site, plain.floor), 'the hard card carries the hard rule');
+  ok(hard && hard.hard === 'chili1' && hard.chili === 1 && hard.stars === G.chiliPay(plain.floor, 1), 'the hard card is the first chili and shows its Stars');
   ok(G.pickCard(s, { ...plain, key: 'nowhere:1' }, NO) === false, 'a forged replay card is refused');
   const road = G.fixedNext(s).level;
   ok(G.pickCard(s, plain, NO) && s.run.key === k0 && !s.contract, 'dig again starts the old level under plain rules');
@@ -205,15 +205,34 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   s.bossesDown = 2; G.pickCard(s, G.replayCard(s, k0, false), NO);
   before = s.stars; s.bossesDown = 2; s.run.clock = 1; G.step(s, 0.05, NO);
   ok(s.stars - before === G.replayPay(plain.floor), 'Fast is never paid twice');
-  // the hard way
-  s.bossesDown = 2; ok(G.pickCard(s, G.replayCard(s, k0, true), NO) && s.run.hard === hard.hard && s.contract === hard.hard, 'the hard way starts under the rule');
-  before = s.stars; G.siteMedal(s, 'hard', NO);
-  const gotHard = s.stars - before;
-  ok(s.road.stamps[k0].hard === 1 && gotHard >= G.medalPay(plain.floor), 'winning the rule is the Hard medal');
-  before = s.stars; G.siteMedal(s, 'hard', NO);
-  ok(s.stars === before, 'the Hard medal is never paid twice');
-  s.bossesDown = 2; G.step(s, 0.05, NO);
-  ok(G.replayCard(s, k0, true) === null && G.replayCard(s, k0, false) !== null, 'with Hard won only "dig again" is left');
+  // the chili way: pip 1 is the old Hard medal
+  s.bossesDown = 2; ok(G.pickCard(s, G.replayCard(s, k0, true), NO) && s.run.hard === 'chili1' && s.run.chili === 1 && s.contract === 'chili1', 'the chili way starts under the first rule');
+  before = s.stars; s.bossesDown = 2; s.run.clock = 9999; G.step(s, 0.05, NO);
+  ok(s.road.stamps[k0].chili === 1 && s.road.stamps[k0].hard === 1 && s.stars - before === G.chiliPay(plain.floor, 1) && !s.contract, 'clearing pip 1 pays the pip and the rules lift');
+  ok(G.replayCard(s, k0, true).hard === 'chili2' && G.replayCard(s, k0, true).chili === 2, 'the next card is the next pip');
+  // leaving a chili level lifts the rules, and the Gate then pays no pip
+  s.bossesDown = 2; G.pickCard(s, G.replayCard(s, k0, true), NO);
+  ok(G.leaveContract(s, NO) && s.run.chili === 0, 'leaving lifts the rules and the extra hardness');
+  before = s.stars; s.bossesDown = 2; s.run.clock = 9999; G.step(s, 0.05, NO);
+  ok(s.road.stamps[k0].chili === 1 && s.stars - before === G.replayPay(plain.floor), 'a chili level cleared with the rules off pays no pip');
+  // an old Hard medal counts as pip 1
+  ok(G.pipsOf({ hard: 1 }) === 1 && G.pipsOf({ chili: 3, hard: 1 }) === 3 && G.pipsOf({}) === 0, 'an old Hard medal is pip 1');
+  // the hit that stays: +3% at pip 3, +5% at pip 5, summed, capped
+  const hit0 = G.pickPower(s);
+  s.road.stamps[k0].chili = 2; s.bossesDown = 2; G.pickCard(s, G.replayCard(s, k0, true), NO);
+  s.bossesDown = 2; s.run.clock = 9999; G.step(s, 0.05, NO);
+  ok(s.road.stamps[k0].chili === 3 && Math.abs(s.road.chiliHit - 0.03) < 1e-9 && Math.abs(G.pickPower(s) / hit0 - 1.03) < 1e-9, 'pip 3 adds 3% to your hit for ever');
+  s.road.stamps[k0].chili = 4; s.bossesDown = 2; G.pickCard(s, G.replayCard(s, k0, true), NO);
+  ok(s.contract === 'chili5', 'pip 5 is the last card');
+  s.bossesDown = 2; s.run.clock = 9999; G.step(s, 0.05, NO);
+  ok(Math.abs(s.road.chiliHit - 0.08) < 1e-9 && G.replayCard(s, k0, true) === null, 'pip 5 adds 5% more, and then there is no next pip');
+  { const big = fresh(5); for (let i = 0; i < 40; i++) big.road.stamps['x' + i] = { site: 'dunes', floor: 50 + i, twist: '', fin: 1, chili: 5, hard: 1 };
+    ok(G.chiliHit(big) === G.PARAMS.sites.chiliHitCap && G.chiliHit(big) <= 1.6 + 1e-9, 'the chilies never add more than the cap'); }
+  { const q = fresh(6); const f = G.ROAD[0]; q.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 9, n: 1 }; q.bossesDown = 2; q.road.reach = 50;
+    G.pickCard(q, G.replayCard(q, G.siteKey(f.site, f.floor), true), NO);
+    const plainBoss = (() => { const z = fresh(7); const pf = G.ROAD[0]; z.run = { ...G.siteRun(z), site: pf.site, floor: pf.floor }; return G.fold('bossHp', z, 100); })();
+    ok(Math.abs(G.fold('bossHp', q, 100) / plainBoss - G.PARAMS.sites.chiliRock) < 1e-9, 'a chili level makes the Big Rocks harder by the pip step');
+    G.leaveContract(q, NO); ok(G.fold('bossHp', q, 100) === plainBoss, 'and leaving makes them plain again'); }
   // a level that is the road level and unfinished cannot be replayed
   ok(G.replayCard(s, G.siteKey(kNext.site, kNext.floor), false) === null, 'the road level itself is not a replay until finished');
   // not allowed to move on: refused

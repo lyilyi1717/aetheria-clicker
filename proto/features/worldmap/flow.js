@@ -35,3 +35,6 @@ export function qahwaNextAct(prev, r) {
   for (let i = 0; i < w.length; i++) { a += w[i]; if (r < a) return QAHWA_ACTS[i]; }
   return 'sit';
 }
+
+// A chili pip was just cleared: the map lights it up the first time it is shown after that (draw.js reads this)
+export const chiliPop = { key: '', n: 0, pending: false, t0: 0 };

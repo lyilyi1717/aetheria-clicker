@@ -53,3 +53,4 @@
 .qh-btns .qh-gap { flex: 1; }
 .qh-btns .qh-next { min-width: 170px; font-size: 18px; padding: 10px 20px; }
 .qh-btns .qh-next[hidden] { display: none; }
+.wm-info .mrow .chilirow { flex-basis: 100%; margin: 2px 0 0; }

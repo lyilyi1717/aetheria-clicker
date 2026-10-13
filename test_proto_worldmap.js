@@ -89,7 +89,7 @@ const dealKeys = s => G.dealCards(s).map(c => c.key).sort().join();
   for (let i = 0; i < 4; i++) stamp(s, i, { fin: 1, fast: 0, hard: 0, best: 120 });
   const map = buildMap(s), n = map.nodes.find(x => x.type === 'road' && x.i === 1);
   const key = G.siteKey(n.site, n.floor), a = G.replayCard(s, key, false), h = G.replayCard(s, key, true);
-  ok(n.state === 'done' && a && a.kind === 'replay' && h && h.hard === G.hardOf(n.site, n.floor), 'a done stone has a plain and a hard replay card');
+  ok(n.state === 'done' && a && a.kind === 'replay' && h && h.hard === 'chili1', 'a done stone has a plain and a chili replay card');
   ok(map.go.i === 4 && map.go.card.kind === 'fixed', 'the road level is still the main Dig here');
   const src = readFileSync(new URL('./proto/features/worldmap/strings.js', import.meta.url), 'utf8');
   ok(src.includes('wm_again') && src.includes('wm_hard_way'), 'the two button words exist');

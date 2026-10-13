@@ -34,9 +34,9 @@
 // contractLeft {id}, contractNote {id, key}, sandFill, glassBreak, feed {r, c, to, col, w}.
 import { use, CONTRACTS, SITES, emit } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
-import { COLS, KEEP_ROWS, genRow, cellAt } from '../../core/grid.js';
+import { COLS, KEEP_ROWS, LAYER, genRow, cellAt } from '../../core/grid.js';
 import { damage, upgradeCost, pickPower } from '../../core/rules.js';
-import { newSite, canNewSite, siteOpen, siteMedal, roadFinished } from '../sites/rules.js';
+import { newSite, canNewSite, siteOpen, siteMedal, roadFinished, pipsOf, chiliCard, siteKey } from '../sites/rules.js';
 import { bossInView } from '../boss/rules.js';
 import strings from './strings.js';
 
@@ -49,6 +49,14 @@ const p = {
   // the goals
   bareDepth: 40, darkDepth: 30, riseDepth: 20, tntDepth: 24, glassDepth: 30, oneDepth: 40,
   lazyDepth: 30, feedRocks: 1, dryRocks: 2, blindDepth: 50,
+  // the board's goals fit the level: a share of the deepest Gate finished (never less than the number above)
+  goalShare: { bare: 0.8, dark: 0.7, rising: 0.35, tntOnly: 0.4, glass: 0.5, oneRelic: 0.8, richLazy: 0.6, blindAlone: 0.6 },
+  rocksPerReach: 100,                    // feedRock and dry: one more Big Rock for every this many metres of reach
+  // chili levels: the rules, in order (pip n has the first n). See chiliRules below.
+  teaPace: 0.5,                          // pip 1: Rafeeqs dig at this speed
+  chiliGlassEvery: 60,                   // pip 4: every 60th hit the pick loses half its levels
+  // the sim's player: a chance to dig a finished level again with its next chili (more if it was quick)
+  botChili: 0.4, botChiliSlow: 0.12, botChiliGive: 600, botChiliPar: 1.6,   // it gives a chili level up after this many attended seconds (or this many times the par, if longer)
   // the rules
   darkSight: 1,                          // blocks you see around open space in the dark
   riseBreaks: 100,                       // blocks you may break before the sand refills the hole
@@ -95,13 +103,16 @@ export function contractGoal(s) {
   const C = s.contract && CONTRACTS[s.contract];
   if (!C || !C.goal) return null;
   const g = C.goal(s);
-  return { kind: C.kind || 'count', ...g, id: C.id, done: g.now >= g.of };
+  return { kind: C.kind || 'count', ...g, id: C.id, done: g.now >= g.of, noWin: !!C.noWin };
 }
 
 export function startContract(s, id, ev = () => {}) {
   const C = CONTRACTS[id];
   if (!C || !canTake(s, id)) return false;
-  if (!newSite(s, contractSite(s, C), ev, { contract: id })) return false;
+  const ask = contractAsk(s, id);
+  if (!newSite(s, contractSite(s, C), ev, { contract: id }, { floor: ask.floor, twist: '', hard: id })) return false;
+  if (ask.depth) s.run.goalDepth = ask.depth;
+  if (ask.rocks) s.run.goalRocks = ask.rocks;
   s.contractRun.board = true;
   emit(s, ev, 'contractStart', { id });
   return true;
@@ -156,8 +167,21 @@ function announce(s, ev) {
 
 // ---------- the rules of the contracts ----------
 
-const depthGoal = key => s => ({ kind: 'depth', now: Math.min(s.best, p[key]), of: p[key] });
-const rockGoal = key => s => ({ kind: 'rocks', now: Math.min(s.bossesDown, p[key]), of: p[key] });
+// a goal fits the level: the run keeps the number it was started with (an old save, or a test, has none: the plain number)
+const depthOf = (s, key) => (s.run && s.run.goalDepth) || p[key];
+const rocksOf = (s, key) => (s.run && s.run.goalRocks) || p[key];
+const depthGoal = key => s => { const of = depthOf(s, key); return { kind: 'depth', now: Math.min(s.best, of), of }; };
+const rockGoal = key => s => { const of = rocksOf(s, key); return { kind: 'rocks', now: Math.min(s.bossesDown, of), of }; };
+const round5 = x => Math.max(5, Math.round(x / 5) * 5);
+// what a contract asks of the player who takes it now: { depth | rocks, floor }
+export function contractAsk(s, id) {
+  const C = CONTRACTS[id], reach = (s.road && s.road.reach) || 0;
+  if (!C || !C.ask) return { floor: 50 };
+  const a = C.ask;
+  if (a.rocks) { const rocks = p[a.rocks] + Math.floor(reach / p.rocksPerReach); return { rocks, floor: Math.max(50, rocks * LAYER) }; }
+  const depth = Math.max(p[a.depth], round5((p.goalShare[id] || 0) * reach));
+  return { depth, floor: Math.max(50, Math.ceil(depth / LAYER) * LAYER) };
+}
 
 // no Rafeeqs: whoever is hired is sent home and paid back, and Rafeeq work counts for nothing
 const noCrew = {
@@ -211,6 +235,51 @@ function aimed(s, d) {
   return best;
 }
 
+// ---------- chili levels ----------
+// A finished level dug again with pip n has the first n of these rules on (the sites feature makes the ground and the Rocks
+// harder and pays). They are contracts without a tier (not on the board) and without a goal: the Gate is the goal, and the sites
+// feature gives the pip when it breaks. Leaving one lifts the rules and the extra hardness, and the Gate then pays no pip.
+const teaBreak = { mods: { crewPower: v => v * p.teaPace, awayDps: v => v * p.teaPace } };
+const glassHalf = { hooks: { swung(s, sw, ev) {
+  if (s.hits % p.chiliGlassEvery || !s.up.pick) return;
+  s.up.pick = Math.floor(s.up.pick / 2);
+  emit(s, ev, 'glassBreak', { r: sw.r, c: sw.c, half: true });
+} } };
+const oneRelic = { mods: { draftPool: (pool, s) => { const held = Object.keys(s.relics).find(id => s.relics[id] > 0); return held ? pool.filter(id => id === held) : pool; } } };
+// in order: the pips take 1 rule, 2 rules ...; the last swaps the tea break for no Rafeeqs at all
+export const CHILI_RULES = [teaBreak, dark, oneRelic, glassHalf, { mods: noCrew.mods, hooks: { step: noCrew.step } }];
+function compose(parts) {
+  const mods = {}, hooks = {};
+  for (const part of parts) {
+    for (const [k, f] of Object.entries(part.mods || {})) { const was = mods[k]; mods[k] = was ? (v, ...a) => f(was(v, ...a), ...a) : f; }
+    for (const [k, f] of Object.entries(part.hooks || {})) { const was = hooks[k]; hooks[k] = was ? (...a) => { const x = was(...a), y = f(...a); return x === true || y === true; } : f; }
+  }
+  return { mods, hooks };
+}
+const chiliGoal = s => { const of = (s.run && s.run.floor) || 50; return { kind: 'gate', now: Math.min(s.best, of), of }; };
+const CHILI = {};
+for (let n = 1; n <= CHILI_RULES.length; n++) {
+  CHILI['chili' + n] = { at: 100 + n, noWin: true, chili: n, goal: chiliGoal, ...compose(CHILI_RULES.slice(0, n)),
+    end(s) { if (s.run) s.run.chili = 0; } };                     // the rules lift, and so does the extra hardness
+}
+export const isChili = id => !!(CONTRACTS[id] && CONTRACTS[id].chili);
+
+// The sim's player, when it has finished a level: now and then it digs it again with the next chili. A quick finish tries more.
+// Returns a card of the sites feature or null.
+export function chiliBotPick(s, ctx, rand) {
+  const r = s.run;
+  if (!r || !r.done || s.contract || r.twist) return null;
+  const st = s.road.stamps[r.key];
+  if (!st || pipsOf(st) >= 5) return null;
+  ctx.chiliAsked = ctx.chiliAsked || {};
+  const k = r.key + ':' + pipsOf(st);
+  if (ctx.chiliAsked[k]) return null;
+  ctx.chiliAsked[k] = 1;
+  const par = r.par + (r.extra || 0), pr = r.time <= par ? p.botChili : r.time <= par * 1.6 ? p.botChiliSlow : 0;
+  if (rand() >= pr) return null;
+  return chiliCard(s, r.key);
+}
+
 export const contracts = use({
   id: 'contracts',
   params: p,
@@ -224,58 +293,59 @@ export const contracts = use({
   },
   policies: { aimed },
   contracts: {
+    ...CHILI,
     // ---- tier 1: you learn that a rule is a plan ----
-    bare: { at: 10, tier: 1, site: 'dunes', cosmetic: 'cap', slot: 'hat', goal: depthGoal('bareDepth'),
+    bare: { at: 10, tier: 1, site: 'dunes', cosmetic: 'cap', slot: 'hat', ask: { depth: 'bareDepth' }, goal: depthGoal('bareDepth'),
       mods: noCrew.mods, hooks: { step: noCrew.step } },
-    dark: { at: 20, tier: 1, site: 'gold', goal: depthGoal('darkDepth'), ...dark },
-    rising: { at: 30, tier: 1, site: 'dunes', goal: depthGoal('riseDepth'),
+    dark: { at: 20, tier: 1, site: 'gold', ask: { depth: 'darkDepth' }, goal: depthGoal('darkDepth'), ...dark },
+    rising: { at: 30, tier: 1, site: 'dunes', ask: { depth: 'riseDepth' }, goal: depthGoal('riseDepth'),
       hooks: {
         broke(s) { const run = s.contractRun; if (++run.n >= p.riseBreaks) run.refill = true; },
         step(s, dt, ev) { if (s.contractRun.refill) refill(s, ev); },
       } },
     // ---- tier 2: the rule bites ----
-    tntOnly: { at: 10, tier: 2, site: 'boom', cosmetic: 'gold', slot: 'skin', goal: depthGoal('tntDepth'),
+    tntOnly: { at: 10, tier: 2, site: 'boom', cosmetic: 'gold', slot: 'skin', ask: { depth: 'tntDepth' }, goal: depthGoal('tntDepth'),
       mods: noCrew.mods,
       hooks: {
         step: noCrew.step,
         swing(s, sw) { if (sw.B.id !== 'tnt') sw.dmg = 0; },       // spill, echo and boom all use sw.dmg, so they are nothing too
         row(s, ctx) {
-          if (ctx.r % p.tntGap || ctx.r > p.tntDepth) return;
+          if (ctx.r % p.tntGap || ctx.r > depthOf(s, 'tntDepth')) return;
           const run = s.contractRun;
           const c = run.col < 0 ? p.tntStart : Math.max(0, Math.min(COLS - 1, run.col + Math.floor(rnd() * 3) - 1));
           ctx.set(c, 'tnt'); run.col = c;                          // a trail of TNT you can follow down
         },
       } },
-    glass: { at: 20, tier: 2, site: 'dunes', cosmetic: 'glass', slot: 'skin', goal: depthGoal('glassDepth'),
+    glass: { at: 20, tier: 2, site: 'dunes', cosmetic: 'glass', slot: 'skin', ask: { depth: 'glassDepth' }, goal: depthGoal('glassDepth'),
       hooks: { swung(s, sw, ev) {
         if (s.hits % p.glassEvery) return;
         s.up.pick = 0;
         emit(s, ev, 'glassBreak', { r: sw.r, c: sw.c });
       } } },
-    oneRelic: { at: 30, tier: 2, site: 'bones', goal: depthGoal('oneDepth'),
+    oneRelic: { at: 30, tier: 2, site: 'bones', ask: { depth: 'oneDepth' }, goal: depthGoal('oneDepth'),
       mods: { draftPool: (pool, s) => { const held = Object.keys(s.relics).find(id => s.relics[id] > 0); return held ? pool.filter(id => id === held) : pool; } } },
-    richLazy: { at: 40, tier: 2, site: 'gold', goal: depthGoal('lazyDepth'),
+    richLazy: { at: 40, tier: 2, site: 'gold', ask: { depth: 'lazyDepth' }, goal: depthGoal('lazyDepth'),
       mods: { canSwing: () => false },
       hooks: { step(s) { s.crewJob = 'aimed'; } },
       start(s) { s.coins += p.lazyCoins; s.total += p.lazyCoins; s.crewJob = 'aimed'; },
       end(s) { s.crewJob = 'nearest'; } },
     // ---- tier 3: a whole way of playing ----
-    feedRock: { at: 10, tier: 3, site: 'gold', goal: rockGoal('feedRocks'),
+    feedRock: { at: 10, tier: 3, site: 'gold', ask: { rocks: 'feedRocks' }, goal: rockGoal('feedRocks'),
       mods: { damage: (v, s, cell, src, info) => (cell.t === 'boss' && !(info && info.feed) ? 0 : v) },
       hooks: {
         broke(s, b, ev) { feed(s, b, ev, p.feedUnit); },
         row(s, ctx) { const m = ctx.r % 25; if (ctx.r > 0 && m >= 25 - p.feedRows && m < 25) ctx.put('silver'); },
       } },
-    dry: { at: 20, tier: 3, site: 'bones', goal: rockGoal('dryRocks'),
+    dry: { at: 20, tier: 3, site: 'bones', ask: { rocks: 'dryRocks' }, goal: rockGoal('dryRocks'),
       mods: { chestChance: () => 0 } },
-    blindAlone: { at: 30, tier: 3, site: 'dunes', cosmetic: 'crown', slot: 'hat', goal: depthGoal('blindDepth'),
+    blindAlone: { at: 30, tier: 3, site: 'dunes', cosmetic: 'crown', slot: 'hat', ask: { depth: 'blindDepth' }, goal: depthGoal('blindDepth'),
       mods: { ...noCrew.mods, ...dark.mods }, hooks: { step: noCrew.step } },
   },
   hooks: {
     step: { at: 700, fn(s, dt, ev) {
       announce(s, ev);
       const g = contractGoal(s);
-      if (g && g.done) win(s, ev);
+      if (g && g.done && !g.noWin) win(s, ev);
     } },
     // the prizes that stay: small bends of the rules
     mask(s, m) {                                                 // dark: TNT shows through the dark
@@ -311,7 +381,7 @@ export const contracts = use({
     if (contractsOpen(s)) for (let t = 1; t <= contractTiers(); t++) if (!ctx.cOpen[t] && tierOpen(s, t)) { ctx.cOpen[t] = 1; log('tier open', t); }
     if (s.contract) {
       const id = s.contract;
-      ctx.noCrew = ['bare', 'rising', 'blindAlone', 'tntOnly'].includes(id);
+      ctx.noCrew = ['bare', 'rising', 'blindAlone', 'tntOnly', 'chili5'].includes(id);
       if (id === 'tntOnly') {                                    // look often, aim at the topmost barrel you can reach
         ctx.p.buyEvery = 1.5;
         let best = null;
@@ -322,7 +392,7 @@ export const contracts = use({
         ctx.tg = best;
         if (best) ctx.col = best[1];
       }
-      if (trk.act - ctx.cStart > p.botGiveUp) { leaveContract(s, ev); ctx.noCrew = false; ctx.p.buyEvery = ctx.cBuyEvery; log('left', id); }
+      if (trk.act - ctx.cStart > (isChili(id) ? Math.max(p.botChiliGive, p.botChiliPar * (s.run ? s.run.par : 0)) : p.botGiveUp)) { leaveContract(s, ev); ctx.noCrew = false; ctx.p.buyEvery = ctx.cBuyEvery; log('left', id); }
       return 0;
     }
     if (ctx.cWas) {                                              // it ended: won, or just left

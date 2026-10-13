@@ -107,7 +107,10 @@ export function mkEv(s, trk) {
       trk.mark('finish #' + trk.finishes.length); trk.dec();
     } else if (k === 'siteMedal') {
       trk.medals.push({ r: trk.real, medal: d.medal, key: d.key, stars: d.stars }); trk.found();
+    } else if (k === 'chiliWon') {
+      trk.medals.push({ r: trk.real, medal: 'chili', key: d.key, n: d.n, stars: d.stars, hit: d.hit }); trk.found();
     } else if (k === 'newSite') {
+      if (d.chili) trk.medals.push({ r: trk.real, medal: 'chiliTry', key: d.key, n: d.chili });
       trk.visited.add(s.site);
       trk.resets.push({ r: trk.real, a: trk.act, best: trk.curBest, gain: d.gain, had: s.stars + (s.starSpent || 0) - d.gain, need: G.starsToStand(Math.max(0, trk.curBest - 1)), stars: s.stars + (s.starSpent || 0), contract: trk.curContract || null, fin: trk.curFin, key: d.key });
       trk.mark('new site #' + (trk.resets.length + 1)); trk.dec();
@@ -232,7 +235,7 @@ function move(s, ctx, trk, ev) {
   const r = G.siteRun(s);
   if (r.done) delete (ctx.fails || {})[r.floor];
   else { (ctx.fails || (ctx.fails = {}))[r.floor] = lifeStars(s); }          // it gave this floor up: not again until the Stars have grown
-  const c = chooseCard(s, G.dealCards(s), ctx);
+  const c = (r.done && G.chiliBotPick && G.chiliBotPick(s, ctx, rnd)) || chooseCard(s, G.dealCards(s), ctx);   // a finished level: sometimes with its next chili
   if (!G.pickCard(s, c, ev)) return false;
   if (s.contract) { ctx.cBuyEvery = ctx.cBuyEvery || ctx.p.buyEvery; ctx.cTried = ctx.cTried || {}; ctx.cTried[s.contract] = 1; ctx.cWas = true; ctx.cStart = trk.act; ctx.cLogged = ctx.cLogged || {}; }
   return afterMove(s, ctx, trk);

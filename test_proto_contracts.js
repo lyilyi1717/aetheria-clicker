@@ -219,6 +219,50 @@ free = true;
   const s = ready();
   ok(G.equip(s, 'hat', '') && !G.equip(s, 'hat', 'cap') && (s.contractsWon.bare = 1) && G.equip(s, 'hat', 'cap') && s.contractLook.hat === 'cap' && !G.equip(s, 'skin', 'cap'), 'looks: only what you own, in its own slot');
 }
+{ // goals fit the level: a player who has finished deep levels is asked for a real depth, and starts with none of it done
+  for (const id of G.contractList().map(c => c.id)) {
+    const C = G.CONTRACTS[id];
+    for (const reach of [0, 125, 200, 275]) {
+      const s = ready(); s.road.reach = reach; s.best = 0; s.bossesDown = 2; s.sites = 99;
+      const ask = G.contractAsk(s, id);
+      ok(ask.floor >= 50 && ask.floor % G.LAYER === 0, id + ': the dig has a Gate on a Big Rock row');
+      if (!take(s, id)) { ok(false, id + ' could not be taken at reach ' + reach); continue; }
+      const g = G.contractGoal(s);
+      ok(!g.done && g.now === 0, id + ': nothing is done the moment it is taken (reach ' + reach + ')');
+      if (ask.depth) ok(g.of === ask.depth && s.run.floor >= ask.depth, id + ': the goal is above the Gate floor');
+      if (reach >= 125 && ask.depth) ok(ask.depth >= Math.round(0.3 * reach), id + ': at reach ' + reach + ' the goal is a real share of it (' + ask.depth + ')');
+    }
+  }
+  const lo = ready(); lo.road.reach = 125; const hi = ready(); hi.road.reach = 275;
+  ok(G.contractAsk(hi, 'bare').depth > G.contractAsk(lo, 'bare').depth && G.contractAsk(lo, 'bare').depth > G.PARAMS.contracts.bareDepth, 'a deeper road asks for more');
+  // an old run (no goal number kept) still uses the old plain goal
+  const o = ready(); take(o, 'bare'); delete o.run.goalDepth; ok(G.contractGoal(o).of === G.PARAMS.contracts.bareDepth, 'an old run keeps the old goal');
+}
+{ // chili rules: pip n has the first n rules; the Gate is the goal and the contract never "wins" by itself
+  const s = ready(); s.road.reach = 50;
+  for (let n = 1; n <= 5; n++) ok(G.CONTRACTS['chili' + n] && !G.CONTRACTS['chili' + n].tier && G.hasString('c_chili' + n) && G.hasString('c_chili' + n + '_d'), 'chili ' + n + ' is registered and named');
+  const rules = id => { const x = ready(); x.contract = id; x.up.crew = 0; return x; };
+  const c1 = rules('chili1'), c2 = rules('chili2'), c3 = rules('chili3'), c5 = rules('chili5');
+  ok(G.fold('crewPower', c1, 1) === G.PARAMS.contracts.teaPace && G.fold('sight', c1, 9) === 9, 'pip 1: the crew works slowly, you still see');
+  ok(G.fold('sight', c2, 9) === G.PARAMS.contracts.darkSight && G.fold('crewPower', c2, 1) === G.PARAMS.contracts.teaPace, 'pip 2 adds the dark');
+  for (const k of Object.keys(c3.relics)) c3.relics[k] = 0; c3.relics.deep = 1; ok(G.fold('draftPool', c3, ['deep', 'wide', 'hop'], c3).join() === 'deep' && G.fold('draftPool', c2, ['deep', 'wide'], c2).length >= 2, 'pip 3 adds one relic only');
+  ok(G.fold('crewPower', c5, 1) === 0, 'pip 5: no Rafeeqs at all');
+  const g = G.contractGoal(c5); ok(g && g.noWin && g.kind === 'gate', 'the goal is the Gate');
+  const w = ready(); G.siteRun(w); w.contract = 'chili2'; w.best = 9999; G.step(w, 0.05, NO); ok(w.contract === 'chili2' && !w.contractsWon.chili2, 'a chili contract is not won by depth');
+  // glass: every 60th hit the pick loses half
+  const gl = rules('chili4'); gl.up.pick = 10; gl.hits = G.PARAMS.contracts.chiliGlassEvery;
+  G.run('swung', gl, { r: 0, c: 0 }, NO); ok(gl.up.pick === 5, 'pip 4: the glass pick loses half its levels');
+  // saves: a run in the middle of a chili survives a save
+  const m = ready(); m.road.stamps['dunes:50'] = { site: 'dunes', floor: 50, twist: '', fin: 1, fast: 0, hard: 0, best: 9, n: 1 }; m.bossesDown = 2;
+  G.pickCard(m, G.replayCard(m, 'dunes:50', true), NO);
+  const back = G.deserialize(G.serialize(m)); ok(back.contract === 'chili1' && back.run.chili === 1, 'a chili level in play survives a save');
+  // an old save with a Hard medal and no chili count: pip 1 won, the next card is pip 2
+  const o = ready(); o.road.stamps['dunes:50'] = { site: 'dunes', floor: 50, twist: '', fin: 1, fast: 0, hard: 1, best: 9, n: 1 };
+  const oldBack = G.deserialize(G.serialize(o)); ok(G.replayCard(oldBack, 'dunes:50', true).chili === 2, 'an old Hard medal is pip 1 won');
+  // the bot's pick
+  const f = ready(); f.road.stamps['dunes:50'] = { site: 'dunes', floor: 50, twist: '', fin: 1, fast: 0, hard: 0, best: 9, n: 1 }; f.run = { ...G.siteRun(f), key: 'dunes:50', site: 'dunes', floor: 50, done: true, time: 1, par: 300 };
+  ok(G.chiliBotPick(f, {}, () => 0)?.chili === 1 && G.chiliBotPick(f, {}, () => 0.99) === null, 'the bot sometimes takes the next chili after a quick finish');
+}
 { // save round trip and an old save
   const s = ready(); take(s, 'tntOnly'); s.contractsWon.bare = 1; s.contractLook.hat = 'cap';
   const back = G.deserialize(G.serialize(s));

@@ -80,9 +80,11 @@ function openBoard(app) {
     const st = G.contractState(s, C.id);
     const row = document.createElement('div');
     row.className = 'cc ' + st;
-    row.innerHTML = `<span class="ic">${icon('c_' + C.id, 40)}</span><span><b></b><span class="d"></span><span class="p"></span><span class="s"></span></span><span class="act"></span>`;
+    row.innerHTML = `<span class="ic">${icon('c_' + C.id, 40)}</span><span><b></b><span class="d"></span><span class="a"></span><span class="p"></span><span class="s"></span></span><span class="act"></span>`;
     row.querySelector('b').textContent = t('c_' + C.id);
     row.querySelector('.d').textContent = t('c_' + C.id + '_d');
+    const ask = G.contractAsk(s, C.id);
+    row.querySelector('.a').textContent = ask.rocks ? t('board_ask_rocks', { n: ask.rocks }) : ask.depth ? t('board_ask_depth', { n: ask.depth }) : '';
     row.querySelector('.p').textContent = t('board_prize', { text: t('c_' + C.id + '_p') });
     row.querySelector('.s').textContent = t('board_site', { name: t('site_' + G.contractSite(s, C)) });
     const act = row.querySelector('.act');
@@ -143,7 +145,7 @@ ui({
   ],
   goal: { at: 5, fn(s) {
     const g = G.contractGoal(s);
-    if (!g) return null;
+    if (!g || g.noWin) return null;                          // a chili level: the Gate bar says the rest
     const C = G.CONTRACTS[g.id], name = t('c_' + g.id);
     const text = C.goalText ? C.goalText(s, g) : t('goal_' + (g.kind === 'depth' || g.kind === 'rocks' ? g.kind : 'count'), { name, now: g.now, of: g.of });
     return { text, frac: g.of ? g.now / g.of : 0, cls: 'contract' };
@@ -164,12 +166,14 @@ ui({
     let count = '';
     if (g.id === 'rising') count = t('hud_rise', { n: Math.max(0, P.riseBreaks - s.contractRun.n) });
     else if (g.id === 'glass') count = t('hud_glass', { n: P.glassEvery - (s.hits % P.glassEvery) });
+    else if (g.id === 'chili4' || g.id === 'chili5') count = t('hud_glass', { n: P.chiliGlassEvery - (s.hits % P.chiliGlassEvery) });
+    else if (g.noWin) count = t('hud_chili', { n: G.CONTRACTS[g.id].chili });
     hud.querySelector('.count').textContent = count;
   },
   on: {
     contractsOpen(d, app) { setTimeout(() => arrive(app), 3900); },
     contractTier(d, app) { app.toast(t('tier_up', { n: d.tier }), 'gold'); sfx.stamp(); },
-    contractStart(d, app) { screenFlash('#000', 0.5); app.banner(t('c_' + d.id), t('c_' + d.id + '_d')); },
+    contractStart(d, app) { screenFlash('#000', 0.5); app.banner(t('c_' + d.id), t('c_' + d.id + '_d')); },       // (a chili level announces itself in the sites feature)
     contractDone(d, app) {
       sfx.stamp(); shake(0.8); screenFlash('#fff', 0.5); app.hitStop(0.1);
       app.banner(t('won_title'), t('c_' + d.id) + (d.stars ? '  ' + t('won_stars', { n: d.stars }) : ''));
@@ -184,7 +188,7 @@ ui({
       for (let c = 0; c < G.COLS; c++) debris(0, c, '#e0b467', 8, 1.4);
     },
     glassBreak(d, app) {
-      sfx.glass(); shake(0.4); screenFlash('#bfefff', 0.35); app.toast(t('glass_break'));
+      sfx.glass(); shake(0.4); screenFlash('#bfefff', 0.35); app.toast(t(d.half ? 'glass_half' : 'glass_break'));
       const [x, y] = [fx.mouse.x, fx.mouse.y]; spark(x, y, '#bfefff', 24); spark(x, y, '#ffffff', 10);
     },
     feed(d, app) {

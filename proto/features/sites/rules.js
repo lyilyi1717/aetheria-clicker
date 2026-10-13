@@ -67,6 +67,13 @@ const p = {
   twistHp: 1.3,                   // 'heavy': the ground is this much harder
   twistSight: 1,                  // 'dim': blocks you see around open space
   twistBarrel: 4,                 // 'barrels': a TNT in every 4th row
+  // Chili levels: a finished level can be dug again with 1 to 5 chili pips. Pip n puts the first n rules of the chili rule list
+  // (contracts feature) on, makes the ground chiliGround^n and every Big Rock (the Gate too) chiliRock^n harder, and pays.
+  chiliPips: 5,
+  chiliGround: 1.3, chiliRock: 1.7,
+  chiliStars: [0.5, 0.75, 1, 1.5, 2],             // Stars for the first clear of a pip, x what the level's floor is worth (starsAt)
+  chiliHitAt: { 3: 0.03, 5: 0.05 },               // clearing this pip adds this to your hit for ever (per level; they add up)
+  chiliHitCap: 1.6,                               // the most the chilies ever add (+160%)
 };
 
 // The first four sites, in order. Why this order: the Dunes teach the hit, the ore and the Big Rock. Powder Valley teaches
@@ -181,7 +188,20 @@ function legSync(s, ev) {
 }
 
 // ---------- the road: stamps ----------
-const blankStamp = (site, floor, twist) => ({ site, floor, twist: twist || '', fin: 0, fast: 0, hard: 0, best: 0, n: 0, bank: 0 });
+const blankStamp = (site, floor, twist) => ({ site, floor, twist: twist || '', fin: 0, fast: 0, hard: 0, chili: 0, best: 0, n: 0, bank: 0 });
+// chili pips cleared on a stamp (0 to 5). An old Hard medal counts as the first pip.
+export const pipsOf = st => Math.min(p.chiliPips, Math.max(st && st.chili || 0, st && st.hard ? 1 : 0));
+// the hit a pip adds when it is cleared (0 for most), and everything the chilies add now
+export const chiliGain = n => p.chiliHitAt[n] || 0;
+export function chiliHit(s) {
+  let sum = 0;
+  for (const st of Object.values(s.road.stamps)) { const n = pipsOf(st); for (let i = 1; i <= n; i++) sum += chiliGain(i); }
+  return Math.min(p.chiliHitCap, sum);
+}
+// Stars for clearing pip n of a level for the first time
+export const chiliPay = (floor, n) => Math.max(1, Math.round(starsAt(floor) * (p.chiliStars[n - 1] || 0)));
+// the chili count of a hard rule id ('chili3' -> 3), else 0
+export const chiliOfRule = id => { const m = /^chili(\d)$/.exec(id || ''); return m ? +m[1] : 0; };
 function stampOf(s, site, floor, twist) {
   const k = siteKey(site, floor, twist);
   return s.road.stamps[k] || (s.road.stamps[k] = blankStamp(site, floor, twist));
@@ -191,7 +211,7 @@ export const siteFinished = (s, site) => Object.values(s.road.stamps).some(st =>
 export const roadFinished = s => Object.values(s.road.stamps).filter(st => st.fin).length;
 
 function makeRun(site, floor, twist, hard) {
-  return { key: siteKey(site, floor, twist), site, floor, twist: twist || '', hard: hard || '', par: sitePar(floor, twist),
+  return { key: siteKey(site, floor, twist), site, floor, twist: twist || '', hard: hard || '', chili: chiliOfRule(hard), par: sitePar(floor, twist),
     clock: 0, done: false, time: 0, medals: { fin: 0, fast: 0, hard: 0 }, found: { chest: 0, ore: 0, bone: 0 }, paid: 0 };
 }
 // the run of the site in play (a save from before has none: the next Big Rock is its floor)
@@ -237,13 +257,28 @@ function finish(s, ev) {
   const st = stampOf(s, r.site, r.floor, r.twist);
   const first = !st.fin, fast = r.time <= runPar(r);
   let stars = first ? firstPay(r.floor, roadKind(r.site, r.floor, r.twist)) : replayPay(r.floor);
+  // a chili level: the first clear of a pip pays the pip's Stars and keeps its hit bonus for ever
+  let chili = null;
+  const cn = r.chili;
+  if (cn) {
+    if (cn > pipsOf(st) && s.contract === r.hard) {
+      st.chili = cn; if (!st.hard) { st.hard = 1; r.medals.hard = 1; }      // pip 1 is the old Hard medal
+      stars = chiliPay(r.floor, cn);
+      s.road.chiliHit = chiliHit(s);
+      chili = { n: cn, stars, gain: chiliGain(cn), hit: s.road.chiliHit };
+    }
+    // the rules end with the Gate; the ground goes on as hard as it was
+    const C = CONTRACTS[s.contract];
+    if (C && s.contract === r.hard) { if (C.end) C.end(s); s.contract = null; }
+  }
   s.stars += stars; r.paid += stars;
   st.fin = 1; r.medals.fin = 1;
   st.best = st.best ? Math.min(st.best, r.time) : r.time;
   s.road.reach = Math.max(s.road.reach, r.floor);
   if (fast) { r.medals.fast = 1; stars += award(s, ev, st, r.key, 'fast', medalPay(r.floor)); }
+  if (chili) emit(s, ev, 'chiliWon', { key: r.key, site: r.site, floor: r.floor, ...chili, pips: pipsOf(st) });
   emit(s, ev, 'siteFinished', { key: r.key, site: r.site, floor: r.floor, twist: r.twist, time: r.time, par: runPar(r), first, stars, fast,
-    medals: { fin: 1, fast: st.fast, hard: st.hard }, found: { ...r.found }, stamps: roadFinished(s) });
+    medals: { fin: 1, fast: st.fast, hard: st.hard }, found: { ...r.found }, stamps: roadFinished(s), chili: cn, chiliWon: !!chili });
 }
 
 // ---------- the deal ----------
@@ -252,7 +287,15 @@ function card(s, site, floor, twist, kind, hard) {
   const st = s.road.stamps[siteKey(site, floor, twist)];
   return { key: siteKey(site, floor, twist), site, floor, twist: twist || '', hard: hard || '', kind, par: sitePar(floor, twist),
     medals: { fin: st ? st.fin : 0, fast: st ? st.fast : 0, hard: st ? st.hard : 0 },
-    stars: st && st.fin ? replayPay(floor) : firstPay(floor, roadKind(site, floor, twist)), medalStars: medalPay(floor), hardRule: hardOf(site, floor) };
+    stars: st && st.fin ? replayPay(floor) : firstPay(floor, roadKind(site, floor, twist)), medalStars: medalPay(floor), hardRule: hardOf(site, floor), pips: st ? pipsOf(st) : 0 };
+}
+// the next chili of a finished level, as a card: { hard: 'chili3', chili: 3, chiliStars, chiliGain } or null (all five won, or a twist level)
+export function chiliCard(s, key) {
+  const st = s.road.stamps[key];
+  if (!st || !st.fin || st.twist || !siteOpen(s, st.site)) return null;
+  const n = pipsOf(st) + 1;
+  if (n > p.chiliPips || !CONTRACTS['chili' + n]) return null;
+  return { ...card(s, st.site, st.floor, st.twist, 'replay', 'chili' + n), chili: n, stars: chiliPay(st.floor, n), chiliGain: chiliGain(n) };
 }
 // the next level of the road, or null when the road is done: { site, floor, level (1 ...), of, tries }.
 // A level is passed when it is finished; one of the first four also when it was tried twice.
@@ -292,11 +335,11 @@ export function dealCards(s) {
   const fresh = open.filter(id => !siteFinished(s, id));
   if (fresh.length) add(card(s, pickOne(fresh), Math.max(p.baseFloor, reach - LAYER), '', 'new'));
   // 3. a medal still to win on a floor you have finished; a Hard one starts the dig under the contract
-  const left = stamps.filter(st => st.fin && siteOpen(s, st.site) && (!st.fast || (!st.hard && hardOf(st.site, st.floor))));
+  const left = stamps.filter(st => st.fin && siteOpen(s, st.site) && (!st.fast || (!st.twist && pipsOf(st) < p.chiliPips)));
   if (left.length) {
     left.sort((a, b) => (a.floor - b.floor) || (a.key < b.key ? -1 : 1));
-    const st = pickOne(left.slice(0, 3)), hr = hardOf(st.site, st.floor);
-    add(card(s, st.site, st.floor, st.twist, 'medal', !st.hard && hr && (st.fast || rnd() < 0.5) ? hr : ''));
+    const st = pickOne(left.slice(0, 3)), cc = st.twist ? null : chiliCard(s, st.key);
+    add(cc && (st.fast || rnd() < 0.5) ? { ...cc, kind: 'medal' } : card(s, st.site, st.floor, st.twist, 'medal', ''));
   }
   // 4. a twist stacked on a floor you have finished
   const plain = stamps.filter(st => st.fin && !st.twist && siteOpen(s, st.site));
@@ -318,7 +361,7 @@ export function newSite(s, site, ev = () => {}, patch, pick) {
   s.road.deal = null;
   reset(s, 'site', { ...(hard ? { contract: hard } : {}), ...patch, run });
   stampOf(s, site, floor, twist).n++;
-  emit(s, ev, 'newSite', { gain, stars: s.stars, key: run.key });
+  emit(s, ev, 'newSite', { gain, stars: s.stars, key: run.key, chili: run.chili });
   return true;
 }
 // a finished level dug again, from the map: plain rules (for the Fast time) or under its hard rule (for the Hard medal).
@@ -326,14 +369,14 @@ export function newSite(s, site, ev = () => {}, patch, pick) {
 export function replayCard(s, key, hard = false) {
   const st = s.road.stamps[key];
   if (!st || !st.fin || !siteOpen(s, st.site)) return null;
-  const hr = hard ? hardOf(st.site, st.floor) : '';
-  if (hard && (!hr || st.hard)) return null;
-  return card(s, st.site, st.floor, st.twist, 'replay', hr);
+  if (hard) return chiliCard(s, key);
+  return card(s, st.site, st.floor, st.twist, 'replay', '');
 }
 // a replay card must be for a stamp that is finished; every other card is taken as it is
 export const pickCard = (s, c, ev) => (c.kind === 'replay' && !replayCard(s, c.key, !!c.hard)) ? false : newSite(s, c.site, ev, undefined, c);
 
 const twistOf = s => (s.run && s.run.twist) || '';
+const chiliMul = (s, base) => { const r = s.run; return r && r.chili ? Math.pow(base, r.chili) : 1; };
 
 export const sites = use({
   id: 'sites',
@@ -369,10 +412,11 @@ export const sites = use({
   },
   mods: {
     coinMult:  { at: 20, fn: (v, s) => v * (1 + p.starCoin * s.stars) },
-    pickPower: { at: 20, fn: (v, s) => v * (1 + p.starPick * s.stars) },
+    pickPower: [{ at: 20, fn: (v, s) => v * (1 + p.starPick * s.stars) },
+      { at: 22, fn: (v, s) => v * (1 + (s.road.chiliHit || 0)) }],      // what the chilies added for ever ("Your hit")
     crewPower: { at: 20, fn: (v, s) => v * (1 + p.starPick * s.stars) },
     sight: (v, s) => (twistOf(s) === 'dim' ? Math.min(v, p.twistSight) : v),
-    bossHp: (v, s) => { const i = roadIndex(s) - FIXED.length; return i >= 0 && p.gateMul[i] !== undefined ? v * p.gateMul[i] : roadProve(s) ? v * p.proveHp : v; },   // the Gate of a road level has its own size (gateMul)
+    bossHp: (v, s) => { const i = roadIndex(s) - FIXED.length; return (i >= 0 && p.gateMul[i] !== undefined ? v * p.gateMul[i] : roadProve(s) ? v * p.proveHp : v) * chiliMul(s, p.chiliRock); },   // the Gate of a road level has its own size (gateMul); a chili level's is harder still
   },
   hooks: {
     // the start kit comes after the Star perks (starshop resets at 100): the larger of the two wins
@@ -389,7 +433,7 @@ export const sites = use({
     // a twist is stacked on the ground as it is made
     row(s, ctx) {
       const tw = twistOf(s);
-      const hm = (tw === 'heavy' ? p.twistHp : 1) * (roadProve(s) ? p.proveHp : 1);
+      const hm = (tw === 'heavy' ? p.twistHp : 1) * (roadProve(s) ? p.proveHp : 1) * chiliMul(s, p.chiliGround);
       if (hm !== 1) { for (const c of ctx.row) if (c && c.t !== 'boss') { c.hp = Math.round(c.hp * hm); c.max = c.hp; } }
       if (tw === 'barrels' && BLOCKS.tnt && ctx.r > 2 && ctx.r % p.twistBarrel === 0) ctx.put('tnt');
     },
