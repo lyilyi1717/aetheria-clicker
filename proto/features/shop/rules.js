@@ -12,7 +12,7 @@ export const coinShop = use({
   // wallet and levels are state keys: what you pay with, and where the levels are kept
   shops: { coin: { at: 10, wallet: 'coins', levels: 'up' } },
   items: {
-    pick: { at: 10, shop: 'coin', base: 10, grow: 1.5 },
+    pick: { at: 10, shop: 'coin', base: 15, grow: 1.5 },
     luck: { at: 40, shop: 'coin', base: 120, grow: 1.7, max: 20, levels: 'grind', open: s => s.bossesDown >= 1 || s.up.luck > 0 },
   },
   mods: {

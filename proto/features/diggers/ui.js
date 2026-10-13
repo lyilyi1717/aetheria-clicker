@@ -3,7 +3,6 @@ import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { fx, AT, rr, centre, text } from '../../ui/render.js';
 import { gap } from '../../ui/audio.js';
-import { n1 } from '../../ui/shop.js';
 import { S, badge, helmet } from '../../ui/icons.js';
 import { drawRafeeq, BLUES } from './art.js';
 
@@ -22,12 +21,10 @@ ui({
   id: 'diggers',
   icons: {
     up_crew: badge('#2f8f5b', helmet),
-    up_crewPow: badge('#2f8f5b', `<path d="M16 6 L25 16 H20 V26 H12 V16 H7 Z" fill="#ffd23f" ${S}/>`),
     karak: badge('#a8672c', `<path d="M8 12 H22 L20 26 H10 Z" fill="#fff" ${S}/><path d="M22 14 Q28 15 22 21" fill="none" ${S}/><path d="M12 9 Q11 6 13 4 M17 9 Q16 6 18 4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>`),
   },
   items: {
-    crew: { noLevel: true, desc: (s, lv) => t('up_crew_d', { a: lv }) },
-    crewPow: { desc(s) { const a = G.crewPower(s); s.up.crewPow++; const b = G.crewPower(s); s.up.crewPow--; return t('up_crewPow_d', { a: n1(a), b: n1(b) }); } },
+    crew: { noLevel: true, desc: (s, lv) => t('up_crew_d', { a: lv, p: Math.round(100 * G.crewShare(s)) }) },
   },
   draw: [{ at: AT.actors, fn(g, s, dt) { s.diggers.forEach((d, i) => drawDigger(g, s, d, i, dt)); } }],
   css: new URL('./diggers.css', import.meta.url).href,
@@ -48,8 +45,9 @@ ui({
   panels: [{
     id: 'crew', elId: 'crew', side: 'left', at: 14, title: 'crew_title', live: true,
     when: s => s.diggers.length > 0,
-    build(el) { el.insertAdjacentHTML('beforeend', '<div class="crew-rows"></div>'); },
+    build(el) { el.insertAdjacentHTML('beforeend', '<div class="crew-share"></div><div class="crew-rows"></div>'); },
     update(el, s, app) {
+      el.querySelector('.crew-share').textContent = t('crew_share', { p: Math.round(100 * G.crewShare(s)) });
       const box = el.querySelector('.crew-rows');
       while (box.children.length > s.diggers.length) box.lastChild.remove();
       while (box.children.length < s.diggers.length) {

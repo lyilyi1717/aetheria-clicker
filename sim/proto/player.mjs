@@ -52,7 +52,7 @@ export class Trk {
   constructor() {
     this.real = 0; this.act = 0; this.units = new Map(); this.marks = new Map(); this.win = {}; this.lastDec = 0; this.gaps = [];
     this.bestEver = 0; this.lastTotal = 0; this.lastUnit = 0; this.visited = new Set(['dunes']); this.chestN = 0; this.ugaps = []; this.lastU2 = 0; this.firstDig = null;
-    this.resets = []; this.left = 0; this.sessions = 0; this.curBest = 0; this.src = { hand: 0, crew: 0, tools: 0, away: 0 }; this.starShim = 0; this.finishes = []; this.medals = []; this.curFin = false; this.goal = 0; this.goalGaps = []; this.days = [];
+    this.resets = []; this.left = 0; this.sessions = 0; this.curBest = 0; this.src = { hand: 0, crew: 0, tools: 0, away: 0 }; this.blk = { hand: 0, crew: 0 }; this.starShim = 0; this.finishes = []; this.medals = []; this.curFin = false; this.goal = 0; this.goalGaps = []; this.days = [];
   }
   unit(id) { if (this.units.has(id)) return false; this.units.set(id, { r: this.real, a: this.act }); this.dec(); this.found(); const ug = this.act - this.lastU2; if (ug >= 300) this.ugaps.push({ start: this.lastU2, len: ug }); this.lastU2 = this.act; this.lastUnit = this.act; return true; }
   mark(id) { if (!this.marks.has(id)) this.marks.set(id, { r: this.real, a: this.act }); }
@@ -78,6 +78,7 @@ export function mkEv(s, trk) {
     if (k === 'unlock') trk.unit(d.id);     // a first time, as the rules report it
     else if (k === 'break') {
       const w = trk.w();
+      trk.blk[d.src === 'you' ? 'hand' : 'crew']++;
       if (d.src === 'you') { w.hb++; w.hc += d.coins; } else { w.cb++; w.cc += d.coins; }
       if (d.t === 'chest') trk.mark('first chest found');
       if (d.t === 'chest') { trk.chestN++; trk.found(); }
@@ -117,7 +118,7 @@ const COIN_ITEMS = Object.keys(G.ITEMS).filter(id => G.ITEMS[id].shop === 'coin'
 function shopCheck(s, ev, noCrew = false) {
   let n = 0;
   for (let guard = 0; guard < 50; guard++) {
-    const ids = COIN_ITEMS.filter(id => G.itemOpen(s, id) && G.canBuy(s, id) && !(noCrew && (id === 'crew' || id === 'crewPow')));
+    const ids = COIN_ITEMS.filter(id => G.itemOpen(s, id) && G.canBuy(s, id) && !(noCrew && id === 'crew'));
     if (!ids.length) break;
     let id;
     if (s.up.crew === 0 && ids.includes('crew')) id = 'crew';     // the new thing first
@@ -203,7 +204,7 @@ function wantsMove(s, ctx, trk) {
   if (s.contract) return null;
   if (stalled >= MOVE.giveUp) return 'move';
   let cheap = Infinity;
-  for (const id of ['pick', 'crewPow']) if (G.itemOpen(s, id)) cheap = Math.min(cheap, G.upgradeCost(s, id));
+  for (const id of ['pick']) if (G.itemOpen(s, id)) cheap = Math.min(cheap, G.upgradeCost(s, id));
   if (cheap - s.coins < ctx.inc * MOVE.far) return null;
   return r.clock >= MOVE.budget * r.par ? 'move' : null;
 }
@@ -297,7 +298,7 @@ export function play(s, ctx, secs, trk, opts = {}) {
   return false;
 }
 
-export function sample(s, trk) { const w = trk.w(); w.dig = s.diggers.length; w.crewPow = s.up.crewPow; w.pick = s.up.pick; }
+export function sample(s, trk) { const w = trk.w(); w.dig = s.diggers.length; w.crewPow = 0; w.pick = s.up.pick; }
 export function awayFor(s, ctx, secs, trk) {
   trk.real += secs;                       // first times found while away are stamped at the return
   const out = G.settleAway(s, secs, mkEv(s, trk));
@@ -317,10 +318,11 @@ export function awayFor(s, ctx, secs, trk) {
 // "fx" = every effect (blasts, lines, tools, relics, fire, falling blocks). A Big Rock counts apart.
 export const DMG = new WeakMap();
 G.use({ id: 'simprobe', mods: { damage: { at: 9999, fn(v, s, cell, src, info) {
-  let t = DMG.get(s); if (!t) DMG.set(s, t = { hand: 0, fx: 0, rockHand: 0, rockFx: 0 });
+  let t = DMG.get(s); if (!t) DMG.set(s, t = { hand: 0, fx: 0, rockHand: 0, rockFx: 0, crew: 0, crewRock: 0 });
   const direct = (src === 'you' && info.crit !== undefined) || (src === 'crew' && !info.chain);
   const rock = cell.t === 'boss', a = Math.min(v, cell.hp);
   if (a > 0 && !rock) { const k = src + ':' + Object.keys(info).sort().join('+'); (t.by || (t.by = {}))[k] = (t.by[k] || 0) + a; }
+  if (a > 0 && src === 'crew' && !info.chain) t[rock ? 'crewRock' : 'crew'] += a;     // a Rafeeq's own swings (not the blasts he sets off)
   if (a > 0) t[(rock ? 'rock' : '') + (direct ? (rock ? 'Hand' : 'hand') : (rock ? 'Fx' : 'fx'))] += a;
   return v;
 } } } });
@@ -331,7 +333,7 @@ export function newRun(profile, seed, noCrew = false) {
   return { s, ctx, trk };
 }
 export function endRun(R) {
-  R.dmg = DMG.get(R.s) || { hand: 0, fx: 0, rockHand: 0, rockFx: 0 };
+  R.dmg = DMG.get(R.s) || { hand: 0, fx: 0, rockHand: 0, rockFx: 0, crew: 0, crewRock: 0 };
   const dl = R.trk.act - R.trk.lastDec; if (dl >= 90) R.trk.gaps.push({ start: R.trk.lastDec, len: dl, open: true });
   return R;
 }

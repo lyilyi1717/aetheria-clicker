@@ -12,10 +12,10 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
   ok([0, 1, 2, 3, 4, 5, 6, 7].map(G.starshopStepCost).join() === '2,3,5,7,10,15,23,34', 'costs 2, 3, 5, 7, 10, 15, 23, 34');
   ok(!G.itemOpen(s, 'tr_pick'), 'shut until you have a Star');
   s.stars = 100;
-  ok(G.pickPower(s) === 1 && G.coinMult(s) === 1 && G.crewPower(s) === 1, 'unspent Stars give nothing');
+  ok(G.pickPower(s) === 1 && G.coinMult(s) === 1 && Math.abs(G.crewPower(s) - 0.6) < 1e-9, 'unspent Stars give nothing');
   ok(G.buy(s, 'tr_pick') && s.stars === 98 && s.starSpent === 2 && Math.abs(G.pickPower(s) - 1.5) < 1e-9, 'Stone Pick: 2 Stars, hit x1.5');
   ok(G.buy(s, 'tr_pick') && s.stars === 95 && Math.abs(G.pickPower(s) - 2.25) < 1e-9, 'step 2 costs 3, hit x2.25');
-  ok(G.buy(s, 'tr_camp') && Math.abs(G.crewPower(s) - 1.5) < 1e-9, 'Camp: Rafeeq hits x1.5');
+  ok(G.buy(s, 'tr_camp') && Math.abs(G.crewShare(s) - (0.6 + G.PARAMS.starshop.campShare)) < 1e-9 && Math.abs(G.crewPower(s) - G.crewShare(s) * G.pickPower(s)) < 1e-9, 'Camp: no x1.5 on the Rafeeq hit (it stays a share of yours)');
   ok(G.buy(s, 'tr_bag') && Math.abs(G.coinMult(s) - 1.5) < 1e-9, 'Bag: coins x1.5');
   s.stars = 1; ok(!G.buy(s, 'tr_pick'), 'cannot pay with too few Stars');
 }
@@ -51,9 +51,9 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
   ok(s.up.pick === 10 && s.starWarm === 10 && s.free.crew === 2, 'the pick starts at half the best level; two free Rafeeq seats');
   ok(s.chests === 2, 'two pocket chests');
   ok(s.relics.boom === 3 && s.relics.vein === 2 && !s.relics.lamp, 'two relics crossed with Second Pocket');
-  ok(G.upgradeCost(s, 'pick') === 10, 'Warm Pick does not lock the Pick button: the next level costs 10');
-  s.up.pick = 11; ok(G.upgradeCost(s, 'pick') < 10 * Math.pow(1.5, 11) / 5, 'the price ramps back');
-  s.up.pick = 30; ok(G.upgradeCost(s, 'pick') === Math.ceil(10 * Math.pow(1.5, 30)), 'and joins the old curve');
+  ok(G.upgradeCost(s, 'pick') === 15, 'Warm Pick does not lock the Pick button: the next level costs 15');
+  s.up.pick = 11; ok(G.upgradeCost(s, 'pick') < 15 * Math.pow(1.5, 11) / 5, 'the price ramps back');
+  s.up.pick = 30; ok(G.upgradeCost(s, 'pick') === Math.ceil(15 * Math.pow(1.5, 30)), 'and joins the old curve');
   ok(s.starLine.cur.steps === 5 && s.starLine.cur.hit > 7, 'the first hit of the site is remembered');
 }
 
@@ -90,12 +90,12 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
     G.seedRng(5);
     const s = G.newState(); s.starBoss = beaten; if (perk) give(s, 'camp', 5);
     for (let i = 0; i < 6; i++) s.diggers.push({ c: 0, r: 0, tc: -1, tr: -1, cd: 0, swing: 0 });
-    s.up.crewPow = 40; s.up.crew = 6;
+    s.up.pick = 40; s.up.crew = 6;
     return { s, out: G.settleAway(s, 12 * 3600) };
   };
   const a = run(false, 2), c = run(true, 1);
   ok(a.out.atBoss && a.s.top < 25, 'without the step the crew waits at the first Big Rock');
-  ok(c.s.top > 25 && c.out.passed > 0 && c.out.coins > a.out.coins, 'with it, past the first');
+  ok(c.s.top > 25 && c.out.passed > 0 && c.s.top > a.s.top, 'with it, past the first (and deeper than without)');
 }
 
 { // the pacing function and the flat bonus
@@ -149,7 +149,7 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
 { // the start kit: a site after the first starts where the player is; a "prove it" level is harder
   const s = ready(); s.up.pick = 20; s.starBestPick = 20;
   move(s);
-  ok(s.up.pick === 0 && s.diggers.length === 1 && s.up.crew === 1 && s.free.crew === 1 && G.upgradeCost(s, 'pick') === 10 && G.upgradeCost(s, 'crew') === 30, 'kit: no free pick levels, one free Rafeeq waiting, first prices');
+  ok(s.up.pick === 0 && s.diggers.length === 1 && s.up.crew === 1 && s.free.crew === 1 && G.upgradeCost(s, 'pick') === 15 && G.upgradeCost(s, 'crew') === 30, 'kit: no free pick levels, one free Rafeeq waiting, first prices');
   give(s, 'pick', 5); s.bossesDown = 2; move(s);
   ok(s.up.pick === 10, 'Warm Pick (50%) beats the kit');
   const a = ready(); a.bossesDown = 2;

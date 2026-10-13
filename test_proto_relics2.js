@@ -340,7 +340,7 @@ const noCrit = () => G.setParam('crits.chance', 0);
 { // the whole lot together, for a while: nothing throws, nothing is left half done
   G.seedRng(11);
   const s = G.newState();
-  s.coins = 1e7; s.up.pick = 14; s.up.crewPow = 10;
+  s.coins = 1e7; s.up.pick = 14;
   for (let i = 0; i < 4; i++) G.buy(s, 'crew');
   for (const id of IDS) s.relics[id] = 3;
   let n = 0;

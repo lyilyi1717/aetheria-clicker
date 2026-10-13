@@ -4,6 +4,7 @@ import { use, BLOCKS, emit, fold } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { cellAt, siteMult } from '../../core/grid.js';
 import { damage, later, rel, pickPower } from '../../core/rules.js';
+import { crewPower } from '../diggers/rules.js';
 import strings from './strings.js';
 
 const p = {
@@ -14,7 +15,7 @@ const p = {
 };
 
 // one hit of whoever caused it: your pick, or a Rafeeq's swing when a Rafeeq set it off
-export const hitOf = (s, src) => (src === 'crew' ? fold('crewPower', s, 1) : pickPower(s));
+export const hitOf = (s, src) => (src === 'crew' ? crewPower(s) : pickPower(s));
 
 // order a blast: opts { rad, dmg, src, delay, centre } (centre: the middle block is hit too)
 export function blastAt(s, r, c, opts) {
