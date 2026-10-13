@@ -125,6 +125,12 @@ export const boss = use({
         }
       }
     } }],
+    // the view stops following the dig while a standing Big Rock is in the bottom rows of the stage: the Rock stays down
+    // there, the dig above it stays on screen. It moves the picture only (a view rule).
+    holdView(s) {
+      for (let i = 0; i < VIEW_ROWS; i++) if (isBossRow(s.top + i) && s.rows[i].some(x => x)) return i <= VIEW_ROWS - 2;
+      return false;
+    },
     // the crew stops at a Big Rock and waits for you
     awayStop(s, r, out) {
       if (bossInView(s) || isBossRow(r + VIEW_ROWS - 2)) { out.atBoss = true; return true; }

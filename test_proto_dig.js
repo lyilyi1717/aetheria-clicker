@@ -112,6 +112,7 @@ const clearRow = (s, i) => { for (let c = 0; c < G.COLS; c++) s.rows[i][c] = nul
   old.stars = 9;
   const back = G.deserialize(JSON.stringify(old));
   ok(back && back.stars === 9 && back.top === s.top && back.rows[3].every(c => !c || c.max === 7), 'an old save loads with its ground and its Stars as they were');
+  back.rows.forEach((row, i) => { if (G.isBossRow(back.top + i)) clearRow(back, i); });   // the view holds at a standing Big Rock: break it so the view moves
   clearRow(back, 0); G.step(back, 0.01);
   const deep = back.rows[back.rows.length - 1].find(c => c && c.t === 'dirt');
   ok(!deep || deep.max === Math.round(G.dirtHp(back.top + back.rows.length - 1)), 'the next row it digs is the new ground');

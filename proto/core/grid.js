@@ -187,12 +187,15 @@ export function shiftRow(s) {
   s.top++;
   s.rows.push(genRow(s, s.top + s.rows.length));
 }
-// the view follows the dig: returns how many rows it moved
+// the view follows the dig: returns how many rows it moved. A hook `holdView(s)` may return true to keep the
+// view where it is (the Big Rock stays at the foot of the stage while it stands). This moves the picture only:
+// which blocks can be hit and what the crew can reach do not depend on it.
 export function scroll(s) {
   let n = 0;
   while (n < 4) {
     const topEmpty = s.rows[0].every(x => x === null);
     if (!topEmpty && deepestOpen(s) < 5) break;
+    if (has('holdView') && run('holdView', s)) break;
     shiftRow(s);
     n++;
   }

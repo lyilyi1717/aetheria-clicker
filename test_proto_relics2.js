@@ -345,7 +345,7 @@ const noCrit = () => G.setParam('crits.chance', 0);
   for (const id of IDS) s.relics[id] = 3;
   let n = 0;
   for (let i = 0; i < 4000; i++) {
-    if (i % 4 === 0) for (let k = 0; k < G.COLS; k++) { const c = (k + i) % G.COLS; let done = false; for (let r = 0; r < 4 && !done; r++) if (G.swing(s, s.top + r, c)) done = true; if (done) { n++; break; } }
+    if (i % 4 === 0) for (let k = 0; k < G.COLS; k++) { const c = (k + i) % G.COLS; let done = false; for (let r = 0; r < G.VIEW_ROWS && !done; r++) if (G.swing(s, s.top + r, c)) done = true; if (done) { n++; break; } }
     G.step(s, 0.05);
     while (s.chests > 0) G.takeRelic(s, G.rollDraft(s)[0] || null);
   }

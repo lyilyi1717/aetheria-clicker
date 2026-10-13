@@ -1,5 +1,5 @@
 // Dig feature (page side): the Big Rock. It draws its whole row (a face that watches the pick, a crack
-// that moves), owns the goal bar, and has its own hit and break moments.
+// that moves, its health bar and the hits left), and has its own hit and break moments.
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { fx, AT, CELL, W, H, SKY, rr, seeded, centre, yOf, onFx, debris, spark, text, shake, ring, coinBurst, screenFlash } from '../../ui/render.js';
@@ -45,23 +45,53 @@ function drawBoss(g, s, r, y) {
     g.beginPath(); g.moveTo(wx - 8, 6); g.lineTo(wx + 6, 22); g.lineTo(wx - 6, 34); g.lineTo(wx + 9, CELL - 6); g.stroke();
     g.strokeStyle = '#ff9d2e'; g.lineWidth = 2; g.stroke();
   }
-  // the face: it watches the pick
-  const cx = W / 2, cy = CELL / 2;
-  const hurt = bossShake > 0.2;
+  // the face: it watches the pick (a little smaller and higher, so the bar fits under it)
+  const hurt = bossShake > 0.2, FY = 23;
+  g.save(); g.translate(W / 2, FY); g.scale(0.8, 0.8);
   for (const dx of [-46, 46]) {
-    g.fillStyle = '#fff'; g.beginPath(); g.ellipse(cx + dx, cy - 2, 17, hurt ? 6 : 15, 0, 0, 7); g.fill();
+    g.fillStyle = '#fff'; g.beginPath(); g.ellipse(dx, -2, 17, hurt ? 6 : 15, 0, 0, 7); g.fill();
     g.strokeStyle = '#1c1830'; g.lineWidth = 2.5; g.stroke();
     if (!hurt) {
-      const ax = fx.mouse.x - (cx + dx), ay = fx.mouse.y - (y + cy), d = Math.hypot(ax, ay) || 1;
-      g.fillStyle = '#1c1830'; g.beginPath(); g.arc(cx + dx + ax / d * 7, cy - 2 + ay / d * 6, 7, 0, 7); g.fill();
+      const ax = fx.mouse.x - (W / 2 + dx), ay = fx.mouse.y - (y + FY), d = Math.hypot(ax, ay) || 1;
+      g.fillStyle = '#1c1830'; g.beginPath(); g.arc(dx + ax / d * 7, -2 + ay / d * 6, 7, 0, 7); g.fill();
     }
     g.strokeStyle = '#1c1830'; g.lineWidth = 6; g.beginPath();
-    g.moveTo(cx + dx - Math.sign(dx) * 22, cy - 26 + (frac < 0.4 ? 8 : 0)); g.lineTo(cx + dx + Math.sign(dx) * 16, cy - 18 - (frac < 0.4 ? 6 : 0)); g.stroke();
+    g.moveTo(dx - Math.sign(dx) * 22, -26 + (frac < 0.4 ? 8 : 0)); g.lineTo(dx + Math.sign(dx) * 16, -18 - (frac < 0.4 ? 6 : 0)); g.stroke();
   }
   g.strokeStyle = '#1c1830'; g.lineWidth = 5; g.beginPath();
-  if (frac < 0.4) { g.moveTo(cx - 14, cy + 20); g.quadraticCurveTo(cx, cy + 8, cx + 14, cy + 20); }
-  else { g.moveTo(cx - 16, cy + 18); g.lineTo(cx + 16, cy + 18); }
+  if (frac < 0.4) { g.moveTo(-14, 20); g.quadraticCurveTo(0, 8, 14, 20); }
+  else { g.moveTo(-16, 18); g.lineTo(16, 18); }
   g.stroke();
+  g.restore();
+  if (b && b.hp > 0) drawBar(g, s, b);
+  g.restore();
+}
+
+// The Rock's health, on the Rock: three layers (blue over yellow over red over a dark empty bar), nine ticks (dark once their
+// rubble has fallen), a thin strip of who did the damage (gold yours, blue the Rafeeqs'), and the hits left written on it.
+const BAR = { x: 16, y: 45, h: 14 };
+function drawBar(g, s, b) {
+  const bx = BAR.x, bw = W - BAR.x * 2, by = BAR.y, bh = BAR.h;
+  const f = Math.max(0, Math.min(1, b.hp / b.max)), n = Math.min(2, Math.floor(f * 3 - 1e-9)), part = Math.min(1, f * 3 - n);
+  const under = ['#0e0a07', '#e5533d', '#ffd23f'][n], top = ['#e5533d', '#ffd23f', '#4aa8ff'][n];
+  g.save();
+  rr(g, bx, by, bw, bh, 7); g.clip();
+  g.fillStyle = under; g.fillRect(bx, by, bw, bh);
+  g.fillStyle = top; g.fillRect(bx, by, bw * part, bh);
+  // who did the damage: a strip along the foot, from the right end (where the damage starts) inwards
+  const done = Math.max(0, 1 - b.hp / b.max), tot = (b.you || 0) + (b.crew || 0) || 1;
+  if (done > 0) {
+    const wd = bw * done, x0 = bx + bw - wd, wy = wd * (b.you || 0) / tot;
+    g.fillStyle = '#ffd23f'; g.fillRect(x0, by + bh - 4, wy, 4);
+    g.fillStyle = '#4aa8ff'; g.fillRect(x0 + wy, by + bh - 4, wd - wy, 4);
+  }
+  for (let i = 1; i < 10; i++) { g.fillStyle = i <= (b.rub || 0) ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.35)'; g.fillRect(bx + bw * (1 - i / 10) - 1, by, 2, bh); }
+  g.restore();
+  rr(g, bx, by, bw, bh, 7); g.strokeStyle = '#1c1830'; g.lineWidth = 2; g.stroke();
+  const label = t('rock_hits', { n: fmt(Math.max(1, Math.ceil(b.hp / G.pickPower(s)))) });
+  g.save(); g.font = '800 12px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineJoin = 'round'; g.lineWidth = 3.5; g.strokeStyle = 'rgba(14,10,7,.95)'; g.fillStyle = '#fff';
+  g.strokeText(label, W / 2, by + bh / 2 + 0.5); g.fillText(label, W / 2, by + bh / 2 + 0.5);
   g.restore();
 }
 
@@ -129,10 +159,10 @@ ui({
       app.banner(t('boss_down'), t('boss_down_sub', { n: fmt(d.coins) }));
     },
   },
-  // the goal bar: the Big Rock's hp while it is in view, else the way to the next one
+  // the goal line: the way to the next Big Rock. While a Rock stands its health is drawn on the Rock itself.
   goal: { at: 10, fn(s) {
     const b = G.bossInView(s);
-    if (b && b.hp > 0) return { text: t('goal_boss_hits', { n: fmt(Math.max(1, Math.ceil(b.hp / G.pickPower(s)))) }), frac: b.hp / b.max, cls: 'boss' };
+    if (b && b.hp > 0) return null;
     const next = (G.layerOf(s.best) + 1) * G.LAYER;
     return { text: t('goal_rock', { n: next }), frac: (s.best % G.LAYER) / G.LAYER };
   } },
@@ -153,49 +183,13 @@ ui({
     g.strokeText(label, fxp + 26, y - 14); g.fillText(label, fxp + 26, y - 14);
     g.restore();
   } }],
-  // the bar: nine ticks (lit once their rubble has fallen) and, on the empty part, what you did and what the Rafeeqs did
   mount() {
-    const bar = document.querySelector('#goal .bar');
-    if (!bar) return;
-    const box = document.createElement('div');
-    box.id = 'goal-split'; box.hidden = true;
-    box.innerHTML = '<i class="you"></i><i class="crew"></i>';
-    const ticks = document.createElement('div');
-    ticks.id = 'goal-ticks'; ticks.hidden = true;
-    for (let i = 1; i < 10; i++) { const k = document.createElement('i'); k.style.insetInlineStart = (100 - i * 10) + '%'; ticks.appendChild(k); }
-    const layers = document.createElement('div');   // the Rock's health in three stacked layers: blue, then yellow, then red
-    layers.id = 'goal-layers'; layers.hidden = true; layers.innerHTML = '<i></i>';
-    bar.append(layers, box, ticks);
     const rec = document.createElement('div');
     rec.id = 'hud-record'; rec.hidden = true;
     document.getElementById('stage').appendChild(rec);
   },
   tick(s, app) {
-    const layers = document.getElementById('goal-layers');
-    if (layers) {
-      const b = G.bossInView(s), on = !!(b && b.hp > 0);
-      layers.hidden = !on;
-      if (on) {
-        const f = Math.max(0, Math.min(1, b.hp / b.max)), n = Math.min(2, Math.floor(f * 3 - 1e-9)), part = f * 3 - n;
-        layers.dataset.layer = n;   // 2 blue on top of yellow, 1 yellow on top of red, 0 red on dark
-        layers.firstChild.style.width = (Math.min(1, part) * 100) + '%';
-      }
-    }
-    const box = document.getElementById('goal-split'), ticks = document.getElementById('goal-ticks'), rec = document.getElementById('hud-record');
-    if (box) {
-      const b = G.bossInView(s);
-      const on = !!(b && b.hp > 0);
-      box.hidden = ticks.hidden = !on;
-      if (on) {
-        const done = Math.max(0, 1 - b.hp / b.max), tot = (b.you || 0) + (b.crew || 0) || 1;
-        box.style.width = (done * 100) + '%';
-        box.firstChild.style.width = ((b.you || 0) / tot * 100) + '%';
-        box.lastChild.style.width = ((b.crew || 0) / tot * 100) + '%';
-        box.title = `${t('bar_you')} ${Math.round((b.you || 0) / tot * 100)}%   ${t('bar_crew')} ${Math.round((b.crew || 0) / tot * 100)}%`;
-        const paid = b.rub || 0;
-        [...ticks.children].forEach((k, i) => k.classList.toggle('paid', i + 1 <= paid));
-      }
-    }
+    const rec = document.getElementById('hud-record');
     if (rec) {
       rec.hidden = !(s.bestEver >= 1);
       if (!rec.hidden) rec.textContent = t('record_line', { n: s.bestEver });
