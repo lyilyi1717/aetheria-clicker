@@ -12,6 +12,7 @@ const p = {
   chance: 0.2, chanceCap: 0.9, second: 0.35,   // TNT in a row; a second barrel in the same row
   bangStep: 0.5,            // Big Bang: this much more TNT per level
   fuse: 0.12,               // seconds from break to blast
+  rockReach: 1,             // a blast also shakes a Big Rock this many rows beyond its own radius (the Rock is big)
 };
 
 // one hit of whoever caused it: your pick, or a Rafeeq's swing when a Rafeeq set it off
@@ -31,10 +32,21 @@ function behindWall(s, from, to) {
   return false;
 }
 
+// A blast that reaches a Big Rock takes a share of its bar (the Rock's own rule: boss.blastShare, with a cap per Rock),
+// times how big this blast is next to a plain barrel. A Rock is hit once per blast, however many of its blocks are in range.
+function rockOf(s, q) {
+  for (let dr = 1; dr <= q.rad + p.rockReach; dr++) {
+    if (isWall(s, q.r + dr) && !behindWall(s, q.r, q.r + dr)) return q.r + dr;
+    if (isWall(s, q.r + dr)) return -1;
+  }
+  return -1;
+}
 function blast(s, q, ev) {
   if (q.centre) damage(s, q.r, q.c, q.dmg, q.src, ev, { chain: 1 });
   emit(s, ev, 'blast', { r: q.r, c: q.c, rad: q.rad });
-  let hitWall = false;
+  const rr = rockOf(s, q);
+  if (rr >= 0) damage(s, rr, q.c, q.dmg, q.src, ev, { chain: 1, blast: q.dmg / (hitOf(s, q.src) * p.power) });
+  let hitWall = rr >= 0;
   for (let dr = -q.rad; dr <= q.rad; dr++) {
     for (let dc = -q.rad; dc <= q.rad; dc++) {
       if (!dr && !dc) continue;
@@ -42,7 +54,7 @@ function blast(s, q, ev) {
       if (!cell) continue;
       if (behindWall(s, q.r, q.r + dr)) continue;   // a blast never reaches past a Big Rock
       const B = BLOCKS[cell.t];
-      if (B.wall) { if (hitWall) continue; hitWall = true; }   // and counts once against it
+      if (B.wall) { if (hitWall) continue; hitWall = true; }   // and counts once against it (above: the Rock was already hit)
       if (B.chain) {           // chains, a beat later
         if (!cell.q) { cell.q = true; later(s, 0.14 + 0.05 * (Math.abs(dr) + Math.abs(dc)), 'pop', { r: q.r + dr, c: q.c + dc, src: q.src, chain: 1 }); }
         continue;

@@ -46,6 +46,9 @@ const p = {
   kitPick: 0,                     // the kit gives no free pick levels (they made every level 5 times faster, see the PR); Warm Pick still does
   kitCrew: 1,                     // Rafeeqs waiting (Rafeeq Waiting raises it)
   proveHp: 6,                     // the second level of a depth ("prove it") has ground this much harder (was 4: one try, now 1 to 3)
+  // The Gate of each road level after the lessons, as a multiple of the ground's formula (docs/dig-design.md 2.3c): sized so that
+  // "the Gate in your hits" (the bar's number) at the pick you bring grows gently from level to level instead of jumping.
+  gateMul: [0.44, 8.87, 0.371, 7.49, 0.278, 7.99, 0.201, 6.23, 0.257, 9.43, 0.234, 9.45, 0.126, 6.37, 0.0645, 4.34],
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom
   baseFloor: 50,                  // where a Gate is when no card says (old saves, the contracts board)
@@ -369,7 +372,7 @@ export const sites = use({
     pickPower: { at: 20, fn: (v, s) => v * (1 + p.starPick * s.stars) },
     crewPower: { at: 20, fn: (v, s) => v * (1 + p.starPick * s.stars) },
     sight: (v, s) => (twistOf(s) === 'dim' ? Math.min(v, p.twistSight) : v),
-    bossHp: (v, s) => (roadProve(s) ? v * p.proveHp : v),          // the Gate of a "prove it" level is as much harder
+    bossHp: (v, s) => { const i = roadIndex(s) - FIXED.length; return i >= 0 && p.gateMul[i] !== undefined ? v * p.gateMul[i] : roadProve(s) ? v * p.proveHp : v; },   // the Gate of a road level has its own size (gateMul)
   },
   hooks: {
     // the start kit comes after the Star perks (starshop resets at 100): the larger of the two wins

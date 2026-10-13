@@ -1,6 +1,6 @@
 // Dig feature: the Big Rock. One guards the first row of every layer but the first. It is one block
 // as wide as the ground, with its own hp and a glowing crack that moves; hits on the crack count more.
-import { use, emit, run, fold, layersOf, BLOCKS } from '../../core/registry.js';
+import { use, emit, run, fold, layersOf, BLOCKS, PARAMS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, LAYER, layerOf, dirtHp, dirtVal, setCell } from '../../core/grid.js';
 import { addCoins, coinMult, pickPower, canBuy, upgradeCost } from '../../core/rules.js';
@@ -13,6 +13,7 @@ const p = {
   layerHp: 0.5,                   // and this much more per layer
   pay: 120,                       // Big Rock coins, in dirt blocks of its row
   weakMult: 3, weakSeconds: 1.7,  // the crack: hits on it count 3 times, and it moves
+  blastShare: 0.02, blastCap: 0.3, // a plain TNT blast that reaches a Rock takes this share of its bar (bigger blasts more); blasts take at most this share in all
   chainCap: 12,                   // a blast or a thrown thing does at most this many of your hits to a Big Rock
   // Rubble: at every tenth of the bar (1 to 9; the tenth is the break itself) the Rock sheds some.
   // In total the nine pay this many times the Rock's own break pay (0.5: half again; tuned so the first ten minutes move less than 15%).
@@ -35,12 +36,16 @@ export function bossStuck(s) {
 }
 // The best next step: { kind: 'spend' | 'side' | 'leave' | 'more', n } (n: the cost, the pay, or the Stars)
 export function bossAdvice(s) {
-  if (canBuy(s, 'tr_pick')) return { kind: 'spend', n: upgradeCost(s, 'tr_pick') };
+  // the next Pick step makes your hit x(step): say what that does to the Rock in the bar's own unit, your hits
+  const b = s.boss, step = (PARAMS.starshop && PARAMS.starshop.step) || 1.5;
+  const hits = b && b.hp > 0 ? Math.max(1, Math.ceil(b.hp / pickPower(s))) : 0, after = hits ? Math.max(1, Math.ceil(hits / step)) : 0;
+  const out = (kind, n) => ({ kind, n, hits, after });
+  if (canBuy(s, 'tr_pick')) return out('spend', upgradeCost(s, 'tr_pick'));
   const need = upgradeCost(s, 'tr_pick') - s.stars;
   const side = dealCards(s).filter(c => c.kind !== 'fixed' && c.stars >= need).sort((a, b) => b.stars - a.stars)[0];
-  if (side) return { kind: 'side', n: side.stars };
-  if (canNewSite(s)) return { kind: 'leave', n: starsFor(s) };
-  return { kind: 'more', n: 0 };
+  if (side) return out('side', side.stars);
+  if (canNewSite(s)) return out('leave', starsFor(s));
+  return out('more', 0);
 }
 
 export const isBossRow = r => r > 0 && r % LAYER === 0;
@@ -144,7 +149,13 @@ export const boss = use({
       if (b.hp <= 0) return false;
       // A blast, a thrown rock, a tool: strong by the ground's measure, so capped by yours. The Rock is
       // the wall of the pacing curve (docs/dig-pacing.md) and only your own strength brings it down.
-      if (info.chain && !info.tool) dmg = Math.min(dmg, pickPower(s) * p.chainCap);   // a Forge tool is counted in your hits already
+      let blast = false;
+      if (info.blast && dmg > 0) {                      // TNT: a share of the bar, so you see it; a cap per Rock, so TNT alone never skips it
+        const room = Math.max(0, p.blastCap * b.max - (b.blasted || 0));
+        dmg = Math.min(b.max * p.blastShare * info.blast, room, b.hp);
+        if (!(dmg > 0)) return false;
+        b.blasted = (b.blasted || 0) + dmg; blast = true;
+      } else if (info.chain && !info.tool) dmg = Math.min(dmg, pickPower(s) * p.chainCap);   // a Forge tool is counted in your hits already
       const weak = src === 'you' && c === b.weak;       // the glowing crack: aim for it
       if (weak) dmg *= p.weakMult;
       const done = Math.min(dmg, b.hp);                 // who did how much, for the two-colour bar
@@ -152,7 +163,7 @@ export const boss = use({
       if (src === 'crew') b.crew = (b.crew || 0) + done; else b.you = (b.you || 0) + done;
       b.hp -= dmg;
       gateBank(s, b, done);
-      emit(s, ev, 'hit', { r, c, t: 'boss', dmg, src, crit: info.crit, weak, frac: Math.max(0, b.hp / b.max) });
+      emit(s, ev, 'hit', { r, c, t: 'boss', dmg, src, crit: info.crit, weak, blast, share: dmg / b.max, frac: Math.max(0, b.hp / b.max) });
       if (b.hp <= 0) bossDown(s, r, src, ev); else shed(s, r, b, c, src, ev);
       return b.hp <= 0;
     } },
