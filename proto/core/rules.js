@@ -197,7 +197,7 @@ export function upgradeCost(s, id) {
 }
 export function canBuy(s, id) {
   const u = ITEMS[id];
-  return (u.max === undefined || itemLevel(s, id) < u.max) && s[SHOPS[u.shop].wallet] >= upgradeCost(s, id);
+  return itemOpen(s, id) && (u.max === undefined || itemLevel(s, id) < u.max) && s[SHOPS[u.shop].wallet] >= upgradeCost(s, id);
 }
 export function buy(s, id, ev = NOEV) {
   if (!ITEMS[id] || !canBuy(s, id)) return false;

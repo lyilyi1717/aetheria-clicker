@@ -8,7 +8,7 @@
 // Away: the away rules do not ask which job runs (the crew is always spent straight down), so the
 // choice does not change the settlement. Tea counts as normal speed there (it is break-even).
 // Opens no mod; folds `crewRate` while a tea rush is on. Exports: foremanSet, foremanJobs, foremanGlad.
-import { use, emit, POLICIES, BLOCKS } from '../../core/registry.js';
+import { use, emit, fold, POLICIES, BLOCKS } from '../../core/registry.js';
 import { COLS, VIEW_ROWS, reachable, visibleMask } from '../../core/grid.js';
 import strings from './strings.js';
 
@@ -110,7 +110,7 @@ export const foreman = use({
       if (s.crewJob !== 'tea') return;
       const T = s.foreTea;
       T.t += dt;
-      const len = T.ph === 'break' ? p.teaBreak : p.teaRush;
+      const len = T.ph === 'break' ? fold('teaBreak', s, p.teaBreak) : p.teaRush;
       if (T.t >= len) {
         T.t = 0; T.ph = T.ph === 'break' ? 'rush' : 'break';
         if (T.ph === 'break') for (const d of s.diggers) { d.tr = -1; d.tc = -1; }   // sit down

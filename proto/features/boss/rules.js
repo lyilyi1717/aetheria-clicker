@@ -1,6 +1,6 @@
 // Dig feature: the Big Rock. One guards the first row of every layer but the first. It is one block
 // as wide as the ground, with its own hp and a glowing crack that moves; hits on the crack count more.
-import { use, emit, run, layersOf, BLOCKS } from '../../core/registry.js';
+import { use, emit, run, fold, layersOf, BLOCKS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, LAYER, layerOf, dirtHp, dirtVal, setCell } from '../../core/grid.js';
 import { addCoins, coinMult, pickPower } from '../../core/rules.js';
@@ -119,7 +119,7 @@ export const boss = use({
       if (b && b.hp > 0) {
         b.wt = (b.wt === undefined ? p.weakSeconds : b.wt) - dt;
         if (b.wt <= 0) {
-          b.wt = p.weakSeconds;
+          b.wt = fold('crackSeconds', s, p.weakSeconds);
           let c; do { c = Math.floor(rnd() * COLS); } while (c === b.weak);
           b.weak = c;
         }

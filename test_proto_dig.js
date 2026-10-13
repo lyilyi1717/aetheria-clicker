@@ -22,7 +22,7 @@ const clearRow = (s, i) => { for (let c = 0; c < G.COLS; c++) s.rows[i][c] = nul
 { // buying
   const s = G.newState();
   ok(!G.buy(s, 'pick'), 'cannot buy with no coins');
-  s.coins = 1000;
+  s.coins = 1000; s.total = 1000;
   const before = G.pickPower(s);
   ok(G.buy(s, 'pick') && G.pickPower(s) > before, 'a pick level raises the hit');
   ok(G.buy(s, 'crew') && s.diggers.length === 1, 'hiring adds a digger');
@@ -71,7 +71,7 @@ const clearRow = (s, i) => { for (let c = 0; c < G.COLS; c++) s.rows[i][c] = nul
   const s = G.newState();
   const none = G.settleAway(s, 3600);
   ok(none.coins === 0 && s.coins === 0, 'no diggers, nothing changes');
-  s.coins = 1e9; G.buy(s, 'crew'); for (let i = 0; i < 30; i++) G.buy(s, 'crewPow');
+  s.coins = 1e9; s.total = 1e9; G.buy(s, 'crew'); for (let i = 0; i < 30; i++) G.buy(s, 'crewPow');
   const coins = s.coins;
   const out = G.settleAway(s, 8 * 3600);
   ok(out.coins > 0 && s.coins === coins + out.coins, 'time away pays');

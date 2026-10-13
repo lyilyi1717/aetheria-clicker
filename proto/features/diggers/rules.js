@@ -27,6 +27,7 @@ let cur = null;      // the Rafeeq whose hit is being settled right now (for his
 
 export const crewPower = s => fold('crewPower', s, 1);
 export const crewRate = s => fold('crewRate', s, p.rate);
+export const crewWalk = s => fold('crewWalk', s, p.walk);
 
 // "beside me, and below": the row the player last hit and the ones under it, nearest his column.
 // The rows above are the cheap ground that scrolled away from him; the valuable ground is where he digs.
@@ -75,8 +76,8 @@ function chooseTarget(s, d) {
 function sieve(s, d, dt, ev) {
   const sr = rock.row - 1, sc = (s.diggers.indexOf(d) * 3 + 1) % COLS;
   const dc = sc - d.c, drr = sr - d.r;
-  d.c += Math.sign(dc) * Math.min(Math.abs(dc), dt * p.walk);
-  d.r += Math.sign(drr) * Math.min(Math.abs(drr), dt * p.walk);
+  d.c += Math.sign(dc) * Math.min(Math.abs(dc), dt * crewWalk(s));
+  d.r += Math.sign(drr) * Math.min(Math.abs(drr), dt * crewWalk(s));
   if (Math.abs(dc) > 0.05 || Math.abs(drr) > 0.05) return;
   d.cd -= dt;
   if (d.cd <= 0) {
@@ -143,8 +144,8 @@ export const diggers = use({
           if (d.tr < 0) continue;
           const dc = d.tc - d.c, drr = d.tr - d.r;
           const moving = Math.abs(dc) > 0.05 || Math.abs(drr) > 0.05;
-          d.c += Math.sign(dc) * Math.min(Math.abs(dc), dt * p.walk);
-          d.r += Math.sign(drr) * Math.min(Math.abs(drr), dt * p.walk);
+          d.c += Math.sign(dc) * Math.min(Math.abs(dc), dt * crewWalk(s));
+          d.r += Math.sign(drr) * Math.min(Math.abs(drr), dt * crewWalk(s));
           if (moving) continue;
           d.cd -= dt;
           if (d.cd <= 0) {

@@ -78,7 +78,8 @@ function showFinish(app, d) {
   go.addEventListener('click', () => { app.modal.close(); openNext(app); });
   // the Stars count up
   let n = 0;
-  const step = () => { n = Math.min(d.stars, n + 1); earn.textContent = t('fin_stars', { n }); if (n < d.stars && m.isConnected) setTimeout(step, 150); };
+  const inc = Math.max(1, Math.ceil(d.stars / 8));       // eight ticks at most: a big prize is not a long wait
+  const step = () => { n = Math.min(d.stars, n + inc); earn.textContent = t('fin_stars', { n }); if (n < d.stars && m.isConnected) setTimeout(step, 150); };
   setTimeout(step, 700);
   sfx.star(); screenFlash('#fff', 0.6); shake(0.6);
   return true;

@@ -83,9 +83,12 @@ export const fusionMelted = (s, half) => !!s.fusion.melted[half];
 export const fusionHeld = (s, id) => !!s.relics[fusionRelic(id)];
 const live = (s, id) => { const f = BY[id]; return !!(s.relics[fusionRelic(id)] && rel(s, f.a) && rel(s, f.b)); };
 export const fusionNeed = (s, id) => (s.fusionBook.stamped[id] ? p.masterNeed : p.fullNeed);
+// a half that tops out below that (Bigger Bang, the Dinar, the Derrick: two levels) is ready at its top level
+export const fusionHalfNeed = (s, id, half) => Math.min(fusionNeed(s, id), (RELICS[half] && RELICS[half].max) || Infinity);
 export function fusionCan(s, id) {
-  const f = BY[id], n = fusionNeed(s, id);
-  return !!f && !fusionHeld(s, id) && !s.fusion.melted[f.a] && !s.fusion.melted[f.b] && rel(s, f.a) >= n && rel(s, f.b) >= n;
+  const f = BY[id];
+  return !!f && !fusionHeld(s, id) && !s.fusion.melted[f.a] && !s.fusion.melted[f.b]
+    && rel(s, f.a) >= fusionHalfNeed(s, id, f.a) && rel(s, f.b) >= fusionHalfNeed(s, id, f.b);
 }
 export const fusionReady = s => FUSIONS.filter(f => fusionCan(s, f.id)).map(f => f.id);
 export function fusionDo(s, id, ev = () => {}) {
