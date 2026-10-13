@@ -34,24 +34,25 @@ const PRIO = ['boom', 'vein', 'deep', 'wide', 'lucky', 'heavy', 'shiny', 'streak
 export const DEPTHS = [10, 25, 30, 50, 60, 75, 100, 125, 150, 175, 200, 225, 250];
 
 // ---------- the move policy (stated in docs/dig-pacing.md) ----------
-// The player moves to a New Site when ALL of these hold:
-//   1. the move is allowed (the rules' canNewSite) and no contract is running;
-//   2. the dig has stalled: no new metre for `stall` attended seconds (45 s for the mid player), and a
-//      Big Rock in view is not about to break (at the pace of the last look it needs more than rockWait s);
-//   3. the next pick or training level is far: more than `far` seconds of the income of the last minute;
-//   4. the move pays: the Stars on offer are at least `share` of every Star earned so far.
-// A dig that has been stalled for `giveUp` seconds: the player moves if the offer is at least `low` of
-// his Stars; if not he closes the page and lets the Rafeeqs work (a session cut short), or, in a sim
-// with no sessions, moves anyway. When it moves it takes an open contract first if a feature's bot
-// offers one, else a site it has not seen, else any other open site.
-export const MOVE = { far: 90, share: 0.2, rockWait: 150, giveUp: 240, low: 0.05 };
+// A site has a bottom (the Gate, proto/features/sites). The scripted player:
+//   1. finishes the site if it can: it digs on until the Gate breaks;
+//   2. moves on at once when the site is finished ("Next site");
+//   3. otherwise leaves when the move is allowed (the second Big Rock is down), no contract is running, and the dig
+//      has stalled: no new metre for `stall` attended seconds (45 s for the mid player), no Big Rock in view is about to
+//      break (at the pace of the last look it needs more than rockWait s), the next pick or training level is far
+//      (more than `far` seconds of income) and the attended time on the site is past `budget` times its par time;
+//      a dig stalled for `giveUp` seconds leaves whatever the budget says (or, in a session, closes the page).
+// The card: from the fixed road it takes the only card; from a deal it takes the one it can do (its floor is at most one
+// Big Rock beyond the deepest floor finished, or 75 m), preferring a stretch, then a new place, then a twist; a medal card
+// when it wants a Fast medal (`fastTry`) or a Hard one (`hardTry`).
+export const MOVE = { far: 90, rockWait: 150, giveUp: 240, budget: 4, retry: 1.5, fastTry: 0.35, hardTry: 0.25 };
 
 // ---------- tracker ----------
 export class Trk {
   constructor() {
     this.real = 0; this.act = 0; this.units = new Map(); this.marks = new Map(); this.win = {}; this.lastDec = 0; this.gaps = [];
     this.bestEver = 0; this.lastTotal = 0; this.lastUnit = 0; this.visited = new Set(['dunes']); this.chestN = 0; this.ugaps = []; this.lastU2 = 0; this.firstDig = null;
-    this.resets = []; this.left = 0; this.sessions = 0; this.curBest = 0; this.src = { hand: 0, crew: 0, tools: 0, away: 0 }; this.starShim = 0; this.goal = 0; this.goalGaps = []; this.days = [];
+    this.resets = []; this.left = 0; this.sessions = 0; this.curBest = 0; this.src = { hand: 0, crew: 0, tools: 0, away: 0 }; this.starShim = 0; this.finishes = []; this.medals = []; this.curFin = false; this.goal = 0; this.goalGaps = []; this.days = [];
   }
   unit(id) { if (this.units.has(id)) return false; this.units.set(id, { r: this.real, a: this.act }); this.dec(); this.found(); const ug = this.act - this.lastU2; if (ug >= 300) this.ugaps.push({ start: this.lastU2, len: ug }); this.lastU2 = this.act; this.lastUnit = this.act; return true; }
   mark(id) { if (!this.marks.has(id)) this.marks.set(id, { r: this.real, a: this.act }); }
@@ -94,15 +95,17 @@ export function mkEv(s, trk) {
     } else if (k === 'set') trk.mark('first set');
     else if (k === 'gusher') trk.mark('first oil gusher');
     else if (k === 'wingPiece') { if (d.isNew) trk.found(); }
-    else if (k === 'newSite') {
-      // The Star curve lives in the core (G.starsAt). Until the sites feature pays by it, the sim pays the
-      // difference here so the model can be checked; once it is wired this is a no-op (see docs/dig-pacing.md).
-      const want = G.starsAt(trk.curBest, s.land, d.stars - d.gain + (s.starSpent || 0));
-      if (d.gain !== want) { s.stars += want - d.gain; trk.starShim++; }
+    else if (k === 'siteFinished') {
+      trk.curFin = true;
+      trk.finishes.push({ r: trk.real, a: trk.act, key: d.key, floor: d.floor, time: d.time, par: d.par, stars: d.stars, fast: d.fast, first: d.first });
+      trk.mark('finish #' + trk.finishes.length); trk.dec();
+    } else if (k === 'siteMedal') {
+      trk.medals.push({ r: trk.real, medal: d.medal, key: d.key, stars: d.stars }); trk.found();
+    } else if (k === 'newSite') {
       trk.visited.add(s.site);
-      trk.resets.push({ r: trk.real, a: trk.act, best: trk.curBest, gain: want, had: s.stars + (s.starSpent || 0) - want, need: G.starsToStand(Math.max(0, trk.curBest - 1)), stars: s.stars + (s.starSpent || 0), contract: trk.curContract || null });
+      trk.resets.push({ r: trk.real, a: trk.act, best: trk.curBest, gain: d.gain, had: s.stars + (s.starSpent || 0) - d.gain, need: G.starsToStand(Math.max(0, trk.curBest - 1)), stars: s.stars + (s.starSpent || 0), contract: trk.curContract || null, fin: trk.curFin, key: d.key });
       trk.mark('new site #' + (trk.resets.length + 1)); trk.dec();
-      trk.curBest = 0; trk.curContract = s.contract || null;
+      trk.curBest = 0; trk.curContract = s.contract || null; trk.curFin = false;
     }
   };
 }
@@ -185,10 +188,11 @@ function handSwing(s, ctx, ev, trk) {
 }
 
 // ---------- moving ----------
-const lifeStars = s => s.stars + (s.starSpent || 0);
 // 'move', 'leave' (nothing left to do here today) or null
 function wantsMove(s, ctx, trk) {
-  const stalled = trk.act - ctx.bestAt;
+  const r = G.siteRun(s), stalled = trk.act - ctx.bestAt;
+  if (!G.canNewSite(s)) return !s.contract && stalled >= MOVE.giveUp ? 'leave' : null;
+  if (r.done && !s.contract) return 'move';                      // finished: Next site
   if (stalled < ctx.p.stall) return null;
   // a Big Rock that is going down is worth the wait
   const b = s.boss;
@@ -196,26 +200,39 @@ function wantsMove(s, ctx, trk) {
     const rate = (ctx.rock.hp - b.hp) / Math.max(1, trk.act - ctx.rock.t);
     if (b.hp / rate < MOVE.rockWait) return null;
   }
+  if (s.contract) return null;
+  if (stalled >= MOVE.giveUp) return 'move';
   let cheap = Infinity;
   for (const id of ['pick', 'crewPow']) if (G.itemOpen(s, id)) cheap = Math.min(cheap, G.upgradeCost(s, id));
   if (cheap - s.coins < ctx.inc * MOVE.far) return null;
-  const can = G.canNewSite(s) && !s.contract, gain = can ? G.starsAt(s.best, s.land, lifeStars(s)) : 0;
-  if (can && gain >= Math.max(1, MOVE.share * lifeStars(s))) return 'move';
-  if (stalled < MOVE.giveUp) return null;
-  if (can && gain >= Math.max(1, MOVE.low * lifeStars(s))) return 'move';
-  return s.contract ? null : 'leave';
+  return r.clock >= MOVE.budget * r.par ? 'move' : null;
+}
+// the card the player takes
+const lifeStars = s => s.stars + (s.starSpent || 0);
+function chooseCard(s, cards, ctx) {
+  if (cards.length === 1) return cards[0];
+  const reach = s.road.reach, fails = ctx.fails || (ctx.fails = {});
+  // doable: a floor already finished, or the next one, unless it failed lately and the Stars have not grown by half since
+  const doable = c => c.floor <= reach || (c.floor <= Math.max(reach + 25, 75) && !(fails[c.floor] && lifeStars(s) < fails[c.floor] * MOVE.retry));
+  const score = c => {
+    let v = { stretch: 3, new: 2, twist: 1, medal: 0, fixed: 5 }[c.kind] + rnd() * 0.5;
+    if (c.kind === 'medal' && !c.medals.fast && rnd() < MOVE.fastTry) v += 4;
+    if (c.hard) v += rnd() < MOVE.hardTry ? 4 : -6;
+    return v - (doable(c) ? 0 : 100);
+  };
+  return cards.map(c => [score(c), c]).sort((a, b) => b[0] - a[0])[0][1];
 }
 function move(s, ctx, trk, ev) {
-  // a contract first, if a feature's bot takes one (it moves by itself)
-  for (const b of G.BOTS) if (b.id === 'contracts' && b.shop && b.shop(s, { ev, ctx, trk, rnd })) return afterMove(s, ctx, trk);
-  const open = Object.keys(G.SITES).filter(id => G.siteOpen(s, id) && id !== s.site);
-  const fresh = open.filter(id => !trk.visited.has(id));
-  const pool = fresh.length ? fresh : open;
-  if (!pool.length || !G.newSite(s, pool[Math.floor(rnd() * pool.length)], ev)) return false;
+  const r = G.siteRun(s);
+  if (r.done) delete (ctx.fails || {})[r.floor];
+  else { (ctx.fails || (ctx.fails = {}))[r.floor] = lifeStars(s); }          // it gave this floor up: not again until the Stars have grown
+  const c = chooseCard(s, G.dealCards(s), ctx);
+  if (!G.pickCard(s, c, ev)) return false;
+  if (s.contract) { ctx.cBuyEvery = ctx.cBuyEvery || ctx.p.buyEvery; ctx.cTried = ctx.cTried || {}; ctx.cTried[s.contract] = 1; ctx.cWas = true; ctx.cStart = trk.act; ctx.cLogged = ctx.cLogged || {}; }
   return afterMove(s, ctx, trk);
 }
 function afterMove(s, ctx, trk) {
-  trk.lastTotal = s.total; ctx.tg = null; ctx.busy = 4; ctx.col = 4; ctx.bestAt = trk.act; ctx.bestSeen = 0; ctx.rock = null; ctx.incTot = s.total; ctx.incT = trk.act; ctx.inc = 0;
+  trk.lastTotal = s.total; ctx.tg = null; ctx.busy = 4; ctx.col = 4; ctx.bestAt = trk.act; ctx.bestSeen = 0; ctx.rock = null; ctx.siteAt = trk.act; ctx.incTot = s.total; ctx.incT = trk.act; ctx.inc = 0;
   return true;
 }
 

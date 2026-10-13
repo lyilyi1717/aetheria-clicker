@@ -20,19 +20,17 @@ use({
     val0: 1, valGrow: 1.10, valGrow2: 1.10,
     // layers 3 and 4, the Deep's four, then everything below (the last entry goes on for ever)
     grow: [
-      { hp: 1.14, val: 1.10, step: 2, share: 0.35 },    // 50 m: water
-      { hp: 1.17, val: 1.10, step: 20, share: 0.06 },    // 75 m: crystal
-      { hp: 1.20, val: 1.10, step: 8, share: 0.018 },   // 100 m: The Black
-      { hp: 1.20, val: 1.10, step: 8, share: 0.017 },   // 125 m: The Living Rock
-      { hp: 1.20, val: 1.10, step: 8, share: 0.0156 },  // 150 m: The Angry Layer
-      { hp: 1.20, val: 1.10, step: 8, share: 0.0144 },  // 175 m: The Hot Layer
-      { hp: 1.22, val: 1.10, step: 8, share: 0.02 },   // 200 m and below: nothing new yet
+      { hp: 1.14, val: 1.10, step: 2 },    // 50 m: water
+      { hp: 1.17, val: 1.10, step: 20 },    // 75 m: crystal
+      { hp: 1.20, val: 1.10, step: 8 },   // 100 m: The Black
+      { hp: 1.20, val: 1.10, step: 8 },   // 125 m: The Living Rock
+      { hp: 1.20, val: 1.10, step: 8 },  // 150 m: The Angry Layer
+      { hp: 1.20, val: 1.10, step: 8 },  // 175 m: The Hot Layer
+      { hp: 1.22, val: 1.10, step: 8 },   // 200 m and below: nothing new yet
     ],
     buyPow: 0.55,                   // coins -> hits: log(powGrow) / log(1.5), the price growth of a pick level
-    // Stars for a move (starsAt in core/grid.js)
-    starPer: 10, starLess: 2,       // the plain count: one Star per 10 m, less 2
-    starShare: 0.35,                // deeper down: this share of the Stars it takes to stand where the dig got to
-    starCap: 1,                     // one move pays at most this many times the Stars you have ever earned
+    // Stars (starsAt in core/grid.js): what a floor is worth, small whole numbers; the sites feature pays shares of it
+    starBase: 3, starGrow: 4.5,      // 3 Stars at starFrom metres, x4.5 for every 25 m deeper
     starFrom: 50, starWall: 20,     // a dig with no Stars reaches a wall this many times the wall at 50 m
     sight: 2,                       // how many blocks from open space you can see
   },

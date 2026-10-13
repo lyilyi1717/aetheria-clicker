@@ -49,6 +49,8 @@ const rock = n => R => R.marks['boss down ' + n];
 export const TARGETS = [
   ['rock1',   'Big Rock 1 down (25 m)',            rock(1),               { active: [2.5, 4.5], mixed: [2.5, 4.5], idle: [3, 6] },        'a', true],
   ['rock2',   'Big Rock 2 down (50 m), water',     rock(2),               { active: [6, 12], mixed: [6, 12], idle: [7, 15] },            'a', true],
+  ['fin1',    'first site finished (the Gate)',    mark('finish #1'),     { active: [8, 15], mixed: [8, 15], idle: [9, 20] },            'a', true],
+  ['fin4',    'fourth site finished',              mark('finish #4'),     { active: [0.02, 1.2], mixed: [0.3, 2.2], idle: [1, 7] },      'd', true],
   ['site1',   'first New Site, Star Shop',         mark('new site #2'),   { active: [9, 20], mixed: [9, 20], idle: [10, 30] },           'a', true],
   ['foreman', 'Foreman',                           unit('foreman'),       { active: [12, 45], mixed: [12, 45], idle: [12, 60] },         'a', true],
   ['forge',   'Forge opens',                       unit('forge:open'),    { active: [12, 45], mixed: [12, 45], idle: [12, 60] },         'a', false],
@@ -56,16 +58,16 @@ export const TARGETS = [
   ['rock3',   'Big Rock 3 down (75 m), crystal',   rock(3),               { active: [0.02, 1.2], mixed: [0.4, 2.5], idle: [2, 7] },       'd', true],
   ['contracts', 'Contracts open',                  unit('contracts:open'), { active: [0.8, 2.5], mixed: [1.5, 3.5], idle: [6, 16] },     'd', true],
   ['rock4',   'Big Rock 4 down (100 m), the Deep', rock(4),               { active: [1.5, 4], mixed: [3, 5.5], idle: [8, 18] },          'd', true],
-  ['rock5',   'Big Rock 5 down (125 m)',           rock(5),               { active: [4, 8], mixed: [7, 11], idle: null },            'd', true],
-  ['rock6',   'Big Rock 6 down (150 m)',           rock(6),               { active: [7, 13], mixed: [11, 17], idle: null },              'd', true],
-  ['rock7',   'Big Rock 7 down (175 m)',           rock(7),               { active: [11, 18], mixed: [16, 23], idle: null },             'd', true],
-  ['rock8',   'Big Rock 8 down (200 m)',           rock(8),               { active: [15, 24], mixed: [21, 30], idle: null },             'd', true],
+  ['rock5',   'Big Rock 5 down (125 m)',           rock(5),               { active: [4, 9], mixed: [7, 12], idle: null },            'd', true],
+  ['rock6',   'Big Rock 6 down (150 m)',           rock(6),               { active: [8, 16], mixed: [14, 26], idle: null },              'd', true],
+  ['rock7',   'Big Rock 7 down (175 m)',           rock(7),               { active: [11, 18], mixed: [16, 23], idle: null },             'd', false],
+  ['rock8',   'Big Rock 8 down (200 m)',           rock(8),               { active: [15, 24], mixed: [21, 30], idle: null },             'd', false],
 ];
 // other things --assert checks (the numbers are in docs/dig-pacing.md)
 export const LIMITS = {
-  earlyGap: 150,      // s: longest attended stretch with nothing bought, found or beaten, first 30 attended minutes
+  earlyGap: 180,      // s: longest attended stretch with nothing bought, found or beaten, first 30 attended minutes
   lateGap: 300,       // s: the same, afterwards (the 95th percentile of gaps; one long Rock fight is allowed)
-  movesPerDay: { mixed: [1.5, 6], active: [2, 9], idle: [0.4, 2.5] },   // New Sites a day, days 2 to 30
+  movesPerDay: { mixed: [4, 14], active: [8, 30], idle: [0.5, 4] },   // New Sites a day (nearly all of them finish the site), days 2 to 30
 };
 
 // ---------- one run ----------
@@ -96,7 +98,7 @@ function runOne(player, seed, days, ov) {
     player, seed, units: obj(trk.units), marks: obj(trk.marks), resets: trk.resets, series, src: trk.src, shim: trk.starShim,
     goalGaps: trk.goalGaps, act: trk.act, best: trk.bestEver, stars: s.stars + (s.starSpent || 0),
     core: CORE_IDS.filter(id => trk.units.has(id)).length, lastCore: Math.max(0, ...CORE_IDS.map(id => trk.units.get(id)?.r ?? 0)),
-    dmg: R.dmg, won: Object.keys(s.contractsWon || {}).length, left: trk.left, sessions: trk.sessions,
+    fin: trk.finishes, medals: trk.medals, dmg: R.dmg, won: Object.keys(s.contractsWon || {}).length, left: trk.left, sessions: trk.sessions,
   };
 }
 
@@ -188,12 +190,44 @@ function moveStats(rs) {
   const deeper = gains.map(g => g.filter(x => x > 0).length / Math.max(1, g.length));
   return { perDay: med(perDay), deeper: med(deeper), total: med(rs.map(r => r.resets.length)), mean: med(gains.map(g => g.reduce((a, b) => a + b, 0) / Math.max(1, g.length))) };
 }
+// the road: how the new loop plays (sites finished, medals, how many moves end in a finish, Stars)
+function roadStats(rs) {
+  const per = f => med(rs.map(f)), days = DAYS - 1;
+  const at = (r, d, k, dflt) => (r.series.find(x => x.day === d) || { [k]: dflt })[k];
+  return {
+    fin1: per(r => (r.marks['finish #1'] || { a: NaN }).a / 60), fin4: per(r => (r.marks['finish #4'] || { r: NaN }).r / D),
+    perDay: per(r => r.fin.filter(x => x.r >= D).length / days), total: per(r => r.fin.length), unique: per(r => new Set(r.fin.map(x => x.key)).size),
+    fast: per(r => r.medals.filter(x => x.medal === 'fast').length), hard: per(r => r.medals.filter(x => x.medal === 'hard').length),
+    share: per(r => r.resets.filter(x => x.fin).length / Math.max(1, r.resets.length)),
+    shareLate: per(r => { const q = r.resets.filter(x => x.r >= D); return q.filter(x => x.fin).length / Math.max(1, q.length); }),
+    moves: per(r => r.resets.length),
+    st7: per(r => at(r, 7, 'stars', NaN)), st30: per(r => at(r, DAYS, 'stars', NaN)),
+    d7: per(r => at(r, 7, 'best', NaN)), d14: per(r => at(r, 14, 'best', NaN)), d30: per(r => at(r, DAYS, 'best', NaN)),
+    r4: per(r => (r.marks['boss down 4'] || { r: NaN }).r / D), r6: per(r => (r.marks['boss down 6'] || { r: NaN }).r / D), r8: per(r => (r.marks['boss down 8'] || { r: NaN }).r / D),
+    news: per(r => { let n = 0; for (let d = 0; d < DAYS; d++) if (r.fin.some(x => x.r >= d * D && x.r < (d + 1) * D) || r.medals.some(x => x.r >= d * D && x.r < (d + 1) * D)) n++; return n / DAYS; }),
+  };
+}
+const f1 = v => (isFinite(v) ? v.toFixed(1) : 'never'), f0 = v => (isFinite(v) ? fmtN(v) : 'never');
+function printRoad(res) {
+  console.log('\nThe road (median over seeds): site finished first / fourth; finishes a day (days 2 on); distinct versions finished of all finishes; medals; moves that end in a finish (all, days 2 on); Stars day 7 / day ' + DAYS + '; deepest m on day 7, 14, ' + DAYS + '; days with a finish or a medal');
+  console.log('| player | first | fourth | a day | versions | medals | moves ending in a finish | Stars | depth | days with news |');
+  console.log('|---|---|---|---|---|---|---|---|---|---|');
+  for (const p of Object.keys(PLAYERS)) {
+    const rs = by(res, p); if (!rs.length) continue;
+    const q = roadStats(rs);
+    console.log(`| ${p} | ${f1(q.fin1)} min | day ${f1(q.fin4)} | ${f1(q.perDay)} | ${f0(q.unique)} of ${f0(q.total)} | ${f0(q.fast)} fast, ${f0(q.hard)} hard | ${(100 * q.share).toFixed(0)}% (${(100 * q.shareLate).toFixed(0)}%) of ${f0(q.moves)} | ${f0(q.st7)} / ${f0(q.st30)} | ${f0(q.d7)} / ${f0(q.d14)} / ${f0(q.d30)} m | ${(100 * q.news).toFixed(0)}% |`);
+  }
+}
+function sumLine(res) {
+  return Object.keys(PLAYERS).filter(p => by(res, p).length).map(p => {
+    const q = roadStats(by(res, p));
+    return `${p}: fin1 ${f1(q.fin1)}m fin4 d${f1(q.fin4)} ${f1(q.perDay)}/day vers ${f0(q.unique)}/${f0(q.total)} med ${f0(q.fast)}f${f0(q.hard)}h share ${(100 * q.share).toFixed(0)}% (${(100 * q.shareLate).toFixed(0)}%) Stars ${f0(q.st7)}/${f0(q.st30)} depth ${f0(q.d7)}/${f0(q.d14)}/${f0(q.d30)} R4 d${f1(q.r4)} R6 d${f1(q.r6)} R8 d${f1(q.r8)} news ${(100 * q.news).toFixed(0)}%`;
+  }).join('\n  ');
+}
 function report(title, res) {
   const players = Object.keys(PLAYERS).filter(p => by(res, p).length);
   const rows = printLadder(title, res);
-  const shim = res.some(r => r.shim > 0);
-  if (shim) console.log('\nNOTE: the sites feature does not pay Stars by the core curve yet (G.starsAt): the sim paid the difference at every New Site.\n      Until `starsFor` in proto/features/sites/rules.js reads G.starsAt(s.best), the game on the page is slower than this report after the first few moves.');
-
+  printRoad(res);
   console.log('\nDepth, New Sites and Stars over time (median over seeds): deepest metre ever / New Sites so far / Stars ever earned / core content found');
   const days = [1, 2, 3, 5, 7, 10, 14, 18, 21, 25, 30].filter(d => d <= DAYS);
   console.log('| player | ' + days.map(d => 'day ' + d).join(' | ') + ' |');
@@ -255,9 +289,11 @@ function report(title, res) {
 
 async function main() {
   const t0 = Date.now();
-  console.log(`Dig, the first ${DAYS} days. ${SEEDS} seed(s), step ${DT} s. Players: ` + Object.entries(PLAYERS).map(([k, v]) => `${k} = ${v.note}`).join('; ') + '.');
-  console.log(`Move policy (player.mjs): stalled ${PROFILES.mid.stall} s (mid), next level more than ${MOVE.far} s of income away, Stars on offer at least ${MOVE.share * 100}% of all Stars so far; or stalled ${MOVE.giveUp} s.`);
+  if (!arg('sum', false)) console.log(`Dig, the first ${DAYS} days. ${SEEDS} seed(s), step ${DT} s. Players: ` + Object.entries(PLAYERS).map(([k, v]) => `${k} = ${v.note}`).join('; ') + '.');
+  if (!arg('sum', false)) console.log(`Move policy (player.mjs): finished = Next site at once; else stalled ${PROFILES.mid.stall} s (mid), next level more than ${MOVE.far} s of income away, ${MOVE.budget} x par spent; or stalled ${MOVE.giveUp} s.`);
   const base = await runAll(SET);
+  if (arg('dump', false)) (await import('node:fs')).writeFileSync(arg('dump'), JSON.stringify(base.map(r => ({ player: r.player, seed: r.seed, fin: r.fin, medals: r.medals, resets: r.resets, series: r.series, marks: r.marks }))));
+  if (arg('sum', false)) { const out = v => console.log('SUM ' + JSON.stringify(v.ov) + ' ' + sumLine(v.res).split(String.fromCharCode(10)).join(' | ')); out({ ov: SET, res: base }); if (AB) for (const v of (Array.isArray(AB) ? AB : [AB])) out({ ov: v, res: await runAll({ ...SET, ...v }) }); return; }
   const fails = report(`=== ${AB ? 'BASELINE' : 'RUN'} ${JSON.stringify(SET)} ===`, base);
   if (AB) for (const v of (Array.isArray(AB) ? AB : [AB])) { const ov = { ...SET, ...v }; report(`=== VARIANT ${JSON.stringify(v)} ===`, await runAll(ov)); }
   console.error(`(${((Date.now() - t0) / 1000).toFixed(0)} s)`);

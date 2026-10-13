@@ -4,6 +4,13 @@
 // a cosmetic, Stars). A won contract is stamped on the board; leaving one is free and loses nothing
 // but the attempt (the rule just lifts, the dig goes on).
 //
+// HOW THE ROAD USES CONTRACTS (proto/features/sites). Every site version has a Hard medal and its hard rule is one of these
+// contracts (`hardOf` in the sites feature: one per site, a deeper floor takes the next). A card of the road's deal that
+// carries a hard rule starts the dig under that contract; winning it is the third medal (`siteMedal`) and pays its medal Stars.
+// So the board is no longer the only place a contract is found. The board stays for old saves and for later (it opens after
+// `openFinished` finished site versions (or 99 New Sites, or an old save that had it open) and keeps its tiers); a contract taken from it is a site at its base floor with the Hard medal on it.
+// A contract's own Stars (`tierStars`) are now 1, 1, 2 (they were 2, 3, 5): the medal pays the rest.
+//
 // ADDING A CONTRACT FROM ANOTHER FEATURE (the `autos` package does this for its prizes). In your own
 // rules.js, in your use({...}):
 //
@@ -29,14 +36,15 @@ import { use, CONTRACTS, SITES, emit } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, KEEP_ROWS, genRow, cellAt } from '../../core/grid.js';
 import { damage, upgradeCost, pickPower } from '../../core/rules.js';
-import { newSite, canNewSite, siteOpen } from '../sites/rules.js';
+import { newSite, canNewSite, siteOpen, siteMedal, roadFinished } from '../sites/rules.js';
 import { bossInView } from '../boss/rules.js';
 import strings from './strings.js';
 
 const p = {
-  openSites: 14,                         // the board opens after this many New Sites
+  openSites: 99,                         // the board opens after this many New Sites (the road opens it long before: openFinished)
+  openFinished: 8,                       // or after this many versions of sites are finished (the road); an old save that had 14 New Sites keeps it open
   tierNeed: [0, 0, 2, 3],                // wins in the tier below that open tier 2 and tier 3
-  tierStars: [0, 2, 3, 5],               // Stars for a first win, by tier
+  tierStars: [0, 1, 1, 2],               // Stars for a first win, by tier
   stars: {},                             // or one contract's own number
   // the goals
   bareDepth: 40, darkDepth: 30, riseDepth: 20, tntDepth: 24, glassDepth: 30, oneDepth: 40,
@@ -64,7 +72,7 @@ const p = {
 
 export const contractList = () => Object.values(CONTRACTS).filter(c => c.tier).sort((a, b) => (a.tier - b.tier) || (a.at - b.at) || (a.id < b.id ? -1 : 1));
 export const contractTiers = () => Math.max(1, ...contractList().map(c => c.tier));
-export const contractsOpen = s => s.sites >= p.openSites || Object.keys(s.contractsWon).length > 0;
+export const contractsOpen = s => s.sites >= p.openSites || roadFinished(s) >= p.openFinished || !!s.seen.legacyBoard || Object.keys(s.contractsWon).length > 0;
 export const contractWins = (s, tier) => contractList().filter(c => c.tier === tier && s.contractsWon[c.id]).length;
 export const tierNeed = tier => (p.tierNeed[tier] === undefined ? 2 : p.tierNeed[tier]);
 export function tierOpen(s, tier) {
@@ -126,6 +134,7 @@ function win(s, ev) {
   if (first && C.cosmetic) s.contractLook[C.slot || 'skin'] = C.cosmetic;
   if (first && C.prize) C.prize(s, ev);
   end(s);
+  if (s.run && s.run.hard === id) siteMedal(s, 'hard', ev);        // the site's third medal (sites feature)
   emit(s, ev, 'contractDone', { id, stars, tier: C.tier, cosmetic: C.cosmetic || null });
 }
 
