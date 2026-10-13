@@ -33,6 +33,7 @@
 // siteMedal { key, medal, stars }, newSite { gain, stars, key }.
 import { use, SITES, CONTRACTS, BLOCKS, emit } from '../../core/registry.js';
 import { reset } from '../../core/state.js';
+import { grantFree } from '../../core/rules.js';
 import { starsAt, LAYER, COLS } from '../../core/grid.js';
 import { rnd, pickOne } from '../../core/rng.js';
 import strings from './strings.js';
@@ -41,7 +42,7 @@ const p = {
   starCoin: 0, starPick: 0,       // a Star gives nothing by itself now: the tracks (starshop) turn Stars into strength
   needBosses: 2,                  // Big Rocks to break before you may move
   // the start kit: every site after the first starts where the player is (docs/dig-design.md 2.2)
-  kitPick: 0.4,                   // the pick starts at this share of your best pick level (Warm Pick raises it)
+  kitPick: 0,                     // the kit gives no free pick levels (they made every level 5 times faster, see the PR); Warm Pick still does
   kitCrew: 1,                     // Rafeeqs waiting (Rafeeq Waiting raises it)
   proveHp: 4,                     // the second level of a depth ("prove it") has ground this much harder
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
@@ -310,10 +311,11 @@ export const sites = use({
     reset: { at: 110, fn(s, name) {
       if (name !== 'site') return;
       s.seen.siteToast = false; s.seen.bossToast = true;
+      // free seats (core grantFree): they add strength, the next purchase still costs the first price
       const best = Math.max(s.starBestPick || 0, s.up.pick || 0);
-      s.up.pick = Math.max(s.up.pick || 0, Math.floor(best * p.kitPick));
-      // a free Rafeeq: not counted as hired, so the next one costs the first price and a no-Rafeeq contract pays nothing back
+      if (p.kitPick > 0) { s.up.pick = Math.max(s.up.pick || 0, Math.floor(best * p.kitPick)); s.starWarm = Math.max(s.starWarm || 0, s.up.pick); }   // priced by the Warm Pick ramp
       for (let i = s.diggers.length; i < p.kitCrew; i++) s.diggers.push({ c: (COLS >> 1) + i, r: s.top, tc: -1, tr: -1, cd: 0.3, swing: 0 });
+      grantFree(s, 'crew', s.diggers.length);       // every Rafeeq standing here at the start is a free seat
     } },
     // a twist is stacked on the ground as it is made
     row(s, ctx) {

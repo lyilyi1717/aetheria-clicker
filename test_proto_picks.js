@@ -79,8 +79,23 @@ const TEMPOS = P.tempos.slice(), COUNTS = [1, 2, 3, 4], TOP = Math.max(...TEMPOS
   ok(G.itemOpen(s, 'tempo') && G.upgradeCost(s, 'tempo') === P.tempoBase, 'Faster Hands opens early');
   const seen = [G.picksBpm(s)];
   while (G.buy(s, 'tempo', ev)) seen.push(G.picksBpm(s));
-  ok(seen.join() === TEMPOS.join() && s.up.tempo === TEMPOS.length - 1, 'each step is the next tempo, and it stops at the last (' + seen.join(', ') + ')');
-  ok(near(G.picksStep(s), 15 / TOP) && near(G.picksHps(s), 2 * 8 * TOP / 240), 'the step and the hits a second follow the tempo');
+  const CAP = TEMPOS.filter(b => b <= P.tempoCap);
+  ok(P.tempoCap === 132 && seen.join() === CAP.join() && s.up.tempo === CAP.length - 1, 'coins buy each tempo up to 132 and then stop (' + seen.join(', ') + ')');
+  ok(near(G.picksStep(s), 15 / 132) && near(G.picksHps(s), 2 * 8 * 132 / 240), 'the step and the hits a second follow the tempo');
+  ok(!G.itemOpen(s, 'tempo') && !G.canBuy(s, 'tempo') && /Americas/.test(G.picksTempoLock(s)), '144 is shut: "' + G.picksTempoLock(s) + '"');
+  s.coins = 1e12;
+  const stamp = lvl => { const f = G.ROAD[lvl - 1]; s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 0, n: 1 }; };
+  stamp(15); ok(!G.canBuy(s, 'tempo'), 'level 15 does not open 144');
+  stamp(16); ok(G.canBuy(s, 'tempo') && G.picksTempoLock(s) === '' && G.buy(s, 'tempo') && G.picksBpm(s) === 144, 'finishing the Americas (level 16) opens 144');
+  ok(!G.canBuy(s, 'tempo') && /road/.test(G.picksTempoLock(s)), '160 is shut: "' + G.picksTempoLock(s) + '"');
+  stamp(20); ok(G.buy(s, 'tempo') && G.picksBpm(s) === 160 && !G.canBuy(s, 'tempo') && G.picksTempoLock(s) === '', 'finishing the road (level 20) opens 160, and that is the last');
+  ok(near(G.picksStep(s), 15 / TOP), 'the top tempo is still above the 75 ms floor');
+  ok(Math.abs(G.deserialize(G.serialize(s)).up.tempo - 5) === 0 && G.picksBpm(G.deserialize(G.serialize(s))) === 160, 'a save keeps the opened tempos (the stamps stay)');
+  s.up.tempo = 5; const kept = G.deserialize(G.serialize(s)); ok(G.picksBpm(kept) === 160, 'an old save already past 132 keeps its tempo');
+  // 160 stays shut for a player who finished the Americas only, even after a New Site
+  const t2 = G.newState(); t2.road.stamps = {}; { const f = G.ROAD[15]; t2.road.stamps[G.siteKey(f.site, f.floor)] = { fin: 1 }; }
+  t2.up.tempo = 3; t2.total = 1e9; G.reset(t2, 'site'); t2.up.tempo = 4;
+  ok(!G.itemOpen(t2, 'tempo') && G.picksTempoLock(t2) !== '', 'the opened tempo is kept for ever, the next one is still shut');
   // a New Site: the picks stay, the tempo starts again
   s.stars = P.starCosts[0] + P.starCosts[1]; s.starSpent = 0;
   G.reset(s, 'site');

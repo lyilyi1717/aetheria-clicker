@@ -24,7 +24,8 @@
 import { use, emit } from '../../core/registry.js';
 import { swing, itemLevel, itemOpen, buy } from '../../core/rules.js';
 import { starshopPunch } from '../starshop/rules.js';
-import { roadZone } from '../sites/rules.js';
+import { roadZone, ROAD, siteKey } from '../sites/rules.js';
+import { t } from '../../core/strings.js';
 import { WING, wingCount, wingDone } from '../wing2/rules.js';
 import { PICKS_BARS, ZONE_BARS, BAR_ZONES, MAX_PICKS, picksBarOf, stepSec, hitsPerSec, barFaults } from './beat.js';
 import strings from './strings.js';
@@ -56,10 +57,26 @@ const p = {
   starRocks: [4, 6],       // and the Big Rock you must have broken once, ever, before each is sold (100 m, 150 m)
   tempoOpen: 150,          // Faster Hands opens when this many coins have been dug at the site
   tempoBase: 250, tempoGrow: 6,
+  // Faster Hands bought with coins stops at tempoCap beats a minute. The faster tempos are found, not bought: each opens for good
+  // (it survives every New Site) when its road level is finished, and then it is one more Faster Hands level, paid in coins.
+  tempoCap: 132,
+  tempoGate: [{ bpm: 144, level: 16, text: 'tempo_lock_144' }, { bpm: 160, level: 20, text: 'tempo_lock_160' }],   // road level (1 to 20) that opens it
 };
 
 // a tempo may never put two notes closer than the floor
 const bpmOf = lv => Math.min(p.tempos[Math.max(0, Math.min(p.tempos.length - 1, lv))], 15 / p.floor);
+
+// is the road level finished (ever)? Level 16 ends the Americas, level 20 ends the road.
+const roadDone = n => s => { const f = ROAD[n - 1], st = f && s.road && s.road.stamps[siteKey(f.site, f.floor)]; return !!(st && st.fin); };
+// the gate that stands in front of the next Faster Hands level: { bpm, level, text } or null (the next step is free to buy, or there is none)
+export function picksTempoGate(s) {
+  const lv = (s.up && s.up.tempo) || 0, bpm = p.tempos[lv + 1];
+  if (bpm === undefined || bpm <= p.tempoCap) return null;
+  const g = p.tempoGate.find(x => x.bpm === bpm);
+  return g && !roadDone(g.level)(s) ? g : null;
+}
+// "Opens when you finish the Americas" while the next tempo is shut, else ''
+export const picksTempoLock = s => { const g = picksTempoGate(s); return g ? t(g.text) : ''; };
 
 export const picksCount = s => Math.min(MAX_PICKS, 1 + (s.picks && s.picks.second ? 1 : 0) + ((s.picksUp && s.picksUp.pick3) || 0));
 export const picksBpm = s => bpmOf((s.up && s.up.tempo) || 0);
@@ -135,7 +152,7 @@ export const picks = use({
     // per site, like Stronger Pick
     tempo: { at: 12, shop: 'coin', max: p.tempos.length - 1, levels: 'grind',
       cost: (s, lv) => Math.ceil(p.tempoBase * Math.pow(p.tempoGrow, lv)),
-      open: s => s.up.tempo > 0 || s.total >= p.tempoOpen },
+      open: s => (s.up.tempo > 0 || s.total >= p.tempoOpen) && !picksTempoGate(s) },     // shut past the cap until its road level is finished (picksTempoLock says why)
     // once, for ever: it leaves the shop when it is bought
     pick2: { at: 14, shop: 'coin', max: 1, levels: 'core',
       cost: s => (s.picks.second ? Infinity : p.secondCost),

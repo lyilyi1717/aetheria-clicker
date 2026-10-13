@@ -48,7 +48,7 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
   G.starshopSetKeep(s, 'boom');
   move(s);
   ok(s.diggers.length === 2 && s.up.crew === 2, 'two Rafeeqs wait');
-  ok(s.up.pick === 10 && s.starWarm === 10, 'the pick starts at half the best level');
+  ok(s.up.pick === 10 && s.starWarm === 10 && s.free.crew === 2, 'the pick starts at half the best level; two free Rafeeq seats');
   ok(s.chests === 2, 'two pocket chests');
   ok(s.relics.boom === 3 && s.relics.vein === 2 && !s.relics.lamp, 'two relics crossed with Second Pocket');
   ok(G.upgradeCost(s, 'pick') === 10, 'Warm Pick does not lock the Pick button: the next level costs 10');
@@ -149,7 +149,7 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
 { // the start kit: a site after the first starts where the player is; a "prove it" level is harder
   const s = ready(); s.up.pick = 20; s.starBestPick = 20;
   move(s);
-  ok(s.up.pick === 8 && s.diggers.length === 1 && s.up.crew === 0, 'kit: pick at 40% of the best, one free Rafeeq waiting');
+  ok(s.up.pick === 0 && s.diggers.length === 1 && s.up.crew === 1 && s.free.crew === 1 && G.upgradeCost(s, 'pick') === 10 && G.upgradeCost(s, 'crew') === 30, 'kit: no free pick levels, one free Rafeeq waiting, first prices');
   give(s, 'pick', 5); s.bossesDown = 2; move(s);
   ok(s.up.pick === 10, 'Warm Pick (50%) beats the kit');
   const a = ready(); a.bossesDown = 2;
