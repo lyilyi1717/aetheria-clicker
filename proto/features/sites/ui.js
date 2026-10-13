@@ -5,6 +5,7 @@ import { ui } from '../../ui/app.js';
 import { AT, H, SKY, yOf, CELL, screenFlash, shake } from '../../ui/render.js';
 import { sfx } from '../../ui/audio.js';
 import { icon, S, badge, star } from '../../ui/icons.js';
+import { ofLevel } from '../rafeeqs/portrait.js';
 
 const { t } = G;
 
@@ -139,7 +140,7 @@ function showFinish(app, d) {
   const last = G.ROAD[G.ROAD.length - 1];
   if (d.first && !d.twist && last && d.site === last.site && d.floor === last.floor && !G.fixedNext(s)) return showEnd(app);
   const m = app.modal.open('finish', `<div class="card finish"><div class="seal"><span class="sealic"></span><b class="word"></b></div><h2></h2><p class="more gate"></p>`
-    + `<p class="time"></p><p class="more fast"></p><p class="found"></p><div class="mrow"></div><p class="earn"></p>`
+    + `<p class="time"></p><p class="more fast"></p><p class="found"></p><div class="rq-of"></div><div class="mrow"></div><p class="earn"></p>`
     + `<div class="fcols"><section class="keep"><h3></h3><ul></ul></section><section class="kit"><h3></h3><ul></ul><div class="nextlvl"></div></section></div>`
     + `<button class="spend primary" hidden></button><p class="more spendnote"></p>`
     + `<div class="btns"><button class="primary gold"></button><button class="ghost"></button></div></div>`);
@@ -157,6 +158,7 @@ function showFinish(app, d) {
   if (f.ore) bits.push(t('fin_ore', { n: f.ore }));
   if (f.bone) bits.push(t('fin_bones', { n: f.bone }));
   m.querySelector('.found').textContent = t('fin_found') + ': ' + (bits.length ? bits.join(', ') : t('fin_nothing'));
+  ofLevel(m.querySelector('.rq-of'), s);
   m.querySelector('.mrow').innerHTML = medalsHtml(d.medals);
   const earn = m.querySelector('.earn'); earn.textContent = t('fin_stars', { n: 0 });
   const go = m.querySelector('.gold'), stay = m.querySelector('.ghost');
