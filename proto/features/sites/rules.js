@@ -102,7 +102,8 @@ export const TWISTS = ['heavy', 'dim', 'barrels'];
 // the hard rule of a site: contracts in order, a deeper floor uses the next one
 const HARD = { dunes: ['bare', 'rising', 'glass', 'blindAlone'], boom: ['tntOnly'], gold: ['dark', 'richLazy', 'feedRock'], bones: ['oneRelic', 'dry'] };
 
-export const canNewSite = s => s.bossesDown >= p.needBosses;
+// a contract won at this site also lets you move on at once (the contracts feature sets `contractFree`)
+export const canNewSite = s => s.bossesDown >= p.needBosses || !!s.contractFree;
 export const siteOpen = (s, site) => !!SITES[site] && (!SITES[site].open || !!SITES[site].open(s));
 export const siteList = s => Object.keys(SITES).filter(id => siteOpen(s, id));
 
