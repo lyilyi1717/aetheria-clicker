@@ -12,3 +12,15 @@
 #picks-beat b { margin-inline-start: 8px; font-size: 12px; font-weight: 700; color: #d9c9ae; font-variant-numeric: tabular-nums; white-space: nowrap; }
 #picks-beat.still i, #picks-beat.still i.on { transition: none; transform: none; box-shadow: none; }
 @media (prefers-reduced-motion: reduce) { #picks-beat i, #picks-beat i.on { transition: none; transform: none; box-shadow: none; } }
+
+/* the second swing joins the bar */
+#picks-beat.joined { animation: picks-join 1.6s ease-out; }
+@keyframes picks-join { 0% { transform: translateX(-50%) scale(1); } 15% { transform: translateX(-50%) scale(1.35); box-shadow: 0 0 22px rgba(255,210,63,.9); } 100% { transform: translateX(-50%) scale(1); box-shadow: none; } }
+@media (prefers-reduced-motion: reduce) { #picks-beat.joined { animation: none; } }
+/* the pin: chips beside the goal bar, a pin on the Second Pick, a note on the cheap buttons */
+#goal-pin { display: flex; gap: 4px; flex: none; }
+#goal-pin button { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; }
+#goal-pin button.on { color: #1a1206; background: var(--gold); border-color: var(--gold); }
+.shop-item .pin-btn { align-self: flex-start; margin-block-start: 3px; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 10px; border: 1px solid var(--gold); color: var(--gold); cursor: pointer; }
+.shop-item .pin-btn.on { color: #1a1206; background: var(--gold); }
+.shop-item .delay-note { font-size: 11.5px; color: var(--muted); font-style: italic; }

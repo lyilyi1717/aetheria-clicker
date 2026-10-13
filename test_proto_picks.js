@@ -346,6 +346,37 @@ for (const n of COUNTS) for (const bpm of TEMPOS) {
   ok(A.depthPitch() < 0.85 && A.depthPitch() > 0.7, 'the deepest layer is a little lower, not much');
 }
 
+{ // the pinned goal and the savings bot
+  const s = G.newState();
+  ok(G.picksPin(s) === 'gate' && !G.picksSaving(s), 'the Gate is the goal by default');
+  ok(!G.picksSetPin(s, 'pick2'), 'the Second Pick cannot be pinned before it is in the shop');
+  s.bossesDown = 1;
+  ok(G.itemOpen(s, 'pick2') && G.picksSetPin(s, 'pick2') && G.picksPin(s) === 'pick2', 'after the first Big Rock it can be pinned');
+  ok(G.picksSaving(s), 'pinned and short of 12,000: saving');
+  s.coins = P.secondCost;
+  ok(!G.picksSaving(s), 'with the coins in hand it is not "saving" any more');
+  ok(!G.picksSetPin(s, 'set') && !G.picksSetPin(s, 'nope'), 'no Museum set started, and no such pin');
+  const k = Object.keys(G.WING)[0];
+  s.wingGot[k + ".0"] = 1;
+  ok(G.picksSetNear(s).set === k && G.picksSetPin(s, 'set') && G.picksPin(s) === 'set', 'a started Museum set can be pinned');
+  s.picks.pin = 'pick2'; s.coins = P.secondCost;
+  ok(G.buy(s, 'pick2') && s.picks.second && G.picksPin(s) === 'gate', 'buying the Second Pick puts the pin back on the Gate');
+  // an old save has no pin
+  const old = G.newState(); delete old.picks.pin; old.bossesDown = 1;
+  ok(G.picksPin(old) === 'gate', 'a save without a pin shows the Gate');
+  const back = G.deserialize(G.serialize(s));
+  ok(back.picks.second && back.picks.pin === 'gate', 'the pin round-trips');
+}
+
+{ // the scripted player saves for the Second Pick instead of buying the cheapest thing
+  const s = G.newState(); s.bossesDown = 1; s.coins = 500;
+  const ev = log();
+  const bot = G.BOTS.find(b => b.id === "picks");
+  ok(bot.shop(s, { ev }) === 0 && s.coins === 0 && s.picksBank === 500 && s.picks.pin === 'pick2', 'it puts its coins aside and pins the Second Pick');
+  s.coins = P.secondCost;
+  ok(bot.shop(s, { ev }) >= 1 && s.picks.second && s.coins === 500 && s.picksBank === 0, 'when it can pay it buys, and keeps what is left');
+}
+
 if (process.argv.includes('--table')) {
   console.log(`| picks | groove | the bar (16 steps: X accent, x plain, o soft, . rest) | picks landing on each step | notes a second at ${TEMPOS[0]} / ${TOP} | hits a second at ${TEMPOS[0]} / ${TOP} | closest notes at ${TOP} |`);
   console.log('|---|---|---|---|---|---|---|');
