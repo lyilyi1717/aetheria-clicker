@@ -180,5 +180,48 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   ok(G.starsFor(s) <= Math.floor(P.leaveCap * G.replayPay(150)), 'leaving at the Gate pays less than finishing it again');
 }
 
+{ // a finished level can be dug again from the map: plain or hard; no first-finish or medal is paid twice; the road stays put
+  const s = fresh(2);
+  const mk = (i, v) => { const f = G.ROAD[i]; s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 500, n: 1, ...v }; };
+  for (let i = 0; i < 3; i++) mk(i, i === 1 ? { fast: 1 } : {});
+  s.road.reach = G.ROAD[2].floor; s.bossesDown = 2; G.siteRun(s);
+  const k0 = G.siteKey(G.ROAD[0].site, G.ROAD[0].floor), kNext = G.fixedNext(s);
+  ok(G.replayCard(s, 'nowhere:1', false) === null && G.replayCard(s, G.siteKey(G.ROAD[5].site, G.ROAD[5].floor), false) === null, 'no replay card for an unknown or unfinished level');
+  const plain = G.replayCard(s, k0, false), hard = G.replayCard(s, k0, true);
+  ok(plain && plain.kind === 'replay' && plain.hard === '' && plain.key === k0 && plain.stars === G.replayPay(plain.floor), 'a replay card pays the replay share');
+  ok(hard && hard.hard === G.hardOf(plain.site, plain.floor), 'the hard card carries the hard rule');
+  ok(G.pickCard(s, { ...plain, key: 'nowhere:1' }, NO) === false, 'a forged replay card is refused');
+  const road = G.fixedNext(s).level;
+  ok(G.pickCard(s, plain, NO) && s.run.key === k0 && !s.contract, 'dig again starts the old level under plain rules');
+  ok(G.fixedNext(s).level === road && G.fixedNext(s).site === kNext.site && G.dealCards(s).some(c => c.kind === 'fixed' && c.level === road), 'the road does not move');
+  // finish it slowly: pays the replay only, no medal
+  let before = s.stars; s.bossesDown = 2; s.run.clock = 9999; G.step(s, 0.05, NO);
+  ok(s.run.done && s.stars - before === G.replayPay(plain.floor), 'a slow replay pays the replay share only');
+  ok(s.road.stamps[k0].fast === 0, 'no Fast medal for a slow time');
+  // dig again and be quick: Fast pays once
+  s.bossesDown = 2; ok(G.pickCard(s, G.replayCard(s, k0, false), NO), 'again, from the finish');
+  before = s.stars; s.bossesDown = 2; s.run.clock = 1; G.step(s, 0.05, NO);
+  ok(s.stars - before === G.replayPay(plain.floor) + G.medalPay(plain.floor) && s.road.stamps[k0].fast === 1 && s.road.stamps[k0].best < 2, 'a quick replay pays the replay and the Fast medal, and keeps the best time');
+  s.bossesDown = 2; G.pickCard(s, G.replayCard(s, k0, false), NO);
+  before = s.stars; s.bossesDown = 2; s.run.clock = 1; G.step(s, 0.05, NO);
+  ok(s.stars - before === G.replayPay(plain.floor), 'Fast is never paid twice');
+  // the hard way
+  s.bossesDown = 2; ok(G.pickCard(s, G.replayCard(s, k0, true), NO) && s.run.hard === hard.hard && s.contract === hard.hard, 'the hard way starts under the rule');
+  before = s.stars; G.siteMedal(s, 'hard', NO);
+  const gotHard = s.stars - before;
+  ok(s.road.stamps[k0].hard === 1 && gotHard >= G.medalPay(plain.floor), 'winning the rule is the Hard medal');
+  before = s.stars; G.siteMedal(s, 'hard', NO);
+  ok(s.stars === before, 'the Hard medal is never paid twice');
+  s.bossesDown = 2; G.step(s, 0.05, NO);
+  ok(G.replayCard(s, k0, true) === null && G.replayCard(s, k0, false) !== null, 'with Hard won only "dig again" is left');
+  // a level that is the road level and unfinished cannot be replayed
+  ok(G.replayCard(s, G.siteKey(kNext.site, kNext.floor), false) === null, 'the road level itself is not a replay until finished');
+  // not allowed to move on: refused
+  const lock = fresh(3); mk2(lock);
+  function mk2(x) { const f = G.ROAD[0]; x.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 9, n: 1 }; x.bossesDown = 0; }
+  const rc = G.replayCard(lock, G.siteKey(G.ROAD[0].site, G.ROAD[0].floor), false);
+  ok(rc && G.pickCard(lock, rc, NO) === false, 'before the Gate is broken nobody can move on, replay or not');
+}
+
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('sites: ok');
