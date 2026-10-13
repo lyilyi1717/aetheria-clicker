@@ -10,6 +10,7 @@ export default { en: {
   bar_americas_1: 'Clave', bar_americas_2: 'Conga walk', bar_americas_3: 'Samba', bar_americas_4: 'Carnival',
   bar_europe_1: 'March', bar_europe_2: 'Parade', bar_europe_3: 'Soldiers', bar_europe_4: 'Big parade',
   t_picks_2: 'Two picks! Listen: boom-tak.', t_picks_3: 'Three picks! They gallop.', t_picks_4: 'Four picks! The Gulf clap.',
+  tempo_lock_144: 'Opens when you finish the Americas', tempo_lock_160: 'Opens when you finish the road',
   t_tempo: 'Faster! {n} beats a minute.',
   pin_title: 'Goal', pin_gate: 'The Gate', pin_pick2: 'Second Pick', pin_set: 'Museum set',
   pin_save: 'Save for it', pin_saving: 'Saving', pin_tip: 'Show this on the goal bar',
