@@ -1,33 +1,20 @@
-/* Dig track: the head line, the bar with its nodes and the Gate. Logical properties. */
-#trk-head { display: flex; align-items: center; gap: 10px; height: 18px; font-size: 13px; line-height: 1; }
-#trk-level { color: var(--gold); letter-spacing: .3px; }
-#trk-clock { margin-inline-start: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
-#trk-medals { display: inline-flex; gap: 4px; }
+/* Dig track: one slim line. Where you are on the left, the message line in the middle, the goal on the right. Logical properties. */
+#trk-head { flex: 0 1 auto; min-width: 0; max-width: 62%; display: flex; flex-direction: column; justify-content: center; gap: 3px; font-size: 12.5px; line-height: 1.1; }
+#trk-level { color: var(--gold); letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#trk-sub { display: flex; align-items: center; gap: 8px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+#trk-gate.done { color: var(--gold); }
+#trk-medals { display: inline-flex; gap: 3px; }
 #trk-medals .mchip { display: inline-flex; padding: 0; background: none; border: 0; opacity: .35; }
 #trk-medals .mchip.on { opacity: 1; }
 #trk-medals .mchip i { display: none; }
+#trk-medals .ico { width: 14px; height: 14px; }
 
-#track #goal .bar { position: relative; overflow: visible; order: 1; }
-#track #goal-fill { display: none; }
-#trk-fill { position: absolute; inset-block: 0; inset-inline-start: 0; width: 0; border-radius: 8px; background: linear-gradient(90deg, #c98a1b, var(--gold)); transition: width .25s ease-out; }
-#trk-seg { position: absolute; inset-block: 0; overflow: hidden; border-radius: 6px; }
-#trk-seg[hidden] { display: none; }
-#trk-seg #goal-layers, #trk-seg #goal-ticks { inset: 0; }
+/* the message line: lessons and small notes (they used to float over the first rows of the dig) */
+#trk-msg { flex: 1 1 120px; min-width: 0; align-self: stretch; display: grid; align-items: center; }
+#trk-msg > * { grid-area: 1 / 1; }
+#trk-msg #lesson.show ~ #toast { visibility: hidden; }
 
-#trk-nodes { position: absolute; inset: 0; pointer-events: none; }
-.nd { position: absolute; inset-block-start: 50%; translate: -50% -50%; width: 14px; height: 13px; background: #2a2018; border: 2px solid #6a5a48; border-radius: 40% 55% 45% 50% / 55% 45% 55% 45%; pointer-events: auto; }
-[dir="rtl"] .nd { translate: 50% -50%; }
-.nd.broken { background: var(--gold); border-color: #7a5a00; }
-.nd.next { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255,210,63,.25); }
-
-#trk-gate { order: 2; display: inline-flex; flex-direction: column; align-items: center; line-height: 1; margin-inline-start: 2px; }
-#trk-gate small { font-size: 10px; color: var(--muted); margin-top: -1px; white-space: nowrap; }
-#trk-gate .arch { fill: #8d86ac; stroke: #d6d0ea; }
-#trk-gate.done .arch { fill: var(--gold); stroke: #7a5a00; }
-#trk-gate.done small { color: var(--gold); }
-#goal-pin { order: 3; }
-
-/* a small window: the goal text gives way (ends in ...) so the pin chips are never cut */
+/* the goal: chips on top, its words under them, a thin line of progress along the foot of the track */
+#goal-pin { order: -1; }
 #track #goal { min-width: 0; }
-#track #goal-text { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-#track #goal .bar { min-width: 80px; }
+#track #goal-text { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 12px; font-weight: 700; color: var(--muted); max-width: 190px; }

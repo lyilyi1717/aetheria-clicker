@@ -1,5 +1,5 @@
 // Dig feature (page side): the picks' bar. It owns the swing rhythm (`cadence`), schedules every
-// note's sounds on the audio clock, draws the extra picks, and shows the bar as a row of dots.
+// note's sounds on the audio clock, draws the extra picks. The beat is heard, not drawn: the tempo shows on the Faster Hands button.
 //
 // Timing. Each frame the sequencer (beat.js) hands out the notes that fall inside the next `look`
 // seconds of the AUDIO clock. A note's hits land in the rules at once (so the picture leads the
@@ -53,21 +53,6 @@ export function picksPlayAt(at, gain, fn) {
   try { fn(); } finally { note = null; }
 }
 
-// ---------- the bar on screen ----------
-let strip = null, dots = [], label = null, shown = '', lit = -1, litEnd = 0;
-function showBar(s) {
-  const bar = G.picksBar(s), bpm = G.picksBpm(s), sig = bar.count + ':' + bpm + ':' + bar.zone;
-  if (sig === shown) return;
-  shown = sig;
-  for (let i = 0; i < dots.length; i++) dots[i].className = (bar.n[i] ? 'n v-' + bar.v[i] : 'r') + (i % 4 === 0 ? ' beat' : '');
-  label.textContent = t('picks_beat', { n: bpm });
-  strip.title = t(bar.name);
-}
-function light(slot, until = 0) {
-  if (lit >= 0) dots[lit].classList.remove('on');
-  lit = slot; litEnd = until;
-  if (slot >= 0) dots[slot].classList.add('on');
-}
 
 // ---------- the kit: the sounds of the land, a little lower the deeper you are ----------
 const DEEP = { black: 1, living: 2, angry: 3, hot: 4 };
@@ -162,13 +147,11 @@ ui({
       const now = a === null ? performance.now() / 1000 : a;
       stepNow = G.picksStep(s);
       running = dig;
-      if (lit >= 0 && now >= litEnd) light(-1);
       for (const n of seq.advance(now, dig, G.picksBar(s), stepNow)) {
         note = { at: Math.max(0, n.t - now), gain: G.picksGain(n.v) };
         try {
           G.picksStrike(s, n.n, () => app.target(), app.ev, i => { const h = n.hands[i]; app.flags.hand = h; if (h) swingT[h] = 1; });
         } finally { note = null; app.flags.hand = 0; }
-        light(n.slot, n.t + Math.min(0.12, stepNow));
       }
     },
   },
@@ -183,19 +166,14 @@ ui({
   panels: [shopPanel({ id: 'picks', shop: 'picks', title: 'picks_shop', side: 'right', at: 6, coin: 'star', when: s => G.itemOpen(s, 'pick3') })],
   mount(app) {
     pinMount(app);
-    strip = document.createElement('div'); strip.id = 'picks-beat';
-    if (reduced) strip.classList.add('still');
-    for (let i = 0; i < 16; i++) { const d = document.createElement('i'); strip.appendChild(d); dots.push(d); }
-    label = document.createElement('b'); strip.appendChild(label);
-    app.el.stage.appendChild(strip);
   },
-  tick(s, app) { if (!zoneNow) zoneNow = G.roadZone(s); setSound(s); if (strip) showBar(s); pinTick(s, app); },
+  tick(s, app) { if (!zoneNow) zoneNow = G.roadZone(s); setSound(s); pinTick(s, app); },
   on: {
     // a level in a new land: its three-note call
     newSite(d, app) { const z = G.roadZone(app.state); if (zoneNow && z !== zoneNow) { setSound(app.state); sfx.picksSting(z); } zoneNow = z; },
     picksMore(d, app) {
       app.toast(t('t_picks_' + d.n), 'gold');
-      if (d.n === 2 && strip) { app.banner(t('pick2_banner'), t('pick2_sub')); strip.classList.remove('joined'); void strip.offsetWidth; strip.classList.add('joined'); } for (let i = 1; i < 4; i++) swingT[i] = 1; app.dirty(); },
+      if (d.n === 2) app.banner(t('pick2_banner'), t('pick2_sub')); for (let i = 1; i < 4; i++) swingT[i] = 1; app.dirty(); },
     buy(d, app) { if (d.id === 'tempo') app.toast(t('t_tempo', { n: G.picksBpm(app.state) }), 'gold'); },
   },
 });
