@@ -35,6 +35,7 @@ import { use, SITES, CONTRACTS, BLOCKS, emit } from '../../core/registry.js';
 import { reset } from '../../core/state.js';
 import { starsAt, LAYER, COLS } from '../../core/grid.js';
 import { rnd, pickOne } from '../../core/rng.js';
+import { newRafeeq } from '../diggers/rules.js';
 import strings from './strings.js';
 
 const p = {
@@ -313,7 +314,7 @@ export const sites = use({
       const best = Math.max(s.starBestPick || 0, s.up.pick || 0);
       s.up.pick = Math.max(s.up.pick || 0, Math.floor(best * p.kitPick));
       // a free Rafeeq: not counted as hired, so the next one costs the first price and a no-Rafeeq contract pays nothing back
-      for (let i = s.diggers.length; i < p.kitCrew; i++) s.diggers.push({ c: (COLS >> 1) + i, r: s.top, tc: -1, tr: -1, cd: 0.3, swing: 0 });
+      for (let i = s.diggers.length; i < p.kitCrew; i++) s.diggers.push(newRafeeq(s, (COLS >> 1) + i));
     } },
     // a twist is stacked on the ground as it is made
     row(s, ctx) {

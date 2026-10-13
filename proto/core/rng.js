@@ -3,7 +3,6 @@
 let src = null;
 
 export const rnd = () => (src ? src() : Math.random());
-export const rndInt = n => Math.floor(rnd() * n);
 export const pickOne = a => a[Math.floor(rnd() * a.length)];
 
 // setRng(f): every later rnd() comes from f. setRng(null) goes back to Math.random.
