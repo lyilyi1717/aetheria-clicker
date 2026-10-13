@@ -1,6 +1,7 @@
 /* Dig prototype. Self-contained: its own colours, not the main game's theme tokens (so it lives here, not in css/). Logical properties, so it mirrors for Arabic. */
 :root {
   --bg: #17110d; --panel: #241a13; --panel-2: #2f2218; --line: #4a3626;
+  --sh: clamp(560px, calc(100vh - 120px), 680px); --sw: calc(var(--sh) * 640 / 680);
   --ink: #f6ead8; --muted: #b9a58c; --gold: #ffd23f; --gold-ink: #3a2a00; --good: #59d37a; --bad: #e5533d;
 }
 * { box-sizing: border-box; }
@@ -20,7 +21,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .ghost:hover { color: var(--ink); border-color: var(--muted); }
 .ghost.on { color: var(--gold); border-color: var(--gold); }
 
-.layout { display: grid; grid-template-columns: minmax(230px, 1fr) 640px minmax(260px, 1fr); gap: 16px; align-items: start; }
+.layout { display: grid; grid-template-columns: minmax(230px, 1fr) var(--sw) minmax(260px, 1fr); gap: 16px; align-items: start; }
 .side { display: flex; flex-direction: column; gap: 12px; min-height: 200px; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
 .panel h2 { margin: 0 0 8px; font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
@@ -33,8 +34,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #goal-fill { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #c98a1b, var(--gold)); border-radius: 8px; transition: width .25s ease-out; }
 #goal-fill.boss { background: linear-gradient(90deg, #8b1d12, var(--bad)); transition: width .08s linear; }
 
-#stage { position: relative; width: 640px; height: 680px; border-radius: 14px; overflow: hidden; border: 2px solid var(--line); box-shadow: 0 10px 40px rgba(0,0,0,.5); user-select: none; }
-#cv { display: block; width: 640px; height: 680px; cursor: none; touch-action: none; }
+#stage { position: relative; width: var(--sw); height: var(--sh); border-radius: 14px; overflow: hidden; border: 2px solid var(--line); box-shadow: 0 10px 40px rgba(0,0,0,.5); user-select: none; }
+#cv { display: block; width: var(--sw); height: var(--sh); cursor: none; touch-action: none; }
 #hud-coins, #hud-depth { position: absolute; inset-block-start: 10px; display: flex; align-items: center; gap: 8px; background: rgba(15,10,6,.72); border: 1px solid rgba(255,255,255,.14); border-radius: 22px; padding: 4px 14px 4px 5px; pointer-events: none; font-size: 24px; font-variant-numeric: tabular-nums; }
 #hud-coins { inset-inline-start: 10px; color: var(--gold); transform-origin: left center; }
 #hud-depth { inset-inline-end: 10px; padding-inline: 14px; }
@@ -48,7 +49,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #combo.rush::after { display: none; }
 @keyframes pulse { to { transform: scale(1.08); } }
 
-#toast { position: absolute; inset-block-start: 58px; left: 50%; transform: translate(-50%, -8px); background: rgba(15,10,6,.86); border: 1px solid rgba(255,255,255,.2); border-radius: 12px; padding: 7px 16px; font-weight: 600; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; white-space: nowrap; max-width: 92%; }
+#toast { position: absolute; inset-block-start: 104px; left: 50%; transform: translate(-50%, -8px); background: rgba(15,10,6,.86); border: 1px solid rgba(255,255,255,.2); border-radius: 12px; padding: 7px 16px; font-weight: 600; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; white-space: nowrap; max-width: 92%; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 #toast.gold { border-color: var(--gold); color: var(--gold); }
 #toast.fossil { border-color: #f6efdc; color: #f6efdc; }
@@ -131,7 +132,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12.5px; margin-top: 10px; }
 
 @media (max-width: 1180px) {
-  .layout { grid-template-columns: 640px minmax(240px, 1fr); }
+  .layout { grid-template-columns: var(--sw) minmax(240px, 1fr); }
   #left { grid-column: 2; grid-row: 2; }
   #right { grid-column: 2; grid-row: 1; }
   .mid { grid-row: 1 / span 2; }
@@ -139,7 +140,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 @media (prefers-reduced-motion: reduce) { #chest-btn, #combo.rush, #hint.show { animation: none; } }
 #site.ready { border-color: var(--gold); box-shadow: 0 0 18px rgba(255,210,63,.2); }
 #site-now { margin: 0 0 4px; font-weight: 700; }
-.side { max-height: 726px; overflow-y: auto; scrollbar-width: thin; }
+.side { max-height: calc(var(--sh) + 46px); overflow-y: auto; scrollbar-width: thin; }
 #site.ready { order: -1; }
 /* the tool bar: use buttons at the bottom of the stage (empty until a feature registers a tool) */
 #tools { position: absolute; inset-block-end: 12px; inset-inline-start: 12px; display: flex; gap: 8px; }
@@ -147,3 +148,12 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 .tool.can { opacity: 1; }
 .tool.on { border-color: var(--gold); box-shadow: 0 0 14px rgba(255,210,63,.4); }
 .tool i { position: absolute; inset-block-end: 1px; inset-inline-end: 4px; font-style: normal; font-size: 11px; font-weight: 800; color: var(--muted); }
+
+/* panels fold on a click of their title */
+.fold-h { cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; }
+.fold-h::after { content: ''; width: 8px; height: 8px; border-inline-end: 2px solid var(--muted); border-block-end: 2px solid var(--muted); transform: rotate(45deg); margin-inline-end: 4px; transition: transform .15s; }
+.panel.folded > .fold-h::after { transform: rotate(-45deg); }
+.panel.folded > :not(h2) { display: none !important; }
+.panel.folded h2 { margin-block-end: 0; }
+
+@media (max-height: 800px) { #hud-coins, #hud-depth { zoom: .85; } #combo { inset-block-start: 52px; } #toast { inset-block-start: 98px; } }

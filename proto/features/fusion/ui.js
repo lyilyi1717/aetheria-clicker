@@ -141,7 +141,7 @@ ui({
     for (const row of document.querySelectorAll('#relic-list .relic')) row.hidden = gone.has(row.querySelector('b').textContent);
   },
   panels: [{
-    id: 'fzbook', side: 'left', at: 20, title: 'fz_title',
+    id: 'fzbook', side: 'left', at: 20, fold: true, title: 'fz_title',
     when: s => Object.keys(s.relics).length > 1,
     build(el) { el.insertAdjacentHTML('beforeend', '<p class="muted" id="fz-count"></p><div class="fz-book" id="fz-list"></div>'); },
     update(el, s) {

@@ -324,9 +324,9 @@ function drawFez(g, P, a, i, d, back, sideV, lie) {
   const ex = frizz ? tx + 2 : tx, ey = frizz ? -9 : ty - 3.5;
   g.fillStyle = '#ffd23f'; g.strokeStyle = INK; g.lineWidth = 1.1;
   const kx = sway * 2.5;
-  g.beginPath(); g.ellipse(ex + kx * 0.3, ey + 1.2, 1.6, 1.4, 0, 0, TAU); g.fill(); g.stroke();
-  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(ex + kx * 0.3, ey + 2); g.lineTo(ex + kx, ey + 5.6); g.moveTo(ex - 1 + kx * 0.3, ey + 2); g.lineTo(ex - 1.3 + kx, ey + 5); g.stroke();
-  g.strokeStyle = '#ffd23f'; g.lineWidth = 1.3; g.beginPath(); g.moveTo(ex + kx * 0.3, ey + 2); g.lineTo(ex + kx, ey + 5.2); g.moveTo(ex - 1 + kx * 0.3, ey + 2); g.lineTo(ex - 1.3 + kx, ey + 4.6); g.stroke();
+  g.beginPath(); g.ellipse(ex + kx * 0.3, ey + 1, 1.1, 1, 0, 0, TAU); g.fill(); g.stroke();
+  g.strokeStyle = INK; g.lineWidth = 2.1; g.beginPath(); g.moveTo(ex + kx * 0.3, ey + 1.8); g.lineTo(ex + kx * 0.7, ey + 4.2); g.moveTo(ex - 0.7 + kx * 0.3, ey + 1.8); g.lineTo(ex - 0.9 + kx * 0.7, ey + 3.8); g.stroke();
+  g.strokeStyle = '#ffd23f'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(ex + kx * 0.3, ey + 1.8); g.lineTo(ex + kx * 0.7, ey + 3.9); g.moveTo(ex - 0.7 + kx * 0.3, ey + 1.8); g.lineTo(ex - 0.9 + kx * 0.7, ey + 3.5); g.stroke();
   g.restore();
 }
 

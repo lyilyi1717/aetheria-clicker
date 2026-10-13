@@ -10,7 +10,7 @@ const { t, fmt } = G;
 
 const span = secs => {
   const mins = Math.max(1, Math.floor(secs / 60));
-  return mins >= 60 ? t('hours', { h: Math.floor(mins / 60), m: mins % 60 }) : t('min', { n: mins });
+  return (mins >= 60 ? t('hours', { h: Math.floor(mins / 60), m: mins % 60 }) : t('min', { n: mins })).replace(/ /g, ' ');
 };
 const plural = (n, one, many) => n === 1 ? t(one) : t(many, { n });
 
