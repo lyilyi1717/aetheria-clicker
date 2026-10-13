@@ -6,7 +6,6 @@ import { fx, rr } from '../../ui/render.js';
 import { moodsMem, moodsSay } from '../moods/ui.js';
 
 const INK = '#1b1410';
-const AUTO_KEY = 'DIG_PROTO_AUTO';
 export const bossView = G.chatterBossMem();                // the page's own memory (never saved); shots and tests read it
 const mem = bossView;
 const live = { held: false, hitAt: -99, clock: 0, auto: false, autoCheck: -9, emote: null, mounted: false, shownT: 0 };
@@ -23,8 +22,8 @@ export const managerAway = s => { if (G.chatterBossShown(s)) mem.welcome = true;
 export const managerOnOrder = fn => { live.emote = fn; };
 
 function digging() {
-  if (live.clock - live.autoCheck > 1) { live.autoCheck = live.clock; try { live.auto = localStorage.getItem(AUTO_KEY) === '1'; } catch { live.auto = false; } }
-  return live.held || live.clock - live.hitAt < 0.5 || (live.auto && fx.mouse.inside);
+  // digging is always automatic: the player is digging while the pick lands (or the button is held)
+  return live.held || live.clock - live.hitAt < 0.5;
 }
 
 // one frame: the rules, the answer of the Rafeeq he called, then the picture
