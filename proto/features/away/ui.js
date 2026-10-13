@@ -24,12 +24,15 @@ function stamps(out) {
 }
 
 function card(out, app) {
-  const m = app.modal.open('away', `<div class="card away"><h2></h2><p class="line"></p><div class="away-track"><span class="runner">${icon('away_rafeeq', 30)}</span></div><div class="big">${icon('coin', 30)}<b id="away-n">0</b></div><p class="joke"></p><div class="stack"></div><p class="rock"></p><button class="primary"></button><p class="cap"></p></div>`);
+  const m = app.modal.open('away', `<div class="card away"><h2></h2><p class="line"></p><div class="away-track"><span class="runner">${icon('away_rafeeq', 30)}</span></div><div class="big">${icon('coin', 30)}<b id="away-n">0</b></div><p class="joke"></p><ul class="rq-names"></ul><div class="stack"></div><p class="rock"></p><button class="primary"></button><p class="cap"></p></div>`);
   if (!m) return false;
   m.querySelector('h2').textContent = t('away_title');
   m.querySelector('.line').textContent = t('away_line', { t: span(out.seconds) });
   m.querySelector('.cap').textContent = t('away_cap', { h: G.PARAMS.away.capHours });
-  m.querySelector('.joke').textContent = t('away_joke_' + out.joke);
+  const named = G.rafeeqAway(app.state, out);
+  m.querySelector('.joke').textContent = named.joke || t('away_joke_' + out.joke);
+  const ul = m.querySelector('.rq-names');
+  named.lines.forEach(x => { const li = document.createElement('li'); li.textContent = x; ul.appendChild(li); });
   m.querySelector('.rock').textContent = out.atBoss ? t('away_boss') : '';
   const list = stamps(out);
   const track = m.querySelector('.away-track');

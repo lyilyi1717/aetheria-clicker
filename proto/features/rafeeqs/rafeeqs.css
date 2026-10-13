@@ -1,0 +1,21 @@
+/* the Rafeeq card, the Rafeeq of the level, named lines in the away card, the ribbon on a list row */
+.rq-card { min-inline-size: 360px; }
+.rq-head { display: flex; justify-content: center; }
+.rq-portrait { display: block; }
+.rq-name { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.rq-name h2 { margin-block: 4px; }
+.rq-input { font: inherit; font-size: 20px; inline-size: 11ch; padding: 4px 8px; border-radius: 8px; border: 2px solid var(--gold); background: rgba(0,0,0,.35); color: inherit; }
+.rq-trait { margin: 2px 0; font-weight: 700; }
+.rq-pair { margin: 2px 0 8px; opacity: .85; min-block-size: 1.2em; }
+.rq-cols { display: flex; gap: 22px; justify-content: center; text-align: start; margin-block: 8px 14px; }
+.rq-cols h3 { margin: 0 0 4px; font-size: 14px; color: var(--gold); }
+.rq-cols ul { margin: 0; padding: 0; list-style: none; font-size: 14px; line-height: 1.5; }
+.rq-of { display: flex; align-items: center; justify-content: center; gap: 12px; margin-block: 8px; padding: 6px 14px; border-radius: 12px; background: rgba(255,210,63,.1); border: 1px solid rgba(255,210,63,.45); }
+.rq-of[hidden] { display: none; }
+.rq-of-t { display: flex; flex-direction: column; text-align: start; }
+.rq-of-t b { color: var(--gold); }
+.rq-of-t i { opacity: .8; font-size: 13px; }
+.crew-row { cursor: pointer; }
+.crew-row.rq-lead b::after { content: ''; display: inline-block; inline-size: 9px; block-size: 13px; margin-inline-start: 6px; vertical-align: -2px; background: linear-gradient(#e5533d, #e5533d); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%); }
+.away .rq-names { list-style: none; margin: 8px 0 0; padding: 0; font-size: 14px; }
+.away .rq-names li { margin-block: 2px; }
