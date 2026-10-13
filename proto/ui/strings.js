@@ -1,12 +1,12 @@
 // The page's own words (each feature brings its own table in proto/features/<id>/strings.js).
 export default { en: {
   title: 'Dig',
-  hint_start: 'Hold the mouse on the ground to dig',
+  hint_start: 'Point at the ground to dig',
   tips: 'Tips', tips_none: 'Tips you have seen show up here.',
   coins: 'Coins',
   depth: '{n} m',
   mute: 'Sound: on', unmute: 'Sound: off',
-  auto_on: 'Auto dig: on (A)', auto_off: 'Auto dig: off (A)',
+
   reset: 'Start over', reset_sure: 'Click again to wipe this save',
   // the drawer: tab names, how a locked tab opens, one "Next" line per tab
   dr_tab_shop: 'Shop', dr_tab_stars: 'Stars', dr_tab_camp: 'Rafeeqs', dr_tab_relics: 'Relics', dr_tab_museum: 'Museum', dr_tab_forge: 'Forge', dr_tab_level: 'Level',
