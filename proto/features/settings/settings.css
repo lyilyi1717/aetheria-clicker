@@ -1,0 +1,9 @@
+.card.settings { min-inline-size: 340px; text-align: start; }
+.card.settings h2 { text-align: center; }
+.set-rows { display: grid; gap: 12px; }
+.set-row { display: grid; grid-template-columns: 80px 1fr 38px; align-items: center; gap: 10px; }
+.set-row b { text-align: end; color: var(--gold); font-variant-numeric: tabular-nums; }
+.set-row input { inline-size: 100%; accent-color: var(--gold); }
+.set-sw { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 16px 14px; }
+.set-switch { flex: 1 1 auto; }
+.set-done { display: block; margin-inline: auto; }
