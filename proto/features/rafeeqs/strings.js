@@ -1,4 +1,6 @@
+import { RAFEEQ_NICKS } from './names.js';
 export default { en: {
+  ...Object.fromEntries(RAFEEQ_NICKS.map(n => ['nk_line_' + n.id, n.line])),
   rq_title: 'Rafeeq',
   rq_close: 'Close',
   rq_rename: 'Change name',

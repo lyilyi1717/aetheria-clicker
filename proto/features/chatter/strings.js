@@ -1,7 +1,13 @@
 // Rafeeq lines by trait and moment: "chat_<trait>_<moment>_n" is the count, "_<k>" the lines. Five words at most, whole lines.
 // Pairs: "chat_pair_<k>_a" is said first and "_b" is the answer ({name} is the mate's name).
 const L = (trait, o) => Object.fromEntries(Object.entries(o).flatMap(([m, a]) => [[`chat_${trait}_${m}_n`, a.length], ...a.map((x, k) => [`chat_${trait}_${m}_${k}`, x])]));
+import { NICK_LINES, BOSS_TRAIT, BOSS_ALL, BOSS_TEA, BOSS_WAKE, BOSS_BACK } from './nicklines.js';
+const list = (key, a) => [[`${key}_n`, a.length], ...a.map((x, k) => [`${key}_${k}`, x])];
+const NICKS = Object.fromEntries(Object.entries(NICK_LINES).flatMap(([id, o]) => [...list('nk_say_' + id, o.say), ['nk_boss_' + id, o.boss]]));
+const BOSS = Object.fromEntries([...Object.entries(BOSS_TRAIT).flatMap(([tr, a]) => list('boss_' + tr, a)), ...list('boss_all', BOSS_ALL), ...list('boss_tea', BOSS_TEA), ...list('boss_wake', BOSS_WAKE), ...list('boss_back', BOSS_BACK)]);
 export default { en: {
+  ...NICKS, ...BOSS,
+  boss_name: 'almodeer', boss_name_ar: 'المدير',
   ...L('eager', {
     hired: ['Me first!', 'Where do I dig?'], ore: ['Again, again!', 'More, more!'], tnt: ['Light it!', 'Boom time!'],
     rock: ['Let me at it!', 'I will hit it first!'], land: ['New sand! Yalla!', 'Where to now?'], finish: ['One more level!', 'Again! Again!'],

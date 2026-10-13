@@ -38,7 +38,7 @@ export function ofLevel(box, s) {
   txt.className = 'rq-of-t';
   const h = document.createElement('b'); h.textContent = t('rq_of_level');
   const l = document.createElement('span'); l.textContent = t('rq_of_level_line', { name: G.rafeeqName(s, i), n: fmt(st.level.coins) });
-  const q = document.createElement('i'); q.textContent = t('rq_line_' + G.rafeeqTrait(s, i));
+  const q = document.createElement('i'); q.textContent = G.rafeeqLine(s, i);
   txt.append(h, l, q);
   box.append(portrait(s, i, 64, 86), txt);
 }

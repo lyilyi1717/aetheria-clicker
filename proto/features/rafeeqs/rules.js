@@ -10,31 +10,62 @@ import { use } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { t } from '../../core/strings.js';
 import strings from './strings.js';
-
-export const RAFEEQ_NAMES = ['Saif', 'Hamad', 'Nasser', 'Majed', 'Fahad', 'Salem', 'Rashid', 'Jaber', 'Talal', 'Bandar', 'Khalid',
-  'Sultan', 'Mansour', 'Faris', 'Ziad', 'Omar', 'Yousef', 'Hadi', 'Sami', 'Tariq', 'Badr', 'Nawaf'];
+import { RAFEEQ_NICKS, nickById } from './names.js';
+export { RAFEEQ_NICKS };
+export const RAFEEQ_NAMES = RAFEEQ_NICKS.map(n => n.id);
 export const RAFEEQ_TRAITS = ['eager', 'sleepy', 'joker', 'careful', 'proud', 'hungry'];
 const p = { maxName: 12 };
 
 const blankLife = () => ({ broke: 0, coins: 0, best: null, levels: 0 });
 const pick = list => list[Math.floor(rnd() * list.length)];
+// a seat the player renamed by hand: his name is no longer the nickname he was dealt
+const handNamed = x => !!x && x.name !== x.given;
 
-function addSeat(s) {
-  const seats = s.rafeeqSeats, i = seats.length;
-  const freeNames = RAFEEQ_NAMES.filter(n => !seats.some(x => x.given === n));
-  const given = pick(freeNames.length ? freeNames : RAFEEQ_NAMES);
-  const freeTraits = RAFEEQ_TRAITS.filter(x => !seats.some(y => y.trait === x));
-  const trait = pick(freeTraits.length ? freeTraits : RAFEEQ_TRAITS);
-  const seat = { name: given, given, trait, friend: i > 0 ? i - 1 : -1, rival: -1, life: blankLife() };
-  if (i > 0 && seats[i - 1].friend < 0) seats[i - 1].friend = i;
-  // a rival: a Proud one with the Joker or another Proud one (nobody else has one)
-  const fits = x => (x === 'proud') || x === 'joker';
-  if (fits(trait) && (trait === 'proud' || seats.some(x => x.trait === 'proud'))) {
-    const j = seats.findIndex((x, k) => x.rival < 0 && k !== seat.friend && (trait === 'proud' ? fits(x.trait) : x.trait === 'proud'));
+// Deals a nickname to every seat in `todo` (seat numbers), no two alike, none equal to a name already in use; prefers a
+// base trait nobody has yet, so a small crew shows several traits.
+function deal(seats, todo) {
+  const used = new Set();
+  seats.forEach((x, i) => { if (!todo.includes(i)) { used.add(String(x.name).toLowerCase()); used.add(x.given); } });
+  const bases = new Set(seats.filter((x, i) => !todo.includes(i)).map(x => x.trait));
+  let pool = RAFEEQ_NICKS.filter(n => !used.has(n.id));
+  for (const i of todo) {
+    if (!pool.length) pool = RAFEEQ_NICKS.slice();
+    const fresh = pool.filter(n => !bases.has(n.base));
+    const n = pick(fresh.length ? fresh : pool);
+    pool = pool.filter(q => q !== n);
+    bases.add(n.base);
+    seats[i].given = n.id; seats[i].name = n.id; seats[i].trait = n.base;
+  }
+}
+// rivals: a Proud one with the Joker or another Proud one (nobody else has one)
+function rivalFor(seats, i) {
+  const seat = seats[i], trait = seat.trait, fits = x => (x === 'proud') || x === 'joker';
+  if (fits(trait) && (trait === 'proud' || seats.slice(0, i).some(x => x.trait === 'proud'))) {
+    const j = seats.findIndex((x, k) => k < i && x.rival < 0 && k !== seat.friend && (trait === 'proud' ? fits(x.trait) : x.trait === 'proud'));
     if (j >= 0) { seat.rival = j; seats[j].rival = i; }
   }
-  seats.push(seat);
 }
+function addSeat(s) {
+  const seats = s.rafeeqSeats, i = seats.length;
+  const seat = { name: '', given: '', trait: 'eager', friend: i > 0 ? i - 1 : -1, rival: -1, life: blankLife() };
+  if (i > 0 && seats[i - 1].friend < 0) seats[i - 1].friend = i;
+  seats.push(seat);
+  deal(seats, [i]);
+  rivalFor(seats, i);
+}
+// a new site: every seat the player did not rename gets a new nickname (old first names are replaced here too)
+export function rafeeqRedeal(s) {
+  const seats = s.rafeeqSeats || [];
+  const todo = seats.map((x, i) => i).filter(i => !handNamed(seats[i]));
+  if (!todo.length) return;
+  deal(seats, todo);
+  seats.forEach(x => { x.rival = -1; });
+  seats.forEach((x, i) => rivalFor(seats, i));
+}
+// his own nickname (data) while he still carries it; null for a renamed seat or an old first name
+export function rafeeqNick(s, i) { const x = seatOf(s, i); return x && !handNamed(x) ? nickById(x.given) : null; }
+// the line shown for his trait: his own when he has a nickname, else that of his base trait
+export function rafeeqLine(s, i) { const n = rafeeqNick(s, i); return n ? t('nk_line_' + n.id) : t('rq_line_' + rafeeqTrait(s, i)); }
 
 export function rafeeqSeats(s) { if (!s.rafeeqSeats) s.rafeeqSeats = []; while (s.rafeeqSeats.length < s.diggers.length) addSeat(s); return s.rafeeqSeats; }
 const seatOf = (s, i) => (s.rafeeqSeats || [])[i] || null;
@@ -48,7 +79,7 @@ export function rafeeqRename(s, i, text) {
   const x = seatOf(s, i);
   if (!x) return rafeeqName(s, i);
   const clean = Array.from(String(text == null ? '' : text).replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim()).slice(0, p.maxName).join('').trim();
-  x.name = clean || x.given;
+  x.name = clean || x.given;   // (empty brings his nickname back)
   return x.name;
 }
 
@@ -80,6 +111,8 @@ export const rafeeqs = use({
       if (d && (!d.bestFind || b.coins > d.bestFind.coins)) d.bestFind = { kind: b.t, coins: Math.round(b.coins) };
     },
     // before the level is wiped: bank each Rafeeq's totals into his seat
+    // a new site or land: the crew is dealt new nicknames (hand-given names stay)
+    reset(s, name) { if (name === 'site' || name === 'land') rafeeqRedeal(s); },
     resetting(s, name) {
       if (!s.rafeeqSeats) return;
       const finished = !!(s.run && s.run.done);

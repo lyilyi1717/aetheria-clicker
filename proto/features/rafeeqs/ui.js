@@ -18,7 +18,8 @@ function openCard(i, app) {
     const st = G.rafeeqStats(s, i), pair = G.rafeeqPair(s, i), tr = G.rafeeqTrait(s, i);
     name.textContent = G.rafeeqName(s, i);
     pen.textContent = t('rq_rename');
-    m.querySelector('.rq-trait').textContent = t('rq_trait_' + tr) + ': ' + t('rq_line_' + tr);
+    const nk = G.rafeeqNick(s, i);
+    m.querySelector('.rq-trait').textContent = nk ? G.rafeeqLine(s, i) + ' (' + nk.ar + ')' : t('rq_trait_' + tr) + ': ' + G.rafeeqLine(s, i);
     const bits = [];
     if (pair.friend >= 0 && s.diggers[pair.friend]) bits.push(t('rq_friend', { name: G.rafeeqName(s, pair.friend) }));
     if (pair.rival >= 0 && s.diggers[pair.rival]) bits.push(t('rq_rival', { name: G.rafeeqName(s, pair.rival) }));
