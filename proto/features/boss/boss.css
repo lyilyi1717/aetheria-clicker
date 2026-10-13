@@ -10,3 +10,14 @@
 #goal-ticks i.paid { background: rgba(0,0,0,.55); }
 #hud-record { position: absolute; inset-block-start: 56px; inset-inline-end: 10px; padding: 2px 12px; border-radius: 14px; background: rgba(15,10,6,.72); border: 1px solid rgba(255,210,63,.4); color: var(--gold); font-weight: 700; font-size: 15px; pointer-events: none; }
 #hud-record[hidden] { display: none; }
+/* the Rock's health is three layers drawn on top of each other: blue, then yellow, then red. Each one empties to
+   show the next; behind the last (red) layer the bar is dark, so "almost gone" is plain to see. */
+#goal-fill.boss { opacity: 0; }
+#goal-layers[hidden] { display: none; }
+#goal-layers { position: absolute; inset: 0; background: #0e0a07; --top: #4aa8ff; --under: #ffd23f; }
+#goal-layers[data-layer="2"] { background: #ffd23f; --top: #4aa8ff; }
+#goal-layers[data-layer="1"] { background: #e5533d; --top: #ffd23f; }
+#goal-layers[data-layer="0"] { background: #0e0a07; --top: #e5533d; }
+#goal-layers i { display: block; height: 100%; background: var(--top); transition: width .08s linear; }
+/* what you and the Rafeeqs did sits as a thin strip along the foot of the bar: gold yours, blue theirs */
+#goal-split { inset-block-start: auto; height: 4px; z-index: 1; }

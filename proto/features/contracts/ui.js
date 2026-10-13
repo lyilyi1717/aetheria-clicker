@@ -46,7 +46,7 @@ function drawHats(g, s) {
   s.diggers.forEach((d, i) => {
     const [x, y] = centre(d.r, d.c);
     const bob = Math.sin(fx.t * 9 + i * 2) * 2;
-    g.save(); g.translate(x, y - 14 + bob - 13);
+    g.save(); g.translate(x, y - 14 + bob - 11);
     g.strokeStyle = '#111'; g.lineWidth = 2;
     if (hat === 'cap') {
       g.fillStyle = '#d7332b'; g.beginPath(); g.arc(0, 0, 11, Math.PI, 0); g.closePath(); g.fill(); g.stroke();

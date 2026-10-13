@@ -16,12 +16,15 @@ export const LAYER_LOOK = {
 // the sky of each site: top to horizon, the far ground, a tint for the dirt and stone (colour, share)
 export const SITE_LOOK = {
   dunes:  { sky: ['#7ec8f2', '#f6d9a0'], far: '#e0b467', tint: null },
-  boom:   { sky: ['#f29b4b', '#6b2d2a'], far: '#9a4a34', tint: ['#d4452c', 0.10] },
-  gold:   { sky: ['#9fd8f5', '#fff0b8'], far: '#e6c46e', tint: ['#ffd23f', 0.06] },
-  bones:  { sky: ['#e9d7f0', '#f7e6c8'], far: '#e8dcc4', tint: ['#ffffff', 0.12] },
-  shark:  { sky: ['#3fb6c9', '#dff6f0'], far: '#d9c9a0', tint: ['#2fb5b0', 0.08] },
-  mirage: { sky: ['#f5b7d0', '#fde7b0'], far: '#e9c79a', tint: ['#a98bd6', 0.10] },
+  boom:   { sky: ['#f29b4b', '#6b2d2a'], far: '#9a4a34', tint: ['#e0402a', 0.34] },
+  gold:   { sky: ['#9fd8f5', '#fff0b8'], far: '#e6c46e', tint: ['#fff05a', 0.45] },
+  bones:  { sky: ['#e9d7f0', '#f7e6c8'], far: '#e8dcc4', tint: ['#efe8f8', 0.30] },
+  shark:  { sky: ['#3fb6c9', '#dff6f0'], far: '#d9c9a0', tint: ['#2fb5b0', 0.26] },
+  mirage: { sky: ['#f5b7d0', '#fde7b0'], far: '#e9c79a', tint: ['#a98bd6', 0.28] },
 };
+// a zone (continent) may later override a place's look: ZONE_LOOK[zone][siteKey] = { sky, far, tint }. Empty for now.
+export const ZONE_LOOK = {};
+export const placeLook = (key, zone) => ({ ...SITE_LOOK[key], ...((ZONE_LOOK[zone] || {})[key] || {}) });
 // other names a site may come with (a later package may name them differently)
 const ALIAS = { sharks: 'shark', sharkbay: 'shark', shark_dunes: 'shark', mirage_dunes: 'mirage', valley: 'boom', wadi: 'gold', beasts: 'bones' };
 export const siteKey = id => (SITE_LOOK[id] ? id : SITE_LOOK[ALIAS[id]] ? ALIAS[id] : 'dunes');
@@ -51,7 +54,7 @@ export function lookFor(layerId, layerLook, siteId) {
   if (!o) {
     const base = { ...layerLook, ...(LAYER_LOOK[layerId] || {}) };
     const tint = SITE_LOOK[site].tint;
-    o = tint ? { ...base, dirt: mix(base.dirt, tint[0], tint[1]), stone: mix(base.stone, tint[0], tint[1]) } : base;
+    o = tint ? { ...base, dirt: mix(base.dirt, tint[0], tint[1]), stone: mix(base.stone, tint[0], tint[1]), back: mix(base.back, tint[0], tint[1] * 0.6) } : base;
     cache.set(key, o);
   }
   return o;

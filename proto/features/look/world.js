@@ -3,7 +3,7 @@
 // state and never changes it. render.js hands in what it owns (makeWorld) so this file does not import it back.
 import { LAYER, layerAt } from '../../core/grid.js';
 import { layersOf } from '../../core/registry.js';
-import { LAYER_LOOK, SITE_LOOK, siteKey } from './palette.js';
+import { LAYER_LOOK, SITE_LOOK, siteKey, lookFor, placeLook } from './palette.js';
 
 const reduced = (() => {
   try { return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
@@ -12,6 +12,8 @@ const canvas = (w, h) => { const c = document.createElement('canvas'); c.width =
 const TILE = 256, RULER_MAX = 200;   // a wall tile is 256 px tall; the ruler shows the first 200 m of a site
 const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
 
+// the zone of the road (a later change); until it exists there is none
+const G_zone = s => (s && s.zone) || '';
 export function makeWorld(R) {
   const { fx, yOf, W, H, SKY, CELL, seeded } = R;
   const lid = (s, r) => layerAt(s, Math.max(0, r)).id;
@@ -58,6 +60,7 @@ export function makeWorld(R) {
       sun(g, W - 90, 40, 22, '#fff3c4', 'rgba(255,243,196,0.25)');
       hump(g, SITE_LOOK.dunes.far, 14, 9, 0);
       palm(g, 92, SKY - 12, 54); tent(g, 400, SKY - 14);
+      hump(g, '#d39f52', 30, 10, 2.2);   // a second, higher dune
     },
     boom(g) {   // a dusk with a canyon, powder kegs and a warning flag
       sun(g, W - 170, SKY - 16, 30, '#ffb347', 'rgba(255,140,60,0.25)');
@@ -66,6 +69,8 @@ export function makeWorld(R) {
       g.beginPath(); g.moveTo(W, SKY); g.lineTo(W, 22); g.lineTo(W - 70, 22); g.lineTo(W - 70, 44); g.lineTo(W - 140, 44); g.lineTo(W - 150, SKY); g.closePath(); g.fill();
       g.fillStyle = '#5a2418'; g.fillRect(0, 30, 60, 5); g.fillRect(W - 70, 22, 70, 5);
       hump(g, SITE_LOOK.boom.far, 10, 5, 1);
+      g.fillStyle = '#3b1a12'; g.fillRect(470, SKY - 30, 40, 26); g.fillRect(520, SKY - 24, 30, 20);   // powder huts
+      g.fillStyle = '#1f0c08'; g.beginPath(); g.moveTo(466, SKY - 30); g.lineTo(490, SKY - 44); g.lineTo(514, SKY - 30); g.closePath(); g.fill();
       keg(g, 290, SKY - 6); keg(g, 312, SKY - 6); keg(g, 301, SKY - 28);
       g.strokeStyle = '#2b1608'; g.lineWidth = 3; g.beginPath(); g.moveTo(380, SKY - 6); g.lineTo(380, SKY - 56); g.stroke();
       g.fillStyle = '#ffd23f'; g.lineWidth = 2;
@@ -76,6 +81,10 @@ export function makeWorld(R) {
       sun(g, 330, 26, 20, '#fffbe0', 'rgba(255,255,220,0.35)');
       g.strokeStyle = 'rgba(255,240,170,0.35)'; g.lineWidth = 2;
       for (let i = 0; i < 10; i++) { const a = i * 0.628; g.beginPath(); g.moveTo(330 + Math.cos(a) * 30, 26 + Math.sin(a) * 30); g.lineTo(330 + Math.cos(a) * 42, 26 + Math.sin(a) * 42); g.stroke(); }
+      g.fillStyle = '#c89a3c';   // golden cliffs
+      g.beginPath(); g.moveTo(0, SKY); g.lineTo(0, 42); g.lineTo(34, 34); g.lineTo(52, 56); g.lineTo(96, SKY); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(W, SKY); g.lineTo(W, 34); g.lineTo(W - 46, 28); g.lineTo(W - 80, 52); g.lineTo(W - 120, SKY); g.closePath(); g.fill();
+      palm(g, W - 40, SKY - 8, 50);
       hump(g, SITE_LOOK.gold.far, 14, 7, 2);
       g.strokeStyle = '#b8924a'; g.lineWidth = 6; g.beginPath(); g.moveTo(180, SKY); g.quadraticCurveTo(260, SKY - 9, 340, SKY - 5); g.quadraticCurveTo(420, SKY - 1, 470, SKY - 8); g.stroke();
       g.fillStyle = '#4a7a3a'; for (const [x, r] of [[40, 11], [66, 8], [560, 12], [592, 8]]) { g.beginPath(); g.arc(x, SKY - 10, r, Math.PI, 0); g.fill(); }
@@ -85,6 +94,8 @@ export function makeWorld(R) {
     },
     bones(g) {   // dawn, and a giant rib cage as an arch
       sun(g, 110, SKY - 30, 15, '#fff0e6', 'rgba(255,220,230,0.35)');
+      g.fillStyle = '#d9cbb8';   // a ridge of bone-white teeth
+      for (let x = 10; x < W; x += 58) { const h = 22 + ((x * 7) % 19); g.beginPath(); g.moveTo(x, SKY); g.lineTo(x + 12, SKY - h); g.lineTo(x + 30, SKY); g.closePath(); g.fill(); }
       hump(g, SITE_LOOK.bones.far, 12, 6, 3);
       const cx = 380;
       g.lineCap = 'round';
@@ -122,15 +133,16 @@ export function makeWorld(R) {
       hump(g, SITE_LOOK.mirage.far, 8, 4, 6);
     },
   };
-  function skyOf(key) {
-    let c = skies.get(key);
+  function skyOf(key, zone) {
+    const ck = key + '|' + (zone || '');
+    let c = skies.get(ck);
     if (!c) {
       c = canvas(W, SKY);
-      const g = c.getContext('2d'), L = SITE_LOOK[key];
+      const g = c.getContext('2d'), L = placeLook(key, zone);
       const gr = g.createLinearGradient(0, 0, 0, SKY); gr.addColorStop(0, L.sky[0]); gr.addColorStop(0.85, L.sky[1]); gr.addColorStop(1, L.sky[1]);
       g.fillStyle = gr; g.fillRect(0, 0, W, SKY);
       SKY_PROPS[key](g);
-      skies.set(key, c);
+      skies.set(ck, c);
     }
     return c;
   }
@@ -165,7 +177,7 @@ export function makeWorld(R) {
   function drawSky(g, s) {
     const y0 = -fx.cam * CELL;
     if (y0 + SKY < -4) return;
-    const key = siteKey(s.site), c = skyOf(key);
+    const key = siteKey(s.site), c = skyOf(key, G_zone(s));
     g.drawImage(c, 0, y0);
     if (key === 'mirage') shimmer(g, c, y0);
     drift(g, key, y0);
@@ -232,7 +244,7 @@ export function makeWorld(R) {
       const id = lid(s, r);
       let e = r + 1; while (e < last && lid(s, e) === id) e++;
       const y = yOf(r), h = (e - r) * CELL + 1;
-      g.fillStyle = pal(id).back; g.fillRect(-20, y, W + 40, h);
+      g.fillStyle = lookFor(id, pal(id), s.site).back; g.fillRect(-20, y, W + 40, h);
       g.save(); g.beginPath(); g.rect(0, y, W, h); g.clip();
       g.globalAlpha = id === 'hot' ? 0.8 + 0.2 * Math.sin(T() * 2) : 1;
       const t = decorOf(id);
