@@ -23,7 +23,10 @@ const SET = JSON.parse(arg('set', '{}')), AB = arg('ab', null) ? JSON.parse(arg(
 const ASSERT = !!arg('assert', false), DT = Number(arg('dt', 0.05));
 // --without relics2: the relics a feature owns are never offered (to see what a package does to the curve)
 for (const f of String(arg('without', '')).split(',').filter(Boolean)) for (const r of Object.values(G.RELICS)) if (r.owner === f) SET[`RELICS.${r.id}.max`] = 0;
-const JOBS = Math.max(1, Number(arg('jobs', Math.max(1, os.cpus().length - 1))));
+// At most 3 workers unless --jobs says otherwise: several sims at once, each taking every core, froze the
+// owner's PC. A worker is also capped in memory and killed after --limit minutes (a dig that runs away).
+const JOBS = Math.max(1, Number(arg('jobs', Math.min(3, Math.max(1, os.cpus().length - 1)))));
+const LIMIT_MS = Number(arg('limit', 12)) * 60000;
 const H = 3600, D = 86400;
 
 // ---------- the three players ----------
@@ -115,7 +118,11 @@ function runAll(ov) {
     const pump = () => {
       while (live < JOBS && next < tasks.length) {
         const [p, sd] = tasks[next++]; live++;
-        const ch = fork(self, ['--one', `${p}:${sd}`, '--days', String(DAYS), '--dt', String(DT), '--ov', JSON.stringify(ov)], { stdio: ['ignore', 'inherit', 'inherit', 'ipc'] });
+        const ch = fork(self, ['--one', `${p}:${sd}`, '--days', String(DAYS), '--dt', String(DT), '--ov', JSON.stringify(ov)], { stdio: ['ignore', 'inherit', 'inherit', 'ipc'], execArgv: ['--max-old-space-size=1536'] });
+        const guard = setTimeout(() => { process.stderr.write(`
+run ${p}:${sd} passed the time limit and was stopped
+`); ch.kill(); }, LIMIT_MS);
+        ch.on('exit', () => clearTimeout(guard));
         let got = false;
         ch.on('message', m => { got = true; res.push(m); });
         ch.on('exit', code => { live--; if (!got) return fail(new Error(`run ${p}:${sd} died (${code})`)); process.stderr.write('.'); if (next >= tasks.length && !live) { process.stderr.write('\n'); done(res); } else pump(); });
