@@ -30,7 +30,7 @@
 // whose floor is the next Big Rock; the sites it had visited become stamps with no medals; Stars held stay.
 //
 // Events: siteFinished { key, site, floor, twist, time, par, first, stars, fast, medals, found, stamps },
-// siteMedal { key, medal, stars }, newSite { gain, stars, key }.
+// siteMedal { key, medal, stars }, newSite { gain, stars, key }, legDone { idx, left, saved, n } (a Big Rock closed a leg of the countdown).
 import { use, SITES, CONTRACTS, BLOCKS, emit } from '../../core/registry.js';
 import { reset } from '../../core/state.js';
 import { grantFree } from '../../core/rules.js';
@@ -123,6 +123,60 @@ export const firstPay = (floor, kind = '') => Math.max(1, Math.round(starsAt(flo
 export const medalPay = floor => Math.max(1, Math.round(p.medalShare * starsAt(floor)));
 export const replayPay = floor => Math.max(1, Math.ceil(p.replayShare * starsAt(floor)));
 
+// ---------- the countdown: legs ----------
+// A leg runs from the start (or the last Big Rock) to the next Big Rock; the last one ends at the Gate. The par is split
+// across the legs in proportion to their rows, in whole seconds that add up to the par exactly. Nothing expires: at 0 the
+// clock only turns red and counts the seconds over, and the Fast medal rule (time <= par) is unchanged.
+export function siteLegs(run) {
+  const floor = Math.max(1, run.floor), n = Math.max(1, Math.ceil(floor / LAYER)), legs = [];
+  let prev = 0;
+  for (let i = 0; i < n; i++) {
+    const rows = Math.min(floor, (i + 1) * LAYER), end = i === n - 1 ? run.par : Math.round(run.par * rows / floor);
+    legs.push({ rows: rows - i * LAYER, len: end - prev, end }); prev = end;
+  }
+  return legs;
+}
+// a run from before the legs (or just begun) gets its leg from its clock: the first leg from the start, a later one fresh
+// with the seconds the clock is ahead of the par line banked
+function legInit(r, down) {
+  if (r.legIdx !== undefined) return;
+  const legs = siteLegs(r), i = Math.min(down | 0, legs.length - 1);
+  r.legIdx = i; r.legAt = i ? r.clock : 0; r.legBank = i ? Math.max(0, legs[i - 1].end - r.clock) : 0; r.legLast = null;
+}
+// the countdown now: { idx, n, len, left (negative when over), over, last }
+export function legLeft(run, down = 0) {
+  legInit(run, down);
+  const legs = siteLegs(run), i = Math.min(run.legIdx, legs.length - 1);
+  if (run.done && run.legLast) return { idx: i, n: legs.length, len: legs[i].len, left: run.legLast.left, over: run.legLast.left < 0, last: true };
+  const left = legs[i].len + run.legBank - (run.clock - run.legAt);
+  return { idx: i, n: legs.length, len: legs[i].len, left, over: left < 0, last: i === legs.length - 1 };
+}
+// almodeer may give extra seconds when a leg has run out: once per leg, only at 0 or under, and it counts toward the Fast
+// medal (the par of this try is par + extra). Returns the seconds granted (0 when not allowed).
+export function legExtend(s, secs, ev = () => {}) {
+  const r = siteRun(s);
+  if (r.done || !(secs > 0)) return 0;
+  const c = legLeft(r, s.bossesDown);
+  if (c.left > 0 || r.legExt === c.idx) return 0;
+  r.legExt = c.idx; r.legBank += secs; r.extra = (r.extra || 0) + secs;
+  emit(s, ev, 'legExtended', { idx: c.idx, secs });
+  return secs;
+}
+export const runPar = r => r.par + (r.extra || 0);
+// a Big Rock (or the Gate) broke: close the leg; what was saved is banked into the next one
+function legSync(s, ev) {
+  const r = s.run, down = s.bossesDown | 0;
+  legInit(r, down);
+  const n = siteLegs(r).length;
+  while (r.legIdx < n && down > r.legIdx) {
+    const left = legLeft(r, down).left, saved = Math.max(0, left);
+    r.legLast = { idx: r.legIdx, left, saved };
+    emit(s, ev, 'legDone', { idx: r.legIdx, left, saved, n });
+    r.legIdx++; r.legAt = r.clock; r.legBank = saved;
+  }
+  if (r.legIdx >= n) r.legIdx = n - 1;
+}
+
 // ---------- the road: stamps ----------
 const blankStamp = (site, floor, twist) => ({ site, floor, twist: twist || '', fin: 0, fast: 0, hard: 0, best: 0, n: 0, bank: 0 });
 function stampOf(s, site, floor, twist) {
@@ -178,14 +232,14 @@ function finish(s, ev) {
   r.done = true; r.time = r.clock;
   s.road.deal = null;                      // cards dealt before this finish (a look from the leave button) show the road as it was
   const st = stampOf(s, r.site, r.floor, r.twist);
-  const first = !st.fin, fast = r.time <= r.par;
+  const first = !st.fin, fast = r.time <= runPar(r);
   let stars = first ? firstPay(r.floor, roadKind(r.site, r.floor, r.twist)) : replayPay(r.floor);
   s.stars += stars; r.paid += stars;
   st.fin = 1; r.medals.fin = 1;
   st.best = st.best ? Math.min(st.best, r.time) : r.time;
   s.road.reach = Math.max(s.road.reach, r.floor);
   if (fast) { r.medals.fast = 1; stars += award(s, ev, st, r.key, 'fast', medalPay(r.floor)); }
-  emit(s, ev, 'siteFinished', { key: r.key, site: r.site, floor: r.floor, twist: r.twist, time: r.time, par: r.par, first, stars, fast,
+  emit(s, ev, 'siteFinished', { key: r.key, site: r.site, floor: r.floor, twist: r.twist, time: r.time, par: runPar(r), first, stars, fast,
     medals: { fin: 1, fast: st.fast, hard: st.hard }, found: { ...r.found }, stamps: roadFinished(s) });
 }
 
@@ -346,6 +400,7 @@ export const sites = use({
       const r = siteRun(s);
       if (r.done) return;
       r.clock += dt;
+      legSync(s, ev);
       if (s.bossesDown * LAYER >= r.floor) finish(s, ev);
     } },
   },

@@ -79,3 +79,37 @@ export const BOSS_ALL = ['Everyone: hats straight!', 'Everyone: pick up your pic
 export const BOSS_TEA = ['{name}, after my tea.', '{name}, wait. Tea first, orders second.', '{name}, this tea is very good. Now dig.'];
 export const BOSS_WAKE = ['I was checking the rocks!', 'I was not sleeping.', 'Back to work, everyone!'];
 export const BOSS_BACK = ['ar7boooo', 'ar7boooo', 'ar7boooo', 'ar7boooo! The tea is ready.', 'ar7boooo, they missed you.'];
+
+// almodeera, the manager (a woman): her own set, with her own way of talking (calm, exact, a little dry). She drinks matcha.
+export const BOSSF_TRAIT = {
+  eager: ['{name}, I admire the speed. Aim it.', '{name}, the rock waits. I wrote it down.', '{name}, running is not digging. Both are good.'],
+  sleepy: ['{name}, I counted that yawn. Three.', '{name}, the sand is awake. Join it.', '{name}, dreams are after the shift.'],
+  joker: ['{name}, very funny. It is in my notes.', '{name}, one more joke and you carry the matcha.', '{name}, I laughed. Do not tell anyone.'],
+  careful: ['{name}, checked twice. Now dig once.', '{name}, good eyes. Now good hands.', '{name}, careful is good. Careful and quick is better.'],
+  proud: ['{name}, that chest was nice. I saw.', '{name}, it is allowed to be proud. Dig now.', '{name}, the whole crew clapped. Quietly.'],
+  hungry: ['{name}, snack time is on my list. Page two.', '{name}, dates are coming. After the rock.', '{name}, I hear your tummy from here.'],
+};
+export const BOSSF_ALL = ['Everyone: scarves and hats straight, please.', 'Team, my list says dig. It is a long list.', 'Rafeeqs, I see everything. Kindly.', 'Everyone, breathe. Then dig.',
+  'Team, nobody is in trouble. Yet.', 'Everyone, the sand is not going to dig itself.', 'Rafeeqs, good work. I will write it down.', 'Team, matcha after the next rock. Promise.',
+  'Everyone, smile. The rock is watching.', 'Team, one crew, one pick, one matcha.', 'Rafeeqs, I believe in you. Mostly.', 'Everyone, shoulders back, picks up.'];
+export const BOSSF_TEA = ['{name}, wait, I am mid-matcha. Then orders.', '{name}, this matcha is very green. Now dig.', '{name}, a woman needs her matcha. Then you dig.'];
+export const BOSSF_WAKE = ['I was reading the rocks. With my eyes shut.', 'I was thinking. Loudly. Inside.', 'Everyone back to work. I saw nothing.'];
+export const BOSSF_BACK = ['ar7boooo, habibi', 'ar7boooo, habibi', 'ar7boooo, I kept your seat warm.', 'ar7boooo! The matcha is cold and green.', 'ar7boooo, they missed you. I did not. A little.'];
+export const BOSSF_TIME = {
+  start: ['The clock is on. So are we.', '{name}, the clock started. I wrote the time.', 'Begin, please. Politely, but fast.', 'Time is gold. So is the sand.',
+    '{name}, the stopwatch and I are watching.', 'Ready? The clock is not waiting for anyone.', 'Fast Rafeeqs get medals. I have a medal drawer.', 'Yalla, the schedule starts now.'],
+  half: ['Half the time is gone. My list is not.', 'Half left. {name}, are you with us?', 'Halfway. Walk fast, speak less.', 'The clock is half empty. Or half full. Dig.',
+    '{name}, half the time, half the rock. Math is kind.', 'Half left. A small worry is allowed.', 'Half! Look at the rock, not at me.', 'Tick, tock. I hear it from here.'],
+  t30: ['30 seconds. {name}, put the matcha down. No, mine.', '30 left. Picks up, please.', '30 seconds! I am calm. The clock is not.', '{name}, 30 seconds. Dig like the bus is leaving.',
+    '30! Even my pen is nervous.', '30 seconds. Kindly hurry. Very kindly.', '30 left! {name}, less chat, more rock.', 'Half a minute. Yalla, habibis.'],
+  t10: ['TEN! {name}, I said wake up kindly. Now loudly!', '10 seconds! All hands on picks!', '10! 9! 8! ...I will recount later!', 'TEN SECONDS! My lanyard is shaking!',
+    '10 left! {name}, go, go, go!', 'Ten! Dig now, apologise later!', '10 seconds! Hold your scarves!', 'TEN! Somebody tell the rock to hurry!'],
+  zero: ['Time is up. I will fix the report later.', 'Zero. It is fine. I have a plan. I do not.', 'The clock is finished. We are not. Dig on.', 'Zero. {name}, I am not saying whose fault. It is yours a bit.',
+    'Time is over. The rock did not read the memo.', 'No time left. We call it a long meeting.', 'Zero! Smile. Keep digging.', 'The clock gave up. We do not.'],
+  early: ['Early! Who are you? Welcome.', 'Under time. {name}, I am writing your name in gold.', 'The Rock is down and the clock is happy.', 'Fast! I will frame this moment.',
+    'Time to spare. We will spend it on matcha.', '{name}, you are my star today. Shh.', 'Ahead of schedule! A first.', 'Time saved. Into the bank it goes.'],
+  late: ['Late, but the Rock is down. Noted, forgiven.', 'The Rock fell. The clock sulks. Fine.', 'A bit slow, {name}. A good Rock, though.', 'Late, with style. I allow it.',
+    'Down at last. The schedule survives.', 'Slowly, but we got there. Next one.', 'Late is better than never, usually.', 'The Rock is down. We do not mention the clock.'],
+  extend: ['Ohh, you thought the time ran out? Zoooooo6, habibi!', 'Zero? Did you believe the clock? I write the clock!', 'Surprise! I found more time in my drawer.', 'Time over? Not on my schedule. Take more!',
+    'Gotcha! I moved the deadline. Zoooooo6!', 'The clock said zero. The manager said later.', 'You looked so worried. Here, more time.', 'Ohh, you thought it was over? Zooooo6, cute!'],
+};

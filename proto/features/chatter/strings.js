@@ -2,11 +2,15 @@
 // Pairs: "chat_pair_<k>_a" is said first and "_b" is the answer ({name} is the mate's name).
 const L = (trait, o) => Object.fromEntries(Object.entries(o).flatMap(([m, a]) => [[`chat_${trait}_${m}_n`, a.length], ...a.map((x, k) => [`chat_${trait}_${m}_${k}`, x])]));
 import { NICK_LINES, BOSS_TRAIT, BOSS_ALL, BOSS_TEA, BOSS_WAKE, BOSS_BACK } from './nicklines.js';
+import { BOSS_TIME } from './timelines.js';
+import { BOSSF_TRAIT, BOSSF_ALL, BOSSF_TEA, BOSSF_WAKE, BOSSF_BACK, BOSSF_TIME } from './nicklines.js';
 const list = (key, a) => [[`${key}_n`, a.length], ...a.map((x, k) => [`${key}_${k}`, x])];
+const BOSSF = Object.fromEntries([...Object.entries(BOSSF_TRAIT).flatMap(([tr, a]) => list('bossf_' + tr, a)), ...list('bossf_all', BOSSF_ALL), ...list('bossf_tea', BOSSF_TEA), ...list('bossf_wake', BOSSF_WAKE), ...list('bossf_back', BOSSF_BACK), ...Object.entries(BOSSF_TIME).flatMap(([m, a]) => list('bossf_time_' + m, a))]);
 const NICKS = Object.fromEntries(Object.entries(NICK_LINES).flatMap(([id, o]) => [...list('nk_say_' + id, o.say), ['nk_boss_' + id, o.boss]]));
-const BOSS = Object.fromEntries([...Object.entries(BOSS_TRAIT).flatMap(([tr, a]) => list('boss_' + tr, a)), ...list('boss_all', BOSS_ALL), ...list('boss_tea', BOSS_TEA), ...list('boss_wake', BOSS_WAKE), ...list('boss_back', BOSS_BACK)]);
+const BOSS = Object.fromEntries([...Object.entries(BOSS_TRAIT).flatMap(([tr, a]) => list('boss_' + tr, a)), ...list('boss_all', BOSS_ALL), ...list('boss_tea', BOSS_TEA), ...list('boss_wake', BOSS_WAKE), ...list('boss_back', BOSS_BACK), ...Object.entries(BOSS_TIME).flatMap(([m, a]) => list('boss_time_' + m, a))]);
 export default { en: {
-  ...NICKS, ...BOSS,
+  ...NICKS, ...BOSS, ...BOSSF,
+  bossf_name: 'almodeera', bossf_name_ar: 'المديرة',
   boss_name: 'almodeer', boss_name_ar: 'المدير',
   ...L('eager', {
     hired: ['Me first!', 'Where do I dig?'], ore: ['Again, again!', 'More, more!'], tnt: ['Light it!', 'Boom time!'],
