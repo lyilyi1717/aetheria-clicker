@@ -107,8 +107,8 @@ function drawBar(g, s, b) {
   for (let i = 1; i < 10; i++) { g.fillStyle = i <= (b.rub || 0) ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.35)'; g.fillRect(bx + bw * (1 - i / 10) - 1, by, 2, bh); }
   g.restore();
   rr(g, bx, by, bw, bh, 7); g.strokeStyle = '#1c1830'; g.lineWidth = 2; g.stroke();
-  const left = fmt(Math.max(1, Math.ceil(b.hp / G.pickPower(s))));
-  const label = s.run && !s.run.done && s.run.floor === b.row ? t('rock_gate_hits', { n: left }) : t('rock_hits', { n: left });
+  const sw = G.bossSwings(s, b), gate = s.run && !s.run.done && s.run.floor === b.row;
+  const label = t((gate ? 'rock_gate_' : 'rock_') + (sw.n === 1 ? 'swing' : 'swings'), { n: fmt(sw.n), time: t('time_' + sw.time.unit, { n: sw.time.n }) });
   g.save(); g.font = '800 12px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.lineJoin = 'round'; g.lineWidth = 3.5; g.strokeStyle = 'rgba(14,10,7,.95)'; g.fillStyle = '#fff';
   g.strokeText(label, W / 2, by + bh / 2 + 0.5); g.fillText(label, W / 2, by + bh / 2 + 0.5);
@@ -123,10 +123,10 @@ function paintHint(s, app) {
   const show = !!b && !b.off && G.bossStuck(s);
   if (!show) { if (!h.hidden) h.hidden = true; return; }
   const a = G.bossAdvice(s);
-  const sig = a.kind + ':' + a.n;
+  const sig = a.kind + ':' + a.n + ':' + a.after;
   if (h._sig !== sig) {
     h._sig = sig; h._advice = a;
-    h.querySelector('.bh-t').textContent = t('stuck_' + a.kind, { n: fmt(a.n) });
+    h.querySelector('.bh-t').textContent = t('stuck_' + a.kind, { n: fmt(a.n), hits: fmt(a.hits), after: fmt(a.after) });
     const go = h.querySelector('.bh-go');
     go.hidden = a.kind === 'more';
     go.textContent = t(a.kind === 'spend' ? 'stuck_btn_spend' : 'stuck_btn_map');
@@ -170,6 +170,11 @@ ui({
       // a hit on the crack has its own feedback; returning true tells the page core not to add its own
       hit(d, x, y, col) {
         bossShake = 1;
+        if (d.blast) {      // TNT on the Rock: a share of the bar, shown as one
+          debris(d.r, d.c, col, 10, 1.2);
+          text(x, y - 16, t('rock_blast', { n: Math.max(1, Math.round(100 * d.share)) }), '#ff9a3c', 26, 0.9); spark(x, y, '#ffb347', 10); shake(0.4);
+          return true;
+        }
         if (d.src !== 'you' || d.crit || !d.weak) return false;
         debris(d.r, d.c, col, 4, 0.7);
         text(x, y - 12, fmt(d.dmg), '#ffb347', 24, 0.7); spark(x, y, '#ffb347', 8); shake(0.14); sfx.bossHit(); sfx.comboUp(0);

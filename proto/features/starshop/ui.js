@@ -5,6 +5,7 @@ import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { S, badge, star, icon, pickShape, helmet, chest as chestShape, gem } from '../../ui/icons.js';
 import { AT, CELL, yOf, fx } from '../../ui/render.js';
+import { buyAllButton } from '../shop/buyallui.js';
 import { openDraft } from '../chest/ui.js';
 
 const { t } = G;
@@ -63,16 +64,17 @@ const affordable = s => G.STARSHOP_TRACKS.some(tr => G.canBuy(s, 'tr_' + tr));
 
 // ---------- the panel ----------
 export function starPanel() {
-  let note, back, box, pick, sig = '', pickSig = '';
+  let note, back, box, pick, ba, sig = '', pickSig = '';
   return {
     id: 'starshop', side: 'right', at: 5, title: 'starshop', live: true,
     when: s => s.stars > 0 || s.starSpent > 0,
-    build(el) {
+    build(el, app) {
+      ba = buyAllButton(app, { shop: 'star', nameOf: id => t('up_' + id) });
       note = document.createElement('p'); note.className = 'muted star-note';
       back = document.createElement('p'); back.className = 'star-back'; back.hidden = true;
       box = document.createElement('div'); box.className = 'trk-list';
       pick = document.createElement('div'); pick.className = 'star-pick'; pick.hidden = true;
-      el.append(note, back, box, pick);
+      el.append(note, back, ba.el, box, pick);
     },
     update(el, s, app) {
       note.textContent = t('star_note') + ' ' + t('star_next');
@@ -85,6 +87,7 @@ export function starPanel() {
         box.innerHTML = '';
         for (const tr of G.STARSHOP_TRACKS) box.appendChild(track(s, tr, app));
       }
+      ba.update(s);
       keeper(s, app);
     },
   };

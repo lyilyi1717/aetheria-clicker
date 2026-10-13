@@ -15,6 +15,7 @@ export default { en: {
   site_stars_now: 'Finish it: +{n} Stars',
   site_stars_again: 'Finish it again: +{n} Stars',
   site_btn_next: 'Next site',
+  site_btn_done: 'Done here: Alqahwa or next town',
   site_btn_leave: 'Move on: +{n} Stars',
   site_btn_leave_0: 'Move on',
   site_wait: 'Break the second Big Rock (50 m) to be able to move on.',

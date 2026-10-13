@@ -4,7 +4,7 @@
 // It also wires the round Map button (key M). The Big Rock's health is drawn on the Rock (boss feature).
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
-import { medalsHtml, nextMap } from '../sites/ui.js';
+import { medalsHtml, nextMap, reopenFinish } from '../sites/ui.js';
 import { tone, gap } from '../../ui/audio.js';
 import strings from './strings.js';
 
@@ -26,7 +26,7 @@ function mount(app) {
   if (!track || !goal) return;
   const head = document.createElement('div');
   head.id = 'trk-head';
-  head.innerHTML = '<b id="trk-level"></b><div id="trk-sub"><span id="trk-gate"></span><span id="trk-clock"></span><span id="trk-bank" hidden></span><span id="trk-medals"></span></div>';
+  head.innerHTML = '<b id="trk-level"></b><div id="trk-sub"><span id="trk-gate"></span><span id="trk-clock"></span><span id="trk-bank" hidden></span><span id="trk-medals"></span><button id="trk-done" class="gold" hidden></button></div>';
   track.insertBefore(head, goal);
   // the message line: the lesson and the toast move here from the stage (a lesson wins when both show)
   const msg = document.createElement('div');
@@ -36,7 +36,9 @@ function mount(app) {
   // the Tips button sits in this line, beside the message line (its list still opens over the stage)
   const tips = $('tips-btn');
   if (tips) track.insertBefore(tips, goal);
-  el = { level: $('trk-level'), clock: $('trk-clock'), bank: $('trk-bank'), medals: $('trk-medals'), gate: $('trk-gate') };
+  el = { level: $('trk-level'), clock: $('trk-clock'), bank: $('trk-bank'), medals: $('trk-medals'), gate: $('trk-gate'), done: $('trk-done') };
+  el.done.textContent = t('trk_done'); el.done.title = t('trk_done_t');
+  el.done.addEventListener('click', () => { app.unlockAudio(); reopenFinish(app); });
   const mb = $('mapbtn');
   if (mb) { mb.innerHTML = app.icon('btn_map', 22); mb.title = mb.ariaLabel = t('trk_map'); mb.addEventListener('click', () => { app.unlockAudio(); openMap(app); }); }
 }
@@ -79,6 +81,7 @@ function tick(s) {
   }
   el.gate.classList.toggle('done', !!r.done);
   el.gate.textContent = r.done ? t('trk_below') : t('trk_togate', { n: G.fmt(Math.max(0, F - Math.max(0, s.best))) });
+  el.done.hidden = !r.done;
   tickClock(s, r);
   const st = G.siteStamp(s), ms = `${st.fin}${st.fast}${st.hard}`;
   if (msig !== ms) { msig = ms; el.medals.innerHTML = medalsHtml({ fin: st.fin, fast: st.fast, hard: st.hard }); }
