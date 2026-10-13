@@ -250,7 +250,7 @@ ui({
     }
     paintHint(s, app);
     const b = G.bossInView(s);
-    if (b && b.gate && b.bank0 > 0 && !b.said && b.row - s.top <= 8) { b.said = true; app.toast(t('gate_remember', { n: Math.round(b.bank0 * 100) }), 'gold'); }
+    if (b && b.gate && b.bank0 > 0 && !b.said && b.row - s.top <= 8) { b.said = true; app.lesson('gate:' + s.run.key + ':' + Math.round(b.bank0 * 1000), t('gate_remember', { n: Math.round(b.bank0 * 100) }), 'gold'); }
     fx.keepClear = b && b.hp > 0 ? b.row : null;
     if (b && b.hp > 0 && !s.seen.bossToast && b.row - s.top <= 6) { s.seen.bossToast = true; app.toast(t('t_boss'), 'gold'); }
   },
