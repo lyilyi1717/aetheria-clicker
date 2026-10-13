@@ -96,6 +96,15 @@ Each depth is met twice: once at a kind place to learn its new thing, once at a 
 
 Three things to do, in this order: make the second level of each depth a real test (harder ground or a rule of its own, so "prove it" means something); bring level 13 down to three tries; then stretch levels 5 to 12 toward the days in 2.3, which the start kit and the Star prices decide.
 
+### 2.3b Built on 13 October: the start kit, prove levels, zones
+
+- **Start kit (built):** every site after the first starts with the pick at 40% of your best pick level (Warm Pick raises it to 50% / 70%) and one free Rafeeq waiting (not counted as hired). `sites.kitPick`, `sites.kitCrew`.
+- **Prove levels (built):** a level marked `prove` in `ROAD` has ground and a Gate 4 times as hard (`sites.proveHp`).
+- **Zones (built, data only):** the road is cut into continents: Arabia (levels 1 to 4), Africa (5 to 7), East Asia (8 to 10), the Americas (11 to 12), Europe (13 to 14). `ZONES`, `roadZone(s)`, `roadIndex(s)`. Inside a zone the levels go from learn to prove. A look and a beat of its own per zone come next.
+- **The Hot Layer** grows 1.17 a row, was 1.20.
+
+Sim after (mixed, 2 seeds): levels 1 to 4 in 29 min; level 5 day 0.6 to 1.0 (2 to 3 tries); level 7 day 3.2 to 3.4 (5 to 6 tries); level 9 day 5.4 to 6.4 (4 to 5); level 11 day 8.4 to 8.6 (4 to 5); level 13 day 15 to 18 (6 to 7 tries, 57 to 76 digs, was about 100); levels 8, 10, 14 still take one try. Open: the levels right after a big first-finish payout are still easy, because that payout buys several Star steps at once; level 13 is still the longest wait.
+
 ### 2.4 From one level to the next
 
 | | Built today | The design |
@@ -157,15 +166,15 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 | 5 | The Star count on the finish card took three minutes for a big prize | fixed (PR #338) |
 | 6 | The track note said a step works from the next site; it works at once | fixed (PR #338) |
 | 7 | The 100 m Rock took a perfect player three hours and 42 tries | fixed (PR #337) |
-| 8 | Time away counts a tea-break rush without using it up, and Rock Friend is paid for time already paid | open |
+| 8 | Time away counts a tea-break rush without using it up, and Rock Friend is paid for time already paid | fixed (PR #341) |
 | 9 | Leaving a 150 m dig unfinished pays 418 Stars; finishing it again pays 308 | open |
 | 10 | Time away is 78% of the mixed player's coins, so the Rafeeqs seem to do nothing while you watch | open |
 | 11 | A deal can offer the same place three times | open; goes away with the road |
 | 12 | Stars reach millions by day 30 | open; goes away with the road (14 paid levels, not 277) |
 | 13 | Lessons share one message slot; a new one wipes the last | open |
-| 14 | Contract hats are drawn 2 px high | open |
+| 14 | Contract hats are drawn 2 px high | fixed (PR #342) |
 | 15 | Never looked at on a real screen: water, crystal lines, lava, Forge tools in use, fusion twists, pick materials, the wish card | open |
-| 16 | Rock bar colours are red and yellow, the design says gold and blue | open |
+| 16 | The Rock bar did not show how much was left | fixed (PR #342): three layers, blue over yellow over red over an empty dark bar, with a thin gold (you) / blue (Rafeeqs) strip |
 
 ## 6. Work order
 
@@ -190,6 +199,7 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 
 | Date | Change |
 |---|---|
+| 13 Oct 2026 | Start kit, prove levels, zones (continents) on the road (2.3b). Time away counts each second once (PR #341). A look per place, the arrival banner, the layered Rock bar (PR #342). |
 | 13 Oct 2026 | The road's order built: fourteen levels, one card at a time, side cards when stuck. Measured level by level (2.3a). |
 | 13 Oct 2026 | This file made the one design file. The road of fourteen levels written (section 2). Faults 1 to 6 fixed (PR #338). |
 | 13 Oct 2026 | The 100 m wall lowered: it was three hours high (PR #337). |

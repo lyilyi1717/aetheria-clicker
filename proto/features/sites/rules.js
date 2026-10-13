@@ -43,7 +43,7 @@ const p = {
   // the start kit: every site after the first starts where the player is (docs/dig-design.md 2.2)
   kitPick: 0.4,                   // the pick starts at this share of your best pick level (Warm Pick raises it)
   kitCrew: 1,                     // Rafeeqs waiting (Rafeeq Waiting raises it)
-  proveHp: 1.6,                   // the second level of a depth ("prove it") has ground this much harder
+  proveHp: 4,                     // the second level of a depth ("prove it") has ground this much harder
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom
   baseFloor: 50,                  // where a Gate is when no card says (old saves, the contracts board)
