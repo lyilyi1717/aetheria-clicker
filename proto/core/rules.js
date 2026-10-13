@@ -20,8 +20,8 @@ use({
     val0: 1, valGrow: 1.10, valGrow2: 1.10,
     // layers 3 and 4, the Deep's four, then everything below (the last entry goes on for ever)
     grow: [
-      { hp: 1.14, val: 1.10, step: 2 },    // 50 m: water
-      { hp: 1.17, val: 1.10, step: 20 },    // 75 m: crystal
+      { hp: 1.14, val: 1.10, step: 1.3 },  // 50 m: water
+      { hp: 1.17, val: 1.10, step: 3 },    // 75 m: crystal
       { hp: 1.20, val: 1.10, step: 3 },   // 100 m: The Black
       { hp: 1.20, val: 1.10, step: 2 },   // 125 m: The Living Rock
       { hp: 1.20, val: 1.10, step: 2 },  // 150 m: The Angry Layer
