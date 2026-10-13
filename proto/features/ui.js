@@ -3,6 +3,7 @@
 import './autos/ui.js';
 import './away/ui.js';
 import './boss/ui.js';
+import './chatter/ui.js';
 import './chest/ui.js';
 import './combo/ui.js';
 import './contracts/ui.js';

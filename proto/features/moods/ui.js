@@ -3,6 +3,9 @@
 // The Rafeeq's own drawing (../diggers/art.js) reads `look` (set here every frame) and does the body, the pose (sitting,
 // lying, flat, hurt), the goggle eyes, the mouth, the fez and the pick. This file adds arms, props, puffs and a speech bubble.
 // Other features: `moodsPoke` in ./rules.js, or `app.fire('mood', { mood, r, c })`.
+// Speech: every bubble goes through `moodsSay` and the rate rule of the chatter feature (one per 4 s on screen, one per
+// Rafeeq per 14 s, one answer to a pair; nothing while a card is open or in the last third of a Rock fight; "Rafeeqs talk: off" stops all).
+// A trait (Eager, Sleepy, Joker, Careful, Proud, Hungry) bends how much he talks and which mood he picks. Looks and words only.
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { fx, AT, W, rr, centre } from '../../ui/render.js';
@@ -17,26 +20,54 @@ const MOODS = {
   laugh: { pr: 3, secs: 2.2 }, guilty: { pr: 3, secs: 1.6 }, cold: { pr: 2, secs: 4 }, wet: { pr: 2, secs: 4 },
   tea: { pr: 1, secs: 6 }, doze: { pr: 1, secs: 6 },
 };
-const P = { bubbleGap: 4, bubbleOwn: 14, bubbleChance: 0.55, slackGap: 18, laughGap: 30, near: 2.2, pickNear: 75, hitsToKick: 24 };
+const P = { ...G.chatterParams, slackGap: 18, laughGap: 30, laughGapJoker: 15, laughChance: 0.15, laughChanceJoker: 0.3, near: 2.2, pickNear: 75, hitsToKick: 24, scaredChance: 0.02, scaredChanceSleepy: 0.008 };
 const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const MS = new WeakMap();           // digger -> { mood, left, age, bubble, bubbleLeft, ownCool, blk, hits, with }
+const MS = new WeakMap();           // digger -> { mood, left, age, bubble, bubbleLeft, blk, hits, with }
 const puffs = [];                   // { x, y, vx, vy, life, col } steam and smoke, world px
-const counters = { globalBubble: 0, slack: 6, laugh: 4 };
+const counters = { slack: 6, laugh: 4 };
+export const moodsMem = G.chatterMem();   // the rate rule's memory (page only, never saved)
+const ref = { s: null };
 export const moodStats = {};        // how often each mood showed
 
 const st = d => {
   let m = MS.get(d);
-  if (!m) { m = { mood: null, left: 0, age: 0, bubble: null, bubbleLeft: 0, ownCool: 3 + Math.random() * 8, blk: '', hits: 0, with: null }; MS.set(d, m); }
+  if (!m) { m = { mood: null, left: 0, age: 0, bubble: null, bubbleLeft: 0, blk: '', hits: 0, with: null }; MS.set(d, m); }
   return m;
 };
 
-function say(m, key, force) {
-  if (!force && (counters.globalBubble > 0 || m.ownCool > 0 || Math.random() > P.bubbleChance)) return;
+const idxOf = d => (ref.s ? ref.s.diggers.indexOf(d) : -1);
+export const moodsTrait = d => { const i = idxOf(d); return i < 0 ? 'careful' : G.chatterTrait(ref.s, i); };
+
+// Show one bubble over a Rafeeq if the rate rule allows it. o.player: he was patted (skips the gap, still counts);
+// o.over: a rare one-off (a finish, the Rock at a third) that skips the mute. Returns true when shown.
+export function moodsSay(d, text, o = {}) {
+  const s = ref.s, i = idxOf(d);
+  if (!text || !s || i < 0 || s.chatterQuiet) return false;
+  if (!o.player && !o.over && !G.chatterAllow(moodsMem, i, P)) return false;
+  if (o.over && s.chatterQuiet) return false;
+  const m = st(d); m.bubble = text; m.bubbleLeft = 1.9;
+  G.chatterSpoke(moodsMem, i, text, P, o);
+  return true;
+}
+// Two Rafeeqs talk: a says line k, and b answers 0.8 s later; then both stay quiet for 20 s.
+export function moodsTalk(a, b, k) {
+  const s = ref.s, ia = idxOf(a), ib = idxOf(b);
+  if (!s || ia < 0 || ib < 0 || moodsMem.reply) return false;
+  const lines = G.chatterPairLines(k, G.chatterName(s, ib));
+  if (!moodsSay(a, lines.a)) return false;
+  G.chatterAsk(moodsMem, ia, ib, lines.b, P);
+  return true;
+}
+// a mood's own line, by chance (a talker talks more, a sleeper less), never the line just said
+function say(d, key, force) {
+  const s = ref.s; if (!s) return;
+  const i = idxOf(d); if (i < 0) return;
+  if (!force && Math.random() > (G.CHATTER_TALK[G.chatterTrait(s, i)] ?? 0.55)) return;
   const n = Number(t('m_' + key + '_n'));
   if (!n) return;
-  m.bubble = t('m_' + key + '_' + Math.floor(Math.random() * n));
-  m.bubbleLeft = 1.9; m.ownCool = P.bubbleOwn; counters.globalBubble = P.bubbleGap;
+  const lines = Array.from({ length: n }, (_, k) => t('m_' + key + '_' + k));
+  moodsSay(d, G.chatterPick(moodsMem, i, lines, Math.random()));
 }
 
 export function moodsSet(d, mood, secs, opts = {}) {
@@ -46,7 +77,7 @@ export function moodsSet(d, mood, secs, opts = {}) {
   if (m.mood === mood) { m.left = Math.max(m.left, secs || def.secs); return true; }
   m.mood = mood; m.left = secs || def.secs; m.age = 0; m.with = opts.with || null;
   moodStats[mood] = (moodStats[mood] || 0) + 1;
-  say(m, mood === 'happy' && opts.rich ? 'rich' : mood, opts.say);
+  if (!opts.quiet) say(d, mood === 'happy' && opts.rich ? 'rich' : mood, opts.say);
   return true;
 }
 
@@ -88,19 +119,24 @@ ui({
       for (const x of s.diggers) if (Math.abs(x.r - d.r) <= d.rad + 0.6 && Math.abs(x.c - d.c) <= d.rad + 0.6) { if (moodsSet(x, 'sooty')) sooty = x; }
       if (!sooty) return;
       let n = 0;     // the others laugh at him
-      for (const x of s.diggers) if (x !== sooty && st(x).mood !== 'sooty' && n++ < 3) moodsSet(x, 'laugh', 2.6, { with: sooty });
+      const mates = s.diggers.filter(x => x !== sooty && st(x).mood !== 'sooty');
+      mates.sort((a, b) => (moodsTrait(b) === 'joker') - (moodsTrait(a) === 'joker'));      // the Joker starts it
+      for (const x of mates) if (n++ < 3) moodsSet(x, 'laugh', 2.6, { with: sooty });
     },
     gusher(d, app) { const x = nearest(app.state, d.r, d.c, 3); if (x) moodsSet(x, 'dizzy'); },
     bossDown(d, app) { for (const x of app.state.diggers) moodsSet(x, 'proud'); },
   },
   draw: [{ at: AT.actors + 1, fn: drawMoods }],
-  tick(s) {
+  tick(s, app) {
+    ref.s = s;
+    const b = s.boss, fight = b && b.hp > 0 && b.row - s.top < 10 && b.hp / b.max < 1 / 3;     // the last third of a Rock fight
+    moodsMem.mute = !!(app && app.modal && app.modal.id) || !!fight;
     // every 0.1 s: the chance things (slacking, laughing together, scared of the Big Rock)
     const ds = s.diggers; if (!ds.length) return;
     const boss = s.boss && s.boss.hp > 0 ? s.boss.row : -1;
     for (const d of ds) {
       const m = st(d);
-      if (boss >= 0 && !m.mood && Math.abs(d.r - boss) < 1.7 && Math.random() < 0.02) moodsSet(d, 'scared');
+      if (boss >= 0 && !m.mood && Math.abs(d.r - boss) < 1.7 && Math.random() < (moodsTrait(d) === 'sleepy' ? P.scaredChanceSleepy : P.scaredChance)) moodsSet(d, 'scared');
       if (m.mood === 'tea' || m.mood === 'doze') {      // caught by the pick
         const [x, y] = centre(d.r, d.c);
         if (fx.mouse.inside && Math.hypot(fx.mouse.x - x, fx.mouse.y - y) < P.pickNear) { m.mood = null; moodsSet(d, 'guilty', null, { say: true }); }
@@ -108,13 +144,24 @@ ui({
     }
     if (counters.slack <= 0) {
       const free = ds.filter(d => !st(d).mood && d.tr >= 0);
-      if (free.length && Math.random() < 0.05) { counters.slack = P.slackGap; moodsSet(free[Math.floor(Math.random() * free.length)], Math.random() < 0.6 ? 'tea' : 'doze'); }
+      if (free.length && Math.random() < 0.05) {
+        counters.slack = P.slackGap;
+        const d = free[Math.floor(Math.random() * free.length)], tr = moodsTrait(d);
+        // Sleepy picks the nap, Hungry and Eager the tea (Eager never dozes), the others as before
+        const mood = tr === 'sleepy' ? (Math.random() < 0.8 ? 'doze' : 'tea') : tr === 'hungry' || tr === 'eager' ? 'tea' : Math.random() < 0.6 ? 'tea' : 'doze';
+        moodsSet(d, mood);
+        if (mood === 'tea') {          // a friend sits down with him
+          const i = s.diggers.indexOf(d), f = G.chatterPair(s, i).friend, mate = f === null ? null : s.diggers[f];
+          if (mate && !st(mate).mood && mate.tr >= 0 && moodsSet(mate, 'tea', null, { with: d, quiet: true })) moodsTalk(d, mate, 0);
+        }
+      }
     }
     if (counters.laugh <= 0 && ds.length > 1) {
       for (let i = 0; i < ds.length; i++) for (let j = i + 1; j < ds.length; j++) {
         const a = ds[i], b = ds[j];
-        if (!st(a).mood && !st(b).mood && Math.hypot(a.r - b.r, a.c - b.c) < P.near && Math.random() < 0.15) {
-          counters.laugh = P.laughGap; moodsSet(a, 'laugh', null, { with: b }); moodsSet(b, 'laugh', null, { with: a }); return;
+        const joke = moodsTrait(a) === 'joker' || moodsTrait(b) === 'joker';      // a Joker laughs twice as often
+        if (!st(a).mood && !st(b).mood && Math.hypot(a.r - b.r, a.c - b.c) < P.near && Math.random() < (joke ? P.laughChanceJoker : P.laughChance)) {
+          counters.laugh = joke ? P.laughGapJoker : P.laughGap; moodsSet(a, 'laugh', null, { with: b }); moodsSet(b, 'laugh', null, { with: a }); return;
         }
       }
     }
@@ -159,7 +206,13 @@ function bubble(g, x, y, str, alpha) {
 function drawMoods(g, s, dt) {
   dt = Math.min(dt || 0.016, 0.1);
   drawn.length = 0;
-  counters.globalBubble -= dt; counters.slack -= dt; counters.laugh -= dt;
+  ref.s = s; moodsMem.now += dt;
+  counters.slack -= dt; counters.laugh -= dt;
+  const due = G.chatterReplyDue(moodsMem);         // the answer of a pair
+  if (due) {
+    const who = s.diggers[due.to];
+    if (who && !s.chatterQuiet && !moodsMem.mute) { const m = st(who); m.bubble = due.text; m.bubbleLeft = 1.9; G.chatterReplied(moodsMem, P); } else moodsMem.reply = null;
+  }
   for (let i = puffs.length - 1; i >= 0; i--) {
     const q = puffs[i]; q.life -= dt; if (q.life <= 0) { puffs.splice(i, 1); continue; }
     q.x += q.vx * dt; q.y += q.vy * dt;
@@ -169,7 +222,6 @@ function drawMoods(g, s, dt) {
   const ds = s.diggers;
   for (let i = 0; i < ds.length; i++) {
     const d = ds[i], m = st(d);
-    m.ownCool -= dt;
     if (m.bubbleLeft > 0) m.bubbleLeft -= dt;
     if (m.mood) { m.age += dt; m.left -= dt; if (m.left <= 0) { m.mood = null; m.with = null; } }
     const [x, y] = centre(d.r, d.c);
