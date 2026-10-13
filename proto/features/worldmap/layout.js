@@ -104,4 +104,3 @@ export function pathPoints(e, gap = 15) {
 }
 
 // the node the player is told to go to, by its card key (for tests and the info panel)
-export const goKey = map => (map.go && map.go.card ? map.go.card.key : null);

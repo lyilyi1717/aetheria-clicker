@@ -159,7 +159,6 @@ export function starshopKeepList(s) {
   if (lv(s, 'sp_pocket2') && rest.length) { const id = best(rest); out.push({ id, level: Math.min(s.relics[id], n) }); }
   return out;
 }
-export const starshopKeepNow = s => starshopKeepList(s)[0] || null;
 
 // ---------- free re-roll ----------
 export const starshopRerollsLeft = s => Math.max(0, lv(s, 'sp_reroll') - (s.starRerolls || 0));

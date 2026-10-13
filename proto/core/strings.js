@@ -14,7 +14,6 @@ export function addStrings(tables, owner = '?') {
   }
 }
 export function setLang(l) { lang = TABLES[l] ? l : 'en'; }
-export const getLang = () => lang;
 export const hasString = key => key in TABLES.en;
 // keys of `from` that `lang` lacks (for a test that fails on missing Arabic, once there is Arabic)
 export const missingStrings = (l, from = 'en') => Object.keys(TABLES[from]).filter(k => !(TABLES[l] && k in TABLES[l]));
@@ -25,6 +24,12 @@ export function t(key, vars) {
   if (s === undefined) return key;
   if (vars) for (const k of Object.keys(vars)) s = s.replace(`{${k}}`, vars[k]);
   return s;
+}
+
+// "a, b, c" in the language's own way (Arabic joins with its own comma and "and"): use it for any list of words
+export function listOf(items) {
+  try { return new Intl.ListFormat(lang, { style: 'short', type: 'unit' }).format(items); }
+  catch (e) { return items.join(', '); }
 }
 
 export function fmt(n) {

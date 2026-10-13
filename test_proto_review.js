@@ -55,5 +55,11 @@ const ready2 = () => { const s = fresh(); s.bossesDown = 2; s.best = 52; s.sites
   ok(key === 'refund', 'paid Rafeeqs give the refund note');
 }
 
+{ // text from parts: named parts in t(), lists through listOf
+  ok(G.listOf(['a', 'b', 'c']) === 'a, b, c' && G.listOf([]) === '', 'listOf joins in the language');
+  ok(G.t('site_twist', { site: 'Dunes', twist: 'Dim' }) === 'Dunes, Dim', 'a site and its twist are one string');
+  ok(G.t('fin_found', { list: G.listOf(['2 ore', '1 bones']) }) === 'Found: 2 ore, 1 bones', 'found line');
+  ok(!('rndInt' in G) && !('getLang' in G) && !('fusionMelted' in G) && !('hitRelics' in G), 'dead exports are gone');
+}
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('review: ok');

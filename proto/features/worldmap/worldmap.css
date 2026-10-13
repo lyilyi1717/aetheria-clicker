@@ -11,6 +11,9 @@
 .wm-stage canvas.hot { cursor: pointer; }
 .wm-stage canvas.drag { cursor: grabbing; }
 .wm-pan { position: absolute; top: 50%; translate: 0 -50%; width: 34px; height: 64px; border: 2px solid var(--gold); border-radius: 10px; background: rgba(24,14,8,.78); color: var(--gold); font-size: 22px; font-weight: 800; cursor: pointer; padding: 0; }
+.wm-pan svg { display: block; margin: auto; }
+.wm-pan.r svg { transform: scaleX(-1); }
+.wm-pan:dir(rtl) svg { scale: -1 1; }
 .wm-pan.l { inset-inline-start: 8px; }
 .wm-pan.r { inset-inline-end: 8px; }
 .wm-skip { position: absolute; inset-inline-end: 12px; bottom: 10px; padding: 3px 10px; border-radius: 10px; background: rgba(24,14,8,.78); color: var(--muted); font-size: 12px; pointer-events: none; }
