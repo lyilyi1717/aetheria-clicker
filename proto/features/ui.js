@@ -29,6 +29,7 @@ import './relics2/ui.js';
 import './shop/ui.js';
 import './sites/ui.js';
 import './starshop/ui.js';
+import './telemetry/ui.js';
 import './tnt/ui.js';
 import './track/ui.js';
 import './wardrobe/ui.js';
