@@ -10,6 +10,8 @@ import strings from './strings.js';
 import { nextMap, newThingKey, medalsHtml } from '../sites/ui.js';
 import { buildMap, PW, HH } from './layout.js';
 import { paint, along } from './draw.js';
+import { openAlqahwa, stopAlqahwa } from './alqahwa.js';
+import { autoEnterCard } from './flow.js';
 
 // a chevron pointing toward the start of the text (the left one); the right button turns it round, both follow the text direction
 const CHEVRON = '<svg viewBox="0 0 12 20" width="14" height="24" aria-hidden="true"><path d="M10 2 L2 10 L10 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -69,6 +71,7 @@ function start(app, m, map, opts) {
   const T = { pips: 0.45, step: 0.3 };
   T.pathAt = T.pips + T.step * won.length + 0.1; T.pathDur = 0.8;
   T.walkAt = T.pathAt + T.pathDur + 0.1; T.walkDur = crosses ? 1.6 : 1.0; T.end = T.walkAt + T.walkDur;
+  let autoT = 0;                           // the pending "enter the next level by itself"
   let walking = !!edge, clockT = 0, burstDone = false, pipsPlayed = 0;
   const bursts = [];
   const ages = [99, 99, 99];
@@ -109,6 +112,12 @@ function start(app, m, map, opts) {
     nw.classList.remove('hard');
     c1 = c2 = null; goBtn2.hidden = true;
     if (!n) { ic.innerHTML = ''; name.textContent = ''; line.textContent = t('wm_go_hint'); gt.textContent = nw.textContent = pay.textContent = ''; mrow.innerHTML = ''; goBtn.hidden = true; return; }
+    if (n.type === 'town') {
+      ic.innerHTML = icon('qahwa', 48); name.textContent = t('wm_town'); line.textContent = t('wm_town_line');
+      gt.textContent = ''; nw.textContent = t('wm_town_d'); pay.textContent = s.stars > 0 ? t('qh_stars', { n: G.fmt(s.stars) }) : '';
+      goBtn.textContent = t('wm_town_go'); goBtn.hidden = false;
+      return;
+    }
     const c = n.card;
     ic.innerHTML = icon(n.type === 'hub' ? 'gate' : 'site_' + n.site, 48);
     gt.textContent = nw.textContent = pay.textContent = ''; mrow.innerHTML = '';
@@ -147,14 +156,21 @@ function start(app, m, map, opts) {
     if (c) { c1 = c; goBtn.textContent = t('wm_dig'); }
     goBtn.hidden = !c1 || viewOnly;
   };
+  const enterTown = () => {
+    clearTimeout(autoT); autoT = 0;
+    app.unlockAudio(); app.modal.close();
+    openAlqahwa(app, { back: () => openMap(app, {}) });
+  };
+  const press = () => { if (sel && sel.type === 'town') enterTown(); else dig(c1); };
   const dig = c => {
+    clearTimeout(autoT); autoT = 0;
     if (!c) c = c1;
     if (!c || viewOnly) return;
     app.unlockAudio();
     app.modal.close();
     if (G.pickCard(s, c, app.ev)) { app.save(); app.refresh(true); }
   };
-  goBtn.addEventListener('click', () => dig(c1));
+  goBtn.addEventListener('click', press);
   goBtn2.addEventListener('click', () => dig(c2));
 
   // ---------- the walk, and what ends it ----------
@@ -165,13 +181,16 @@ function start(app, m, map, opts) {
       bursts.push({ x: n.x, y: n.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60, r: 2 + Math.random() * 3, life: 0.7, max: 0.7, col: i % 3 ? '#ffd23f' : '#fff3a8' });
     }
   }
-  function finishWalk() {
+  function finishWalk(skipped) {
     if (!walking) return;
     walking = false; clockT = T.end;
     won.forEach(i => { ages[i] = 5; });
     if (!burstDone) { burstDone = true; burst(target); if (crosses) sfx.star(); else sfx.buy(); }
     camTo = centreOn(target.x);
     setInfo(goNode || target);
+    // "Next town": with exactly one card on the road, go in by yourself (any click, key or pan cancels it)
+    const auto = opts.auto && !viewOnly ? autoEnterCard(G.dealCards(s), true) : null;
+    if (auto) { $('.line').textContent = t('wm_entering'); autoT = setTimeout(() => { autoT = 0; dig(auto); }, skipped ? 350 : 800); }
   }
 
   // ---------- input ----------
@@ -198,19 +217,20 @@ function start(app, m, map, opts) {
     if (!drag) return;
     const d = drag; drag = null; cv.classList.remove('drag');
     if (d.moved) return;
-    if (walking) { finishWalk(); return; }
+    if (walking) { finishWalk(true); return; }
+    clearTimeout(autoT); autoT = 0;
     const n = hit(world(e));
     if (n) { setInfo(n); sfx.coin(2); }
   };
   cv.addEventListener('pointerup', up);
   cv.addEventListener('pointercancel', () => { drag = null; cv.classList.remove('drag'); });
-  const pan = dir => { if (walking) finishWalk(); camTo = clamp(camTo + dir * PW * 0.6, 0, maxCam()); };
+  const pan = dir => { clearTimeout(autoT); autoT = 0; if (walking) finishWalk(true); camTo = clamp(camTo + dir * PW * 0.6, 0, maxCam()); };
   // the left button is the one at the start of the line: in a right-to-left language it sits on the right and pans that way
   const rtl = () => getComputedStyle(m).direction === 'rtl' ? -1 : 1;
   $('.wm-pan.l').addEventListener('click', () => pan(-rtl())); $('.wm-pan.r').addEventListener('click', () => pan(rtl()));
   const onKey = e => {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { pan(e.key === 'ArrowLeft' ? -1 : 1); }
-    else if (e.key === 'Enter' || e.key === ' ') { if (walking) finishWalk(); else if (!goBtn.hidden) dig(c1); }
+    else if (e.key === 'Enter' || e.key === ' ') { if (walking) finishWalk(true); else if (!goBtn.hidden) press(); }
     else if (e.key === 'Escape') { app.modal.close(); }
     else return;
     e.preventDefault(); e.stopPropagation();
@@ -261,7 +281,7 @@ function start(app, m, map, opts) {
     timer = document.hidden ? setTimeout(frame, 33) : requestAnimationFrame(frame);
   }
   function stop() {
-    stopped = true;
+    stopped = true; clearTimeout(autoT);
     cancelAnimationFrame(timer); clearTimeout(timer);
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('resize', onResize);
@@ -281,10 +301,11 @@ nextMap.open = openMap;
 ui({
   id: 'worldmap',
   icons: {
+    qahwa: `<path d="M8 27 Q5 17 11 13 L11 10 L16 6 L21 10 L21 13 Q27 17 24 27 Z" fill="#ffd23f" ${S}/><path d="M24 14 Q30 12 29 7" fill="none" ${S}/><path d="M8 17 Q3 18 5 23" fill="none" ${S}/><path d="M13 20 Q16 23 19 20" fill="none" stroke="#7a5a00" stroke-width="1.8" stroke-linecap="round"/>`,
     wm_digger: `<rect x="8" y="23" width="15" height="8" rx="3.5" fill="#2f7ab8" ${S}/><g transform="translate(9 -3) scale(0.7)">${pickShape()}</g>${helmet}`,
   },
   css: new URL('./worldmap.css', import.meta.url).href,
   on: {
-    modalClosed(d) { if (d.id === 'worldmap') stopActive(); },
+    modalClosed(d) { if (d.id === 'worldmap') stopActive(); if (d.id === 'alqahwa') stopAlqahwa(); },
   },
 });

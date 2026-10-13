@@ -18,7 +18,7 @@ const info = (id, s) => tabInfo(tab(id), s);
     const i = tabInfo(tb, s);
     ok(typeof i.next === 'string' && i.next.length > 0 && !i.next.includes('{'), tb.id + ': a plain next line, got "' + i.next + '"');
   }
-  ok(TABS.map(x => x.id).join() === 'shop,stars,camp,relics,museum,forge,level', 'the seven tabs, in order');
+  ok(TABS.map(x => x.id).join() === 'shop,camp,relics,museum,forge,level', 'the six tabs, in order (the Star tracks live in the Alqahwa)');
 }
 { // every panel that exists is mapped to a tab (read from the feature files)
   const dirs = [...readFileSync('proto/features/ui.js', 'utf8').matchAll(/\.\/(\w+)\/ui\.js/g)].map(x => x[1]);
@@ -35,7 +35,7 @@ const info = (id, s) => tabInfo(tab(id), s);
 { // a fresh save: Shop and Level open, the rest locked with a reason that is never a time; no dots
   const s = G.newState();
   ok(info('shop', s).lock === null && info('level', s).lock === null, 'Shop and Level are never locked');
-  for (const id of ['stars', 'camp', 'relics', 'museum', 'forge']) {
+  for (const id of ['camp', 'relics', 'museum', 'forge']) {
     const l = info(id, s).lock;
     ok(typeof l === 'string' && /^Opens when /.test(l) && !/second|minute|hour|day|wait/i.test(l), id + ': locked, says how it opens (' + l + ')');
     ok(info(id, s).ready.length === 0 && info(id, s).main === null, id + ': no dot and no button while locked');
@@ -45,7 +45,7 @@ const info = (id, s) => tabInfo(tab(id), s);
 }
 { // the tabs open with what the player has done
   const s = G.newState(); s.stars = 3;
-  ok(info('stars', s).lock === null && /^(Next|Ready): /.test(info('stars', s).next), 'Stars open with a Star: ' + info('stars', s).next);
+  ok(!TABS.some(x => x.id === 'stars') && !PANEL_TAB.starshop, 'no Stars tab any more');
   const s2 = G.newState(); s2.chests = 1; ok(info('relics', s2).lock === null, 'Relics open with a chest');
   const s3 = G.newState(); s3.forgeOn = true; ok(info('forge', s3).lock === null, 'Forge opens with forgeOn');
   const s4 = G.newState(); s4.foremanHere = true;

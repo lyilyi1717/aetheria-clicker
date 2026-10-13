@@ -6,6 +6,7 @@ import { AT, H, SKY, yOf, CELL, screenFlash, shake } from '../../ui/render.js';
 import { sfx } from '../../ui/audio.js';
 import { icon, S, badge, star } from '../../ui/icons.js';
 import { ofLevel } from '../rafeeqs/portrait.js';
+import { finishChoices } from '../worldmap/flow.js';
 
 const { t } = G;
 
@@ -21,10 +22,12 @@ export const medalsHtml = m => MEDALS.map(k => medalChip(k, m && m[k])).join('')
 // ---------- the next site: the road map (worldmap feature), or, if it cannot draw, the cards ----------
 export const nextMap = { open: null };
 let lastFin = null;                       // the last finish: the map walks from there
-function goNext(app, from, lookOnly) {
+export const alqahwa = { open: null };    // the coffee house screen (worldmap feature)
+// "Next town": the map, the digger walks, and the next level opens by itself when the road shows one card
+function goNext(app, from, lookOnly, auto) {
   if ((!lookOnly && !G.canNewSite(app.state)) || app.modal.id) return;
   if (nextMap.open) {
-    try { nextMap.open(app, { from }); return; }
+    try { nextMap.open(app, { from, auto: !!auto }); return; }
     catch (e) { console.error('Dig: the road map failed, showing the cards', e); if (app.modal.id === 'worldmap') app.modal.close(); }
   }
   openNext(app);
@@ -65,6 +68,9 @@ function openNext(app) {
 
 // ---------- the finish ceremony ----------
 let pending = null;
+let lastD = null;                         // the last finish card's data, so the coffee house can come back to it
+export function goNextHere(app) { const r = G.siteRun(app.state); goNext(app, r.done ? { key: r.key } : null, false, r.done); }
+export function reopenFinish(app) { const r = G.siteRun(app.state); return !!lastD && r.done && showFinish(app, lastD, true); }
 
 // "You keep": one short line each, only for what the player has
 function keepLines(s) {
@@ -107,11 +113,6 @@ function cheapestStep(s) {
   }
   return best;
 }
-function stepName(tr, n) {
-  const rule = G.starshopRule(tr, n);
-  if (tr === 'pick') return t('pick_title', { name: G.starshopPickName(G.starshopPickAt(n)) });
-  return rule ? t('rule_' + rule) : t('track_plain_' + tr);
-}
 const esc = x => String(x).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 const row = (ic, text) => `<li><span class="ic">${icon(ic, 22)}</span><span>${esc(text)}</span></li>`;
 
@@ -135,15 +136,16 @@ function showEnd(app) {
   return true;
 }
 
-function showFinish(app, d) {
+function showFinish(app, d, again) {
   const s = app.state;
+  lastD = d;
   const last = G.ROAD[G.ROAD.length - 1];
   if (d.first && !d.twist && last && d.site === last.site && d.floor === last.floor && !G.fixedNext(s)) return showEnd(app);
   const m = app.modal.open('finish', `<div class="card finish"><div class="seal"><span class="sealic"></span><b class="word"></b></div><h2></h2><p class="more gate"></p>`
     + `<p class="time"></p><p class="more fast"></p><p class="found"></p><div class="rq-of"></div><div class="mrow"></div><p class="earn"></p>`
     + `<div class="fcols"><section class="keep"><h3></h3><ul></ul></section><section class="kit"><h3></h3><ul></ul><div class="nextlvl"></div></section></div>`
-    + `<button class="spend primary" hidden></button><p class="more spendnote"></p>`
-    + `<div class="btns"><button class="primary gold"></button><button class="ghost"></button></div></div>`);
+    + `<div class="choices"><button class="choice qh"><span class="ic"></span><b></b><span class="d"></span></button><button class="choice primary gold nt"><span class="ic"></span><b></b><span class="d"></span></button></div>`
+    + `<div class="btns"><button class="ghost"></button></div></div>`);
   if (!m) return false;
   m.querySelector('.sealic').innerHTML = icon('site_' + d.site, 44);
   m.querySelector('.word').textContent = t('fin_stamp');
@@ -161,13 +163,20 @@ function showFinish(app, d) {
   ofLevel(m.querySelector('.rq-of'), s);
   m.querySelector('.mrow').innerHTML = medalsHtml(d.medals);
   const earn = m.querySelector('.earn'); earn.textContent = t('fin_stars', { n: 0 });
-  const go = m.querySelector('.gold'), stay = m.querySelector('.ghost');
-  go.textContent = t('fin_next'); stay.textContent = t('fin_stay');
+  const stay = m.querySelector('.ghost'), qh = m.querySelector('.qh'), go = m.querySelector('.nt');
+  stay.textContent = t('fin_stay');
   stay.addEventListener('click', () => { app.modal.close(); app.dirty('site'); });
-  go.addEventListener('click', () => { app.modal.close(); goNext(app, { key: d.key }); });
+  // the two big choices: the coffee house (upgrades) or the next town (the next level)
+  const picks = finishChoices(s);
+  qh.querySelector('.ic').innerHTML = icon('qahwa', 40); qh.querySelector('b').textContent = t('fin_choice_qahwa');
+  qh.querySelector('.d').textContent = s.stars > 0 ? t('fin_choice_qahwa_stars', { n: G.fmt(s.stars) }) : t('fin_choice_qahwa_d');
+  go.querySelector('.ic').innerHTML = icon('gate', 40); go.querySelector('b').textContent = t('fin_choice_next'); go.querySelector('.d').textContent = t('fin_choice_next_d');
+  qh.classList.toggle('glow', s.stars > 0 && !!cheapestStep(s));
+  go.hidden = !picks.includes('next');
+  qh.addEventListener('click', () => { app.unlockAudio(); app.modal.close(); if (alqahwa.open) alqahwa.open(app, { back: () => reopenFinish(app) }); });
+  go.addEventListener('click', () => { app.unlockAudio(); app.modal.close(); goNext(app, { key: d.key }, false, true); });
 
-  // "You keep" and "Level N starts with", drawn again after a Star purchase
-  const note = m.querySelector('.spendnote');
+  // "You keep" and "Level N starts with"
   const fill = () => {
     m.querySelector('.keep h3').textContent = t('fin_keep');
     m.querySelector('.keep ul').innerHTML = keepLines(s).map(x => row(x.ic, x.text)).join('');
@@ -183,21 +192,6 @@ function showFinish(app, d) {
       box.querySelector('.gt').textContent = t('next_gate', { n: nx.floor });
       const nw = box.querySelector('.nw'); nw.textContent = t(newThingKey(nx, nx.level - 1)); nw.classList.toggle('hard', !!nx.prove);
     } else box.textContent = t('fin_next_deal');
-    // one obvious Star purchase
-    const sp = m.querySelector('.spend'), c = cheapestStep(s);
-    sp.hidden = !c;
-    if (!c) return;
-    const n = G.starshopSteps(s, c.tr) + 1, hit = G.pickPower(s);
-    sp.innerHTML = `<span class="ic">${icon('star', 20)}</span><span></span>`;
-    sp.lastChild.textContent = t('fin_spend', { n: G.fmt(c.cost), name: stepName(c.tr, n) });
-    if (!note.textContent) note.textContent = c.tr === 'pick' ? t('fin_spend_hit', { a: G.fmt(hit), b: G.fmt(hit * G.PARAMS.starshop.step) }) : t('track_more_' + c.tr);
-    sp.onclick = () => {
-      app.unlockAudio();
-      if (!G.buy(s, c.id, app.ev)) { app.sfx.deny(); return; }
-      app.bump(sp); app.save(); app.refresh(true); app.dirty('starshop');
-      note.textContent = c.tr === 'pick' ? t('fin_spent_hit', { a: G.fmt(hit), b: G.fmt(G.pickPower(s)) }) : t('fin_spent_' + c.tr);
-      fill();
-    };
   };
   fill();
   // the Stars count up
@@ -205,7 +199,7 @@ function showFinish(app, d) {
   const inc = Math.max(1, Math.ceil(d.stars / 8));       // eight ticks at most: a big prize is not a long wait
   const step = () => { n = Math.min(d.stars, n + inc); earn.textContent = t('fin_stars', { n }); if (n < d.stars && m.isConnected) setTimeout(step, 150); };
   setTimeout(step, 700);
-  sfx.star(); screenFlash('#fff', 0.6); shake(0.6);
+  if (!again) { sfx.star(); screenFlash('#fff', 0.6); shake(0.6); }
   return true;
 }
 
@@ -275,7 +269,9 @@ ui({
         + `<div class="gaterow"><span class="gtxt"></span><span class="gbar"><i></i></span></div>`
         + `<div class="clockrow">${icon('watch', 22)}<b class="clk">0:00</b><span class="muted par"></span></div>`
         + `<div class="mrow"></div><p class="muted pay"></p><p class="muted hardnote"></p><button class="primary nextbtn" hidden></button><p class="muted wait"></p>`
-        + `<h3 class="roadh"></h3><div class="road"></div>`);
+        + `<button class="ghost qhbtn"></button><h3 class="roadh"></h3><div class="road"></div>`);
+      const qb = el.querySelector('.qhbtn'); qb.textContent = t('site_btn_qahwa');
+      qb.addEventListener('click', () => { app.unlockAudio(); if (!app.modal.id && alqahwa.open) alqahwa.open(app, {}); });
       el.querySelector('.nextbtn').addEventListener('click', () => { app.unlockAudio(); const r = G.siteRun(app.state); goNext(app, r.done ? { key: r.key } : null); });
     },
     update(el, s) {

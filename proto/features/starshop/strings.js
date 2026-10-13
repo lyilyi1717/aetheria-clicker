@@ -4,7 +4,7 @@ export default { en: {
   star_note: 'Stars do nothing until you spend them.',
   star_note_none: 'Earn Stars at a New Site, then spend them here.',
   star_next: 'A step makes you stronger at once. A start gift comes with your next site.',
-  star_pointer: 'You have Stars. Spend them on your Pick, Camp or Bag.',
+  star_pointer: 'You have Stars. Spend them at the Alqahwa.',
   star_pointer_d: 'Each step makes you stronger for ever.',
   star_back: 'Your Stars came back: {n}. Spend them on the new tracks.',
 

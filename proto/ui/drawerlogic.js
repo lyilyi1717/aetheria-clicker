@@ -8,7 +8,6 @@ const { t, fmt } = G;
 // the panel -> tab map. A panel may say `tab: 'forge'` itself; this is the default for the ones that exist.
 export const PANEL_TAB = {
   shop: 'shop', picks: 'shop',
-  starshop: 'stars',
   crew: 'camp', foreman: 'camp', wardrobe: 'camp', chatter: 'camp',
   relics: 'relics', fzbook: 'relics',
   wing2: 'museum',
@@ -44,8 +43,7 @@ function mainBuy(s, shops) {
   return it ? { id: it.id, label: t('dr_buy', { name: nameOf(it.id), what: amount(it.wallet, it.cost) }) } : null;
 }
 
-const COIN_SHOPS = ['coin', 'picks'], STAR_TRACKS = () => (G.STARSHOP_TRACKS || []).map(tr => 'tr_' + tr);
-const trackStock = s => stock(s, ['star']).filter(it => STAR_TRACKS().includes(it.id));
+const COIN_SHOPS = ['coin', 'picks'];
 
 // the tabs, in order. icon: id in icons.js. lock(s): text, or null when open. ready(s): the things
 // that are ready now (a dot shows for one you have not seen). next(s): one plain line. main(s): { id, label } or null.
@@ -54,14 +52,6 @@ export const TABS = [
     ready: s => readyIds(s, COIN_SHOPS),
     next: s => buyNext(s, ['coin']),
     main: s => mainBuy(s, ['coin']) },
-  { id: 'stars', icon: 'tab_stars',
-    lock: s => (s.stars > 0 || s.starSpent > 0 ? null : t('dr_lock_stars')),
-    ready: s => trackStock(s).filter(it => canAfford(s, it)).map(it => it.id),
-    next: s => {
-      const items = trackStock(s), far = items.find(it => !canAfford(s, it)), it = far || items[0];
-      return it ? t(far ? 'dr_next_buy' : 'dr_can_buy', { name: nameOf(it.id), what: amount(it.wallet, it.cost) }) : t('dr_none');
-    },
-    main: s => { const ok = trackStock(s).filter(it => canAfford(s, it)), it = ok[0]; return it ? { id: it.id, label: t('dr_buy', { name: nameOf(it.id), what: amount(it.wallet, it.cost) }) } : null; } },
   { id: 'camp', icon: 'tab_camp',
     lock: s => (s.diggers.length > 0 || s.foremanHere ? null : t('dr_lock_camp')),
     ready: s => (s.foremanHere ? ['foreman'] : []),

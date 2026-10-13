@@ -39,6 +39,8 @@ export function buildMap(s) {
   const hub = { id: 'hub', type: 'hub', i: ROAD.length, level: 0, site: '', floor: 0, zone: 'beyond', twist: '', prove: false,
     x: panels[ZONES.length].x + BEYOND_X * PW, y: BEYOND_Y, r: 26, state: nx ? 'locked' : 'done', stamp: null, card: null };
   nodes.push(hub);
+  // Alqahwa, the coffee house: always there, on the Arabian coast below the first stones, on no road
+  nodes.push({ id: 'town', type: 'town', i: -1, level: 0, site: '', floor: 0, zone: 'arabia', twist: '', prove: false, x: 195, y: 425, r: 26, state: 'town', stamp: null, card: null, stars: s.stars || 0 });
   const road = nodes.filter(n => n.type === 'road');
   road.forEach((n, i) => edges.push({ id: 'e' + i, from: n, to: i + 1 < road.length ? road[i + 1] : hub, open: i < nextIdx, kind: 'road' }));
 

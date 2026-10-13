@@ -62,7 +62,7 @@ function stepInfo(track, n) {
 const affordable = s => G.STARSHOP_TRACKS.some(tr => G.canBuy(s, 'tr_' + tr));
 
 // ---------- the panel ----------
-function panel() {
+export function starPanel() {
   let note, back, box, pick, sig = '', pickSig = '';
   return {
     id: 'starshop', side: 'right', at: 5, title: 'starshop', live: true,
@@ -178,7 +178,7 @@ ui({
     tr_camp: { desc: () => t('up_tr_camp_d'), noLevel: true },
     tr_bag: { desc: () => t('up_tr_bag_d'), noLevel: true },
   },
-  panels: [panel()],
+  // (the Star tracks are bought at the Alqahwa, worldmap/alqahwa.js, which builds starPanel() into its menu board)
   // the pointer: shown while you can buy something and have bought nothing yet
   goal: { at: 5, fn: s => (s.stars > 0 && s.starSpent === 0 && affordable(s) ? { text: t('star_pointer'), frac: 1, cls: 'gold' } : null) },
   mount: mountChip,
