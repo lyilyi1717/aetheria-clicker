@@ -30,7 +30,7 @@ use({
     ],
     buyPow: 0.55,                   // coins -> hits: log(powGrow) / log(1.5), the price growth of a pick level
     // Stars (starsAt in core/grid.js): what a floor is worth, small whole numbers; the sites feature pays shares of it
-    starBase: 3, starGrow: 3,       // 3 Stars at starFrom metres, x3 for every 25 m deeper
+    starBase: 3, starGrow: 4.5,      // 3 Stars at starFrom metres, x4.5 for every 25 m deeper
     starFrom: 50, starWall: 20,     // a dig with no Stars reaches a wall this many times the wall at 50 m
     sight: 2,                       // how many blocks from open space you can see
   },

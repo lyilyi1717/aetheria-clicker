@@ -45,7 +45,7 @@ export const DEPTHS = [10, 25, 30, 50, 60, 75, 100, 125, 150, 175, 200, 225, 250
 // The card: from the fixed road it takes the only card; from a deal it takes the one it can do (its floor is at most one
 // Big Rock beyond the deepest floor finished, or 75 m), preferring a stretch, then a new place, then a twist; a medal card
 // when it wants a Fast medal (`fastTry`) or a Hard one (`hardTry`).
-export const MOVE = { far: 90, rockWait: 150, giveUp: 240, budget: 2.5, retry: 1.5, fastTry: 0.35, hardTry: 0.25 };
+export const MOVE = { far: 90, rockWait: 150, giveUp: 240, budget: 4, retry: 1.5, fastTry: 0.35, hardTry: 0.25 };
 
 // ---------- tracker ----------
 export class Trk {

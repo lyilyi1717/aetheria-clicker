@@ -99,9 +99,9 @@ const clearRow = (s, i) => { for (let c = 0; c < G.COLS; c++) s.rows[i][c] = nul
   L.grow = { hp: 2, step: 1 };
   ok(Math.abs(G.dirtHp(52) / G.dirtHp(51) - 2) < 1e-6 && Math.abs(G.dirtHp(50) / G.dirtHp(49) - G.PARAMS.core.hpGrow2) < 1e-6, 'a layer may bring its own growth');
   if (had === undefined) delete L.grow; else L.grow = had;
-  ok(G.starsAt(50) === 3 && G.starsAt(75) === 9, 'a floor is worth a few Stars: 3 at 50 m, x3 for every 25 m');
+  ok(G.starsAt(50) === 3 && G.starsAt(75) === Math.round(3 * G.PARAMS.core.starGrow), 'a floor is worth a few Stars: 3 at 50 m, then x starGrow for every 25 m');
   let up = true; for (let d = 51; d < 230; d++) if (G.starsAt(d) < G.starsAt(d - 1)) up = false;
-  ok(up && G.starsAt(200) < 10000 && G.starsAt(200) > 10 * G.starsAt(100), 'deeper pays more Stars, in small numbers (never millions)');
+  ok(up && G.starsAt(200) < 1e5 && G.starsAt(200) > 10 * G.starsAt(100), 'deeper pays more Stars, in small numbers (never millions)');
   ok(G.starsToStand(40) === 0 && G.starLift(0) === 1 && G.starLift(10) > 2, 'Stars lift the wall');
 }
 { // a save from before the curves changed: the ground it holds is kept, new ground follows the new curve

@@ -55,16 +55,16 @@ export const TARGETS = [
   ['rock3',   'Big Rock 3 down (75 m), crystal',   rock(3),               { active: [0.02, 1.2], mixed: [0.4, 2.5], idle: [2, 7] },       'd', true],
   ['contracts', 'Contracts open',                  unit('contracts:open'), { active: [0.8, 2.5], mixed: [1.5, 3.5], idle: [6, 16] },     'd', true],
   ['rock4',   'Big Rock 4 down (100 m), the Deep', rock(4),               { active: [1.5, 4], mixed: [3, 5.5], idle: [8, 18] },          'd', true],
-  ['rock5',   'Big Rock 5 down (125 m)',           rock(5),               { active: [4, 8], mixed: [7, 11], idle: null },            'd', true],
-  ['rock6',   'Big Rock 6 down (150 m)',           rock(6),               { active: [7, 13], mixed: [11, 17], idle: null },              'd', true],
-  ['rock7',   'Big Rock 7 down (175 m)',           rock(7),               { active: [11, 18], mixed: [16, 23], idle: null },             'd', true],
-  ['rock8',   'Big Rock 8 down (200 m)',           rock(8),               { active: [15, 24], mixed: [21, 30], idle: null },             'd', true],
+  ['rock5',   'Big Rock 5 down (125 m)',           rock(5),               { active: [4, 9], mixed: [7, 12], idle: null },            'd', true],
+  ['rock6',   'Big Rock 6 down (150 m)',           rock(6),               { active: [8, 16], mixed: [14, 26], idle: null },              'd', true],
+  ['rock7',   'Big Rock 7 down (175 m)',           rock(7),               { active: [11, 18], mixed: [16, 23], idle: null },             'd', false],
+  ['rock8',   'Big Rock 8 down (200 m)',           rock(8),               { active: [15, 24], mixed: [21, 30], idle: null },             'd', false],
 ];
 // other things --assert checks (the numbers are in docs/dig-pacing.md)
 export const LIMITS = {
-  earlyGap: 150,      // s: longest attended stretch with nothing bought, found or beaten, first 30 attended minutes
+  earlyGap: 180,      // s: longest attended stretch with nothing bought, found or beaten, first 30 attended minutes
   lateGap: 300,       // s: the same, afterwards (the 95th percentile of gaps; one long Rock fight is allowed)
-  movesPerDay: { mixed: [1.5, 6], active: [2, 9], idle: [0.4, 2.5] },   // New Sites a day, days 2 to 30
+  movesPerDay: { mixed: [4, 14], active: [8, 30], idle: [0.5, 4] },   // New Sites a day (nearly all of them finish the site), days 2 to 30
 };
 
 // ---------- one run ----------

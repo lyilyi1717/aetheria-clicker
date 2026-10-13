@@ -55,7 +55,7 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   ok(G.canNewSite(s2) && !G.canNewSite(fresh()), 'moving needs the second Big Rock');
 }
 { // Stars are small numbers: worth of a floor grows by a fixed step, never millions in the first months' depths
-  ok(G.starsAt(50) === 3 && G.starsAt(75) === 3 * G.PARAMS.core.starGrow, 'a floor is worth 3 Stars at 50 m, then x starGrow per 25 m');
+  ok(G.starsAt(50) === 3 && G.starsAt(75) === Math.round(3 * G.PARAMS.core.starGrow), 'a floor is worth 3 Stars at 50 m, then x starGrow per 25 m');
   ok(G.starsAt(200) < 1e6, 'the deepest floor dealt is not worth millions');
 }
 { // the road: four fixed sites, in order, then a deal of three

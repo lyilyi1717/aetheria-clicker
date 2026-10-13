@@ -17,7 +17,7 @@
 // cards (`dealCards`) and the player picks one: a stretch (the next floor), a new place (a site never finished; the
 // Museum's two once their sets are done), a medal still to win, a twist stacked on a floor already finished.
 //
-// STARS are small: `starsAt(depth)` (core/grid.js) is what a floor is worth (3 at 50 m, x3 for each 25 m deeper).
+// STARS are small: `starsAt(depth)` (core/grid.js) is what a floor is worth (3 at 50 m, x4.5 for each 25 m deeper).
 // A first finish pays it, a Fast or Hard medal `medalShare` of it, a replay `replayShare`, leaving before the Gate
 // `leaveShare` of what the depth reached is worth (at least 1), digging past the Gate `deepShare` of the extra worth.
 //
@@ -40,10 +40,10 @@ const p = {
   baseFloor: 50,                  // where a Gate is when no card says (old saves, the contracts board)
   maxFloor: 250,                  // no Gate deeper than this is dealt
   // the stopwatch: par = parBase seconds at 50 m, x parGrow for every 25 m deeper, x parTwist with a twist
-  parBase: 480, parGrow: 1.5, parTwist: 1.15,
+  parBase: 300, parGrow: 1.45, parTwist: 1.15,
   // Stars (a floor is worth starsAt(floor))
   medalShare: 0.5,                // Fast and Hard: this share of the floor's worth, once each
-  replayShare: 0.34,              // finishing a version again
+  replayShare: 0.25,              // finishing a version again
   leaveShare: 0.34,               // leaving before the Gate: this share of the worth of the depth you reached (at least 1)
   deepShare: 0.5,                 // after the Gate: this share of the extra worth of the depth you reached, when you move
   deepFrom: 10,                   // metres below the Gate before that counts
@@ -219,6 +219,7 @@ export const sites = use({
   version: 2,
   // a save from before: the sites it had visited are stamps with no medals
   migrate(s) {
+    if (s.sites >= 14) s.seen.legacyBoard = true;      // the contracts board was open (it used to open at 14 New Sites): it stays open
     for (const k of Object.keys(s.unlocked || {})) {
       if (!k.startsWith('site:')) continue;
       const site = k.slice(5);

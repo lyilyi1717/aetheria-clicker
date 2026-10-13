@@ -22,10 +22,11 @@ function openNext(app) {
   const s = app.state;
   if (!G.canNewSite(s) || app.modal.id) return;
   const cards = G.dealCards(s), fixed = cards.length === 1 && cards[0].kind === 'fixed', run = G.siteRun(s);
-  const m = app.modal.open('sites', `<div class="card draft nextsite"><h2></h2><p class="more sub"></p><div class="cards"></div><p class="more leave"></p><p class="more"><button class="ghost"></button></p></div>`);
+  const m = app.modal.open('sites', `<div class="card draft nextsite"><h2></h2><p class="more sub"></p><p class="more line"></p><div class="cards"></div><p class="more leave"></p><p class="more"><button class="ghost"></button></p></div>`);
   if (!m) return;
   m.querySelector('h2').textContent = t(fixed ? 'next_title_fixed' : 'next_title');
   m.querySelector('.sub').textContent = t(fixed ? 'next_sub_fixed' : 'next_sub');
+  m.querySelector('.line').textContent = G.starshopLineText(s);
   const gain = G.starsFor(s);
   m.querySelector('.leave').textContent = run.done ? (gain > 0 ? t('next_reward', { n: G.fmt(gain) }) : t('next_leave_done')) : t('next_leave', { n: G.fmt(gain) });
   const back = m.querySelector('.ghost'); back.textContent = t('next_stay'); back.addEventListener('click', () => app.modal.close());
@@ -140,7 +141,7 @@ ui({
     return { text: t('goal_gate_far', { name: t('site_' + r.site), n: r.floor }), frac: Math.min(1, Math.max(0, s.best / r.floor)) };
   } },
   panels: [{
-    id: 'site', elId: 'site', side: 'left', at: 30, title: 'site_title', live: true,
+    id: 'site', elId: 'site', side: 'left', at: 5, title: 'site_title', live: true,
     when: () => true,
     build(el, app) {
       el.insertAdjacentHTML('beforeend', `<div class="nowrow"><span class="nic"></span><div><b class="nname"></b><span class="muted nrule"></span></div></div>`

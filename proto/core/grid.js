@@ -81,7 +81,7 @@ export function starsToStand(r, land = 'desert') {
 }
 // What a floor is worth in Stars (the sites feature pays by it): starBase at starFrom metres, starGrow times more for every
 // 25 m deeper. A site that is finished pays this; a medal, a replay, leaving early and digging past the Gate pay shares of it
-// (proto/features/sites/rules.js). Small whole numbers: 3 at 50 m, 9 at 75 m. `land` is for a second land's own curve.
+// (proto/features/sites/rules.js). Small whole numbers: 3 at 50 m, 14 at 75 m, 61 at 100 m, 273 at 125 m. `land` is for a second land's own curve.
 // (The old curve paid a share of the Stars it takes to stand where a dig stopped: hundreds of millions in a month.
 // starsToStand is still the model the sim prints next to it.)
 export function starsAt(best, land = 'desert') {
