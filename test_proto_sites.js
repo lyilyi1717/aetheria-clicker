@@ -154,12 +154,12 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
 { // the road: fourteen levels in order; a level stays until it is finished; stuck brings side cards
   const s = fresh();
   const fin = (f, n = 1) => { s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n }; };
-  ok(G.ROAD.length === 14 && G.ROAD[13].floor === 200 && G.ROAD.slice(0, 4).every((f, i) => f.site === G.FIXED[i].site && f.floor === G.FIXED[i].floor) && G.ROAD.every(f => G.ZONES.includes(f.zone)), 'fourteen levels, the first four as before');
-  ok([50, 75, 100, 125, 150, 175, 200].every(fl => G.ROAD.filter(f => f.floor === fl).length === 2), 'every depth is met twice');
+  ok(G.ROAD.length === 20 && G.ROAD[19].floor === 275 && G.ZONES.every(z => G.ROAD.filter(f => f.zone === z).length === 4) && G.ROAD.slice(0, 4).every((f, i) => f.site === G.FIXED[i].site && f.floor === G.FIXED[i].floor) && G.ROAD.every(f => G.ZONES.includes(f.zone)), 'twenty levels, four in each land, the first four as before');
+  ok([50, 75, 100, 125, 150, 175, 200, 225, 250, 275].every(fl => G.ROAD.filter(f => f.floor === fl).length === 2), 'every depth is met twice');
   for (const f of G.FIXED) fin(f);
   s.road.reach = 75;
   let d = G.dealCards(s);
-  ok(d.length === 1 && d[0].kind === 'fixed' && d[0].level === 5 && d[0].of === 14 && d[0].site === 'dunes' && d[0].floor === 100, 'after the four: level 5 of 14, one card');
+  ok(d.length === 1 && d[0].kind === 'fixed' && d[0].level === 5 && d[0].of === 20 && d[0].site === 'dunes' && d[0].floor === 100, 'after the four: level 5 of 20, one card');
   ok(G.roadLevel(s).level === 5, 'the road knows the level');
   s.road.stamps[G.siteKey('dunes', 100)] = { site: 'dunes', floor: 100, twist: '', fin: 0, fast: 0, hard: 0, best: 0, n: 1 };
   s.road.deal = null; d = G.dealCards(s);
@@ -169,7 +169,7 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   ok(d.length > 1 && d[0].kind === 'fixed' && d[0].level === 5 && d.slice(1).every(c => c.kind !== 'fixed' && c.floor <= 75), 'two failed tries: the level stays first, side cards on finished floors beside it');
   ok(G.fixedNext(s).level === 5, 'a level past the fourth is never skipped');
   for (const f of G.ROAD) fin(f);
-  ok(G.fixedNext(s) === null && G.roadLevel(s).level === 15, 'the road ends');
+  ok(G.fixedNext(s) === null && G.roadLevel(s).level === 21, 'the road ends');
 }
 
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
