@@ -6,7 +6,7 @@ import { drawRafeeq } from '../diggers/art.js';
 const { t, fmt } = G;
 
 // a canvas with seat i drawn on it; it keeps drawing (he breathes, blinks) until it leaves the page
-export function portrait(s, i, w = 96, h = 112) {
+export function portrait(s, i, w = 96, h = 128) {
   const cv = document.createElement('canvas');
   cv.width = w; cv.height = h; cv.className = 'rq-portrait';
   const g = cv.getContext('2d');
@@ -16,7 +16,7 @@ export function portrait(s, i, w = 96, h = 112) {
   const frame = now => {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     g.clearRect(0, 0, w, h);
-    g.save(); g.translate(w / 2, h / 2 + 2); g.scale(2.6 * w / 96, 2.6 * w / 96);
+    g.save(); g.translate(w / 2, h / 2 + 8); g.scale(2.6 * w / 96, 2.6 * w / 96);
     try { drawRafeeq(g, s, d, i, 0, dt); } catch (e) { /* a missing pose must not break a card */ }
     g.restore();
     if (cv.isConnected || now - born < 400) requestAnimationFrame(frame);
@@ -40,5 +40,5 @@ export function ofLevel(box, s) {
   const l = document.createElement('span'); l.textContent = t('rq_of_level_line', { name: G.rafeeqName(s, i), n: fmt(st.level.coins) });
   const q = document.createElement('i'); q.textContent = t('rq_line_' + G.rafeeqTrait(s, i));
   txt.append(h, l, q);
-  box.append(portrait(s, i, 64, 76), txt);
+  box.append(portrait(s, i, 64, 86), txt);
 }
