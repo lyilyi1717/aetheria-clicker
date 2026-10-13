@@ -19,7 +19,7 @@ const p = {
   fuel: 1, oreFuel: 3,          // bar filled by a block you break; by an ore block you break
   crewFuel: 0.3,                // by a block a Rafeeq breaks (it is your play that counts most)
   swingFuel: 0.12,              // by every swing, so a hard wall still fills the bar
-  need: { drill: 45, dynamite: 80, magnet: 60 },   // bar to fill for one charge (about this many blocks broken)
+  need: { drill: 40, dynamite: 70, magnet: 50 },   // bar to fill for one charge (about this many blocks broken)
   needCut: 0.07,                // each level above the first makes a charge this much cheaper to fill
   cap0: 2,                      // charges a tool can hold: this plus its level
   cost: { drill: 4, dynamite: 18, magnet: 28 },    // metal for level 1 (the Drill is nearly free)
@@ -260,7 +260,7 @@ function botShop(s, api) {
       else if (id === 'dynamite' && lvl(s, id) >= 3 && free(s, b.row - 1, b.weak)) tg = [b.row - 1, b.weak];
     }
     if (!tg && !b) {
-      if (api.rnd() > 0.85) continue;                      // a player takes a moment to decide
+      if (api.rnd() > 0.95) continue;                      // a player takes a moment to decide
       const L = lvl(s, id);
       let best = null, bs = 0;
       if (id === 'magnet') {
@@ -270,7 +270,7 @@ function botShop(s, api) {
         if (best && !free(s, best[0], best[1])) { best = null; for (let i = 0; i < 7 && !best; i++) if (free(s, s.top + i, api.ctx.col)) best = [s.top + i, api.ctx.col]; }
       } else if (id === 'dynamite') {
         // a clump of treasure or TNT, or a thick patch of ground
-        bs = urgent ? 3 : 8;
+        bs = urgent ? 3 : 6;
         for (let i = 0; i < 7; i++) for (let c = 0; c < COLS; c++) {
           const r = s.top + i;
           if (!free(s, r, c)) continue;
@@ -280,7 +280,7 @@ function botShop(s, api) {
       } else {
         // the drill: the column where the ground ahead is hardest (hits it would take), near where you dig
         const need = x => Math.min(60, x.hp / Math.max(1, hits(s)));
-        bs = (urgent ? 1.5 : 4) * at(p.drillDepth, L);
+        bs = (urgent ? 1.5 : 3) * at(p.drillDepth, L);
         for (let c = Math.max(0, api.ctx.col - 2); c <= Math.min(COLS - 1, api.ctx.col + 2); c++) {
           let r0 = -1;
           for (let i = 0; i < 6; i++) if (free(s, s.top + i, c)) { r0 = s.top + i; break; }

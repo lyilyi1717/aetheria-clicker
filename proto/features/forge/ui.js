@@ -226,7 +226,7 @@ function drawPulls(g, s, dt) {
       const k = Math.min(1, p.t / Math.max(0.01, popAt));
       if (p.t > popAt + 0.12) return;
       // the block slides toward the pointer, a streak behind it
-      const ex = cx + (px - cx) * k * 0.55, ey = cy + (py - cy) * k * 0.55;
+      const ex = cx + (px - cx) * k * 0.9, ey = cy + (py - cy) * k * 0.9;
       g.strokeStyle = `rgba(190,215,255,${0.75 * (1 - k * 0.6)})`; g.lineWidth = 3 + 4 * k;
       g.beginPath(); g.moveTo(cx, cy); g.lineTo(ex, ey); g.stroke();
       g.fillStyle = '#fff'; g.beginPath(); g.arc(ex, ey, 6 + 4 * k, 0, 7); g.fill();
