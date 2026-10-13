@@ -9,7 +9,7 @@ const { t, fmt } = G;
 export const PANEL_TAB = {
   shop: 'shop', picks: 'shop',
   starshop: 'stars',
-  crew: 'camp', foreman: 'camp',
+  crew: 'camp', foreman: 'camp', wardrobe: 'camp',
   relics: 'relics', fzbook: 'relics',
   wing2: 'museum',
   forge: 'forge',
