@@ -40,6 +40,7 @@ export default { en: {
   won_stars: '+{n} Stars',
   left_toast: 'Contract left. The rule is gone. Nothing lost.',
   note_refund: 'No Rafeeqs here. You got your coins back.',
+  note_home: 'No Rafeeqs here. They went home.',
   sand_fill: 'The sand came back! Dig again.',
   glass_break: 'Crack! The glass pick is level 1 again.',
 
