@@ -13,8 +13,8 @@
 //             under that contract, and the contracts feature calls `siteMedal(s, 'hard', ev)` when it is won.
 // A medal pays a few Stars, once per version.
 //
-// THE ROAD (docs/dig-design.md, section 2). Fourteen levels in a fixed order (ROAD): every depth from 50 m to 200 m is
-// met twice, once at a kind place and once at a harder one. "Next site" deals ONE card, the next level, until that
+// THE ROAD (docs/dig-design.md, section 2). Twenty levels in a fixed order (ROAD): the four lessons, then every depth from
+// 100 m to 275 m is met twice (learn it at a kind place, prove it at a harder one), in five lands. "Next site" deals ONE card, the next level, until that
 // level is finished. A level tried twice and not finished brings side cards beside it (a medal still to win, a twist
 // on a finished floor): Stars to come back stronger with. The road is never made softer and no level is skipped
 // (the first four pass after two tries: they are lessons, and old saves visited them). When the last level is
