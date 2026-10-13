@@ -9,7 +9,6 @@ import { drawRafeeq, BLUES } from './art.js';
 
 const { t, fmt } = G;
 const SHIRTS = BLUES;      // the blue of each Rafeeq (the dot in the crew panel matches)
-const nameOf = (d, i) => d.name || t('crew_name', { n: d.id || i + 1 });   // a name can be given later
 
 function drawDigger(g, s, d, i, dt) {
   const [x, y] = centre(d.r, d.c);
@@ -50,19 +49,21 @@ ui({
     id: 'crew', elId: 'crew', side: 'left', at: 14, title: 'crew_title', live: true,
     when: s => s.diggers.length > 0,
     build(el) { el.insertAdjacentHTML('beforeend', '<div class="crew-rows"></div>'); },
-    update(el, s) {
+    update(el, s, app) {
       const box = el.querySelector('.crew-rows');
       while (box.children.length > s.diggers.length) box.lastChild.remove();
       while (box.children.length < s.diggers.length) {
         const row = document.createElement('div');
         row.className = 'crew-row';
         row.innerHTML = '<i></i><b></b><span></span>';
+        row.addEventListener('click', () => app.fire('rafeeqCard', { i: [...box.children].indexOf(row) }));
         box.appendChild(row);
       }
       s.diggers.forEach((d, i) => {
         const row = box.children[i];
         row.firstChild.style.background = SHIRTS[i % 8];
-        row.children[1].textContent = nameOf(d, i);
+        row.children[1].textContent = G.rafeeqName(s, i);
+        row.classList.toggle('rq-lead', !!(s.run && s.run.done) && G.rafeeqBest(s) === i);
         const txt = t('crew_row', { b: fmt(d.broke || 0), c: fmt(Math.round(d.coins || 0)) });
         row.children[2].textContent = d.sv ? t('crew_sieving') + ', ' + txt : txt;
         row.title = row.textContent;
