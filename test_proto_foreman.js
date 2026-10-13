@@ -103,10 +103,10 @@ const pol = (s, id) => G.POLICIES[id](s, s.diggers[0]);
   const s3 = G.deserialize(JSON.stringify(o));
   ok(s3.foremanHere === false && s3.crewJob !== undefined && s3.foreTea.ph === 'break', 'an old save loads with defaults');
 }
-{ // away: the settlement does not depend on the job
+{ // away: the settlement does not depend on the job (the tea job pays its break-and-rush average, tested in test_proto_away.js)
   const a = pit(), b = pit();
   a.up.crew = 1; b.up.crew = 1;
-  G.foremanSet(b, 'tea');
+  G.foremanSet(b, 'follow');
   ok(G.settleAway(a, 3600).coins === G.settleAway(b, 3600).coins, 'away pays the same whichever job is set');
 }
 
