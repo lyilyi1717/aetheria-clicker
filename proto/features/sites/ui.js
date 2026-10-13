@@ -21,11 +21,11 @@ const medalsHtml = m => MEDALS.map(k => medalChip(k, m && m[k])).join('');
 function openNext(app) {
   const s = app.state;
   if (!G.canNewSite(s) || app.modal.id) return;
-  const cards = G.dealCards(s), fixed = cards.length === 1 && cards[0].kind === 'fixed', run = G.siteRun(s);
+  const cards = G.dealCards(s), lvl = cards[0].kind === 'fixed' ? cards[0] : null, fixed = !!lvl && cards.length === 1, run = G.siteRun(s);
   const m = app.modal.open('sites', `<div class="card draft nextsite"><h2></h2><p class="more sub"></p><p class="more line"></p><div class="cards"></div><p class="more leave"></p><p class="more"><button class="ghost"></button></p></div>`);
   if (!m) return;
-  m.querySelector('h2').textContent = t(fixed ? 'next_title_fixed' : 'next_title');
-  m.querySelector('.sub').textContent = t(fixed ? 'next_sub_fixed' : 'next_sub');
+  m.querySelector('h2').textContent = lvl ? t(fixed ? 'next_title_fixed' : 'next_title_stuck', { n: lvl.level, of: lvl.of }) : t('next_title');
+  m.querySelector('.sub').textContent = t(fixed ? 'next_sub_fixed' : lvl ? 'next_sub_stuck' : 'next_sub');
   m.querySelector('.line').textContent = G.starshopLineText(s);
   const gain = G.starsFor(s);
   m.querySelector('.leave').textContent = run.done ? (gain > 0 ? t('next_reward', { n: G.fmt(gain) }) : t('next_leave_done')) : t('next_leave', { n: G.fmt(gain) });

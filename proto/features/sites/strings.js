@@ -26,9 +26,11 @@ export default { en: {
   road_stamp: '{name}, {n} m',
   // the cards
   next_title: 'Where to next?',
-  next_title_fixed: 'Next on the road',
+  next_title_fixed: 'Level {n} of {of}',
+  next_title_stuck: 'Level {n} of {of}, or get stronger first',
   next_sub: 'Pick one.',
   next_sub_fixed: 'This one will teach you something.',
+  next_sub_stuck: 'The other cards pay Stars. Then come back.',
   next_stay: 'Not yet. Keep digging here.',
   next_gate: 'Gate at {n} m',
   next_par: 'Fast under {t}',

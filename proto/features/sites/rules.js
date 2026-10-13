@@ -13,9 +13,13 @@
 //             under that contract, and the contracts feature calls `siteMedal(s, 'hard', ev)` when it is won.
 // A medal pays a few Stars, once per version.
 //
-// THE ROAD. The first four sites are fixed, in order (FIXED); after that, at each "Next site" the game deals three
-// cards (`dealCards`) and the player picks one: a stretch (the next floor), a new place (a site never finished; the
-// Museum's two once their sets are done), a medal still to win, a twist stacked on a floor already finished.
+// THE ROAD (docs/dig-design.md, section 2). Fourteen levels in a fixed order (ROAD): every depth from 50 m to 200 m is
+// met twice, once at a kind place and once at a harder one. "Next site" deals ONE card, the next level, until that
+// level is finished. A level tried twice and not finished brings side cards beside it (a medal still to win, a twist
+// on a finished floor): Stars to come back stronger with. The road is never made softer and no level is skipped
+// (the first four pass after two tries: they are lessons, and old saves visited them). When the last level is
+// finished the game deals three cards (`dealCards`) and the player picks one: a stretch (the next floor), a new place
+// (a site never finished; the Museum's two once their sets are done), a medal still to win, a twist.
 //
 // STARS are small: `starsAt(depth)` (core/grid.js) is what a floor is worth (3 at 50 m, x4.5 for each 25 m deeper).
 // A first finish pays it, a Fast or Hard medal `medalShare` of it, a replay `replayShare`, leaving before the Gate
@@ -36,6 +40,7 @@ import strings from './strings.js';
 const p = {
   starCoin: 0, starPick: 0,       // a Star gives nothing by itself now: the tracks (starshop) turn Stars into strength
   needBosses: 2,                  // Big Rocks to break before you may move
+  sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom
   baseFloor: 50,                  // where a Gate is when no card says (old saves, the contracts board)
   maxFloor: 250,                  // no Gate deeper than this is dealt
@@ -59,6 +64,15 @@ const p = {
 // the Forge turns into tools, so it comes last, when you can use both.
 export const FIXED = [
   { site: 'dunes', floor: 50 }, { site: 'boom', floor: 50 }, { site: 'bones', floor: 75 }, { site: 'gold', floor: 75 },
+];
+// The whole road: the four lessons, then each deeper floor twice (learn it at the first place, prove it at the second).
+export const ROAD = [
+  ...FIXED,
+  { site: 'dunes', floor: 100 }, { site: 'boom', floor: 100 },
+  { site: 'bones', floor: 125 }, { site: 'gold', floor: 125 },
+  { site: 'dunes', floor: 150 }, { site: 'boom', floor: 150 },
+  { site: 'bones', floor: 175 }, { site: 'gold', floor: 175 },
+  { site: 'dunes', floor: 200 }, { site: 'gold', floor: 200 },
 ];
 // stacked on a known floor for a harder version
 export const TWISTS = ['heavy', 'dim', 'barrels'];
@@ -153,23 +167,36 @@ function card(s, site, floor, twist, kind, hard) {
     medals: { fin: st ? st.fin : 0, fast: st ? st.fast : 0, hard: st ? st.hard : 0 },
     stars: st && st.fin ? replayPay(floor) : firstPay(floor), medalStars: medalPay(floor), hardRule: hardOf(site, floor) };
 }
-// the next of the four fixed sites, or null. One is passed when it is finished or tried twice.
+// the next level of the road, or null when the road is done: { site, floor, level (1 ...), of, tries }.
+// A level is passed when it is finished; one of the first four also when it was tried twice.
 export function fixedNext(s) {
-  for (const f of FIXED) {
-    const st = s.road.stamps[siteKey(f.site, f.floor)];
-    if (!st || (!st.fin && st.n < 2)) return f;
+  for (let i = 0; i < ROAD.length; i++) {
+    const f = ROAD[i], st = s.road.stamps[siteKey(f.site, f.floor)];
+    if (!st || (!st.fin && (i >= FIXED.length || st.n < 2))) return { ...f, level: i + 1, of: ROAD.length, tries: st ? st.n : 0 };
   }
   return null;
 }
+// where the player is on the road: { level, of } (level is of + 1 when the road is done)
+export function roadLevel(s) { const f = fixedNext(s); return { level: f ? f.level : ROAD.length + 1, of: ROAD.length }; }
 
 export function dealCards(s) {
   if (s.road.deal && s.road.deal.length) return s.road.deal;
   const fx = fixedNext(s);
-  if (fx) return (s.road.deal = [card(s, fx.site, fx.floor, '', 'fixed')]);
   const open = siteList(s), reach = Math.max(p.baseFloor, s.road.reach), cards = [], seen = new Set();
   const add = c => { if (c && !seen.has(c.key)) { seen.add(c.key); cards.push(c); } };
   const done = (site, floor, twist) => (s.road.stamps[siteKey(site, floor, twist)] || {}).fin;
   const stamps = roadStamps(s);
+  if (fx) {
+    add({ ...card(s, fx.site, fx.floor, '', 'fixed'), level: fx.level, of: fx.of });
+    // stuck at this level: side cards beside it, on floors already finished
+    if (fx.tries >= p.sideAfter) {
+      const left = stamps.filter(st => st.fin && siteOpen(s, st.site) && !st.fast);
+      if (left.length) { left.sort((a, b) => (b.floor - a.floor) || (a.key < b.key ? -1 : 1)); const st = left[0]; add(card(s, st.site, st.floor, st.twist, 'medal')); }
+      const plain = stamps.filter(st => st.fin && !st.twist && siteOpen(s, st.site)).sort((a, b) => b.floor - a.floor);
+      for (let tries = 0; tries < 8 && cards.length < 3 && plain.length; tries++) { const b = plain[0]; add(card(s, b.site, b.floor, pickOne(TWISTS), 'twist')); }
+    }
+    return (s.road.deal = cards.slice(0, 3));
+  }
   // 1. the stretch: the next floor
   const next = Math.min(p.maxFloor, reach + LAYER);
   const sx = open.filter(id => !done(id, next, ''));
