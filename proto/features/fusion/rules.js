@@ -47,6 +47,7 @@ const p = {
   bombHits: 4,   // a bomb of the fusions, to each block around it, in your hits
   sweepDmg: 0.5,
   bringDepth: 5,
+  pity: 2,                 // chests opened before an offered partner is forced onto the card
   guide: ['hop', 'twin'],   // offered from the first chest until the first fuse
 };
 
@@ -115,13 +116,16 @@ export const fusionState = (s, id) => (s.fusionBook.stamped[id] ? 2 : s.fusionBo
 // meets a pair at once. The recipe of the pair is the first one to make.
 export function fusionGuide(s, pool, cards) {
   if (fusionFused(s) || cards < 2) return pool;
+  // a partner the pacing gate holds back is always let in; one that is already on offer is put on the card after `pity` chests
   const open = id => RELICS[id] && !s.fusion.melted[id] && rel(s, id) < RELICS[id].max && (pool.includes(id) || p.guide.includes(id));
   const held = id => rel(s, id) > 0;
+  const gated = id => !!RELICS[id].when && !RELICS[id].when(s);
+  const sure = id => gated(id) || s.chestsOpened >= p.pity;
   // a half you hold whose partner can be offered: that partner goes on the table, with other cards
   const partners = [];
   for (const f of FUSIONS) {
-    if (held(f.a) && !held(f.b) && open(f.b)) partners.push(f.b);
-    if (held(f.b) && !held(f.a) && open(f.a)) partners.push(f.a);
+    if (held(f.a) && !held(f.b) && open(f.b) && sure(f.b)) partners.push(f.b);
+    if (held(f.b) && !held(f.a) && open(f.a) && sure(f.a)) partners.push(f.a);
   }
   const fill = (out, from) => {
     const take = list => { while (out.length < cards && list.length) out.push(list.splice(Math.floor(rnd() * list.length), 1)[0]); };

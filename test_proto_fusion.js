@@ -138,12 +138,12 @@ const count = (s, t) => s.rows.flat().filter(x => x && x.t === t).length;
     ok(d.length === 3 && d.includes('hop') && d.includes('twin'), 'the first chest offers the guide pair (Hop and Twin)');
   }
   for (let i = 0; i < 20; i++) {
-    const s = fresh(); s.relics.hop = 1;
+    const s = fresh(); s.relics.hop = 1; s.chestsOpened = 2;
     const d = G.rollDraft(s);
-    ok((d.includes('twin') || d.includes('boom')) && d.length === 3, 'holding Hop, the next chest offers a partner (Twin or Boom)');
+    ok((d.includes('twin') || d.includes('boom')) && d.length === 3, 'after two chests, holding Hop, the draft offers a partner (Twin or Boom)');
   }
   for (let i = 0; i < 20; i++) {
-    const s = fresh(); s.relics.boom = 1;
+    const s = fresh(); s.relics.boom = 1; s.chestsOpened = 2;
     const d = G.rollDraft(s);
     ok(d.includes('bang') || d.includes('hop'), 'holding Boom, the next chest offers a partner (Bang or Hop)');
   }

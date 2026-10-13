@@ -163,12 +163,12 @@ All of it is flavour: nothing here changes how strong a Rafeeq is.
 | Coin shop | Stronger Pick, Rafeeqs, Faster Hands, Second Pick | built; Second Pick (12,000 coins) is rarely bought early because cheap upgrades eat the coins |
 | Rafeeqs, Foreman, moods | Helpers; five jobs once the Foreman arrives | built; feel weak while you play (section 5) |
 | TNT, water, crystal, oil, ores | Things in the ground that act on each other | built |
-| Chests and relics, fusion | Pick 1 of 3; 17 recipes | built |
+| Chests and relics, fusion | Pick 1 of 3; 17 recipes. The first fuse is taught and needs only level 1 + 1; the first chest offers Hop and Twin, and a later chest puts a partner on the card (a new recipe then needs 2 + 2, a known one 1 + 1). Fusing lifts both halves to level 3 | built |
 | The Big Rock | The wall every 25 m; the crack | built |
 | The Deep | Four layers with a law each, 100 to 200 m | built |
 | Levels, medals, the stopwatch | Section 2 | the fourteen levels in order are built; start kits, Gate sizes, the end card are not |
 | Star tracks | The Pick, The Camp, The Bag: x1.5 a step, named rules on 29 steps | built |
-| The Museum | 13 sets; each finished set opens a thing | built |
+| The Museum | 13 sets; each finished set opens a thing. Pieces can be seen and chased: bones and bundles that still give a piece glint (an arrow points at one just below the view), the set you are collecting is drawn faintly behind the ground and fills in piece by piece (a finished set glows), a chip in the sky counts it, and every level on the world map shows its set with found and missing pieces and names what finishing it opens | built |
 | The Forge | Drill, Dynamite, Magnet | built |
 | Contracts | Hard rules for the Hard medal | built |
 | Time away | The crew digs up to 12 hours, then sieves at a Rock | built; the sums are wrong in two places (section 5) |
