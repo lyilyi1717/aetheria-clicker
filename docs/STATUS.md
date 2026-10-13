@@ -155,6 +155,11 @@ R0–R30, R32–R40 and R41–R43 are done.
 
 ## Done
 
+- 2026-10-13: Dig has ONE design file now: `docs/dig-design.md` (the game, the level road, what is built / broken / not built, the bug list, the work order, the change log). `redesign-v3.md`, `dig-pacing.md`, `dig-design-review.md` and `dig-upgrades-study.md` carry a note that they are history. The progression study was reviewed and updated (numbers remeasured on `6d1853c`, a levels section added, its months 2 to 12 withdrawn). PR #338 fixed six reward faults it found (four dead Star steps, three fusions that could not be made, the Dhab bone, the purchase gate in `canBuy`, the slow Star count, the track wording). Next for Dig: the road of fourteen levels (design file, section 2), then away accounting and the leave-versus-replay Star pay. The month sim's old targets fail nine times on `main` because the middle is now too early; they are to be replaced by the level table, not re-tuned.
+
+- 2026-10-13: Dig prototype progression study: `docs/dig-player-progression-study.html` (four parallel section reviews; no gameplay changes). Current baseline: all 18 prototype test files pass; 30-day sim, two seeds/profile at 0.05 s, fails active Contracts timing and mixed 150 m victory. Study prioritizes reward correctness, clear permanent goals and the Deep curve before a second chapter.
+
+
 - R110 #293 (CL-45, PR #295, no player change): Expand and the Collection open with a "ready now"
   strip and one button; only the next reset is a full card, the others one line; the tree (one ring
   open at a time), Trials, Seals and the Collection's sections are folds with a one-line status

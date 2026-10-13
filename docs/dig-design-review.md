@@ -1,5 +1,8 @@
 # Dig: design review after the owner's playtest
 
+> **History, not the design.** The one design file for Dig is [`docs/dig-design.md`](dig-design.md); where this file
+> disagrees with it, that file wins. This file is kept for its reasoning: the review after the owner's first playtest (the Caravan Road direction came from it).
+
 Written 2026-10-12. This is a study and a set of choices. Nothing in the game was changed.
 
 **How to read it.** Part 1 is the verdict. Part 2 answers your ten questions one by one. Part 3
