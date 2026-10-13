@@ -26,12 +26,10 @@ scope(s => { const l = frontLayer(s); return l && l.law; });
 
 // ---------- the depth curves ----------
 // How hard the ground is and what it pays is a table with one entry per layer (25 rows):
-//   { hp, val, step, pay, share }
+//   { hp, val, step, pay }
 //   hp, val   growth per row inside the layer (1.12 = each metre is 12% harder)
 //   step      the ground of this layer starts this many times harder than the last row above it:
 //             the wall behind a Big Rock. pay: the same for coins (default 1).
-//   share     Stars for a move from this layer, as a share of the Stars it takes to stand there (default starShare):
-//             about 1.2 / share moves are spent at the Big Rock that closes the layer.
 // Where an entry comes from, first hit wins:
 //   1. the layer's own def:  layers: [{ id, at, ..., grow: { hp, val, step, pay } }]   (the Deep's layers bring theirs)
 //   2. PARAMS.core.grow[i]   by layer index; the last entry goes on for ever
@@ -81,18 +79,14 @@ export function starsToStand(r, land = 'desert') {
   for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (starLift(Math.pow(10, m)) < want) lo = m; else hi = m; }
   return Math.pow(10, hi);
 }
-// Stars a move pays for a dig whose deepest open metre is `best`: a steady share (starShare) of the
-// Stars it takes to stand there, and never less than the plain count (one per starPer metres, less
-// starLess) that the first moves pay. A share of what you need, so every move carries the next dig
-// about as much further as the last one did, however deep you are.
-// `have`: every Star earned so far (stars + spent). When given, one move pays at most starCap times that
-// (and never less than the plain count): a lucky dig that tunnels far past its strength cannot run away.
-export function starsAt(best, land = 'desert', have) {
-  const p = PARAMS.core, r = Math.max(0, best - 1);
-  const plain = Math.max(1, Math.floor(best / p.starPer) - p.starLess);
-  const g = growOf(Math.floor((r > 0 && r % LAYER === 0 ? r - 1 : r) / LAYER), layersOf(land), p);   // a Big Rock's row: the layer above
-  const fair = Math.floor((g.share === undefined ? p.starShare : g.share) * starsToStand(r, land));
-  return Math.max(plain, have === undefined ? fair : Math.min(fair, Math.floor(p.starCap * have)));
+// What a floor is worth in Stars (the sites feature pays by it): starBase at starFrom metres, starGrow times more for every
+// 25 m deeper. A site that is finished pays this; a medal, a replay, leaving early and digging past the Gate pay shares of it
+// (proto/features/sites/rules.js). Small whole numbers: 3 at 50 m, 9 at 75 m. `land` is for a second land's own curve.
+// (The old curve paid a share of the Stars it takes to stand where a dig stopped: hundreds of millions in a month.
+// starsToStand is still the model the sim prints next to it.)
+export function starsAt(best, land = 'desert') {
+  const p = PARAMS.core;
+  return Math.max(1, Math.round(p.starBase * Math.pow(p.starGrow, (best - p.starFrom) / LAYER)));
 }
 
 // a block of kind t at row r (k: the site's hardness)

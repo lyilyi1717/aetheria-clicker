@@ -53,7 +53,7 @@ free = true;
   const seen = [];
   const stars = s.stars;
   G.step(s, 0.05, (k, d) => seen.push([k, d]));
-  ok(s.contractsWon.bare === 1 && s.contract === null && s.stars === stars + 2, 'won: stamped, 2 Stars, the rule lifts');
+  ok(s.contractsWon.bare === 1 && s.contract === null && s.stars === stars + 1 + G.medalPay(50), 'won: stamped, 1 Star and the Hard medal, the rule lifts');
   ok(seen.some(([k, d]) => k === 'contractDone' && d.id === 'bare') && s.unlocked['contract:bare'], 'told and counted');
   ok(s.contractLook.hat === 'cap' && G.ownsCosmetic(s, 'cap') && !G.ownsCosmetic(s, 'crown'), 'the cap is yours');
   ok(G.fold('crewPower', s, 1) > 0, 'rule gone after the win');

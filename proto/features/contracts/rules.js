@@ -29,14 +29,14 @@ import { use, CONTRACTS, SITES, emit } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, KEEP_ROWS, genRow, cellAt } from '../../core/grid.js';
 import { damage, upgradeCost, pickPower } from '../../core/rules.js';
-import { newSite, canNewSite, siteOpen } from '../sites/rules.js';
+import { newSite, canNewSite, siteOpen, siteMedal } from '../sites/rules.js';
 import { bossInView } from '../boss/rules.js';
 import strings from './strings.js';
 
 const p = {
   openSites: 14,                         // the board opens after this many New Sites
   tierNeed: [0, 0, 2, 3],                // wins in the tier below that open tier 2 and tier 3
-  tierStars: [0, 2, 3, 5],               // Stars for a first win, by tier
+  tierStars: [0, 1, 1, 2],               // Stars for a first win, by tier
   stars: {},                             // or one contract's own number
   // the goals
   bareDepth: 40, darkDepth: 30, riseDepth: 20, tntDepth: 24, glassDepth: 30, oneDepth: 40,
@@ -126,6 +126,7 @@ function win(s, ev) {
   if (first && C.cosmetic) s.contractLook[C.slot || 'skin'] = C.cosmetic;
   if (first && C.prize) C.prize(s, ev);
   end(s);
+  if (s.run && s.run.hard === id) siteMedal(s, 'hard', ev);        // the site's third medal (sites feature)
   emit(s, ev, 'contractDone', { id, stars, tier: C.tier, cosmetic: C.cosmetic || null });
 }
 
