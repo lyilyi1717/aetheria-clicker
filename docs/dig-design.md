@@ -105,6 +105,15 @@ Three things to do, in this order: make the second level of each depth a real te
 
 Sim after (mixed, 2 seeds): levels 1 to 4 in 29 min; level 5 day 0.6 to 1.0 (2 to 3 tries); level 7 day 3.2 to 3.4 (5 to 6 tries); level 9 day 5.4 to 6.4 (4 to 5); level 11 day 8.4 to 8.6 (4 to 5); level 13 day 15 to 18 (6 to 7 tries, 57 to 76 digs, was about 100); levels 8, 10, 14 still take one try. Open: the levels right after a big first-finish payout are still easy, because that payout buys several Star steps at once; level 13 is still the longest wait.
 
+### 2.3c Built on 13 October: four levels in each land, a beat and a look per land
+
+- **The road is twenty levels:** Arabia (home, the four lessons, 50 and 75 m), then four in each land: Africa (100, 125 m), East Asia (150, 175 m), the Americas (200, 225 m), Europe (250, 275 m). In each land the first level of a depth teaches it and the second proves it (harder ground and Gate). This replaces the fourteen-level table in 2.3 for the order; the table's columns still describe the depths.
+- **A beat per land (PR #344):** each land has its own sound kit (Africa djembe and shaker, East Asia taiko, wood block and bell, the Americas conga, clave and cowbell, Europe march drum, snare and bells) and its own bar for 1 to 4 picks; Arabia keeps today's sounds. The deep layers lower the kit's pitch. A short sting plays on arriving in a new land. Nobody has listened to it yet.
+- **A look per land (PR #345):** sky, horizon and ground tint per land; the arrival banner names the land and the level in it; the road strip is grouped by land.
+- **Walls below 175 m softened:** Hot Layer 1.15 a row (was 1.17), below 200 m 1.18 a row and a step of 3 (was 1.22 and 8).
+
+Sim (mixed, 2 seeds, 30 days): levels 1 to 12 (Arabia, Africa, East Asia) by day 7; level 13 (Americas 200 m) day 11 to 12, 5 tries; level 15 (225 m) day 20 to 21, 6 tries and about 75 other digs; Europe not reached in a month. Open: level 15 is the new long wait; the prove levels right after a learn level still often take one try.
+
 ### 2.4 From one level to the next
 
 | | Built today | The design |
@@ -199,6 +208,7 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 
 | Date | Change |
 |---|---|
+| 13 Oct 2026 | Twenty levels, four per land; a beat and a look per land (PRs #344, #345); walls below 175 m softened (2.3c). |
 | 13 Oct 2026 | Start kit, prove levels, zones (continents) on the road (2.3b). Time away counts each second once (PR #341). A look per place, the arrival banner, the layered Rock bar (PR #342). |
 | 13 Oct 2026 | The road's order built: fourteen levels, one card at a time, side cards when stuck. Measured level by level (2.3a). |
 | 13 Oct 2026 | This file made the one design file. The road of fourteen levels written (section 2). Faults 1 to 6 fixed (PR #338). |

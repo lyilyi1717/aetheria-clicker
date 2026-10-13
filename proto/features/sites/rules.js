@@ -47,7 +47,7 @@ const p = {
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom
   baseFloor: 50,                  // where a Gate is when no card says (old saves, the contracts board)
-  maxFloor: 250,                  // no Gate deeper than this is dealt
+  maxFloor: 300,                  // no Gate deeper than this is dealt
   // the stopwatch: par = parBase seconds at 50 m, x parGrow for every 25 m deeper, x parTwist with a twist
   parBase: 300, parGrow: 1.45, parTwist: 1.15,
   // Stars (a floor is worth starsAt(floor))
@@ -73,14 +73,14 @@ export const FIXED = [
 // The road is cut into ZONES (continents): home first, then four lands, each with its own look and its own beat for the
 // pick. Inside a zone the levels go from learn to prove (`prove`: harder ground and a harder Gate).
 export const ZONES = ['arabia', 'africa', 'eastasia', 'americas', 'europe'];
+// Four levels in each land after home: two depths, each met to learn it and then to prove it (`prove`: harder).
+const LAND = (zone, d) => [
+  { site: 'dunes', floor: d, zone }, { site: 'boom', floor: d, zone, prove: true },
+  { site: 'bones', floor: d + LAYER, zone }, { site: 'gold', floor: d + LAYER, zone, prove: true },
+];
 export const ROAD = [
   ...FIXED.map(f => ({ ...f, zone: 'arabia' })),
-  { site: 'dunes', floor: 100, zone: 'africa' }, { site: 'boom', floor: 100, zone: 'africa', prove: true },
-  { site: 'bones', floor: 125, zone: 'africa', prove: true },
-  { site: 'gold', floor: 125, zone: 'eastasia' }, { site: 'dunes', floor: 150, zone: 'eastasia', prove: true },
-  { site: 'boom', floor: 150, zone: 'eastasia', prove: true },
-  { site: 'bones', floor: 175, zone: 'americas' }, { site: 'gold', floor: 175, zone: 'americas', prove: true },
-  { site: 'dunes', floor: 200, zone: 'europe' }, { site: 'gold', floor: 200, zone: 'europe', prove: true },
+  ...LAND('africa', 100), ...LAND('eastasia', 150), ...LAND('americas', 200), ...LAND('europe', 250),
 ];
 // the road level of the dig in play (index into ROAD), or -1 for a side level / after the road
 export const roadIndex = s => { const r = s.run; return r && !r.twist ? ROAD.findIndex(f => f.site === r.site && f.floor === r.floor) : -1; };
