@@ -24,7 +24,7 @@ export const isBossRow = r => r > 0 && r % LAYER === 0;
 
 function ensureBoss(s, r) {
   if (!s.boss || s.boss.row !== r) {
-    const hp = Math.round(dirtHp(r) * p.hp * (1 + p.layerHp * layerOf(r - 1)));
+    const hp = Math.round(fold('bossHp', s, dirtHp(r) * p.hp * (1 + p.layerHp * layerOf(r - 1))));
     s.boss = { row: r, hp, max: hp, weak: Math.floor(rnd() * COLS), wt: p.weakSeconds, rub: 0, you: 0, crew: 0 };
   }
   return s.boss;

@@ -33,13 +33,17 @@
 // siteMedal { key, medal, stars }, newSite { gain, stars, key }.
 import { use, SITES, CONTRACTS, BLOCKS, emit } from '../../core/registry.js';
 import { reset } from '../../core/state.js';
-import { starsAt, LAYER } from '../../core/grid.js';
+import { starsAt, LAYER, COLS } from '../../core/grid.js';
 import { rnd, pickOne } from '../../core/rng.js';
 import strings from './strings.js';
 
 const p = {
   starCoin: 0, starPick: 0,       // a Star gives nothing by itself now: the tracks (starshop) turn Stars into strength
   needBosses: 2,                  // Big Rocks to break before you may move
+  // the start kit: every site after the first starts where the player is (docs/dig-design.md 2.2)
+  kitPick: 0.4,                   // the pick starts at this share of your best pick level (Warm Pick raises it)
+  kitCrew: 1,                     // Rafeeqs waiting (Rafeeq Waiting raises it)
+  proveHp: 1.6,                   // the second level of a depth ("prove it") has ground this much harder
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom
   baseFloor: 50,                  // where a Gate is when no card says (old saves, the contracts board)
@@ -66,14 +70,31 @@ export const FIXED = [
   { site: 'dunes', floor: 50 }, { site: 'boom', floor: 50 }, { site: 'bones', floor: 75 }, { site: 'gold', floor: 75 },
 ];
 // The whole road: the four lessons, then each deeper floor twice (learn it at the first place, prove it at the second).
+// The road is cut into ZONES (continents): home first, then four lands, each with its own look and its own beat for the
+// pick. Inside a zone the levels go from learn to prove (`prove`: harder ground and a harder Gate).
+export const ZONES = ['arabia', 'africa', 'eastasia', 'americas', 'europe'];
 export const ROAD = [
-  ...FIXED,
-  { site: 'dunes', floor: 100 }, { site: 'boom', floor: 100 },
-  { site: 'bones', floor: 125 }, { site: 'gold', floor: 125 },
-  { site: 'dunes', floor: 150 }, { site: 'boom', floor: 150 },
-  { site: 'bones', floor: 175 }, { site: 'gold', floor: 175 },
-  { site: 'dunes', floor: 200 }, { site: 'gold', floor: 200 },
+  ...FIXED.map(f => ({ ...f, zone: 'arabia' })),
+  { site: 'dunes', floor: 100, zone: 'africa' }, { site: 'boom', floor: 100, zone: 'africa', prove: true },
+  { site: 'bones', floor: 125, zone: 'africa', prove: true },
+  { site: 'gold', floor: 125, zone: 'eastasia' }, { site: 'dunes', floor: 150, zone: 'eastasia', prove: true },
+  { site: 'boom', floor: 150, zone: 'eastasia', prove: true },
+  { site: 'bones', floor: 175, zone: 'americas' }, { site: 'gold', floor: 175, zone: 'americas', prove: true },
+  { site: 'dunes', floor: 200, zone: 'europe' }, { site: 'gold', floor: 200, zone: 'europe', prove: true },
 ];
+// the road level of the dig in play (index into ROAD), or -1 for a side level / after the road
+export const roadIndex = s => { const r = s.run; return r && !r.twist ? ROAD.findIndex(f => f.site === r.site && f.floor === r.floor) : -1; };
+// the zone of the dig in play: its road level's, else the zone of the deepest road level at or above its floor
+export function roadZone(s) {
+  const i = roadIndex(s);
+  if (i >= 0) return ROAD[i].zone;
+  const fl = (s.run && s.run.floor) || 0;
+  let z = 'arabia';
+  for (const f of ROAD) if (f.floor <= fl) z = f.zone;
+  return z;
+}
+// this dig is the "prove it" level of its depth (no twist on it)
+export const roadProve = s => { const r = s.run; return !!(r && !r.twist && ROAD.some(f => f.prove && f.site === r.site && f.floor === r.floor)); };
 // stacked on a known floor for a harder version
 export const TWISTS = ['heavy', 'dim', 'barrels'];
 // the hard rule of a site: contracts in order, a deeper floor uses the next one
@@ -275,14 +296,24 @@ export const sites = use({
     pickPower: { at: 20, fn: (v, s) => v * (1 + p.starPick * s.stars) },
     crewPower: { at: 20, fn: (v, s) => v * (1 + p.starPick * s.stars) },
     sight: (v, s) => (twistOf(s) === 'dim' ? Math.min(v, p.twistSight) : v),
+    bossHp: (v, s) => (roadProve(s) ? v * p.proveHp : v),          // the Gate of a "prove it" level is as much harder
   },
   hooks: {
-    reset(s, name) { if (name === 'site') { s.seen.siteToast = false; s.seen.bossToast = true; } },
+    // the start kit comes after the Star perks (starshop resets at 100): the larger of the two wins
+    reset: { at: 110, fn(s, name) {
+      if (name !== 'site') return;
+      s.seen.siteToast = false; s.seen.bossToast = true;
+      const best = Math.max(s.starBestPick || 0, s.up.pick || 0);
+      s.up.pick = Math.max(s.up.pick || 0, Math.floor(best * p.kitPick));
+      // a free Rafeeq: not counted as hired, so the next one costs the first price and a no-Rafeeq contract pays nothing back
+      for (let i = s.diggers.length; i < p.kitCrew; i++) s.diggers.push({ c: (COLS >> 1) + i, r: s.top, tc: -1, tr: -1, cd: 0.3, swing: 0 });
+    } },
     // a twist is stacked on the ground as it is made
     row(s, ctx) {
       const tw = twistOf(s);
-      if (tw === 'heavy') { for (const c of ctx.row) if (c && c.t !== 'boss') { c.hp = Math.round(c.hp * p.twistHp); c.max = c.hp; } }
-      else if (tw === 'barrels' && BLOCKS.tnt && ctx.r > 2 && ctx.r % p.twistBarrel === 0) ctx.put('tnt');
+      const hm = (tw === 'heavy' ? p.twistHp : 1) * (roadProve(s) ? p.proveHp : 1);
+      if (hm !== 1) { for (const c of ctx.row) if (c && c.t !== 'boss') { c.hp = Math.round(c.hp * hm); c.max = c.hp; } }
+      if (tw === 'barrels' && BLOCKS.tnt && ctx.r > 2 && ctx.r % p.twistBarrel === 0) ctx.put('tnt');
     },
     broke(s, b) {
       const f = s.run && s.run.found;
