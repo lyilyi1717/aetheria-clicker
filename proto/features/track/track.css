@@ -33,3 +33,8 @@
 @media (prefers-reduced-motion: reduce) { #trk-clock.soon { animation: none; } }
 #trk-clock.bump { display: inline-block; animation: trkBump .7s ease-out; color: var(--good); }
 @keyframes trkBump { 30% { transform: scale(1.5); } }
+
+/* "Done here": below the Gate, a gold button that brings the finish card back */
+#trk-done { padding: 2px 10px; font-size: 12px; font-weight: 800; border-radius: 8px; cursor: pointer; background: var(--gold); color: var(--gold-ink); border: 2px solid #7a5a00; animation: trkPulse 1.6s ease-in-out infinite; }
+#trk-done[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { #trk-done { animation: none; } }

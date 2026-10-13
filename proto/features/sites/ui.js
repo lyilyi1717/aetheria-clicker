@@ -70,7 +70,15 @@ function openNext(app) {
 let pending = null;
 let lastD = null;                         // the last finish card's data, so the coffee house can come back to it
 export function goNextHere(app) { const r = G.siteRun(app.state); goNext(app, r.done ? { key: r.key } : null, false, r.done); }
-export function reopenFinish(app) { const r = G.siteRun(app.state); return !!lastD && r.done && showFinish(app, lastD, true); }
+// the finish card again (from the coffee house, the top line, or the site panel). After a reload there is no saved card: build it from the run.
+export function reopenFinish(app) {
+  const s = app.state, r = G.siteRun(s);
+  if (!r.done || app.modal.id) return false;
+  const st = G.siteStamp(s);
+  const d = lastD && lastD.key === r.key ? lastD : { key: r.key, site: r.site, floor: r.floor, twist: r.twist, time: r.time, par: G.runPar(r), first: false,
+    stars: r.paid || 0, fast: !!(r.medals && r.medals.fast), medals: { fin: 1, fast: st.fast, hard: st.hard }, found: { ...(r.found || {}) } };
+  return showFinish(app, d, true);
+}
 
 // "You keep": one short line each, only for what the player has
 function keepLines(s) {
@@ -269,9 +277,11 @@ ui({
         + `<div class="gaterow"><span class="gtxt"></span><span class="gbar"><i></i></span></div>`
         + `<div class="clockrow">${icon('watch', 22)}<b class="clk">0:00</b><span class="muted par"></span></div>`
         + `<div class="mrow"></div><p class="muted pay"></p><p class="muted hardnote"></p><button class="primary nextbtn" hidden></button><p class="muted wait"></p>`
-        + `<button class="ghost qhbtn"></button><h3 class="roadh"></h3><div class="road"></div>`);
+        + `<button class="primary gold donebtn" hidden></button><button class="ghost qhbtn"></button><h3 class="roadh"></h3><div class="road"></div>`);
       const qb = el.querySelector('.qhbtn'); qb.textContent = t('site_btn_qahwa');
       qb.addEventListener('click', () => { app.unlockAudio(); if (!app.modal.id && alqahwa.open) alqahwa.open(app, {}); });
+      const db = el.querySelector('.donebtn'); db.textContent = t('site_btn_done');
+      db.addEventListener('click', () => { app.unlockAudio(); reopenFinish(app); });
       el.querySelector('.nextbtn').addEventListener('click', () => { app.unlockAudio(); const r = G.siteRun(app.state); goNext(app, r.done ? { key: r.key } : null); });
     },
     update(el, s) {
@@ -302,6 +312,7 @@ ui({
       const b = el.querySelector('.nextbtn'), gain = G.starsFor(s);
       b.hidden = !can; b.classList.toggle('gold', r.done);
       b.textContent = r.done ? t('site_btn_next') : gain > 0 ? t('site_btn_leave', { n: G.fmt(gain) }) : t('site_btn_leave_0');
+      el.querySelector('.donebtn').hidden = !r.done;
       el.querySelector('.wait').textContent = can ? '' : t('site_wait');
       // the road so far: stamps in the order they were first dug
       const stamps = G.roadStamps(s), rsig = stamps.map(x => x.key + x.fin + x.fast + x.hard).join(',');

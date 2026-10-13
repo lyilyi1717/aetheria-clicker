@@ -2,6 +2,7 @@
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { shopPanel, n1 } from '../../ui/shop.js';
+import { buyAllButton } from './buyallui.js';
 import { S, badge, pickShape } from '../../ui/icons.js';
 
 const { t } = G;
@@ -24,8 +25,18 @@ function hitsBlock(s) {
 const hitsOf = (max, power) => Math.max(1, Math.ceil(max / power - 1e-9));
 
 
+// the shop panel with a "Buy all (N)" button above the list (shown when more than 5 purchases are affordable)
+function withBuyAll(panel, shop) {
+  let ba;
+  const build = panel.build, update = panel.update;
+  panel.build = (el, app) => { build(el, app); ba = buyAllButton(app, { shop, nameOf: id => t('up_' + id) }); el.prepend(ba.el); };
+  panel.update = (el, s, app) => { update(el, s, app); ba.update(s); };
+  return panel;
+}
+
 ui({
   id: 'shop',
+  css: new URL('./shop.css', import.meta.url).href,
   icons: {
     up_pick: badge('#3b6ea8', pickShape()),
     up_luck: badge('#8a5bc4', `<circle cx="11.5" cy="11.5" r="5" fill="#59d37a" ${S}/><circle cx="20.5" cy="11.5" r="5" fill="#59d37a" ${S}/><circle cx="11.5" cy="20.5" r="5" fill="#59d37a" ${S}/><circle cx="20.5" cy="20.5" r="5" fill="#59d37a" ${S}/>`),
@@ -44,12 +55,12 @@ ui({
     luck: { desc: (s, lv) => t('up_luck_d', { a: lv * 10 }) },
   },
   tick(st, app) { app0 = app; },
-  panels: [shopPanel({
+  panels: [withBuyAll(shopPanel({
     id: 'shop', shop: 'coin', title: 'shop', side: 'right', at: 10,
     locked: (s, hidden) => {
       const tempo = G.picksTempoLock ? G.picksTempoLock(s) : '';     // Faster Hands past 132: says which finish opens it
       const base = hidden ? (G.ITEMS.crew && !G.itemOpen(s, 'crew') ? t('locked_crew') : t('locked_more')) : '';
       return tempo && (s.up.tempo || 0) > 0 ? (base ? base + ' ' : '') + t('locked_tempo', { why: tempo }) : base;
     },
-  })],
+  }), 'coin')],
 });
