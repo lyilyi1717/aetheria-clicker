@@ -3,7 +3,8 @@
 import { use, emit, run, fold, layersOf, BLOCKS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, LAYER, layerOf, dirtHp, dirtVal, setCell } from '../../core/grid.js';
-import { addCoins, coinMult, pickPower } from '../../core/rules.js';
+import { addCoins, coinMult, pickPower, canBuy, upgradeCost } from '../../core/rules.js';
+import { canNewSite, starsFor, dealCards } from '../sites/rules.js';
 import strings from './strings.js';
 
 const p = {
@@ -17,8 +18,28 @@ const p = {
   rubble: 0.5, tenths: 10,
   rubbleChest: 0.06,              // the chance that a tenth also drops a chest (about half a chest a Rock)
   rubbleBone: 0.18,               // and a bone (about one and a half a Rock)
+  stuckWindow: 60, stuckShare: 0.1, stuckTries: 2, stuckIdle: 2,   // the hint: a minute of pick-on-Rock play that took under a tenth of its health, or the 2nd try of the level; the pick is "on it" for 2 s after a hit
   recordMin: 10,                  // a record under this many metres is not worth a banner
 };
+
+// ---------- the hint: when the Rock will not break, say what to do ----------
+// Stuck = the Gate Rock of this level stands, you have hit it, and either the level has been tried twice, or a minute of play
+// with the pick on it took less than a tenth of its health. Counted in play time (the step), never the clock outside play.
+export function bossStuck(s) {
+  const b = s.boss, r = s.run;
+  if (!b || b.hp <= 0 || !r || r.done || b.row !== r.floor || !(b.you > 0)) return false;
+  const st = s.road && s.road.stamps && s.road.stamps[r.key];
+  return !!((st && st.n >= p.stuckTries) || b.slow);
+}
+// The best next step: { kind: 'spend' | 'side' | 'leave' | 'more', n } (n: the cost, the pay, or the Stars)
+export function bossAdvice(s) {
+  if (canBuy(s, 'tr_pick')) return { kind: 'spend', n: upgradeCost(s, 'tr_pick') };
+  const need = upgradeCost(s, 'tr_pick') - s.stars;
+  const side = dealCards(s).filter(c => c.kind !== 'fixed' && c.stars >= need).sort((a, b) => b.stars - a.stars)[0];
+  if (side) return { kind: 'side', n: side.stars };
+  if (canNewSite(s)) return { kind: 'leave', n: starsFor(s) };
+  return { kind: 'more', n: 0 };
+}
 
 export const isBossRow = r => r > 0 && r % LAYER === 0;
 
@@ -91,6 +112,7 @@ export const boss = use({
       const weak = src === 'you' && c === b.weak;       // the glowing crack: aim for it
       if (weak) dmg *= p.weakMult;
       const done = Math.min(dmg, b.hp);                 // who did how much, for the two-colour bar
+      if (src === 'you') { b.idle = 0; if (b.w0hp === undefined) b.w0hp = b.hp; }
       if (src === 'crew') b.crew = (b.crew || 0) + done; else b.you = (b.you || 0) + done;
       b.hp -= dmg;
       emit(s, ev, 'hit', { r, c, t: 'boss', dmg, src, crit: info.crit, weak, frac: Math.max(0, b.hp / b.max) });
@@ -105,7 +127,17 @@ export const boss = use({
     return row;
   } }] },
   hooks: {
-    step: [{ at: 305, fn(s, dt, ev) {
+    step: [{ at: 301, fn(s, dt) {
+      const b = bossInView(s);
+      if (!b || b.hp <= 0 || b.w0hp === undefined) return;
+      b.idle = (b.idle === undefined ? 99 : b.idle) + dt;
+      if (b.idle > p.stuckIdle) return;                // the pick is not on it: no play time counts
+      b.pt = (b.pt || 0) + dt;
+      if (b.pt - (b.w0t || 0) >= p.stuckWindow) {
+        if (b.w0hp - b.hp < p.stuckShare * b.max) b.slow = true;
+        b.w0t = b.pt; b.w0hp = b.hp;
+      }
+    } }, { at: 305, fn(s, dt, ev) {
       if (s.recMark < 0) s.recMark = s.bestEver;                       // what this dig has to beat
       if (s.best > s.bestEver) {
         if (!s.recPassed && s.recMark >= p.recordMin && s.best > s.recMark) {
