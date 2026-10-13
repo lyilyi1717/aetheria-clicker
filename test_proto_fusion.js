@@ -37,11 +37,10 @@ const count = (s, t) => s.rows.flat().filter(x => x && x.t === t).length;
   const ev = log();
   G.step(s, 0.05, ev);
   ok(G.fusionState(s, 'mirror') === 1 && ev.of('fusionSeen').length === 1, 'holding both halves reveals the recipe');
-  ok(!G.fusionCan(s, 'mirror'), 'but level 1 is not enough');
+  ok(G.fusionCan(s, 'mirror'), 'the very first fuse needs only level 1 + 1');
   G.step(s, 0.05, ev);
   ok(ev.of('fusionSeen').length === 1, 'it is revealed once');
-  s.relics.hop = 3; s.relics.twin = 3;
-  ok(G.fusionReady(s).includes('mirror'), 'level 3 + 3 lights the button');
+  ok(G.fusionReady(s).includes('mirror'), 'level 1 + 1 lights the button');
   ok(G.fusionDo(s, 'mirror', ev), 'it fuses');
   ok(s.relics.fz_mirror === 1 && G.fusionState(s, 'mirror') === 2, 'new relic held, recipe stamped');
   ok(s.relics.hop === 3 && s.relics.twin === 3 && s.fusion.melted.hop, 'halves stay held (their effects run) and are melted');
@@ -54,13 +53,16 @@ const count = (s, t) => s.rows.flat().filter(x => x && x.t === t).length;
   const s = field({ fire: 3, fuse: 3, rang: 3, wide: 3 });
   G.fusionDo(s, 'fireshower');
   ok(!G.fusionCan(s, 'flameang') && !G.fusionCan(s, 'torch'), 'a melted half cannot be used again');
-  const t = field({ hop: 2, twin: 2 });
+  const t = field({ hop: 1, twin: 1 });
   t.fusionBook.stamped.mirror = 1;
-  ok(G.fusionCan(t, 'mirror'), 'a known recipe fuses at 2 + 2');
+  ok(G.fusionCan(t, 'mirror'), 'a known recipe fuses at 1 + 1');
   G.fusionDo(t, 'mirror');
   ok(t.relics.hop === 3 && t.relics.twin === 3, 'and the halves count as top level');
-  const u = field({ hop: 2, twin: 2 });
-  ok(!G.fusionCan(u, 'mirror'), 'an unknown recipe needs 3 + 3');
+  const u = field({ hop: 1, twin: 1 });
+  u.fusionBook.stamped.torch = 1;
+  ok(!G.fusionCan(u, 'mirror'), 'after the first fuse a new recipe needs 2 + 2');
+  u.relics.hop = 2; u.relics.twin = 2;
+  ok(G.fusionCan(u, 'mirror'), 'and 2 + 2 is enough');
 }
 
 { // twists
@@ -126,6 +128,36 @@ const count = (s, t) => s.rows.flat().filter(x => x && x.t === t).length;
     s.relics[f.a] = G.RELICS[f.a].max; s.relics[f.b] = G.RELICS[f.b].max;
     ok(G.fusionCan(s, f.id), `${f.id}: both halves at their top level fuse`);
   }
+}
+
+{ // the guide: until the first fuse a match is put on the table
+  G.seedRng(3);
+  const fresh = () => G.newState();
+  for (let i = 0; i < 20; i++) {
+    const d = G.rollDraft(fresh());
+    ok(d.length === 3 && d.includes('hop') && d.includes('twin'), 'the first chest offers the guide pair (Hop and Twin)');
+  }
+  for (let i = 0; i < 20; i++) {
+    const s = fresh(); s.relics.hop = 1;
+    const d = G.rollDraft(s);
+    ok((d.includes('twin') || d.includes('boom')) && d.length === 3, 'holding Hop, the next chest offers a partner (Twin or Boom)');
+  }
+  for (let i = 0; i < 20; i++) {
+    const s = fresh(); s.relics.boom = 1;
+    const d = G.rollDraft(s);
+    ok(d.includes('bang') || d.includes('hop'), 'holding Boom, the next chest offers a partner (Bang or Hop)');
+  }
+  const done = fresh(); done.relics.hop = 1; done.fusionBook.stamped.torch = 1;
+  let all = 0;
+  for (let i = 0; i < 40; i++) all += G.rollDraft(done).includes('twin') ? 1 : 0;
+  ok(all < 40, 'after the first fuse the draft is left alone (Twin is not forced)');
+  const melted = fresh(); melted.relics.hop = 1; melted.fusion.melted.twin = 'mirror';
+  ok(!G.fusionGuide(melted, ['x', 'y', 'z'], 3).includes('twin'), 'a melted half is never offered again');
+  // first-fuse flow: take Hop, then Twin, fuse at level 1 + 1
+  const f = fresh(); f.chests = 2;
+  G.takeRelic(f, 'hop'); G.takeRelic(f, 'twin');
+  ok(G.fusionReady(f).includes('mirror'), 'Hop and Twin at level 1 can be fused');
+  ok(G.fusionDo(f, 'mirror') && f.relics.hop === 3 && f.relics.twin === 3, 'fusing lifts both halves to their top level');
 }
 
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
