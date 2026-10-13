@@ -99,16 +99,18 @@ export const drawer = {
   tick(s) {
     purseMetal(s);
     for (const tb of TABS) {
-      const e = els[tb.id], info = tabInfo(tb, s);
-      const locked = !!info.lock;
-      const ready = locked ? [] : info.ready;
-      const st = dotStep(first || !mem[tb.id] ? new Set(ready) : mem[tb.id], ready, tb.id === cur);
+      const e = els[tb.id], open = tb.id === cur;
+      // only the open tab needs its Next line and main button (each is a walk over the shop): the others just a lock and a dot
+      const info = open ? tabInfo(tb, s) : null, lock = info ? info.lock : tb.lock(s);
+      const locked = !!lock;
+      const ready = locked ? [] : info ? info.ready : tb.ready(s);
+      const st = dotStep(first || !mem[tb.id] ? new Set(ready) : mem[tb.id], ready, open);
       mem[tb.id] = st.seen;
       e.btn.classList.toggle('locked', locked);
-      e.btn.title = locked ? `${t('dr_tab_' + tb.id)}: ${info.lock}` : t('dr_tab_' + tb.id);
+      e.btn.title = locked ? `${t('dr_tab_' + tb.id)}: ${lock}` : t('dr_tab_' + tb.id);
       e.dot.hidden = !st.dot;
-      if (tb.id !== cur) continue;
-      const next = locked ? info.lock : info.next;
+      if (!open) continue;
+      const next = locked ? lock : info.next;
       if (e.next.textContent !== next) e.next.textContent = next;
       e.pane.classList.toggle('locked', locked);
       const m = locked ? null : info.main;

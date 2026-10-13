@@ -17,5 +17,19 @@ const run = (s, secs, ev = NO) => { for (let i = 0; i < secs * 20; i++) G.step(s
   ok(G.dealCards(s)[0].key === 'boom:50', 'the next deal moves on to the next level');
 }
 
+{ // the board is announced once, and the tiers once each, however many steps follow (announce is on the hot path)
+  const s = fresh(); const seen = [];
+  s.seen.legacyBoard = true;
+  const ev = k => seen.push(k);
+  run(s, 3, ev);
+  ok(seen.filter(k => k === 'contractsOpen').length === 1, 'contractsOpen told once');
+  s.contractsWon.bare = 1; s.contractsWon.dark = 1;
+  run(s, 3, ev);
+  ok(seen.filter(k => k === 'contractTier').length === 1 && s.seen.contractTier2, 'tier 2 told once when two tier 1 contracts are won');
+  s.contractsWon.tntOnly = 1; s.contractsWon.glass = 1; s.contractsWon.oneRelic = 1;
+  run(s, 3, ev);
+  ok(seen.filter(k => k === 'contractTier').length === 2 && s.seen.contractTier3, 'tier 3 told once');
+}
+
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('review: ok');

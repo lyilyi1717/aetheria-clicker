@@ -140,10 +140,14 @@ function win(s, ev) {
 }
 
 // the board opens, and later tiers open: told once each
+let topTier = 0;                                                 // the contracts are all registered by the first step: asked once
 function announce(s, ev) {
+  topTier = topTier || contractTiers();
+  // everything told already (this runs on every step: no list is built once it is)
+  if (s.seen.contractsOpen && (topTier < 2 || s.seen['contractTier' + topTier])) return;
   if (!contractsOpen(s)) return;
   if (!s.seen.contractsOpen) { s.seen.contractsOpen = true; emit(s, ev, 'contractsOpen', {}); }
-  for (let t = 2; t <= contractTiers(); t++) {
+  for (let t = 2; t <= topTier; t++) {
     if (tierOpen(s, t) && !s.seen['contractTier' + t]) { s.seen['contractTier' + t] = true; emit(s, ev, 'contractTier', { tier: t }); }
   }
 }

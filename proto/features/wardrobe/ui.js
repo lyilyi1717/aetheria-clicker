@@ -113,18 +113,15 @@ function refresh(el, app) {
   const u = el.querySelector('.wd-undo'); u.textContent = t('wd_undo'); u.hidden = !w.undo;
 }
 
-// the panel names its tab itself (README: a panel may say `tab`); PANEL_TAB in the drawer's rules does not list it yet
-const PANEL = {
-  id: 'wardrobe', elId: 'wardrobe', tab: 'camp', at: 13, title: 'wd_title', live: true,
-  when: s => s.diggers.length > 0,
-  build,
-  update(el, s, app) { refresh(el, app); },
-};
-
 ui({
   id: 'wardrobe',
   css: new URL('./wardrobe.css', import.meta.url).href,
-  panels: [PANEL],
+  panels: [{
+    id: 'wardrobe', elId: 'wardrobe', at: 13, title: 'wd_title', live: true,
+    when: s => s.diggers.length > 0,
+    build,
+    update(el, s, app) { refresh(el, app); },
+  }],
   on: {
     wardrobeNew(d, app) { app.toast(t('wd_new', { name: label(d.slot, d.id) }), 'gold'); },
   },
