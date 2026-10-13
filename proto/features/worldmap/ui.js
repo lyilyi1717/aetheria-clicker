@@ -32,7 +32,7 @@ export function openMap(app, opts = {}) {
   const m = app.modal.open('worldmap', `<div class="card wmcard"><div class="wm-head"><h2></h2><span class="wm-sub"></span><button class="ghost wm-back"></button></div>`
     + `<div class="wm-lands"></div><div class="wm-stage"><canvas></canvas><button class="wm-pan l"></button><button class="wm-pan r"></button><span class="wm-skip"></span></div>`
     + `<div class="wm-info"><span class="wm-ic"></span><div class="wm-txt"><b></b><span class="line"></span><span class="gt"></span><span class="nw"></span><span class="pay"></span></div>`
-    + `<div class="mrow"></div><div class="wm-btns"><button class="primary gold wm-go"></button><button class="wm-go2"></button></div></div><p class="wm-leave"></p></div>`);
+    + `<div class="mrow"></div><div class="wm-btns"><button class="primary gold wm-go"></button><button class="ghost wm-go2"></button></div></div><p class="wm-leave"></p></div>`);
   if (!m) return false;
   try { active = start(app, m, map, opts); } catch (e) { stopActive(); app.modal.close(); throw e; }
   return true;
