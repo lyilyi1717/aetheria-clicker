@@ -23,7 +23,7 @@ const med = a => { const v = a.filter(Number.isFinite).sort((x, y) => x - y); re
 const q75 = a => { const v = a.filter(Number.isFinite).sort((x, y) => x - y); return v.length ? v[Math.min(v.length - 1, Math.floor(0.75 * v.length))] : NaN; };
 const f = (x, d = 1) => (x === null || x === undefined || !Number.isFinite(Number(x)) ? '-' : Number(x).toFixed(d));
 const table = (head, rows) => {
-  const all = [head, ...rows].map(r => r.map(String));
+  const all = [head, ...rows].map(r => head.map((_, i) => String(r[i] ?? '')));
   const w = head.map((_, i) => Math.max(...all.map(r => r[i].length)));
   for (const r of all) console.log(r.map((c, i) => c.padStart(w[i])).join('  '));
 };
