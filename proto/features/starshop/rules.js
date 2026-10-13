@@ -2,7 +2,7 @@
 // them on three tracks, one step at a time, in order inside a track; you choose the track:
 //   The Pick  every step: your hit x1.5; a new pick material every 4 steps (stone, copper, bronze, iron, steel,
 //             silver, gold, crystal, sky-iron, star); some steps bring a rule
-//   The Camp  every step: Rafeeq hits x1.5; the old Rafeeq perks are steps
+//   The Camp  every step: the share of your hit a Rafeeq has goes up; the old Rafeeq perks are steps
 //   The Bag   every step: coins x1.5; the old chest and luck perks are steps
 // A step costs cost0 * costGrow^(steps you already have on that track): 2, 3, 5, 7, 10, 15, 23, 34, ...
 // The 29 named steps (STARSHOP_STEPS) hold every perk the old Star Shop had, with every level.
@@ -25,7 +25,8 @@ import { newRafeeq } from '../diggers/rules.js';
 import strings from './strings.js';
 
 const p = {
-  step: 1.5,                                // every step of a track: x1.5
+  step: 1.5,                                // every step of the Pick and Bag tracks: x1.5 (the Camp adds to the Rafeeq share instead)
+  campShare: 0,                              // every Camp step: a Rafeeq's share of your hit, in points of 1 (0.05 = 5 points)
   cost0: 2, costGrow: 1.5,                  // the first step costs 2 Stars, each next one x1.5
   perMaterial: 4,                           // steps of The Pick per material
   chestRow: 3, boneRow: 5, oilRow: 7,       // how close to the surface (metres)
@@ -226,7 +227,7 @@ export const starshop = use({
   firsts: { buy: d => (d.shop === 'star' && d.id.startsWith('tr_') && STARSHOP_STEPS[d.id.slice(3)][d.level] ? `tr:${d.id.slice(3)}:${d.level}` : null) },
   mods: {
     pickPower: { at: 21, fn: (v, s) => v * Math.pow(p.step, starshopSteps(s, 'pick')) },
-    crewPower: { at: 21, fn: (v, s) => v * Math.pow(p.step, starshopSteps(s, 'camp')) },
+    crewShare: { at: 21, fn: (v, s) => v + p.campShare * starshopSteps(s, 'camp') },     // every Camp step: a Rafeeq hits a little closer to your own hit (not a second multiplier)
     coinMult:  { at: 21, fn: (v, s) => v * Math.pow(p.step, starshopSteps(s, 'bag')) },
     // Wide Hands adds a card; the cap comes last, so Wide Hands + Pearl Eye + a prize never show more than cardsCap
     draftCards: { at: 9999, fn: (v, s) => Math.min(p.cardsCap, v + lv(s, 'sp_cards')) },

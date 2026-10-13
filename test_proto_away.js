@@ -6,7 +6,7 @@ const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg)
 
 const crewState = () => {
   const s = G.newState();
-  s.coins = 1e9; s.total = 1e9; G.buy(s, 'crew'); for (let i = 0; i < 30; i++) G.buy(s, 'crewPow');
+  s.coins = 1e9; s.total = 1e9; G.buy(s, 'crew'); for (let i = 0; i < 30; i++) G.buy(s, 'pick');
   s.coins = 0; s.total = 0;
   return s;
 };
@@ -69,7 +69,7 @@ const crewState = () => {
 { // time away is spent once: rows walked (base and past beaten Rocks) plus sieving fit in the absence
   const mk = perk => { G.seedRng(5); const q = G.newState(); q.starBoss = 1; if (perk) q.starUp.tr_camp = 5;
     for (let i = 0; i < 6; i++) q.diggers.push({ c: 0, r: 0, tc: -1, tr: -1, cd: 0, swing: 0 });
-    q.up.crewPow = 40; q.up.crew = 6; return q; };
+    q.up.pick = 40; q.up.crew = 6; return q; };
   for (const perk of [false, true]) {
     const q = mk(perk), top0 = q.top, secs = 12 * 3600, dps = G.fold('awayDps', q, 0);
     const o = G.settleAway(q, secs);

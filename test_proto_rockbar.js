@@ -33,7 +33,7 @@ const HOLD = G.VIEW_ROWS - 2;
 }
 { // the Rock hold does not change time away: the crew still stops at the Rock
   const s = G.newState();
-  s.coins = 1e9; s.total = 1e9; G.buy(s, 'crew'); for (let i = 0; i < 30; i++) G.buy(s, 'crewPow');
+  s.coins = 1e9; s.total = 1e9; G.buy(s, 'crew'); for (let i = 0; i < 30; i++) G.buy(s, 'pick');
   const out = G.settleAway(s, 8 * 3600);
   ok(out.atBoss && s.top < G.LAYER, 'the crew stops at the Big Rock');
 }

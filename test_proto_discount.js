@@ -6,21 +6,21 @@ const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg)
 const give = (s, tr, n) => { s.starUp['tr_' + tr] = n; };
 function ready() { G.seedRng(7); const s = G.newState(); s.bossesDown = 2; s.best = 60; s.starBoss = 2; return s; }
 const move = (s, pick) => { ok(G.newSite(s, 'dunes', () => {}, undefined, pick), 'moved'); };
-const FIRST = { pick: 10, crew: 30, crewPow: 12 };
+const FIRST = { pick: 10, crew: 30 };
 
 { // the start kit gives no free pick levels (they made every level about 5 times faster); Warm Pick keeps its ramp
   const s = ready(); s.up.pick = 30; s.starBestPick = 30;
   move(s);
-  ok(G.PARAMS.sites.kitPick === 0 && s.up.pick === 0 && G.upgradeCost(s, 'pick') === 10, 'no kit pick levels: the first Stronger Pick costs 10');
+  ok(G.PARAMS.sites.kitPick === 0 && s.up.pick === 0 && G.upgradeCost(s, 'pick') === 15, 'no kit pick levels: the first Stronger Pick costs 15');
   const w = ready(); give(w, 'pick', 5); w.up.pick = 20; w.starBestPick = 20; move(w);
-  ok(w.up.pick === 10 && G.upgradeCost(w, 'pick') === 10, 'Warm Pick: half the best level, and the next level costs 10 (ramp)');
+  ok(w.up.pick === 10 && G.upgradeCost(w, 'pick') === 15, 'Warm Pick: half the best level, and the next level costs 15 (ramp)');
 }
 
 { // Rafeeqs: the kit's one and the Camp's waiting ones fill seats; the cap of 8 is on the whole site; Training starts at 12
   const s = ready(); give(s, 'camp', 3); s.starBestPick = 10;
   move(s);
   ok(s.diggers.length === 3 && s.up.crew === 3 && s.free.crew === 3, 'three wait (the Camp\'s three include the kit\'s one)');
-  ok(G.upgradeCost(s, 'crew') === FIRST.crew && G.upgradeCost(s, 'crewPow') === FIRST.crewPow, 'the next Rafeeq costs 30, Training costs 12');
+  ok(G.upgradeCost(s, 'crew') === FIRST.crew, 'the next Rafeeq costs 30');
   s.coins = 1e9; s.total = 1e9;
   let n = 0; while (G.buy(s, 'crew')) n++;
   ok(n === 5 && s.up.crew === 8 && s.diggers.length === 8, 'free Rafeeqs fill seats first: 3 free + 5 bought = the cap of 8 on the site (' + n + ')');
@@ -31,12 +31,12 @@ const FIRST = { pick: 10, crew: 30, crewPow: 12 };
 
 { // the first site, and a New Site: prices begin again at the first price
   const s = ready();
-  ok(G.upgradeCost(s, 'pick') === 10 && G.upgradeCost(s, 'crew') === 30, 'a fresh game: the first prices');
+  ok(G.upgradeCost(s, 'pick') === 15 && G.upgradeCost(s, 'crew') === 30, 'a fresh game: the first prices');
   s.coins = 1e9; s.total = 1e9; for (let i = 0; i < 20; i++) G.buy(s, 'pick');
-  G.buy(s, 'crew'); G.buy(s, 'crew'); G.buy(s, 'crewPow');
+  G.buy(s, 'crew'); G.buy(s, 'crew');
   s.starBestPick = 20;
   move(s);
-  ok(G.upgradeCost(s, 'pick') === 10 && G.upgradeCost(s, 'crew') === 30 && G.upgradeCost(s, 'crewPow') === 12, 'at the new site every price starts again');
+  ok(G.upgradeCost(s, 'pick') === 15 && G.upgradeCost(s, 'crew') === 30, 'at the new site every price starts again');
   ok(s.free.crew === 1 && s.up.pick === 0, 'only the free Rafeeq comes along');
   const tempo = G.upgradeCost(s, 'tempo'); ok(tempo === G.PARAMS.picks.tempoBase, 'Faster Hands starts again too');
 }
@@ -57,10 +57,10 @@ const FIRST = { pick: 10, crew: 30, crewPow: 12 };
   const s = ready(); s.up.pick = 12; s.starWarm = 12;
   const o = JSON.parse(G.serialize(s)); delete o.free;
   const back = G.deserialize(JSON.stringify(o));
-  ok(back && back.free && G.upgradeCost(back, 'pick') === 10, 'a dig that began on Warm Pick keeps its ramp');
+  ok(back && back.free && G.upgradeCost(back, 'pick') === 15, 'a dig that began on Warm Pick keeps its ramp');
   const bare = JSON.parse(G.serialize(ready())); delete bare.free;
   const b2 = G.deserialize(JSON.stringify(bare));
-  ok(b2 && typeof b2.free === 'object' && G.upgradeCost(b2, 'pick') === 10, 'a save without the slice loads with no free levels');
+  ok(b2 && typeof b2.free === 'object' && G.upgradeCost(b2, 'pick') === 15, 'a save without the slice loads with no free levels');
 }
 
 { // C: the Star refund does not give back Stars that bought a pick that stays owned

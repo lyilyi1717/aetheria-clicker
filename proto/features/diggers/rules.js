@@ -1,10 +1,10 @@
 // Dig feature: the crew (the player reads "Rafeeq"; the code says digger and crew). Hired in the
 // coin shop, each one walks to a block and hits it. Which block is a policy, so a Foreman can
 // register more policies and set `s.crewJob` (or one digger's `job`) to switch.
-import { use, emit, PARAMS, POLICIES, fold } from '../../core/registry.js';
+import { use, emit, POLICIES, fold } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, cellAt, reachable, dirtHp, dirtVal } from '../../core/grid.js';
-import { damage, addCoins, coinMult } from '../../core/rules.js';
+import { damage, addCoins, coinMult, pickPower } from '../../core/rules.js';
 import { bossInView } from '../boss/rules.js';
 import strings from './strings.js';
 
@@ -21,11 +21,17 @@ const p = {
   sieveMult: 3,     // coins per sieve hit, in times a dirt hit at that depth (hit damage / hp x value): rubble is rich
   sievePay: 0.5,    // seconds between the sievers' payouts (and their gold number)
   window: 2,        // seconds the "coins a second" line is measured over
+  // one Stronger Pick: a Rafeeq hits for a share of YOUR hit (the pick level, The Pick track, Strong Arm ...; not the
+  // blasts, the crack x3, or the big hits). The Camp adds to it (starshop `campShare`).
+  rafeeqShare: 0.6,
+  // a sieve hit pays at most this many blocks' worth of dirt at that depth (without it the sieve grew with the hit, unbounded)
+  sieveCap: 0.5,
 };
 
 let cur = null;      // the Rafeeq whose hit is being settled right now (for his tally); never saved
 
-export const crewPower = s => fold('crewPower', s, 1);
+export const crewShare = s => fold('crewShare', s, p.rafeeqShare);     // a Rafeeq's hit, in times yours
+export const crewPower = s => fold('crewPower', s, crewShare(s) * pickPower(s));
 export const crewRate = s => fold('crewRate', s, p.rate);
 export const crewWalk = s => fold('crewWalk', s, p.walk);
 
@@ -83,7 +89,7 @@ function sieve(s, d, dt, ev) {
   if (d.cd <= 0) {
     d.cd += 1 / crewRate(s); if (d.cd < 0) d.cd = 0;
     d.swing = 1;
-    d.pot = (d.pot || 0) + crewPower(s) * dirtVal(rock.row) / dirtHp(rock.row) * p.sieveMult * coinMult(s);
+    d.pot = (d.pot || 0) + Math.min(crewPower(s) / dirtHp(rock.row), p.sieveCap) * dirtVal(rock.row) * p.sieveMult * coinMult(s);
   }
   d.sp = (d.sp || 0) + dt;
   if (d.sp >= p.sievePay && d.pot >= 1) {
@@ -112,23 +118,26 @@ export const diggers = use({
     _crewEarn: { init: () => 0, perSite: true, transient: true },
     _allEarn:  { init: () => 0, perSite: true, transient: true },
   },
-  version: 2,
+  version: 3,
   // v2: every Rafeeq gets a tally. (The default job `nearest` is "beside me and below" from now on; the id is kept so old saves keep their choice.)
-  migrate(s) {
+  // v3: Rafeeq Training is gone (a Rafeeq hits for a share of yours): the levels bought at this site are paid back in coins, once.
+  migrate(s, from) {
+    if (from < 3 && s.up && s.up.crewPow > 0) {
+      for (let l = 0; l < s.up.crewPow; l++) s.coins += Math.ceil(12 * Math.pow(1.5, l));
+    }
+    if (s.up) delete s.up.crewPow;
     (s.diggers || []).forEach((d, i) => { if (d.id === undefined) { d.id = i + 1; d.broke = 0; d.coins = 0; } });
   },
   items: {
     crew: { at: 20, shop: 'coin', base: 30, grow: 4.2, max: 8, levels: 'core', open: s => s.total >= 60 || s.up.crew > 0,
       // id, broke, coins: his tally (a name can join them later) for the Rafeeq panel
       bought(s) { s.diggers.push(newRafeeq(s)); } },
-    crewPow: { at: 30, shop: 'coin', base: 12, grow: 1.5, open: s => s.up.crew > 0 },
   },
   policies: { nearest },
   relics: {
     karak: { at: 80, max: 3, when: s => s.up.crew > 0, mods: { crewRate: (v, s) => v * (1 + p.karakStep * s.relics.karak) } },   // faster diggers
   },
   mods: {
-    crewPower: { at: 10, fn: (v, s) => v * Math.pow(PARAMS.core.powGrow, s.up.crewPow) },
     awayDps: (v, s) => v + s.diggers.length * crewRate(s) * crewPower(s),
   },
   hooks: {
