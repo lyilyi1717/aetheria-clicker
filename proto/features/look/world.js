@@ -1,5 +1,5 @@
 // Dig look: the world behind and around the blocks. The sky of each site, the dug-out wall of each layer, the
-// strata at every Big Rock, the light that falls off with depth, and the depth ruler. Drawing only: it reads the
+// strata at every Big Rock, the light that falls off with depth, and the (quiet) depth ruler. Drawing only: it reads the
 // state and never changes it. render.js hands in what it owns (makeWorld) so this file does not import it back.
 import { LAYER, layerAt } from '../../core/grid.js';
 import { layersOf } from '../../core/registry.js';
@@ -308,30 +308,31 @@ export function makeWorld(R) {
     }
   }
 
-  function drawRuler(g, s) {   // fixed to the screen: layer bands, a tick every 5 m, a number every 25 m, a rock at each Big Rock, you
-    const x = 0, w = 6, y0 = SKY + 10, len = H - SKY - 20, ppm = len / RULER_MAX;   // a thin strip at the very edge: it must not hide the first column
+  function drawRuler(g, s) {   // fixed to the screen, and quiet (the level track above the stage carries depth): faint layer bands, the next Big Rock, the Gate, you
+    const x = 0, w = 5, y0 = SKY + 10, len = H - SKY - 20, ppm = len / RULER_MAX;   // a thin strip at the very edge: it must not hide the first column
     g.save();
     const Ls = layersOf(s.land);
+    g.globalAlpha = 0.4;
     for (let i = 0; i * LAYER < RULER_MAX; i++) {
       const L = pal(Ls[Math.min(i, Ls.length - 1)].id);
       g.fillStyle = L.dirt; g.fillRect(x, y0 + i * LAYER * ppm, w, LAYER * ppm + 0.5);
-      g.fillStyle = L.back; g.fillRect(x, y0 + i * LAYER * ppm, 3, LAYER * ppm + 0.5);
     }
-    g.strokeStyle = 'rgba(255,255,255,0.7)'; g.lineWidth = 1;
-    g.font = '700 9px system-ui, sans-serif'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
-    for (let m = 0; m <= RULER_MAX; m += 5) {
-      const y = y0 + m * ppm, major = m % LAYER === 0;
-      if (major) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + w + 3, y); g.stroke(); }
-      if (major && m > 0 && m < RULER_MAX) { g.lineWidth = 3; g.strokeStyle = 'rgba(8,6,10,0.85)'; g.strokeText(String(m), x + w + 5, y); g.fillText(String(m), x + w + 5, y); g.lineWidth = 1; g.strokeStyle = 'rgba(255,255,255,0.7)'; }
-    }
-    for (let k = 1; k * LAYER < RULER_MAX; k++) {
-      const y = y0 + k * LAYER * ppm, done = (s.bossesDown || 0) >= k;
-      g.fillStyle = done ? '#6b6560' : '#d9d2c4'; g.strokeStyle = '#1b1410'; g.lineWidth = 1.5;
+    g.globalAlpha = 1;
+    g.strokeStyle = '#1b1410'; g.lineWidth = 1.5;
+    const k = (s.bossesDown || 0) + 1, gate = s.run && !s.run.done ? s.run.floor : 0;
+    if (k * LAYER < RULER_MAX && !(gate && k * LAYER >= gate)) {   // the next Big Rock only
+      const y = y0 + k * LAYER * ppm;
+      g.fillStyle = '#d9d2c4';
       g.beginPath(); g.moveTo(x, y + 3); g.lineTo(x + 1, y - 2); g.lineTo(x + 4, y - 4); g.lineTo(x + 7, y - 1); g.lineTo(x + 6, y + 3); g.closePath(); g.fill(); g.stroke();
     }
+    if (gate && gate <= RULER_MAX) {   // the Gate: a small gold arch
+      const y = y0 + gate * ppm;
+      g.fillStyle = '#ffd23f';
+      g.beginPath(); g.moveTo(x, y + 4); g.lineTo(x, y - 1); g.quadraticCurveTo(x + 4, y - 7, x + 8, y - 1); g.lineTo(x + 8, y + 4); g.closePath(); g.fill(); g.stroke();
+    }
     const yy = y0 + Math.min(RULER_MAX, Math.max(0, s.best)) * ppm;
-    g.fillStyle = '#ffd23f'; g.strokeStyle = '#1b1410'; g.lineWidth = 1.5;
-    g.beginPath(); g.moveTo(x, yy - 5); g.lineTo(x + 9, yy); g.lineTo(x, yy + 5); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = '#ffd23f'; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(x, yy - 4); g.lineTo(x + 7, yy); g.lineTo(x, yy + 4); g.closePath(); g.fill(); g.stroke();
     g.restore();
   }
 
