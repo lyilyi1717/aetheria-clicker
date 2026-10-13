@@ -4,6 +4,42 @@ What should arrive when, how the numbers make that happen, how to check it, and 
 The numbers live in `proto/core/rules.js` (`PARAMS.core`) and the curves in `proto/core/grid.js`.
 The check is `node sim/proto/dig-month.mjs`.
 
+## 0. The road (read this first; sections 2 to 6 describe the walls, which are unchanged, and the old Star curve)
+
+Every dig now has a bottom (`proto/features/sites/rules.js`). The unit of progress is a **site finished** (the Big Rock at the
+site's floor, its Gate, broken), not a Big Rock and not a move. What changed in this document's terms:
+
+- **Stars** are paid by `starsAt(depth)` = `starBase` (3) at 50 m, x `starGrow` (4.5) for every 25 m: 3, 14, 61, 273, 1.2k, 5.5k, 25k at 50 to 200 m.
+  A first finish pays that; a Fast or Hard medal half of it, once; a replay `replayShare` (0.25, at least 1); leaving before the Gate
+  `leaveShare` (0.34) of the depth reached (at least 1); digging past the Gate `deepShare` (0.5) of the extra. The old share table,
+  `starCap` and `starShare` are gone; `starsToStand` stays as the model the sim prints.
+- **The wall did not move.** A track step costs x1.5 and gives x1.5, so power is about Stars / 4 per track, while the walls grow about
+  x30 per 25 m below 100 m. Stars needed at a depth therefore grow about x9 or more per 25 m, whatever the pay. With Stars in the
+  thousands the month ends near 150 m; 175 m needs about 500k Stars and 200 m about 40M (the old sim paid those, hence its millions).
+  To reach 200 m in a month with small Stars the `grow` steps of the Deep (8, 8, 8, 8, 10) have to come down by about x3 to x5 each.
+- **The scripted player** (`sim/proto/player.mjs`, `MOVE`): finishes the site; on a finish it takes Next site at once; otherwise it leaves
+  when the dig has stalled and `budget` (4) times the par time is spent. From a deal it takes a floor it can do (already finished, or one
+  Big Rock beyond), skips a floor it just gave up until its Stars have grown by half (`retry` 1.5), and sometimes goes for a Fast or Hard card.
+- **Par** = `parBase` (300 s) at 50 m, x `parGrow` (1.45) per 25 m, x 1.15 with a twist. The sim player earns Fast on every version
+  eventually (34 of 34): par is easy for it; the owner's playtest should say whether it is for people.
+- **Contracts** open after 8 finished versions (`contracts.openFinished`), or 99 New Sites; an old save that had them open keeps them.
+
+Month sim, mixed player, seeds 1 and 2 (before = main at 373c889, after = this branch; active and idle were run once at starGrow 4.5, parBase 480):
+
+| | before | after |
+|---|---|---|
+| first site finished | (first New Site 13.7 min) | 9.4 min |
+| fourth finished | - | day 1.0 |
+| New Sites a day / finishes a day | 4.8 / - | 12.5 / 11.9 |
+| moves that end in a finished site | 0% (17% ended deeper) | 94% |
+| days with a finish or a medal | - | 100% |
+| Stars day 7 / day 30 | 2.8k / 2.1e19 | 3.1k / 76k |
+| deepest m at day 7 / 14 / 30 | 125 / 150 / 397 | 125 / 150 / 150 |
+| Big Rock 4 / 5 / 6 | day 4.0 / 8.7 / 13.4 | day 5.0 / 9.8 / never |
+
+Not reached: 200 m in weeks 3 to 4 (see the wall above). Active (22 sites a day) reaches 162 m, idle 125 m. Dead stretch limit in the
+first 30 minutes raised to 180 s (the 75 m fight in the third fixed site).
+
 ## 1. The target
 
 Three players. Early steps are in attended minutes (the same for everyone); later ones in real days.
