@@ -11,9 +11,16 @@
 // own shape and its own rule against stacking. audioTime() is the audio clock (null: no sound yet),
 // for a feature that schedules ahead of time (the picks' bar).
 
-let ctx = null, master = null, noiseBuf = null;
+import { DEFAULTS, masterGain, busGain } from './volume.js';
+
+let ctx = null, master = null, noiseBuf = null, musicBus = null, fxBus = null;
 let muted = false;
-let volume = 0.5;    // the master level (the sound test page has a slider for it; the game keeps 0.5)
+let vol3 = { ...DEFAULTS };   // the three sliders (0 to 100), see volume.js; the settings menu sets them
+let volume = masterGain(vol3.master);   // the master gain node's level when not muted
+let bus = 'fx';      // which bus the sound function now running plays into
+// Sounds that are the tune (the pentatonic notes of the beat) go to the Music slider; the rest are Effects.
+const MUSIC = new Set(['break', 'coin', 'comboUp', 'star']);
+export const addMusic = names => { for (const n of names || []) MUSIC.add(n); };
 const last = {};     // last play time per sound class (keeps fast repeats from stacking)
 let mixer = null;    // see "The mixer" above
 let shift = 0, level = 1;   // in force while a mixed sound function runs
@@ -33,8 +40,10 @@ export const kitDepth = () => depth;
 export const depthPitch = () => 1 - 0.05 * depth;
 export function addVoices(zone, map) { for (const [k, f] of Object.entries(map || {})) (voices[k] || (voices[k] = {}))[zone] = f; }
 function play(name, f, a) {
+  bus = MUSIC.has(name) ? 'music' : 'fx';
   const v = voices[name], g = (v && v[kit]) || f;
   const r = g(...a);
+  bus = 'fx';         // a tone played outside a named sound (a feature calling tone() itself) is an effect
   if (depth > 0 && tails.has(name) && gap('tail', 0.06)) tone(62 * depthPitch(), { type: 'sine', d: 0.1 + 0.05 * depth, vol: 0.03 + 0.012 * depth, slide: 40, at: 0.025 });
   return r;
 }
@@ -51,6 +60,20 @@ function mixed(name, f) {
 
 export function setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : volume; }
 export function setVolume(v) { volume = v; if (master && !muted) master.gain.value = v; }
+// The three sliders: applied to gain nodes, so sounds already playing change level too.
+export function setLevels(l) {
+  vol3 = { ...vol3, ...l };
+  volume = masterGain(vol3.master);
+  if (master && !muted) master.gain.value = volume;
+  if (musicBus) musicBus.gain.value = busGain(vol3.music, DEFAULTS.music);
+  if (fxBus) fxBus.gain.value = busGain(vol3.fx, DEFAULTS.fx);
+}
+export const getLevels = () => ({ ...vol3 });
+// a short sample so the player hears the level they just set
+export function preview(kind) {
+  if (!ctx || muted) return;
+  if (kind === 'music') sfx.comboUp(0); else sfx.hit(false);
+}
 export const isMuted = () => muted;
 
 // Browsers only allow sound after a click or key press; call this from one.
@@ -63,6 +86,10 @@ export function unlock() {
   master.gain.value = muted ? 0 : volume;
   const comp = ctx.createDynamicsCompressor();
   master.connect(comp); comp.connect(ctx.destination);
+  musicBus = ctx.createGain(); fxBus = ctx.createGain();
+  musicBus.connect(master); fxBus.connect(master);
+  musicBus.gain.value = busGain(vol3.music, DEFAULTS.music);
+  fxBus.gain.value = busGain(vol3.fx, DEFAULTS.fx);
   noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
   const a = noiseBuf.getChannelData(0);
   for (let i = 0; i < a.length; i++) a[i] = Math.random() * 2 - 1;
@@ -87,7 +114,7 @@ export function tone(freq, { type = 'triangle', a = 0.004, d = 0.15, vol = 0.25,
   g.gain.setValueAtTime(0.0001, t0);
   g.gain.exponentialRampToValueAtTime(vol, t0 + a);
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + a + d);
-  o.connect(g); g.connect(master);
+  o.connect(g); g.connect(bus === 'music' ? musicBus : fxBus);
   o.start(t0); o.stop(t0 + a + d + 0.05);
 }
 
@@ -103,7 +130,7 @@ export function noise({ d = 0.15, vol = 0.3, from = 3000, to = 300, at = 0, type
   g.gain.setValueAtTime(0.0001, t0);
   g.gain.exponentialRampToValueAtTime(vol, t0 + 0.003);
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
-  s.connect(f); f.connect(g); g.connect(master);
+  s.connect(f); f.connect(g); g.connect(bus === 'music' ? musicBus : fxBus);
   s.start(t0, Math.random() * 0.5); s.stop(t0 + d + 0.05);
 }
 
