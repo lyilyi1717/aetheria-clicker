@@ -25,6 +25,7 @@ import { use, emit } from '../../core/registry.js';
 import { swing, itemLevel, itemOpen, buy } from '../../core/rules.js';
 import { starshopPunch } from '../starshop/rules.js';
 import { roadZone } from '../sites/rules.js';
+import { WING, wingCount, wingDone } from '../wing2/rules.js';
 import { PICKS_BARS, ZONE_BARS, BAR_ZONES, MAX_PICKS, picksBarOf, stepSec, hitsPerSec, barFaults } from './beat.js';
 import strings from './strings.js';
 
@@ -92,6 +93,28 @@ for (const zone of BAR_ZONES) for (const k of Object.keys(PICKS_BARS)) {
   if (bad.length) throw new Error(`Dig: the ${zone} bar for ${k} picks is wrong: ${bad.join('; ')}`);
 }
 
+// ---------- the pinned goal ----------
+// The player pins ONE thing and the goal bar follows it: this level's Gate (the default), the Second
+// Pick (a price to save for) or the Museum set that is closest to done. Pinning never blocks a purchase.
+export const PICKS_PINS = ['gate', 'pick2', 'set'];
+// the Museum set nearest to done that you have started: { set, a, b } or null
+export function picksSetNear(s) {
+  let best = null, bf = -1;
+  for (const k of Object.keys(WING)) {
+    if (wingDone(s, k)) continue;
+    const a = wingCount(s, k), b = WING[k].pieces.length;
+    if (a > 0 && a / b > bf) { bf = a / b; best = { set: k, a, b }; }
+  }
+  return best;
+}
+// which pins can be chosen now
+export const picksPinOk = (s, what) => what === 'gate' || (what === 'pick2' && itemOpen(s, 'pick2')) || (what === 'set' && !!picksSetNear(s));
+// the pin in force: a pin whose thing is gone (bought, finished) falls back to the Gate
+export const picksPin = s => { const w = (s.picks && s.picks.pin) || 'gate'; return picksPinOk(s, w) ? w : 'gate'; };
+export function picksSetPin(s, what) { if (!PICKS_PINS.includes(what) || !picksPinOk(s, what)) return false; s.picks.pin = what; return true; }
+// saving for the Second Pick: the cheap buttons say they would delay it (they still work)
+export const picksSaving = s => picksPin(s) === 'pick2' && s.coins < p.secondCost;
+
 const moved = s => (s.stars || 0) > 0 || (s.starSpent || 0) > 0;
 const more = (s, ev) => emit(s, ev, 'picksMore', { n: picksCount(s) });
 
@@ -101,7 +124,8 @@ export const picks = use({
   strings,
   tables: { PICKS_BARS },
   state: {
-    picks: { init: () => ({ second: false }), survives: ['site', 'land'] },   // the Second Pick is for ever
+    picks: { init: () => ({ second: false, pin: 'gate' }), survives: ['site', 'land'] },   // the Second Pick is for ever; pin = the goal shown
+    picksBank: { init: () => 0 },   // the sim's scripted player puts coins aside here while it saves (the page never uses it)
   },
   // the Star picks have a small shop of their own (the Star tracks' panel shows only its tracks)
   shops: { picks: { at: 30, wallet: 'stars', levels: 'picksUp', survives: ['site', 'land'] } },
@@ -116,7 +140,7 @@ export const picks = use({
     pick2: { at: 14, shop: 'coin', max: 1, levels: 'core',
       cost: s => (s.picks.second ? Infinity : p.secondCost),
       open: s => !s.picks.second && ((s.bossesDown || 0) >= p.secondRock || moved(s)),
-      bought(s, lv, ev) { s.picks.second = true; more(s, ev); } },
+      bought(s, lv, ev) { s.picks.second = true; s.picks.pin = 'gate'; more(s, ev); } },
     // the third and the fourth pick, for Stars (the Star bonus counts Stars ever earned, so spending costs nothing)
     pick3: { at: 10, shop: 'picks', max: p.starCosts.length, levels: 'core',
       cost: (s, lv) => p.starCosts[Math.min(lv, p.starCosts.length - 1)],
@@ -124,5 +148,20 @@ export const picks = use({
       bought(s, lv, ev) { s.starSpent = (s.starSpent || 0) + p.starCosts[lv - 1]; more(s, ev); } },
   },
   // the scripted player: coin items are bought by the sim itself; the Star one is bought here
-  bot: { shop(s, api) { return itemLevel(s, 'pick3') < p.starCosts.length && itemOpen(s, 'pick3') && buy(s, 'pick3', api && api.ev) ? 1 : 0; } },
+  // The sim's shop buys the cheapest thing it can afford, so coins never reach 12,000 and nobody saves.
+  // The scripted player now saves: once the Second Pick is open it pins it and puts its coins aside
+  // (`picksBank`), so the cheap buttons see only the last few seconds of income, until it can pay.
+  bot: { shop(s, api) {
+    const ev = api && api.ev;
+    let n = 0;
+    if (itemLevel(s, 'pick3') < p.starCosts.length && itemOpen(s, 'pick3') && buy(s, 'pick3', ev)) n++;
+    if (!s.picks.second && itemOpen(s, 'pick2')) {
+      s.picks.pin = 'pick2';
+      if (s.coins + s.picksBank >= p.secondCost) {
+        s.coins += s.picksBank; s.picksBank = 0;
+        if (buy(s, 'pick2', ev)) { n++; if (api && api.trk) api.trk.mark('second pick'); }
+      } else { s.picksBank += s.coins; s.coins = 0; }
+    }
+    return n;
+  } },
 });

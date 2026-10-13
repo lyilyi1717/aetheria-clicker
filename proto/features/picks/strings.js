@@ -11,4 +11,9 @@ export default { en: {
   bar_europe_1: 'March', bar_europe_2: 'Parade', bar_europe_3: 'Soldiers', bar_europe_4: 'Big parade',
   t_picks_2: 'Two picks! Listen: boom-tak.', t_picks_3: 'Three picks! They gallop.', t_picks_4: 'Four picks! The Gulf clap.',
   t_tempo: 'Faster! {n} beats a minute.',
+  pin_title: 'Goal', pin_gate: 'The Gate', pin_pick2: 'Second Pick', pin_set: 'Museum set',
+  pin_save: 'Save for it', pin_saving: 'Saving', pin_tip: 'Show this on the goal bar',
+  goal_pick2: 'Second Pick: {a} / {b}', goal_set: '{name}: {a} of {b} pieces',
+  delay_note: 'Buying this makes the Second Pick wait.',
+  pick2_banner: 'Second Pick!', pick2_sub: 'A second swing joins the beat.',
 } };

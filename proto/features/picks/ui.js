@@ -22,7 +22,7 @@ import './kits.js';
 import { S, badge, pickShape } from '../../ui/icons.js';
 import { shopPanel } from '../../ui/shop.js';
 
-const { t } = G;
+const { t, fmt } = G;
 const P = G.PARAMS.picks;
 const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const VOICED = new Set(['hit', 'crit', 'break']);     // the sounds an accent makes louder or softer
@@ -97,6 +97,50 @@ function drawExtras(g, s, dt) {
 
 const two = `<g transform="translate(-4 -1)">${pickShape()}</g><g transform="translate(5 3)">${pickShape('#ffd23f')}</g>`;
 
+// ---------- the pinned goal: chips beside the goal bar, a pin on the Second Pick, a note on the cheap buttons ----------
+let pinRow = null;
+const pinBtns = {};
+function pinMount(app) {
+  const goal = document.getElementById('goal');
+  if (!goal) return;
+  pinRow = document.createElement('div'); pinRow.id = 'goal-pin'; pinRow.hidden = true; pinRow.title = t('pin_tip');
+  for (const k of G.PICKS_PINS) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = t('pin_' + k); b.dataset.pin = k;
+    b.addEventListener('click', () => { app.unlockAudio(); if (G.picksSetPin(app.state, k)) { app.refresh(true); } });
+    pinBtns[k] = b; pinRow.appendChild(b);
+  }
+  goal.appendChild(pinRow);
+}
+function pinTick(s, app) {
+  if (pinRow) {
+    const ok = G.PICKS_PINS.filter(k => G.picksPinOk(s, k)), cur = G.picksPin(s);
+    pinRow.hidden = ok.length < 2;
+    for (const k of G.PICKS_PINS) { pinBtns[k].hidden = !ok.includes(k); pinBtns[k].classList.toggle('on', k === cur); }
+  }
+  const saving = G.picksSaving(s);
+  for (const b of document.querySelectorAll('.shop-item[data-id]')) {
+    const id = b.dataset.id, tx = b.querySelector('.tx');
+    if (!tx || b.hidden) continue;
+    let note = tx.querySelector('.delay-note');
+    const want = saving && id !== 'pick2' && b.closest('#shop, .shop-list') && G.ITEMS[id] && G.ITEMS[id].shop === 'coin';
+    if (want && !note) { note = document.createElement('small'); note.className = 'delay-note'; note.textContent = t('delay_note'); tx.appendChild(note); }
+    else if (!want && note) note.remove();
+    if (id === 'pick2') {
+      let pin = tx.querySelector('.pin-btn');
+      if (!pin) {
+        pin = document.createElement('span'); pin.className = 'pin-btn'; pin.setAttribute('role', 'button'); pin.tabIndex = 0;
+        const go = e => { e.stopPropagation(); e.preventDefault(); app.unlockAudio(); G.picksSetPin(app.state, G.picksPin(app.state) === 'pick2' ? 'gate' : 'pick2'); app.refresh(true); };
+        pin.addEventListener('click', go);
+        pin.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') go(e); });
+        tx.appendChild(pin);
+      }
+      const on = G.picksPin(s) === 'pick2';
+      pin.textContent = on ? t('pin_saving') : t('pin_save');
+      pin.classList.toggle('on', on);
+    }
+  }
+}
+
 ui({
   id: 'picks',
   css: new URL('./picks.css', import.meta.url).href,
@@ -129,19 +173,29 @@ ui({
     },
   },
   draw: [{ at: AT.pick + 1, fn: drawExtras }],
+  // the goal bar follows the pin; the Gate's own goal (sites) shows when the pin is the Gate
+  goal: { at: 8, fn(s) {
+    const pin = G.picksPin(s);
+    if (pin === 'pick2') return { text: t('goal_pick2', { a: fmt(Math.min(s.coins, G.PARAMS.picks.secondCost)), b: fmt(G.PARAMS.picks.secondCost) }), frac: Math.min(1, s.coins / G.PARAMS.picks.secondCost), cls: 'gold' };
+    if (pin === 'set') { const n = G.picksSetNear(s); if (n) return { text: t('goal_set', { name: t('wset_' + n.set), a: n.a, b: n.b }), frac: n.a / n.b, cls: 'gold' }; }
+    return null;
+  } },
   panels: [shopPanel({ id: 'picks', shop: 'picks', title: 'picks_shop', side: 'right', at: 6, coin: 'star', when: s => G.itemOpen(s, 'pick3') })],
   mount(app) {
+    pinMount(app);
     strip = document.createElement('div'); strip.id = 'picks-beat';
     if (reduced) strip.classList.add('still');
     for (let i = 0; i < 16; i++) { const d = document.createElement('i'); strip.appendChild(d); dots.push(d); }
     label = document.createElement('b'); strip.appendChild(label);
     app.el.stage.appendChild(strip);
   },
-  tick(s) { if (!zoneNow) zoneNow = G.roadZone(s); setSound(s); if (strip) showBar(s); },
+  tick(s, app) { if (!zoneNow) zoneNow = G.roadZone(s); setSound(s); if (strip) showBar(s); pinTick(s, app); },
   on: {
     // a level in a new land: its three-note call
     newSite(d, app) { const z = G.roadZone(app.state); if (zoneNow && z !== zoneNow) { setSound(app.state); sfx.picksSting(z); } zoneNow = z; },
-    picksMore(d, app) { app.toast(t('t_picks_' + d.n), 'gold'); for (let i = 1; i < 4; i++) swingT[i] = 1; app.dirty(); },
+    picksMore(d, app) {
+      app.toast(t('t_picks_' + d.n), 'gold');
+      if (d.n === 2 && strip) { app.banner(t('pick2_banner'), t('pick2_sub')); strip.classList.remove('joined'); void strip.offsetWidth; strip.classList.add('joined'); } for (let i = 1; i < 4; i++) swingT[i] = 1; app.dirty(); },
     buy(d, app) { if (d.id === 'tempo') app.toast(t('t_tempo', { n: G.picksBpm(app.state) }), 'gold'); },
   },
 });
