@@ -15,7 +15,6 @@ G.addStrings(strings, 'page');
 
 const SAVE_KEY = 'DIG_PROTO_SAVE_V1';
 const MUTE_KEY = 'DIG_PROTO_MUTE';
-const AUTO_KEY = 'DIG_PROTO_AUTO';
 const params = new URLSearchParams(location.search);
 const SPEED = Math.max(1, Number(params.get('speed')) || 1);
 const $ = id => document.getElementById(id);
@@ -24,7 +23,7 @@ let state = null;
 let paused = false;          // a card is open
 let hitStop = 0;
 let holding = false, holdCd = 0, lastSwing = 0;
-let autoDig = false;         // dig where the mouse is without holding the button (key A)
+const autoDig = true;        // the pick always digs where the mouse points; holding is not needed (the owner: always auto)
 let shownCoins = 0;
 let coinLands = 0;
 let toastT = 0, bannerT = 0;
@@ -405,11 +404,7 @@ export function start() {
   setMuted(m); paintMute();
   mute.addEventListener('click', () => { unlock(); setMuted(!isMuted()); paintMute(); try { localStorage.setItem(MUTE_KEY, isMuted() ? '1' : '0'); } catch { /* ignore */ } });
   const auto = $('auto');
-  try { autoDig = localStorage.getItem(AUTO_KEY) === '1'; } catch { /* ignore */ }
-  const setAuto = (on) => { autoDig = on; auto.innerHTML = icon('btn_auto', 22); auto.title = auto.ariaLabel = t(on ? 'auto_on' : 'auto_off'); auto.classList.toggle('on', on); try { localStorage.setItem(AUTO_KEY, on ? '1' : '0'); } catch { /* ignore */ } };
-  setAuto(autoDig);
-  auto.addEventListener('click', () => { unlock(); setAuto(!autoDig); });
-  KEYS.a = KEYS.a || (() => setAuto(!autoDig));
+  if (auto) auto.remove();                                  // no switch: digging is always automatic
   for (const [id, T] of Object.entries(G.TOOLS)) if (T.key && !KEYS[String(T.key).toLowerCase()]) KEYS[String(T.key).toLowerCase()] = () => pickTool(id);
   window.addEventListener('keydown', e => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
