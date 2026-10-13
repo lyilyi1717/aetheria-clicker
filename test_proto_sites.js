@@ -172,5 +172,13 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   ok(G.fixedNext(s) === null && G.roadLevel(s).level === 21, 'the road ends');
 }
 
+{ // a road depth pays most when proved; leaving never beats finishing again
+  const P = G.PARAMS.sites, w = G.starsAt(100);
+  ok(G.firstPay(100, 'learn') === Math.round(w * P.learnPay) && G.firstPay(100, 'prove') === Math.round(w * P.provePay) && G.firstPay(50) === G.starsAt(50), 'learn pays a little, prove pays the most, the lessons pay in full');
+  const s = fresh(); s.bossesDown = 5; s.best = 150;
+  G.newSite(s, 'dunes', NO, undefined, { floor: 150, twist: '' }); s.bossesDown = 5; s.best = 150;
+  ok(G.starsFor(s) <= Math.floor(P.leaveCap * G.replayPay(150)), 'leaving at the Gate pays less than finishing it again');
+}
+
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('sites: ok');
