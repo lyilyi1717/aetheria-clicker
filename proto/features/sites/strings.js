@@ -7,6 +7,7 @@ export default { en: {
   site_clock: 'Time',
   site_par: 'Fast under {t}',
   clock_over: '{t} over',
+  clock_done: 'Gate broken in {t}',
   clock_bank: '+{t} banked',
   site_left: 'to the next Rock',
   site_left_gate: 'to the Gate',
