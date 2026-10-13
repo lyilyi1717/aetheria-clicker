@@ -3,7 +3,7 @@
 // A locked tab is greyed with a lock and says how it opens. A dot means something is really ready; it
 // clears when you open the tab. The rules for all this are in drawerlogic.js; this file only draws them.
 import * as G from '../game.js';
-import { icon, addIcons, badge, S, helmet, star, chest } from './icons.js';
+import { icon, addIcons, badge, S, helmet, chest } from './icons.js';
 import { TABS, PANEL_TAB, tabOf, tabInfo, dotStep } from './drawerlogic.js';
 
 const { t } = G;
@@ -11,7 +11,6 @@ export { PANEL_TAB, tabOf };
 
 addIcons({
   tab_shop: `<circle cx="16" cy="16" r="13" fill="#ffd23f" stroke="#7a5a00" stroke-width="2.4"/><circle cx="16" cy="16" r="8" fill="none" stroke="#b98a00" stroke-width="2"/><circle cx="11.5" cy="11" r="2.6" fill="#fff6c8"/>`,
-  tab_stars: star(16, 16, 13, 6, 5, '#ffd23f'),
   tab_camp: helmet,
   tab_relics: chest,
   tab_museum: `<g transform="rotate(-35 16 16)" fill="#f6efdc" ${S}><rect x="6" y="13.5" width="20" height="5" rx="2.5"/><circle cx="6" cy="12.5" r="4"/><circle cx="6" cy="19.5" r="4"/><circle cx="26" cy="12.5" r="4"/><circle cx="26" cy="19.5" r="4"/></g>`,

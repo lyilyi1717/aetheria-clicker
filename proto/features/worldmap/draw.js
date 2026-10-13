@@ -120,7 +120,31 @@ function drawNode(g, n, v, nm) {
   g.save();
   g.translate(n.x, n.y);
   g.globalAlpha = n.alpha == null ? 1 : n.alpha;
-  if (n.type === 'island') {          // sand in a ring of water
+  if (n.type === 'town') {            // Alqahwa: a little Gulf coffee house with a dome, an arch door, a striped awning and a coffee pot sign
+    g.fillStyle = 'rgba(0,0,0,0.28)'; g.beginPath(); g.ellipse(0, 20, 38, 9, 0, 0, 7); g.fill();
+    if (v.sel === n) { g.fillStyle = `rgba(255,214,70,${0.2 + 0.2 * pulse})`; g.beginPath(); g.arc(0, 0, 44 + 4 * pulse, 0, 7); g.fill(); }
+    g.lineJoin = 'round'; g.strokeStyle = '#2b1a0c'; g.lineWidth = 3;
+    g.fillStyle = '#e9cf96'; g.beginPath(); g.rect(-30, -8, 60, 28); g.fill(); g.stroke();                      // the walls
+    g.fillStyle = '#d9b877'; g.beginPath(); g.rect(-32, -13, 64, 7); g.fill(); g.stroke();                      // the flat roof edge
+    g.fillStyle = '#c9743a'; g.beginPath(); g.moveTo(-14, -13); g.quadraticCurveTo(-14, -34, 0, -34); g.quadraticCurveTo(14, -34, 14, -13); g.closePath(); g.fill(); g.stroke();   // the dome
+    g.strokeStyle = '#2b1a0c'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(0, -34); g.lineTo(0, -41); g.stroke();
+    g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(0, -42, 2.6, 0, 7); g.fill();
+    g.fillStyle = '#3a2412'; g.beginPath(); g.moveTo(-7, 20); g.lineTo(-7, 6); g.quadraticCurveTo(0, -4, 7, 6); g.lineTo(7, 20); g.closePath(); g.fill();   // the arch door
+    g.fillStyle = `rgba(255,200,90,${0.55 + 0.2 * pulse})`; g.beginPath(); g.arc(0, 13, 3, 0, 7); g.fill();     // a warm light inside
+    for (let i = 0; i < 6; i++) { g.fillStyle = i % 2 ? '#fff6e0' : '#d7332b'; g.beginPath(); g.moveTo(-30 + i * 10, -8); g.lineTo(-20 + i * 10, -8); g.lineTo(-22 + i * 10, -1); g.lineTo(-28 + i * 10, -1); g.closePath(); g.fill(); }
+    g.strokeStyle = '#2b1a0c'; g.lineWidth = 2; g.strokeRect(-30, -8, 60, 7);
+    g.fillStyle = '#ffd23f'; g.lineWidth = 2; g.beginPath(); g.moveTo(17, 4); g.lineTo(27, 4); g.lineTo(25, 15); g.lineTo(19, 15); g.closePath(); g.fill(); g.stroke();   // a coffee pot on the wall
+    g.beginPath(); g.moveTo(17, 7); g.quadraticCurveTo(12, 7, 14, 12); g.stroke();
+    if (!v.still) {            // steam
+      g.strokeStyle = 'rgba(255,255,255,0.8)'; g.lineWidth = 2; g.lineCap = 'round';
+      for (let i = 0; i < 2; i++) { const w = Math.sin(time * 2 + i * 2) * 2; g.beginPath(); g.moveTo(21 + i * 3, 0); g.quadraticCurveTo(19 + w + i * 3, -5, 22 + i * 3, -9); g.stroke(); }
+    }
+    if (n.stars > 0) {         // Stars to spend: a gold star over the roof
+      g.fillStyle = '#ffd23f'; g.strokeStyle = '#7a5a00'; g.lineWidth = 2; g.beginPath();
+      for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? 4.5 : 10; g.lineTo(-30 + Math.cos(a) * rr, -30 + Math.sin(a) * rr); }
+      g.closePath(); g.fill(); g.stroke();
+    }
+  } else if (n.type === 'island') {          // sand in a ring of water
     g.fillStyle = 'rgba(40,130,170,0.55)'; g.beginPath(); g.ellipse(0, 6, r + 26, r + 12, 0, 0, 7); g.fill();
     if (go) { g.fillStyle = `rgba(255,214,70,${0.25 + 0.25 * pulse})`; g.beginPath(); g.ellipse(0, 4, r + 20, r + 10, 0, 0, 7); g.fill(); }
     g.fillStyle = '#e8d49a'; g.strokeStyle = '#6a4a1a'; g.lineWidth = 3; g.beginPath(); g.ellipse(0, 2, r + 8, r, 0, 0, 7); g.fill(); g.stroke();
@@ -221,7 +245,8 @@ export function paint(g, map, v) {
     const st = n.stamp;
     const nm = { locked, name: '', sub: '', pop: v.pop && v.pop.nodeId === n.id ? v.pop.ages : null,
       pips: !locked && n.type !== 'island' && n.type !== 'hub' && (n.state === 'done' || !!(st && (st.fin || st.fast || st.hard || st.n))) };
-    if (n.type === 'road') { nm.name = t('site_' + n.site); nm.sub = n.prove ? t('wm_hard_ground', { n: n.floor }) : t('wm_depth', { n: n.floor }); }
+    if (n.type === 'town') { nm.name = t('wm_town'); nm.sub = t('wm_town_sub'); }
+    else if (n.type === 'road') { nm.name = t('site_' + n.site); nm.sub = n.prove ? t('wm_hard_ground', { n: n.floor }) : t('wm_depth', { n: n.floor }); }
     else if (n.type === 'hub') nm.name = t('wm_beyond');
     else { nm.name = t('site_' + n.site) + (n.twist ? ', ' + t('twist_' + n.twist) : ''); nm.sub = n.floor ? t('wm_depth', { n: n.floor }) : t('wm_island'); }
     drawNode(g, n, { ...v, go: heldTarget ? null : v.go }, nm);

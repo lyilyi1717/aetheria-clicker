@@ -32,3 +32,24 @@
 .wm-info .wm-btns { flex: none; display: flex; flex-direction: column; gap: 6px; }
 .wm-info .wm-go2 { padding: 8px 14px; font-size: 14px; }
 .wm-info .wm-go2[hidden] { display: none; }
+
+/* Alqahwa, the coffee house */
+.qhcard { width: min(1000px, 96vw); max-width: none; max-height: 96vh; overflow-y: auto; padding: 12px 16px 14px; text-align: start; }
+.qhcard .qh-head { display: flex; align-items: center; gap: 12px; margin-block-end: 8px; }
+.qhcard h2 { margin: 0; font-size: 24px; color: var(--gold); }
+.qhcard .qh-sub { color: var(--muted); flex: 1; }
+.qhcard .qh-stars { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; border: 2px solid var(--gold); border-radius: 14px; background: var(--panel-2); font-size: 18px; }
+.qh-stage { position: relative; border: 3px solid #2b1a0c; border-radius: 14px; overflow: hidden; background: #c99a5a; }
+.qh-stage canvas { display: block; width: 100%; height: auto; }
+.qh-empty { position: absolute; inset-inline: 0; inset-block-end: 40px; margin: 0; text-align: center; font-weight: 700; color: #fff6e0; text-shadow: 0 1px 3px #000; }
+.qh-empty[hidden] { display: none; }
+.qh-board { margin-block-start: 10px; padding: 10px 14px; border: 3px solid #c9a24a; border-radius: 12px; background: #24301f; }
+.qh-board .qh-menu { margin: 0 0 6px; font-size: 18px; letter-spacing: 2px; text-transform: uppercase; color: #ffe9a8; text-align: center; }
+.qh-board .trk-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.qh-board .trk { margin: 0; align-self: start; }
+.qh-board .trk-soon { display: none; }
+.qh-board .star-note { text-align: center; }
+.qh-btns { display: flex; align-items: center; gap: 10px; margin-block-start: 10px; }
+.qh-btns .qh-gap { flex: 1; }
+.qh-btns .qh-next { min-width: 170px; font-size: 18px; padding: 10px 20px; }
+.qh-btns .qh-next[hidden] { display: none; }

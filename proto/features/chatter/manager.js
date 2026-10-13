@@ -11,6 +11,24 @@ const mem = bossView;
 const live = { held: false, hitAt: -99, clock: 0, auto: false, autoCheck: -9, emote: null, mounted: false, shownT: 0 };
 const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+
+// almodeera's burqe3: a black face covering from under the eyes down; only the eyes show, so the mood is in the eyes and brows.
+// (g is at the figure; the head is a circle of radius 9 at hx, hy; the eyes sit at hy + 1.)
+export function bossVeil(g, hx, hy, sleep, startled) {
+  g.save();
+  g.beginPath(); g.arc(hx, hy, 9, 0, 7); g.clip();
+  g.fillStyle = '#16121c'; g.fillRect(hx - 10, hy + 3.4, 20, 8);
+  g.restore();
+  g.strokeStyle = INK; g.lineWidth = 1.6; g.beginPath(); g.arc(hx, hy, 9, 0.35, Math.PI - 0.35); g.stroke();
+  g.strokeStyle = '#4a3f5e'; g.lineWidth = 1; g.beginPath(); g.moveTo(hx - 8.4, hy + 3.4); g.lineTo(hx + 8.4, hy + 3.4); g.stroke();   // the edge under the eyes
+  g.strokeStyle = INK; g.lineWidth = 1.4; g.lineCap = 'round';
+  g.beginPath();
+  if (sleep) { g.moveTo(hx - 6, hy - 2); g.lineTo(hx - 2, hy - 1.2); g.moveTo(hx + 2, hy - 1.2); g.lineTo(hx + 6, hy - 2); }
+  else if (startled) { g.moveTo(hx - 6, hy - 4.8); g.lineTo(hx - 2, hy - 5.6); g.moveTo(hx + 2, hy - 5.6); g.lineTo(hx + 6, hy - 4.8); }
+  else { g.moveTo(hx - 6, hy - 3); g.lineTo(hx - 2, hy - 3.6); g.moveTo(hx + 2, hy - 3.6); g.lineTo(hx + 6, hy - 3); }
+  g.stroke();
+}
+
 export function managerMount(app) {
   if (live.mounted) return;
   live.mounted = true;
@@ -50,8 +68,43 @@ export function drawManager(g, s, dt) {
   const k = live.shownT, T = live.clock;
   const jump = mem.jump > 0 ? Math.sin(Math.min(1, (0.5 - mem.jump) / 0.5) * Math.PI) * 12 : 0;
   const x0 = 250, y0 = 92 - (1 - k) * 90;   // to the right of the combo banner and the coins pill, under the top line
-  const sleep = mem.asleep, nod = sleep && !reduced ? Math.sin(T * 1.6) * 1.2 : 0;
   g.save(); g.translate(x0, y0 - jump);
+  bossFigure(g, fem, mem, T);
+  g.restore();
+  // the countdown above his head (the text box stands beside him, never over it)
+  {
+    const run = G.siteRun(s), c = G.legLeft(run, s.bossesDown), sec = Math.floor(Math.abs(c.left)), over = c.over && !run.done;
+    const txt = (over ? '-' : '') + Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+    const pop = mem.bump > 0 && !reduced ? 1 + Math.sin(Math.min(1, mem.bump / 0.9) * Math.PI) * 0.35 : 1;
+    g.save(); g.globalAlpha = k; g.translate(x0, y0 - 80 - jump); g.scale(pop, pop);
+    g.font = 'bold 15px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const w = g.measureText(txt).width + 16;
+    rr(g, -w / 2, -9, w, 18, 6); g.fillStyle = '#2b2118'; g.fill();
+    g.strokeStyle = over ? '#e07a6a' : c.left <= 10 && !run.done ? '#ffd23f' : '#c9d0d8'; g.lineWidth = 1.6; g.stroke();
+    g.fillStyle = over ? '#ff9c8c' : mem.bump > 0 ? '#7be08f' : '#ffffff'; g.fillText(txt, 0, 0.5);
+    g.restore();
+  }
+  // the name plate
+  g.save(); g.globalAlpha = k; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold 11px system-ui, sans-serif';
+  const nm = G.t(fem ? 'bossf_name' : 'boss_name') + '  ' + G.t(fem ? 'bossf_name_ar' : 'boss_name_ar'), pw = g.measureText(nm).width + 12;
+  rr(g, x0 - pw / 2, y0 + 3, pw, 14, 5); g.fillStyle = '#2b2118'; g.fill(); g.fillStyle = '#ffd23f'; g.fillText(nm, x0, y0 + 10.5);
+  g.restore();
+  // the text box
+  if (mem.line && !s.chatterQuiet) {
+    g.save(); g.globalAlpha = Math.min(1, mem.lineLeft * 3) * k; g.font = 'bold 14px system-ui, sans-serif'; g.textAlign = 'start'; g.textBaseline = 'middle';
+    const rows = [''];
+    for (const w of mem.line.split(' ')) { const cur = rows[rows.length - 1], tryRow = cur ? cur + ' ' + w : w; if (g.measureText(tryRow).width > 190 && cur) rows.push(w); else rows[rows.length - 1] = tryRow; }
+    const w = Math.max(...rows.map(r => g.measureText(r).width)) + 20, h = rows.length * 17 + 10, bx = x0 + 36, by = 24;
+    rr(g, bx, by, w, h, 8); g.fillStyle = '#fffdf2'; g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+    g.beginPath(); g.moveTo(bx + 1, by + 14); g.lineTo(bx - 9, by + 22); g.lineTo(bx + 1, by + 26); g.fillStyle = '#fffdf2'; g.fill(); g.stroke();
+    g.fillStyle = INK; rows.forEach((r, n) => g.fillText(r, bx + 10, by + 14 + n * 17));
+    g.restore();
+  }
+}
+
+// the figure itself, drawn at (0,0) of the current transform; mem: { jump, sipLeft, wave, asleep, spill }
+export function bossFigure(g, fem, mem, T) {
+  const sleep = mem.asleep, nod = sleep && !reduced ? Math.sin(T * 1.6) * 1.2 : 0;
   g.lineJoin = 'round'; g.lineCap = 'round';
   // body (a white thobe) and the whistle on its string
   g.beginPath(); g.moveTo(-14, 0); g.lineTo(-11, -36); g.quadraticCurveTo(0, -42, 11, -36); g.lineTo(14, 0); g.closePath();
@@ -73,7 +126,8 @@ export function drawManager(g, s, dt) {
   g.fillStyle = INK; g.lineWidth = 1.6;
   if (sleep) { g.beginPath(); g.moveTo(hx - 5, hy + 1); g.lineTo(hx - 2, hy + 2); g.moveTo(hx + 2, hy + 2); g.lineTo(hx + 5, hy + 1); g.stroke(); }
   else { const r = mem.jump > 0 ? 2.5 : 1.6; g.beginPath(); g.arc(hx - 3.5, hy + 1, r, 0, 7); g.moveTo(hx + 3.5 + r, hy + 1); g.arc(hx + 3.5, hy + 1, r, 0, 7); g.fill(); }
-  g.beginPath(); g.moveTo(hx - 3, hy + 6); g.quadraticCurveTo(hx, hy + (mem.sipLeft > 0 ? 5 : 7.5), hx + 3, hy + 6); g.stroke();
+  if (fem) bossVeil(g, hx, hy, sleep, mem.jump > 0);
+  else { g.beginPath(); g.moveTo(hx - 3, hy + 6); g.quadraticCurveTo(hx, hy + (mem.sipLeft > 0 ? 5 : 7.5), hx + 3, hy + 6); g.stroke(); }
   // the clipboard hand (it waves for a welcome)
   const wv = mem.wave > 0 && !reduced ? Math.sin(T * 12) * 4 : 0;
   if (mem.wave > 0) {
@@ -120,35 +174,5 @@ export function drawManager(g, s, dt) {
   if (mem.jump > 0) {
     g.font = 'bold 22px system-ui, sans-serif'; g.textAlign = 'center'; g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#ffd23f';
     g.strokeText('!', 36, -48); g.fillText('!', 36, -48);
-  }
-  g.restore();
-  // the countdown above his head (the text box stands beside him, never over it)
-  {
-    const run = G.siteRun(s), c = G.legLeft(run, s.bossesDown), sec = Math.floor(Math.abs(c.left)), over = c.over && !run.done;
-    const txt = (over ? '-' : '') + Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
-    const pop = mem.bump > 0 && !reduced ? 1 + Math.sin(Math.min(1, mem.bump / 0.9) * Math.PI) * 0.35 : 1;
-    g.save(); g.globalAlpha = k; g.translate(x0, y0 - 80 - jump); g.scale(pop, pop);
-    g.font = 'bold 15px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    const w = g.measureText(txt).width + 16;
-    rr(g, -w / 2, -9, w, 18, 6); g.fillStyle = '#2b2118'; g.fill();
-    g.strokeStyle = over ? '#e07a6a' : c.left <= 10 && !run.done ? '#ffd23f' : '#c9d0d8'; g.lineWidth = 1.6; g.stroke();
-    g.fillStyle = over ? '#ff9c8c' : mem.bump > 0 ? '#7be08f' : '#ffffff'; g.fillText(txt, 0, 0.5);
-    g.restore();
-  }
-  // the name plate
-  g.save(); g.globalAlpha = k; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold 11px system-ui, sans-serif';
-  const nm = G.t(fem ? 'bossf_name' : 'boss_name') + '  ' + G.t(fem ? 'bossf_name_ar' : 'boss_name_ar'), pw = g.measureText(nm).width + 12;
-  rr(g, x0 - pw / 2, y0 + 3, pw, 14, 5); g.fillStyle = '#2b2118'; g.fill(); g.fillStyle = '#ffd23f'; g.fillText(nm, x0, y0 + 10.5);
-  g.restore();
-  // the text box
-  if (mem.line && !s.chatterQuiet) {
-    g.save(); g.globalAlpha = Math.min(1, mem.lineLeft * 3) * k; g.font = 'bold 14px system-ui, sans-serif'; g.textAlign = 'start'; g.textBaseline = 'middle';
-    const rows = [''];
-    for (const w of mem.line.split(' ')) { const cur = rows[rows.length - 1], tryRow = cur ? cur + ' ' + w : w; if (g.measureText(tryRow).width > 190 && cur) rows.push(w); else rows[rows.length - 1] = tryRow; }
-    const w = Math.max(...rows.map(r => g.measureText(r).width)) + 20, h = rows.length * 17 + 10, bx = x0 + 36, by = 24;
-    rr(g, bx, by, w, h, 8); g.fillStyle = '#fffdf2'; g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
-    g.beginPath(); g.moveTo(bx + 1, by + 14); g.lineTo(bx - 9, by + 22); g.lineTo(bx + 1, by + 26); g.fillStyle = '#fffdf2'; g.fill(); g.stroke();
-    g.fillStyle = INK; rows.forEach((r, n) => g.fillText(r, bx + 10, by + 14 + n * 17));
-    g.restore();
   }
 }

@@ -9,9 +9,8 @@ export default { en: {
 
   reset: 'Start over', reset_sure: 'Click again to wipe this save',
   // the drawer: tab names, how a locked tab opens, one "Next" line per tab
-  dr_tab_shop: 'Shop', dr_tab_stars: 'Stars', dr_tab_camp: 'Rafeeqs', dr_tab_relics: 'Relics', dr_tab_museum: 'Museum', dr_tab_forge: 'Forge', dr_tab_level: 'Level',
+  dr_tab_shop: 'Shop', dr_tab_camp: 'Rafeeqs', dr_tab_relics: 'Relics', dr_tab_museum: 'Museum', dr_tab_forge: 'Forge', dr_tab_level: 'Level',
   dr_locked: 'Locked',
-  dr_lock_stars: 'Opens when you earn a Star.',
   dr_lock_camp: 'Opens when you get a Rafeeq.',
   dr_lock_relics: 'Opens when you find a chest.',
   dr_lock_museum: 'Opens when you dig a little deeper.',
