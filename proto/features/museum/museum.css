@@ -1,0 +1,16 @@
+/* Dig Museum: the collection strip on the dig. */
+#mus-strip { position: absolute; inset-inline-start: 8px; inset-block-start: 8px; display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 6px; border-radius: 12px; background: rgba(20, 12, 6, .72); border: 1px solid rgba(246, 239, 220, .35); color: #f6efdc; pointer-events: none; z-index: 3; }
+#mus-strip[hidden] { display: none; }
+#mus-strip .wart { width: 64px; height: auto; flex: none; }
+#mus-strip .ms-t { display: flex; flex-direction: column; line-height: 1.15; }
+#mus-strip b { font-size: 13px; }
+#mus-strip .ms-n { font-size: 12px; color: #ffe9a8; }
+#mus-strip.pop { animation: mspop .7s ease-out; }
+#mus-strip.done .wart { filter: drop-shadow(0 0 5px var(--c)); }
+@keyframes mspop { 0% { transform: scale(1); } 30% { transform: scale(1.18); box-shadow: 0 0 18px 4px rgba(255, 233, 168, .8); } 100% { transform: scale(1); } }
+.wm-mus { display: flex; align-items: center; gap: 8px; margin-block-start: 4px; }
+.wm-mus svg { width: 76px; height: auto; flex: none; }
+.wm-mus .wm-mt { display: flex; flex-direction: column; line-height: 1.2; font-size: 13px; }
+.wm-mus .wm-mt b { font-size: 13.5px; }
+.wm-mus .wm-mt span { color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { #mus-strip.pop { animation: none; } }

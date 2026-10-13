@@ -25,6 +25,10 @@
 @keyframes wdrop { from { opacity: 0; transform: translateY(-26px) scale(1.25); } }
 
 .wing-card { min-width: 340px; }
+.wing-card .wopen { margin: 8px 0 0; color: #ffe9a8; font-weight: 800; }
+.wing-card .wart.assemble { filter: drop-shadow(0 0 10px var(--c)); animation: wglow 1.4s ease-in-out infinite alternate; }
+@keyframes wglow { from { filter: drop-shadow(0 0 4px var(--c)); } to { filter: drop-shadow(0 0 16px var(--c)); } }
+@media (prefers-reduced-motion: reduce) { .wing-card .wart.assemble { animation: none; } }
 .wing-card .wart { margin-inline: auto; max-width: 300px; }
 .wing-card .wrew { color: var(--text, #f3e9d8); font-size: 17px; margin: 10px 0 14px; max-width: 360px; }
 

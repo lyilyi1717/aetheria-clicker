@@ -3,6 +3,7 @@
 // stone draws itself, the little digger walks it and the next stone opens. Any click skips the walk.
 // Read-only: the only thing it does to the game is G.pickCard(s, card) for a card of the deal, as the card modal did.
 import * as G from '../../game.js';
+import { setSvg } from '../wing2/art.js';
 import { ui } from '../../ui/app.js';
 import { sfx } from '../../ui/audio.js';
 import { icon, helmet, pickShape, S } from '../../ui/icons.js';
@@ -33,7 +34,7 @@ export function openMap(app, opts = {}) {
   const s = app.state, map = buildMap(s);            // may throw: nothing is open yet, the caller falls back to the cards
   const m = app.modal.open('worldmap', `<div class="card wmcard"><div class="wm-head"><h2></h2><span class="wm-sub"></span><button class="ghost wm-back"></button></div>`
     + `<div class="wm-lands"></div><div class="wm-stage"><canvas></canvas><button class="wm-pan l"></button><button class="wm-pan r"></button><span class="wm-skip"></span></div>`
-    + `<div class="wm-info"><span class="wm-ic"></span><div class="wm-txt"><b></b><span class="line"></span><span class="gt"></span><span class="nw"></span><span class="pay"></span></div>`
+    + `<div class="wm-info"><span class="wm-ic"></span><div class="wm-txt"><b></b><span class="line"></span><span class="gt"></span><span class="nw"></span><span class="pay"></span><div class="wm-mus"></div></div>`
     + `<div class="mrow"></div><div class="wm-btns"><button class="primary gold wm-go"></button><button class="ghost wm-go2"></button></div></div><p class="wm-leave"></p></div>`);
   if (!m) return false;
   try { active = start(app, m, map, opts); } catch (e) { stopActive(); app.modal.close(); throw e; }
@@ -110,6 +111,7 @@ function start(app, m, map, opts) {
     sel = n;
     const ic = $('.wm-ic'), name = $('b'), line = $('.line'), gt = $('.gt'), nw = $('.nw'), pay = $('.pay'), mrow = $('.mrow');
     nw.classList.remove('hard');
+    $('.wm-mus').innerHTML = '';
     c1 = c2 = null; goBtn2.hidden = true;
     if (!n) { ic.innerHTML = ''; name.textContent = ''; line.textContent = t('wm_go_hint'); gt.textContent = nw.textContent = pay.textContent = ''; mrow.innerHTML = ''; goBtn.hidden = true; return; }
     if (n.type === 'town') {
@@ -155,6 +157,16 @@ function start(app, m, map, opts) {
     }
     if (c) { c1 = c; goBtn.textContent = t('wm_dig'); }
     goBtn.hidden = !c1 || viewOnly;
+    museumLine(n);
+  };
+  // the Museum set this level can still give: its picture, how many are found, and what finishing it opens
+  const museumLine = n => {
+    const box = $('.wm-mus'), m = n && n.museum;
+    if (!m) return;
+    const what = t('wr_' + m.reward, { n: G.PARAMS.wing2.camelEvery });
+    box.innerHTML = setSvg(m.set, i => m.pieces[i].have, m.col) + '<span class="wm-mt"><b></b><span></span></span>';
+    box.querySelector('b').textContent = m.done ? t('mus_map_done', { set: t('wset_' + m.set) }) : t('mus_map', { set: t('wset_' + m.set), a: m.have, b: m.of });
+    box.querySelector('.wm-mt span').textContent = m.done ? t('mus_opened', { what }) : t('mus_opens', { what });
   };
   const enterTown = () => {
     clearTimeout(autoT); autoT = 0;

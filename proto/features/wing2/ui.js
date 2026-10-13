@@ -81,10 +81,11 @@ function showReward(app, d) {
 }
 function openCeremony(app, c) {
   const set = c.set, W = G.WING[set];
-  const m = app.modal.open('wing', `<div class="card wing-card"><h2></h2>${setSvg(set, () => true, W.col, 'assemble')}<p class="wrew"><span class="wico">${rewardIcon(W.reward, 34)}</span><span class="wtx"></span></p><button class="primary"></button></div>`);
+  const m = app.modal.open('wing', `<div class="card wing-card"><h2></h2>${setSvg(set, () => true, W.col, 'assemble')}<p class="wopen"></p><p class="wrew"><span class="wico">${rewardIcon(W.reward, 34)}</span><span class="wtx"></span></p><button class="primary"></button></div>`);
   if (!m) return false;
   m.querySelector('h2').textContent = t('wing_set_title', { set: t('wset_' + set) });
   m.querySelector('.wtx').textContent = rewardText(W.reward);
+  m.querySelector('.wopen').textContent = t('wing_opened');
   const b = m.querySelector('button'); b.textContent = t('wing_show');
   b.addEventListener('click', () => { app.modal.close(); ceremonies = ceremonies.filter(x => x !== c); showReward(app, c); app.save(); app.dirty('wing2'); });
   W.pieces.forEach((_, i) => setTimeout(() => tone(523 * Math.pow(1.122, i * 2), { type: 'triangle', d: 0.25, vol: 0.18 }), 120 + i * 220));

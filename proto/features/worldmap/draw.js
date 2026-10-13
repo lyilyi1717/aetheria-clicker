@@ -4,6 +4,7 @@ import { makeZoneProps } from '../look/zones.js';
 import { icon } from '../../ui/icons.js';
 import * as G from '../../game.js';
 import { PW, HH, SKYY, pathPoints } from './layout.js';
+import { museumImage, maskOf } from '../museum/art.js';
 
 const { t } = G;
 
@@ -191,6 +192,24 @@ function drawNode(g, n, v, nm) {
   if (nm.name) { const s = fit(g, nm.name, w); g.strokeText(s, 0, y); g.fillText(s, 0, y); y += 14; }
   g.font = '600 11.5px system-ui, sans-serif'; g.fillStyle = nm.locked ? '#c9bfae' : '#ffe9a8';
   if (nm.sub) { const s = fit(g, nm.sub, w); g.strokeText(s, 0, y); g.fillText(s, 0, y); }
+  if (n.museum) drawMuseum(g, n.museum, y + 8, nm.locked, time, redraw);
+  g.restore();
+}
+
+// the Museum set a level can still give: its silhouettes, filled for what you found, and "2/5"; a finished set glows
+function drawMuseum(g, m, y, locked, time, redraw) {
+  const im = museumImage(m.set, maskOf(m), m.col, 200, true, redraw);
+  const w = 76, h = Math.round(w * 78 / 128);
+  g.save();
+  if (locked) g.globalAlpha *= 0.7;
+  g.fillStyle = 'rgba(20,12,6,0.6)'; g.strokeStyle = m.done ? '#ffe9a8' : 'rgba(246,239,220,0.45)'; g.lineWidth = m.done ? 2 : 1;
+  if (m.done) { g.shadowColor = m.col; g.shadowBlur = 8 + 5 * Math.sin(time * 3); }
+  g.beginPath(); g.roundRect(-w / 2 - 12, y, w + 24, h + 6, 8); g.fill(); g.stroke();
+  g.shadowBlur = 0;
+  if (im.ready) g.drawImage(im, -w / 2 - 8, y + 3, w - 20, Math.round((w - 20) * 78 / 128));
+  g.font = '800 11px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = m.done ? '#ffe9a8' : '#f6efdc';
+  g.fillText(m.have + '/' + m.of, w / 2 - 8, y + 3 + (h - 5) / 2);
   g.restore();
 }
 

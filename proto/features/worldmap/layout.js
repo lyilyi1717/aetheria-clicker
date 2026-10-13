@@ -87,6 +87,9 @@ export function buildMap(s) {
     // the paths of a deal you have not been dealt yet are not drawn; three faint stones show where they go (none needed)
   }
 
+  // which Museum pieces each level can still give (pure data: the paint and the info panel read it)
+  for (const n of nodes) n.museum = n.floor ? G.museumLevel(s, n.site, n.floor) : null;
+
   const go = nodes.find(n => n.card && n.card.kind === 'fixed') || nodes.find(n => n.card) || null;
   return { PW, HH, SKYY, width: PW * panels.length, panels, nodes, edges, nextIdx, go, hub };
 }

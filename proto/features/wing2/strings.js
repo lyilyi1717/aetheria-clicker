@@ -25,7 +25,7 @@ export default { en: {
   t_pearl_seen: 'A pearl! Break it and the blocks around it pop.',
 
   wing_note: 'The Museum is one now. Sets give you things to use instead of more coins.',
-  wing_show: 'Look!',
+  wing_show: 'Look!', wing_opened: 'The set is whole, and it opened this:',
   t_camel_first: 'The camel brings you a chest!',
   t_camel: 'The camel is back with a chest.',
   camel_load: 'Camel bags: {a} of {b}',
