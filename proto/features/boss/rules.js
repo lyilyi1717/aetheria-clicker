@@ -7,6 +7,8 @@ import { addCoins, coinMult, pickPower, canBuy, upgradeCost } from '../../core/r
 import { canNewSite, starsFor, dealCards, roadIndex, FIXED } from '../sites/rules.js';
 import { t } from '../../core/strings.js';
 import strings from './strings.js';
+import { SWING, swingEstimate, crewWorking, swingsLeft, friendly } from './swings.js';
+export { friendly as bossFriendly } from './swings.js';
 
 const p = {
   hp: 20,                         // Big Rock hp, in dirt blocks of its row
@@ -35,10 +37,17 @@ export function bossStuck(s) {
   return !!((st && st.n >= p.stuckTries) || b.slow);
 }
 // The best next step: { kind: 'spend' | 'side' | 'leave' | 'more', n } (n: the cost, the pay, or the Stars)
+// How many swings of yours the Rock has left, and about how many seconds: { n, time: { n, unit }, raw, measured }
+export function bossSwings(s, b = s.boss) {
+  const dg = PARAMS.diggers || {}, share = fold('crewShare', s, dg.rafeeqShare === undefined ? 0.6 : dg.rafeeqShare);
+  const est = swingEstimate(pickPower(s), share, crewWorking((s.diggers || []).length, dg.sieveEvery));
+  return swingsLeft(Math.max(0, b.hp), b.sw, est);
+}
 export function bossAdvice(s) {
-  // the next Pick step makes your hit x(step): say what that does to the Rock in the bar's own unit, your hits
+  // the next Pick step makes your hit x(step): say what that does to the Rock in the bar's own unit, your swings
   const b = s.boss, step = (PARAMS.starshop && PARAMS.starshop.step) || 1.5;
-  const hits = b && b.hp > 0 ? Math.max(1, Math.ceil(b.hp / pickPower(s))) : 0, after = hits ? Math.max(1, Math.ceil(hits / step)) : 0;
+  const sw = b && b.hp > 0 ? bossSwings(s, b) : null;
+  const hits = sw ? sw.n : 0, after = sw ? Math.min(Math.max(1, hits - 1), friendly(sw.raw / step)) : 0;
   const out = (kind, n) => ({ kind, n, hits, after });
   if (canBuy(s, 'tr_pick')) return out('spend', upgradeCost(s, 'tr_pick'));
   const need = upgradeCost(s, 'tr_pick') - s.stars;
@@ -162,6 +171,10 @@ export const boss = use({
       if (src === 'you') { b.idle = 0; if (b.w0hp === undefined) b.w0hp = b.hp; }
       if (src === 'crew') b.crew = (b.crew || 0) + done; else b.you = (b.you || 0) + done;
       b.hp -= dmg;
+      if (src === 'you' && !info.blast && !info.chain && !info.tool) {   // one of your swings: the rolling window of what the team does per swing
+        (b.sw = b.sw || []).push({ t: b.clk || 0, d: (b.you || 0) + (b.crew || 0) });
+        if (b.sw.length > SWING.keep) b.sw.shift();
+      }
       gateBank(s, b, done);
       emit(s, ev, 'hit', { r, c, t: 'boss', dmg, src, crit: info.crit, weak, blast, share: dmg / b.max, frac: Math.max(0, b.hp / b.max) });
       if (b.hp <= 0) bossDown(s, r, src, ev); else shed(s, r, b, c, src, ev);
@@ -197,6 +210,8 @@ export const boss = use({
     } }, { at: 300, fn(s, dt) {
       const b = bossInView(s);
       if (b && b.hp > 0) {
+        b.clk = (b.clk || 0) + dt;
+        if (b.sw && b.sw.length && b.clk - b.sw[b.sw.length - 1].t > SWING.stale) b.sw = [];
         b.wt = (b.wt === undefined ? p.weakSeconds : b.wt) - dt;
         if (b.wt <= 0) {
           b.wt = fold('crackSeconds', s, p.weakSeconds);

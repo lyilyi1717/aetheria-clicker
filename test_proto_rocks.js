@@ -38,7 +38,7 @@ const boom = (s, r, c, ev = () => {}) => { s.rows[r - s.top][c] = { t: 'tnt', hp
   const s = atRock(), b = G.bossInView(s);
   s.stars = 100; s.starSpent = 1;
   const a = G.bossAdvice(s);
-  ok(a.kind === 'spend' && a.hits >= 1 && a.after < a.hits && Math.abs(a.hits / a.after - 1.5) < 0.01, 'advice carries hits now and after a step: ' + a.hits + ' -> ' + a.after);
+  ok(a.kind === 'spend' && a.hits >= 1 && a.after < a.hits && Math.abs(a.hits / a.after - 1.5) < 0.1, 'advice carries hits now and after a step: ' + a.hits + ' -> ' + a.after);
 }
 { // the Gate table is smooth: no level more than 3x its neighbour of the same kind, and ordered
   const m = G.PARAMS.sites.gateMul;
