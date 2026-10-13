@@ -107,8 +107,8 @@ function drawBar(g, s, b) {
   for (let i = 1; i < 10; i++) { g.fillStyle = i <= (b.rub || 0) ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.35)'; g.fillRect(bx + bw * (1 - i / 10) - 1, by, 2, bh); }
   g.restore();
   rr(g, bx, by, bw, bh, 7); g.strokeStyle = '#1c1830'; g.lineWidth = 2; g.stroke();
-  const left = fmt(Math.max(1, Math.ceil(b.hp / G.pickPower(s))));
-  const label = s.run && !s.run.done && s.run.floor === b.row ? t('rock_gate_hits', { n: left }) : t('rock_hits', { n: left });
+  const sw = G.bossSwings(s, b), gate = s.run && !s.run.done && s.run.floor === b.row;
+  const label = t((gate ? 'rock_gate_' : 'rock_') + (sw.n === 1 ? 'swing' : 'swings'), { n: fmt(sw.n), time: t('time_' + sw.time.unit, { n: sw.time.n }) });
   g.save(); g.font = '800 12px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.lineJoin = 'round'; g.lineWidth = 3.5; g.strokeStyle = 'rgba(14,10,7,.95)'; g.fillStyle = '#fff';
   g.strokeText(label, W / 2, by + bh / 2 + 0.5); g.fillText(label, W / 2, by + bh / 2 + 0.5);
