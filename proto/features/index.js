@@ -27,6 +27,7 @@ export * from './picks/rules.js';
 export * from './rafeeqs/rules.js';
 export * from './relics/rules.js';
 export * from './relics2/rules.js';
+export * from './settings/rules.js';
 export * from './shop/rules.js';
 export * from './sites/rules.js';
 export * from './starshop/rules.js';

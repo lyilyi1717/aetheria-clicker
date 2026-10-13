@@ -1,0 +1,14 @@
+export default { en: {
+  set_open: 'Settings',
+  set_title: 'Settings',
+  set_master: 'Volume',
+  set_music: 'Music',
+  set_fx: 'Effects',
+  set_sound: 'Sound',
+  set_sound_on: 'On',
+  set_sound_off: 'Off',
+  set_play: 'Play',
+  set_tel: 'Share my play times',
+  set_close: 'Done',
+  set_value: '{n}',
+} };
