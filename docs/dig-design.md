@@ -130,6 +130,26 @@ Sim (mixed, 2 seeds, 30 days): levels 1 to 12 by day 7 to 8; level 13 (Americas 
 | Stays | Stars and tracks, medals, the Museum, Forge tools and metal, extra picks, the Foreman | The same |
 | Shown at the finish | Stars counted up, two buttons | "You keep" and "Level N starts with", then one obvious Star purchase, then the next level's card with its new thing named |
 
+
+### 2.3c Chili levels (built 14 October)
+
+Hard mode used to be one Hard medal per level with a contract whose goal was a fixed 24 to 50 m. The board opens after eight finished levels, when the player starts 100 m levels with Star strength, so every contract fell in the first minute and Hard was not hard. Now a finished level can be dug again up to five times, each time with one more rule on:
+
+| Pip | Name | Rules on (they add up) | Stars (x the floor's worth, `starsAt`) | Stays for ever |
+|---|---|---|---|---|
+| 1 | Mild | Rafeeqs on a tea break (half speed) | 0.5 | The old Hard medal |
+| 2 | Hot | + the dark (you see one block around the hole) | 0.75 | |
+| 3 | Shatta | + one kind of relic only | 1.0 | Your hit +3% |
+| 4 | Fire | + the glass pick (every 60th hit the pick loses half its levels) | 1.5 | |
+| 5 | Ya Mama! | no Rafeeqs at all (instead of the tea break), the dark, one relic, the glass pick | 2.0 | Your hit +5% |
+
+- **Tougher by the pip:** the ground is 1.3 to the power of the pip, every Big Rock (the Gate too) 1.7 to the power of the pip (`sites.chiliGround`, `sites.chiliRock`). The goal is always the Gate; breaking it with the rules on gives the pip. Leaving the chili lifts the rules and the extra hardness, and the Gate then pays no pip.
+- **The hit that stays:** a stamp with pip 3 adds 3%, with pip 5 another 5%; the total over all levels is capped at +160% (`sites.chiliHitCap`) and goes through the pick power, so "Your hit" shows it. The bonus helps the level you are stuck on, so old levels are a third door when a wall stands.
+- **Announced:** the stone shows the next pip's rules and prize before the player starts; starting says what is on and how much tougher; each cleared pip gets a banner, a sound that climbs one note per pip, a flash, and "Your hit +5% for ever"; the pip lights on the map stone the next time the map opens.
+- **Old saves:** a Hard medal counts as pip 1. A chili level in play loads as it was.
+- **Contracts board:** kept for old saves and later. Each contract's goal is now a share of the deepest Gate finished (`contracts.goalShare`, never less than the old fixed number) and the dig is made with a Gate at that depth, so nothing is done the moment it is taken. Contracts taken from the board have the same Hard medal as before.
+- **Sim:** see the PR. The sim's player takes the next chili after a quick finish (`contracts.botChili`) and gives up after 600 s or 1.6 times the par.
+
 ## 2.5 The screen (built 13 October 2026)
 
 - **Always on screen:** the dig; one small pill (Stars, your hit); three round buttons (Map, Auto dig, Sound); the **level track** above the dig: level name, the countdown, medals, a node for each 25 m Big Rock and the Gate at the end; during a Rock fight that Rock's segment shows its health in three layers. The pinned goal chips (the Gate, Second Pick, a Museum set) sit on the track's goal line.
@@ -172,7 +192,8 @@ All of it is flavour: nothing here changes how strong a Rafeeq is.
 | Star tracks | The Pick, The Camp, The Bag: x1.5 a step, named rules on 29 steps | built |
 | The Museum | 13 sets; each finished set opens a thing | built |
 | The Forge | Drill, Dynamite, Magnet | built |
-| Contracts | Hard rules for the Hard medal | built |
+| Chili levels | Five pips on every finished level: more rules, tougher ground, a hit bonus that stays | built (section 2.3c) |
+| Contracts | The board, goals that fit your road level | built |
 | Time away | The crew digs up to 12 hours, then sieves at a Rock | built; the sums are wrong in two places (section 5) |
 | Several sites at once, earned automation, a second land | | not built, and not planned for chapter one |
 | Arabic | | not built |

@@ -4,6 +4,7 @@ import { makeZoneProps } from '../look/zones.js';
 import { icon } from '../../ui/icons.js';
 import * as G from '../../game.js';
 import { PW, HH, SKYY, pathPoints } from './layout.js';
+import { chiliPop } from './flow.js';
 
 const { t } = G;
 
@@ -183,6 +184,16 @@ function drawNode(g, n, v, nm) {
       pic(g, 'medal_' + k, (i - 1) * 17, y - 4, 15 * sc, redraw, on ? 1 : 0.28, !on);
     });
     y += 17;
+    if (n.type === 'road' && n.stamp && n.stamp.fin) {          // the five chili pips of a finished level; a new one pops when the map first opens after it
+      const have = G.pipsOf(n.stamp), pop = chiliPop.key === G.siteKey(n.site, n.floor) ? chiliPop : null;
+      if (pop && pop.pending) { pop.pending = false; pop.t0 = performance.now(); }
+      const age = pop ? (performance.now() - pop.t0) / 1000 : 99;
+      for (let k = 1; k <= 5; k++) {
+        const on = k <= have, sc = on && pop && k === pop.n && age < 1.4 ? 1 + 1.1 * Math.abs(Math.sin(age * 7)) * (1 - age / 1.4) : 1;
+        pic(g, on ? 'chili' + k : 'chili_off', (k - 3) * 15, y - 4, 15 * sc, redraw, on ? 1 : 0.4);
+      }
+      y += 13;
+    }
   }
   g.textAlign = 'center'; g.textBaseline = 'middle';
   g.font = '700 12.5px system-ui, sans-serif';

@@ -25,4 +25,5 @@
 .board .looks button { padding: 3px 10px; }
 .arrive .big { animation: stampIn .5s both; display: inline-block; }
 @media (prefers-reduced-motion: reduce) { .board .stamp, .arrive .big { animation: none; } }
-.board .cc .d, .board .cc .p, .board .cc .s { display: block; }
+.board .cc .a { color: var(--ink); font-size: 13px; font-weight: 700; }
+.board .cc .d, .board .cc .a, .board .cc .p, .board .cc .s { display: block; }

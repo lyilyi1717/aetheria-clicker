@@ -2,11 +2,11 @@
 // and the card(s) you pick the next site from.
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
-import { AT, H, SKY, yOf, CELL, screenFlash, shake } from '../../ui/render.js';
-import { sfx } from '../../ui/audio.js';
+import { AT, H, W, SKY, yOf, CELL, screenFlash, shake, ring, spark } from '../../ui/render.js';
+import { sfx, tone, noise, gap } from '../../ui/audio.js';
 import { icon, S, badge, star } from '../../ui/icons.js';
 import { ofLevel } from '../rafeeqs/portrait.js';
-import { finishChoices } from '../worldmap/flow.js';
+import { finishChoices, chiliPop } from '../worldmap/flow.js';
 
 const { t } = G;
 
@@ -14,6 +14,20 @@ const { t } = G;
 const clock = sec => { const n = Math.max(0, Math.floor(sec)); return Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0'); };
 const siteName = (site, twist) => twist ? t('site_twist', { site: t('site_' + site), twist: t('twist_' + twist) }) : t('site_' + site);
 const ruleLine = id => (id && G.hasString('c_' + id + '_d') ? t('c_' + id + '_d') : '');
+
+// ---------- chilies: five pips, one colour each ----------
+export const CHILI_COL = ['#8fd14f', '#f2b134', '#e5533d', '#c4142a', '#ffd23f'];
+const chiliSvg = col => `<path d="M8 9 Q17 3 23 12 Q28 21 22 29 Q19 31 18.5 27 Q18 20 11 16 Q7 13 8 9 Z" fill="${col}" ${S}/><path d="M12 8 Q17 6 20 11" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M8 9 Q7 4 12 2.5" stroke="#2f8f3c" stroke-width="3.2" fill="none" stroke-linecap="round"/>`;
+const pct = x => Math.round(x * 100);
+const mul = x => (Math.round(x * 100) / 100).toString();
+// n pips lit out of five (next: the one being tried, it glows)
+export const pipsHtml = (n, size = 18, next = 0) => [1, 2, 3, 4, 5].map(k => `<i class="cpip${k <= n ? ' on' : ''}${k === next ? ' next' : ''}" title="${t('c_chili' + k)}">${icon(k <= n ? 'chili' + k : 'chili_off', size)}</i>`).join('');
+// what pip n costs and pays, as plain numbers: { name, rule, stars, hit, ground, rock }
+export function chiliFacts(floor, n) {
+  const P = G.PARAMS.sites, gain = G.chiliGain(n);
+  return { name: t('c_chili' + n), rule: t('c_chili' + n + '_d'), stars: G.fmt(G.chiliPay(floor, n)), gain, hit: gain ? t('chili_site_hit', { p: pct(gain) }) : '',
+    ground: mul(Math.pow(P.chiliGround, n)), rock: mul(Math.pow(P.chiliRock, n)) };
+}
 
 const MEDALS = ['fin', 'fast', 'hard'];
 const medalChip = (kind, on) => `<span class="mchip ${kind}${on ? ' on' : ''}" title="${t('medal_' + kind + '_d')}">${icon('medal_' + kind, 18)}<i>${t('medal_' + kind)}</i></span>`;
@@ -144,13 +158,26 @@ function showEnd(app) {
   return true;
 }
 
+// the chili part of the finish card: the pips of this level, what just happened, and the next chili with its rules and prize
+function fillChili(m, s, d) {
+  const st = s.road.stamps[d.key], row = m.querySelector('.chilirow'), txt = m.querySelector('.chilitxt'), nx = m.querySelector('.chilenext');
+  const n = st ? G.pipsOf(st) : 0, card = d.twist ? null : G.replayCard(s, d.key, true);
+  row.hidden = txt.hidden = nx.hidden = !st || !!d.twist;
+  if (!st || d.twist) return;
+  row.innerHTML = pipsHtml(n, 22, card ? card.chili : 0);
+  txt.textContent = d.chiliWon ? t('chili_won_title', { name: t('c_chili' + d.chili) }) + (G.chiliGain(d.chili) ? ' ' + t('chili_won_hit', { p: pct(G.chiliGain(d.chili)) }) + '.' : '') : d.chili ? t('chili_off') : '';
+  txt.classList.toggle('yes', !!d.chiliWon);
+  if (card) { const f = chiliFacts(d.floor, card.chili); nx.innerHTML = ''; nx.append(t('chili_next', { name: f.name, rule: f.rule }) + ' ', Object.assign(document.createElement('span'), { className: 'pay', textContent: t('chili_next_pay', { n: f.stars, hit: f.hit, a: f.ground, b: f.rock }) })); }
+  else nx.textContent = n >= G.PARAMS.sites.chiliPips ? t('chili_all') : '';
+}
+
 function showFinish(app, d, again) {
   const s = app.state;
   lastD = d;
   const last = G.ROAD[G.ROAD.length - 1];
   if (d.first && !d.twist && last && d.site === last.site && d.floor === last.floor && !G.fixedNext(s)) return showEnd(app);
   const m = app.modal.open('finish', `<div class="card finish"><div class="seal"><span class="sealic"></span><b class="word"></b></div><h2></h2><p class="more gate"></p>`
-    + `<p class="time"></p><p class="more fast"></p><p class="found"></p><div class="rq-of"></div><div class="mrow"></div><p class="earn"></p>`
+    + `<p class="time"></p><p class="more fast"></p><p class="found"></p><div class="rq-of"></div><div class="mrow"></div><div class="chilirow"></div><p class="more chilitxt"></p><p class="more chilenext"></p><p class="earn"></p>`
     + `<div class="fcols"><section class="keep"><h3></h3><ul></ul></section><section class="kit"><h3></h3><ul></ul><div class="nextlvl"></div></section></div>`
     + `<div class="choices"><button class="choice qh"><span class="ic"></span><b></b><span class="d"></span></button><button class="choice primary gold nt"><span class="ic"></span><b></b><span class="d"></span></button></div>`
     + `<div class="btns"><button class="ghost"></button></div></div>`);
@@ -170,6 +197,7 @@ function showFinish(app, d, again) {
   m.querySelector('.found').textContent = bits.length ? t('fin_found', { list: G.listOf(bits) }) : t('fin_found', { list: t('fin_nothing') });
   ofLevel(m.querySelector('.rq-of'), s);
   m.querySelector('.mrow').innerHTML = medalsHtml(d.medals);
+  fillChili(m, s, d);
   const earn = m.querySelector('.earn'); earn.textContent = t('fin_stars', { n: 0 });
   const stay = m.querySelector('.ghost'), qh = m.querySelector('.qh'), go = m.querySelector('.nt');
   stay.textContent = t('fin_stay');
@@ -239,8 +267,20 @@ ui({
     medal_fin: `<circle cx="16" cy="16" r="12" fill="#59d37a" ${S}/><path d="M9 16.5 L14 21.5 L23 11" fill="none" stroke="#06310f" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>`,
     medal_fast: `<circle cx="16" cy="17" r="11" fill="#7ee8ff" ${S}/><path d="M16 10 V17 L21 20" fill="none" stroke="#06313f" stroke-width="3" stroke-linecap="round"/><rect x="13" y="2.5" width="6" height="4" rx="1.5" fill="#7ee8ff" ${S}/>`,
     medal_hard: `<path d="M16 3 L28 9 V18 Q28 26 16 30 Q4 26 4 18 V9 Z" fill="#e5533d" ${S}/><path d="M10 14 L22 14 M10 19 L22 19" stroke="#3a0a05" stroke-width="3" stroke-linecap="round"/>`,
+    chili1: chiliSvg(CHILI_COL[0]), chili2: chiliSvg(CHILI_COL[1]), chili3: chiliSvg(CHILI_COL[2]), chili4: chiliSvg(CHILI_COL[3]), chili5: chiliSvg(CHILI_COL[4]), chili_off: chiliSvg('#4a443d'),
     watch: `<circle cx="16" cy="18" r="11" fill="#f6ead8" ${S}/><path d="M16 11 V18 L21 21" fill="none" stroke="#1b1410" stroke-width="2.6" stroke-linecap="round"/><rect x="13" y="2.5" width="6" height="4" rx="1.5" fill="#b9a58c" ${S}/>`,
     gate: `<path d="M5 29 V13 Q5 4 16 4 Q27 4 27 13 V29 Z" fill="#6a6384" ${S}/><path d="M11 29 V15 Q11 10 16 10 Q21 10 21 15 V29 Z" fill="#17110d"/>`,
+  },
+  sfx: {
+    // a chili is cleared: a sizzle, a low thump and a run of notes that climbs one more step for every pip
+    chili(n = 1) {
+      if (!gap('chili', 0.4)) return;
+      noise({ d: 0.7, vol: 0.22, from: 7000, to: 900, type: 'highpass' });
+      tone(82, { type: 'square', d: 0.3, vol: 0.3, slide: -30 });
+      const notes = [523, 659, 784, 988, 1175, 1319, 1568];
+      for (let i = 0; i < n + 2; i++) tone(notes[i], { type: 'triangle', d: 0.28, vol: 0.18, at: 0.12 + i * 0.07 });
+      if (n >= 3) tone(1568, { type: 'square', d: 0.5, vol: 0.08, at: 0.12 + (n + 2) * 0.07 });
+    },
   },
   mount(app) {
     const chip = document.createElement('span');
@@ -256,7 +296,26 @@ ui({
   on: {
     siteFinished(d, app) { pending = d; lastFin = { key: d.key }; if (!app.modal.id && showFinish(app, d)) pending = null; app.dirty('site'); },
     siteMedal(d, app) { if (d.medal === 'hard') { sfx.star(); app.toast(t('medal_got', { name: t('medal_hard'), n: d.stars }), 'gold'); } app.dirty('site'); },
-    newSite(d, app) { pending = null; sfx.star(); screenFlash('#fff', 0.7); app.banner(t('site_done', { n: G.fmt(d.stars) }), ''); app.dirty('site'); },
+    newSite(d, app) {
+      pending = null; sfx.star(); app.dirty('site');
+      if (d.chili) {                                                  // a chili level starts: say what is on and what it pays
+        const f = chiliFacts(G.siteRun(app.state).floor, d.chili);
+        screenFlash('#ff5a1f', 0.6); shake(0.3);
+        app.banner(t('chili_start', { name: f.name, n: d.chili }), f.rule);
+        app.toast(t('chili_tougher', { a: f.ground, b: f.rock }) + ' ' + t('chili_site_now', { name: f.name, stars: f.stars, hit: f.hit }), 'gold');
+        return;
+      }
+      screenFlash('#fff', 0.7); app.banner(t('site_done', { n: G.fmt(d.stars) }), '');
+    },
+    chiliWon(d, app) {                                                // the big moment: it should feel good before the numbers are read
+      sfx.chili(d.n); shake(0.45 + 0.12 * d.n); screenFlash('#ff6a2a', 0.55); app.hitStop(0.08 + 0.02 * d.n);
+      const x = W / 2, y = SKY + 200;
+      ring(x, y, W * 0.5, '#ff6a2a'); ring(x, y, W * 0.32, CHILI_COL[d.n - 1]); spark(x, y, CHILI_COL[d.n - 1], 20 + 14 * d.n); if (d.n >= 3) spark(x, y, '#ffd23f', 40);
+      app.banner(t('chili_won_title', { name: t('c_chili' + d.n) }), d.gain ? t('chili_won_hit', { p: pct(d.gain) }) : t('chili_won_stars', { n: G.fmt(d.stars), k: d.n }));
+      if (d.gain) app.toast(t('chili_total', { p: pct(d.hit) }), 'gold');
+      Object.assign(chiliPop, { key: d.key, n: d.n, pending: true });
+      app.dirty('site');
+    },
   },
   css: new URL('./sites.css', import.meta.url).href,
   draw: [{ at: AT.fog + 2, fn: drawGate }],
@@ -276,7 +335,7 @@ ui({
       el.insertAdjacentHTML('beforeend', `<div class="nowrow"><span class="nic"></span><div><b class="nname"></b><span class="muted nrule"></span></div></div>`
         + `<div class="gaterow"><span class="gtxt"></span><span class="gbar"><i></i></span></div>`
         + `<div class="clockrow">${icon('watch', 22)}<b class="clk">0:00</b><span class="muted par"></span></div>`
-        + `<div class="mrow"></div><p class="muted pay"></p><p class="muted hardnote"></p><button class="primary nextbtn" hidden></button><p class="muted wait"></p>`
+        + `<div class="mrow"></div><div class="chilirow"></div><p class="muted chilenote"></p><p class="muted pay"></p><p class="muted hardnote"></p><button class="primary nextbtn" hidden></button><p class="muted wait"></p>`
         + `<button class="primary gold donebtn" hidden></button><button class="ghost qhbtn"></button><h3 class="roadh"></h3><div class="road"></div>`);
       const qb = el.querySelector('.qhbtn'); qb.textContent = t('site_btn_qahwa');
       qb.addEventListener('click', () => { app.unlockAudio(); if (!app.modal.id && alqahwa.open) alqahwa.open(app, {}); });
@@ -307,6 +366,11 @@ ui({
       el.querySelector('.clockrow').classList.toggle('good', r.done && r.time <= G.runPar(r));
       const msig = `${st.fin}${st.fast}${st.hard}`;
       if (el._msig !== msig) { el._msig = msig; el.querySelector('.mrow').innerHTML = medalsHtml({ fin: st.fin, fast: st.fast, hard: st.hard }); }
+      const cr = el.querySelector('.chilirow'), live = !!(r.chili && s.contract === r.hard), pips = G.pipsOf(st), csig = `${pips}${live ? r.chili : 0}${r.twist}${st.fin}`;
+      cr.hidden = !!r.twist || !(st.fin || live);
+      if (el._csig !== csig) { el._csig = csig; cr.innerHTML = pipsHtml(pips, 18, live ? r.chili : 0); }
+      const cf = live ? chiliFacts(r.floor, r.chili) : null;
+      el.querySelector('.chilenote').textContent = cf ? t('chili_site_now', { name: cf.name, stars: cf.stars, hit: cf.hit }) : '';
       el.querySelector('.pay').textContent = r.done ? t('site_below') : t(st.fin ? 'site_stars_again' : 'site_stars_now', { n: st.fin ? G.replayPay(r.floor) : G.starsAt(r.floor) });
       el.querySelector('.hardnote').textContent = s.contract ? t('site_hard_on', { rule: ruleLine(s.contract) }) : '';
       const b = el.querySelector('.nextbtn'), gain = G.starsFor(s);

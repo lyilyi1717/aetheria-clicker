@@ -7,7 +7,7 @@ import { ui } from '../../ui/app.js';
 import { sfx } from '../../ui/audio.js';
 import { icon, helmet, pickShape, S } from '../../ui/icons.js';
 import strings from './strings.js';
-import { nextMap, newThingKey, medalsHtml } from '../sites/ui.js';
+import { nextMap, newThingKey, medalsHtml, pipsHtml, chiliFacts } from '../sites/ui.js';
 import { buildMap, PW, HH } from './layout.js';
 import { paint, along } from './draw.js';
 import { openAlqahwa, stopAlqahwa } from './alqahwa.js';
@@ -130,16 +130,22 @@ function start(app, m, map, opts) {
       if (n.state === 'locked') pay.textContent = t('wm_locked', { n: n.level - 1 });
       else if (n.state === 'done' && n.stamp && n.stamp.fin) {
         const again = G.replayCard(s, G.siteKey(n.site, n.floor), false);
-        const all = n.stamp.fast && n.stamp.hard;
+        const all = n.stamp.fast && G.pipsOf(n.stamp) >= G.PARAMS.sites.chiliPips;
         pay.textContent = all ? t('wm_all_won') : t('wm_again_line', { t: clock(n.stamp.best), par: clock(G.sitePar(n.floor)) });
+        const nextChili = G.replayCard(s, G.siteKey(n.site, n.floor), true);        // the next chili: its rules and what it pays, shown before you start
+        if (nextChili) {
+          const f = chiliFacts(n.floor, nextChili.chili);
+          nw.textContent = t('chili_next', { name: f.name, rule: f.rule }); nw.classList.add('hard');
+          pay.textContent = t('chili_next_pay', { n: f.stars, hit: f.hit, a: f.ground, b: f.rock });
+        }
         if (again && !viewOnly) {
           c1 = again;
           goBtn.textContent = t('wm_again');
-          if (!n.stamp.hard) { c2 = G.replayCard(s, again.key, true); if (c2) { goBtn2.hidden = false; nw.textContent = t('next_hard', { rule: ruleLine(c2.hard) }); nw.classList.add('hard'); } }
+          if (nextChili) { c2 = nextChili; goBtn2.hidden = false; goBtn2.textContent = t('chili_try', { name: t('c_chili' + nextChili.chili) }); }
         }
       } else if (c) pay.textContent = t('pay_medal', { reward: t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }), medal: t('next_medal_each', { n: G.fmt(c.medalStars) }) });
       else pay.textContent = n.stamp && n.stamp.best ? t('wm_best', { t: clock(n.stamp.best) }) : t('wm_not_yet');
-      mrow.innerHTML = medalsHtml(n.stamp);
+      mrow.innerHTML = medalsHtml(n.stamp) + (n.stamp && n.stamp.fin ? `<div class="chilirow">${pipsHtml(G.pipsOf(n.stamp), 20, 0)}</div>` : '');
     } else if (n.type === 'hub') {
       name.textContent = t('wm_beyond');
       line.textContent = n.state === 'done' ? t('wm_hub_open') : t('wm_hub_locked', { n: G.ROAD.length });
