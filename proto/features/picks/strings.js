@@ -5,6 +5,10 @@ export default { en: {
   picks_shop: 'More Picks',
   picks_beat: '{n} a minute',
   bar_1: 'Steady', bar_2: 'Boom-tak', bar_3: 'Gallop', bar_4: 'Gulf clap',
+  bar_africa_1: 'Drum talk', bar_africa_2: 'Two drums', bar_africa_3: 'Dance circle', bar_africa_4: 'Village party',
+  bar_eastasia_1: 'Big drum', bar_eastasia_2: 'Thunder drum', bar_eastasia_3: 'Temple roll', bar_eastasia_4: 'Dragon drums',
+  bar_americas_1: 'Clave', bar_americas_2: 'Conga walk', bar_americas_3: 'Samba', bar_americas_4: 'Carnival',
+  bar_europe_1: 'March', bar_europe_2: 'Parade', bar_europe_3: 'Soldiers', bar_europe_4: 'Big parade',
   t_picks_2: 'Two picks! Listen: boom-tak.', t_picks_3: 'Three picks! They gallop.', t_picks_4: 'Four picks! The Gulf clap.',
   t_tempo: 'Faster! {n} beats a minute.',
 } };

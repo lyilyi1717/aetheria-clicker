@@ -19,14 +19,32 @@ let shift = 0, level = 1;   // in force while a mixed sound function runs
 
 export function setMixer(fn) { if (mixer && fn) throw new Error('Dig: two mixers'); mixer = fn; }
 export const audioTime = () => (ctx && ctx.state === 'running' ? ctx.currentTime : null);
+// Zone kits. A feature may give a named sound another voice for a zone (addVoices); setKit says which zone
+// and how deep (0 = near the top, 1 to 4 = the four deep layers). 'arabia' has no voices: it plays the
+// sounds as written. A hit or crit gets a low, quiet echo under it when the dig is deeper than 0.
+let kit = 'arabia', depth = 0;
+const voices = {};   // sound name -> { zone: function }
+const tails = new Set(['hit', 'crit']);
+export function setKit(zone, tier = 0) { kit = zone; depth = tier; }
+export const kitZone = () => kit;
+export const kitDepth = () => depth;
+// the pitch factor of the depth (1 at the top, lower the deeper): kit voices multiply their notes by it
+export const depthPitch = () => 1 - 0.05 * depth;
+export function addVoices(zone, map) { for (const [k, f] of Object.entries(map || {})) (voices[k] || (voices[k] = {}))[zone] = f; }
+function play(name, f, a) {
+  const v = voices[name], g = (v && v[kit]) || f;
+  const r = g(...a);
+  if (depth > 0 && tails.has(name) && gap('tail', 0.06)) tone(62 * depthPitch(), { type: 'sine', d: 0.1 + 0.05 * depth, vol: 0.03 + 0.012 * depth, slide: 40, at: 0.025 });
+  return r;
+}
 function mixed(name, f) {
   return (...a) => {
     const m = mixer ? mixer(name) : null;
     if (m === false) return undefined;
-    if (!m) return f(...a);
+    if (!m) return play(name, f, a);
     const s0 = shift, l0 = level;
     shift = Math.max(0, m.at || 0); level = m.gain === undefined ? 1 : m.gain;
-    try { return f(...a); } finally { shift = s0; level = l0; }
+    try { return play(name, f, a); } finally { shift = s0; level = l0; }
   };
 }
 

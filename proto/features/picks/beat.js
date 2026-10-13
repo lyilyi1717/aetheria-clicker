@@ -23,13 +23,51 @@ export const PICKS_BARS = {
 };
 export const MAX_PICKS = 4;
 
+// Each land beyond Arabia plays its own bar for every pick count (the same 8 hits a pick, so the damage is
+// the same; only where the notes fall differs). Only the hits are written; the loudness comes from the hits:
+// every pick on the beat is an accent 'X', every pick on another step is plain 'x', fewer picks is soft 'o'.
+// The road zone (sites.roadZone) says which set is in play. 'arabia' is PICKS_BARS above, untouched.
+export const ZONE_BARS = {
+  // djembe and bell: the notes lean on the off-beat
+  africa: {
+    1: { name: 'bar_africa_1', hits: '1..1.1.11..1.11.' },
+    2: { name: 'bar_africa_2', hits: '2.12.1.22.12.1.2' },
+    3: { name: 'bar_africa_3', hits: '3.12.3.123.12.33' },
+    4: { name: 'bar_africa_4', hits: '4.24.2.4.24.24.4' },
+  },
+  // taiko: big hits with room between them, then a roll
+  eastasia: {
+    1: { name: 'bar_eastasia_1', hits: '1...11.11...1.11' },
+    2: { name: 'bar_eastasia_2', hits: '2...22.22...2.22' },
+    3: { name: 'bar_eastasia_3', hits: '3...32.331..3.33' },
+    4: { name: 'bar_eastasia_4', hits: '4...43.44.1.4.44' },
+  },
+  // clave and samba: the 3-2 clave leads
+  americas: {
+    1: { name: 'bar_americas_1', hits: '1.11..1.1.1.1.1.' },
+    2: { name: 'bar_americas_2', hits: '2.12..2.2.2.2.21' },
+    3: { name: 'bar_americas_3', hits: '3.13..3.2.3.3.33' },
+    4: { name: 'bar_americas_4', hits: '4.24..4.3.4.4.43' },
+  },
+  // a march: a long note and a short one, over and over
+  europe: {
+    1: { name: 'bar_europe_1', hits: '1..11..11..11..1' },
+    2: { name: 'bar_europe_2', hits: '2..21.22..221..2' },
+    3: { name: 'bar_europe_3', hits: '3..33..33..33..3' },
+    4: { name: 'bar_europe_4', hits: '4..44..44..44..4' },
+  },
+};
+export const BAR_ZONES = ['arabia', ...Object.keys(ZONE_BARS)];
+const velOf = (hits, count) => [...hits].map((ch, i) => (ch === '.' ? '.' : Number(ch) < count ? 'o' : i % 4 === 0 ? 'X' : 'x')).join('');
+
 // the bar of a pick count as arrays: n[i] picks land on step i, v[i] is 'X' | 'x' | 'o' | '.'
 const parsed = {};
-export function picksBarOf(count) {
+export function picksBarOf(count, zone = 'arabia') {
   const k = Math.max(1, Math.min(MAX_PICKS, count | 0));
-  const B = PICKS_BARS[k];
+  const Z = ZONE_BARS[zone];
+  const B = Z ? { ...Z[k], vel: velOf(Z[k].hits, k) } : PICKS_BARS[k];
   const key = k + B.hits + B.vel;
-  if (!parsed[key]) parsed[key] = { count: k, name: B.name, n: [...B.hits].map(ch => (ch === '.' ? 0 : Number(ch))), v: [...B.vel] };
+  if (!parsed[key]) parsed[key] = { count: k, zone: Z ? zone : 'arabia', name: B.name, n: [...B.hits].map(ch => (ch === '.' ? 0 : Number(ch))), v: [...B.vel] };
   return parsed[key];
 }
 
@@ -38,12 +76,12 @@ export const barSec = bpm => STEPS * stepSec(bpm);
 export const hitsPerSec = (count, bpm) => picksBarOf(count).n.reduce((a, b) => a + b, 0) / barSec(bpm);
 export const notesPerSec = (count, bpm) => picksBarOf(count).n.filter(Boolean).length / barSec(bpm);
 // the bar as text for a person: "X . x . X x . x"
-export const barText = count => picksBarOf(count).v.join(' ');
+export const barText = (count, zone) => picksBarOf(count, zone).v.join(' ');
 
 // What is wrong with a bar, as a list of words (empty = fine). `floor` is the least time between two
 // notes, `maxBpm` the fastest tempo it will be played at, `run` the longest row of steps with no rest.
-export function barFaults(count, { floor, maxBpm, run = 4 }) {
-  const B = picksBarOf(count), out = [];
+export function barFaults(count, { floor, maxBpm, run = 4, zone = 'arabia' }) {
+  const B = picksBarOf(count, zone), out = [];
   if (B.n.length !== STEPS || B.v.length !== STEPS) out.push('not 16 steps');
   if (B.n.reduce((a, b) => a + b, 0) !== PER_PICK * count) out.push('not 8 hits a pick');
   if (B.n[0] !== count || B.v[0] !== 'X') out.push('step 1 is not every pick, accented');

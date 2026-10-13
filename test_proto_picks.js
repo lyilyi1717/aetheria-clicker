@@ -297,6 +297,55 @@ for (const n of COUNTS) for (const bpm of TEMPOS) {
   }
 }
 
+{ // every land has its own bar for every pick count: same hits a pick, never closer than the floor at the top tempo
+  ok(G.BAR_ZONES.join() === G.ZONES.join(), 'a bar set for every zone of the road');
+  const seen = new Set();
+  for (const zone of G.ZONES) for (const n of COUNTS) {
+    const B = G.picksBarOf(n, zone);
+    ok(B.zone === zone && B.n.reduce((a, b) => a + b, 0) === 8 * n, zone + ' ' + n + ': 8 hits a pick');
+    ok(G.picksBarFaults(n, { floor: P.floor, maxBpm: TOP, zone }).length === 0, zone + ' ' + n + ': no faults at ' + TOP);
+    ok(G.t(B.name) !== B.name, zone + ' ' + n + ': the bar has a name');
+    seen.add(G.t(B.name));
+    const q = G.picksSeq(P), step = 15 / TOP, ts = [];
+    let now = 0;
+    for (let f = 0; f < 4000; f++, now += 1 / 60) for (const nt of q.advance(now, true, B, step)) ts.push(nt.t);
+    ok(ts.length > 60, zone + ' ' + n + ': notes were played');
+    let min = 1e9; for (let i = 1; i < ts.length; i++) min = Math.min(min, ts[i] - ts[i - 1]);
+    ok(min >= P.floor - 1e-9, zone + ' ' + n + ': every step at ' + TOP + ' is 75 ms or more apart (' + (min * 1000).toFixed(1) + ')');
+  }
+  ok(seen.size === 20, 'twenty different names');
+  ok(G.picksBarOf(1).name === 'bar_1' && G.picksBarOf(4, 'arabia').name === 'bar_4', 'Arabia keeps the old bars');
+}
+
+{ // the bar in play and the kit follow the road zone
+  const s = G.newState();
+  ok(G.roadZone(s) === 'arabia' && G.picksBar(s).zone === 'arabia', 'a new dig plays the Arabia bar');
+  for (const f of G.ROAD) {
+    s.run = { ...s.run, site: f.site, floor: f.floor, twist: '' };
+    ok(G.roadZone(s) === f.zone && G.picksBar(s).zone === f.zone, f.site + ' ' + f.floor + ' plays the ' + f.zone + ' bar');
+  }
+  s.run = { ...s.run, site: 'dunes', floor: 100, twist: 'heavy' };
+  ok(G.picksBar(s).zone === 'africa', 'a side level plays the beat of the deepest road level at or above its floor');
+}
+
+{ // the sound kits: a voice for each land beyond Arabia, none for Arabia, and a sting for every land; nothing may throw without sound
+  const A = await import('./proto/ui/audio.js'), K = await import('./proto/features/picks/kits.js');
+  ok(Object.keys(K.KITS).join() === G.ZONES.slice(1).join(), 'a kit for every land but Arabia');
+  for (const z of Object.keys(K.KITS)) ok(['hit', 'crit', 'crew'].every(k => typeof K.KITS[z][k] === 'function'), z + ' has hit, crit and crew');
+  ok(K.STING_ZONES.join() === G.ZONES.join(), 'a sting for every land');
+  for (const z of G.ZONES) for (const tier of [0, 4]) {
+    A.setKit(z, tier);
+    ok(A.kitZone() === z && A.kitDepth() === tier, 'the kit is set');
+    let thrown = null;
+    try { A.sfx.hit(false); A.sfx.hit(true); A.sfx.crit(); A.sfx.crew(); A.sfx.picksSting(z); } catch (e) { thrown = e; }
+    ok(!thrown, z + ' sounds do not throw before the first click' + (thrown ? ': ' + thrown.message : ''));
+  }
+  A.setKit('arabia', 0);
+  ok(A.depthPitch() === 1, 'no depth, no lowering');
+  A.setKit('arabia', 4);
+  ok(A.depthPitch() < 0.85 && A.depthPitch() > 0.7, 'the deepest layer is a little lower, not much');
+}
+
 if (process.argv.includes('--table')) {
   console.log(`| picks | groove | the bar (16 steps: X accent, x plain, o soft, . rest) | picks landing on each step | notes a second at ${TEMPOS[0]} / ${TOP} | hits a second at ${TEMPOS[0]} / ${TOP} | closest notes at ${TOP} |`);
   console.log('|---|---|---|---|---|---|---|');
