@@ -130,6 +130,14 @@ Sim (mixed, 2 seeds, 30 days): levels 1 to 12 by day 7 to 8; level 13 (Americas 
 | Stays | Stars and tracks, medals, the Museum, Forge tools and metal, extra picks, the Foreman | The same |
 | Shown at the finish | Stars counted up, two buttons | "You keep" and "Level N starts with", then one obvious Star purchase, then the next level's card with its new thing named |
 
+## 2.5 The screen (built 13 October 2026)
+
+- **Always on screen:** the dig; one small pill (Stars, your hit); three round buttons (Map, Auto dig, Sound); the **level track** above the dig: level name, stopwatch, medals, a node for each 25 m Big Rock and the Gate at the end; during a Rock fight that Rock's segment shows its health in three layers. The pinned goal chips (the Gate, Second Pick, a Museum set) sit on the track's goal line.
+- **One drawer** right of the dig with icon tabs: Shop, Stars, Rafeeqs, Relics, Museum, Forge, Level. Each tab starts with one "Next:" line and one main button. A dot shows only when something is really ready and clears when the tab is opened. A locked tab says what opens it, never a time. `proto/ui/drawer.js`; a panel may set `tab:`.
+- **The world map** (`proto/features/worldmap/`): after a finish, Next opens a road map of the five lands and Beyond: numbered stones with medal pips, the path draws, the digger walks, "Dig here" starts the next level; side levels branch off a level you are stuck on; Museum places are islands; after level 20 three paths fan out. Only levels the rules deal can be started. The old card list is the fallback.
+- **Sound test page:** `proto/soundboard.html` (every sound and beat by axes, speed, land, depth).
+- Not folded yet: the depth ruler labels and the beat strip on the dig.
+
 ## 3. The systems
 
 | System | What it does for the player | State |
@@ -216,6 +224,7 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 
 | Date | Change |
 |---|---|
+| 13 Oct 2026 | The drawer and the level track (#354), the world map (#352), the sound test page (#349), save for the Second Pick and pin one goal (#350), a won contract frees the site (#351). |
 | 13 Oct 2026 | Stars paid at the prove level; leaving pays less; the finish card (2.3d). |
 | 13 Oct 2026 | Twenty levels, four per land; a beat and a look per land (PRs #344, #345); walls below 175 m softened (2.3c). |
 | 13 Oct 2026 | Start kit, prove levels, zones (continents) on the road (2.3b). Time away counts each second once (PR #341). A look per place, the arrival banner, the layered Rock bar (PR #342). |
