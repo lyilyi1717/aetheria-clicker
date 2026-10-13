@@ -4,6 +4,7 @@
 export * from './autos/rules.js';
 export * from './away/rules.js';
 export * from './boss/rules.js';
+export * from './chatter/rules.js';
 export * from './chest/rules.js';
 export * from './combo/rules.js';
 export * from './contracts/rules.js';
