@@ -22,9 +22,22 @@ export const SITE_LOOK = {
   shark:  { sky: ['#3fb6c9', '#dff6f0'], far: '#d9c9a0', tint: ['#2fb5b0', 0.26] },
   mirage: { sky: ['#f5b7d0', '#fde7b0'], far: '#e9c79a', tint: ['#a98bd6', 0.28] },
 };
-// a zone (continent) may later override a place's look: ZONE_LOOK[zone][siteKey] = { sky, far, tint }. Empty for now.
-export const ZONE_LOOK = {};
-export const placeLook = (key, zone) => ({ ...SITE_LOOK[key], ...((ZONE_LOOK[zone] || {})[key] || {}) });
+// A zone (continent) paints its own sky and far ground over the place's (the place keeps 30% of its own colour, so a
+// powder valley is still redder than a wadi) and nudges the ground (`ground`: colour, share). Arabia is the home
+// look and changes nothing. ZONE_LOOK[zone][siteKey] = { sky, far, tint } overrides one place in one zone.
+export const ZONE_LOOK = {
+  arabia:   {},
+  africa:   { sky: ['#f0833a', '#ffd48a'], far: '#c98a4a', ground: ['#e8761c', 0.16] },
+  eastasia: { sky: ['#cfdde0', '#f1f0ea'], far: '#9db3aa', ground: ['#8fb09c', 0.16] },
+  americas: { sky: ['#5fb6d8', '#f3c9a0'], far: '#b5553a', ground: ['#c2402a', 0.16] },
+  europe:   { sky: ['#8fa6b8', '#d6dde0'], far: '#6f9a62', ground: ['#5f9a58', 0.16] },
+};
+const PLACE_SHARE = 0.3;
+export const placeLook = (key, zone) => {
+  const site = SITE_LOOK[key], z = ZONE_LOOK[zone];
+  const base = z && z.sky ? { ...site, sky: [mix(z.sky[0], site.sky[0], PLACE_SHARE), mix(z.sky[1], site.sky[1], PLACE_SHARE)], far: mix(z.far, site.far, PLACE_SHARE) } : site;
+  return { ...base, ...((z || {})[key] || {}) };
+};
 // other names a site may come with (a later package may name them differently)
 const ALIAS = { sharks: 'shark', sharkbay: 'shark', shark_dunes: 'shark', mirage_dunes: 'mirage', valley: 'boom', wadi: 'gold', beasts: 'bones' };
 export const siteKey = id => (SITE_LOOK[id] ? id : SITE_LOOK[ALIAS[id]] ? ALIAS[id] : 'dunes');
@@ -48,13 +61,18 @@ export function contrast(a, b) {
 
 // the colours a layer has on a site: the layer's palette, with the site's tint on dirt and stone only
 const cache = new Map();
-export function lookFor(layerId, layerLook, siteId) {
-  const site = siteKey(siteId), key = layerId + '|' + site;
+// the zone being drawn: world.js sets it once a frame, before the blocks are drawn
+let curZone = '';
+export const setZone = z => { curZone = z || ''; };
+export function lookFor(layerId, layerLook, siteId, zone = curZone) {
+  const site = siteKey(siteId), key = layerId + '|' + site + '|' + zone;
   let o = cache.get(key);
   if (!o) {
     const base = { ...layerLook, ...(LAYER_LOOK[layerId] || {}) };
     const tint = SITE_LOOK[site].tint;
     o = tint ? { ...base, dirt: mix(base.dirt, tint[0], tint[1]), stone: mix(base.stone, tint[0], tint[1]), back: mix(base.back, tint[0], tint[1] * 0.6) } : base;
+    const zg = (ZONE_LOOK[zone] || {}).ground;
+    if (zg) o = { ...o, dirt: mix(o.dirt, zg[0], zg[1]), stone: mix(o.stone, zg[0], zg[1]), back: mix(o.back, zg[0], zg[1] * 0.6) };
     cache.set(key, o);
   }
   return o;

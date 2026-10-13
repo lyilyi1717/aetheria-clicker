@@ -186,7 +186,18 @@ ui({
         el.querySelector('.roadh').textContent = t('road_title') + (fin ? '  ' + t('road_count', { n: fin }) : '');
         const road = el.querySelector('.road');
         road.textContent = '';
-        for (const x of stamps) {
+        // grouped by continent, with a small label over each group
+        const zoneOf = x => { const f = (G.ROAD || []).find(f => f.site === x.site && f.floor === x.floor); return f ? f.zone : G.roadZone({ run: { floor: x.floor } }); };
+        const order = G.ZONES || [];
+        const sorted = stamps.map((x, i) => ({ x, i, z: Math.max(0, order.indexOf(zoneOf(x))) })).sort((a, b) => (a.z - b.z) || (a.i - b.i));
+        let lastZ = -1;
+        for (const { x, z } of sorted) {
+          if (z !== lastZ) {
+            lastZ = z;
+            const lab = document.createElement('span'); lab.className = 'zlab'; lab.textContent = t('look_zone_' + (order[z] || 'arabia'));
+            lab.style.cssText = 'flex-basis:100%;width:100%;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-block:4px 0';
+            road.appendChild(lab);
+          }
           const d = document.createElement('span');
           d.className = 'stampc' + (x.fin ? ' fin' : ''); d.title = t('road_stamp', { name: siteName(x.site, x.twist), n: x.floor });
           d.innerHTML = `<span class="ic">${icon('site_' + x.site, 30)}</span><i class="fl">${x.floor}</i><span class="pips"><u class="${x.fin ? 'on' : ''}"></u><u class="${x.fast ? 'on' : ''}"></u><u class="${x.hard ? 'on' : ''}"></u></span>`;
