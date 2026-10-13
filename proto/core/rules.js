@@ -23,10 +23,12 @@ use({
       { hp: 1.14, val: 1.10, step: 1.3 },  // 50 m: water
       { hp: 1.17, val: 1.10, step: 3 },    // 75 m: crystal
       { hp: 1.20, val: 1.10, step: 3 },   // 100 m: The Black
-      { hp: 1.20, val: 1.10, step: 2 },   // 125 m: The Living Rock
-      { hp: 1.20, val: 1.10, step: 2 },  // 150 m: The Angry Layer
-      { hp: 1.15, val: 1.10, step: 1.5 },  // 175 m: The Hot Layer (1.20 left the 200 m level a cliff of about 100 digs)
-      { hp: 1.18, val: 1.10, step: 3 },   // 200 m and below (was 1.22 / 8: the Americas and Europe out of reach): nothing new yet
+      { hp: 1.19, val: 1.10, step: 1.3 }, // 125 m: The Living Rock (was 1.20 / 2: a smaller cliff at the door, the same wall in all)
+      { hp: 1.21, val: 1.10, step: 1.3 }, // 150 m: The Angry Layer (was 1.20 / 2: the same, spread over the rows)
+      { hp: 1.16, val: 1.10, step: 1.2 }, // 175 m: The Hot Layer (was 1.15 / 1.5)
+      { hp: 1.175, val: 1.10, step: 1.8 }, // 200 m (was 1.18 / 3 for all below: the level was 5 tries and 40 other digs, day 11)
+      { hp: 1.175, val: 1.10, step: 2 },  // 225 m
+      { hp: 1.175, val: 1.10, step: 3 },  // 250 m and below: the road ends about day 20 (was never reached in a month)
     ],
     buyPow: 0.55,                   // coins -> hits: log(powGrow) / log(1.5), the price growth of a pick level
     // Stars (starsAt in core/grid.js): what a floor is worth, small whole numbers; the sites feature pays shares of it
