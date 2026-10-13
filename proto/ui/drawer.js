@@ -79,12 +79,11 @@ export const drawer = {
     if (app && app.state) mem[id] = new Set(tabInfo(get(id), app.state).ready);
     if (app) app.refresh(true);
   },
-  // every tick: lock, dot, next line, main button. shown(id) says whether any panel of the tab is showing.
-  tick(s, shown) {
+  // every tick: lock, dot, next line, main button
+  tick(s) {
     for (const tb of TABS) {
       const e = els[tb.id], info = tabInfo(tb, s);
-      // a lock text only holds while no panel of the tab is showing (the panel's own rule can open it sooner)
-      const locked = !!info.lock && !shown(tb.id);
+      const locked = !!info.lock;
       const ready = locked ? [] : info.ready;
       const st = dotStep(first || !mem[tb.id] ? new Set(ready) : mem[tb.id], ready, tb.id === cur);
       mem[tb.id] = st.seen;

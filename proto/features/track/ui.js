@@ -13,7 +13,7 @@ G.addStrings(strings, 'track');
 
 const clock = sec => { const n = Math.max(0, Math.floor(sec)); return Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0'); };
 const $ = id => document.getElementById(id);
-const GATE = `<svg class="gate-svg" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><path class="arch" d="M5 29 V13 Q5 4 16 4 Q27 4 27 13 V29 Z" stroke="#1b1410" stroke-width="1.6" stroke-linejoin="round"/><path d="M11 29 V15 Q11 10 16 10 Q21 10 21 15 V29 Z" fill="#17110d"/></svg>`;
+const GATE = `<svg class="gate-svg" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><path class="arch" d="M5 29 V13 Q5 4 16 4 Q27 4 27 13 V29 Z" stroke-width="1.8" stroke-linejoin="round"/><path d="M11 29 V15 Q11 10 16 10 Q21 10 21 15 V29 Z" fill="#17110d"/></svg>`;
 
 let el = {}, sig = '', msig = '', segSig = '';
 

@@ -22,7 +22,7 @@
 
 #trk-gate { order: 2; display: inline-flex; flex-direction: column; align-items: center; line-height: 1; margin-inline-start: 2px; }
 #trk-gate small { font-size: 10px; color: var(--muted); margin-top: -1px; white-space: nowrap; }
-#trk-gate .arch { fill: #6a6384; }
-#trk-gate.done .arch { fill: var(--gold); }
+#trk-gate .arch { fill: #8d86ac; stroke: #d6d0ea; }
+#trk-gate.done .arch { fill: var(--gold); stroke: #7a5a00; }
 #trk-gate.done small { color: var(--gold); }
 #goal-pin { order: 3; }

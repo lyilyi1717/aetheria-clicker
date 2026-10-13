@@ -268,7 +268,7 @@ function updatePanels(force) {
     // `live` panels are redrawn every tick; the others when one of their events came in
     if (p.live || force || p.dirty) { p.dirty = false; p.update(p.el, state, app); }
   }
-  drawer.tick(state, id => PANELS.some(p => p.tab === id && !p.el.hidden));
+  drawer.tick(state);
   // the goal: one honest bar (it sits in the level track). The first feature with something to say wins.
   let goal = null;
   for (let i = 0; i < GOALS.length && !goal; i++) goal = GOALS[i].fn(state, app);
