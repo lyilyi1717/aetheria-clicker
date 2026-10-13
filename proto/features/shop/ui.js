@@ -37,7 +37,7 @@ ui({
       const blk = hitsBlock(s);
       if (blk) {
         const h1 = hitsOf(blk.max, a), h2 = hitsOf(blk.max, b);
-        if (h2 < h1) return t('up_pick_hits', { kind: t(G.hasString('blk_' + blk.kind) ? 'blk_' + blk.kind : 'blk_other'), a: h1, b: h2 });
+        if (h2 < h1) return t('up_pick_hits', { kind: t(G.hasString('blk_' + blk.kind) ? 'blk_' + blk.kind : 'blk_other'), a: G.fmt(h1), b: G.fmt(h2) });
       }
       return t('up_pick_d', { a: n1(a), b: n1(b) });
     } },

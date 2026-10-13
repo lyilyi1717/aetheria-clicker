@@ -45,7 +45,7 @@ const p = {
   // the start kit: every site after the first starts where the player is (docs/dig-design.md 2.2)
   kitPick: 0,                     // the kit gives no free pick levels (they made every level 5 times faster, see the PR); Warm Pick still does
   kitCrew: 1,                     // Rafeeqs waiting (Rafeeq Waiting raises it)
-  proveHp: 4,                     // the second level of a depth ("prove it") has ground this much harder
+  proveHp: 6,                     // the second level of a depth ("prove it") has ground this much harder (was 4: one try, now 1 to 3)
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom
   baseFloor: 50,                  // where a Gate is when no card says (old saves, the contracts board)

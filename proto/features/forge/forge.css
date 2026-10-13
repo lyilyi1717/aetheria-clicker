@@ -11,3 +11,9 @@
 .tool.pulse { animation: forge-pulse .9s ease-out; }
 @keyframes forge-pulse { 0% { box-shadow: 0 0 0 0 rgba(255,210,63,.9); transform: scale(1.18); } 100% { box-shadow: 0 0 0 16px rgba(255,210,63,0); transform: scale(1); } }
 .forge-ore { margin-block: 6px 0; font-size: 12px; }
+
+/* the bar sits in the clear band under the held Big Rock: a little smaller, so it never reaches the Rock */
+#tools { gap: 6px; }
+.tool { padding: 3px 5px 12px; }
+.tool .ico, .tool svg { inline-size: 28px; block-size: 28px; }
+.tool .fg { block-size: 6px; inset-block-end: 2px; }

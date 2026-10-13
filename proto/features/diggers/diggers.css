@@ -1,6 +1,5 @@
 /* what the Rafeeqs earn: the line under the purse, and the panel with a tally for each */
-#hud-crew { position: absolute; inset-block-end: 14px; inset-inline-start: 50%; translate: -50% 0; max-inline-size: 52%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px 12px; border-radius: 14px; background: rgba(15,10,6,.72); border: 1px solid rgba(74,168,255,.45); color: #bfe0ff; font-weight: 700; font-size: 15px; pointer-events: none; }
-#hud-crew[hidden] { display: none; }
+.crew-line { font-weight: 700; color: #bfe0ff; padding-block-end: 4px; }
 .crew-row { display: flex; align-items: baseline; gap: 8px; padding-block: 2px; font-size: 13px; }
 .crew-row i { width: 10px; height: 10px; border-radius: 50%; flex: none; border: 1px solid #111; }
 .crew-row b { flex: none; }
