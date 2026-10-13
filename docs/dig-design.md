@@ -114,6 +114,14 @@ Sim after (mixed, 2 seeds): levels 1 to 4 in 29 min; level 5 day 0.6 to 1.0 (2 t
 
 Sim (mixed, 2 seeds, 30 days): levels 1 to 12 (Arabia, Africa, East Asia) by day 7; level 13 (Americas 200 m) day 11 to 12, 5 tries; level 15 (225 m) day 20 to 21, 6 tries and about 75 other digs; Europe not reached in a month. Open: level 15 is the new long wait; the prove levels right after a learn level still often take one try.
 
+### 2.3d Built on 13 October: Stars at the prove level, leaving pays less, the finish card
+
+- **A depth pays most when it is proved:** past Arabia, the learn level of a depth pays 0.35 of its Stars and the prove level 1.65 (`sites.learnPay`, `provePay`); the total is the same as before.
+- **Leaving early** pays at most half of what finishing that level again would pay (`sites.leaveCap`). Fault 9.
+- **The finish card (PR #347)** shows what you keep, what the next level starts with, the next level and its new thing, one Spend button for the cheapest Star step, and an end card after level 20.
+
+Sim (mixed, 2 seeds, 30 days): levels 1 to 12 by day 7 to 8; level 13 (Americas 200 m) day 11 to 13; level 14 now takes 1 to 4 tries; level 15 (225 m) day 19 to 22. Prove levels 6, 8, 10, 12 still mostly fall in one try: the learn level before them is where the player grows. Raising `proveHp` further is the next lever if that feels too easy in play.
+
 ### 2.4 From one level to the next
 
 | | Built today | The design |
@@ -176,7 +184,7 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 | 6 | The track note said a step works from the next site; it works at once | fixed (PR #338) |
 | 7 | The 100 m Rock took a perfect player three hours and 42 tries | fixed (PR #337) |
 | 8 | Time away counts a tea-break rush without using it up, and Rock Friend is paid for time already paid | fixed (PR #341) |
-| 9 | Leaving a 150 m dig unfinished pays 418 Stars; finishing it again pays 308 | open |
+| 9 | Leaving a 150 m dig unfinished pays 418 Stars; finishing it again pays 308 | fixed: leaving pays at most half a replay |
 | 10 | Time away is 78% of the mixed player's coins, so the Rafeeqs seem to do nothing while you watch | open |
 | 11 | A deal can offer the same place three times | open; goes away with the road |
 | 12 | Stars reach millions by day 30 | open; goes away with the road (14 paid levels, not 277) |
@@ -208,6 +216,7 @@ Against the road in 2.3 the middle is now **too fast**: the mixed player breaks 
 
 | Date | Change |
 |---|---|
+| 13 Oct 2026 | Stars paid at the prove level; leaving pays less; the finish card (2.3d). |
 | 13 Oct 2026 | Twenty levels, four per land; a beat and a look per land (PRs #344, #345); walls below 175 m softened (2.3c). |
 | 13 Oct 2026 | Start kit, prove levels, zones (continents) on the road (2.3b). Time away counts each second once (PR #341). A look per place, the arrival banner, the layered Rock bar (PR #342). |
 | 13 Oct 2026 | The road's order built: fourteen levels, one card at a time, side cards when stuck. Measured level by level (2.3a). |

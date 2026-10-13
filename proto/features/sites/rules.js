@@ -54,6 +54,8 @@ const p = {
   medalShare: 0.5,                // Fast and Hard: this share of the floor's worth, once each
   replayShare: 0.25,              // finishing a version again
   leaveShare: 0.34,               // leaving before the Gate: this share of the worth of the depth you reached (at least 1)
+  leaveCap: 0.5,                  // ... but never more than this share of what finishing it again would pay
+  learnPay: 0.35, provePay: 1.65, // a road depth pays most of its Stars when it is proved, not when it is learned
   deepShare: 0.5,                 // after the Gate: this share of the extra worth of the depth you reached, when you move
   deepFrom: 10,                   // metres below the Gate before that counts
   // twists
@@ -112,7 +114,9 @@ export function hardOf(site, floor) {
   if (!l || !CONTRACTS[l[0]]) return null;
   return l[Math.max(0, Math.min(l.length - 1, Math.round((floor - p.baseFloor) / LAYER)))];
 }
-const firstPay = floor => starsAt(floor);
+// the road level at (site, floor) with no twist: 'learn', 'prove' or '' (not on the road)
+const roadKind = (site, floor, twist) => { if (twist) return ''; const f = ROAD.find(x => x.site === site && x.floor === floor); return f ? (f.prove ? 'prove' : f.floor > FIXED[FIXED.length - 1].floor ? 'learn' : '') : ''; };
+export const firstPay = (floor, kind = '') => Math.max(1, Math.round(starsAt(floor) * (kind === 'prove' ? p.provePay : kind === 'learn' ? p.learnPay : 1)));
 export const medalPay = floor => Math.max(1, Math.round(p.medalShare * starsAt(floor)));
 export const replayPay = floor => Math.max(1, Math.ceil(p.replayShare * starsAt(floor)));
 
@@ -144,7 +148,7 @@ export const siteStamp = s => { const r = siteRun(s); return stampOf(s, r.site, 
 // Stars a move pays now (the label on the button)
 export function starsFor(s) {
   const r = siteRun(s), best = Math.max(0, s.best);
-  if (!r.done) return Math.max(1, Math.floor(p.leaveShare * starsAt(best)));
+  if (!r.done) return Math.max(1, Math.min(Math.floor(p.leaveShare * starsAt(best)), Math.floor(p.leaveCap * replayPay(r.floor))));
   return best >= r.floor + p.deepFrom ? Math.floor(p.deepShare * Math.max(0, starsAt(best) - starsAt(r.floor))) : 0;
 }
 
@@ -170,7 +174,7 @@ function finish(s, ev) {
   r.done = true; r.time = r.clock;
   const st = stampOf(s, r.site, r.floor, r.twist);
   const first = !st.fin, fast = r.time <= r.par;
-  let stars = first ? firstPay(r.floor) : replayPay(r.floor);
+  let stars = first ? firstPay(r.floor, roadKind(r.site, r.floor, r.twist)) : replayPay(r.floor);
   s.stars += stars; r.paid += stars;
   st.fin = 1; r.medals.fin = 1;
   st.best = st.best ? Math.min(st.best, r.time) : r.time;
@@ -186,7 +190,7 @@ function card(s, site, floor, twist, kind, hard) {
   const st = s.road.stamps[siteKey(site, floor, twist)];
   return { key: siteKey(site, floor, twist), site, floor, twist: twist || '', hard: hard || '', kind, par: sitePar(floor, twist),
     medals: { fin: st ? st.fin : 0, fast: st ? st.fast : 0, hard: st ? st.hard : 0 },
-    stars: st && st.fin ? replayPay(floor) : firstPay(floor), medalStars: medalPay(floor), hardRule: hardOf(site, floor) };
+    stars: st && st.fin ? replayPay(floor) : firstPay(floor, roadKind(site, floor, twist)), medalStars: medalPay(floor), hardRule: hardOf(site, floor) };
 }
 // the next level of the road, or null when the road is done: { site, floor, level (1 ...), of, tries }.
 // A level is passed when it is finished; one of the first four also when it was tried twice.
