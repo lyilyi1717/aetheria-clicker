@@ -36,17 +36,22 @@ const buyN = (s, id, n) => { for (let i = 0; i < n; i++) G.buy(s, id); };
   ok(G.useTool(s, 'drill', 1, 4) && s.toolCh.drill === 0, 'drill used, charge spent');
   ok(!G.useTool(s, 'drill', 1, 4), 'no charge, no use');
   run(s, 1);
-  ok([1, 2, 3, 4, 5].every(r => at(s, r, 4) === null) && at(s, 6, 4) && at(s, 1, 3) && at(s, 5, 3), 'a column 5 deep, nothing sideways at L1');
-  ok(s.forgeStat.blocks === 5 && s.forgeStat.uses.drill === 1, 'tool blocks counted');
+  ok([1, 2, 3, 4, 5, 6].every(r => !at(s, r, 4)) && at(s, 7, 4) && at(s, 3, 3) && at(s, 5, 3), 'a column 6 deep, nothing sideways at L1');
+  ok(s.forgeStat.blocks === 6 && s.forgeStat.uses.drill === 1, 'tool blocks counted');
 
   const t = fresh(); buyN(t, 'drill', 2);
-  fill(t, 9); clear(t, 0); t.toolCh.drill = 1;
+  fill(t, 12); clear(t, 0); t.toolCh.drill = 1;
   G.useTool(t, 'drill', 1, 5); run(t, 2);
-  ok(at(t, 5, 3) === null && at(t, 5, 7) === null && at(t, 5, 8) && at(t, 6, 5), 'L2 bores sideways at the end');
+  ok(at(t, 8, 5) === null && at(t, 9, 5) && at(t, 8, 3) === null && at(t, 8, 7) === null && at(t, 8, 8) && at(t, 7, 3), 'L2 goes 8 deep and bores sideways at the end');
   const u = fresh(); buyN(u, 'drill', 3);
-  fill(u, 9); clear(u, 0); u.toolCh.drill = 1;
+  fill(u, 13); clear(u, 0); u.toolCh.drill = 1;
   G.useTool(u, 'drill', 1, 5); run(u, 2);
-  ok(at(u, 6, 5) === null && at(u, 6, 4) === null && at(u, 6, 6) === null && at(u, 7, 5), 'L3 ends with a bang around the bottom');
+  ok(at(u, 10, 5) === null && at(u, 10, 3) === null && at(u, 10, 7) === null && at(u, 11, 5) === null && at(u, 11, 4) && at(u, 12, 5), 'L3 goes 10 deep and ends with a bang around the bottom');
+  // a hard block in the column: the drill takes 24 of your hits per block, so a 20 hit block goes and a 100 hit block stays
+  const h = fresh(); buyN(h, 'drill', 1); fill(h, 8); clear(h, 0); h.toolCh.drill = 1;
+  h.rows[2][4].hp = h.rows[2][4].max = 20; h.rows[3][4].hp = h.rows[3][4].max = 100;
+  G.useTool(h, 'drill', 1, 4); run(h, 2);
+  ok(at(h, 2, 4) === null && at(h, 3, 4) && at(h, 4, 4) === null, 'the drill breaks what is within 24 of your hits');
 
   const f = fresh(); buyN(f, 'drill', 1); f.toolCh.drill = 0;
   run(f, 600);
@@ -54,19 +59,23 @@ const buyN = (s, id, n) => { for (let i = 0; i < n; i++) G.buy(s, id); };
   for (let i = 0; i < 2000 && f.toolCh.drill === 0; i++) { put(f, 0, 3, 'dirt'); G.swing(f, 0, 3); }
   ok(f.toolCh.drill >= 1, 'play fills a charge');
   for (let i = 0; i < 5000; i++) { put(f, 0, 3, 'dirt'); G.swing(f, 0, 3); }
-  ok(f.toolCh.drill === G.PARAMS.forge.cap, 'charges stop at the cap');
+  ok(f.toolCh.drill === G.forgeCap(f, 'drill') && G.forgeCap(f, 'drill') === 3, 'charges stop at the cap (2 + level)');
+  const L5 = fresh(); buyN(L5, 'drill', 5);
+  ok(G.itemLevel(L5, 'drill') === 5 && G.forgeCap(L5, 'drill') === 7 && G.forgeNeed(L5, 'drill') < G.forgeNeed(f, 'drill'), 'level 5: more charges, each cheaper to fill');
 }
 
 // dynamite: placed, blasts after a fuse, chains TNT
 {
   const s = fresh(); buyN(s, 'drill', 1); buyN(s, 'dynamite', 1);
-  fill(s, 8); put(s, 3, 6, 'tnt'); put(s, 3, 7, 'gold'); clear(s, 0);
+  fill(s, 8); put(s, 3, 5, 'tnt'); put(s, 3, 6, 'gold'); clear(s, 0);
   ok(G.useTool(s, 'dynamite', 1, 4), 'placed');
   ok(at(s, 2, 4) && s.queue.some(q => q.kind === 'forgeDyn'), 'nothing breaks before the fuse');
   run(s, 0.5); ok(at(s, 1, 4) !== null, 'still fused');
   run(s, 3);
   ok(at(s, 1, 4) === null && at(s, 2, 4) === null && at(s, 3, 4) === null, 'blast clears its radius');
-  ok(at(s, 3, 7) === null && s.ore.gold === 1, 'TNT in reach chains on to the gold');
+  ok(at(s, 3, 3) === null && at(s, 1, 6) === null, 'a round blast reaches 2 across and 1 down');
+  ok(at(s, 3, 2), 'but the far corner (2 down, 2 across) is outside the circle');
+  ok(at(s, 3, 6) === null && s.ore.gold === 1, 'TNT in reach chains on to the gold');
 }
 
 // Big Rock: aim at the crack
@@ -88,6 +97,7 @@ const buyN = (s, id, n) => { for (let i = 0; i < n; i++) G.buy(s, id); };
   const on = hit(1, true), off = hit(1, false);
   ok(on.lost > off.lost * 2.5, `dynamite on the crack hits about 3x harder (${on.lost} vs ${off.lost})`);
   ok(on.lost < on.b.max, 'one stick does not erase the Big Rock');
+  ok(on.lost <= on.b.max * 0.1 + 1e-6 && off.lost <= on.b.max * 0.1 + 1e-6, `a stick takes at most a tenth of the Rock (${on.lost} of ${on.b.max})`);
   // L2 sticks to the crack: it still hits three times as hard after the crack has moved
   const s2 = mk(2), b2 = G.bossInView(s2), hp2 = b2.hp, c2 = b2.weak;
   G.useTool(s2, 'dynamite', 25, c2);
@@ -107,18 +117,18 @@ const buyN = (s, id, n) => { for (let i = 0; i < n; i++) G.buy(s, id); };
   const mk = n => {
     const s = fresh(); buyN(s, 'drill', 1); buyN(s, 'dynamite', 1); buyN(s, 'magnet', n); s.toolCh.magnet = 1;
     fill(s, 9); clear(s, 0);
-    put(s, 1, 3, 'copper'); put(s, 2, 5, 'silver'); put(s, 8, 5, 'gold'); put(s, 3, 2, 'chest'); put(s, 5, 6, 'silver');
+    put(s, 1, 3, 'copper'); put(s, 2, 5, 'silver'); put(s, 8, 5, 'gold'); put(s, 6, 2, 'chest'); put(s, 5, 6, 'silver');
     return s;
   };
   const s = mk(1);
   ok(G.visibleMask(s)[5][6] === false, 'row 5 is in the dark');
   ok(G.useTool(s, 'magnet', 1, 4), 'magnet used'); run(s, 2);
-  ok(at(s, 1, 3) === null && at(s, 2, 5) === null && at(s, 8, 5) && at(s, 3, 2) && at(s, 5, 6), 'L1 pops visible ore near the pointer, not far ore, dark ore or chests');
+  ok(at(s, 1, 3) === null && at(s, 2, 5) === null && at(s, 8, 5) && at(s, 6, 2) && at(s, 5, 6), 'L1 pops visible ore near the pointer, not far ore, dark ore or chests');
   ok(s.ore.copper === 1 && s.ore.silver === 1, 'and counts it');
   const m = mk(2); G.useTool(m, 'magnet', 1, 4); run(m, 2);
-  ok(at(m, 5, 6) === null && at(m, 3, 2) && at(m, 8, 5), 'L2 finds ore in the dark');
+  ok(at(m, 5, 6) === null && at(m, 8, 5) === null && at(m, 6, 2), 'L2 finds ore in the dark and reaches further');
   const ch = mk(3); G.useTool(ch, 'magnet', 1, 4); run(ch, 2);
-  ok(at(ch, 3, 2) === null && ch.chests === 1, 'L3 pulls chests too');
+  ok(at(ch, 6, 2) === null && ch.chests === 1 && at(ch, 8, 5) === null, 'L3 pulls chests too, from the whole screen');
 }
 
 // save round-trip, old save, survives a New Site

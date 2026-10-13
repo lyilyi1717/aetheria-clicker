@@ -8,7 +8,7 @@
 //   Magnet    L1 pops the ore you can see near the pointer   L2 also ore hiding in the dark   L3 chests too
 // Tools are strong against the Big Rock if aimed: dynamite on the crack hits three times as hard.
 import { use, emit, fold, BLOCKS, PARAMS } from '../../core/registry.js';
-import { COLS, cellAt, reachable, visibleMask } from '../../core/grid.js';
+import { COLS, VIEW_ROWS, cellAt, reachable, visibleMask } from '../../core/grid.js';
 import { later, damage, breakCell, itemLevel, itemOpen, canBuy, upgradeCost, buy, useTool, pickPower } from '../../core/rules.js';
 import strings from './strings.js';
 
@@ -19,18 +19,29 @@ const p = {
   fuel: 1, oreFuel: 3,          // bar filled by a block you break; by an ore block you break
   crewFuel: 0.3,                // by a block a Rafeeq breaks (it is your play that counts most)
   swingFuel: 0.12,              // by every swing, so a hard wall still fills the bar
-  need: { drill: 90, dynamite: 120, magnet: 105 },   // bar to fill for one charge
-  cap: 3,                       // charges a tool can hold
+  need: { drill: 45, dynamite: 80, magnet: 60 },   // bar to fill for one charge (about this many blocks broken)
+  needCut: 0.07,                // each level above the first makes a charge this much cheaper to fill
+  cap0: 2,                      // charges a tool can hold: this plus its level
   cost: { drill: 4, dynamite: 18, magnet: 28 },    // metal for level 1 (the Drill is nearly free)
-  grow: 5,                      // each level costs this much more
-  drillDepth: 5, drillGap: 0.07, drillSide: 2, drillBang: 1,
-  drillBoss: 6,                 // a Drill on the Big Rock: this many pick hits
-  dynFuse: 1.1, dynRad: 2, dynPower: 14, dynThrow: 2,   // dynPower: what the blast does to each block, in your hits
-  drillPower: 6,                // the Drill, to each block in its column, in your hits
+  grow: 3,                      // each level costs this much more
+  max: 5,
+  // by level (1 to 5)
+  drillDepth: [6, 8, 10, 12, 14], drillGap: 0.06, drillSide: [0, 2, 2, 3, 3], drillBangFrom: 3, drillBang: 1,
+  drillPower: [24, 28, 32, 36, 40],     // the Drill, to each block in its column, in your hits
+  dynRad: [2.5, 2.5, 3, 3.5, 4],        // the blast is round: every block this close (in blocks) is hit
+  dynPower: [30, 34, 38, 42, 46],       // what the blast does to each block, in your hits (TNT: 8)
+  dynFuse: 1.1, dynThrow: 2,
+  magRad: [7, 9, 99, 99, 99],           // how far the pull reaches; 99 is the whole screen
+  magDark: 2, magChest: 3,              // the level that finds ore in the dark; that pulls chests
+  drillBoss: 8,                 // a Drill on the Big Rock: this many pick hits
+  dynBoss: 16,                  // dynamite on the Big Rock: this many pick hits (three times that on the crack)
+  bossShare: 0.1,               // but one tool never takes more than this share of a Big Rock's health
   openSites: 1,                 // the Forge opens with the first gold once you have moved to a New Site this many times
-  dynBoss: 14,                  // dynamite on the Big Rock: this many pick hits (three times that on the crack)
-  magRad: 4.5, magGap: 0.06, magLead: 0.25,
+  magGap: 0.05, magLead: 0.3,
 };
+const at = (arr, L) => arr[Math.max(0, Math.min(arr.length, L) - 1)];
+export const forgeCap = (s, id) => p.cap0 + Math.max(1, itemLevel(s, id));
+export const forgeNeed = (s, id) => p.need[id] * (1 - p.needCut * Math.max(0, itemLevel(s, id) - 1));
 
 const lvl = (s, id) => itemLevel(s, id);
 const isWall = (s, r, c) => { const x = cellAt(s, r, c); return !!x && BLOCKS[x.t].wall === true; };
@@ -42,18 +53,19 @@ function asTool(s, id, f) { s._tool = id; try { return f(); } finally { s._tool 
 function addFuel(s, w, ev) {
   for (const id of FORGE_TOOLS) {
     if (!lvl(s, id)) continue;
-    if (s.toolCh[id] >= p.cap) { s.toolFuel[id] = 0; continue; }
+    const cap = forgeCap(s, id), need = forgeNeed(s, id);
+    if (s.toolCh[id] >= cap) { s.toolFuel[id] = 0; continue; }
     s.toolFuel[id] += w;
-    while (s.toolFuel[id] >= p.need[id] && s.toolCh[id] < p.cap) {
-      s.toolFuel[id] -= p.need[id]; s.toolCh[id]++;
+    while (s.toolFuel[id] >= need && s.toolCh[id] < cap) {
+      s.toolFuel[id] -= need; s.toolCh[id]++;
       emit(s, ev, 'forgeCharge', { id, n: s.toolCh[id] });
     }
-    if (s.toolCh[id] >= p.cap) s.toolFuel[id] = 0;
+    if (s.toolCh[id] >= cap) s.toolFuel[id] = 0;
   }
 }
 const spend = (s, id) => { s.toolCh[id]--; s.forgeStat.uses[id]++; };
 // buying a tool (or a level of it) hands you a charge at once, so you can try it
-const grant = (s, id) => { s.toolCh[id] = Math.min(p.cap, s.toolCh[id] + 1); };
+const grant = (s, id) => { s.toolCh[id] = Math.min(forgeCap(s, id), s.toolCh[id] + 1); };
 
 // ---------- the three tools ----------
 
@@ -61,18 +73,19 @@ function drillUse(s, r, c, ev) {
   spend(s, 'drill');
   const L = lvl(s, 'drill'), last = s.top + s.rows.length - 1;
   let n = 0, rl = r, k = 0;
-  for (let rr = r; rr <= last && n < p.drillDepth; rr++) {
+  const depth = at(p.drillDepth, L), side = at(p.drillSide, L);
+  for (let rr = r; rr <= last && n < depth; rr++) {
     if (!cellAt(s, rr, c)) continue;
     later(s, p.drillGap * k++, 'forgePop', { r: rr, c, tool: 'drill' }); n++; rl = rr;
     if (isWall(s, rr, c)) break;
   }
   let end = p.drillGap * k;
-  if (L >= 2 && !isWall(s, rl, c)) {
-    for (let d = 1; d <= p.drillSide; d++) for (const dc of [-d, d]) if (cellAt(s, rl, c + dc)) later(s, end + p.drillGap * d, 'forgePop', { r: rl, c: c + dc, tool: 'drill' });
-    end += p.drillGap * p.drillSide;
+  if (side && !isWall(s, rl, c)) {
+    for (let d = 1; d <= side; d++) for (const dc of [-d, d]) if (cellAt(s, rl, c + dc)) later(s, end + p.drillGap * d, 'forgePop', { r: rl, c: c + dc, tool: 'drill' });
+    end += p.drillGap * side;
   }
-  if (L >= 3 && !isWall(s, rl, c)) later(s, end + p.drillGap, 'forgeBang', { r: rl, c, rad: p.drillBang, tool: 'drill' });
-  emit(s, ev, 'forgeDrill', { r, c, r1: rl, lv: L, gap: p.drillGap, side: L >= 2 ? p.drillSide : 0 });
+  if (L >= p.drillBangFrom && !isWall(s, rl, c)) later(s, end + p.drillGap, 'forgeBang', { r: rl, c, rad: p.drillBang, tool: 'drill' });
+  emit(s, ev, 'forgeDrill', { r, c, r1: rl, lv: L, gap: p.drillGap, side });
 }
 
 function dynUse(s, r, c, ev) {
@@ -86,19 +99,19 @@ function dynUse(s, r, c, ev) {
   }
   const b = s.boss;
   const weak = !!(L >= 2 && b && b.row === land && b.weak === c);   // it sticks to the crack it was put on
-  later(s, p.dynFuse, 'forgeDyn', { r: land, c, weak });
+  later(s, p.dynFuse, 'forgeDyn', { r: land, c, weak, lv: L });
   emit(s, ev, 'forgeDynPlace', { r: land, c, from: r, fuse: p.dynFuse, lv: L });
 }
 
 function magUse(s, r, c, ev) {
   spend(s, 'magnet');
-  const L = lvl(s, 'magnet'), mask = L >= 2 ? null : visibleMask(s), cells = [];
-  for (let i = 0; i < s.rows.length; i++) for (let cc = 0; cc < COLS; cc++) {
+  const L = lvl(s, 'magnet'), mask = L >= p.magDark ? null : visibleMask(s), cells = [], rad = at(p.magRad, L);
+  for (let i = 0; i < Math.min(VIEW_ROWS, s.rows.length); i++) for (let cc = 0; cc < COLS; cc++) {
     const cell = s.rows[i][cc];
     if (!cell) continue;
     const rr = s.top + i, dist = Math.hypot(rr - r, cc - c);
-    if (dist > p.magRad) continue;
-    if (!(BLOCKS[cell.t].ore || (L >= 3 && cell.t === 'chest'))) continue;
+    if (dist > rad) continue;
+    if (!(BLOCKS[cell.t].ore || (L >= p.magChest && cell.t === 'chest'))) continue;
     if (mask && !mask[i][cc]) continue;
     let walled = false;                                   // a pull never reaches past a Big Rock
     for (let x = Math.min(r, rr); x <= Math.max(r, rr); x++) if (x !== rr && isWall(s, x, 0)) walled = true;
@@ -119,17 +132,25 @@ function pop(s, q, ev) {
   const cell = cellAt(s, q.r, q.c);
   if (!cell) return;
   asTool(s, q.tool, () => {
-    if (BLOCKS[cell.t].wall) damage(s, q.r, q.c, hits(s) * p.drillBoss, 'you', ev, { chain: 1, tool: 1 });
-    else if (q.tool === 'drill') damage(s, q.r, q.c, hits(s) * p.drillPower, 'you', ev, { chain: 1, tool: 1 });
+    if (BLOCKS[cell.t].wall) damage(s, q.r, q.c, rockShare(s, q.c, hits(s) * p.drillBoss, s.boss && s.boss.weak === q.c ? PARAMS.boss.weakMult : 1), 'you', ev, { chain: 1, tool: 1 });
+    else if (q.tool === 'drill') damage(s, q.r, q.c, hits(s) * at(p.drillPower, lvl(s, 'drill')), 'you', ev, { chain: 1, tool: 1 });
     else breakCell(s, q.r, q.c, 'you', ev, { chain: 1 });
   });
+}
+// A tool never takes more than `bossShare` of a Big Rock's health (crack bonus included), so one stick
+// or drill cannot break a Gate alone. `m` is the crack bonus the damage will meet.
+function rockShare(s, c, dmg, m) {
+  const b = s.boss;
+  return b ? Math.min(dmg, p.bossShare * b.max / m) : dmg;
 }
 // A blast of the Forge's own. Like TNT it chains to blocks marked `chain` and stops at a Big Rock,
 // but it never chips the rock itself: only an aimed stick (below) or the drill hurts it.
 function boom(s, r, c, rad, dmg, centre, ev) {
   emit(s, ev, 'blast', { r, c, rad });
-  for (let dr = -rad; dr <= rad; dr++) for (let dc = -rad; dc <= rad; dc++) {
+  const k = Math.ceil(rad);
+  for (let dr = -k; dr <= k; dr++) for (let dc = -k; dc <= k; dc++) {
     if (!dr && !dc && !centre) continue;
+    if (Math.hypot(dr, dc) > rad + 1e-9) continue;
     const cell = cellAt(s, r + dr, c + dc);
     if (!cell) continue;
     const B = BLOCKS[cell.t];
@@ -145,20 +166,19 @@ function boom(s, r, c, rad, dmg, centre, ev) {
   }
 }
 function bang(s, q, ev) {
-  asTool(s, q.tool, () => boom(s, q.r, q.c, q.rad, hits(s) * p.dynPower, false, ev));
+  asTool(s, q.tool, () => boom(s, q.r, q.c, q.rad, hits(s) * at(p.dynPower, lvl(s, 'dynamite')), false, ev));
 }
 function dyn(s, q, ev) {
-  const wall = isWall(s, q.r, q.c);
+  const wall = isWall(s, q.r, q.c), L = lvl(s, 'dynamite'), rad = at(p.dynRad, L);
   asTool(s, 'dynamite', () => {
-    boom(s, q.r, q.c, p.dynRad, hits(s) * p.dynPower, !wall, ev);
+    boom(s, q.r, q.c, rad, hits(s) * at(p.dynPower, L), !wall, ev);
     if (wall) {
-      let dmg = hits(s) * p.dynBoss;
-      // a stuck stick remembers the crack: three times, wherever the crack has moved to since
-      if (q.weak && s.boss && s.boss.weak !== q.c) dmg *= PARAMS.boss.weakMult;
-      damage(s, q.r, q.c, dmg, 'you', ev, { chain: 1, tool: 1 });
+      const b = s.boss, crack = !!b && b.weak === q.c, stuck = !!q.weak && !!b && !crack;   // a stuck stick remembers the crack
+      const m = crack || stuck ? PARAMS.boss.weakMult : 1;
+      damage(s, q.r, q.c, rockShare(s, q.c, hits(s) * p.dynBoss, m) * (stuck ? m : 1), 'you', ev, { chain: 1, tool: 1 });
     }
   });
-  emit(s, ev, 'forgeBoom', { r: q.r, c: q.c, rad: p.dynRad, wall });
+  emit(s, ev, 'forgeBoom', { r: q.r, c: q.c, rad, wall });
 }
 
 export const forge = use({
@@ -176,9 +196,9 @@ export const forge = use({
   },
   shops: { forge: { at: 90, wallet: 'metal', levels: 'forgeUp', survives: ['site', 'land'] } },
   items: {
-    drill:    { at: 10, shop: 'forge', base: p.cost.drill, grow: p.grow, max: 3, levels: 'core', open: s => s.forgeOn, bought: s => grant(s, 'drill') },
-    dynamite: { at: 20, shop: 'forge', base: p.cost.dynamite, grow: p.grow, max: 3, levels: 'core', open: s => s.forgeOn && lvl(s, 'drill') > 0, bought: s => grant(s, 'dynamite') },
-    magnet:   { at: 30, shop: 'forge', base: p.cost.magnet, grow: p.grow, max: 3, levels: 'core', open: s => s.forgeOn && lvl(s, 'dynamite') > 0, bought: s => grant(s, 'magnet') },
+    drill:    { at: 10, shop: 'forge', base: p.cost.drill, grow: p.grow, max: p.max, levels: 'core', open: s => s.forgeOn, bought: s => grant(s, 'drill') },
+    dynamite: { at: 20, shop: 'forge', base: p.cost.dynamite, grow: p.grow, max: p.max, levels: 'core', open: s => s.forgeOn && lvl(s, 'drill') > 0, bought: s => grant(s, 'dynamite') },
+    magnet:   { at: 30, shop: 'forge', base: p.cost.magnet, grow: p.grow, max: p.max, levels: 'core', open: s => s.forgeOn && lvl(s, 'dynamite') > 0, bought: s => grant(s, 'magnet') },
   },
   tools: { drill: tool('drill', '1', drillUse), dynamite: tool('dynamite', '2', dynUse), magnet: tool('magnet', '3', magUse) },
   queue: { forgePop: pop, forgeBang: bang, forgeDyn: dyn },
@@ -232,28 +252,47 @@ function botShop(s, api) {
   const col = api.ctx.col, b = bossInView(s), log = api.trk.forgeUse || (api.trk.forgeUse = []);
   for (const id of ['dynamite', 'drill', 'magnet']) {
     if (!s.toolCh[id] || !lvl(s, id)) continue;
-    const urgent = s.toolCh[id] >= p.cap;
+    const urgent = s.toolCh[id] >= forgeCap(s, id);
     let tg = null;
     if (b && id !== 'magnet') {
+      // at a Big Rock: dynamite or the drill on the crack
       if (free(s, b.row, b.weak)) tg = [b.row, b.weak];
       else if (id === 'dynamite' && lvl(s, id) >= 3 && free(s, b.row - 1, b.weak)) tg = [b.row - 1, b.weak];
     }
     if (!tg && !b) {
-      if (api.rnd() > (urgent ? 0.9 : api.ctx.p.notice * 0.6)) continue;   // a player waits for a good moment
-      let best = null, bs = id === 'magnet' ? 1 : 0;
-      for (let i = 0; i < 7; i++) for (let c = 0; c < COLS; c++) {
-        const r = s.top + i;
-        if (!free(s, r, c)) continue;
-        let sc;
-        if (id === 'magnet') sc = count(s, r, c, 4, x => BLOCKS[x.t].ore);
-        else if (id === 'dynamite') sc = count(s, r, c, 2, valued) * 2 + count(s, r, c, 2, () => true) * 0.15;
-        else { sc = 0.5 - Math.abs(c - col) * 0.1; for (let k = 0; k < 5; k++) { const x = cellAt(s, r + k, c); if (x) sc += BLOCKS[x.t].ore ? 3 : 1; } }
-        if (sc > bs) { bs = sc; best = [r, c]; }
+      if (api.rnd() > 0.85) continue;                      // a player takes a moment to decide
+      const L = lvl(s, id);
+      let best = null, bs = 0;
+      if (id === 'magnet') {
+        // ore on the screen: pull when a few are in sight (or the bar is full and one is)
+        const n = count(s, s.top + 4, 4, 9, x => BLOCKS[x.t].ore || (L >= p.magChest && x.t === 'chest'));
+        if (n >= 3 || (urgent && n >= 1)) best = [s.top + 3, api.ctx.col];
+        if (best && !free(s, best[0], best[1])) { best = null; for (let i = 0; i < 7 && !best; i++) if (free(s, s.top + i, api.ctx.col)) best = [s.top + i, api.ctx.col]; }
+      } else if (id === 'dynamite') {
+        // a clump of treasure or TNT, or a thick patch of ground
+        bs = urgent ? 3 : 8;
+        for (let i = 0; i < 7; i++) for (let c = 0; c < COLS; c++) {
+          const r = s.top + i;
+          if (!free(s, r, c)) continue;
+          const sc = count(s, r, c, 2, valued) * 2 + count(s, r, c, 2, () => true) * 0.4;
+          if (sc > bs) { bs = sc; best = [r, c]; }
+        }
+      } else {
+        // the drill: the column where the ground ahead is hardest (hits it would take), near where you dig
+        const need = x => Math.min(60, x.hp / Math.max(1, hits(s)));
+        bs = (urgent ? 1.5 : 4) * at(p.drillDepth, L);
+        for (let c = Math.max(0, api.ctx.col - 2); c <= Math.min(COLS - 1, api.ctx.col + 2); c++) {
+          let r0 = -1;
+          for (let i = 0; i < 6; i++) if (free(s, s.top + i, c)) { r0 = s.top + i; break; }
+          if (r0 < 0) continue;
+          let sc = 0;
+          for (let k = 0; k < at(p.drillDepth, L); k++) { const x = cellAt(s, r0 + k, c); if (x) sc += BLOCKS[x.t].ore ? need(x) * 2 : need(x); }
+          if (sc > bs) { bs = sc; best = [r0, c]; }
+        }
       }
       tg = best;
-      if (!tg && urgent && id !== 'magnet') for (let i = 0; i < 6 && !tg; i++) if (free(s, s.top + i, col)) tg = [s.top + i, col];
     }
-    if (tg && useTool(s, id, tg[0], tg[1], api.ev)) { log.push({ t: api.trk.act, id }); did++; }
+    if (tg && useTool(s, id, tg[0], tg[1], api.ev)) { log.push({ a: Math.round(api.trk.act), id, best: s.best, lv: lvl(s, id) }); did++; }
   }
   return did;
 }

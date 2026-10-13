@@ -62,7 +62,7 @@ ui({
       },
     };
   })()],
-  items: Object.fromEntries(['drill', 'dynamite', 'magnet'].map(id => [id, { desc: (s, lv) => t(`up_${id}_d${Math.min(lv, 3) + 1}`) }])),
+  items: Object.fromEntries(['drill', 'dynamite', 'magnet'].map(id => [id, { desc: (s, lv) => t(`up_${id}_d${Math.min(lv, 5) + 1}`) }])),
   on: {
     forgeOpen(d, app) {
       const [x, y] = centre(d.r, d.c);
@@ -125,15 +125,16 @@ function badges(s) {
     if (!(id in s.toolCh)) continue;
     let fg = b.querySelector('.fg');
     if (!fg) {
-      fg = document.createElement('span'); fg.className = 'fg'; fg.innerHTML = '<u></u>';
+      fg = document.createElement('span'); fg.className = 'fg'; fg.innerHTML = '';
       const ch = document.createElement('em'); ch.className = 'ch';
       b.append(fg, ch);
     }
-    const full = s.toolCh[id] >= G.PARAMS.forge.cap;
-    fg.style.setProperty('--k', full ? 1 : s.toolFuel[id] / G.PARAMS.forge.need[id]);
+    const full = s.toolCh[id] >= G.forgeCap(s, id);
+    fg.style.setProperty('--k', full ? 1 : Math.min(1, s.toolFuel[id] / G.forgeNeed(s, id)));
     fg.classList.toggle('full', full);
     const ch = b.querySelector('.ch');
     ch.textContent = s.toolCh[id];
+    b.title = `${s.toolCh[id]} / ${G.forgeCap(s, id)}`;
     b.classList.toggle('empty', s.toolCh[id] <= 0);
   }
 }
