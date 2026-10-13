@@ -1,4 +1,4 @@
-// Dig feature (page side): almodeer, the manager. A drawn figure at the top-left of the stage with a clipboard, a whistle and a
+// Dig feature (page side): almodeer, the manager. A drawn figure at the top of the stage, between the coins pill and the depth pill with a clipboard, a whistle and a
 // glass of tea, and a text box. NOT a Rafeeq: he is never in s.diggers, has no seat, does nothing to the dig. The rules are
 // `chatterBossStep` in ./rules.js; this file feeds it (is the player digging? is a card open?) and draws him.
 import * as G from '../../game.js';
@@ -46,7 +46,7 @@ export function drawManager(g, s, dt) {
   if (live.shownT <= 0) return;
   const k = live.shownT, T = live.clock;
   const jump = mem.jump > 0 ? Math.sin(Math.min(1, (0.5 - mem.jump) / 0.5) * Math.PI) * 12 : 0;
-  const x0 = 38, y0 = 86 - (1 - k) * 90;
+  const x0 = 150, y0 = 88 - (1 - k) * 90;
   const sleep = mem.asleep, nod = sleep && !reduced ? Math.sin(T * 1.6) * 1.2 : 0;
   g.save(); g.translate(x0, y0 - jump);
   g.lineJoin = 'round'; g.lineCap = 'round';
@@ -109,14 +109,14 @@ export function drawManager(g, s, dt) {
   // the name plate
   g.save(); g.globalAlpha = k; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold 11px system-ui, sans-serif';
   const nm = G.t('boss_name') + '  ' + G.t('boss_name_ar'), pw = g.measureText(nm).width + 12;
-  rr(g, x0 - pw / 2, 90, pw, 14, 5); g.fillStyle = '#2b2118'; g.fill(); g.fillStyle = '#ffd23f'; g.fillText(nm, x0, 97.5);
+  rr(g, x0 - pw / 2, 91, pw, 14, 5); g.fillStyle = '#2b2118'; g.fill(); g.fillStyle = '#ffd23f'; g.fillText(nm, x0, 98.5);
   g.restore();
   // the text box
   if (mem.line && !s.chatterQuiet) {
     g.save(); g.globalAlpha = Math.min(1, mem.lineLeft * 3) * k; g.font = 'bold 14px system-ui, sans-serif'; g.textAlign = 'start'; g.textBaseline = 'middle';
     const rows = [''];
     for (const w of mem.line.split(' ')) { const cur = rows[rows.length - 1], tryRow = cur ? cur + ' ' + w : w; if (g.measureText(tryRow).width > 250 && cur) rows.push(w); else rows[rows.length - 1] = tryRow; }
-    const w = Math.max(...rows.map(r => g.measureText(r).width)) + 20, h = rows.length * 17 + 10, bx = 74, by = 10;
+    const w = Math.max(...rows.map(r => g.measureText(r).width)) + 20, h = rows.length * 17 + 10, bx = 186, by = 20;
     rr(g, bx, by, w, h, 8); g.fillStyle = '#fffdf2'; g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
     g.beginPath(); g.moveTo(bx + 1, by + 14); g.lineTo(bx - 9, by + 22); g.lineTo(bx + 1, by + 26); g.fillStyle = '#fffdf2'; g.fill(); g.stroke();
     g.fillStyle = INK; rows.forEach((r, n) => g.fillText(r, bx + 10, by + 14 + n * 17));
