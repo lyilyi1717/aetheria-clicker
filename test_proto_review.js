@@ -1,0 +1,21 @@
+// Dig code review: one test per defect that was found and fixed. Run: node test_proto_review.js
+import * as G from './proto/game.js';
+
+let failed = 0;
+const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg); } };
+const NO = () => {};
+const fresh = (seed = 1) => { G.seedRng(seed); return G.newState(); };
+const run = (s, secs, ev = NO) => { for (let i = 0; i < secs * 20; i++) G.step(s, 0.05, ev); };
+
+{ // the dealt cards are dropped when a level is finished: a look from the leave button must not pin the old level
+  const s = fresh();
+  G.siteRun(s); s.bossesDown = 2;
+  const before = G.dealCards(s);
+  ok(before.length === 1 && before[0].key === 'dunes:50', 'before the finish the deal is the level in play');
+  run(s, 0.1);
+  ok(s.run.done && s.road.deal === null, 'finishing drops the cached deal');
+  ok(G.dealCards(s)[0].key === 'boom:50', 'the next deal moves on to the next level');
+}
+
+if (failed) { console.error(failed + ' failed'); process.exit(1); }
+console.log('review: ok');

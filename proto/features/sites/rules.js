@@ -167,12 +167,14 @@ export function siteMedal(s, medal, ev = () => {}) {
   const r = siteRun(s);
   if (medal !== 'hard' || r.medals.hard) return 0;
   r.medals.hard = 1;
+  s.road.deal = null;                      // the dealt cards carry medals: deal them again
   return award(s, ev, stampOf(s, r.site, r.floor, r.twist), r.key, 'hard', medalPay(r.floor));
 }
 
 function finish(s, ev) {
   const r = siteRun(s);
   r.done = true; r.time = r.clock;
+  s.road.deal = null;                      // cards dealt before this finish (a look from the leave button) show the road as it was
   const st = stampOf(s, r.site, r.floor, r.twist);
   const first = !st.fin, fast = r.time <= r.par;
   let stars = first ? firstPay(r.floor, roadKind(r.site, r.floor, r.twist)) : replayPay(r.floor);
