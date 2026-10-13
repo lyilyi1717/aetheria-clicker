@@ -25,7 +25,7 @@ use({
       { hp: 1.20, val: 1.10, step: 3 },   // 100 m: The Black
       { hp: 1.20, val: 1.10, step: 2 },   // 125 m: The Living Rock
       { hp: 1.20, val: 1.10, step: 2 },  // 150 m: The Angry Layer
-      { hp: 1.20, val: 1.10, step: 1.5 },  // 175 m: The Hot Layer
+      { hp: 1.17, val: 1.10, step: 1.5 },  // 175 m: The Hot Layer (1.20 left level 13 a cliff of about 100 digs)
       { hp: 1.22, val: 1.10, step: 8 },   // 200 m and below: nothing new yet
     ],
     buyPow: 0.55,                   // coins -> hits: log(powGrow) / log(1.5), the price growth of a pick level

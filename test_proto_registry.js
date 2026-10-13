@@ -122,7 +122,7 @@ const kit = G.use({
   ok(G.buy(s, 'kitPerk', (k, d) => seen.push(k + ':' + (d.id || ''))) && s.gems === 5 && s.coins === 5 && s.gemUp.kitPerk === 1 && s.kitKeep === 1, 'buying spends the shop\'s own currency and runs bought()');
   ok(seen.includes('buy:kitPerk') && seen.includes('unlock:shop:kitPerk'), 'and reports the buy and the first time');
   ok(G.buy(s, 'kitPerk') && s.unlocked['kitPerk:2'] === 1, 'a level beyond the first is found too');
-  s.kitRun = 5; s.kitSite = 9; s.kitTemp = 'used'; s.bossesDown = 2; s.best = 60; s.up.pick = 4;
+  s.kitRun = 5; s.kitSite = 9; s.kitTemp = 'used'; s.bossesDown = 2; s.best = 60; s.up.pick = 2;   // under the start kit's reach (40% of 2 is 0)
   log.length = 0;
   ok(G.newSite(s, 'kitSite'), 'moving to a registered site');
   ok(s.kitKeep === 2 && s.gems === 1 && s.gemUp.kitPerk === 2, 'slices that declare survives: [site] are kept');

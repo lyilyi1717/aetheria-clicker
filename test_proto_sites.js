@@ -154,7 +154,7 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
 { // the road: fourteen levels in order; a level stays until it is finished; stuck brings side cards
   const s = fresh();
   const fin = (f, n = 1) => { s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n }; };
-  ok(G.ROAD.length === 14 && G.ROAD[13].floor === 200 && G.ROAD.slice(0, 4).every((f, i) => f === G.FIXED[i]), 'fourteen levels, the first four as before');
+  ok(G.ROAD.length === 14 && G.ROAD[13].floor === 200 && G.ROAD.slice(0, 4).every((f, i) => f.site === G.FIXED[i].site && f.floor === G.FIXED[i].floor) && G.ROAD.every(f => G.ZONES.includes(f.zone)), 'fourteen levels, the first four as before');
   ok([50, 75, 100, 125, 150, 175, 200].every(fl => G.ROAD.filter(f => f.floor === fl).length === 2), 'every depth is met twice');
   for (const f of G.FIXED) fin(f);
   s.road.reach = 75;

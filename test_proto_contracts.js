@@ -157,13 +157,13 @@ free = true;
   const s = ready(); take(s, 'richLazy');
   ok(!G.swing(s, 0, 3, NO), 'the pick cannot swing');
   G.buy(s, 'crew'); G.buy(s, 'crew');
-  ok(s.diggers.length === 2, 'two Rafeeqs bought with the gift');
+  ok(s.diggers.length === 3, 'two Rafeeqs bought with the gift, beside the one of the start kit');
   s.contractAim = [0, 8];
   run(s, 4);
   ok(s.total > 400 && s.rows[0][8] === null, 'they dug, near the aim');
 }
 { // feed the rock: only ore hurts it
-  const s = ready(OPEN); take(s, 'feedRock');
+  const s = ready(OPEN); take(s, 'feedRock'); s.diggers.length = 0;   // no Rafeeq of the start kit near the Rock
   s.top = 0; clear(s);
   s.rows = []; for (let i = 0; i < G.KEEP_ROWS; i++) s.rows.push(G.genRow(s, 20 + i));
   s.top = 20;

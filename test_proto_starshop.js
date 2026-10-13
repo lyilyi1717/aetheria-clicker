@@ -72,8 +72,8 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
 { // close chest, bone and oil
   const s = ready(); give(s, 'bag', 3);
   move(s);
-  const at = t => s.rows.findIndex(r => r.some(c => c && c.t === t));
-  ok(at('chest') === 3 && at('fossil') === 5 && at('oil') === 7, 'a chest, a bone and an oil well are close');
+  const has = (r, t) => s.rows[r - s.top].some(c => c && c.t === t);
+  ok(has(3, 'chest') && has(5, 'fossil') && has(7, 'oil'), 'a chest, a bone and an oil well are close');
 }
 
 { // heavy hand
@@ -144,6 +144,20 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
   const l = G.newState(); l.coins = 1e9;
   const shut = Object.keys(G.ITEMS).filter(id => !G.itemOpen(l, id));
   ok(shut.length > 0 && shut.every(id => !G.canBuy(l, id) && !G.buy(l, id)), 'a locked item cannot be bought');
+}
+
+{ // the start kit: a site after the first starts where the player is; a "prove it" level is harder
+  const s = ready(); s.up.pick = 20; s.starBestPick = 20;
+  move(s);
+  ok(s.up.pick === 8 && s.diggers.length === 1 && s.up.crew === 0, 'kit: pick at 40% of the best, one free Rafeeq waiting');
+  give(s, 'pick', 5); s.bossesDown = 2; move(s);
+  ok(s.up.pick === 10, 'Warm Pick (50%) beats the kit');
+  const a = ready(); a.bossesDown = 2;
+  G.newSite(a, 'boom', () => {}, undefined, { floor: 100, twist: '' });
+  const b = ready(); b.bossesDown = 2;
+  G.newSite(b, 'dunes', () => {}, undefined, { floor: 100, twist: '' });
+  ok(G.roadProve(a) && !G.roadProve(b), 'Powder Valley 100 m proves, the Dunes 100 m teaches');
+  ok(G.fold('bossHp', a, 100) === 100 * G.PARAMS.sites.proveHp && G.fold('bossHp', b, 100) === 100, 'the Gate of a prove level is harder');
 }
 
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
