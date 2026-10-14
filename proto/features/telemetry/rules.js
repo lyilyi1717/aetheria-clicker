@@ -32,6 +32,27 @@ export function telemetryTryRow(s, outcome) {
   };
 }
 
+// ---------- a session is a visit, not a tab focus ----------
+// A hide shorter than `gapS` (five minutes) is the same visit: alt-tabs and a look at a message do not end it. A visit ends when the
+// page has been hidden `gapS` or more, or when the page goes away (pagehide). Its length counts from the start to the moment of the
+// LAST hide (the long absence is not part of it); `att_s` is the attended play inside it. Pure: the caller passes the clock.
+export const VISIT = { gapS: 300, minS: 5 };
+export const visitNew = (now, awayBefore = null) => ({ start: now, hiddenAt: null, att: 0, awayBefore });
+export const visitAtt = (v, secs) => ({ ...v, att: v.att + Math.max(0, secs) });
+const visitRow = (v, endMs, p) => {
+  const len = Math.max(0, (endMs - v.start) / 1000);
+  return len >= p.minS ? { len_s: Math.round(Math.min(len, 1.7e5)), att_s: Math.round(Math.min(Math.max(0, v.att), 1.7e5)) } : null;
+};
+// ev: 'hide' | 'show' | 'tick' (a look at the clock while hidden) | 'end' (page leaves). Returns { v, row, ended }:
+// `row` is the session row to send (or null), `ended` is true when this visit is over (the caller then starts a new one).
+export function visitStep(v, ev, now, p = VISIT) {
+  if (ev === 'hide') return { v: v.hiddenAt === null ? { ...v, hiddenAt: now } : v, row: null, ended: false };
+  if (ev === 'end') return { v, row: visitRow(v, v.hiddenAt === null ? now : v.hiddenAt, p), ended: true };
+  if (v.hiddenAt === null) return { v, row: null, ended: false };
+  if ((now - v.hiddenAt) / 1000 < p.gapS) return { v: ev === 'show' ? { ...v, hiddenAt: null } : v, row: null, ended: false };
+  return { v, row: visitRow(v, v.hiddenAt, p), ended: true };       // hidden long enough: the visit ended when it was hidden
+}
+
 // What a purchase cost, worked out after it was paid (the level is already raised): the price of the level below.
 export function telemetryBuyPrice(s, id, level, upgradeCost) {
   const u = ITEMS[id]; if (!u) return 0;

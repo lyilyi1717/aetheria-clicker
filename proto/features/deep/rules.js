@@ -87,6 +87,14 @@ const TARGETS = ['tnt', 'oil', 'water', 'lava'];                                
 
 const key = (r, c) => r + ',' + c;
 const lit = s => s.deep.glows.some(g => g.until > s.deep.bc);
+// the nearest block of that kind in the rows above a Rock (the cure for its law): { r, c } or {}
+function cureAbove(s, row, kind) {
+  for (let r = row - 1; r >= s.top && r > row - LAYER; r--) for (let c = 0; c < COLS; c++) {
+    const x = cellAt(s, r, c);
+    if (x && x.t === kind) return { r, c };
+  }
+  return {};
+}
 
 // ---------- the Black ----------
 
@@ -296,6 +304,7 @@ const law = {
     mods: {
       sight: () => p.darkSight,
       damage: (v, s, cell) => (cell.t === 'boss' && !lit(s) ? v * p.rockDark : v),
+      rockTell: (v, s, b) => (lit(s) ? { kind: 'lit', pct: 100 } : { kind: 'dark', pct: Math.round(p.rockDark * 100), ...cureAbove(s, b.row, 'lantern') }),
     },
     hooks: {
       swung(s, sw) { s.deep.pick = [sw.r, sw.c]; },
@@ -303,6 +312,9 @@ const law = {
     },
   },
   living: {
+    mods: {
+      rockTell: (v, s, b) => (torchNear(s, b.row, undefined, p.torchRock) ? v : { kind: 'grow', pct: Math.round(p.rockGrow * 100), ...cureAbove(s, b.row, 'torch_crate') }),
+    },
     hooks: {
       broke(s, b, ev) {
         if (b.t === 'moss' || b.src === 'lava') return;
@@ -338,6 +350,7 @@ const law = {
   hot: {
     mods: {
       damage: (v, s, cell, src, info, r) => (cell.t === 'boss' ? v * (poolNear(s, r) ? p.coolMult : p.hotMult) : v),
+      rockTell: (v, s, b) => (poolNear(s, b.row) ? v : { kind: 'hot', pct: Math.round(p.hotMult * 100), ...cureAbove(s, b.row, 'water') }),
     },
   },
 };

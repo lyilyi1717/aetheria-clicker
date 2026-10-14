@@ -43,12 +43,21 @@ export function bossSwings(s, b = s.boss) {
   const est = swingEstimate(pickPower(s), share, crewWorking((s.diggers || []).length, dg.sieveEvery));
   return swingsLeft(Math.max(0, b.hp), b.sw, est);
 }
+// What the layer's law does to THIS Rock right now, so the bar can say it: null, or { kind, pct, r, c } with kind 'dark' | 'grow' | 'hot'
+// (also 'lit' for the Black once a light is on) and (r, c) where the cure sits above the Rock (a lantern, a torch crate, water), if any.
+// The laws answer through the `rockTell` mod (deep/rules.js), so this file knows no law.
+export function bossTell(s, b = s.boss) {
+  return b && b.hp > 0 ? fold('rockTell', s, null, b) : null;
+}
 export function bossAdvice(s) {
   // the next Pick step makes your hit x(step): say what that does to the Rock in the bar's own unit, your swings
   const b = s.boss, step = (PARAMS.starshop && PARAMS.starshop.step) || 1.5;
   const sw = b && b.hp > 0 ? bossSwings(s, b) : null;
   const hits = sw ? sw.n : 0, after = sw ? Math.min(Math.max(1, hits - 1), friendly(sw.raw / step)) : 0;
   const out = (kind, n) => ({ kind, n, hits, after });
+  // the law first: a Rock in the dark, growing or hot is not a Pick problem while the cure is one block away
+  const tell = bossTell(s, b);
+  if (tell && tell.kind !== 'lit' && tell.r !== undefined) return { ...out(tell.kind, tell.pct || 0), cure: [tell.r, tell.c] };
   if (canBuy(s, 'tr_pick')) return out('spend', upgradeCost(s, 'tr_pick'));
   const need = upgradeCost(s, 'tr_pick') - s.stars;
   const side = dealCards(s).filter(c => c.kind !== 'fixed' && c.stars >= need).sort((a, b) => b.stars - a.stars)[0];

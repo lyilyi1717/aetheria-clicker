@@ -106,6 +106,22 @@ function drawDark(g, s) {
   g.restore();
 }
 
+// the cure for the Rock's law (the lantern, the torch crate, the water) pulses so the eye finds it
+function drawCure(g, s) {
+  const b = s.boss;
+  if (!b || b.hp <= 0 || b.row - s.top >= G.VIEW_ROWS) return;
+  const tell = G.bossTell(s, b);
+  if (!tell || tell.r === undefined || tell.kind === 'lit' || tell.r < s.top) return;
+  const [x, y] = centre(tell.r, tell.c), k = 0.5 + 0.5 * Math.sin(fx.t * 4), rad = (1.1 + 0.5 * k) * CELL;
+  const col = tell.kind === 'hot' ? '90,170,255' : '255,210,100';
+  g.save(); g.globalCompositeOperation = 'lighter';
+  const gr = g.createRadialGradient(x, y, 4, x, y, rad);
+  gr.addColorStop(0, `rgba(${col},${0.35 + 0.25 * k})`); gr.addColorStop(1, `rgba(${col},0)`);
+  g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  g.strokeStyle = `rgba(${col},${0.45 + 0.4 * k})`; g.lineWidth = 3; g.beginPath(); g.arc(x, y, CELL * (0.5 + 0.12 * k), 0, 7); g.stroke();
+  g.restore();
+}
+
 function drawTorches(g, s) {
   for (const o of s.deep.torches) {
     const [x, y] = centre(o.r, o.c);
@@ -195,6 +211,7 @@ ui({
   },
   draw: [
     { at: AT.blocks + 30, fn: drawDark },
+    { at: AT.blocks + 31, fn: drawCure },
     { at: AT.blocks + 12, fn: drawTorches },
     { at: AT.blocks + 22, fn: drawLava },
     { at: AT.fx + 6, fn: drawFlights },
