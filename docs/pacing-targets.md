@@ -16,8 +16,8 @@ then `node scripts/dig-levels.cjs <file>`; the same with `--only active`. Values
 | Level 1 Gate | 8-12 min | 9.5 / 11.6 min | 1 try (3) | 14 Oct |
 | Level 4 done (first session ends on the pan to Africa) | 30-60 min | 32 / 26 min | 1 try (3) | 14 Oct |
 | Level 7 Gate (first hard level) | day 2-3, 1-2 tries | day 2.0 / 2.0, **3 / 4 tries** | **4 tries** (3) | 14 Oct |
-| Chapter one done (level 20) | day 10-15 (dig-design decision 6) | **day 15.0 / 14.6** (main 12.6 / 11.4, with the Gate walked while away) | - | 14 Oct, the Gate is yours |
-| Road done (level 40) | day 18-25 | **never: level 34 / 33 by day 30** (main 22.4 / 23.4, with the Gate walked while away); next step computed, not measured | - | 14 Oct, the Gate is yours |
+| Chapter one done (level 20) | day 10-15 (dig-design decision 6) | **day 15.0 / 14.6** (main 12.6 / 11.4, with the Gate walked while away) | - | 14 Oct, the Gate is yours (run 5) |
+| Road done (level 40) | day 18-25 | **day 23.2 / 24.4** (main 22.4 / 23.4, with the Gate walked while away) | - | 14 Oct, the Gate is yours (run 5) |
 | Stars by day 30 | retired (dig-design decision 14: one coin at any size); balance-analyst to replace with the next step's cost in digs at levels 20, 30, 40 | **8.4 T** (main at fafcf35: 1.8 T) | - | 14 Oct, Gate per level pass |
 | Share of core content seen at 1 day / 1 week / 30 days | at most 50% / 75% / 95% | **52 / 55%**, **86 / 82%**, 93 / 90% (1 h: not sampled, the series is daily) | - | 14 Oct |
 | Hits per dirt block, mid-leg, at the pick you bring | 2-6 (never above 8) | **about 80 to 14 000** (levels 5-20, see below) | - | 14 Oct |
@@ -199,60 +199,62 @@ the new table, `ch2Stars` 2e3): Stars by day 7 57 k (was 886 k), level 20 on day
 in 5 to 6 tries, levels 21 to 29 fought for 1 to 5 minutes, and the road stops at level 33 / 32 on day 30. The walk carries the whole
 road's pacing; changing it is a rule change for the owner, then a retune of `gateMul`, `proveHp` and both chapters.
 
-### The Gate is yours (14 October 2026, 4 sims, #430 + #429)
+### The Gate is yours (14 October 2026, 6 sims, #430 + #429)
 
 The rules (dig-design decision 13): the Gate of the level in play is never walked past while away (Rock Friend still passes the Rocks
 above it), and time away prices every row with the hardness the `row` hook gives it (`groundHp`: prove, chili, the heavy twist,
-chapter two), its sieve too. Run 1 = `main` at b865e8b. Run 2 = the rules, no retune. Run 3 = first retune. Run 4 = this branch.
+chapter two), its sieve too. Run 1 = `main` at b865e8b. Run 2 = the rules, no retune. Run 3 = first retune. Run 4 = prove Gates and `ch2Hard` head. Run 5 = **this branch** (run 4 plus the `ch2Hard` tail, main merged). Run 6 = run 5 with level 28 at 2e-5 (not kept).
 Mixed, 2 seeds, seed 1 / seed 2.
 
 SUM 1 (main): `mixed: fin1 10.4m fin4 d0.3 5.6/day vers 82/168 med 82f6h share 80% (79%) Stars 885.9k/8.4T depth 250/300/400 R4 d0.6 R6 d2.7 R8 d4.9 news 100%`
 SUM 2 (rules only): `mixed: fin1 10.4m fin4 d0.4 1.9/day vers 35/62 med 35f2h share 36% (34%) Stars 89.9k/50.0M depth 203/278/282 R4 d0.8 R6 d4.1 R8 d7.0 news 63%`
 SUM 3 (prove Gates cut, a ground factor per chapter-two level, Gates of 27-40 unchanged): `mixed: fin1 10.4m fin4 d0.3 2.3/day vers 40/75 med 40f5h share 42% (40%) Stars 397.2k/287.8M depth 238/276/288 R4 d0.6 R6 d2.3 R8 d5.3 news 68%`
-SUM 4 (this branch): `mixed: fin1 10.4m fin4 d0.3 3.3/day vers 46/104 med 46f8h share 57% (56%) Stars 397.2k/12.9B depth 238/275/288 R4 d0.6 R6 d2.3 R8 d5.3 news 87%`
+SUM 4: `mixed: fin1 10.4m fin4 d0.3 3.3/day vers 46/104 med 46f8h share 57% (56%) Stars 397.2k/12.9B depth 238/275/288 R4 d0.6 R6 d2.3 R8 d5.3 news 87%`
+SUM 5 (this branch): `mixed: fin1 10.4m fin4 d0.3 5.4/day vers 78/164 med 78f8h share 78% (78%) Stars 397.2k/1.4T depth 238/275/400 R4 d0.6 R6 d2.3 R8 d5.3 news 100%`
+SUM 6 (level 28 at 2e-5): `mixed: fin1 10.4m fin4 d0.3 5.3/day vers 75/162 med 75f8h share 78% (78%) Stars 397.2k/1.5T depth 238/275/400 R4 d0.6 R6 d2.3 R8 d5.3 news 100%`
 
-| Level | Run 1 (main): day | tries | Run 2 (rules only): day | tries | **Run 4 (this branch): day** | tries | digs between |
+| Level | Run 1 (main): day | tries | **Run 5 (this branch): day** | tries | digs between | Run 6: day | tries |
 |---|---|---|---|---|---|---|---|
-| 1 | 0.0 / 0.0 | 1 / 1 | 0.0 / 0.0 | 1 / 1 | 0.0 / 0.0 | 1 / 1 | 0 / 0 |
-| 2 | 0.2 / 0.2 | 1 / 1 | 0.2 / 0.2 | 1 / 1 | 0.2 / 0.2 | 1 / 1 | 1 / 1 |
-| 3 | 0.2 / 0.2 | 1 / 1 | 0.4 / 0.4 | 2 / 2 | 0.2 / 0.2 | 1 / 1 | 1 / 1 |
-| 4 | 0.4 / 0.2 | 1 / 1 | 0.4 / 0.4 | 1 / 1 | 0.4 / 0.2 | 1 / 1 | 2 / 1 |
-| 5 | 0.6 / 0.6 | 1 / 2 | 1.0 / 0.6 | 3 / 1 | 0.6 / 0.6 | 1 / 2 | 3 / 2 |
-| 6 | 1.0 / 1.0 | 1 / 2 | 1.4 / 1.0 | 4 / 1 | 1.0 / 1.2 | 1 / 5 | 3 / 5 |
-| 7 | 1.2 / 1.6 | 2 / 2 | 2.4 / 2.0 | 1 / 3 | 1.2 / 2.0 | 1 / 3 | 1 / 5 |
-| 8 | 1.4 / 2.0 | 1 / 1 | 4.0 / 3.0 | 8 / 4 | 1.6 / 2.0 | 2 / 1 | 3 / 1 |
-| 9 | 2.4 / 3.0 | 3 / 3 | 5.0 / 3.2 | 2 / 1 | 2.2 / 2.4 | 2 / 1 | 2 / 2 |
-| 10 | 2.6 / 3.2 | 2 / 1 | 5.4 / 3.6 | 3 / 4 | 2.6 / 3.2 | 2 / 4 | 3 / 4 |
-| 11 | 3.0 / 3.6 | 1 / 2 | 6.2 / 4.4 | 2 / 3 | 3.0 / 4.0 | 2 / 3 | 2 / 6 |
-| 12 | 3.2 / 4.0 | 1 / 2 | 6.6 / 5.0 | 4 / 3 | 3.4 / 4.2 | 4 / 1 | 4 / 1 |
-| 13 | 4.6 / 5.2 | 2 / 1 | 8.4 / 5.6 | 4 / 3 | 5.0 / 5.6 | 4 / 4 | 14 / 13 |
-| 14 | 5.2 / 5.4 | 1 / 2 | 9.0 / 6.4 | 3 / 4 | 5.4 / 6.2 | 2 / 2 | 3 / 2 |
-| 15 | 6.2 / 6.2 | 3 / 3 | 10.0 / 8.0 | 3 / 3 | 6.0 / 7.2 | 2 / 2 | 2 / 4 |
-| 16 | 6.4 / 6.6 | 1 / 1 | 10.4 / 8.6 | 3 / 4 | 7.0 / 8.2 | 3 / 3 | 4 / 5 |
-| 17 | 7.4 / 8.4 | 3 / 3 | 11.4 / 9.6 | 3 / 3 | 7.4 / 12.6 | 2 / 6 | 2 / 38 |
-| 18 | 8.0 / 8.6 | 2 / 1 | 13.0 / 10.6 | 4 / 4 | 8.0 / 13.0 | 3 / 1 | 3 / 1 |
-| 19 | 11.6 / 11.2 | 4 / 4 | 17.2 / 13.2 | 5 / 4 | 14.4 / 14.0 | 6 / 3 | 45 / 6 |
-| 20 | 12.6 / 11.4 | 1 / 1 | 18.0 / 15.2 | 4 / 5 | 15.0 / 14.6 | 2 / 4 | 2 / 4 |
-| 21 | 12.6 / 11.4 | 1 / 1 | 18.0 / 15.2 | 1 / 1 | 15.0 / 15.6 | 1 / 1 | 1 / 7 |
-| 22 | 13.0 / 11.6 | 1 / 2 | 18.4 / 15.4 | 4 / 1 | 15.0 / 16.2 | 1 / 2 | 1 / 11 |
-| 23 | 13.0 / 12.2 | 1 / 2 | 19.6 / 16.4 | 6 / 5 | 15.2 / 16.2 | 1 / 1 | 2 / 1 |
-| 24 | 13.0 / 12.4 | 1 / 1 | 21.6 / 17.6 | 9 / 6 | 16.0 / 16.6 | 1 / 2 | 4 / 2 |
-| 25 | 13.2 / 12.4 | 1 / 1 | never / never | - / - | 16.2 / 16.6 | 1 / 1 | 1 / 1 |
-| 26 | 13.4 / 12.6 | 2 / 1 | never / never | - / - | 16.4 / 18.0 | 1 / 2 | 1 / 5 |
-| 27 | 13.6 / 13.0 | 2 / 2 | never / never | - / - | 17.0 / 18.6 | 3 / 3 | 3 / 4 |
-| 28 | 14.0 / 13.0 | 1 / 1 | never / never | - / - | 18.2 / 19.6 | 4 / 3 | 6 / 4 |
-| 29 | 14.4 / 13.6 | 1 / 2 | never / never | - / - | 19.6 / 21.4 | 6 / 6 | 8 / 7 |
-| 30 | 14.6 / 15.0 | 2 / 2 | never / never | - / - | 21.2 / 23.0 | 7 / 8 | 7 / 8 |
-| 31 | 15.2 / 15.4 | 2 / 2 | never / never | - / - | 23.6 / 25.4 | 9 / 9 | 10 / 10 |
-| 32 | 15.4 / 15.6 | 2 / 1 | never / never | - / - | 26.4 / 27.0 | 12 / 7 | 12 / 7 |
-| 33 | 15.6 / 16.0 | 1 / 2 | never / never | - / - | 27.6 / 28.6 | 6 / 8 | 6 / 8 |
-| 34 | 16.0 / 16.6 | 2 / 2 | never / never | - / - | 29.2 / never | 5 / - | 16 / - |
-| 35 | 16.4 / 17.0 | 2 / 1 | never / never | - / - | never / never | - / - | - / - |
-| 36 | 16.6 / 17.2 | 2 / 2 | never / never | - / - | never / never | - / - | - / - |
-| 37 | 17.0 / 20.6 | 1 / 8 | never / never | - / - | never / never | - / - | - / - |
-| 38 | 17.2 / 21.0 | 1 / 1 | never / never | - / - | never / never | - / - | - / - |
-| 39 | 22.2 / 22.6 | 10 / 4 | never / never | - / - | never / never | - / - | - / - |
-| 40 | 22.4 / 23.4 | 2 / 2 | never / never | - / - | never / never | - / - | - / - |
+| 1 | 0.0 / 0.0 | 1 / 1 | 0.0 / 0.0 | 1 / 1 | 0 / 0 | 0.0 / 0.0 | 1 / 1 |
+| 2 | 0.2 / 0.2 | 1 / 1 | 0.2 / 0.2 | 1 / 1 | 1 / 1 | 0.2 / 0.2 | 1 / 1 |
+| 3 | 0.2 / 0.2 | 1 / 1 | 0.2 / 0.2 | 1 / 1 | 1 / 1 | 0.2 / 0.2 | 1 / 1 |
+| 4 | 0.4 / 0.2 | 1 / 1 | 0.4 / 0.2 | 1 / 1 | 2 / 1 | 0.4 / 0.2 | 1 / 1 |
+| 5 | 0.6 / 0.6 | 1 / 2 | 0.6 / 0.6 | 1 / 2 | 3 / 2 | 0.6 / 0.6 | 1 / 2 |
+| 6 | 1.0 / 1.0 | 1 / 2 | 1.0 / 1.2 | 1 / 5 | 3 / 5 | 1.0 / 1.2 | 1 / 5 |
+| 7 | 1.2 / 1.6 | 2 / 2 | 1.2 / 2.0 | 1 / 3 | 1 / 5 | 1.2 / 2.0 | 1 / 3 |
+| 8 | 1.4 / 2.0 | 1 / 1 | 1.6 / 2.0 | 2 / 1 | 3 / 1 | 1.6 / 2.0 | 2 / 1 |
+| 9 | 2.4 / 3.0 | 3 / 3 | 2.2 / 2.4 | 2 / 1 | 2 / 2 | 2.2 / 2.4 | 2 / 1 |
+| 10 | 2.6 / 3.2 | 2 / 1 | 2.6 / 3.2 | 2 / 4 | 3 / 4 | 2.6 / 3.2 | 2 / 4 |
+| 11 | 3.0 / 3.6 | 1 / 2 | 3.0 / 4.0 | 2 / 3 | 2 / 6 | 3.0 / 4.0 | 2 / 3 |
+| 12 | 3.2 / 4.0 | 1 / 2 | 3.4 / 4.2 | 4 / 1 | 4 / 1 | 3.4 / 4.2 | 4 / 1 |
+| 13 | 4.6 / 5.2 | 2 / 1 | 5.0 / 5.6 | 4 / 4 | 14 / 13 | 5.0 / 5.6 | 4 / 4 |
+| 14 | 5.2 / 5.4 | 1 / 2 | 5.4 / 6.2 | 2 / 2 | 3 / 2 | 5.4 / 6.2 | 2 / 2 |
+| 15 | 6.2 / 6.2 | 3 / 3 | 6.0 / 7.2 | 2 / 2 | 2 / 4 | 6.0 / 7.2 | 2 / 2 |
+| 16 | 6.4 / 6.6 | 1 / 1 | 7.0 / 8.2 | 3 / 3 | 4 / 5 | 7.0 / 8.2 | 3 / 3 |
+| 17 | 7.4 / 8.4 | 3 / 3 | 7.4 / 12.6 | 2 / 6 | 2 / 38 | 7.4 / 12.6 | 2 / 6 |
+| 18 | 8.0 / 8.6 | 2 / 1 | 8.0 / 13.0 | 3 / 1 | 3 / 1 | 8.0 / 13.0 | 3 / 1 |
+| 19 | 11.6 / 11.2 | 4 / 4 | 14.4 / 14.0 | 6 / 3 | 45 / 6 | 14.4 / 14.0 | 6 / 3 |
+| 20 | 12.6 / 11.4 | 1 / 1 | 15.0 / 14.6 | 2 / 4 | 2 / 4 | 15.0 / 14.6 | 2 / 4 |
+| 21 | 12.6 / 11.4 | 1 / 1 | 15.0 / 15.6 | 1 / 1 | 1 / 7 | 15.0 / 15.6 | 1 / 1 |
+| 22 | 13.0 / 11.6 | 1 / 2 | 15.0 / 16.2 | 1 / 2 | 1 / 11 | 15.0 / 16.2 | 1 / 2 |
+| 23 | 13.0 / 12.2 | 1 / 2 | 15.2 / 16.2 | 1 / 1 | 2 / 1 | 15.2 / 16.2 | 1 / 1 |
+| 24 | 13.0 / 12.4 | 1 / 1 | 16.0 / 16.6 | 1 / 2 | 4 / 2 | 16.0 / 16.6 | 1 / 2 |
+| 25 | 13.2 / 12.4 | 1 / 1 | 16.2 / 16.6 | 1 / 1 | 1 / 1 | 16.2 / 16.6 | 1 / 1 |
+| 26 | 13.4 / 12.6 | 2 / 1 | 16.4 / 18.0 | 1 / 2 | 1 / 5 | 16.4 / 18.0 | 1 / 2 |
+| 27 | 13.6 / 13.0 | 2 / 2 | 17.0 / 18.6 | 3 / 3 | 3 / 4 | 17.0 / 18.6 | 3 / 3 |
+| 28 | 14.0 / 13.0 | 1 / 1 | 18.2 / 19.4 | 5 / 3 | 7 / 4 | 17.6 / 19.6 | 1 / 3 |
+| 29 | 14.4 / 13.6 | 1 / 2 | 19.0 / 20.0 | 2 / 3 | 6 / 3 | 18.0 / 20.0 | 1 / 1 |
+| 30 | 14.6 / 15.0 | 2 / 2 | 19.4 / 20.6 | 2 / 1 | 2 / 3 | 18.6 / 20.4 | 4 / 3 |
+| 31 | 15.2 / 15.4 | 2 / 2 | 20.0 / 21.0 | 3 / 1 | 3 / 1 | 19.0 / 21.6 | 1 / 1 |
+| 32 | 15.4 / 15.6 | 2 / 1 | 20.2 / 21.2 | 1 / 1 | 1 / 1 | 20.0 / 22.0 | 3 / 1 |
+| 33 | 15.6 / 16.0 | 1 / 2 | 21.2 / 21.6 | 3 / 3 | 12 / 3 | 20.4 / 22.6 | 2 / 3 |
+| 34 | 16.0 / 16.6 | 2 / 2 | 21.4 / 22.0 | 1 / 1 | 2 / 1 | 21.2 / 22.6 | 3 / 1 |
+| 35 | 16.4 / 17.0 | 2 / 1 | 22.0 / 22.6 | 2 / 3 | 2 / 3 | 21.6 / 23.6 | 2 / 2 |
+| 36 | 16.6 / 17.2 | 2 / 2 | 22.2 / 22.6 | 1 / 1 | 1 / 1 | 22.0 / 23.6 | 1 / 1 |
+| 37 | 17.0 / 20.6 | 1 / 8 | 22.4 / 23.2 | 1 / 2 | 2 / 2 | 22.2 / 24.4 | 1 / 2 |
+| 38 | 17.2 / 21.0 | 1 / 1 | 22.6 / 23.4 | 1 / 1 | 1 / 2 | 22.6 / 24.6 | 2 / 1 |
+| 39 | 22.2 / 22.6 | 10 / 4 | 23.2 / 24.0 | 2 / 2 | 2 / 2 | 23.0 / 25.0 | 1 / 1 |
+| 40 | 22.4 / 23.4 | 2 / 2 | 23.2 / 24.4 | 1 / 1 | 1 / 3 | 23.2 / 25.2 | 1 / 1 |
 
 **Read.** The walk and the cheap away digging carried the road. With the rules alone (run 2) chapter one ends on day 18.0 / 15.2 and
 prove levels take 4 to 8 tries: their Gates (6 to 9.5 x the formula) had never been fought, the walk finished them. Chapter two stops
@@ -268,20 +270,18 @@ block, Rock and Gate of chapter two was 3e12 harder. In run 3 tries at levels 25
 - **Decided: chapter two is its chapter-one slot made `ch2Hp` x `ch2Hard[level]` harder in everything** (ground, Big Rocks, Gate;
   `gateMulCh2` 21-36 copy `gateMul`, the Empty Quarter 0.06 / 2.0), because the player's lead over the slot falls by about x5 per 25 m
   (hit x10 per 25 m in chapter two, x50 in chapter one), so one `ch2Hp` is a wall from level 25 on. `ch2Hp` 3e12 and `ch2Stars` 5e3
-  stay. `ch2Hard` = 0.5, 0.3, 0.03, 0.015, 1e-3, 5e-4, 1e-4, 1e-4, 6e-5, 6e-5, 3e-5, 3e-5, 1.2e-5, 1.2e-5, 5e-6, 5e-6, 2e-6, 2e-6, 8e-7, 8e-7.
+  stay. `ch2Hard` = 0.5, 0.3, 0.03, 0.015, 1e-3, 5e-4, 1e-4, 3.3e-5, 7e-6, 2e-6, 8e-7, 2.5e-7, 2.5e-7, 6e-8, 5e-8, 1.5e-8, 6e-9,
+  2e-9, 8e-10, 3e-10. Levels 21 to 27 set from run 3's hit at arrival; levels 28 to 40 scaled from run 4's swings at arrival to about
+  30 k (the Gate's hp is linear in the entry), which run 5 confirms: swings at arrival 12 k to 97 k at levels 28 to 40, fights 1 to 6 min.
 - **Decided: the site's own hardness (1.2 to 1.35, `genRow`) stays out of `groundHp`**, because it is not a `row` hook, is the same for
   every level of a site, and `away.rowCost` 1.9 was set without it; with it in (run 2) levels 3 and 4 took 2 tries.
 
-**Where run 4 misses.** Level 20 on day 15.0 / 14.6 (target 10 to 15: met, at the edge). Levels 21 to 27 in 1 to 3 tries, fought 1 to 5
-minutes (swings at arrival 1.4 k to 36 k). From level 28 the Gate in swings at arrival grows about x3 a level (28: 63 k / 143 k, 30:
-0.9 M / 1.4 M, 32: 2.6 M / 6.1 M, 34: 4.8 M / 9.1 M) and tries rise to 6 to 12: **the road stops at level 34 / 33 on day 30 (target:
-level 40 on day 18 to 25, not met).** Above 3 median tries: levels 13 (4), 17 (4), 19 (4.5) and 28 to 34 (3.5 to 9.5); exactly 3: levels 6, 10, 20.
-The stalls at 17 and 19 (38 and 45 digs between on one seed) are the late-learn-level wall (Known walls, #397).
-
-**Next step (computed, not measured: the session's four sims are used).** Scale the tail of `ch2Hard` by the swings at arrival of run 4
-to about 30 k (the Gate's hp is linear in it): `ch2Hard` levels 28 to 40 = 3.3e-5, 7e-6, 2e-6, 8e-7, 2.5e-7, 2.5e-7, 6e-8, 5e-8, 1.5e-8,
-6e-9, 2e-9, 8e-10, 3e-10 (levels 21 to 27 as now). Expected: levels 28 to 34 in 1 to 3 tries at about 0.3 to 0.5 day each, road end
-about day 22 to 25. One mixed run, 2 seeds, checks it.
+**Run 5 against the targets.** Level 20 on day 15.0 / 14.6 (10 to 15: met, at the edge). **Level 40 on day 23.2 / 24.4 (18 to 25:
+met).** Levels 21 to 40: 1 to 3 tries, except level 28 (5 / 3, median 4). Above 3 median tries in chapter one: levels 13 (4), 17 (4),
+19 (4.5); level 17 and 19 each stall once (38 and 45 digs between on one seed), the late-learn-level wall (Known walls, #397).
+Prove levels at least as many tries as their learn level: no (levels 8, 12 on one seed each). Run 6 (level 28 at 2e-5) moved level 28 to
+3 / 1 but put level 30 at 3 / 4 and level 40 on day 23.2 / 25.2 (out by 0.2 days on seed 2), so run 5's table is kept: the two runs
+differ by about the noise of one seed. Open: level 28 at median 4; chapter one's late learn levels (#397).
 
 ### First session (mixed, attended minutes)
 
@@ -337,7 +337,7 @@ past 100 m: the barrels are.
 | Road too short: level 20 on day 8-11, target 18-25; from level 9 on every level is about 2x early (**closed**: chapter two, #418 and the 14 Oct balance pass, road end day 21.0 / 19.0) | Same constants as the first row, the other way: early depths (100-175 m) grow x43-x97 a leg against Stars x4.5 plus the chili hit, so levels 9-14 fall in 1-3 tries a day apart | Not a price fix: slowing levels by price brings back the grind. Done: chapter two | decided (dig-design decision 6: level 20 day 10-15, level 40 day 18-25) |
 | Hits per dirt block 80 to 14 000 by hand mid-leg (target 2-6) | Ground grows `hp` 1.175-1.21 a row = x48-x117 a leg (`proto/core/rules.js:25-31`) while your hit grows x3.7 a leg (`valGrow 1.10`, `powGrow 1.25` at x1.5 price, `buyPow 0.55`, `rules.js:17,20,33`); prove ground x6 on top. Blast chains do 70% of the damage, so the player does not feel the pick at all | Builder brief: fresh-eyes study package 3 (steady ground, sharp Rocks): in-leg `hp` near 1.05 a row (= the pick's x3.7 a leg) with the rest moved into each 25 m `step`, and the ground's level set from the pick the road expects, the Gates kept by raising `gateMul` by the same factor. Rule-shaped (ground formula and Gate sizes move together); not a params-only PR | brief |
 | Chapter two, levels 27 to 40: the player cannot hurt the Gate (**partly closed**: per-level Gates, v5.33.2, levels 27 to 29 fought 2 to 8 min; 30 to 40 in the next two rows) | Before v5.33.2, at `ch2Stars` 2e3 the hit falls behind from level 27: swings at arrival x10 to x20 the chapter-one slot at 27 to 30 (175 k to 2.3 M against 9 k to 137 k); at 31 to 36 the player never hits the Gate in the winning try; Empty Quarter learn Gates 1.6 G and 11 G swings. They fall in 1 to 3 tries to TNT (`boss.blastShare` 0.02 a barrel, `blastCap` 0.3 a try) and the Gate's memory (`gateShare` 0.6), so the fight at 37 and 39 lasts 21 to 24 minutes whatever the Gate's size | A Gate size per chapter-two level (`gateMulCh2` 20 entries; `gateMulOf` and `test_proto_rocks.js` change by two lines); done (Gate per level pass) | closed for 27-29 |
-| Gates walked past while away: chapter-two levels 30 to 36 (some tries of 28, 29) and chapter-one prove levels finish with no hit on the Gate | `awayWalk` (`sp_wake`, `proto/features/starshop/rules.js`) passes every Rock of a layer up to `s.starBoss` and sets `s.bossesDown`, which is the level's finish check (`bossesDown * LAYER >= floor`). Chapter two repeats depths broken in chapter one; a prove level repeats its learn level's depth. Probe with the Gate not walkable: level 20 day 16.6 / 18.2 (was 12.6 / 11.4), road stops at level 33 / 32 | Rule: the Gate row of the level in play (`r.floor`, run not done) is never `passable`; then retune `gateMul`, `proveHp`, `ch2Stars` (the walk carries the pacing today). Away digging also prices hard ground as plain (#429), fixed in the same branch | built (the Gate is yours, #430 + #429); retune half done: road stops at level 34 / 33 |
+| Gates walked past while away: chapter-two levels 30 to 36 (some tries of 28, 29) and chapter-one prove levels finish with no hit on the Gate | `awayWalk` (`sp_wake`, `proto/features/starshop/rules.js`) passes every Rock of a layer up to `s.starBoss` and sets `s.bossesDown`, which is the level's finish check (`bossesDown * LAYER >= floor`). Chapter two repeats depths broken in chapter one; a prove level repeats its learn level's depth. Probe with the Gate not walkable: level 20 day 16.6 / 18.2 (was 12.6 / 11.4), road stops at level 33 / 32 | Rule: the Gate row of the level in play (`r.floor`, run not done) is never `passable`; then retune `gateMul`, `proveHp`, `ch2Stars` (the walk carries the pacing today). Away digging also prices hard ground as plain (#429), fixed in the same branch | built (the Gate is yours, #430 + #429); retuned: road end day 23.2 / 24.4 |
 | Levels 37 and 39: 4 to 10 tries, 10 to 26 other digs | The player stalls on the last rows above the Gate at 300 / 325 m (own hits on the Gate under 1% in failed tries, give-up after 240 s); the Gate falls to TNT (30%) plus its memory at any size (2e-4 or 2e-9). `ch2Hp` 3e12 on ground that grows x110 to x170 per 25 m | Next pass: log what the sim player hits in those 240 s (a sim-player stall in the Hot layer, or real ground); if ground, a per-depth `ch2Hp` (allowed: dig-design decision 15) | open, #431 |
 | Stars by day 30 at T (fault 12; 8.4 T at `ch2Stars` 5e3) | Chapter two needs the hit x10^12 over 20 levels like chapter one; the hit grows about as Stars^1.9 (levels 21 to 36: hit x3e11 for Stars x1.3e6), so Stars must grow about x10^6 from the 1.5e7 at level 20. After level 40 the free deal is chapter-one ground at 350 to 400 m (`starsAt(400)` = 4.1e9 a floor). x10 of 0.8 B is out of reach by params | One coin at any size; target retired | decided (dig-design decision 14) |
 | Side cards beside a stuck chapter-two level pay almost nothing | `card(s, site, floor, twist)` makes every twist chapter one (`ch = !twist && ch === 2 ? 2 : 1`), so beside a chapter-two level the side cards pay chapter-one Stars, about 2,000 times less | Builder: deal chapter-two side cards (replay or medal of a chapter-two level) beside a chapter-two level | brief |
@@ -371,7 +371,7 @@ Core loop (`?loop=2`, paused): `node sim/redesign/run.mjs --assert`; not measure
 | Date | Param | From -> to | Why | Before / after |
 |---|---|---|---|---|
 | 14 Oct 2026 | `sites.gateMul` (prove entries, level 17) | 8.87, 7.49, 7.99, 6.23, 9.43, 9.45, 6.37, 4.34 -> 3.0, 1.4, 1.9, 2.7, 3.5, 2.4, 1.9, 1.4; 0.126 -> 0.09 | The Gate is yours: prove Gates are fought now (run 2: 4 to 8 tries) | level 20 day 18.0 / 15.2 (rules only) -> 15.0 / 14.6 |
-| 14 Oct 2026 | `sites.ch2Hard` (new), `gateMulCh2` | one `ch2Hp` for all of chapter two -> x `ch2Hard[level]` (1 to 8e-7) on ground, Rocks and Gate; `gateMulCh2` 21-36 = `gateMul` | Run 2 stopped at level 24 / 24: chapter-two ground priced honestly is a wall | road reaches level 34 / 33 by day 30 (target 40 by day 25: not met) |
+| 14 Oct 2026 | `sites.ch2Hard` (new), `gateMulCh2` | one `ch2Hp` for all of chapter two -> x `ch2Hard[level]` (0.5 to 3e-10) on ground, Rocks and Gate; `gateMulCh2` 21-36 = `gateMul` | Run 2 stopped at level 24 / 24: chapter-two ground priced honestly is a wall | head only (run 4): road stops at level 34 / 33; with the tail (run 5): road end 23.2 / 24.4, Stars by day 30 1.4 T |
 | 14 Oct 2026 | `sites.gateMulCh2` | 4 entries (levels 37 to 40; 21 to 36 read `gateMul`) -> 20 entries, one per chapter-two level (`gateMulOf`) | Levels 27 to 30: Gate x10 to x20 the chapter-one slot in swings at arrival | levels 27 to 29 fought 2 to 8 min (slot 0.5 to 7 min); 30 to 40 unchanged (walk, ground) |
 | 14 Oct 2026 | `sites.ch2Stars` | 2e3 -> 5e3 | Road end 29.0 / 23.4 on main after v5.33.1 (25.4 / 28.0 with the new Gates) | road end 22.4 / 23.4; Stars by day 30 1.8 T -> 8.4 T |
 | 14 Oct 2026 | `sites.ch2Stars` | 2e5 -> 2e3 | Chapter two paid the player past the next levels: road end 24.2 / never, Stars 68 T | road end 21.0 / 19.0; Stars by day 30 2.1 T |
