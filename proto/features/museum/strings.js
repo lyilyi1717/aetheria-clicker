@@ -10,4 +10,16 @@ export default { en: {
   mus_opens: 'Finish it and: {what}',
   mus_opened: 'It opened: {what}',
   mus_none: 'Nothing for the Museum here.',
+}, ar: {
+  museum: 'المتحف',
+  t_fossil_none: 'عظمة قديمة. بيعت مقابل {n} عملة.',
+  mus_strip: '{set}',
+  mus_count: 'وجدت {a} من {b}',
+  mus_done: 'اكتمل!',
+  mus_arrow: 'شيء لامع في الأسفل',
+  mus_map: 'المتحف: {set}، وجدت {a} من {b}',
+  mus_map_done: 'المتحف: اكتمل {set}',
+  mus_opens: 'أكمله لتحصل على: {what}',
+  mus_opened: 'فتح لك: {what}',
+  mus_none: 'لا شيء للمتحف هنا.',
 } };

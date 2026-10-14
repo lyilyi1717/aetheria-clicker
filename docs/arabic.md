@@ -94,6 +94,12 @@ Use these exactly. If a word is not here and is new, add it here in the same PR.
 | Star track steps (Camp) | رفيق ينتظرك، اثنان ينتظرانك، ثلاثة ينتظرونك، صديق الصخور، أحذية جيدة، الإبريق الثاني، المخيّم كله | Rafeeq Waiting ... The Whole Camp |
 | Star track steps (Bag) | خريطة الكنز، صفّارة العظام، شمّام النفط، الجيب المحظوظ، صندوق الجيب، هزّ الصندوق، الجيب العميق، الأيدي الواسعة، عيون البووم، صندوقا جيب، أعمق جيب، الجيب الثاني | Treasure Map ... Second Pocket; Boom Eyes keeps the sound word |
 | Museum sets named so far | طقم شاي الجدة، عُدّة الطيّار الضائع، قلادة اللؤلؤ، قرش الكثبان، منصة النفط القديمة | Grandma's Tea Set, Lost Pilot's Kit, Pearl Necklace (not «عقد»: that is a contract), Dune Shark, Old Oil Rig. `wing2` (pass 4) must use these |
+| Museum sets (all 13) | الجمل العجوز، حوت الرمل، مصباح الجنّي، الضبّ، عملات القافلة، طقم شاي الجدة، عُدّة الطيّار الضائع، الخنفساء العملاقة، قرش الكثبان، قلادة اللؤلؤ، منصة النفط القديمة، الجمل الطائر، وحش الرمل العظيم | Old Camel ... The Great Sand Beast (pass 4); «اكتمل {set}!» needs no «طقم» before a set name |
+| Dusty Bundle / Bone Jar / wish | الصُّرّة المغبرّة (الصُّرر) / جرّة العظام / الأمنية | Shark Dunes = كثبان القرش, Mirage Dunes = كثبان السراب |
+| Forge tools: Drill, Dynamite, Magnet | المثقاب، عصا الديناميت، المغناطيس | the tool is «عصا الديناميت» so it never collides with TNT «الديناميت» |
+| Relics two | المعول القافز، الحجر التوأم، الصخور الطائرة، المغناطيس، المعول الملتهب، براميل النار، البوميرانغ، الانهيار، المعول المستعار، الفزعة، حديقة الخام، قِدر الصهر | Jumping Pick ... Melting Pot; Faz'a stays the Gulf word «الفزعة»; chest relics: الدينار المحظوظ، عين اللؤلؤ، برج الحفر |
+| Recipe Book / Fuse | كتاب الوصفات / ادمج | fusion names in `fusion/strings.js` (معول المرآة، صخور الفشار ...) |
+| Deep layers | الطبقة السوداء، الصخر الحيّ، الطبقة الغاضبة، الطبقة الحارّة | Grump = «كتلة زعلانة» (the Gulf word for sulky), Thief block = «كتلة الحرامي», lava = حمم, ember = جمرة |
 
 ### Characters
 | English | Arabic | Note |
@@ -149,8 +155,8 @@ Counted 14 Oct 2026.
 |---|---|---|
 | Aetheria | `js/i18n/en.js` + `ar.js` (`node test_r37_i18n.js`) | **2,307 / 2,307 keys** and 465 data keys; 4,055 checks pass |
 | Core loop (`?loop=2`) | `js/i18n/coreloop/` | paused; not counted |
-| Dig | `proto/features/*/strings.js`, `proto/ui/strings.js` (`npm run dig:i18n`) | **1,824 / 2,196 strings** after pass 2b (14 Oct 2026). 30 folders complete and listed in `COMPLETE` (`test_dig_i18n.js`). Left for pass 4: wing2 166, relics2 62, fusion 56, deep 45, forge 32, museum 11 = 372. The language switch is in Settings for everyone (5.35.0). |
-| Changelog (About tab) | `js/version.js` | every entry has Arabic; Dig entries 5.32.0 to 5.35.0 reviewed 14 Oct 2026 |
+| Dig | `proto/features/*/strings.js`, `proto/ui/strings.js` (`npm run dig:i18n`) | **2,196 / 2,196 strings** after pass 4 (14 Oct 2026), plus the inline «Buy all» table (4). Every folder is in `COMPLETE`; `test_dig_i18n.js` now fails on a folder missing from `COMPLETE` and on an inline `addStrings({ en` table with no `ar`. |
+| Changelog (About tab) | `js/version.js` | every entry has Arabic; Dig entries 5.32.0 to 5.35.1 reviewed 14 Oct 2026 |
 
 Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 154, starshop 102, rafeeqs 96, contracts 92, worldmap 79, wardrobe 69, picks 68, relics2 62, fusion 56, moods 47, deep 45, ui 42, boss 41, forge 32, away 28, shop 22, foreman 15, look 14, chest 13, settings 12, diggers 11, museum 11, water 9, crystal 8, relics 8, ground 7, track 7, telemetry 5, combo 4, crits 4, ores 4, tnt 3, oil 2. (Count with a throwaway script that imports each `strings.js` default and counts `en` keys; a count kept in the repo is part of the plumbing brief.)
 
@@ -226,6 +232,18 @@ Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 1
 
 **Decided (14 Oct 2026, by localizer): 5.34.0 reworded** (wording only, as before): the step names are in «» («صديق الصخور»، «النجمة الساقطة») as button and label names are; "the away card" is the «أهلاً بعودتك» card (the glossary's name for it); «أيضاً» with the house spelling; "8.9 times" is «8.9 ضعف ... والآن 3 أضعاف» (was «8.9 أضعاف ... والآن 3»); "2 to 6 times smaller" is «أصغر بمرتين إلى ست مرات» (was «من مرتين»); "softer" is «أسهل», the word a child knows (was «ألين»); the nerf note says what is weaker: «هذا إضعاف لما يجلبه الغياب هناك».
 
+**Decided (14 Oct 2026, by localizer): pass 4 closes Dig's Arabic** (wing2 166, relics2 62, fusion 56, deep 45, forge 32, museum 11, and the 4 «Buy all» strings that lived outside any `strings.js` and so were never counted). From now on every folder must be whole: the test fails on a folder not in `COMPLETE` and on an inline table without `ar`, which is option (b) of section 5 made a rule.
+
+**Decided (14 Oct 2026, by localizer): an English line that still reaches Arabic text is wrapped in a first-strong isolate** (U+2068 ... U+2069, in `t()`), because #443 showed what an unwrapped English fallback does in right to left: "Level 10 of 20" became "20 Level 10 of" and full stops jumped to the wrong end. With all strings translated this should never fire; it is the net for a future key that slips through.
+
+**Decided (14 Oct 2026, by localizer): clocks and signed values are isolated like numbers** («1:40»، «+12%»، «-0:25» go in a left-to-right isolate in `t()`, as «12.5K» already did), because a minus or plus sign at the start of a number is a neutral character and in right to left it can land at the far end.
+
+**Decided (14 Oct 2026, by localizer): the road map's land chips run left to right in Arabic too** (Arabia first, on the left), with each chip's words right to left. The map picture never mirrors (section 6), and the chips are a strip of buttons that jump along that picture; in right to left they ran opposite to it (Arabia at the far right while Arabia is drawn at the far left), so a child pressing the first chip saw the map move the other way. The pan buttons already follow the picture (decided above); the chips now agree.
+
+**Decided (14 Oct 2026, by localizer): the Forge's Dynamite is «عصا الديناميت»**, because TNT barrels are «الديناميت» (glossary) and two things must not share one name; the stick is also what the Forge draws.
+
+**Decided (14 Oct 2026, by localizer): "Every {n}th hit" keeps the pass 1 form «كل ضربة رقم {n}»** (as «معول الانفجار»), and "every {n} Rafeeq hits" is «ضربة واحدة من كل {n} من ضربات الرفقاء»; block counts use «كتلاً عددها {n}», all right for any number. "Tool is ready" is «يمكنك استعمال {name} الآن», because «جاهز» would need a gender per tool (المثقاب، عصا الديناميت).
+
 ## 6. Dig: plumbing and passes
 
 ### What exists
@@ -249,7 +267,7 @@ Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 1
 | 2 (done) | `away` 28, `settings` 33, `telemetry` 6 (moved from pass 1), `worldmap` 79, `rafeeqs` 98 (with the 61 nickname lines), `wardrobe` 69, `contracts` 92 | 405 | the first hour: road map, Alqahwa, the crew, the welcome-back card |
 | 2b (done) | `sites` 161, `starshop` 102, plus the Settings language buttons | 263 | the finish card and Star tracks |
 | 3 (done) | `chatter` 668, `moods` 47, `story` 154 (moved from pass 4) | 869 | the crew's voices, heard from the first hire, and the hakawati |
-| 4 | `wing2` 166, `museum` 11, `relics2` 62, `fusion` 56, `forge` 32, `deep` 45 | 372 | Museum, fusion: arrive later |
+| 4 (done) | `wing2` 166, `museum` 11, `relics2` 62, `fusion` 56, `forge` 32, `deep` 45, plus «Buy all» 4 | 376 | Museum, fusion: arrive later |
 
 Total 2,169. Each pass is one worktree and one draft PR (pass 3 splits into `chatter` lines by trait if it grows past review size); the owner reviews the Arabic in the PR. screen-checker takes one RTL screenshot set after pass 1 (`?lang=ar`): the dig, the shop tab, the finish card, and the drawer, at desktop width only.
 
