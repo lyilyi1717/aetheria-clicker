@@ -4,6 +4,9 @@
 /* the chip may get narrow (art-and-sound decision 10): its word ends in dots, the step mark keeps its own room at the end */
 #goal-pin button { position: relative; display: block; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 700; line-height: 1.2; padding-block: 1px; padding-inline: 8px 19px; border-radius: 10px; border: 1px solid var(--gold); background: var(--panel-2); color: var(--gold); cursor: pointer; white-space: nowrap; }
 #goal-pin button::after { content: ''; position: absolute; inset-inline-end: 7px; inset-block-start: calc(50% - 3.5px); width: 5px; height: 5px; border-block-start: 2px solid currentColor; border-inline-end: 2px solid currentColor; transform: rotate(45deg); }
+/* Arabic (decision 17): the top line keeps its places left to right, so the chip sets its own direction; its words end in dots
+   on the left and the step mark sits at its left end pointing left, the way the next goal is in a right-to-left page */
+:root[dir=rtl] #goal-pin button { direction: rtl; unicode-bidi: isolate; }
 :root[dir=rtl] #goal-pin button::after { transform: rotate(-45deg); }
 #goal-pin button:hover { color: #1a1206; background: var(--gold); }
 #goal-pin .pin-dots { display: inline-flex; flex: none; gap: 3px; }

@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { t, setLang, hasString } from './proto/core/strings.js';
 import { ownDir, goalParts } from './proto/core/lang.js';
 import track from './proto/features/track/strings.js';
+import sites from './proto/features/sites/strings.js';
 import { levelLine } from './proto/features/track/line.js';
 
 let failed = 0;
@@ -101,6 +102,27 @@ setLang('en');
   ok(/toast\(t\('star_pointer'\)/.test(star), 'the Star pointer still shows in the message line');
   const css = src('proto/proto.css');
   ok(/#stage, #cv \{ direction: ltr; \}/.test(css) && /:root\[dir=rtl\] \.layout > \.mid \{ direction: ltr; \}/.test(css), 'the stage and the row stay unmirrored');
+}
+
+// ---------- decisions 17 to 19 (eighth pass): the Gate goal keeps its number, the Arabic chip points left, no lone last word ----------
+if (!hasString('goal_gate_far')) G.addStrings(sites, 'sites');
+for (const lang of ['en', 'ar']) {
+  setLang(lang);
+  const far = goalParts(t('goal_gate_far', { name: 'X', n: 150 }), '150');
+  ok(far && far.count.replace(/[⁦-⁩]/g, '').startsWith('150') && !/150/.test(far.lead), `${lang}: the far Gate goal keeps its metres whole: ` + JSON.stringify(far));
+  const sw = goalParts(t('goal_gate', { n: '12' }), '12');
+  ok(sw && /12/.test(sw.count) && !/12/.test(sw.lead), `${lang}: the swings goal keeps its number whole: ` + JSON.stringify(sw));
+}
+setLang('en');
+{
+  const sui = src('proto/features/sites/ui.js');
+  ok(/num: String\(r\.floor\)/.test(sui) && /num: sw === 1 \? null : n/.test(sui), 'the Gate goals say where their number starts');
+  const pick = src('proto/features/picks/picks.css');
+  ok(/:root\[dir=rtl\] #goal-pin button \{ direction: rtl;/.test(pick), 'the Arabic chip reads right to left, its step mark at the left end');
+  ok(/:root\[dir=rtl\] #goal-pin button::after \{ transform: rotate\(-45deg\); \}/.test(pick), 'the Arabic step mark points left');
+  const star = src('proto/features/starshop/ui.js');
+  ok(/keepEnd\(info\.desc\)/.test(star) && /\\u00a0\$1/.test(star), 'the Camp card binds its last word to the one before');
+  ok(/\.shop-item \.d \{[^}]*text-wrap: pretty/.test(src('proto/proto.css')), 'card lines avoid a lone last word');
 }
 
 if (failed) { console.error(`\n${failed} failed`); process.exit(1); }

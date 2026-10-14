@@ -17,7 +17,7 @@ ok(lineCount('x'.repeat(40), 100) >= 3, 'a word wider than the line still counts
 // ---------- the budget: the room left after T1 at 1366 x 768 ----------
 ok(LESSON.font >= 13, 'lessons keep the 13 px floor');
 ok(LESSON.lines * LESSON.font * LESSON.lineHeight <= 40 + 6, 'three lines fit in the line and the 6 px under it');
-ok(518 - 216 - 8 - 11 >= LESSON.room, `the room checked (${LESSON.room} px) is not more than the laptop gives`);
+ok(518 - 216 - 8 - 11 - 8 >= LESSON.room, `the room checked (${LESSON.room} px) is not more than the laptop gives, less the plate's end padding`);
 
 // ---------- every lesson, English and Arabic, fits in full ----------
 const dirs = readdirSync(new URL('./proto/features/', import.meta.url));
@@ -61,12 +61,25 @@ ok(readTime('x'.repeat(500)).max === 9, 'never more than 9 s');
 // ---------- the layout: the lesson takes the line, covers nothing on the stage ----------
 {
   const trk = read('./proto/features/track/track.css');
-  ok(/#track:not\(\.done\):has\(#lesson\.show\) #trk-head \{ flex-grow: 0; \}/.test(trk), 'T1 stops growing while a lesson shows');
-  ok(/#track:not\(\.done\):has\(#lesson\.show\) :is\(#tips-btn, #goal\) \{ display: none; \}/.test(trk), 'Tips and the goal step aside for a lesson');
+  ok(/#track:not\(\.done\):has\(#lesson\.show\.wide\) #trk-head \{ flex-grow: 0; \}/.test(trk), 'T1 stops growing while a long lesson shows');
+  ok(/#track:not\(\.done\):has\(#lesson\.show\.wide\) :is\(#tips-btn, #goal\) \{ display: none; \}/.test(trk), 'Tips and the goal step aside for a long lesson only');
+  ok(!/:has\(#lesson\.show\)/.test(trk), 'a short lesson leaves Tips and the goal in place (decision 16)');
+  ok(/#trk-msg #lesson\.show \{[^}]*background: rgba/.test(trk), 'a lesson sits on a plate, unlike the drawer line (decision 15)');
+  ok(/#trk-msg #lesson\.show\.gold \{[^}]*background: rgba\(255, 210, 63/.test(trk), 'a gold lesson has a gold plate');
   ok(/#trk-msg #lesson \{ -webkit-line-clamp: 3; line-height: 1\.15;/.test(trk), 'a lesson may take three lines');
   ok(/prefers-reduced-motion: reduce\) \{ #trk-msg #lesson\.show \{ animation: none; \}/.test(trk), 'no unroll with reduced motion (browser)');
   ok(/html\.calm #trk-msg #lesson\.show \{ animation: none !important; \}/.test(trk), 'no unroll with Reduce motion (Settings)');
   ok(!/#trk-head[^{]*\{[^}]*display: none/.test(trk.split('#track.done')[0]), 'T1 (Gate note, clock, medals) never hides for a lesson');
+}
+
+// ---------- short lessons keep Tips and the goal (decision 16): app.js measures once per lesson ----------
+{
+  const app = read('./proto/ui/app.js');
+  ok(/function lessonWide\(el, text\)/.test(app) && /lineCount\(text, w\) <= 2/.test(app), 'a lesson that fits two lines in the message line is not wide');
+  ok(/' wide' : ''/.test(app), 'the wide class is set from the measure');
+  // at the 96 px floor a short lesson fits two lines, a long one does not
+  ok(lineCount('Crack! It breaks.', 130) <= 2, 'a short line fits two lines in a message line of about 150 px');
+  ok(lineCount('This relic has a partner. Find its match in a chest and the two can fuse.', 150) > 2, 'a long lesson does not, so it takes the line');
 }
 
 if (failed) { console.error(failed + ' failed'); process.exit(1); }

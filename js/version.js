@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.4';
+export const VERSION = '5.36.5';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.5',
+    date: '2026-10-14',
+    title: 'Dig: lessons look like notes, and the goal stays when it can',
+    changes: [
+      'Lessons in the top line now sit on a soft plate with their coloured bar, so they no longer look like the "Next:" line in the panel beside them.',
+      'A short lesson that fits beside Tips and the goal leaves them where they are. Only a long lesson still takes the whole top line for a few seconds.',
+      'When the goal under the chip is short of room, its words end in dots but the number stays: the metres to the Gate or the swings left are always shown.',
+      'Arabic: the goal chip\'s arrow now points left, the way the next goal is, and a Camp card no longer leaves "72%." alone on its last line.'
+    ],
+    ar: {
+      title: 'الحفر: الدروس تبدو كملاحظات، والهدف يبقى حين يتّسع له المكان',
+      changes: [
+        'الدروس في السطر العلوي صارت على لوح خفيف مع شريطها الملوّن، فلم تعد تشبه سطر «التالي:» في اللوحة بجانبها.',
+        'الدرس القصير الذي يتّسع بجانب «نصائح» والهدف يتركهما في مكانهما. الدرس الطويل وحده ما زال يأخذ السطر العلوي كله بضع ثوانٍ.',
+        'حين يضيق المكان على الهدف تحت الشارة تنتهي كلماته بنقاط ويبقى الرقم: الأمتار إلى البوابة أو الضربات الباقية تظهر دائماً.',
+        'العربية: سهم شارة الهدف يشير الآن إلى اليسار، جهة الهدف التالي، وبطاقة المخيّم لم تعد تترك «72%.» وحدها في سطرها الأخير.'
+      ]
+    }
+  },
   {
     version: '5.36.4',
     date: '2026-10-14',
