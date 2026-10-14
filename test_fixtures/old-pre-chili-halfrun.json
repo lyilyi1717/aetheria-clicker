@@ -1,0 +1,1162 @@
+{
+ "v": 2,
+ "coins": 4038,
+ "total": 9106,
+ "top": 3,
+ "best": 4,
+ "rows": [
+  [
+   null,
+   {
+    "t": "stone",
+    "hp": 11.625,
+    "max": 21,
+    "s": 875
+   },
+   {
+    "t": "stone",
+    "hp": 21,
+    "max": 21,
+    "s": 888
+   },
+   {
+    "t": "stone",
+    "hp": 21,
+    "max": 21,
+    "s": 254
+   },
+   {
+    "t": "copper",
+    "hp": 14,
+    "max": 14,
+    "s": 492
+   },
+   {
+    "t": "dirt",
+    "hp": 7,
+    "max": 7,
+    "s": 393
+   },
+   {
+    "t": "dirt",
+    "hp": 7,
+    "max": 7,
+    "s": 122
+   },
+   null,
+   {
+    "t": "dirt",
+    "hp": 7,
+    "max": 7,
+    "s": 968
+   },
+   {
+    "t": "stone",
+    "hp": 21,
+    "max": 21,
+    "s": 470
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 209
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 260
+   },
+   {
+    "t": "stone",
+    "hp": 24,
+    "max": 24,
+    "s": 361
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 830
+   },
+   {
+    "t": "copper",
+    "hp": 16,
+    "max": 16,
+    "s": 250
+   },
+   {
+    "t": "copper",
+    "hp": 16,
+    "max": 16,
+    "s": 493
+   },
+   {
+    "t": "copper",
+    "hp": 16,
+    "max": 16,
+    "s": 709
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 629
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 762
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 136
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 90
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 653
+   },
+   {
+    "t": "stone",
+    "hp": 26,
+    "max": 26,
+    "s": 452
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 192
+   },
+   {
+    "t": "stone",
+    "hp": 26,
+    "max": 26,
+    "s": 889
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 36
+   },
+   {
+    "t": "copper",
+    "hp": 18,
+    "max": 18,
+    "s": 80
+   },
+   {
+    "t": "copper",
+    "hp": 18,
+    "max": 18,
+    "s": 650
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 496
+   },
+   {
+    "t": "stone",
+    "hp": 26,
+    "max": 26,
+    "s": 1
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 10,
+    "max": 10,
+    "s": 381
+   },
+   {
+    "t": "dirt",
+    "hp": 10,
+    "max": 10,
+    "s": 756
+   },
+   {
+    "t": "stone",
+    "hp": 30,
+    "max": 30,
+    "s": 107
+   },
+   {
+    "t": "dirt",
+    "hp": 10,
+    "max": 10,
+    "s": 396
+   },
+   {
+    "t": "chest",
+    "hp": 39,
+    "max": 39,
+    "s": 322
+   },
+   {
+    "t": "stone",
+    "hp": 30,
+    "max": 30,
+    "s": 440
+   },
+   {
+    "t": "dirt",
+    "hp": 10,
+    "max": 10,
+    "s": 783
+   },
+   {
+    "t": "dirt",
+    "hp": 10,
+    "max": 10,
+    "s": 656
+   },
+   {
+    "t": "stone",
+    "hp": 30,
+    "max": 30,
+    "s": 895
+   },
+   {
+    "t": "dirt",
+    "hp": 10,
+    "max": 10,
+    "s": 712
+   }
+  ],
+  [
+   {
+    "t": "stone",
+    "hp": 33,
+    "max": 33,
+    "s": 376
+   },
+   {
+    "t": "stone",
+    "hp": 33,
+    "max": 33,
+    "s": 352
+   },
+   {
+    "t": "dirt",
+    "hp": 11,
+    "max": 11,
+    "s": 827
+   },
+   {
+    "t": "dirt",
+    "hp": 11,
+    "max": 11,
+    "s": 711
+   },
+   {
+    "t": "dirt",
+    "hp": 11,
+    "max": 11,
+    "s": 354
+   },
+   {
+    "t": "silver",
+    "hp": 33,
+    "max": 33,
+    "s": 875
+   },
+   {
+    "t": "dirt",
+    "hp": 11,
+    "max": 11,
+    "s": 247
+   },
+   {
+    "t": "copper",
+    "hp": 22,
+    "max": 22,
+    "s": 678
+   },
+   {
+    "t": "copper",
+    "hp": 22,
+    "max": 22,
+    "s": 371
+   },
+   {
+    "t": "dirt",
+    "hp": 11,
+    "max": 11,
+    "s": 772
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 12,
+    "max": 12,
+    "s": 481
+   },
+   {
+    "t": "dirt",
+    "hp": 12,
+    "max": 12,
+    "s": 516
+   },
+   {
+    "t": "dirt",
+    "hp": 12,
+    "max": 12,
+    "s": 676
+   },
+   {
+    "t": "tnt",
+    "hp": 12,
+    "max": 12,
+    "s": 490
+   },
+   {
+    "t": "tnt",
+    "hp": 12,
+    "max": 12,
+    "s": 951
+   },
+   {
+    "t": "copper",
+    "hp": 25,
+    "max": 25,
+    "s": 569
+   },
+   {
+    "t": "stone",
+    "hp": 37,
+    "max": 37,
+    "s": 924
+   },
+   {
+    "t": "dirt",
+    "hp": 12,
+    "max": 12,
+    "s": 666
+   },
+   {
+    "t": "dirt",
+    "hp": 12,
+    "max": 12,
+    "s": 41
+   },
+   {
+    "t": "dirt",
+    "hp": 12,
+    "max": 12,
+    "s": 456
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 14,
+    "max": 14,
+    "s": 212
+   },
+   {
+    "t": "stone",
+    "hp": 42,
+    "max": 42,
+    "s": 36
+   },
+   {
+    "t": "stone",
+    "hp": 42,
+    "max": 42,
+    "s": 419
+   },
+   {
+    "t": "copper",
+    "hp": 28,
+    "max": 28,
+    "s": 530
+   },
+   {
+    "t": "copper",
+    "hp": 28,
+    "max": 28,
+    "s": 548
+   },
+   {
+    "t": "copper",
+    "hp": 28,
+    "max": 28,
+    "s": 682
+   },
+   {
+    "t": "dirt",
+    "hp": 14,
+    "max": 14,
+    "s": 85
+   },
+   {
+    "t": "dirt",
+    "hp": 14,
+    "max": 14,
+    "s": 706
+   },
+   {
+    "t": "dirt",
+    "hp": 14,
+    "max": 14,
+    "s": 350
+   },
+   {
+    "t": "dirt",
+    "hp": 14,
+    "max": 14,
+    "s": 543
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 549
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 402
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 327
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 901
+   },
+   {
+    "t": "copper",
+    "hp": 31,
+    "max": 31,
+    "s": 966
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 813
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 896
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 555
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 443
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 737
+   }
+  ],
+  [
+   {
+    "t": "stone",
+    "hp": 52,
+    "max": 52,
+    "s": 608
+   },
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 624
+   },
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 481
+   },
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 36
+   },
+   {
+    "t": "copper",
+    "hp": 35,
+    "max": 35,
+    "s": 72
+   },
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 557
+   },
+   {
+    "t": "stone",
+    "hp": 52,
+    "max": 52,
+    "s": 905
+   },
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 943
+   },
+   {
+    "t": "copper",
+    "hp": 35,
+    "max": 35,
+    "s": 864
+   },
+   {
+    "t": "hard",
+    "hp": 139,
+    "max": 139,
+    "s": 146
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 84
+   },
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 897
+   },
+   {
+    "t": "hard",
+    "hp": 156,
+    "max": 156,
+    "s": 318
+   },
+   {
+    "t": "silver",
+    "hp": 58,
+    "max": 58,
+    "s": 189
+   },
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 683
+   },
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 859
+   },
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 507
+   },
+   {
+    "t": "hard",
+    "hp": 156,
+    "max": 156,
+    "s": 138
+   },
+   {
+    "t": "copper",
+    "hp": 39,
+    "max": 39,
+    "s": 694
+   },
+   {
+    "t": "stone",
+    "hp": 58,
+    "max": 58,
+    "s": 923
+   }
+  ],
+  [
+   {
+    "t": "tnt",
+    "hp": 22,
+    "max": 22,
+    "s": 332
+   },
+   {
+    "t": "hard",
+    "hp": 175,
+    "max": 175,
+    "s": 548
+   },
+   {
+    "t": "dirt",
+    "hp": 22,
+    "max": 22,
+    "s": 72
+   },
+   {
+    "t": "dirt",
+    "hp": 22,
+    "max": 22,
+    "s": 923
+   },
+   {
+    "t": "tnt",
+    "hp": 22,
+    "max": 22,
+    "s": 603
+   },
+   {
+    "t": "fossil",
+    "hp": 65,
+    "max": 65,
+    "s": 698
+   },
+   {
+    "t": "dirt",
+    "hp": 22,
+    "max": 22,
+    "s": 196
+   },
+   {
+    "t": "copper",
+    "hp": 44,
+    "max": 44,
+    "s": 933
+   },
+   {
+    "t": "copper",
+    "hp": 44,
+    "max": 44,
+    "s": 880
+   },
+   {
+    "t": "copper",
+    "hp": 44,
+    "max": 44,
+    "s": 832
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 24,
+    "max": 24,
+    "s": 329
+   },
+   {
+    "t": "dirt",
+    "hp": 24,
+    "max": 24,
+    "s": 315
+   },
+   {
+    "t": "dirt",
+    "hp": 24,
+    "max": 24,
+    "s": 893
+   },
+   {
+    "t": "dirt",
+    "hp": 24,
+    "max": 24,
+    "s": 520
+   },
+   {
+    "t": "dirt",
+    "hp": 24,
+    "max": 24,
+    "s": 705
+   },
+   {
+    "t": "dirt",
+    "hp": 24,
+    "max": 24,
+    "s": 719
+   },
+   {
+    "t": "dirt",
+    "hp": 24,
+    "max": 24,
+    "s": 413
+   },
+   {
+    "t": "stone",
+    "hp": 73,
+    "max": 73,
+    "s": 9
+   },
+   {
+    "t": "hard",
+    "hp": 195,
+    "max": 195,
+    "s": 361
+   },
+   {
+    "t": "dirt",
+    "hp": 24,
+    "max": 24,
+    "s": 919
+   }
+  ],
+  [
+   {
+    "t": "stone",
+    "hp": 82,
+    "max": 82,
+    "s": 464
+   },
+   {
+    "t": "dirt",
+    "hp": 27,
+    "max": 27,
+    "s": 185
+   },
+   {
+    "t": "dirt",
+    "hp": 27,
+    "max": 27,
+    "s": 589
+   },
+   {
+    "t": "dirt",
+    "hp": 27,
+    "max": 27,
+    "s": 637
+   },
+   {
+    "t": "dirt",
+    "hp": 27,
+    "max": 27,
+    "s": 390
+   },
+   {
+    "t": "silver",
+    "hp": 82,
+    "max": 82,
+    "s": 997
+   },
+   {
+    "t": "dirt",
+    "hp": 27,
+    "max": 27,
+    "s": 906
+   },
+   {
+    "t": "dirt",
+    "hp": 27,
+    "max": 27,
+    "s": 227
+   },
+   {
+    "t": "dirt",
+    "hp": 27,
+    "max": 27,
+    "s": 719
+   },
+   {
+    "t": "dirt",
+    "hp": 27,
+    "max": 27,
+    "s": 533
+   }
+  ]
+ ],
+ "hits": 67,
+ "relics": {
+  "vein": 1
+ },
+ "queue": [],
+ "t": 20.00000000000015,
+ "seen": {
+  "chest": true,
+  "tnt": true,
+  "fossil": true
+ },
+ "unlocked": {
+  "shop:crew": 1,
+  "shop:pick": 1,
+  "type:dirt": 1,
+  "type:stone": 1,
+  "type:silver": 1,
+  "type:copper": 1
+ },
+ "land": "desert",
+ "contract": "rising",
+ "free": {},
+ "_pb": -1,
+ "diggers": [
+  {
+   "id": 1,
+   "broke": 9,
+   "coins": 21,
+   "c": 1,
+   "r": 3,
+   "tc": 1,
+   "tr": 3,
+   "cd": 1.3877787807814457e-17,
+   "swing": 1,
+   "bestFind": {
+    "kind": "copper",
+    "coins": 7
+   }
+  }
+ ],
+ "crewJob": "nearest",
+ "crewCps": 0.7562609034999994,
+ "allCps": 4.1476434804999975,
+ "crewAim": null,
+ "_acc": 0,
+ "_crewEarn": 0,
+ "_allEarn": 0,
+ "stars": 40,
+ "sites": 5,
+ "site": "dunes",
+ "run": {
+  "key": "dunes:50",
+  "site": "dunes",
+  "floor": 50,
+  "twist": "",
+  "hard": "",
+  "par": 300,
+  "clock": 20.00000000000015,
+  "started": true,
+  "done": false,
+  "time": 0,
+  "medals": {
+   "fin": 0,
+   "fast": 0,
+   "hard": 0
+  },
+  "found": {
+   "chest": 0,
+   "ore": 6,
+   "bone": 0
+  },
+  "paid": 0,
+  "legIdx": 0,
+  "legAt": 0,
+  "legBank": 0,
+  "legLast": null
+ },
+ "road": {
+  "stamps": {
+   "dunes:50": {
+    "site": "dunes",
+    "floor": 50,
+    "twist": "",
+    "ch": 1,
+    "fin": 1,
+    "fast": 1,
+    "hard": 0,
+    "best": 50,
+    "n": 2,
+    "bank": 0
+   },
+   "boom:50": {
+    "site": "boom",
+    "floor": 50,
+    "twist": "",
+    "ch": 1,
+    "fin": 1,
+    "fast": 1,
+    "hard": 0,
+    "best": 50,
+    "n": 2,
+    "bank": 0
+   },
+   "bones:75": {
+    "site": "bones",
+    "floor": 75,
+    "twist": "",
+    "ch": 1,
+    "fin": 1,
+    "fast": 1,
+    "hard": 0,
+    "best": 75,
+    "n": 2,
+    "bank": 0
+   },
+   "gold:75": {
+    "site": "gold",
+    "floor": 75,
+    "twist": "",
+    "ch": 1,
+    "fin": 1,
+    "fast": 1,
+    "hard": 0,
+    "best": 75,
+    "n": 2,
+    "bank": 0
+   },
+   "dunes:100": {
+    "site": "dunes",
+    "floor": 100,
+    "twist": "",
+    "ch": 1,
+    "fin": 1,
+    "fast": 1,
+    "hard": 0,
+    "best": 100,
+    "n": 2,
+    "bank": 0
+   }
+  },
+  "deal": null,
+  "reach": 5
+ },
+ "boss": null,
+ "bossesDown": 0,
+ "bestEver": 4,
+ "recMark": 0,
+ "recPassed": false,
+ "bossFem": null,
+ "chatterQuiet": false,
+ "chests": 0,
+ "chestsOpened": 0,
+ "combo": 23,
+ "comboT": 0.600000000000001,
+ "bestCombo": 23,
+ "contractsWon": {},
+ "contractLook": {
+  "skin": "",
+  "hat": ""
+ },
+ "contractRun": {
+  "n": 3,
+  "col": 2,
+  "fills": 1
+ },
+ "contractAim": null,
+ "contractFree": false,
+ "pools": {},
+ "wcol": -1,
+ "rush": 0,
+ "deep": {
+  "law": "",
+  "bc": 32,
+  "glows": [],
+  "pick": null,
+  "torches": [],
+  "grow": 0,
+  "brow": -1,
+  "bhp": 0,
+  "bdealt": 0,
+  "owed": 0,
+  "back": 0,
+  "lava": {}
+ },
+ "foremanHere": false,
+ "foremanPick": "nearest",
+ "foreTea": {
+  "ph": "break",
+  "t": 0
+ },
+ "foremanAim": null,
+ "ore": {
+  "copper": 5,
+  "silver": 1,
+  "gold": 0,
+  "gem": 0
+ },
+ "metal": 8,
+ "forgeOn": false,
+ "toolCh": {
+  "drill": 0,
+  "dynamite": 0,
+  "magnet": 0
+ },
+ "toolFuel": {
+  "drill": 0,
+  "dynamite": 0,
+  "magnet": 0
+ },
+ "forgeStat": {
+  "blocks": 0,
+  "coins": 0,
+  "all": 32,
+  "allCoins": 106,
+  "uses": {
+   "drill": 0,
+   "dynamite": 0,
+   "magnet": 0
+  }
+ },
+ "_tool": null,
+ "forgeUp": {
+  "drill": 0,
+  "dynamite": 0,
+  "magnet": 0
+ },
+ "relics2": {
+  "n": 0,
+  "crew": 0,
+  "pass": false,
+  "guest": false,
+  "grow": 0,
+  "beat": 0,
+  "dmg": 1.5625,
+  "crit": false,
+  "lr": 3,
+  "lc": 1,
+  "lt": 19.800000000000146,
+  "busy": 0,
+  "dir": 1,
+  "fireT": 0,
+  "fallT": 0,
+  "meltT": 0,
+  "gift": {}
+ },
+ "fusion": {
+  "melted": {},
+  "n": 0
+ },
+ "fusionBook": {
+  "seen": {},
+  "stamped": {}
+ },
+ "wingGot": {},
+ "wingDone": {},
+ "wingJar": 0,
+ "wingDupSeen": 0,
+ "wingDeep": 4,
+ "wingLoad": 0,
+ "wingWish": {
+  "st": 0,
+  "opts": []
+ },
+ "wingBoon": {
+  "kind": "",
+  "left": 0
+ },
+ "wingNote": false,
+ "wingN": 0,
+ "wingPend": [],
+ "fossils": {
+  "camel.1": 1
+ },
+ "sets": {},
+ "up": {
+  "pick": 2,
+  "tempo": 0,
+  "pick2": 0,
+  "crew": 1,
+  "luck": 0
+ },
+ "starSpent": 0,
+ "starKeep": null,
+ "starBestPick": 0,
+ "starBoss": 0,
+ "starRefund": 0,
+ "starLine": {
+  "prev": null,
+  "cur": null
+ },
+ "starRerolls": 0,
+ "starWarm": 0,
+ "starOld": false,
+ "starFell": false,
+ "starUp": {
+  "tr_pick": 0,
+  "tr_camp": 0,
+  "tr_bag": 0
+ },
+ "picks": {
+  "second": false,
+  "pin": "gate"
+ },
+ "picksBank": 0,
+ "picksUp": {
+  "pick3": 0
+ },
+ "rafeeqSeats": [
+  {
+   "name": "ra3ialshahi",
+   "given": "ra3ialshahi",
+   "trait": "careful",
+   "friend": -1,
+   "rival": -1,
+   "life": {
+    "broke": 0,
+    "coins": 0,
+    "best": null,
+    "levels": 0
+   }
+  }
+ ],
+ "story": {
+  "read": [],
+  "lost": 0
+ },
+ "tel": {
+  "c0": -1,
+  "depth0": 0,
+  "coin0": 0,
+  "blocks": 0,
+  "hits": 0,
+  "n": 0
+ },
+ "wardrobe": {
+  "mode": "all",
+  "all": {
+   "head": "",
+   "body": "",
+   "colour": "",
+   "pattern": ""
+  },
+  "one": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "seen": {},
+  "undo": null,
+  "t": 0.2,
+  "ready": true
+ }
+}

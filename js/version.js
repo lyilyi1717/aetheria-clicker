@@ -3,7 +3,7 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.33.3';
+export const VERSION = '5.33.4';
 
 export const CHANGELOG = [
   {

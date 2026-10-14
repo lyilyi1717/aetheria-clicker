@@ -7,6 +7,7 @@ import { addIcons, icon } from '../../ui/icons.js';
 import { setLevels, getLevels, preview, isMuted, unlock } from '../../ui/audio.js';
 import { load, save } from '../../ui/volume.js';
 import { tel } from '../telemetry/ui.js';
+import { buildSaveCode } from './savecode-ui.js';
 
 const { t } = G;
 
@@ -56,6 +57,7 @@ function openSettings(app) {
     b.addEventListener('click', () => { tel.setConsent(!tel.consent()); paint(); });
     paint(); sw.append(b);
   }
+  const sc = document.createElement('div'); m.querySelector('.set-done').before(sc); buildSaveCode(app, sc);
   const done = m.querySelector('.set-done'); done.textContent = t('set_close');
   done.addEventListener('click', () => close(app));
   m.addEventListener('click', e => { if (e.target === m) close(app); });
