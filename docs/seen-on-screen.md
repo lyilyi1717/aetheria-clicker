@@ -6,6 +6,34 @@ Verdict: looks right / broken / confusing / not reachable / never seen.
 Seen on 2026-10-14 at version 5.31.1, desktop only, 1500x1000 headless, state set from the console where noted.
 Screenshots over about 300 KB are kept on the worktree only (03, 11).
 
+## Seventh pass, 14 October (version 5.36.0 on main 8fbc177, the top line fits, Arabic order, Camp)
+Screenshots in docs/screens/2026-10-14g/ (1366x768 unless named). Over about 300 KB were not kept (level 37 at 1500 and 1366 in English and Arabic, the clock-over shot, the Wardrobe). Window sizes: the headless viewport is 1474x900 for "1500x1000" and 1340x668 for "1366x768". State set from the console (a level-37 site, bossesDown, road stamps, picks.pin, a toast). Positions were also measured by script. About 14 shots.
+
+| Feature | Last seen | Version | Screenshot | Verdict | Note | Issue |
+|---|---|---|---|---|---|---|
+| #466 Top line at level 37, toast + Tips + goal chip, English, 1366 and 1500 | 2026-10-14 | 5.36.0 | not kept (over 300 KB) | looks right | Stage 194 to 712; the chip ends at 712 (its right dots at 703 and 712), the goal words end at 712. The gold 'Next:' line starts at 728. Level line ends in dots ('The Emp...'), 'Gate at N m', clock and medals whole. Message line is two lines ('Found: Tail (1 / of 4)'). | |
+| #466 Same, Arabic, 1366 | 2026-10-14 | 5.36.0 | not kept (over 300 KB) | looks right | Mirrored: chip at 626 to 712 inside the stage, drawer words start at 794. Gate note, clock and medals whole and read from the right. | |
+| #466 Museum tab open at level 37 | 2026-10-14 | 5.36.0 | docs/screens/2026-10-14g/04-en-museum-1366.png | looks right | Chip inside the stage; 'Dig up bones to fill the sets.' sits clear above the first card. | |
+| #466 Clock over time (144:14 over) | 2026-10-14 | 5.36.0 | not kept (over 300 KB) | looks right | The chip is squeezed to 'Th...' with its arrow and dots, still inside the stage; Tips and the toast stay apart. | |
+| #466 After the Gate | 2026-10-14 | 5.36.0 | docs/screens/2026-10-14g/06-en-done-1366.png | looks right | 'Below the Gate', 'Gate broken in 0:00', medals and 'Done here' all whole; the chip is gone. | |
+| #466 Fresh save: first hint vs 'A new site!' banner | 2026-10-14 | 5.36.0 | not kept | looks right | The hint fades to 0 while a banner shows, back to full about 3.5 s later. On a plain fresh save no banner shows at all. | |
+| Lesson sentence twice in the top line | 2026-10-14 | 5.36.0 | docs/screens/2026-10-14g/04-en-museum-1366.png | confusing | With Stars held the same line 'You have Stars. Spend them at the Alqahwa.' shows beside Tips and again under the chip, both cut with dots. | #470 |
+| #465 Arabic level line | 2026-10-14 | 5.36.0 | docs/screens/2026-10-14g/08-ar-goal-zoom.png | looks right | Starts at the right: 'الفصل 2، المرحلة 17/20 · الربع ال...', numbers in order; the Gate note, clock and medals run right to left. | |
+| #465 Arabic lesson line starts at the right | 2026-10-14 | 5.36.0 | docs/screens/2026-10-14g/08-ar-goal-zoom.png | looks right | 'معك نجوم. أنفقها في...' begins at the right edge. | |
+| #465 Arabic Second Pick goal 'a / b' | 2026-10-14 | 5.36.0 | docs/screens/2026-10-14g/09-ar-goal-zoom2.png | broken | Text is in order but too long for one line: the player sees 'المعول الثاني: 3.00K /', the target '12.0K' sits on a hidden second line. | #469 |
+| #463 Finish card of level 4: next-level box | 2026-10-14 | 5.36.0 | docs/screens/2026-10-14g/10-en-l4-card.png | looks right | 'Level 5 starts with ... Level 5 of 20, Gate at 100 m, New: crystal lines' (at 1366x768 the box is hidden by design). The words are 'Level 5 starts with', not 'Next: Level 5'. | |
+| #463 Map stones 5 and 7 | 2026-10-14 | 5.36.0 | docs/screens/2026-10-14g/11-en-map.png | looks right | Stone 5: 'New: crystal lines'. Stone 7 (clicked): 'New: the Black, always dark', 'Finish level 6 first.' | |
+| #463 Goal chip tip and tap | 2026-10-14 | 5.36.0 | | looks right | English: 'Goal: The Gate. Tap for the next goal.'; Arabic 'الهدف: البوابة. اضغط لتنتقل إلى الهدف التالي.'; a tap steps to Second Pick. | |
+| #467 Camp plain steps raise the Rafeeq share | 2026-10-14 | 5.36.0 | docs/screens/2026-10-14g/12-en-camp.png | confusing | Shop card 'Rafeeq hit' rises 60 (steps 0 to 3), 62, 64, 68 (step 10), 70, 72, 74 (step 14), so plain steps count. But the Camp menu says only 'Rafeeq perks: waiting at the start, good shoes, a second kettle'; the share shows only on the shop's Hire card, never on the Camp. | |
+| Wardrobe | 2026-10-14 | 5.36.0 | not kept (over 300 KB) | looks right | The Wardrobe button in Alqahwa closes it and opens 'Dress your Rafeeqs' in the Rafeeqs tab: All / This Rafeeq, hat, clothes, colour, cloth, Surprise me. | |
+| Dark Gate lit / unlit tell | 2026-10-14 | 5.36.0 | | not reachable | Not set up this pass. | |
+| Museum edge arrow | 2026-10-14 | 5.36.0 | | not reachable | Not set up this pass. | |
+
+Console errors: only the favicon 404.
+
+### First five minutes (English, fresh save, 5.36.0)
+What a new player trips on first: (1) with Stars held the same 'Spend them at the Alqahwa' sentence is printed twice in the top line, both cut (#470); (2) in Arabic the Second Pick goal loses its target number (#469); (3) the Camp's Rafeeq share cannot be seen on the Camp itself, only on the shop's Hire card.
+
 ## Sixth pass, 14 October (version 5.35.5 on main e00e007, text floor, Arabic order, red sand)
 Screenshots in docs/screens/2026-10-14f/ (1500x1000, and 1366x768 where named). Over about 300 KB were not kept: the Empty Quarter start (level 36 to 37 without a reload), the Arabic level 37 top line, the Arabic Rock bar, the 3-Rafeeq crew and bubble shots at 1366, the night-after-day shot. State set from the console (road stamps, a teleport to just above the Gate, hired Rafeeqs, a fake finished run). About 14 shots. A script found no HTML text under 13 px on every screen below; canvas text was judged by eye.
 
