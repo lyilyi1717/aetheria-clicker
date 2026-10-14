@@ -11,7 +11,8 @@ export default { en: {
   trk_then: ' · {name}',
   trk_full: '{level} · {zone} · {name}',
 }, ar: {
-  trk_ch2: 'الفصل 2، المرحلة {n}/{of}',
+  // the count is one left-to-right run, so it reads 17/20 and not 20/17
+  trk_ch2: 'الفصل 2، المرحلة \u2066{n}/{of}\u2069',
   trk_level: 'المرحلة {n} من {of}',
   trk_togate: '{n} م إلى البوابة',
   trk_below: 'تحت البوابة',
