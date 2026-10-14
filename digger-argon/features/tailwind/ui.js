@@ -30,9 +30,12 @@ ui({
   },
   status: {
     at: 50,
-    render(s) {
+    fn(s) {
       if (!s.tailwind || s.tailwind.charges <= 0) return null;
-      return `<span class="chip tailwind-chip" title="${t('tailwind_charges', { n: s.tailwind.charges })}" style="background:#5c3d18;color:#f4a261;border:1px solid #f4a261;padding:2px 8px;border-radius:12px;font-size:13px;font-weight:bold;">${icon('kettle_steam', 16)} ${t('tailwind_tag')} (${s.tailwind.charges})</span>`;
+      return {
+        text: `${t('tailwind_tag')} (${s.tailwind.charges})`,
+        cls: 'tailwind',
+      };
     },
   },
 });

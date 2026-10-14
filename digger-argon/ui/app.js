@@ -315,7 +315,10 @@ function updatePanels(force) {
   $('depth').textContent = t('depth', { n: state.best });
   // the status chip under the purse (combo, oil rush)
   let st = null;
-  for (let i = 0; i < STATUS.length && !st; i++) st = STATUS[i].fn(state, app);
+  for (let i = 0; i < STATUS.length && !st; i++) {
+    const h = STATUS[i].fn || STATUS[i].render;
+    if (typeof h === 'function') st = h(state, app);
+  }
   const co = $('combo');
   if (st) { co.textContent = st.text; co.className = 'show ' + (st.cls || ''); if (st.k !== undefined) co.style.setProperty('--k', st.k); }
   else co.className = '';
