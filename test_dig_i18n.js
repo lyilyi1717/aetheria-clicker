@@ -6,7 +6,8 @@ import { loadAll, check } from './scripts/dig-i18n.mjs';
 import { addStrings, setLang, t, tIn, missingStrings } from './proto/core/strings.js';
 import { LANG, DIR } from './proto/core/lang.js';
 
-const COMPLETE = [];
+// pass 1 (14 Oct 2026): away, settings and telemetry wait for pass 2 (other work is open in those folders)
+const COMPLETE = ['ui', 'shop', 'picks', 'boss', 'foreman', 'look', 'chest', 'diggers', 'water', 'crystal', 'relics', 'ground', 'track', 'combo', 'crits', 'ores', 'tnt', 'oil'];
 
 let failed = 0;
 const ok = (c, m) => { if (!c) { failed++; console.error('FAIL: ' + m); } };

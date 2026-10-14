@@ -61,7 +61,7 @@ const kit = G.use({
   params: { glassPay: 3, toll: 2 },
   legacy: { kitGlassPay: 'glassPay' },
   tables: { KIT: { a: { b: 1 } } },
-  strings: { en: { kit_hello: 'Hello {n}' }, ar: { kit_hello: 'مرحبا {n}' } },
+  strings: { en: { kit_hello: 'Hello {n}', kit_en_only: 'Only English' }, ar: { kit_hello: 'مرحبا {n}' } },
   state: {
     kitKeep: { init: () => 0, survives: ['site'] },
     kitRun:  { init: () => 0 },
@@ -110,8 +110,8 @@ const kit = G.use({
 { // strings
   ok(G.t('kit_hello', { n: 2 }) === 'Hello 2', 'a feature string');
   G.setLang('ar');
-  ok(G.t('kit_hello', { n: 2 }) === 'مرحبا 2' && G.t('title') === 'title' || G.t('up_pick') === 'Stronger Pick', 'another language, with English as the fallback');
-  ok(G.missingStrings('ar').includes('up_pick') && !G.missingStrings('ar').includes('kit_hello'), 'missing translations can be listed');
+  ok(G.t('kit_hello', { n: 2 }) === 'مرحبا ⁦2⁩' && G.t('kit_en_only') === 'Only English', 'another language, with English as the fallback');
+  ok(G.missingStrings('ar').includes('kit_en_only') && !G.missingStrings('ar').includes('kit_hello'), 'missing translations can be listed');
   G.setLang('en');
 }
 { // state slices, shop with its own currency, reset

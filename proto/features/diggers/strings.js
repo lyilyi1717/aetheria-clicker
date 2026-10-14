@@ -9,4 +9,14 @@ export default { en: {
   crew_row: '{b} broken, {c} coins',
   crew_sieving: 'sieving',
   t_digger: 'A Rafeeq joins. He never stops.',
+}, ar: {
+  up_crew: 'وظّف رفيقاً', up_crew_d: 'يحفر وحده، حتى وأنت غائب. لديك {a}. ضربة الرفيق: {p}% من ضربتك.',
+  crew_share: 'ضربة الرفيق: {p}% من ضربتك',
+  r_karak: 'شاي كرك', r_karak_d: 'يعمل الرفقاء أسرع بـ50%.',
+  crew_line: 'الرفقاء: {n} عملة في الثانية ({p}%)',
+  crew_title: 'رفقاؤك',
+  crew_name: 'رفيق {n}',
+  crew_row: 'كسر: {b}، عملات: {c}',
+  crew_sieving: 'يغربل',
+  t_digger: 'انضمّ رفيق. لا يتوقف أبداً.',
 } };

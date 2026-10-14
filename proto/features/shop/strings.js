@@ -9,4 +9,15 @@ export default { en: {
   locked_crew: 'Opens when you have dug a little.',
   locked_more: 'More opens as you go deeper.',
   locked_tempo: 'Faster beats: {why}',
+}, ar: {
+  shop: 'المتجر',
+  up_pick: 'معول أقوى', up_pick_d: 'ضربتك: {a} ← {b}',
+  up_pick_hits: '{kind}: الضربات {a} ← {b}',
+  blk_dirt: 'تراب', blk_stone: 'حجر', blk_hard: 'صخر صلب', blk_copper: 'نحاس', blk_silver: 'فضة', blk_gold: 'ذهب', blk_gem: 'جوهرة',
+  blk_chest: 'صندوق', blk_tnt: 'ديناميت', blk_oil: 'نفط', blk_water: 'ماء', blk_other: 'هذه الكتلة',
+  up_luck: 'الغربال المحظوظ', up_luck_d: 'كل العملات +10%. الآن +{a}%.',
+  maxed: 'مكتمل',
+  locked_crew: 'يُفتح بعد أن تحفر قليلاً.',
+  locked_more: 'يُفتح المزيد كلما نزلت أعمق.',
+  locked_tempo: 'إيقاع أسرع: {why}',
 } };
