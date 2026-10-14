@@ -97,6 +97,17 @@ function tryEnd(s, ctx, trk) {
   delete c.a0; delete c.gfr;
   trk.cur = null;
 }
+// ---------- hits per dirt block at the pick you bring (docs/pacing-targets.md "Steady ground") ----------
+// trk.hpb: per road level, the first time your own dig reaches the middle of the last leg (`mid`, 12 rows above the Gate) and the
+// last row above the Gate (`last`): the hits of your pick (crits left out) a plain dirt block of that row takes, in this dig.
+function groundLog(s, trk) {
+  const run = s.run;
+  if (!run || run.done || run.twist || run.chili || !(G.roadIndex(s) >= 0)) return;
+  const k = run.key, rec = (trk.hpb || (trk.hpb = {}))[k] || (trk.hpb[k] = { lvl: G.roadIndex(s) + 1 });
+  const hits = r => +(G.groundHp(s, r) * G.BLOCKS.dirt.hp * G.siteMult(G.siteOf(s), 'hp') / G.pickPower(s)).toFixed(2);
+  if (rec.mid === undefined && s.best >= run.floor - 12 && s.best < run.floor - 6) rec.mid = hits(run.floor - 12);
+  if (rec.last === undefined && s.best >= run.floor - 1 && s.best <= run.floor) rec.last = hits(run.floor - 1);
+}
 export function mkEv(s, trk) {
   return (k, d) => {
     if (k === 'hit' && d.t === 'boss' && trk.cur && s.run && !s.run.done && d.r === s.run.floor) {
@@ -341,7 +352,7 @@ export function play(s, ctx, secs, trk, opts = {}) {
     trk.real += dt; trk.act += dt; ctx.clock += dt; el += dt;
     const w = trk.w(); w.secs += dt;
     const dTot = s.total - trk.lastTotal; trk.lastTotal = s.total; if (dTot > 0) w.tot += dTot;
-    if (s.best > ctx.bestSeen) { ctx.bestSeen = s.best; ctx.bestAt = trk.act; if (trk.cur) trk.cur.st = {}; }
+    if (s.best > ctx.bestSeen) { ctx.bestSeen = s.best; ctx.bestAt = trk.act; if (trk.cur) trk.cur.st = {}; groundLog(s, trk); }
     trk.curBest = s.best; if (s.contract) trk.curContract = s.contract;
     ctx.buyT -= dt;
     if (ctx.buyT <= 0) {
