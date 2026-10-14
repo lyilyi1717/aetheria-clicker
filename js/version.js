@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.3';
+export const VERSION = '5.36.4';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.4',
+    date: '2026-10-14',
+    title: 'Dig: long lessons have room to be read',
+    changes: [
+      'A lesson about a new block (crystal, lava, the grump, a torch crate, fusing relics and others) now takes the whole top line while it shows, so it reads in full instead of ending in dots. Tips and the goal step aside for those seconds and come back after; the Gate note, the clock and the medals stay.',
+      'Long lessons stay up longer, up to 6 seconds before the next one comes (it was 3). Click a lesson to close it sooner.'
+    ],
+    ar: {
+      title: 'الحفر: الدروس الطويلة صار لها مكان تُقرأ فيه',
+      changes: [
+        'الدرس عن كتلة جديدة (البلّورة، الحمم، الكتلة الزعلانة، صندوق المشاعل، دمج الآثار وغيرها) يأخذ الآن السطر العلوي كله وهو ظاهر، فيُقرأ كاملاً بدل أن ينتهي بنقاط. تتنحّى «نصائح» والهدف في تلك الثواني ثم تعودان؛ وتبقى ملاحظة البوابة والساعة والميداليات.',
+        'الدروس الطويلة تبقى وقتاً أطول، حتى 6 ثوانٍ قبل أن يأتي التالي (كانت 3). انقر الدرس لتغلقه أسرع.'
+      ]
+    }
+  },
   {
     version: '5.36.3',
     date: '2026-10-14',
