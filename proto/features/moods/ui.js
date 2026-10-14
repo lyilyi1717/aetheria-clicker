@@ -10,6 +10,7 @@ import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { fx, AT, W, rr, centre } from '../../ui/render.js';
 import { look } from '../diggers/art.js';
+import { DIR } from '../../core/lang.js';
 
 const { t } = G;
 
@@ -185,7 +186,7 @@ function puff(x, y, col, vx = 0, vy = -26) { if (reduced || puffs.length > 24) r
 
 const drawn = [];                   // the bubbles drawn this frame
 function bubble(g, x, y, str, alpha) {
-  g.save(); g.globalAlpha = alpha; g.font = 'bold 14px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.save(); g.globalAlpha = alpha; g.font = 'bold 14px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.direction = DIR;   // the scene stays ltr, its words do not
   const w = g.measureText(str).width + 16, h = 24;
   const bx = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, x));
   let by = Math.max(h / 2 + 2, y);

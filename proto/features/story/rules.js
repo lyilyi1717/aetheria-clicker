@@ -12,6 +12,7 @@
 import { use } from '../../core/registry.js';
 import { ROAD, CHAPTER_LEN, fixedNext, roadIndex } from '../sites/rules.js';
 import strings from './strings.js';
+import stringsAr from './strings.ar.js';
 
 const LOST = 5;       // how many lost-try lines there are
 // CHAPTERS: where each chapter starts, by road level; a chapter runs to the level before the next one starts. Title: `st_ch_<id>`.
@@ -30,7 +31,7 @@ export const STORY_BEATS = Array.from({ length: STORY_LEVELS }, (_, i) => {
 });
 
 export const story = use({
-  id: 'story', strings,
+  id: 'story', strings, stringsAr,
   state: { story: { init: () => ({ read: [], lost: 0 }), survives: ['site', 'land'] } },
 });
 

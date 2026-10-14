@@ -12,6 +12,7 @@ import { ui } from '../../ui/app.js';
 import { fx, AT, W, H, rr, centre, spark, ring } from '../../ui/render.js';
 import { drawManager, managerMount, managerHit, managerAway, managerOnOrder, managerExtended } from './manager.js';
 import { moodsSet, moodsSay, moodsTalk, moodsTrait, moodsMem } from '../moods/ui.js';
+import { DIR } from '../../core/lang.js';
 
 const { t } = G;
 const INK = '#1b1410';
@@ -311,7 +312,7 @@ function drawChatter(g, s, dt) {
     if (i < 0) return;
     const name = G.chatterName(s, i), line = t('chat_tag_line', { trait: G.chatterLine(s, i), n: G.fmt(d.broke || 0) });
     const [x, y] = centre(d.r, d.c);
-    g.save(); g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.save(); g.textAlign = 'center'; g.textBaseline = 'middle'; g.direction = DIR;
     g.font = 'bold 14px system-ui, Cairo, sans-serif'; const w1 = g.measureText(name).width;
     g.font = '12px system-ui, Cairo, sans-serif'; const w2 = g.measureText(line).width;
     const w = Math.max(w1, w2) + 18, h = 38, bx = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, x)), by = y + 24 + h / 2;

@@ -13,6 +13,7 @@ import { t } from '../../core/strings.js';
 import { rnd } from '../../core/rng.js';
 import * as G from '../../game.js';     // read lazily (a circular import is fine): the rafeeqs feature may not be merged yet
 import strings from './strings.js';
+import stringsAr from './strings.ar.js';
 import { NICK_LINES } from './nicklines.js';
 
 export const CHATTER_TRAITS = ['eager', 'sleepy', 'joker', 'careful', 'proud', 'hungry'];
@@ -31,7 +32,7 @@ export const chatterParams = {
 };
 
 export const chatter = use({
-  id: 'chatter', params: chatterParams, strings,
+  id: 'chatter', params: chatterParams, strings, stringsAr,
   state: { bossFem: { init: () => null, perSite: true }, chatterQuiet: { init: () => false, survives: ['site', 'land'] } },
   // almodeer's extra time is decided here, in the rules, from the core random source (never in the draw code)
   hooks: { step: { at: 700, fn(s, dt, ev) { chatterLegRoll(s, ev); } } },
