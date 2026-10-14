@@ -3,9 +3,39 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.31.1';
+export const VERSION = '5.32.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.32.0',
+    date: '2026-10-14',
+    title: 'Dig: the road, the coffee house and the Rafeeqs',
+    changes: [
+      'Dig (the digging game at ?loop=3) now has a road of twenty levels across five lands, with a world map between them. Dig old levels again for the Fast and Chili medals.',
+      'Each level ends at a Gate. A countdown runs from Rock to Rock, starting at your first hit; seconds you save carry over, and nothing is lost when time runs out.',
+      'The Rock bar shows how many swings your whole team needs. TNT hurts Rocks, the Gate remembers your hits between tries, and a dark Gate tells you to break the lantern above it.',
+      'Your Rafeeqs have names, traits, a wardrobe and things to say. A manager, almodeer or almodeera, holds the clock, shouts the time left and sometimes gives you extra seconds.',
+      'New: Alqahwa, the coffee house, where the crew rests, you spend your Stars, and the hakawati tells the story of Grandpa’s lost caravan, one part per level.',
+      'New: Chili levels, five harder steps on every finished level with rewards that stay, including a permanent boost to your hit. Contracts now fit your level.',
+      'Museum pieces sparkle in the ground and fill a skeleton behind it; the map shows which pieces each level still holds. Relics can be fused from your first chests.',
+      'Settings now have master, music and effects volume. A Buy all button appears when many upgrades are affordable.',
+      'Dig sends anonymous play times (no name, no save) to help balance it; you can switch this off in Settings. Old Dig saves still load.'
+    ],
+    ar: {
+      title: 'الحفر: الطريق والقهوة والرفقاء',
+      changes: [
+        'لعبة الحفر (في ?loop=3) فيها الآن طريق من عشرين مرحلة عبر خمس أراضٍ، وبينها خريطة للعالم. أعد حفر المراحل القديمة لتربح أوسمة السرعة والشطة.',
+        'كل مرحلة تنتهي ببوابة. عدّاد تنازلي يمشي من صخرة إلى صخرة ويبدأ مع أول ضربة؛ الثواني التي توفّرها تنتقل معك، ولا تخسر شيئاً إذا انتهى الوقت.',
+        'شريط الصخرة يعرض كم ضربة يحتاج فريقك كله. الديناميت يؤذي الصخور، والبوابة تتذكر ضرباتك بين المحاولات، والبوابة المظلمة تخبرك أن تكسر الفانوس فوقها.',
+        'لرفقائك أسماء وطباع وخزانة ملابس وكلام. المدير أو المديرة يمسك الساعة ويصيح بالوقت الباقي وأحياناً يعطيك ثواني إضافية.',
+        'جديد: القهوة، حيث يرتاح الفريق وتصرف نجومك، ويحكي الحكواتي قصة قافلة الجد الضائعة، جزءاً مع كل مرحلة.',
+        'جديد: مراحل الشطة، خمس درجات أصعب على كل مرحلة منتهية بجوائز تبقى، منها زيادة دائمة لضربتك. والعقود الآن تناسب مستواك.',
+        'قطع المتحف تلمع في الأرض وتكمل هيكلاً خلفها؛ والخريطة تعرض القطع الباقية في كل مرحلة. ويمكن دمج الآثار من أول صناديقك.',
+        'الإعدادات فيها الآن صوت عام وموسيقى ومؤثرات. وزر "اشترِ الكل" يظهر عندما تقدر على ترقيات كثيرة.',
+        'لعبة الحفر ترسل أوقات لعب بلا اسم ولا حفظ لتساعد في موازنتها؛ ويمكنك إيقاف ذلك من الإعدادات. حفظك القديم في الحفر ما زال يعمل.'
+      ]
+    }
+  },
   {
     version: '5.31.1',
     date: '2026-10-09',
