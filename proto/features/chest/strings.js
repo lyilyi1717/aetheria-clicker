@@ -7,7 +7,7 @@ export default { en: {
   chest_btn: 'Open chest',
   chest_new: 'New', chest_up: 'Level {n}',
   take: 'Take',
-  t_chest_seen: 'A chest! Dig your way to it.',
+  t_chest_seen: 'A chest! Dig to it.',
   t_chest_crew: 'Your Rafeeqs found a chest.',
 }, ar: {
   relics: 'الآثار', relics_none: 'جِد صندوقاً. كل صندوق يتيح لك أن تختار أثراً من 3.',
