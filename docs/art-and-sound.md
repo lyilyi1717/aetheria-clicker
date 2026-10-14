@@ -87,7 +87,7 @@ never mirrors in Arabic.
 | S7 under S6 | end side, 10 px in, y 56 | **the Museum chip, small** (pieces 44 px and "a/b") | while the manager is on screen; the old best-depth note `#hud-record` here stays hidden |
 | S8 dig | y 104 down | blocks, Rafeeqs, Rock and its bar | nothing is laid on the Rock's bar (#367) |
 | S9 bottom start / end | 12 px from the corners | tools / Tips list, chest button, fuse button (70 px up) | the Museum arrow is drawn along the bottom edge |
-| S10 hint | centred, y 128 | "Point at the ground to dig" | first seconds only; hidden while a banner shows (decision 11) |
+| S10 hint | centred, y 128 (page px) | "Point at the ground to dig" | first seconds only; hidden while a banner shows (decision 11); steps under the Rock's row when the Rock's bar would sit under it (decision 27) |
 | S11 bubbles | over each Rafeeq (y - 52), else up to 3 steps up, else down (`moods/spot.js` `bubbleSpot`) | Rafeeq speech bubbles, **two at most** | a third waits up to 3 s for room, then is dropped (decision 6) |
 
 **Reserved spots in the track** (the 40 px line over the stage, `track/track.css`; decisions 5 and 10). All four always fit
@@ -106,6 +106,8 @@ manager is on screen. `test_proto_art.js` checks the S5 and S7 numbers.
 ## 5. Text and contrast
 
 - 13 px floor for anything the player must read (page and canvas). Numbers that fly and fade (hit floaters) may be smaller.
+  The floor is what the eye gets on screen: the stage is drawn 452 to 640 px wide for a 640 px canvas, so a canvas label
+  the player must read is **19 canvas px or more** (13 px on the smallest stage; decision 23).
 - Text on the gold button is `--gold-ink`; body text on panels is `--ink` or `--muted` (both above 4.5:1 on `--panel`).
 - Every state that colour shows also has a shape or a word: medal chips dim vs lit, "over" with a minus sign, locked tabs with
   a lock and a line that says what opens them.
@@ -313,6 +315,47 @@ The test page for every sound: `proto/soundboard.html`.
     edge. Set once in `proto.css` for the Alqahwa card, the finish card, the contracts list, the road list and the Tips list;
     the story book keeps its own (it is cream paper).
 
+23. **Decided (14 Oct 2026, by art-director): the "Too hard" tag is 19 canvas px and waits while a banner shows** (#494).
+    The tenth pass saw the layer caption ("It is always dark... Rafeeqs light.") print its second line over "Hit the Rock!",
+    and the tag read at about 11 px: it was drawn at 14 canvas px, and the stage at 1366 x 768 is 518 of 640 px wide (x 0.81).
+    The tag now uses the same `bannerUp()` check as the stuck hint box (`boss/ui.js`), so it is not drawn while `#banner`
+    shows, and is drawn at 800 19px (pill 30 px high, radius 15): 15 px on the laptop, 13.4 px on the smallest stage.
+    Because the tag is the one steering word on the field, and a word under a banner or under the floor is a word not read.
+    Rule from here on: a canvas label the player must read is 19 canvas px or more (section 5). The Rock's bar words and the
+    law line (13 canvas px), the record flag (14) and other canvas labels are under it today: added to brief B1.
+24. **Decided (14 Oct 2026, by art-director): the next try opens with a whole gold lesson that stands alone** (#492). It was a
+    toast in the 96 px message spot ("That block needs 3.40...", cut, and "that block" pointed at nothing, since nothing was
+    hit yet), and the "The Big Rock!" toast could replace it in the same frame. Now `app.lesson('steer_open', ...)`, gold, so
+    it waits for the level's banner, gets #475's whole-line room when it is long (decision 16), and no toast can take its
+    place. New words, since this line is read before any block is hit: `t_steer_rock` "Last try: a block needed {n} swings.
+    Hit the Rock: every swing moves its bar." and `t_steer_gate` "Last try: a block needed {n} swings. Hit the Gate: it keeps
+    part of every swing." Arabic, with the glossary's «كتلة» (block), «ضربة», «الصخرة», «البوابة»: «في المحاولة الماضية
+    احتاجت كتلة {n} ضربة. اضرب الصخرة: كل ضربة تحرّك شريطها.» and «... اضرب البوابة: إنها تحتفظ بجزء من كل ضربة.» Both
+    fit three lesson lines at 270 px (`test_proto_lessonfit.js`). The stuck hint box keeps "That block needs ...": it sits
+    by the Rock while the tag marks the block, so there "that block" points at something. *For the localizer:* please
+    review these two Arabic lines and decision 25's.
+25. **Decided (14 Oct 2026, by art-director): the away card says how far Rock Friend walked, and the note after it leads with
+    the metres** (#493). The card's "40 m deeper" stamp gets a small line under it, `away_passed` "Rock Friend: {n} m past
+    Big Rocks" («صديق الصخور: عبروا {n} م من أرض الصخور الكبيرة»), 13 px muted (the stamp's `small` was the browser's
+    11.7 px; now 13 px for the new-bones line too). When the card showed, the toast is not sent again after it closes
+    (`out.card`); with no card (a short time away) the toast says it, metres first: `t_wake` "{n} m past Big Rocks while you
+    were away!" («{n} م من أرض الصخور الكبيرة عبرها رفقاؤك أثناء غيابك!»). Because the card is where a child reads what
+    happened while away, and in a 96 px toast only the first words survive, so the number goes first.
+26. **Decided (14 Oct 2026, by art-director): a goal without the chip is cut at a whole word with dots by the page, not by the
+    line clamp** (#495, low). The tenth pass forced the goal to 84 px: "7.30B swings / or so to" with no dots, so
+    `-webkit-line-clamp: 2` did not paint them there either (as under the chip, decision 20). `#goal-text` is now a plain
+    block of two lines at most (`max-height: calc(2 * 1.15em)`), and `fitGoalText` in `proto/ui/app.js` cuts a longer goal
+    at the last word that fits and adds "…" (a number-first goal keeps its number, which leads; Arabic stays in its
+    isolate). It runs when the words or the chip change and when the top line changes width (a `ResizeObserver` on
+    `#track`); the whole line stays in the title. Because the dots are the sign that there is more, and a sign that only
+    some layouts paint is not one.
+27. **Decided (14 Oct 2026, by art-director): "Point at the ground to dig" steps under the Rock's row when the Rock's bar
+    would sit under it.** The hint is at y 128 page px, which does not scale with the stage; on a short window the Rock's
+    row can be there, and the tenth pass saw the words over the edge of the bar. While the hint shows and a Rock is in
+    view, `placeStartHint` (`boss/ui.js`) checks the span from the law line over the bar to the foot of the Rock's row; if
+    it meets the hint's 40 px, the hint moves to 8 px under the Rock's row, and goes back to y 128 when the Rock is gone.
+    Because nothing is laid on the Rock's bar (S8, #367), and under the Rock is still the ground, so the words stay true.
+
 ## 9. Briefs for builders
 
 **B1. The 13 px floor** (after the localizer's string and HUD pass lands, to avoid two PRs on the same lines).
@@ -321,11 +364,27 @@ Raise to 13 px (canvas fonts to `bold 13px` or more) every label the player read
 px so it stays in the sky band), Alqahwa name tags (`worldmap/alqahwa.js`, 11 px; #423), map node labels (`worldmap/draw.js`,
 11 to 12.5 px), `starshop.css`, `sites.css` (10.5 px chip), `wing2.css` (10 to 12 px), `wardrobe.css`, `story.css`,
 `contracts.css`, `picks.css`, `relics2.css`, `forge.css`, `fusion.css`, `foreman.css`. Floaters that fly and fade are exempt.
-*Done when* a search for `font-size` and canvas `font` under 13 px in `proto/` finds only the exempt floaters, and screen-checker
+Canvas labels the player reads go to **19 canvas px** or more (decision 23: the stage is as small as 452 of 640 px): the
+Rock's bar words and law line (`boss/ui.js` `drawBar`, 13 px; the bar may need to grow to hold them), the record flag (14 px),
+the Museum chip, the Gate flag and the manager's box.
+*Done when* a search for `font-size` and canvas `font` under 13 px (canvas: under 19 px) in `proto/` finds only the exempt floaters, and screen-checker
 sees at 1500x1000 and 1366x768, in English and Arabic: the track line not cut, the level name and goal readable, map labels
 not overlapping, the manager and hakawati name plates readable, the Star board and the Museum hall without clipped text.
 
 ## 10. What screen-checker should look at next
+
+- (v5.36.14, decisions 23 to 27) At 1366x768, English and Arabic:
+  - level 7, 3 swings at a too-hard block while the layer caption shows: no tag until the caption is gone, then the tag,
+    bigger (about 15 px on screen), whole, clear of the Rock's bar;
+  - the next try after a try spent on too-hard blocks: after the level banner, a gold lesson on its plate across the top
+    line, "Last try: a block needed ... swings. Hit the Rock: every swing moves its bar." (or "... Hit the Gate: it keeps
+    part of every swing."), whole, no dots; also with the Rock in view at the start of the try;
+  - Rock Friend away (12 h): the card's "N m deeper" stamp has "Rock Friend: N m past Big Rocks" under it (13 px); no toast
+    after the card closes; a short absence with a walk: the toast starts with the metres;
+  - no chip, a long goal forced narrow (set `#goal` max-width, then resize the window a little so it is cut again): the
+    second line ends in "…" at a whole word; the title has the whole goal;
+  - a fresh save on a short window with the Rock near the top: "Point at the ground to dig" sits under the Rock's row, not
+    on its bar; on a plain fresh save it is at its usual spot.
 
 - A long lesson (crystal at Crystal Cave, a grump or a torch crate in the Deep, "This relic has a partner"), English and
   Arabic, at 1366x768 and 1500x1000: the whole text shows in the top line with no dots; Tips and the goal are gone while it

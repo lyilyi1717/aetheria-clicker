@@ -131,6 +131,27 @@ function drawBar(g, s, b) {
   }
 }
 
+// the layer's name (or another banner) is on screen: the hint box and the "Too hard" tag wait, so neither is drawn under it
+function bannerUp() {
+  const bn = typeof document !== 'undefined' && document.getElementById('banner');
+  return !!(bn && bn.classList.contains('show'));
+}
+
+// "Point at the ground to dig" (S10, y 128 page px) steps under the Rock's row when the Rock's bar (or its law line) would sit
+// under the words, as on a short window (art-and-sound decision 27); back to its spot when the Rock is not there.
+const HINT_TOP = 128, HINT_H = 40;
+function placeStartHint(b) {
+  const el = document.getElementById('hint'), cv = document.getElementById('cv');
+  if (!el || !cv) return;
+  let top = '';
+  if (b && b.hp > 0 && el.classList.contains('show')) {
+    const k = (cv.clientHeight || H) / H, y = yOf(b.row);
+    const a = (y + BAR.y - 20) * k, z = (y + CELL) * k;     // from the law line over the bar to the foot of the Rock's row
+    if (a < HINT_TOP + HINT_H && z > HINT_TOP - 4) top = Math.round(z + 8) + 'px';
+  }
+  if (el.style.insetBlockStart !== top) el.style.insetBlockStart = top;
+}
+
 // The stuck hint: one kind line under the Rock's bar, drawn as a small box in the row below the Rock. Once per fight.
 function paintHint(s, app) {
   const h = document.getElementById('boss-hint');
@@ -138,8 +159,7 @@ function paintHint(s, app) {
   const b = G.bossInView(s);
   const show = !!b && !b.off && G.bossStuck(s);
   if (!show) { if (!h.hidden) h.hidden = true; return; }
-  const bn = document.getElementById('banner');
-  if (bn && bn.classList.contains('show')) { h.hidden = true; h._sig = ''; return; }     // the layer name is on screen: wait, so the box never covers it
+  if (bannerUp()) { h.hidden = true; h._sig = ''; return; }     // the layer name is on screen: wait, so the box never covers it
   const a = G.bossAdvice(s);
   const sig = a.kind + ':' + a.n + ':' + a.after;
   const law = a.kind === 'dark' || a.kind === 'grow' || a.kind === 'hot';
@@ -234,16 +254,17 @@ ui({
   css: new URL('./boss.css', import.meta.url).href,
   draw: [{ at: AT.fx + 5, fn(g, s) {
     // the tag on a too-hard block: how many swings it needs, and where to swing instead
+    // (art-and-sound decision 23: 19 canvas px, so 13 px or more on the smallest stage; it waits while the layer's banner shows)
     const tag = G.hardTag(s);
-    if (!tag) return;
+    if (!tag || bannerUp()) return;
     const y = yOf(tag.r);
     if (y < SKY - 10 || y > H) return;
     const txt = t('hard_tag', { n: fmt(tag.n) });
-    g.save(); g.font = '800 14px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    const pw = g.measureText(txt).width + 20, ph = 24;
+    g.save(); g.font = '800 19px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const pw = g.measureText(txt).width + 22, ph = 30;
     const cx = Math.max(pw / 2 + 4, Math.min(W - pw / 2 - 4, tag.c * CELL + CELL / 2));
     const ty = Math.max(SKY + ph / 2 + 2, y - 4);
-    g.fillStyle = 'rgba(14,10,7,.88)'; rr(g, cx - pw / 2, ty - ph / 2, pw, ph, 12); g.fill();
+    g.fillStyle = 'rgba(14,10,7,.88)'; rr(g, cx - pw / 2, ty - ph / 2, pw, ph, 15); g.fill();
     g.strokeStyle = '#ffd36a'; g.lineWidth = 2; g.stroke();
     g.fillStyle = '#ffe9a8'; g.direction = textDir(txt); g.fillText(txt, cx, ty + 0.5);
     g.restore();
@@ -289,8 +310,11 @@ ui({
     }
     paintHint(s, app);
     const op = G.steerOpening(s);
-    if (op) { s.run.steerSaid = 1; app.toast(t(op.gate ? 'stuck_rock_gate' : 'stuck_rock', { n: fmt(op.n) }), 'gold'); }
+    // the next try opens with last try's lesson, whole, as a gold lesson in the top line (art-and-sound decision 24): it waits
+    // for the level's banner, and no toast can take its place in the same frame
+    if (op) { s.run.steerSaid = 1; app.lesson('steer_open', t(op.gate ? 't_steer_gate' : 't_steer_rock', { n: fmt(op.n) }), 'gold'); }
     const b = G.bossInView(s);
+    placeStartHint(b);
     if (b && b.gate && b.bank0 > 0 && !b.said && b.row - s.top <= 8) { b.said = true; app.lesson('gatemem', t('gate_remember', { n: Math.round(b.bank0 * 100) }), 'gold'); }
     fx.keepClear = b && b.hp > 0 ? b.row : null;
     if (b && b.hp > 0 && !s.seen.bossToast && b.row - s.top <= 6) { s.seen.bossToast = true; app.toast(t('t_boss'), 'gold'); }

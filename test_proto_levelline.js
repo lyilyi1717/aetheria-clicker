@@ -89,7 +89,7 @@ setLang('en');
   ok(/levelLine\(/.test(ui), 'the track builds its level line with levelLine()');
   ok(!/\.dir\s*=/.test(ui.replace(/head\.dir\s*=\s*msg\.dir\s*=\s*DIR/, '')), 'nothing else in the track row is turned (the row and the stage keep their places)');
   const app = src('proto/ui/app.js');
-  ok(/gt\.title\s*=\s*ownDir\(goal\.text\)/.test(app) && /gt\.textContent\s*=\s*ownDir\(goal\.text\)/.test(app), 'the goal line is isolated where it is written');
+  ok(/gt\.title\s*=\s*ownDir\(goal\.text\)/.test(app) && /fitGoalText\(gt, goal\.text/.test(app) && /gt\.textContent\s*=\s*ownDir\(text\)/.test(app), 'the goal line is isolated where it is written');
   // #469: a label then a count is two boxes on one line; the count never shrinks, only the label ends in dots
   ok(/goalParts\(goal\.text,\s*goal\.num\)/.test(app), 'the goal words are split into label and count');
   const trk = src('proto/features/track/track.css');
@@ -97,7 +97,9 @@ setLang('en');
   ok(/#track #goal-text\.split \.gn \{[^}]*flex: none/.test(trk), 'the count never shrinks');
   ok(/#track #goal-text\.split \.gl \{[^}]*min-width: 0[^}]*text-overflow: ellipsis/.test(trk), 'the label ends in dots');
   // #486, decision 20: every goal line that is cut ends in dots; under the chip the one-piece goal is a plain one-line box
-  ok(/#track #goal-text \{[^}]*text-overflow: ellipsis/.test(trk), 'the two-line goal asks for dots');
+  ok(/#track #goal-text \{[^}]*display: block[^}]*max-height: calc\(2 \* 1\.15em\)[^}]*overflow: hidden/.test(trk), 'the goal without the chip is two lines at most');
+  { const app = readFileSync(new URL('./proto/ui/app.js', import.meta.url), 'utf8');
+    ok(/function fitGoalText\(gt, text, cut\)/.test(app) && /words\.slice\(0, best\)\.join\(' '\) \+ '\u2026'/.test(app), 'a cut two-line goal ends in dots at a whole word (decision 26)'); }
   ok(/#track #goal:has\(> #goal-pin:not\(\[hidden\]\)\) #goal-text:not\(\.split\) \{[^}]*display: block[^}]*white-space: nowrap[^}]*overflow: hidden[^}]*text-overflow: ellipsis/.test(trk), 'under the chip the one-piece goal is one line that ends in dots');
   ok(!/-webkit-line-clamp: 1;/.test(trk.replace(/\/\*[\s\S]*?\*\//g, '')), 'no one-line clamp (it painted no dots)');
   ok(goalParts('12 swings or so to break the Gate', '12') === null, 'a number-first goal stays one piece, its number at the start');

@@ -304,16 +304,40 @@ function buildPanels() {
 // the goal words: a label then a count ("Second Pick: 3.00K / 100K") are two boxes on one line, the label ends in dots and the
 // count always shows (#469); anything else is one piece of words (two lines without the chip, one with it)
 function paintGoalText(gt, goal) {
-  const p = goalParts(goal.text, goal.num), key = (p ? '1' : '0') + goal.text;
+  const pin = $('goal-pin'), chip = pin && !pin.hidden ? 'c' : '';
+  const p = goalParts(goal.text, goal.num), key = (p ? '1' : '0') + chip + goal.text;
   if (gt.dataset.k === key) return;
+  if (!gt._ro && typeof ResizeObserver === 'function' && $('track')) {     // a new width: cut the words again
+    gt._ro = new ResizeObserver(() => { delete gt.dataset.k; });
+    gt._ro.observe($('track'));
+  }
   gt.dataset.k = key;
   gt.classList.toggle('split', !!p);
-  if (!p) { gt.removeAttribute('dir'); gt.textContent = ownDir(goal.text); return; }
+  if (!p) { gt.removeAttribute('dir'); if (!fitGoalText(gt, goal.text, !chip)) delete gt.dataset.k; return; }
   gt.dir = DIR;   // Arabic: the label on the right, the count on its left
   gt.textContent = '';
   const a = document.createElement('span'), b = document.createElement('span');
   a.className = 'gl'; a.textContent = p.lead; b.className = 'gn'; b.textContent = p.count;
   gt.append(a, b);
+}
+// The goal words without the chip have two lines; a longer goal is cut at a whole word and ends in dots (art-and-sound
+// decision 26: the -webkit-line-clamp did not paint its dots there). The number of a number-first goal leads, so it stays.
+// With the chip the words are one line and CSS ends them in dots. False when the goal is not on screen yet (try again).
+function fitGoalText(gt, text, cut) {
+  gt.textContent = ownDir(text);
+  if (!cut) return true;
+  if (!gt.clientWidth) return false;
+  const over = () => gt.scrollHeight > gt.clientHeight + 1;
+  if (!over()) return true;
+  const words = text.split(' ');
+  let lo = 1, hi = words.length - 1, best = 1;
+  while (lo <= hi) {
+    const m = (lo + hi) >> 1;
+    gt.textContent = ownDir(words.slice(0, m).join(' ') + '…');
+    if (over()) hi = m - 1; else { best = m; lo = m + 1; }
+  }
+  gt.textContent = ownDir(words.slice(0, best).join(' ') + '…');
+  return true;
 }
 
 let panelT = 0;

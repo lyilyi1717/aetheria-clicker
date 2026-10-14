@@ -67,7 +67,7 @@ export default { en: {
   keep_level: 'Keeps level {n}',
   reroll_btn: 'Shake the chest (free)',
   reroll_done: 'Shaken! New cards.',
-  t_wake: 'Your Rafeeqs walked past {n} m of Big Rock land.',
+  t_wake: '{n} m past Big Rocks while you were away!',
 }, ar: {
   starshop: 'مسارات النجوم',
   star_note: 'النجوم لا تفعل شيئاً حتى تنفقها.',
@@ -137,5 +137,5 @@ export default { en: {
   keep_level: 'يبقى بالمستوى {n}',
   reroll_btn: 'هزّ الصندوق (مجاناً)',
   reroll_done: 'هززته! بطاقات جديدة.',
-  t_wake: 'عبر رفقاؤك {n} م من أرض الصخور الكبيرة.',
+  t_wake: '{n} م من أرض الصخور الكبيرة عبرها رفقاؤك أثناء غيابك!',
 } };

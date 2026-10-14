@@ -3,9 +3,31 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.13';
+export const VERSION = '5.36.14';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.14',
+    date: '2026-10-14',
+    title: 'Dig: steering lines you can read whole',
+    changes: [
+      'After a try spent on blocks that were too hard, the next try opens with a whole gold note in the top line: "Last try: a block needed 3.40K swings. Hit the Rock..." It no longer ends in dots and waits for the level name to go.',
+      'The "Too hard: about N swings. Hit the Rock!" tag is bigger, and it waits while the layer name is on screen instead of printing under it.',
+      'Welcome back: the card says how far Rock Friend walked past Big Rocks, under the metres dug. The note after it leads with the metres.',
+      'A long goal without the chip now ends in dots when it is cut.',
+      '"Point at the ground to dig" moves below the Big Rock when its bar would sit under it.'
+    ],
+    ar: {
+      title: 'الحفر: جمل التوجيه تُقرأ كاملة',
+      changes: [
+        'بعد محاولة ضاعت على كتل صعبة جداً، تبدأ المحاولة التالية بملاحظة ذهبية كاملة في السطر العلوي: «في المحاولة الماضية احتاجت كتلة 3.40K ضربة. اضرب الصخرة...». لم تعد تنتهي بنقاط، وتنتظر حتى يختفي اسم المرحلة.',
+        'بطاقة «صعبة جداً: نحو N ضربة. اضرب الصخرة!» صارت أكبر، وتنتظر ما دام اسم الطبقة على الشاشة بدل أن تُكتب تحته.',
+        'عند العودة: تقول البطاقة كم مشى صديق الصخور بعد الصخور الكبيرة، تحت الأمتار المحفورة. والملاحظة بعدها تبدأ بالأمتار.',
+        'الهدف الطويل بلا شارة ينتهي الآن بنقاط حين يُقطع.',
+        '«أشِر إلى الأرض لتحفر» تنزل تحت الصخرة الكبيرة حين يكون شريط الصخرة تحتها.'
+      ]
+    }
+  },
   {
     version: '5.36.13',
     date: '2026-10-14',
