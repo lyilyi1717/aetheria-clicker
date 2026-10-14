@@ -21,7 +21,7 @@ const chiliSvg = col => `<path d="M8 9 Q17 3 23 12 Q28 21 22 29 Q19 31 18.5 27 Q
 const pct = x => Math.round(x * 100);
 const mul = x => (Math.round(x * 100) / 100).toString();
 // n pips lit out of five (next: the one being tried, it glows)
-export const pipsHtml = (n, size = 18, next = 0) => [1, 2, 3, 4, 5].map(k => `<i class="cpip${k <= n ? ' on' : ''}${k === next ? ' next' : ''}" title="${t('c_chili' + k)}">${icon(k <= n ? 'chili' + k : 'chili_off', size)}</i>`).join('');
+export const pipsHtml = (n, size = 18, next = 0) => [1, 2, 3, 4, 5].map(k => `<i class="cpip${k <= n ? ' on' : ''}${k === next ? ' next' : ''}" style="--c:${CHILI_COL[k - 1]}" title="${t('c_chili' + k)}">${icon(k <= n ? 'chili' + k : 'chili_off', size)}</i>`).join('');
 // what pip n costs and pays, as plain numbers: { name, rule, stars, hit, ground, rock }
 export function chiliFacts(floor, n) {
   const P = G.PARAMS.sites, gain = G.chiliGain(n);
@@ -39,6 +39,7 @@ export const medalsHtml = m => MEDALS.map(k => medalChip(k, m && m[k])).join('')
 
 // ---------- the next site: the road map (worldmap feature), or, if it cannot draw, the cards ----------
 export const nextMap = { open: null };
+let holdUntil = 0;                        // the finish card waits while a pip-cleared banner is seen
 let lastFin = null;                       // the last finish: the map walks from there
 export const alqahwa = { open: null };    // the coffee house screen (worldmap feature)
 // "Next town": the map, the digger walks, and the next level opens by itself when the road shows one card
@@ -168,7 +169,7 @@ function fillChili(m, s, d) {
   const n = st ? G.pipsOf(st) : 0, card = d.twist ? null : G.replayCard(s, d.key, true);
   row.hidden = txt.hidden = nx.hidden = !st || !!d.twist;
   if (!st || d.twist) return;
-  row.innerHTML = pipsHtml(n, 22, card ? card.chili : 0);
+  row.innerHTML = pipsHtml(n, 36, card ? card.chili : 0);
   txt.textContent = d.chiliWon ? G.chiliGain(d.chili) ? t('chili_won_line', { name: t('c_chili' + d.chili), p: pct(G.chiliGain(d.chili)) }) : t('chili_won_title', { name: t('c_chili' + d.chili) }) : d.chili ? t('chili_off') : '';
   txt.classList.toggle('yes', !!d.chiliWon);
   if (card) { const f = chiliFacts(d.floor, card.chili); nx.innerHTML = ''; nx.append(t('chili_next', { name: f.name, rule: f.rule }) + ' ', Object.assign(document.createElement('span'), { className: 'pay', textContent: chiliPayLine(f) })); }
@@ -202,7 +203,7 @@ function showFinish(app, d, again) {
   ofLevel(m.querySelector('.rq-of'), s);
   m.querySelector('.mrow').innerHTML = medalsHtml(d.medals);
   fillChili(m, s, d);
-  const earn = m.querySelector('.earn'); earn.textContent = t('fin_stars', { n: 0 });
+  const earn = m.querySelector('.earn'); earn.textContent = t('fin_stars', { n: Math.min(d.stars, 1) });
   const stay = m.querySelector('.ghost'), qh = m.querySelector('.qh'), go = m.querySelector('.nt');
   stay.textContent = t('fin_stay');
   stay.addEventListener('click', () => { app.modal.close(); app.dirty('site'); });
@@ -235,10 +236,10 @@ function showFinish(app, d, again) {
   };
   fill();
   // the Stars count up
-  let n = 0;
+  let n = Math.min(d.stars, 1);
   const inc = Math.max(1, Math.ceil(d.stars / 8));       // eight ticks at most: a big prize is not a long wait
   const step = () => { n = Math.min(d.stars, n + inc); earn.textContent = t('fin_stars', { n }); if (n < d.stars && m.isConnected) setTimeout(step, 150); };
-  setTimeout(step, 700);
+  setTimeout(step, 400);
   if (!again) { sfx.star(); screenFlash('#fff', 0.6); shake(0.6); }
   return true;
 }
@@ -271,7 +272,7 @@ ui({
     medal_fin: `<circle cx="16" cy="16" r="12" fill="#59d37a" ${S}/><path d="M9 16.5 L14 21.5 L23 11" fill="none" stroke="#06310f" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>`,
     medal_fast: `<circle cx="16" cy="17" r="11" fill="#7ee8ff" ${S}/><path d="M16 10 V17 L21 20" fill="none" stroke="#06313f" stroke-width="3" stroke-linecap="round"/><rect x="13" y="2.5" width="6" height="4" rx="1.5" fill="#7ee8ff" ${S}/>`,
     medal_hard: `<path d="M16 3 L28 9 V18 Q28 26 16 30 Q4 26 4 18 V9 Z" fill="#e5533d" ${S}/><path d="M10 14 L22 14 M10 19 L22 19" stroke="#3a0a05" stroke-width="3" stroke-linecap="round"/>`,
-    chili1: chiliSvg(CHILI_COL[0]), chili2: chiliSvg(CHILI_COL[1]), chili3: chiliSvg(CHILI_COL[2]), chili4: chiliSvg(CHILI_COL[3]), chili5: chiliSvg(CHILI_COL[4]), chili_off: chiliSvg('#4a443d'),
+    chili1: chiliSvg(CHILI_COL[0]), chili2: chiliSvg(CHILI_COL[1]), chili3: chiliSvg(CHILI_COL[2]), chili4: chiliSvg(CHILI_COL[3]), chili5: chiliSvg(CHILI_COL[4]), chili_off: chiliSvg('#8d8374'),
     watch: `<circle cx="16" cy="18" r="11" fill="#f6ead8" ${S}/><path d="M16 11 V18 L21 21" fill="none" stroke="#1b1410" stroke-width="2.6" stroke-linecap="round"/><rect x="13" y="2.5" width="6" height="4" rx="1.5" fill="#b9a58c" ${S}/>`,
     gate: `<path d="M5 29 V13 Q5 4 16 4 Q27 4 27 13 V29 Z" fill="#6a6384" ${S}/><path d="M11 29 V15 Q11 10 16 10 Q21 10 21 15 V29 Z" fill="#17110d"/>`,
   },
@@ -295,10 +296,15 @@ ui({
   tick(s, app) {
     document.getElementById('stars').hidden = s.stars <= 0;
     document.getElementById('stars-n').textContent = G.fmt(s.stars);
-    if (pending && !app.modal.id && showFinish(app, pending)) pending = null;
+    if (pending && !app.modal.id && performance.now() >= holdUntil && showFinish(app, pending)) pending = null;
   },
   on: {
-    siteFinished(d, app) { pending = d; lastFin = { key: d.key }; if (!app.modal.id && showFinish(app, d)) pending = null; app.dirty('site'); },
+    siteFinished(d, app) {
+      pending = d; lastFin = { key: d.key };
+      if (d.chiliWon) holdUntil = performance.now() + G.PARAMS.sites.chiliHoldMs;      // the banner and the burst are seen first
+      if (!app.modal.id && performance.now() >= holdUntil && showFinish(app, d)) pending = null;
+      app.dirty('site');
+    },
     siteMedal(d, app) { if (d.medal === 'hard') { sfx.star(); app.toast(t('medal_got', { name: t('medal_hard'), n: d.stars }), 'gold'); } app.dirty('site'); },
     newSite(d, app) {
       pending = null; sfx.star(); app.dirty('site');

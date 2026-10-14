@@ -28,13 +28,17 @@
 #trk-clock.soon { color: var(--gold); animation: trkPulse 1s ease-in-out infinite; }
 #trk-clock.over { color: #e07a6a; }
 #trk-clock.flash { color: var(--good); text-shadow: 0 0 8px var(--good); }
-#trk-bank { color: var(--good); font-weight: 700; }
+#trk-bank { color: var(--good); font-size: 18px; font-weight: 800; }
+#trk-clock[hidden], #trk-bank[hidden] { display: none; }
 @keyframes trkPulse { 50% { opacity: .55; } }
 @media (prefers-reduced-motion: reduce) { #trk-clock.soon { animation: none; } }
 #trk-clock.bump { display: inline-block; animation: trkBump .7s ease-out; color: var(--good); }
 @keyframes trkBump { 30% { transform: scale(1.5); } }
 
-/* "Done here": below the Gate, a gold button that brings the finish card back */
-#trk-done { padding: 2px 10px; font-size: 12px; font-weight: 800; border-radius: 8px; cursor: pointer; background: var(--gold); color: var(--gold-ink); border: 2px solid #7a5a00; animation: trkPulse 1.6s ease-in-out infinite; }
+/* the dig is done: Tips and the message line step aside so the line fits; "Done here" is a bright gold button in the Tips place */
+#track.done #tips-btn, #track.done #trk-msg { display: none; }
+#track.done #trk-head { flex: 1 1 auto; }
+#trk-done { flex: none; padding: 4px 14px; font-size: 14px; font-weight: 800; border-radius: 10px; cursor: pointer; background: var(--gold); color: var(--gold-ink); border: 2px solid #7a5a00; box-shadow: 0 0 10px rgba(255, 210, 63, .7); animation: trkGlow 1.4s ease-in-out infinite alternate; }
 #trk-done[hidden] { display: none; }
+@keyframes trkGlow { to { box-shadow: 0 0 16px 3px rgba(255, 210, 63, .95); } }
 @media (prefers-reduced-motion: reduce) { #trk-done { animation: none; } }

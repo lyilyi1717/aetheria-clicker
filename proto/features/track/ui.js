@@ -26,7 +26,7 @@ function mount(app) {
   if (!track || !goal) return;
   const head = document.createElement('div');
   head.id = 'trk-head';
-  head.innerHTML = '<b id="trk-level"></b><div id="trk-sub"><span id="trk-gate"></span><span id="trk-clock"></span><span id="trk-bank" hidden></span><span id="trk-medals"></span><button id="trk-done" class="gold" hidden></button></div>';
+  head.innerHTML = '<b id="trk-level"></b><div id="trk-sub"><span id="trk-gate"></span><span id="trk-clock"></span><span id="trk-bank" hidden></span><span id="trk-medals"></span></div>';
   track.insertBefore(head, goal);
   // the message line: the lesson and the toast move here from the stage (a lesson wins when both show)
   const msg = document.createElement('div');
@@ -36,7 +36,11 @@ function mount(app) {
   // the Tips button sits in this line, beside the message line (its list still opens over the stage)
   const tips = $('tips-btn');
   if (tips) track.insertBefore(tips, goal);
-  el = { level: $('trk-level'), clock: $('trk-clock'), bank: $('trk-bank'), medals: $('trk-medals'), gate: $('trk-gate'), done: $('trk-done') };
+  // "Done here" has its own spot at the end of the line, where Tips is while the dig goes on (Tips and the message line hide when done)
+  const done = document.createElement('button');
+  done.id = 'trk-done'; done.hidden = true;
+  track.insertBefore(done, goal);
+  el = { track, level: $('trk-level'), clock: $('trk-clock'), bank: $('trk-bank'), medals: $('trk-medals'), gate: $('trk-gate'), done };
   el.done.textContent = t('trk_done'); el.done.title = t('trk_done_t');
   el.done.addEventListener('click', () => { app.unlockAudio(); reopenFinish(app); });
   const mb = $('mapbtn');
@@ -53,14 +57,16 @@ function tickClock(s, r) {
   el.clock.classList.toggle('soon', !c.over && !r.done && c.left <= 10);
   // a leg closed: green flash, and the seconds saved are shown as banked for a moment
   if (lastIdx !== null && (c.idx !== lastIdx || (r.done && !lastDone)) && r.legLast) {
-    if (r.legLast.left >= 0) { flashT = now + 700; bankT = now + 2600; el.bank.textContent = t('clock_bank', { t: clock(Math.floor(r.legLast.saved)) }); }
+    if (r.legLast.left >= 0) { flashT = now + 700; bankT = now + 2000; el.bank.textContent = t('clock_bank', { t: clock(Math.floor(r.legLast.saved)) }); }
   }
   if (lastExt !== null && r.legExt !== lastExt && r.legExt !== undefined) bumpT = now + 700;
   lastExt = r.legExt;
   el.clock.classList.toggle('bump', now < bumpT);
   lastIdx = c.idx; lastDone = !!r.done;
   el.clock.classList.toggle('flash', now < flashT);
-  el.bank.hidden = now >= bankT;
+  // the banked seconds take the clock's place for 2 s (never beside it, so nothing overlaps the medals)
+  const showBank = now < bankT;
+  el.bank.hidden = !showBank; el.clock.hidden = showBank;
   // a soft tick, once a second, in the last 10 seconds
   if (!r.done && !c.over && c.left <= 10 && sec !== lastSec && c.left > 0) { if (lastSec !== null && gap('legTick', 0.5)) tone(c.left <= 3 ? 990 : 740, { type: 'sine', d: 0.06, vol: 0.05 }); }
   lastSec = sec;
@@ -82,6 +88,7 @@ function tick(s) {
   el.gate.classList.toggle('done', !!r.done);
   el.gate.textContent = r.done ? t('trk_below') : t('trk_togate', { n: G.fmt(Math.max(0, F - Math.max(0, s.best))) });
   el.done.hidden = !r.done;
+  el.track.classList.toggle('done', !!r.done);
   tickClock(s, r);
   const st = G.siteStamp(s), ms = `${st.fin}${st.fast}${st.hard}`;
   if (msig !== ms) { msig = ms; el.medals.innerHTML = medalsHtml({ fin: st.fin, fast: st.fast, hard: st.hard }); }
