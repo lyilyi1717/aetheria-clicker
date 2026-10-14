@@ -20,7 +20,7 @@ Use these exactly. If a word is not here and is new, add it here in the same PR.
 |---|---|---|
 | Aetheria | أثيريا | as in `ar.js` |
 | Dig (the game, `?loop=3`) | الحفر | **Decided 14 Oct 2026**: one name for the game in every text. Not «التنقيب» (that is Aetheria's Mining tab and means prospecting). |
-| Chapter One / Two | الفصل الأول / الثاني | short form «ف2» only in tight labels |
+| Chapter One / Two | الفصل الأول / الثاني | short form «الفصل 2» (English "Chapter 2") in the level line; never «ف2» or "Ch. 2" |
 | Level / medal / twist | المرحلة / الميدالية / التحدّي الخاص | «twist» card = بطاقة تحدٍّ |
 | Chili level | مرحلة الشطة | Fast medal = ميدالية السرعة, Chili medal = ميدالية الشطة |
 | Save (old save) | الحفظ (الحفظ القديم) | as in Aetheria |
@@ -243,6 +243,10 @@ Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 1
 **Decided (14 Oct 2026, by localizer): the Forge's Dynamite is «عصا الديناميت»**, because TNT barrels are «الديناميت» (glossary) and two things must not share one name; the stick is also what the Forge draws.
 
 **Decided (14 Oct 2026, by localizer): "Every {n}th hit" keeps the pass 1 form «كل ضربة رقم {n}»** (as «معول الانفجار»), and "every {n} Rafeeq hits" is «ضربة واحدة من كل {n} من ضربات الرفقاء»; block counts use «كتلاً عددها {n}», all right for any number. "Tool is ready" is «يمكنك استعمال {name} الآن», because «جاهز» would need a gender per tool (المثقاب، عصا الديناميت).
+
+**Decided (14 Oct 2026, by localizer): the level line says «الفصل 2، المرحلة 17/20» and "Chapter 2, level 17/20"** (was «ف2» and "Ch. 2"), because a one-letter abbreviation is a riddle for a 7 year old in either language, and the screen-checker's fifth pass named «ف2» as one of the three things a new Arabic player trips on. The full word costs five letters; the level part of that line never shrinks, and the place name after it is the part that gives way with dots, so nothing is cut. The digit 2 matches the English and the «1/20» beside it; the long sentences keep «الفصل الثاني».
+
+**Decided (14 Oct 2026, by localizer): every line of words drawn on a canvas, or sitting on the left-to-right stage, takes its direction from its own letters** (#451). The scene never mirrors, so the stage and its canvases are left to right; until now only the Rafeeq bubbles and almodeer's box set `g.direction`, and the Museum chip, the Gate and record flags, the Big Rock's bar and warnings, the floating numbers, the map's land signs and level names, and Alqahwa's names and bubbles were laid out left to right, so «وجدت 0 من 4» showed as «4 وجدت 0 من». Canvas: `g.direction = textDir(str)` (`proto/core/lang.js`), which is right to left only on an Arabic page and only for a line with an Arabic letter, so a bare «-12.5K» or «1:40» keeps its sign in front; a line pinned to a left point keeps `textAlign = 'left'`, and the map's land sign starts Arabic at its right edge. Page: `unicode-bidi: plaintext` on the stage's `p`, `b`, `span` and `#hud-record`, which turns the words without moving any box (moving the boxes is the scene's layout, not the language's). Plain one-word names with no number or mark («المدير»، «القهوة»، «الحكواتي») draw the same either way and were left alone.
 
 ## 6. Dig: plumbing and passes
 

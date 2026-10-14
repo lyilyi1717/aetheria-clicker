@@ -6,6 +6,7 @@ import * as G from '../../game.js';
 import { PW, HH, SKYY, pathPoints } from './layout.js';
 import { chiliPop } from './flow.js';
 import { museumImage, maskOf } from '../museum/art.js';
+import { textDir } from '../../core/lang.js';
 
 const { t } = G;
 
@@ -206,9 +207,10 @@ function drawNode(g, n, v, nm) {
   g.font = '700 13px system-ui, Cairo, sans-serif';
   const w = 132;
   g.lineWidth = 3.5; g.lineJoin = 'round'; g.strokeStyle = 'rgba(20,12,6,0.85)'; g.fillStyle = nm.locked ? '#d8cdbd' : '#fff6e0';
-  if (nm.name) { const s = fit(g, nm.name, w); g.strokeText(s, 0, y); g.fillText(s, 0, y); y += 15; }
+  if (nm.name) { const s = fit(g, nm.name, w); g.direction = textDir(s); g.strokeText(s, 0, y); g.fillText(s, 0, y); y += 15; }
   g.font = '600 13px system-ui, Cairo, sans-serif'; g.fillStyle = nm.locked ? '#c9bfae' : '#ffe9a8';
-  if (nm.sub) { const s = fit(g, nm.sub, w); g.strokeText(s, 0, y); g.fillText(s, 0, y); }
+  if (nm.sub) { const s = fit(g, nm.sub, w); g.direction = textDir(s); g.strokeText(s, 0, y); g.fillText(s, 0, y); }
+  g.direction = 'inherit';
   if (n.museum) drawMuseum(g, n.museum, y + 8, nm.locked, time, redraw);
   g.restore();
 }
@@ -243,9 +245,10 @@ function drawSign(g, p, text, sub) {
   g.font = '600 13px system-ui, Cairo, sans-serif'; const w = Math.max(w1, g.measureText(sub).width) + 24;
   g.fillStyle = 'rgba(24,14,8,0.82)'; g.strokeStyle = '#ffd23f'; g.lineWidth = 2;
   g.beginPath(); g.roundRect(0, 0, w, 44, 10); g.fill(); g.stroke();
-  g.textAlign = 'left'; g.textBaseline = 'middle';
-  g.font = '800 17px system-ui, Cairo, sans-serif'; g.fillStyle = '#ffd23f'; g.fillText(text, 12, 14);
-  g.font = '600 13px system-ui, Cairo, sans-serif'; g.fillStyle = '#e8dcc6'; g.fillText(sub, 12, 31);
+  g.textAlign = 'start'; g.textBaseline = 'middle';           // Arabic lines start at the sign's right edge
+  const at = d => d === 'rtl' ? w - 12 : 12;
+  g.font = '800 17px system-ui, Cairo, sans-serif'; g.fillStyle = '#ffd23f'; g.direction = textDir(text); g.fillText(text, at(g.direction), 14);
+  g.font = '600 13px system-ui, Cairo, sans-serif'; g.fillStyle = '#e8dcc6'; g.direction = textDir(sub); g.fillText(sub, at(g.direction), 31);
   g.restore();
 }
 

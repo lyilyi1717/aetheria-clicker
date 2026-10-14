@@ -7,6 +7,7 @@ import { sfx, tone, noise, gap } from '../../ui/audio.js';
 import { icon, S, badge, star } from '../../ui/icons.js';
 import { ofLevel } from '../rafeeqs/portrait.js';
 import { levelText } from './level.js';
+import { textDir } from '../../core/lang.js';
 import { finishChoices, chiliPop } from '../worldmap/flow.js';
 
 const { t } = G;
@@ -262,7 +263,7 @@ function drawGate(g, s) {
   const label = t('gate_flag', { n: r.floor }), w = g.measureText(label).width + 40;
   g.fillStyle = 'rgba(20,12,6,.86)'; g.strokeStyle = '#ffd23f'; g.lineWidth = 2;
   g.beginPath(); g.roundRect(8, y - 12, w, 24, 8); g.fill(); g.stroke();
-  g.fillStyle = '#ffd23f'; g.fillText(label, 36, y);
+  g.fillStyle = '#ffd23f'; g.textAlign = 'left'; g.direction = textDir(label); g.fillText(label, 36, y);
   g.beginPath(); g.moveTo(16, y + 7); g.lineTo(16, y - 7); g.lineTo(21, y - 7); g.lineTo(21, y - 1); g.lineTo(27, y - 1); g.lineTo(27, y + 7); g.closePath(); g.fill();
   g.restore();
 }

@@ -6,6 +6,7 @@ import { layersOf } from '../core/registry.js';
 import { lookFor } from '../features/look/palette.js';
 import { makeWorld } from '../features/look/world.js';
 import { motion, burst } from './motion.js';
+import { textDir } from '../core/lang.js';
 
 export const CELL = 64;
 export const SKY = 104;
@@ -273,9 +274,11 @@ function drawFx(g) {
     const pop = k > 0.85 ? 0.6 + (1 - k) / 0.15 * 0.7 : Math.min(1.3, 1 + (k - 0.6) * 0.75);
     g.font = `800 ${Math.round(t.size * Math.max(1, pop))}px system-ui, Cairo, sans-serif`;
     g.globalAlpha = Math.min(1, k * 3.3);
+    g.direction = textDir(t.str);
     g.lineWidth = 4; g.strokeStyle = 'rgba(0,0,0,0.75)'; g.strokeText(t.str, t.x, t.y);
     g.fillStyle = t.col; g.fillText(t.str, t.x, t.y);
   }
+  g.direction = 'inherit';
   g.globalAlpha = 1;
 }
 
