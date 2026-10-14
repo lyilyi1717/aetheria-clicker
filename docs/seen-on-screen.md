@@ -75,6 +75,7 @@ Console errors: only the favicon 404.
 | Museum: map node silhouettes | 2026-10-14 | 5.31.1 | docs/screens/2026-10-14/09-map-walk.png | looks right | Grey camel with 0/4 under every node. | |
 | Coin counter (top-left of the stage) | 2026-10-14 | 5.31.1 | docs/screens/2026-10-14/02-rock-fight.png | broken | Hidden under the Old Camel chip; 100 shows as 10. | #401 |
 | Settings panel | 2026-10-14 | 5.31.1 | docs/screens/2026-10-14/12-settings.png | looks right | Three sliders, Sound, Share my play times, Done. The gear icon looks like a sun. "Share my play times" starts On. | |
+| Reduce motion switch (Settings) and calm mode | never | 5.33.4 | | never seen | Settings has a Reduce motion button after Share my play times. On: no shake, no screen flash, small sparks, still pulsing buttons. Check it starts On when the browser asks for less motion. | |
 
 Console errors in every run: only the missing favicon (404). No script errors.
 

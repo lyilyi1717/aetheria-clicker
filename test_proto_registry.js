@@ -5,6 +5,7 @@ import * as G from './proto/game.js';
 
 let failed = 0;
 const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg); } };
+process.on('uncaughtException', e => { console.error('UNCAUGHT in test_proto_registry.js: ' + (e && e.code ? e.code + ' ' : '') + (e && e.path ? e.path + ' ' : '') + '\n' + (e && e.stack || e)); process.exit(1); });
 const throws = f => { try { f(); return false; } catch { return true; } };
 
 // ---------- what ships ----------
@@ -236,10 +237,12 @@ const kit = G.use({
 { // the rules of the contract itself
   const files = ['proto/game.js', ...readdirSync('proto/core').map(f => 'proto/core/' + f)];
   const feats = readdirSync('proto/features', { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name);
+  console.log(`registry test: found ${feats.length} feature folders in ${process.cwd()}/proto/features: ${feats.join(' ')}`);
   for (const f of feats) for (const n of ['rules.js', 'strings.js']) if (existsSync(`proto/features/${f}/${n}`)) files.push(`proto/features/${f}/${n}`);
   for (const f of files) {
-    const src = readFileSync(f, 'utf8').replace(/\/\/.*$/gm, '');
     if (f === 'proto/core/lang.js') continue; // the page's language switch: location and localStorage on purpose
+    let raw; try { raw = readFileSync(f, 'utf8'); } catch (e) { failed++; console.error(`FAIL: could not read ${f} (${e.code}): ${e.message}`); continue; }
+    const src = raw.replace(/\/\/.*$/gm, '');
     if (f !== 'proto/core/rng.js') ok(!/Math\.random/.test(src), `${f}: rules take chance from rnd(), not Math.random`);
     ok(!/(?<![.\w'])(document|window|localStorage|requestAnimationFrame)\b(?!\s*:)/.test(src), `${f}: no DOM in the rules`);
     ok(!/\p{Extended_Pictographic}/u.test(src), `${f}: no emoji`);

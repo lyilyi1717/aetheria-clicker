@@ -5,6 +5,7 @@ import { COLS, VIEW_ROWS, KEEP_ROWS, layerOf, layerAt, reachable, visibleMask } 
 import { layersOf } from '../core/registry.js';
 import { lookFor } from '../features/look/palette.js';
 import { makeWorld } from '../features/look/world.js';
+import { motion, burst } from './motion.js';
 
 export const CELL = 64;
 export const SKY = 104;
@@ -116,6 +117,7 @@ export const centre = (r, c) => [c * CELL + CELL / 2, yOf(r) + CELL / 2];
 
 export function debris(r, c, col, n, power = 1) {
   const [x, y] = centre(r, c);
+  n = burst(n, !motion());
   for (let i = 0; i < n; i++) {
     if (fx.parts.length > 500) fx.parts.shift();
     const a = Math.random() * Math.PI * 2, sp = (60 + Math.random() * 240) * power;
@@ -123,6 +125,7 @@ export function debris(r, c, col, n, power = 1) {
   }
 }
 export function spark(x, y, col, n) {
+  n = burst(n, !motion());
   for (let i = 0; i < n; i++) {
     if (fx.parts.length > 500) fx.parts.shift();
     const a = Math.random() * Math.PI * 2, sp = 80 + Math.random() * 260;
@@ -131,6 +134,7 @@ export function spark(x, y, col, n) {
 }
 export function coinBurst(r, c, n, col = '#ffd23f') {
   const [x, y] = centre(r, c);
+  n = burst(n, !motion());
   for (let i = 0; i < n; i++) {
     if (fx.coins.length > 160) break;
     const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.4, sp = 160 + Math.random() * 260;
@@ -149,8 +153,8 @@ export function text(x, y, str, col = '#fff', size = 18, life = 0.8) {
 }
 export function ring(x, y, rad, col = '#fff') { fx.rings.push({ x, y, rad, col, life: 0.4, max: 0.4 }); }
 export function flash(r, c, strength = 1) { fx.flashes.set(r * 100 + c, strength); fx.bumps.set(r * 100 + c, 1); }
-export function shake(amount) { fx.trauma = Math.min(1, fx.trauma + amount); }
-export function screenFlash(col, a = 0.25) { fx.flashCol = col; fx.screenFlash = a; }
+export function shake(amount) { if (!motion()) return; fx.trauma = Math.min(1, fx.trauma + amount); }
+export function screenFlash(col, a = 0.25) { if (!motion()) return; fx.flashCol = col; fx.screenFlash = a; }
 // a fountain of dark drops from a block, for a couple of seconds
 export function gush(c, r) { fx.gush.push({ c, r, life: 2.2 }); }
 export function swingAnim(crit) { fx.swingT = 1; fx.swingCrit = crit; }
@@ -213,7 +217,7 @@ function drawBlocks(g, s) {
       const cell = s.rows[i][c];
       if (!cell) continue;
       const key = r * 100 + c;
-      const bump = fx.bumps.get(key) || 0;
+      const bump = motion() ? (fx.bumps.get(key) || 0) : 0;
       const x = c * CELL + (bump ? (Math.random() - 0.5) * 6 * bump : 0);
       const yy = y + (bump ? (Math.random() - 0.5) * 6 * bump : 0);
       const v = cell.s % 3;
