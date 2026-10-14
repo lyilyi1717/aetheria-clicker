@@ -75,7 +75,7 @@ const clearRow = (s, i) => { for (let c = 0; c < G.COLS; c++) s.rows[i][c] = nul
   const coins = s.coins;
   const out = G.settleAway(s, 8 * 3600);
   ok(out.coins > 0 && s.coins === coins + out.coins, 'time away pays');
-  ok(out.atBoss && s.top < G.LAYER, 'the crew stops at the Big Rock');
+  ok(out.atBoss && s.top === G.LAYER, 'the crew stops at the Big Rock, the row above it dug');
   ok(G.settleAway(s, 1e9).seconds <= G.P.offlineCapHours * 3600, 'time away is capped, not punished');
 }
 { // a new site keeps Stars and the Museum

@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.9';
+export const VERSION = '5.36.10';
 
 export const CHANGELOG = [
   {
-    version: '5.36.9',
+    version: '5.36.10',
     date: '2026-10-14',
     title: 'Dig: the game tells you to hit the Rock',
     changes: [
@@ -21,6 +21,22 @@ export const CHANGELOG = [
         'عند الصخرة الكبيرة، أي قطعة تحتاج أكثر من 25 ضربة منك تظهر عليها بعد 3 ضربات عبارة «صعبة جداً: نحو 3,400 ضربة. اضرب الصخرة!»، ويلمع شقّ الصخرة أكثر. المعول ما زال يضرب حيث تشير.',
         'إذا واصلت ضرب قطع كهذه (60 ضربة)، يذكر التلميح عند الصخرة اسم الصخرة. والمحاولة التالية بعد محاولة قضيتها في قطع صعبة تبدأ بالجملة نفسها.',
         'لا يحدث هذا في المستويات الأربعة الأولى، ولا على الفانوس أو صندوق المشاعل أو الماء التي تطلب منك الطبقة كسرها أولاً.'
+      ]
+    }
+  },
+  {
+    version: '5.36.9',
+    date: '2026-10-14',
+    title: 'Dig: while you are away the crew digs right up to the Big Rock',
+    changes: [
+      'While you are away, your Rafeeqs now dig down to the row right above the next Big Rock and wait there. Before, they stopped as soon as the Rock came into view and left the hardest rows of the layer for you, so you could come back with nothing to hit at the Gate.',
+      'The rows cost the same as when you dig them yourself, so a short time away still stops where the time ran out. The Rock itself and the Gate are never dug while you are away.'
+    ],
+    ar: {
+      title: 'الحفر: أثناء غيابك يحفر الفريق حتى الصخرة الكبيرة مباشرة',
+      changes: [
+        'أثناء غيابك، يحفر رفاقك الآن حتى الصف الذي فوق الصخرة الكبيرة التالية مباشرة وينتظرون هناك. كانوا قبل ذلك يتوقفون بمجرد ظهور الصخرة ويتركون لك أصلب صفوف الطبقة، فكنت تعود ولا تجد شيئاً تضربه عند البوابة.',
+        'الصفوف تكلّف نفس ما تكلّفه حين تحفرها بنفسك، فالغياب القصير يتوقف حيث انتهى الوقت. أما الصخرة نفسها والبوابة فلا تُحفران أبداً أثناء غيابك.'
       ]
     }
   },

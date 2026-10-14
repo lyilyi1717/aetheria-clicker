@@ -25,7 +25,7 @@ const crewState = () => {
     const before = s.coins;
     const o = G.settleAway(s, h * 3600);
     ok(s.coins === before + o.coins, `coins add up at ${h} h`);
-    ok(o.atBoss && s.top < G.LAYER, 'the crew stops at the Rock');
+    ok(o.atBoss && s.top === G.LAYER, 'the crew stops at the Rock, the row above it dug');
     res[h] = o;
   }
   ok(res[0.5].sieveCoins > 0, 'sieving pays after only 30 minutes');

@@ -36,7 +36,7 @@ const HOLD = G.VIEW_ROWS - 3;
   const s = G.newState();
   s.coins = 1e9; s.total = 1e9; G.buy(s, 'crew'); for (let i = 0; i < 30; i++) G.buy(s, 'pick');
   const out = G.settleAway(s, 8 * 3600);
-  ok(out.atBoss && s.top < G.LAYER, 'the crew stops at the Big Rock');
+  ok(out.atBoss && s.top === G.LAYER, 'the crew stops at the Big Rock');
 }
 { // the Rock is not held while it is far below, nor when no Rock is near
   const s = G.newState();
