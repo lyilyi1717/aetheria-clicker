@@ -10,4 +10,15 @@ export default { en: {
   t_foreman_title: 'Foreman Abu Nasser is here!',
   t_foreman_sub: 'Now the Rafeeqs listen to you.',
   t_job: 'Rafeeqs: {job}',
+}, ar: {
+  foreman_title: 'المشرف',
+  foreman_hint: 'قل للرفقاء ماذا يفعلون.',
+  job_follow: 'اتبعوني', job_follow_d: 'يحفر الرفقاء بجانب معولك.',
+  job_ore: 'إلى الخام', job_ore_d: 'يمشي الرفقاء إلى أقرب شيء لامع، ويحفرون نفقاً إليه.',
+  job_nearest: 'بجانبي', job_nearest_d: 'يحفر الرفقاء بجانب معولك وتحته مباشرة.',
+  job_down: 'احفروا للأسفل', job_down_d: 'يتسابق الرفقاء إلى أعمق نقطة.',
+  job_tea: 'استراحة شاي', job_tea_d: 'يجلسون ويشربون الشاي. ثم يحفرون بضعف السرعة.',
+  t_foreman_title: 'وصل المشرف أبو ناصر!',
+  t_foreman_sub: 'الآن يسمع الرفقاء كلامك.',
+  t_job: 'الرفقاء: {job}',
 } };

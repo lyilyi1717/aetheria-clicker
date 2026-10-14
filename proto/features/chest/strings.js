@@ -9,4 +9,15 @@ export default { en: {
   take: 'Take',
   t_chest_seen: 'A chest! Dig your way to it.',
   t_chest_crew: 'Your Rafeeqs found a chest.',
+}, ar: {
+  relics: 'الآثار', relics_none: 'جِد صندوقاً. كل صندوق يتيح لك أن تختار أثراً من 3.',
+  lv: 'مستوى {n}',
+  r_nose: 'أنف الكنز', r_nose_d: 'تظهر الصناديق أكثر.',
+  chest_title: 'صندوق! اختر واحداً',
+  chest_more: 'صناديق باقية بعد هذا: {n}',
+  chest_btn: 'افتح الصندوق',
+  chest_new: 'جديد', chest_up: 'المستوى {n}',
+  take: 'خذه',
+  t_chest_seen: 'صندوق! احفر طريقك إليه.',
+  t_chest_crew: 'وجد رفقاؤك صندوقاً.',
 } };
