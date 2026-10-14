@@ -187,10 +187,10 @@ export function starshopReroll(s) {
 // ---------- away: past a Big Rock you have beaten ----------
 // never the Gate of the level in play: the `awayPassable` mod (sites) says no to it, on every kind of run
 const passable = (s, R) => lv(s, 'sp_wake') > 0 && layerOf(R) <= s.starBoss && fold('awayPassable', s, true, R);
-// is a Big Rock you cannot pass in view of the crew standing at row r?
+// is the next row to dig, `r`, a standing Big Rock you cannot pass? Same stop as the plain walk (away feature): the crew
+// digs right down to the row above it and waits (decision 20); Rocks you have beaten are walked past
 function blocked(s, r) {
-  for (let R = r; R <= r + VIEW_ROWS - 1; R++) if (R > 0 && R % LAYER === 0 && !passable(s, R)) return true;
-  return false;
+  return r > 0 && r % LAYER === 0 && r === s.top && s.rows[0].some(x => x) && !passable(s, r);
 }
 
 // what this site started with, for the line on the New Site card
