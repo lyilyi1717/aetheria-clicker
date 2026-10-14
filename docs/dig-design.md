@@ -246,7 +246,7 @@ All of it is flavour: nothing here changes how strong a Rafeeq is.
 | Player data | Section 7.5 | built; 2 players so far |
 | Saves | `SAVE_VERSION` 2 in `proto/core/state.js` plus per-feature `version` + `migrate` (sites 2, diggers 3, museum 2, starshop 2); old saves load | built. **Not built:** export / import of a save, a frozen old-save test per release (decision 2, release-keeper) |
 | Several sites at once, earned automation, a second land | `proto/features/land2/` and `autos/` are empty placeholders | not built, not planned for chapter one |
-| Arabic | `t()` and `addStrings({ en, ar })` are ready; no Arabic strings yet (the nicknames carry Arabic script as data) | not built (decision 5, localizer) |
+| Arabic | `t()` and `addStrings({ en, ar })` are ready; no Arabic strings yet (the nicknames carry Arabic script as data) | not built; Decided by localizer, see `docs/arabic.md` section 5 (decision 5) |
 | YouTube Playables | | not built (decision 1, release-keeper) |
 
 ## 4. The numbers
@@ -294,7 +294,7 @@ Last measured (mixed player, 2 seeds; #386 and #388, 14 October 2026):
 | 20 | The month sim's targets predate the road | sim | open, #398 |
 | 21 | The "New:" line of a level names the layer below its Gate (level 5 says the Black) | design-keeper | open, #395 |
 | 22 | "TNT does not work on the boss" (owner, 13 Oct) | owner | fixed (#386) |
-| 23 | Text of the stuck hint, "BOOM", chili lines and every Dig string is English only | team | open; decision 5 (localizer) |
+| 23 | Text of the stuck hint, "BOOM", chili lines and every Dig string is English only | team | open; Decided by localizer, see `docs/arabic.md` section 5 (decision 5) |
 | 24 | Rock Friend (`sp_wake`) walks the crew past the Gate of the run in play while away; the level finishes on return with no hit on its Gate (chapter-two levels 30 to 36, chapter-one prove levels) | sim (Gate per level pass) | open, #430; decision 13 |
 | 25 | Time away prices a row as plain ground (`dirtHp`): prove x6, chili, the heavy twist and chapter two x3e12 are left out, in the walk and in the sieve | design-keeper (reading `away/rules.js`) | open, #429 |
 | 26 | Levels 37 and 39 stall on the rows above the Gate; the Gate falls to TNT and its memory, not to the player | sim | open, #431; decision 15 |
@@ -382,7 +382,7 @@ Since 14 October 2026 the owner gives each decision to the agent whose field it 
 | 2 | **Dig saves: export / import, frozen old-save tests, cloud save** | **Goes to release-keeper** (save safety). |
 | 3 | **Late learn levels at 3 to 5 tries** (#397): cheaper Pick steps past 20, or Stars moved from prove to learn levels | **Goes to balance-analyst** (numbers), measured after work order 1. Design limit: the Gate is never made softer for a weak player; no lever that adds a grind. |
 | 4 | **Getting real players** (a median needs 3 per level) | **Owner** (a new audience). Options: (a) he shares the page with 3 to 5 people he knows, one a child watched for 10 minutes, through the share link of decision 16; (b) an itch.io page and a clip; (c) wait for Playables. Default (a). |
-| 5 | **Arabic for Dig** | **Goes to localizer.** |
+| 5 | **Arabic for Dig** | **Decided by localizer, see `docs/arabic.md` section 5** (merged #432): Arabic in four passes after a plumbing PR; the language switch stays hidden until pass 3. |
 | 6 | **How long the road takes a mixed player** | **Decided (14 Oct 2026, by design-keeper): level 20 (chapter one) between day 10 and 15, level 40 (the road) between day 18 and 25**, because chapter one teaches a new layer per level and should be the slower half per level; chapter two was built to make the road longer without changing its feel (owner: "don't change the game progress feel but increase the length"); and 18 to 25 days is the target both chapters were built and measured against. balance-analyst holds the numbers to it. |
 | 7 | **The Camp track's plain steps** (#394) | **Decided (14 Oct 2026, by design-keeper): each plain Camp step lifts a Rafeeq's hit by a small share of yours** (`campShare`, balance-analyst sets it; pace moves under 10%), because a step that costs Stars and does nothing breaks the board's promise, the track is named for the Rafeeqs, and it helps fault 10 (they feel weak while you watch). Not "only the 7 named steps" or "end at step 12": cutting steps removes a choice instead of giving it a use. Work order 3. |
 | 8 | **The Gate multiple on every Big Rock** (#396) | **Settled 14 Oct: Gate only.** The Rock at the run's floor row takes `gateMul`; the Rocks before it use the formula; the chili factor still applies to every Rock. Built. |
