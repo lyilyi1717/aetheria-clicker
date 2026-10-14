@@ -9,6 +9,7 @@ export default { en: {
   set_sound_off: 'Off',
   set_play: 'Play',
   set_tel: 'Share my play times',
+  set_calm: 'Reduce motion',
   set_close: 'Done',
   set_value: '{n}',
 } };

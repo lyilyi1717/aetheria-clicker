@@ -7,11 +7,13 @@ import { addIcons, icon } from '../../ui/icons.js';
 import { setLevels, getLevels, preview, isMuted, unlock } from '../../ui/audio.js';
 import { load, save } from '../../ui/volume.js';
 import { tel } from '../telemetry/ui.js';
+import * as motion from '../../ui/motion.js';
 
 const { t } = G;
 
 const store = (() => { try { return localStorage; } catch { return null; } })();
 if (store) setLevels(load(store));
+motion.init(store, window.matchMedia && window.matchMedia.bind(window), document.documentElement);
 
 // a gear: a ring with eight teeth and a hub
 addIcons({ btn_gear: '<circle cx="16" cy="16" r="7" fill="none" stroke="currentColor" stroke-width="2.6"/><circle cx="16" cy="16" r="2.4" fill="currentColor"/><path d="M16 3.5 V8 M16 24 V28.5 M3.5 16 H8 M24 16 H28.5 M7.2 7.2 L10.4 10.4 M21.6 21.6 L24.8 24.8 M24.8 7.2 L21.6 10.4 M10.4 21.6 L7.2 24.8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>' });
@@ -56,6 +58,10 @@ function openSettings(app) {
     b.addEventListener('click', () => { tel.setConsent(!tel.consent()); paint(); });
     paint(); sw.append(b);
   }
+  const calm = document.createElement('button'); calm.type = 'button'; calm.className = 'ghost set-switch';
+  const paintCalm = () => { calm.textContent = `${t('set_calm')}: ${t(motion.isReduced() ? 'set_sound_on' : 'set_sound_off')}`; calm.setAttribute('aria-pressed', motion.isReduced() ? 'true' : 'false'); };
+  calm.addEventListener('click', () => { motion.setReduced(!motion.isReduced(), document.documentElement); if (store) motion.save(store, motion.isReduced()); paintCalm(); });
+  paintCalm(); sw.append(calm);
   const done = m.querySelector('.set-done'); done.textContent = t('set_close');
   done.addEventListener('click', () => close(app));
   m.addEventListener('click', e => { if (e.target === m) close(app); });
