@@ -54,8 +54,7 @@ ui({
         row.firstChild.style.background = SHIRTS[i % 8];
         row.children[1].textContent = G.rafeeqName(s, i);
         row.classList.toggle('rq-lead', !!(s.run && s.run.done) && G.rafeeqBest(s) === i);
-        const txt = t('crew_row', { b: fmt(d.broke || 0), c: fmt(Math.round(d.coins || 0)) });
-        row.children[2].textContent = d.sv ? t('crew_sieving') + ', ' + txt : txt;
+        row.children[2].textContent = t(d.sv ? 'crew_row_sv' : 'crew_row', { b: fmt(d.broke || 0), c: fmt(Math.round(d.coins || 0)) });
         row.title = row.textContent;
       });
     },

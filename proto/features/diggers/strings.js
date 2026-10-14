@@ -7,7 +7,7 @@ export default { en: {
   crew_title: 'Your Rafeeqs',
   crew_name: 'Rafeeq {n}',
   crew_row: '{b} broken, {c} coins',
-  crew_sieving: 'sieving',
+  crew_row_sv: 'sieving, {b} broken, {c} coins',
   t_digger: 'A Rafeeq joins. He never stops.',
 }, ar: {
   up_crew: 'وظّف رفيقاً', up_crew_d: 'يحفر وحده، حتى وأنت غائب. لديك {a}. ضربة الرفيق: {p}% من ضربتك.',
@@ -17,6 +17,6 @@ export default { en: {
   crew_title: 'رفقاؤك',
   crew_name: 'رفيق {n}',
   crew_row: 'كسر: {b}، عملات: {c}',
-  crew_sieving: 'يغربل',
+  crew_row_sv: 'يغربل، كسر: {b}، عملات: {c}',
   t_digger: 'انضمّ رفيق. لا يتوقف أبداً.',
 } };

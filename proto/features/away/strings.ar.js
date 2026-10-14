@@ -1,0 +1,27 @@
+// Arabic for the welcome-back card (strings.js holds the English). A sibling file so the away code and its
+// English can change without touching the translation (docs/arabic.md section 5).
+export default { ar: {
+  away_title: 'أهلاً بعودتك!',
+  away_line: 'غبت مدة {t}. هذا ما فعله رفقاؤك.',
+  away_cap: 'يعمل رفقاؤك وأنت غائب حتى {h} ساعة. بعدها لا يضيع شيء، فهم ينتظرونك فقط.',
+  away_metres: 'أعمق بمقدار {n} م',
+  away_sieve: 'غربلوا الركام مدة {t}',
+  away_bone1: 'عظمة واحدة', away_bones: 'العظام: {n}',
+  away_newbone1: 'واحدة منها جديدة للمتحف', away_newbones: 'الجديد منها للمتحف: {n}',
+  away_chests: 'صناديق تنتظر الفتح: {n}', away_chest1: 'صندوق واحد ينتظر الفتح',
+  away_boss: 'وصلوا إلى الصخرة الكبيرة وانتظروك. كسرها لك أنت.',
+  away_ok: 'عودة إلى الحفر',
+  away_open: 'افتح الصندوق الأول',
+  away_short: 'عدت بسرعة! جمع رفقاؤك {n} عملة.',
+  away_short_chest1: 'عدت بسرعة! تنتظرك {n} عملة وصندوق واحد.',
+  away_short_chests: 'عدت بسرعة! تنتظرك {n} عملة، والصناديق: {c}.',
+  away_joke_0: 'وجد رفيقٌ نعالاً فلبسه إلى العمل.',
+  away_joke_1: 'حاول رفيقٌ أن يغربل الرمل بمصفاة الشاي. ونجح... تقريباً.',
+  away_joke_2: 'تجادل رفيقان: على مَن الدور ليحمل الفانوس؟',
+  away_joke_3: 'سمّى رفيقٌ صخرةً «حبيبي» وأخبرها بأسراره.',
+  away_joke_4: 'مرّ جمل من هنا وأخذ يشرف على العمل. ولم يطلب منه أحد.',
+  away_joke_5: 'نام رفيقٌ في الظل، ثم اشتغل ضعفين ليخفي ذلك.',
+  away_joke_6: 'وجد رفيقٌ عملة قديمة جداً فعضّها. كانت حقيقية.',
+  away_joke_7: 'أخذ الرفقاء استراحة شاي. قصيرة. في الغالب.',
+  sec: '{n} ث', min: '{n} د', hours: '{h} س {m} د',
+} };
