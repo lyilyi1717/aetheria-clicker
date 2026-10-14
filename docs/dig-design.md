@@ -3,7 +3,7 @@
 **State: active** (the owner confirmed the three games on 14 October 2026: Aetheria in maintenance, the `?loop=2` core loop paused, Dig active).
 **This is the one design file for the Dig prototype** (`proto.html`, `/?loop=3`, code in `proto/`).
 If another file disagrees with this one, this one wins. Change the design here first, then the code.
-Checked line by line against the code on `main` at `69bb0f5` (14 October 2026). **Open owner decisions: section 9.**
+Checked line by line against the code on `main` at `69bb0f5` (14 October 2026). **Decisions: section 9** (since 14 October design-keeper decides rules, systems, progression and story; numbers, looks, Arabic and release go to their agents, listed there).
 
 | File | What it is |
 |---|---|
@@ -74,7 +74,7 @@ Twenty levels, `ROAD` in `proto/features/sites/rules.js`. Home (Arabia) holds th
 | 20 | Europe | Golden Wadi | 275 m | prove | The last Gate; the end card; 160 beats a minute | 4.34 | |
 
 - **Broken:** the "New:" line on the finish card and the map names the layer *below* the Gate (level 5 says "the Black", which starts at 100 m, under its Gate). The column above is the design. Fault 21, #395.
-- **Targets** (#374; balance-analyst owns them in `docs/pacing-targets.md`): every road level in 1 to 3 tries for the mixed player, with few other digs between; prove levels a little harder than the learn level before them; levels 1 to 4 inside 35 minutes; the road ends inside the window the owner picks (section 9, default day 18 to 25).
+- **Targets** (#374; balance-analyst owns them in `docs/pacing-targets.md`): every road level in 1 to 3 tries for the mixed player, with few other digs between; prove levels a little harder than the learn level before them; levels 1 to 4 inside 35 minutes; level 20 between day 10 and 15 and level 40 between day 18 and 25 (decision 6).
 - **Measured, and where it misses:** the per-level column is from #386 (the last per-level run). The two later runs disagree on the road's end: #386 says day 12 to 14, #388 says day 20.6 and 21.0 on its own baseline. balance-analyst re-measures on today's `main` (work order 1).
 - **Lands (built):** a look per land (sky, horizon, ground tint; `proto/features/look/`, #345), a beat per land (Africa djembe and shaker, East Asia taiko, wood block and bell, the Americas conga, clave and cowbell, Europe march drum, snare and bells; Arabia keeps the home kit; deeper layers lower the pitch; a sting on arriving; #344). **Nobody has listened to the land beats** (fault 15).
 - **Side levels** (built): beside a level tried twice; labelled with what they pay. The two Museum places (Shark Bay, The Mirage) open when their sets are done.
@@ -102,7 +102,7 @@ This is the owner's countdown ("what happend to the count down i asked", 13 Oct)
 ### 2.3c The Big Rock and the Gate (built 13 and 14 October 2026)
 
 - **Size.** A Big Rock has 20 dirt blocks of its row in hp, +50% a layer (`boss.hp`, `layerHp`). On road levels 5 to 20 the Gate (the Rock at the level's last row) is multiplied by the level's entry in `sites.gateMul` (table in 2.3); the Big Rocks before the Gate use the formula (times `proveHp` on a prove level), and a chili level makes every Rock harder: learn levels 0.06 to 0.44, prove levels 4.3 to 9.5. Rule used to set it: Gate hp = (hits at the pick you bring) x (pick at that level), so the Gate in your swings at arrival stays in one band and prove levels sit a little above their learn level. Retune with `dig-month.mjs --dump` (`dump.gates`: the Gate, the bank and the pick at the first hit of each fight). Why: the pick grows about 10 times per road level and so does the ground; the old Gate (x1 learn, x6 prove) made the number jump between 52 000 and 8 000 000 from level to level.
-- **Broken (undecided):** the multiple is applied to *every* Big Rock of a road level, not only the Gate (`bossHp` mod). Fault 18, #396; decision 9.
+- **Fixed:** the multiple was applied to *every* Big Rock of a road level; now the Gate only (fault 18, #396, decision 8).
 - **The crack** (built): hits on it count 3 times (`boss.weakMult`); it moves every 1.7 s.
 - **TNT on a Rock** (built, #386): a blast whose radius plus one row reaches the Rock takes 2% of the bar (`boss.blastShare`), times the blast's size against a plain barrel; chained barrels each count. A Rock loses at most 30% to blasts (`boss.blastCap`), so TNT alone never breaks it. "BOOM -N%" and a shake.
 - **Forge tools on a Rock** (built, #377): a Drill does 8 of your hits, Dynamite 16 (three times that on the crack), and one tool never takes more than 10% of a Rock (`forge.bossShare`).
@@ -110,6 +110,7 @@ This is the owner's countdown ("what happend to the count down i asked", 13 Oct)
 - **The Gate remembers** (built, #375): a try at the Gate of an unfinished road level (5 to 20) that does not finish banks 60% of the damage it did (`boss.gateShare`), banked as the hits land, by try and never by time; the bank never takes the Gate below 10% (`gateCap` 0.9). The next try starts cracked and a line says so. Not for lessons, replays, side levels or the deal. **Not built:** a best-try tick on the bar.
 - **The stuck hint** (built, #372, #386): after a minute of play with the pick on the Gate that took under a tenth of it, or on the second try, one line says the best next step with numbers: buy The Pick ("for 12 Stars: the Rock needs 45 of your swings, not 68"), a side level that pays enough, or leave. Counted in play time. **The law comes first** (built, `dark-gate` PR): below 100 m a Rock fought in the dark (the Black, hits count 40%), a growing Rock (Living Rock, no torch near) or a hot one (Hot Layer, no water near, 60%) says so on its bar ("Too dark: break the lantern above", "Lit: full hits"), the lantern / torch crate / water above it pulses, and the stuck hint points at it before it says "buy The Pick". The laws answer through the `rockTell` mod; `bossTell(s)` reads it. The sim bot breaks a lantern above a dark Gate first.
 - **Rubble** (built): each tenth of the bar pays coins and sometimes a chest or a bone.
+- **The Gate is yours** (**not built**, decision 13, #430). Time away never finishes a level: the Rafeeqs dig and walk down to the Gate of the run in play and wait there for you (sieving rubble, as at any Rock). Rock Friend still walks them past the Big Rocks above it. **Broken today:** Rock Friend walks past the Gate too and the level finishes on return with no hit on it (fault 24), and away digging prices prove, chili and chapter-two ground as plain ground (fault 25, #429).
 
 ### 2.3d Chili levels and contracts (built 14 October 2026, #388)
 
@@ -181,15 +182,16 @@ for 2 to 8 minutes, like their chapter-one slot. Two things the Gate size cannot
   `bossesDown` to match, so the level's finish check (`bossesDown * LAYER >= floor`) fires on return: the Gate is never hit. Chapter two
   is all depths already broken in chapter one, and a prove level is the depth its learn level just broke. A probe with the Gate row of
   the level in play not walkable (not shipped) slowed chapter one too: level 20 on day 16.6 / 18.2 (was 12.6 / 11.4), prove levels 3 to
-  6 tries, the road stops at level 33 / 32 by day 30. So the walk carries the whole road's pacing; a rule change for the owner.
+  6 tries, the road stops at level 33 / 32 by day 30. So the walk carries the whole road's pacing. **Decided: the Gate is never walked
+  past (decision 13, #430), shipped with the away-cost fix (#429) and one retune.**
 - **Levels 37 and 39 are stuck above the Gate.** In the tries that fail the player's own hits on the Gate add up to under 1%: TNT from
   above takes its 30% and the try ends 240 s later on the sim's give-up (no new metre). The Gate falls to TNT plus its memory in the
   end, whatever its size (2e-4 or 2e-9). The ground at 300 and 325 m (`ch2Hp` on the formula that grows x110 to x170 per 25 m) is the
-  wall, or the sim player stalls in the Hot layer; not measured further.
+  wall, or the sim player stalls in the Hot layer; not measured further. **Decided: a numbers job, no new law (decision 15, #431).**
 
 **Open** (balance-analyst next pass; builder for the rules):
 - **Deep Gates the player cannot hurt (levels 27 to 40)** (partly closed by the Gate per level pass above; the rest is the walk and the ground). Before it, with `2e3` the player falls behind chapter one's Gate from level 27 on: the Gate in swings at arrival is x10 to x20 chapter one's at levels 27 to 30 (175 k to 2.3 M against 9 k to 137 k), at levels 31 to 36 the player never hits the Gate in the winning try, and the Empty Quarter learn Gates read 1.6 G and 11 G swings. They still fall in 1 to 3 tries, to TNT (30% a try) and the Gate's memory; the fight at levels 37 and 39 lasts 21 to 24 minutes whatever the Gate's size (7.5e-4 and 3e-3 gave the same fight to the second). The fix is a Gate size per chapter-two level (`gateMulCh2` with 20 entries, a two-line change in `gateMulOf` and `test_proto_rocks.js`), predicted values in `docs/pacing-targets.md`; one sim, and the road end will move earlier, so `ch2Stars` may need to go down with it.
-- **Stars by day 30 (fault 12) cannot reach x10 by numbers alone.** Chapter two needs the player's hit to grow about x10^12 over 20 levels, as in chapter one; the hit grows about as Stars^1.9 (measured: levels 21 to 36, hit x3e11 for Stars x1.3e6), so the Stars must grow about x10^6 from the 1.5e7 a player has at level 20. With the free deal after level 40 on chapter-one ground at 350 to 400 m (`starsAt(400)` = 4.1e9 a floor) the month ends at T. Owner decision: accept T-sized Stars after chapter two, or a rule (for example Stars won in chapter two shown and spent as their own coin).
+- **Stars by day 30 (fault 12) cannot reach x10 by numbers alone.** Chapter two needs the player's hit to grow about x10^12 over 20 levels, as in chapter one; the hit grows about as Stars^1.9 (measured: levels 21 to 36, hit x3e11 for Stars x1.3e6), so the Stars must grow about x10^6 from the 1.5e7 a player has at level 20. With the free deal after level 40 on chapter-one ground at 350 to 400 m (`starsAt(400)` = 4.1e9 a floor) the month ends at T. **Decided: one coin, Stars, at any size (decision 14).** Fault 12 is closed as a fault; the x10 target is retired.
 - **Side cards beside a stuck chapter-two level** (built 14 Oct, v5.33.1) are chapter-two cards when a chapter-two level is finished: a medal still to win, a twist (key `c2:<site>:<floor>:<twist>`), a replay; all pay through `ch2Stars`. Beside the first levels of chapter two, with none finished yet, they fall back to chapter one. Chapter-one levels deal as before. The map's side branches carry `ch`.
 - Not built from the study: the caravan Museum set of 20 pieces on the map; a sparser night bar; tempo slower in the Empty Quarter (it would change the hits).
 
@@ -233,19 +235,19 @@ All of it is flavour: nothing here changes how strong a Rafeeq is.
 | The Big Rock and the Gate | Section 2.3c | built; fault 18 |
 | The Deep | Four layers with a law each, 100 to 200 m | built; below 200 m no law (not built) |
 | The road, medals, the countdown | Sections 2.2 to 2.3b | built; late learn levels too many tries (fault 19) |
-| Star tracks (at the Alqahwa) | The Pick: hit x1.5 a step, a new pick material every 4 steps (stone to star), rules on steps 1, 5, 9, 13, 17, 21, 25, 29, 33, 37. The Bag: coins x1.5 a step, 12 named perks. The Camp: 7 named perks (Rafeeqs waiting, Good Shoes, Second Kettle, the whole camp at 12). A step costs 2 Stars x1.5 per step already on that track. Third and fourth pick for 150 and 50,000 Stars after the 100 m and 150 m Rocks | built; **broken:** Camp steps between and after its perks cost Stars and do nothing (fault 17, #394) |
+| Star tracks (at the Alqahwa) | The Pick: hit x1.5 a step, a new pick material every 4 steps (stone to star), rules on steps 1, 5, 9, 13, 17, 21, 25, 29, 33, 37. The Bag: coins x1.5 a step, 12 named perks. The Camp: 7 named perks (Rafeeqs waiting, Good Shoes, Second Kettle, the whole camp at 12). A step costs 2 Stars x1.5 per step already on that track. Third and fourth pick for 150 and 50,000 Stars after the 100 m and 150 m Rocks | built; **broken:** Camp steps between and after its perks cost Stars and do nothing (fault 17, #394; decision 7: each plain step lifts a Rafeeq's hit) |
 | Chili levels | Section 2.3d | built |
 | Contracts | The board, goals that fit your road level | built |
-| The Museum | 13 sets; each finished set opens a thing. Bones and bundles that still hold a piece you lack glint (an arrow points at one just below the view); the set you are collecting is drawn faintly behind the ground and fills in piece by piece; a chip counts it; every map stone shows its set (#385). A find goes to the earliest unfinished set 80% of the time and is a missing piece 75% of the time | built. **Not built:** a sure piece by the fourth bone (pity), "Museum 41%" with prizes, sets tied to two or three levels (decision 9) |
+| The Museum | 13 sets; each finished set opens a thing. Bones and bundles that still hold a piece you lack glint (an arrow points at one just below the view); the set you are collecting is drawn faintly behind the ground and fills in piece by piece; a chip counts it; every map stone shows its set (#385). A find goes to the earliest unfinished set 80% of the time and is a missing piece 75% of the time | built. **Not built:** a sure piece by the fourth find (decision 10, decided: build), "Museum 41%" with prizes, sets tied to two or three levels (decision 10: not now) |
 | The Forge | Drill, Dynamite, Magnet, 5 levels each, paid in metal from ore. A charge fills from blocks you break (ore counts more), never from the clock (#377) | built |
-| Time away | The crew digs up to 12 hours, then sieves at a Rock; a card after 15 minutes away | built; fault 10 |
+| Time away | The crew digs up to 12 hours, then sieves at a Rock; a card after 15 minutes away. It digs the ground as it is and stops at the Gate of the run in play (decision 13) | built; fault 10; **broken:** walks past the Gate (fault 24, #430) and prices hard ground as plain (fault 25, #429) |
 | Lessons | One message slot that queues, and a Tips list to read them again | built |
 | Settings | Volume, Music, Effects, sound, play-time sharing | built |
 | Player data | Section 7.5 | built; 2 players so far |
-| Saves | `SAVE_VERSION` 2 in `proto/core/state.js` plus per-feature `version` + `migrate` (sites 2, diggers 3, museum 2, starshop 2); old saves load | built. **Not built:** export / import of a save, a frozen old-save test per release (decision 2) |
+| Saves | `SAVE_VERSION` 2 in `proto/core/state.js` plus per-feature `version` + `migrate` (sites 2, diggers 3, museum 2, starshop 2); old saves load | built. **Not built:** export / import of a save, a frozen old-save test per release (decision 2, release-keeper) |
 | Several sites at once, earned automation, a second land | `proto/features/land2/` and `autos/` are empty placeholders | not built, not planned for chapter one |
-| Arabic | `t()` and `addStrings({ en, ar })` are ready; no Arabic strings yet (the nicknames carry Arabic script as data) | not built (decision 5) |
-| YouTube Playables | | not built (decision 1) |
+| Arabic | `t()` and `addStrings({ en, ar })` are ready; no Arabic strings yet (the nicknames carry Arabic script as data) | not built; Decided by localizer, see `docs/arabic.md` section 5 (decision 5) |
+| YouTube Playables | | not built (decision 1, release-keeper) |
 
 ## 4. The numbers
 
@@ -264,7 +266,7 @@ Last measured (mixed player, 2 seeds; #386 and #388, 14 October 2026):
 | Active and idle players | not measured since 13 October (before the road was built) |
 
 - **Broken:** the old targets in `dig-month.mjs` (`TARGETS`: Big Rock days from before the road) fail on targets nobody wants and do not check tries per level (fault 20, #398).
-- Per-metre growth: one Stronger Pick level is used up by about a metre of deep ground (x1.25 hit for x1.5 price against x1.2 a metre). The study's "steady ground, sharp Rocks" would change this (decision 9).
+- Per-metre growth: one Stronger Pick level is used up by about a metre of deep ground (x1.25 hit for x1.5 price against x1.2 a metre). The study's "steady ground, sharp Rocks" would change this (decision 9: not now).
 
 ## 5. Bugs and open faults
 
@@ -281,7 +283,7 @@ Last measured (mixed player, 2 seeds; #386 and #388, 14 October 2026):
 | 9 | Leaving a dig unfinished paid more than finishing it again | study | fixed (#348): leaving pays at most half a replay |
 | 10 | Time away was 78% of the mixed player's coins (13 Oct), so the Rafeeqs seem to do nothing while you watch | sim | open; share not re-measured since the Rafeeq hit became 60% of yours (#371) |
 | 11 | The deal of three can offer the same place more than once | study | open; only after level 20 now |
-| 12 | Stars reach millions by day 30 | sim | open; did **not** go away with the road (241.6 million on one seed, #388) |
+| 12 | Stars reach millions by day 30 (8.4 T with chapter two) | sim | **not a fault: decided** (decision 14, 14 Oct). One coin at any size; what is checked is the cost of the next step in digs, not the size of the number |
 | 13 | Lessons shared one message slot | owner | fixed (#356) |
 | 14 | Contract hats were drawn 2 px high | study | fixed (#342) |
 | 15 | Never looked at on a real screen or heard: water, crystal lines, lava, Forge tools in use, fusion twists, pick materials, the wish card, the land beats, the chili clear moment, "BOOM -N%" | team | open (screen-checker; sound needs the owner's ears) |
@@ -292,16 +294,40 @@ Last measured (mixed player, 2 seeds; #386 and #388, 14 October 2026):
 | 20 | The month sim's targets predate the road | sim | open, #398 |
 | 21 | The "New:" line of a level names the layer below its Gate (level 5 says the Black) | design-keeper | open, #395 |
 | 22 | "TNT does not work on the boss" (owner, 13 Oct) | owner | fixed (#386) |
-| 23 | Text of the stuck hint, "BOOM", chili lines and every Dig string is English only | team | open; decision 5 |
+| 23 | Text of the stuck hint, "BOOM", chili lines and every Dig string is English only | team | open; Decided by localizer, see `docs/arabic.md` section 5 (decision 5) |
+| 24 | Rock Friend (`sp_wake`) walks the crew past the Gate of the run in play while away; the level finishes on return with no hit on its Gate (chapter-two levels 30 to 36, chapter-one prove levels) | sim (Gate per level pass) | open, #430; decision 13 |
+| 25 | Time away prices a row as plain ground (`dirtHp`): prove x6, chili, the heavy twist and chapter two x3e12 are left out, in the walk and in the sieve | design-keeper (reading `away/rules.js`) | open, #429 |
+| 26 | Levels 37 and 39 stall on the rows above the Gate; the Gate falls to TNT and its memory, not to the player | sim | open, #431; decision 15 |
 
 ## 6. Work order (next items only)
 
-1. **Re-measure the road on today's `main`** (balance-analyst): one mixed run, 2 seeds, the per-level table of 2.3 refilled, the disagreement on the road's end settled. Done when 2.3 and section 4 carry numbers from one run on one commit.
-2. **Reward and text correctness:** the Camp steps that do nothing (#394), the "New:" line one layer off (#395), the Gate multiple on every Rock (#396, settled: Gate only). Done when each issue's "done when" holds.
-3. **Late learn levels** (#397) and **the sim's targets** (#398): one lever, one sim before and after. Done when levels 15, 17 and 19 take 3 tries or fewer on both seeds and `--assert` checks tries per level.
-4. **Seen and heard** (fault 15): screen-checker plays the merged build through levels 1 to 5 and a chili; the owner listens once to `proto/soundboard.html`. Done when `docs/seen-on-screen.md` lists each item of fault 15 as seen or broken.
-5. **Rafeeqs that matter while you watch** (fault 10): an early choice of job, and time away paying toward the pinned goal ("Saif dug toward your Second Pick: 3,400 of 12,000"). balance-analyst to set the share. Done when the away card names the goal and the sim records the away share of coins.
-6. **After chapter one:** not designed. No second land, no several sites at once, until a real player has played levels 1 to 20 and wanted more.
+Each item is ready for a builder. Numbers marked "balance-analyst" are set by balance-analyst in the same branch, with one sim before and after.
+
+1. **The Gate is yours** (decision 13; faults 24 and 25; #430 and #429; one branch, one retune).
+   - *Player:* comes back after time away and finds the Rafeeqs standing at the Gate, sieving rubble; the away card says "Your Rafeeqs dug to the Gate. It is waiting for you." Big Rocks above the Gate that Rock Friend can pass are still passed. The Gate is fought by the player, always: a level never finishes while away.
+   - *Rule:* the Gate row (`r.floor`) of the run in play is never passable (`passable` / `blocked` in `proto/features/starshop/rules.js`; Falling Star stops there too). Every kind of run: road, replay, chili, side, contract, the deal. A row dug away costs what it costs while you watch: one function folds the hardness the sites `row` hook applies (`proveHp`, chili ground, the heavy twist, `ch2Hp`), used by `settleAway` (`proto/features/away/rules.js`), `awayWalk` and the sieve rate.
+   - *Numbers:* balance-analyst retunes `gateMul` (prove entries), `proveHp`, `gateMulCh2`, `ch2Stars` in the same branch. Neither rule merges without the retune.
+   - *Files:* `proto/features/starshop/rules.js`, `proto/features/away/rules.js`, `proto/features/sites/rules.js` (the hardness fold), `proto/features/starshop/strings.js`, a `test_proto_*.js`.
+   - *Done when:* the tests in #430 and #429 pass; mixed, 2 seeds: level 20 inside day 10 to 15, level 40 inside day 18 to 25, no road level above 3 median tries, prove levels at least as many tries as their learn level; the tables in `docs/pacing-targets.md` and 2.3 / 2.4 here refilled from that one run.
+2. **The Empty Quarter stall** (decision 15, #431), measured after item 1. *Done when* #431's lines hold.
+3. **Camp plain steps** (decision 7, #394). *Player:* every Camp step shows "Rafeeq hit +N%" on the board and the Rafeeqs' hit (Camp tab, the bar's blue share) goes up when bought. *Rule:* `crewShare` already adds `campShare` per Camp step; it is 0. *Numbers:* `starshop.campShare`, balance-analyst (pace moves under 10%). *Files:* `proto/features/starshop/rules.js`, `ui.js`, `strings.js`. *Done when:* a test buys a plain Camp step and a Rafeeq's hit rises by `campShare` of yours; the step's line says so; the sim's road end moves under 10%.
+4. **The "New:" line** (#395). *Done when* #395's line holds (level 5 says crystal lines).
+5. **Late learn levels and the sim's targets** (#397, #398; decision 3 goes to balance-analyst), measured after item 1, which changes prove and learn levels. *Done when* levels 15, 17 and 19 take 3 tries or fewer on both seeds and `--assert` checks tries per level.
+6. **A sure Museum piece by the fourth find** (decision 10).
+   - *Player:* when three finds in a row gave no new piece, the Museum chip says "Next find: a new piece!" and the next bone or bundle that can hold a missing piece of the set being collected gives one (the usual glint, then the set fills in).
+   - *Rule:* a counter of finds since the last new piece (kept across levels, never by time); at 3 the next find (`wingFind`, `proto/features/wing2/rules.js`) takes a missing piece of the earliest unfinished set that can be found at this level, or of any set if that one cannot. It resets on any new piece. New state field with a default; old saves load.
+   - *Files:* `proto/features/wing2/rules.js`, `proto/features/museum/ui.js`, strings, a `test_proto_*.js`.
+   - *Done when:* a test: three duplicate finds, then the fourth is a missing piece; the counter survives the next level; a save without the field loads with 0; the chip line shows when the counter is at 3.
+7. **How ready you are, on the map** (decision 11).
+   - *Player:* the stone of the next road level (and its card) shows one line, "Gate: about 9,000 swings", and a three-step meter (Not yet / Close / Ready). Buying a Pick step at the Alqahwa moves the number down at once.
+   - *Rule:* the swings are the bar's first estimate (`proto/features/boss/swings.js`): the level's Gate hp (`gateMulOf`, chapter, prove and chili multipliers) over what the team does per swing with the hit you bring (Star steps, Warm Pick, chili hit; no coin upgrades) and the Rafeeqs waiting. Only the next road level; never a lock, it is information.
+   - *Numbers:* the three bands, balance-analyst (from the chapter-one "swings at arrival" of levels that took 1 to 2 tries). *Looks:* art-director.
+   - *Files:* `proto/features/worldmap/ui.js` or `draw.js`, `proto/features/boss/swings.js` (a pure helper), strings.
+   - *Done when:* a test: the helper's swings fall by x1.5 when one Pick step is bought; the meter reads Ready for the sim's state at arrival of a level it then finished in 1 try; screen-checker sees the line on the stone.
+8. **Seen and heard** (fault 15): screen-checker plays the merged build through levels 1 to 5 and a chili; the owner listens once to `proto/soundboard.html`. Done when `docs/seen-on-screen.md` lists each item of fault 15 as seen or broken.
+9. **Rafeeqs that matter while you watch** (fault 10): an early choice of job, and time away paying toward the pinned goal ("Saif dug toward your Second Pick: 3,400 of 12,000"). balance-analyst to set the share. Done when the away card names the goal and the sim records the away share of coins.
+10. **Telemetry off by default** (decision 16): release-keeper's brief B6 in `docs/release-checklist.md`. Done when a fresh device sends nothing, `?share=1` turns it on, the Off switch works as before, and the changelog says so.
+11. **After chapter two:** not designed. No second land, no several sites at once, until a real player has played the road and wanted more.
 
 ## 7. Rules that never bend
 
@@ -324,14 +350,15 @@ The published page sends numbers about play, without a name, so the sims can be 
 - about one pace sample per attended minute: depth gained, coins/s, blocks/s, hits/s, idle share;
 - one row when the page hides: session length, attended time, time since the last session, offline time and coins settled.
 
-**Not sent**: name, email, address (no IP is read or stored), the save, anything typed. Nothing is sent from `?speed=`, test, sim, `localhost` or `127.0.0.1` pages, or an automated browser, unless the address has `?telemetry=1`. The switch is in Settings and under the Tips list: Off sends nothing and drops what was waiting. Rows queue in the browser and go in small batches; offline just waits.
+**Not sent**: name, email, address (no IP is read or stored), the save, anything typed. Nothing is sent from `?speed=`, test, sim, `localhost` or `127.0.0.1` pages, or an automated browser, unless the address has `?telemetry=1`. The switch is in Settings and under the Tips list: Off sends nothing and drops what was waiting. **Default: on today (built); off from now on (decision 16, not built):** nothing is sent until the player turns the switch on, or opens the page from the owner's share link (`?share=1`), which turns it on for that device; the Off switch works as now. Rows queue in the browser and go in small batches; offline just waits.
 
-**Reading it**: `node sim/proto/player-stats.mjs` prints the overview and a table per road level; `--choices` what was bought and picked; `--pace` how fast people dig; `--vs dump.json` puts the sim beside the real players. A median needs 3 players; there are 2 (decision 4).
+**Reading it**: `node sim/proto/player-stats.mjs` prints the overview and a table per road level; `--choices` what was bought and picked; `--pace` how fast people dig; `--vs dump.json` puts the sim beside the real players. A median needs 3 players per level; 8 testers so far, not trusted yet (decision 4).
 
 ## 8. What changed, newest first
 
 | Date | Change |
 |---|---|
+| 14 Oct 2026 | Decisions taken by design-keeper (section 9): the Gate is never walked past while away (13; faults 24, 25; #430, #429), one coin at any size (14), the Empty Quarter stall is a numbers job (15, #431), telemetry off by default with a share link (16), road windows (6), Camp plain steps (7), a sure Museum piece (10), the ready meter (11); other fields handed on. Work order rewritten as builder entries. |
 | 14 Oct 2026 | Chapter Two, the road home (L1, 2.4): levels 21 to 40, the four lands at night in reverse then the Empty Quarter at 300 and 325 m; `ch` and `c2:` keys, sites slice version 3, `ch2Hp` and `ch2Stars`, par held below 275 m, `maxFloor` 325; the free deal as a side branch at the crossroads; night looks and kits, the Empty Quarter look, kit and sting; a map row of 11 panels. |
 | 14 Oct 2026 | The dark Gate tells you to light it (N1): bar line, pulsing lantern, hint checks the cure first. A session is now a visit: hides under 5 minutes join (N2; `visitStep`, `VISIT.gapS` 300). |
 | 14 Oct 2026 | This file checked against the code at `69bb0f5`: twenty-level road table, start kit as built (no free pick levels), `proveHp` 6, the Gate's memory, the stuck hint, the Forge, settings, auto dig always on, the coin shop after the pick merge, section numbers made unique, faults 17 to 23, decisions in section 9. |
@@ -345,23 +372,29 @@ The published page sends numbers about play, without a name, so the sims can be 
 | 13 Oct 2026 | This file made the one design file. Faults 1 to 6 fixed (#338). The 100 m wall lowered (#337). The Deep refitted (#336). Every site has a Gate (#335). Month sim limited to three workers (#334). |
 | Earlier | See `git log -- proto` and the history files named at the top. |
 
-## 9. Decisions for the owner
+## 9. Decisions
 
-Asked once. If there is no answer a day after the coordinator asks, the default stands and is built.
+Since 14 October 2026 the owner gives each decision to the agent whose field it is ("all decisions give back to the specialized agent"). design-keeper decides rules, systems, progression shape and story here; numbers go to balance-analyst (`docs/pacing-targets.md`), looks and sound to art-director, Arabic to localizer, platforms, saves, accessibility and performance to release-keeper (`docs/release-checklist.md`). The owner is asked only about deleting or resetting player data, publishing to a new platform or audience, spending money, or breaking a house rule. The owner can still reverse anything here.
 
-| # | Question | Options | Default |
-|---|---|---|---|
-| 1 | **YouTube Playables or desktop only?** Playables runs mostly on phones; the rules say desktop only. | (a) desktop only until real players have played the road; (b) Playables now: the SDK hooks (first frame, pause, mute, cloud save) and a phone layout; (c) the SDK hooks only, behind a switch, desktop layout, phone later | **(a)**, then (c) once work order 1 to 3 is done. No phone layout until the owner says so. |
-| 2 | **Dig saves.** Versions and migrations exist (`SAVE_VERSION` 2, per-feature versions). Missing: a way to copy a save out and back, and a test with a frozen save from each release. | (a) leave as is; (b) add export / import (a code to copy) and frozen old-save tests; (c) (b) plus a cloud save (needed for Playables) | **(b)** |
-| 3 | **Late learn levels at 3 to 5 tries** (#397). | (a) cheaper Pick steps past step 20; (b) more Stars on learn levels (`learnPay` up, `provePay` down, same total); (c) accept it: Gate memory and chili levels are the doors | **(a)**, balance-analyst picks the number with one sim before and after |
-| 4 | **Getting real players.** Telemetry needs 3 for a median; there are 2. | (a) the owner shares the page with 3 to 5 people he knows, one of them a child watched for 10 minutes; (b) an itch.io page and a short clip; (c) wait for Playables | **(a)** |
-| 5 | **Arabic for Dig.** | (a) English until the road is tuned, then one pass for every string and the owner reviews it; (b) every new string gets Arabic from now on, as in Aetheria; (c) Arabic for the first five minutes only | **(a)**; strings keep going through `t()` so the pass is mechanical |
-| 6 | **How long should the road take a mixed player?** | (a) about two weeks; (b) 18 to 25 days; (c) 20 to 30 days | **(b)** |
-| 7 | **The Camp track** (#394). Its plain steps do nothing. | (a) each plain step raises a Rafeeq's hit by a small share of yours (balance-analyst sets it, pace moves less than 10%); (b) the Camp has only its 7 named steps, priced on those alone; (c) the Camp ends at step 12 | **(a)**: it is the track's promise, and it helps fault 10 |
-| 8 | **The Gate multiple on every Big Rock** (#396). | (a) keep it on every Rock of the level, write it down, measure the middle Rocks; (b) Gate only, middle Rocks back to the formula | **Settled: (b) Gate only, 14 Oct.** The Rock at the run's floor row takes `gateMul`; the Rocks before it use the formula; the chili factor still applies to every Rock. Built in the review-fix PR. |
-| 9 | **Steady ground, sharp Rocks** (fresh-eyes study 1): move difficulty from per-metre ground growth into the Rocks, so blocks stay at 2 to 6 hits. | (a) yes, as its own sim-checked package; (b) not now: fix the late levels by Stars first and decide after real-player data | **(b)** |
-| 10 | **Museum sets tied to places** (fresh-eyes study 4): each set lives at two or three levels, and a missing piece is sure by the fourth bone there. | (a) both; (b) the sure piece only; (c) neither | **(b)**: a count, not a timer; no new map work |
-| 11 | **Ready meter and hard-level badge on the map** (fresh-eyes study 2). | (a) both; (b) the meter only; (c) neither, the stuck hint is enough | **(b)** |
-| 12 | **Accessibility and performance** (team study). | (a) a reduced-motion switch in Settings and a budget (first frame under 2 s, 60 fps with 8 Rafeeqs) checked at each release; (b) later | **(a)**, checked by release-keeper |
+| # | Question | Decision |
+|---|---|---|
+| 1 | **YouTube Playables or desktop only?** | **Goes to release-keeper** (platform). Until then this file keeps the rule: desktop only. A new platform is also an owner question (new audience). |
+| 2 | **Dig saves: export / import, frozen old-save tests, cloud save** | **Goes to release-keeper** (save safety). |
+| 3 | **Late learn levels at 3 to 5 tries** (#397): cheaper Pick steps past 20, or Stars moved from prove to learn levels | **Goes to balance-analyst** (numbers), measured after work order 1. Design limit: the Gate is never made softer for a weak player; no lever that adds a grind. |
+| 4 | **Getting real players** (a median needs 3 per level) | **Owner** (a new audience). Options: (a) he shares the page with 3 to 5 people he knows, one a child watched for 10 minutes, through the share link of decision 16; (b) an itch.io page and a clip; (c) wait for Playables. Default (a). |
+| 5 | **Arabic for Dig** | **Decided by localizer, see `docs/arabic.md` section 5** (merged #432): Arabic in four passes after a plumbing PR; the language switch stays hidden until pass 3. |
+| 6 | **How long the road takes a mixed player** | **Decided (14 Oct 2026, by design-keeper): level 20 (chapter one) between day 10 and 15, level 40 (the road) between day 18 and 25**, because chapter one teaches a new layer per level and should be the slower half per level; chapter two was built to make the road longer without changing its feel (owner: "don't change the game progress feel but increase the length"); and 18 to 25 days is the target both chapters were built and measured against. balance-analyst holds the numbers to it. |
+| 7 | **The Camp track's plain steps** (#394) | **Decided (14 Oct 2026, by design-keeper): each plain Camp step lifts a Rafeeq's hit by a small share of yours** (`campShare`, balance-analyst sets it; pace moves under 10%), because a step that costs Stars and does nothing breaks the board's promise, the track is named for the Rafeeqs, and it helps fault 10 (they feel weak while you watch). Not "only the 7 named steps" or "end at step 12": cutting steps removes a choice instead of giving it a use. Work order 3. |
+| 8 | **The Gate multiple on every Big Rock** (#396) | **Settled 14 Oct: Gate only.** The Rock at the run's floor row takes `gateMul`; the Rocks before it use the formula; the chili factor still applies to every Rock. Built. |
+| 9 | **Steady ground, sharp Rocks** (fresh-eyes study 1) | **Decided (14 Oct 2026, by design-keeper): not now; looked at again once work order 1 has landed and 3 real players have played past level 7**, because work order 1 already changes the pace of the whole road, and two road-wide changes at once cannot be told apart in the sim. The felt problem (blocks take 80 to 14,000 hits, barrels do 70% of the work) is real and stays on the list. |
+| 10 | **Museum sets tied to places; a sure piece** (fresh-eyes study 4) | **Decided (14 Oct 2026, by design-keeper): the sure piece only**, by the fourth find, because a dry run of duplicates is luck against the player and a count fixes it with no clock and no map work; tying sets to places adds map work and a new rule to learn for a problem the sure piece already solves. Work order 6. |
+| 11 | **Ready meter and hard-level badge on the map** (fresh-eyes study 2) | **Decided (14 Oct 2026, by design-keeper): the meter only**, on the next road level, because it answers the question the player has at the Alqahwa ("am I strong enough yet?") before the dig instead of after a failed try; a badge marks a level as hard without saying what to do, which the stuck hint already does better. Work order 7. |
+| 12 | **Accessibility and performance** | **Goes to release-keeper.** |
+| 13 | **The Wake walk: Rock Friend (`sp_wake`) walks past the Gate while away, so levels 30 to 36 and chapter-one prove levels finish unfought** (fault 24) | **Decided (14 Oct 2026, by design-keeper): the Gate of the run in play is never walked past; the crew digs to it and waits there.** Because a level is "break its Gate" (2.2), and a finish nobody fought is a level the player never played, with a prize and a story beat for nothing seen; Rock Friend's own words are "a Big Rock you have broken before", and the Gate of this level is not that Rock. It does not punish absence: nothing is lost, the crew still digs and walks every Rock above the Gate, sieves rubble at it, and the Gate keeps its memory. Not "one Rock short": it leaves the same hole one Rock higher. Not "keep": the probe shows the walk carries the whole road's pace, so the numbers would measure a game nobody plays. Ships with the away-cost fix (fault 25, #429) and one retune by balance-analyst, never alone. Work order 1, #430. |
+| 14 | **Stars after chapter two** (fault 12: 8.4 T by day 30) | **Decided (14 Oct 2026, by design-keeper): one coin, Stars, at any size.** Because a second coin is a second shop and a second word to learn for the same three tracks (simplify, don't add); big numbers are what an idle game grows into, and the player feels the price of the next step, not the size of the pile. The x10 target is retired; balance-analyst replaces it with a check on the next step's cost in digs at levels 20, 30 and 40. How a T-sized number reads on the pill and the board: **art-director**. |
+| 15 | **Levels 37 and 39 stall above the Gate** (fault 26) | **Decided (14 Oct 2026, by design-keeper): a numbers job, no new layer law.** Because the stall is on the last rows above the Gate, not in a rule the player misreads, and a law added to fix a number makes the last land harder to learn with no new choice. Rule allowed for balance-analyst: `ch2Hp` may become a value per depth (as `gateMulCh2` became one per level). First find out whether it is the ground or the sim player. A law of its own for the Empty Quarter is an idea for later, not this fix. #431, measured after work order 1. |
+| 16 | **Telemetry default** (release-keeper D4, a shared call) | **Decided (14 Oct 2026, by design-keeper): off by default; on through the owner's share link (`?share=1`) or the switch; the Off switch as now.** Because the game is pitched at children, and a switch that is on until someone finds it asks a child to opt out of something they cannot judge; the cost (fewer sessions) is met by decision 4's route, the people the owner hands the link to, which is where the 3 players for a median come from anyway. Devices that never chose count as off; rows already sent stay (deleting them would be an owner question). Builder brief: release-keeper's B6 (`docs/release-checklist.md`): `consent` in `proto/features/telemetry/queue.js` reads a stored "on" instead of "not off"; `?share=1` stores "on"; a changelog line. Done when B6's line holds and a test shows a fresh device sends nothing and a `?share=1` device does. |
 
 **Decided by building** (shown so they are not asked again; the owner can still reverse them): chili rules in a fixed order (#388); the permanent chili hit, capped at +160% (#388); the contracts board kept beside chili (#388); the names Mild, Hot, Shatta, Fire, Ya Mama! (#388); no free pick levels in the start kit, the owner's fallback (#366); always auto dig, "The owner: always auto" (#369); one design file per game, "one game desgine file" (13 Oct); the three games and their states (14 Oct).
+
+**Goes to other agents (from 2.4, not this table):** a sparser night bar and a slower tempo in the Empty Quarter (art-director; the tempo also moves hits, so balance-analyst checks it). The caravan Museum set of 20 pieces: not now (after work order 1).
