@@ -24,6 +24,9 @@ export const DIR = OK[LANG];
 const ARABIC = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/;
 export const dirOf = (s, dir) => dir === 'rtl' && ARABIC.test(String(s)) ? 'rtl' : 'ltr';
 export const textDir = s => dirOf(s, DIR);
+// one line of words in a box that stays left to right on an Arabic page (the track row's goal): a first-strong isolate gives
+// the words their own direction, so an Arabic line ending in a number does not throw the number to the right end
+export const ownDir = (s, dir = DIR) => dir === 'rtl' ? '\u2068' + s + '\u2069' : s;
 
 // store the choice and reload without ?lang= (it would win over the stored value)
 export function setLangChoice(id) {
