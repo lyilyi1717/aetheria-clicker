@@ -283,5 +283,33 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   ok(rc && G.pickCard(lock, rc, NO) === false, 'before the Gate is broken nobody can move on, replay or not');
 }
 
+{ // side cards beside a stuck chapter-two level are chapter-two cards; chapter one stays as it was
+  const P2 = G.PARAMS.sites, s = fresh(11);
+  const fin = (f, v) => { s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1, ...v }; };
+  for (const f of G.ROAD1) fin(f);
+  for (let i = 20; i < 23; i++) fin(G.ROAD[i]);
+  const stuck = G.ROAD[23]; s.road.stamps[G.roadKey(stuck)] = { site: stuck.site, floor: stuck.floor, ch: 2, twist: '', fin: 0, fast: 0, hard: 0, best: 0, n: P2.sideAfter };
+  s.road.reach = 150; s.bossesDown = 2; G.siteRun(s); s.road.deal = null;
+  const d = G.dealCards(s);
+  ok(d[0].kind === 'fixed' && d[0].ch === 2 && d.length === 3, 'stuck at a chapter-two level: the level and two side cards');
+  ok(d.slice(1).every(c => c.ch === 2 && c.key.startsWith('c2:')), 'the side cards are chapter-two cards');
+  ok(d.slice(1).some(c => c.kind === 'twist' && c.twist) && d.slice(1).every(c => Math.abs(c.stars / (c.kind === 'twist' && !s.road.stamps[c.key] ? G.firstPay(c.floor, '', 2) : G.replayPay(c.floor, 2)) - 1) < 1e-9 || c.kind === 'medal'), 'a twist card is there and pays through the chapter-two factor');
+  ok(d.slice(1).every(c => c.stars >= G.starsAt(c.floor) * P2.ch2Stars * 0.1), 'side cards pay about ch2Stars times the chapter-one Stars');
+  const tw = d.find(c => c.kind === 'twist');
+  ok(tw && tw.key === 'c2:' + tw.site + ':' + tw.floor + ':' + tw.twist, 'a chapter-two twist key is c2:site:floor:twist');
+  ok(G.pickCard(s, tw, NO) && s.run.ch === 2 && s.run.twist === tw.twist && s.run.key === tw.key && s.road.stamps[tw.key].ch === 2 && s.road.stamps[tw.key].n === 1, 'picking it digs a chapter-two twist level and stamps it');
+  const back = G.deserialize(G.serialize(s));
+  ok(back.road.stamps[tw.key] && back.road.stamps[tw.key].ch === 2 && back.road.stamps[tw.key].twist === tw.twist && back.run.ch === 2 && back.run.twist === tw.twist, 'a chapter-two twist stamp and run survive a save');
+  ok(G.chOf(back.road.stamps['dunes:50']) === 1, 'chapter-one stamps stay chapter one');
+  // stuck at the first chapter-two level: nothing is finished there yet, so cards fall back to chapter one
+  const z = fresh(12); for (const f of G.ROAD1) z.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: 1, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 };
+  z.road.stamps[G.roadKey(G.ROAD[20])] = { site: 'dunes', floor: 100, ch: 2, twist: '', fin: 0, fast: 0, hard: 0, best: 0, n: P2.sideAfter }; z.road.reach = 275; G.siteRun(z);
+  const dz = G.dealCards(z); ok(dz.length > 1 && dz.slice(1).every(c => c.ch === 1), 'with no chapter-two level finished the side cards are chapter one');
+  // chapter one unchanged: a stuck chapter-one level deals chapter-one twist cards with plain keys
+  const o = fresh(13); for (const f of G.FIXED) o.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: 1, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 };
+  o.road.stamps[G.siteKey('dunes', 100)] = { site: 'dunes', floor: 100, ch: 1, twist: '', fin: 0, fast: 0, hard: 0, best: 0, n: P2.sideAfter }; o.road.reach = 75; G.siteRun(o);
+  const dob = G.dealCards(o); ok(dob.length > 1 && dob.every(c => c.ch === 1) && dob.filter(c => c.twist).every(c => !c.key.startsWith('c2:')), 'chapter one side cards are as before');
+}
+
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('sites: ok');

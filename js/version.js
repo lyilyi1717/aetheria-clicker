@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.33.0';
+export const VERSION = '5.33.1';
 
 export const CHANGELOG = [
+  {
+    version: '5.33.1',
+    date: '2026-10-14',
+    title: 'Dig: side roads in Chapter Two pay Chapter Two Stars',
+    changes: [
+      'When a Chapter Two level has beaten you twice, the side cards beside it are now Chapter Two cards: a medal to win, a twist, or a replay of a Chapter Two level you finished. They pay Chapter Two Stars, so they really help you get stronger.',
+      'Twists work in Chapter Two now. Before, the side cards were Chapter One twists that paid almost nothing.',
+      'Chapter One is the same as before, and old saves load as they were.'
+    ],
+    ar: {
+      title: 'التنقيب: الطرق الجانبية في الفصل الثاني تعطي نجوم الفصل الثاني',
+      changes: [
+        'عندما تغلبك مرحلة في الفصل الثاني مرتين، تصبح البطاقات الجانبية بجانبها من الفصل الثاني: ميدالية تفوز بها، أو تحدٍّ خاص، أو إعادة لمرحلة أنهيتها في الفصل الثاني. وهي تعطي نجوم الفصل الثاني، فتساعدك فعلاً على أن تصبح أقوى.',
+        'التحديات الخاصة تعمل الآن في الفصل الثاني. قبل ذلك كانت البطاقات الجانبية من الفصل الأول وتعطي القليل جداً.',
+        'الفصل الأول كما كان، والحفظ القديم يعمل كما هو.'
+      ]
+    }
+  },
   {
     version: '5.33.0',
     date: '2026-10-14',
