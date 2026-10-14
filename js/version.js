@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.33.4';
+export const VERSION = '5.33.5';
 
 export const CHANGELOG = [
+  {
+    version: '5.33.5',
+    date: '2026-10-14',
+    title: 'Dig: a Reduce motion switch',
+    changes: [
+      'Settings in Dig has a new Reduce motion switch. When it is on, the screen does not shake, there are no screen flashes, digging sparks and coin bursts are smaller, and the pulsing and bouncing buttons stay still.',
+      'It starts on if your browser asks for less motion, and starts off otherwise. Your own choice is kept on this device.',
+      'Sounds, numbers and the rules of the game do not change.'
+    ],
+    ar: {
+      title: 'الحفر: مفتاح لتقليل الحركة',
+      changes: [
+        'في إعدادات الحفر مفتاح جديد اسمه تقليل الحركة. عند تشغيله لا تهتز الشاشة، ولا توجد ومضات على الشاشة، وتصغر شرارات الحفر وانفجارات العملات، وتبقى الأزرار النابضة ساكنة.',
+        'يبدأ مشغّلاً إذا طلب المتصفح حركة أقل، ويبدأ مطفأً غير ذلك. اختيارك يُحفظ على هذا الجهاز.',
+        'الأصوات والأرقام وقواعد اللعبة لا تتغير.'
+      ]
+    }
+  },
   {
     version: '5.33.4',
     date: '2026-10-14',

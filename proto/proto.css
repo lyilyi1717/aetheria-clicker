@@ -182,3 +182,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #tips-list { position: absolute; inset-block-end: 48px; inset-inline-end: 12px; width: 280px; max-height: 50%; overflow: auto; background: rgba(15,10,6,.94); border: 1px solid rgba(255,255,255,.25); border-radius: 12px; padding: 6px 12px; font-size: 14px; }
 #tips-list p { margin: 6px 0; padding-block-end: 6px; border-block-end: 1px solid rgba(255,255,255,.12); }
 #tips-list p:last-child { border-block-end: 0; }
+/* Reduce motion (Settings, or the browser's wish): no infinite pulses, no big bounces; things just fade in. Set by proto/ui/motion.js. */
+@keyframes calmfade { from { opacity: 0; } }
+html.calm *, html.calm *::before, html.calm *::after { animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+html.calm #combo.rush, html.calm #chest-btn, html.calm #hint.show, html.calm #fuse-btn, html.calm .tool.pulse, html.calm #trk-clock.soon, html.calm #trk-done,
+html.calm #site .nextbtn.gold, html.calm .finish .primary.gold, html.calm .cpip.next, html.calm .wing-card .wart.assemble, html.calm .whall .hitem { animation: none !important; }
+html.calm #hud-coins.bump, html.calm .shop-item.bump, html.calm .hit-chip.bump, html.calm #trk-clock.bump, html.calm #mus-strip.pop, html.calm .whall .hitem.hop,
+html.calm .chest-anim, html.calm .relic-card, html.calm .shop-item.arrive, html.calm .arrive .big, html.calm .wart.assemble .pt.on, html.calm .away .stack .ico { animation: calmfade .25s both !important; }
+@keyframes calmbanner { 0% { opacity: 0; } 8% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
+html.calm #banner.show { animation: calmbanner 3.6s both !important; }
+html.calm .fz-stage .flash { display: none; }
