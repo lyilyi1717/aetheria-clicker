@@ -1,5 +1,5 @@
 // Dig feature (page side): the Settings menu. A round gear button beside the Map and Sound buttons opens a small card with
-// three sliders (Volume, Music, Effects; 0 to 100), the Sound on/off switch and the play-times switch. Moving a slider plays a
+// the language buttons (English / العربية; choosing one reloads the page), three sliders (Volume, Music, Effects; 0 to 100), the Sound on/off switch and the play-times switch. Moving a slider plays a
 // short sample. The levels are kept in localStorage (not in the save). Esc or a click outside the card closes it.
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
@@ -9,6 +9,7 @@ import { load, save } from '../../ui/volume.js';
 import { tel } from '../telemetry/ui.js';
 import * as motion from '../../ui/motion.js';
 import { buildSaveCode } from './savecode-ui.js';
+import { LANG, setLangChoice } from '../../core/lang.js';
 
 const { t } = G;
 
@@ -19,6 +20,9 @@ motion.init(store, window.matchMedia && window.matchMedia.bind(window), document
 // a gear: a ring with eight teeth and a hub
 addIcons({ btn_gear: '<circle cx="16" cy="16" r="7" fill="none" stroke="currentColor" stroke-width="2.6"/><circle cx="16" cy="16" r="2.4" fill="currentColor"/><path d="M16 3.5 V8 M16 24 V28.5 M3.5 16 H8 M24 16 H28.5 M7.2 7.2 L10.4 10.4 M21.6 21.6 L24.8 24.8 M24.8 7.2 L21.6 10.4 M10.4 21.6 L7.2 24.8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>' });
 
+// each language is named in its own script, whatever the page language is (so a player can always find his own)
+const LANGS = [['en', 'English'], ['ar', 'العربية']];
+
 const ROWS = [['master', 'set_master'], ['music', 'set_music'], ['fx', 'set_fx']];
 let open = false;
 
@@ -28,10 +32,19 @@ function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagat
 
 function openSettings(app) {
   app.unlockAudio();
-  const m = app.modal.open('settings', `<div class="card settings"><h2></h2><div class="set-rows"></div><div class="set-sw"></div><button class="primary set-done"></button></div>`);
+  const m = app.modal.open('settings', `<div class="card settings"><h2></h2><div class="set-lang"><span></span></div><div class="set-rows"></div><div class="set-sw"></div><button class="primary set-done"></button></div>`);
   if (!m) return;
   open = true; appRef = app;
   m.querySelector('h2').textContent = t('set_title');
+  const lr = m.querySelector('.set-lang');
+  lr.querySelector('span').textContent = t('set_lang');
+  for (const [id, name] of LANGS) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'ghost set-switch';
+    b.textContent = name; b.lang = id; b.dir = id === 'ar' ? 'rtl' : 'ltr';
+    b.setAttribute('aria-pressed', id === LANG ? 'true' : 'false');
+    b.addEventListener('click', () => { if (id !== LANG) setLangChoice(id); });
+    lr.append(b);
+  }
   const rows = m.querySelector('.set-rows');
   let last = 0;
   for (const [k, key] of ROWS) {

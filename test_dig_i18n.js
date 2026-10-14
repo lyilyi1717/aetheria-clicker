@@ -10,7 +10,8 @@ import { LANG, DIR } from './proto/core/lang.js';
 // (sites and starshop wait for a later pass: other work is open in those folders). pass 3: chatter, moods, story
 const COMPLETE = ['ui', 'shop', 'picks', 'boss', 'foreman', 'look', 'chest', 'diggers', 'water', 'crystal', 'relics', 'ground', 'track', 'combo', 'crits', 'ores', 'tnt', 'oil',
   'away', 'settings', 'telemetry', 'worldmap', 'rafeeqs', 'wardrobe', 'contracts',
-  'chatter', 'moods', 'story'];   // pass 3: the crew's voices and the hakawati
+  'chatter', 'moods', 'story',    // pass 3: the crew's voices and the hakawati
+  'sites', 'starshop'];           // pass 2b: the finish card and the Star tracks; the switch goes live
 
 let failed = 0;
 const ok = (c, m) => { if (!c) { failed++; console.error('FAIL: ' + m); } };
