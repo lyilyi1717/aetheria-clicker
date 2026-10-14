@@ -135,7 +135,7 @@ function runOne(player, seed, days, ov) {
     player, seed, units: obj(trk.units), marks: obj(trk.marks), resets: trk.resets, series, src: trk.src, blk: trk.blk, dmg: R.dmg, shim: trk.starShim,
     goalGaps: trk.goalGaps, act: trk.act, best: trk.bestEver, stars: s.stars + (s.starSpent || 0),
     core: CORE_IDS.filter(id => trk.units.has(id)).length, lastCore: Math.max(0, ...CORE_IDS.map(id => trk.units.get(id)?.r ?? 0)),
-    fin: trk.finishes, gates: trk.gates || [], medals: trk.medals, dmg: R.dmg, won: Object.keys(s.contractsWon || {}).length, left: trk.left, sessions: trk.sessions, tries: trk.tries || [],
+    fin: trk.finishes, gates: trk.gates || [], medals: trk.medals, dmg: R.dmg, won: Object.keys(s.contractsWon || {}).length, left: trk.left, sessions: trk.sessions, tries: trk.tries || [], hpb: trk.hpb || {},
   };
 }
 
@@ -336,7 +336,7 @@ async function main() {
   if (!arg('sum', false)) console.log(`Move policy (player.mjs): finished = Next site at once; else stalled ${PROFILES.mid.stall} s (mid), next level more than ${MOVE.far} s of income away, ${MOVE.budget} x par spent; or stalled ${MOVE.giveUp} s.`);
   const base = await runAll(SET);
   // --dump file.json: the base runs; with --sum and --ab, each variant k also goes to file-ab<k>.json (for scripts/dig-levels.cjs)
-  const dumpTo = async (file, res) => (await import('node:fs')).writeFileSync(file, JSON.stringify(res.map(r => ({ player: r.player, seed: r.seed, fin: r.fin, gates: r.gates, medals: r.medals, resets: r.resets, series: r.series, marks: r.marks, blk: r.blk, dmg: r.dmg, tries: r.tries }))));
+  const dumpTo = async (file, res) => (await import('node:fs')).writeFileSync(file, JSON.stringify(res.map(r => ({ player: r.player, seed: r.seed, fin: r.fin, gates: r.gates, medals: r.medals, resets: r.resets, series: r.series, marks: r.marks, blk: r.blk, dmg: r.dmg, tries: r.tries, hpb: r.hpb }))));
   if (arg('dump', false)) await dumpTo(arg('dump'), base);
   if (arg('sum', false)) {
     const out = v => console.log('SUM ' + JSON.stringify(v.ov) + ' ' + sumLine(v.res).split(String.fromCharCode(10)).join(' | '));
