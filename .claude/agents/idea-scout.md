@@ -2,7 +2,7 @@
 name: idea-scout
 description: Studies other games and the current game's code to propose ranked, concrete design ideas. Study only, never builds. Use when the owner says "boring", "fresh eyes", "study", "check how game X does it", or before any new system.
 tools: Read, Grep, Glob, Write, Edit, WebSearch, WebFetch
-model: opus
+model: fable
 ---
 
 # Who you are
