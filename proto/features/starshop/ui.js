@@ -95,6 +95,9 @@ export function starPanel() {
       keeper(s, app);
     },
   };
+  // the last word never sits alone on its own line, so "then 72%." keeps "then" (art-and-sound decision 19): a no-break space
+  // before the last word, put in by the layout, so the localizer's words stay as written
+  function keepEnd(str) { return String(str).replace(/ ([^ ]{1,8})$/, '\u00a0$1'); }
   function track(s, tr, app) {
     const id = 'tr_' + tr, n = G.starshopSteps(s, tr), id1 = n + 1;
     const sec = document.createElement('section'); sec.className = 'trk trk-' + tr;
@@ -110,7 +113,7 @@ export function starPanel() {
     b.className = 'shop-item trk-next' + (can ? ' can' : '');
     b.innerHTML = `<span class="ic">${info.ic.startsWith('pick_') ? icon(info.ic, 40) : icon(info.ic, 40)}</span><span class="tx"><b></b><span class="d"></span></span><span class="cost">${icon('star', 16)}<i></i></span><span class="fill"></span>`;
     b.querySelector('b').textContent = info.title;
-    b.querySelector('.d').textContent = info.desc;
+    b.querySelector('.d').textContent = keepEnd(info.desc);
     b.querySelector('.cost i').textContent = G.fmt(cost);
     b.querySelector('.fill').style.width = Math.min(100, s.stars / cost * 100) + '%';
     b.addEventListener('click', () => { app.unlockAudio(); if (G.buy(app.state, id, app.ev)) { app.bump(b); app.refresh(true); app.dirty('starshop'); } else app.sfx.deny(); });

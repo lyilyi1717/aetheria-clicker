@@ -20,14 +20,19 @@
 #trk-msg > * { grid-area: 1 / 1; }
 #trk-msg #lesson.show ~ #toast { visibility: hidden; }
 
-/* a lesson takes the line (decision 14): while it shows, Tips and the goal step aside and T1 stops growing (its second line,
-   the Gate note, clock and medals, never shrinks), so the lesson has the whole line after T1: about 280 px at a 1366 x 768
-   laptop, 400 at 1500 x 1000, room for every lesson in two lines (three at most, 45 px, inside the line and the 6 px under it,
-   never over the stage). It unrolls from the message line's edge; when it ends it goes at once and Tips and the goal fade
-   back. Reduce motion: no unroll, a fade only. */
-#track:not(.done):has(#lesson.show) #trk-head { flex-grow: 0; }
-#track:not(.done):has(#lesson.show) :is(#tips-btn, #goal) { display: none; }
+/* a long lesson takes the line (decisions 14 and 16): while it shows, Tips and the goal step aside and T1 stops growing (its
+   second line, the Gate note, clock and medals, never shrinks), so the lesson has the whole line after T1: about 280 px at a
+   1366 x 768 laptop, 400 at 1500 x 1000, room for every lesson in two lines (three at most, 45 px, inside the line and the 6 px
+   under it, never over the stage). A short lesson that fits two lines beside Tips and the goal (app.js adds `wide` only when
+   it does not) leaves them where they are. It unrolls from the message line's edge; when it ends it goes at once and Tips and
+   the goal fade back. Reduce motion: no unroll, a fade only. */
+#track:not(.done):has(#lesson.show.wide) #trk-head { flex-grow: 0; }
+#track:not(.done):has(#lesson.show.wide) :is(#tips-btn, #goal) { display: none; }
 #trk-msg #lesson { -webkit-line-clamp: 3; line-height: 1.15; padding-block: 0; }
+/* a lesson is a note on a plate (decision 15): a soft tinted plate with the bar at its start, so it never reads like the
+   drawer's plain "Next:" line beside it or the gold level line before it. Same 13 px bold text, same colour. */
+#trk-msg #lesson.show { padding-inline-end: 8px; border-start-end-radius: 6px; border-end-end-radius: 6px; background: rgba(255, 255, 255, .07); }
+#trk-msg #lesson.show.gold { background: rgba(255, 210, 63, .13); }
 #trk-msg #lesson:not(.show) { transition: none; }
 #trk-msg #lesson.show { animation: lessonIn .3s ease-out; }
 :root[dir=rtl] #trk-msg #lesson.show { animation-name: lessonInRtl; }

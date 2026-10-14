@@ -1,7 +1,7 @@
 # Art and sound
 
 Owner: art-director. Looks, characters, layout, readability, sound and music for each game. Written from what the code draws
-today (14 October 2026, v5.35.0; updated v5.35.7). Decisions are at the end of each game's page; the owner can still reverse any of them.
+today (14 October 2026, v5.35.0; updated v5.36.5). Decisions are at the end of each game's page; the owner can still reverse any of them.
 
 - **Aetheria (live)** and **Core loop (paused):** the rules are `docs/ui-style-guide.md` (tokens, type, motion, Arabic) and
   `docs/game-feel-guide.md` (feedback tiers T0 to T3). Nothing more here until someone works on them.
@@ -96,9 +96,9 @@ inside the stage's width (452 to 640 px; 518 at a 1366 x 768 laptop); the gap be
 | Spot | Who lives there | Size rule |
 |---|---|---|
 | T1 start | level line; under it the "Gate at N m" note, the countdown and the medals (`#trk-head`) | never narrower than the second line; the level line does not size the spot (`contain: inline-size`), it takes what is left and ends in dots, the place name first, then the land (full text in its title); grows 3 to T2's 1; at most 62% |
-| T2 middle | the message line: lesson or toast (`#trk-msg`; a lesson wins); the only home of nudges such as "Spend Stars at Alqahwa." (decision 12) | toasts: 96 px, grows with spare room, never under 96 px, two lines at most, clipped inside its spot. **A lesson takes T2 to T4** while it shows (decision 14): T3 and T4 step aside, T1 stays at its floor; about 280 px at 1366 x 768, 400 at 1500 x 1000, three lines of 13 px at most (45 px, inside the line and the 6 px under it) |
+| T2 middle | the message line: lesson or toast (`#trk-msg`; a lesson wins); the only home of nudges such as "Spend Stars at Alqahwa." (decision 12). A lesson sits on a tinted plate (decision 15); a toast is plain words | toasts: 96 px, grows with spare room, never under 96 px, two lines at most, clipped inside its spot. A short lesson that fits two lines here stays in T2. **A long lesson takes T2 to T4** while it shows (decisions 14 and 16): T3 and T4 step aside, T1 stays at its floor; about 272 px of text at 1366 x 768, 390 at 1500 x 1000, three lines of 13 px at most (45 px, inside the line and the 6 px under it) |
 | T3 | Tips button; "Done here" takes this place when the dig is done | its own width (about 42 px) |
-| T4 end | the goal: one goal chip (`#goal-pin`, only with 2 or more choices) over one line of goal words, or two lines of words without the chip; progress line along the foot. Only the goal the chip names, never a nudge (decision 12) | at most 180 px, gives way to what is left; the chip's word ends in dots before anything spills (the step mark and dots stay); the words' full text is in their title; a label with a count ("Second Pick: 3.00K / 100K") is one line where only the label ends in dots and the count always shows (decision 13); the chip hides when the dig is done |
+| T4 end | the goal: one goal chip (`#goal-pin`, only with 2 or more choices) over one line of goal words, or two lines of words without the chip; progress line along the foot. Only the goal the chip names, never a nudge (decision 12) | at most 180 px, gives way to what is left; the chip's word ends in dots before anything spills (the step mark and dots stay); the words' full text is in their title; a label with a count ("Second Pick: 3.00K / 100K", "The Gate of The Dunes is at 150 m", "... about 12 swings left") is one line where only the label ends in dots and the count always shows (decisions 13 and 18); in Arabic the chip reads right to left with its step mark at the left end, pointing left (decision 17); the chip hides when the dig is done |
 
 Rule: a new thing on the stage takes a free spot from this table (or a new row added here); it never sits on S4 or S5 while the
 manager is on screen. `test_proto_art.js` checks the S5 and S7 numbers.
@@ -259,6 +259,44 @@ The test page for every sound: `proto/soundboard.html`.
     `proto/features/track/lessonfit.js`; `test_proto_lessonfit.js` checks every `t_*`, `fz_lesson_*` and `gate_remember` line,
     English and Arabic, fits three lines at 270 px.
 
+15. **Decided (14 Oct 2026, by art-director): a lesson is a note on a plate; the drawer's "Next:" line stays plain words.**
+    (Eighth pass: the gold lesson and the drawer's 17 px bold "Next: Stronger Pick, 15 coins." sit side by side at the same
+    height and both read as bold headline words, so the eye jumps between them.) The lesson gets a soft plate behind it,
+    gold-tinted for a gold lesson (`rgba(255,210,63,.13)`), white-tinted for a plain one (`.07`), its start bar kept and the
+    end corners rounded (`track/track.css`). Because shape is the signal that does not rely on colour: a plate says "a note
+    for you" and nothing else in the top line or the drawer has one (the level line is gold too, and also plain words). The
+    drawer line is left as it is: it is the drawer's call to action, already a different size and colour, and changing it
+    would move the shop for every player to fix a two-second moment. Text, size and colour of the lesson are unchanged
+    (gold on the gold plate stays above 8:1). The plate's 8 px end padding is taken out of the lesson budget (`test_proto_lessonfit.js`).
+16. **Decided (14 Oct 2026, by art-director): a short lesson stays in the message line and Tips and the goal stay up; only a
+    lesson that would not fit two lines there takes the whole line** (part reverse of decision 14, which kept one shape for
+    every lesson). Because the eighth pass saw the goal vanish for 3 to 9 s "just when it would help", and most first-minute
+    lessons are short. When a lesson first shows, `app.js` (`lessonWide`) measures the message line at its usual width and
+    asks the wrap estimate (`lessonfit.js` `lineCount`, a little wide on purpose) whether the text takes two lines or fewer; if
+    not, the lesson gets `wide` and the decision 14 layout applies as before (so #475's room for long lessons is kept). A
+    lesson is measured once, so the line never changes shape while it is read. The cost is that the top line has two shapes
+    for lessons; the gain is that the goal and Tips stay for most of them.
+17. **Decided (14 Oct 2026, by art-director): in Arabic the goal chip reads right to left and its step mark points left.**
+    Because the top line keeps its places left to right (the stage never mirrors), the chip inherited left to right: the mark
+    sat at its right end and the Arabic turn (`rotate(-45deg)`) made it an up chevron. The chip now sets its own direction
+    (`direction: rtl` on `#goal-pin button` in Arabic, `picks/picks.css`): the mark sits at the left end and points left, the
+    way "next" goes in Arabic, and a long chip word ends in dots on the left. The row (chip, then dots) keeps its places.
+18. **Decided (14 Oct 2026, by art-director): the Gate goal keeps its number when room is short.** The far Gate goal ("The Gate
+    of The Dunes is at 150 m") and the swings goal ("Break the Gate: about 12 swings left") now say where their number starts
+    (`num` in `sites/ui.js`), so decision 13's layout applies: the words end in dots, the metres or the swings always show.
+    Because the number is what changes and what a child acts on; the chip right above already says "Gate". A layout fix only;
+    a wording that leads with the number would read better still and is offered to the localizer (below).
+    *For the localizer (suggestion, your call):* English `goal_gate_far`: `'{n} m: the Gate of {name}'` (was
+    `'The Gate of {name} is at {n} m'`); `goal_gate`: `'{n} swings left to break the Gate'` (was `'Break the Gate: about {n}
+    swings left'`); Arabic `goal_gate_far`: `'{n} م: بوابة {name}'` (was `'بوابة {name} على عمق {n} م'`). With the number first
+    the line is one piece that ends in dots at its end, and the number leads at any width. The Arabic `goal_gate` already ends
+    in its number and keeps it under this decision.
+19. **Decided (14 Oct 2026, by art-director): a card's last word never sits alone on its own line.** The Camp step line
+    "ضربة الرفيق: 70% من ضربتك، ثم 72%." wrapped "72%." alone. The Star board card text binds its last short word (up to 8
+    letters, so "72%." with its isolate marks) to the one before with a no-break space, put in by the layout (`keepEnd` in
+    `starshop/ui.js`), and all shop card lines ask the browser for `text-wrap: pretty`. Because a number alone on a line reads
+    as a separate thing, and "then 72%" is one idea. No string changes: the localizer's words stay as written.
+
 ## 9. Briefs for builders
 
 **B1. The 13 px floor** (after the localizer's string and HUD pass lands, to avoid two PRs on the same lines).
@@ -302,3 +340,12 @@ not overlapping, the manager and hakawati name plates readable, the Star board a
 - (v5.36.2, #469) The Second Pick goal pinned, Arabic and English, 1366x768 and 1500x1000, with the chip showing: both numbers
   ("3.00K / 100K") on the visible line, only the label ends in dots; in Arabic the label on the right, the count on its left.
   Without the chip (one goal choice) the same. The Gate goal and the Museum set goal look as before.
+- (v5.36.5, decisions 15 to 19) At 1366x768 and 1500x1000, English and Arabic:
+  - a gold lesson (for example "This relic has a partner") on its tinted plate with the bar at its start, beside the drawer's
+    "Next:" line: they no longer look alike; nothing of the plate reaches the stage;
+  - a short lesson (a first-minute one): Tips and the goal stay up beside it; a long one still takes the whole line and they
+    come back after;
+  - the Gate goal under the chip at 1366: "The Gate of ... 150 m" with the metres whole (and "... 12 swings left" next to the
+    Rock); Arabic the same, the metres on the left of the words;
+  - the Arabic goal chip: the step mark at its left end, pointing left;
+  - the Arabic Camp step card ("ضربة الرفيق: 70% من ضربتك، ثم 72%."): "72%." is not alone on the last line.
