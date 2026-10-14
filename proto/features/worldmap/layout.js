@@ -15,34 +15,44 @@ const FAN = [[0.6, 228], [0.64, 322], [0.6, 416]];        // where the three pat
 const ISLAND_Y = 222;
 
 
+// The lands in a row: chapter one's five, the Beyond crossroads, then chapter two's (the four lands at night, the Empty Quarter).
+// The road runs level 1 to 20, through the crossroads, then 21 to 40. While chapter two runs, the crossroads holds the free
+// deal as a side branch (sites.freeDeal); after level 40 it holds the deal itself, as after level 20 before chapter two.
 export function buildMap(s) {
-  const ROAD = G.ROAD, ZONES = G.ZONES, fixed = G.FIXED;
+  const ROAD = G.ROAD, ZONES = G.ZONES, fixed = G.FIXED, CH = G.CHAPTER_LEN;
   const nx = G.fixedNext(s);
   const nextIdx = nx ? nx.level - 1 : ROAD.length;
+  const ch1Done = nextIdx >= CH;
   const cards = G.dealCards(s).slice();
   const stamps = s.road.stamps;
   const nodes = [], edges = [];
-  const panels = ZONES.map((zone, i) => {
+  const order = [...ZONES.filter(z => ROAD.some(f => f.zone === z && f.ch !== 2)), 'beyond', ...ZONES.filter(z => ROAD.some(f => f.zone === z && f.ch === 2))];
+  const panels = order.map((zone, i) => {
     const lv = ROAD.map((f, k) => (f.zone === zone ? k + 1 : 0)).filter(Boolean);
-    return { zone, x: i * PW, first: lv[0], last: lv[lv.length - 1] };
+    return { zone, x: i * PW, first: lv[0] || 0, last: lv[lv.length - 1] || 0 };
   });
-  panels.push({ zone: 'beyond', x: ZONES.length * PW, first: 0, last: 0 });
+  const panelOf = zone => panels.find(p => p.zone === zone);
+  const beyond = panelOf('beyond');
 
   // the road
   ROAD.forEach((f, i) => {
-    const zi = ZONES.indexOf(f.zone), inZ = ROAD.slice(0, i).filter(g => g.zone === f.zone).length;
-    const [fx, y] = ((zi % 2) ? SLOTS_B : SLOTS_A)[inZ % 4];
-    const st = stamps[G.siteKey(f.site, f.floor)] || null;
-    nodes.push({ id: 'r' + i, type: 'road', i, level: i + 1, site: f.site, floor: f.floor, zone: f.zone, prove: !!f.prove, twist: '',
-      x: panels[zi].x + fx * PW, y, r: f.prove ? 27 : 23, state: i < nextIdx ? 'done' : i === nextIdx ? 'next' : 'locked', stamp: st, card: null });
+    const pi = order.indexOf(f.zone), inZ = ROAD.slice(0, i).filter(g => g.zone === f.zone).length;
+    const [fx, y] = ((pi % 2) ? SLOTS_B : SLOTS_A)[inZ % 4];
+    const st = stamps[G.roadKey(f)] || null;
+    nodes.push({ id: 'r' + i, type: 'road', i, level: i + 1, site: f.site, floor: f.floor, zone: f.zone, ch: f.ch, prove: !!f.prove, twist: '',
+      x: panels[pi].x + fx * PW, y, r: f.prove ? 27 : 23, state: i < nextIdx ? 'done' : i === nextIdx ? 'next' : 'locked', stamp: st, card: null });
   });
   const hub = { id: 'hub', type: 'hub', i: ROAD.length, level: 0, site: '', floor: 0, zone: 'beyond', twist: '', prove: false,
-    x: panels[ZONES.length].x + BEYOND_X * PW, y: BEYOND_Y, r: 26, state: nx ? 'locked' : 'done', stamp: null, card: null };
+    x: beyond.x + BEYOND_X * PW, y: BEYOND_Y, r: 26, state: ch1Done ? 'done' : 'locked', stamp: null, card: null };
   nodes.push(hub);
   // Alqahwa, the coffee house: always there, on the Arabian coast below the first stones, on no road
   nodes.push({ id: 'town', type: 'town', i: -1, level: 0, site: '', floor: 0, zone: 'arabia', twist: '', prove: false, x: 195, y: 425, r: 26, state: 'town', stamp: null, card: null, stars: s.stars || 0 });
   const road = nodes.filter(n => n.type === 'road');
-  road.forEach((n, i) => edges.push({ id: 'e' + i, from: n, to: i + 1 < road.length ? road[i + 1] : hub, open: i < nextIdx, kind: 'road' }));
+  // level 20 walks to the crossroads and the crossroads on to level 21; level 40 is the end of the road
+  road.forEach((n, i) => {
+    if (i + 1 === CH) { edges.push({ id: 'e' + i, from: n, to: hub, open: i < nextIdx, kind: 'road' }); if (road[i + 1]) edges.push({ id: 'e' + (i + 1) + 'h', from: hub, to: road[i + 1], open: ch1Done, kind: 'road' }); }
+    else if (i + 1 < road.length) edges.push({ id: 'e' + i, from: n, to: road[i + 1], open: i < nextIdx, kind: 'road' });
+  });
 
   const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
   const clampY = y => Math.max(225, Math.min(420, y));
@@ -68,7 +78,7 @@ export function buildMap(s) {
       if (used.has(c.key)) continue;
       const isl = islands.find(n => n.site === c.site && !n.card);
       if (isl) { give(isl, c); isl.state = 'open'; continue; }
-      const dx = (home.x - panels[ZONES.indexOf(home.zone)].x) > PW * 0.8 ? -50 : 50;
+      const dx = (home.x - panelOf(home.zone).x) > PW * 0.8 ? -50 : 50;
       let dy = slot % 2 ? 88 : -88;
       if (home.y + dy < 225 || home.y + dy > 420) dy = -dy;
       const y = clampY(home.y + dy);
@@ -77,15 +87,15 @@ export function buildMap(s) {
       give(n, c); nodes.push(n); edges.push({ id: 'es' + slot, from: home, to: n, open: true, kind: 'side' });
       slot++;
     }
-  } else {
-    cards.forEach((c, k) => {
-      const [fx, y] = FAN[k % FAN.length];
-      const n = { id: 'b' + k, type: 'beyond', i: -1, level: 0, site: c.site, floor: c.floor, zone: 'beyond', twist: c.twist, prove: false,
-        x: panels[ZONES.length].x + fx * PW, y, r: 25, state: 'open', stamp: stamps[c.key] || null, card: null, kind: c.kind };
-      give(n, c); nodes.push(n); edges.push({ id: 'eb' + k, from: hub, to: n, open: true, kind: 'side' });
-    });
-    // the paths of a deal you have not been dealt yet are not drawn; three faint stones show where they go (none needed)
   }
+  // the crossroads: the deal after the road, or (chapter two) the free deal as a side branch
+  const fan = !nx ? cards : ch1Done ? G.freeDeal(s).filter(c => !used.has(c.key)) : [];
+  fan.forEach((c, k) => {
+    const [fx, y] = FAN[k % FAN.length];
+    const n = { id: 'b' + k, type: 'beyond', i: -1, level: 0, site: c.site, floor: c.floor, zone: 'beyond', twist: c.twist, prove: false,
+      x: beyond.x + fx * PW, y, r: 25, state: 'open', stamp: stamps[c.key] || null, card: null, kind: c.kind };
+    give(n, c); nodes.push(n); edges.push({ id: 'eb' + k, from: hub, to: n, open: true, kind: 'side' });
+  });
 
   // which Museum pieces each level can still give (pure data: the paint and the info panel read it)
   for (const n of nodes) n.museum = n.floor ? G.museumLevel(s, n.site, n.floor) : null;

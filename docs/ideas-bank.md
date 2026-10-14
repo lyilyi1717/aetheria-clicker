@@ -84,7 +84,7 @@ Rank = how much it moves W and B, for its cost, with the evidence behind it. The
 
 | # | Idea | From game | Cost | Sim number | Status |
 |---|---|---|---|---|---|
-| L1 | Chapter Two: the road home at night, 20 levels, caravan found at level 40 | Zelda Second Quest, Melvor Into the Abyss, Candy Crush episodes | M | Road end day 18-25; tries 1-3 and digs between at most 6 for levels 21-40 | proposed |
+| L1 | Chapter Two: the road home at night, 20 levels, caravan found at level 40 | Zelda Second Quest, Melvor Into the Abyss, Candy Crush episodes | M | Road end day 18-25; tries 1-3 and digs between at most 6 for levels 21-40 | built 14 Oct (`docs/dig-design.md` 2.4): levels 21-38 in 1-2 tries; levels 39-40 retuned without a sim |
 | L2 | Three deeper lands, levels 21-32 at 300-425 m | Candy Crush episodes, SteamWorld Dig 2 | L | Minutes per level within x1.3 of level 20; end day 18-25 | parked |
 | L3 | Land seals from chili pips and the Museum | Hades Heat, Slay the Spire Ascension | S | End day moves +2 to +4 | rejected as a block; folded into L1 as a reward |
 

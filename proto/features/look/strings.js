@@ -6,6 +6,11 @@ export default { en: {
   look_zone_eastasia: 'East Asia',
   look_zone_americas: 'The Americas',
   look_zone_europe: 'Europe',
+  look_zone_n_europe: 'Europe at night',
+  look_zone_n_americas: 'The Americas at night',
+  look_zone_n_eastasia: 'East Asia at night',
+  look_zone_n_africa: 'Africa at night',
+  look_zone_emptyquarter: 'The Empty Quarter',
   look_arrive_sub: 'Gate at {m} m',
   look_arrive_sub_place: '{place}. Gate at {m} m',
 } };

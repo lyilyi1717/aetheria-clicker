@@ -42,7 +42,9 @@ const boom = (s, r, c, ev = () => {}) => { s.rows[r - s.top][c] = { t: 'tnt', hp
 }
 { // the Gate table is smooth: no level more than 3x its neighbour of the same kind, and ordered
   const m = G.PARAMS.sites.gateMul;
-  ok(m.length === G.ROAD.length - G.FIXED.length, 'one Gate size per road level');
+  ok(m.length === G.ROAD1.length - G.FIXED.length, 'one Gate size per road level of chapter one');
+  ok(G.ROAD.every((f, i) => (i < G.FIXED.length) === (G.gateMulOf(i) === undefined)), 'every road level after the lessons has a Gate size, chapter two too');
+  ok(G.ROAD2.slice(0, 16).every((f, k) => G.gateMulOf(G.CHAPTER_LEN + k) === m[k] && f.floor === G.ROAD1[G.FIXED.length + k].floor && !!f.prove === !!G.ROAD1[G.FIXED.length + k].prove), 'levels 21 to 36 repeat the slots of levels 5 to 20: depth, kind and Gate size');
   for (let i = 2; i < m.length; i++) ok(m[i] / m[i - 2] < 3 && m[i - 2] / m[i] < 3, 'level ' + (i + 5) + ' is within 3x of the one before of its kind');
 }
 if (failed) process.exit(1); console.log('rocks ok');

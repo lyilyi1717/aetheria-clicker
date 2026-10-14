@@ -17,6 +17,12 @@ const LOOK = {
   americas: { sky: ['#6aa9d4', '#a9d0e2', '#f4e6bd'], ground: ['#b4623a', '#8c4526'], dot: '#6a3018' },
   europe:  { sky: ['#8aa8c4', '#bcd0e0', '#e4ecf2'], ground: ['#6aa35a', '#4d8545'], dot: '#356a30' },
   beyond:  { sky: ['#140f2c', '#3a2a63', '#7a4f8e'], ground: ['#352a52', '#241c3a'], dot: '#4d3e75' },
+  // chapter two: the lands at night, then the Empty Quarter
+  n_europe:   { sky: ['#0e1430', '#23305a', '#3c4c6e'], ground: ['#2f5a3a', '#1f3d28'], dot: '#16301c' },
+  n_americas: { sky: ['#0c1430', '#26305a', '#46405e'], ground: ['#5a3428', '#3c2018'], dot: '#2a140c' },
+  n_eastasia: { sky: ['#10183a', '#2a3a5a', '#4e5a6a'], ground: ['#3a5a48', '#26402f'], dot: '#1a2e20' },
+  n_africa:   { sky: ['#160f30', '#33244e', '#5a3a4a'], ground: ['#5a3a22', '#3e2614'], dot: '#2a180a' },
+  emptyquarter: { sky: ['#c8502a', '#f08a4a', '#ffd08a'], ground: ['#d9733a', '#a8481e'], dot: '#7a2e10' },
 };
 const sun = (g, x, y, r, col, halo) => {
   g.fillStyle = halo; g.beginPath(); g.arc(x, y, r * 1.55, 0, 7); g.fill();
@@ -186,7 +192,7 @@ function drawNode(g, n, v, nm) {
     });
     y += 17;
     if (n.type === 'road' && n.stamp && n.stamp.fin) {          // the five chili pips of a finished level; a new one pops when the map first opens after it
-      const have = G.pipsOf(n.stamp), pop = chiliPop.key === G.siteKey(n.site, n.floor) ? chiliPop : null;
+      const have = G.pipsOf(n.stamp), pop = chiliPop.key === G.siteKey(n.site, n.floor, '', n.ch) ? chiliPop : null;
       if (pop && pop.pending) { pop.pending = false; pop.t0 = performance.now(); }
       const age = pop ? (performance.now() - pop.t0) / 1000 : 99;
       for (let k = 1; k <= 5; k++) {
@@ -256,7 +262,8 @@ export function paint(g, map, v) {
     if (p.zone === 'beyond') drawSign(g, p, t('wm_beyond'), t('wm_beyond_sub'));
     else {
       const done = Math.max(0, Math.min(p.last, map.nextIdx) - p.first + 1);
-      drawSign(g, p, t('look_zone_' + p.zone), t('wm_land_sub', { a: p.first, b: p.last, n: done, of: p.last - p.first + 1 }));
+      const c2 = p.first > G.CHAPTER_LEN ? G.CHAPTER_LEN : 0;      // chapter two counts its own levels: "Chapter 2, levels 1 to 4"
+      drawSign(g, p, t('look_zone_' + p.zone), t(c2 ? 'wm_land_sub2' : 'wm_land_sub', { a: p.first - c2, b: p.last - c2, n: done, of: p.last - p.first + 1 }));
     }
   }
   const hold = v.hold;

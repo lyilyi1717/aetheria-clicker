@@ -7,19 +7,21 @@ import { buildMap, pathPoints, PW } from './proto/features/worldmap/layout.js';
 let failed = 0;
 const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg); } };
 const fresh = () => { G.seedRng(11); return G.newState(); };
-const stamp = (s, i, v) => { const f = G.ROAD[i]; s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 0, fast: 0, hard: 0, best: 0, n: 1, ...v }; };
+const stamp = (s, i, v) => { const f = G.ROAD[i]; s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 0, fast: 0, hard: 0, best: 0, n: 1, ...v }; };
 const keys = map => map.nodes.filter(n => n.card).map(n => n.card.key).sort().join();
 const dealKeys = s => G.dealCards(s).map(c => c.key).sort().join();
 
-{ // a fresh save: 20 road nodes in 5 lands, level 1 is the go node, the rest are locked
+{ // a fresh save: 40 road nodes in 10 lands (two chapters, the crossroads between), level 1 is the go node, the rest are locked
   const s = fresh(), map = buildMap(s);
   const road = map.nodes.filter(n => n.type === 'road');
-  ok(road.length === 20 && G.ROAD.length === 20, 'twenty road nodes');
-  ok(new Set(road.map(n => n.zone)).size === 5 && G.ZONES.length === 5, 'five lands');
-  ok(map.panels.length === 6 && map.panels[5].zone === 'beyond', 'five lands and Beyond');
-  ok(road.every((n, i) => n.level === i + 1 && n.x >= map.panels[G.ZONES.indexOf(n.zone)].x && n.x < map.panels[G.ZONES.indexOf(n.zone)].x + PW), 'each node sits in its own land');
+  const panelOf = z => map.panels.find(p => p.zone === z);
+  ok(road.length === 40 && G.ROAD.length === 40, 'forty road nodes');
+  ok(new Set(road.map(n => n.zone)).size === 10 && G.ZONES.length === 10, 'ten lands');
+  ok(map.panels.length === 11 && map.panels[5].zone === 'beyond' && map.panels.map(p => p.zone).join() === [...G.ZONES.slice(0, 5), 'beyond', ...G.ZONES.slice(5)].join(), 'five lands, Beyond, then the five of chapter two');
+  ok(road.every((n, i) => n.level === i + 1 && n.x >= panelOf(n.zone).x && n.x < panelOf(n.zone).x + PW), 'each node sits in its own land');
+  ok(map.edges.some(e => e.from === road[19] && e.to === map.hub) && map.edges.some(e => e.from === map.hub && e.to === road[20]) && !map.edges.some(e => e.from === road[39]), 'level 20 walks to the crossroads, the crossroads to level 21; level 40 ends the road');
   ok(map.go && map.go.i === 0 && map.go.state === 'next', 'level 1 glows on a save with no stamps');
-  ok(road.filter(n => n.state === 'locked').length === 19, 'the rest are locked');
+  ok(road.filter(n => n.state === 'locked').length === 39, 'the rest are locked');
   ok(keys(map) === dealKeys(s), 'the clickable nodes are exactly the dealt cards');
   ok(road.every(n => n.stamp === null), 'no stamps, no medals');
 }
@@ -51,10 +53,21 @@ const dealKeys = s => G.dealCards(s).map(c => c.key).sort().join();
   ok(before === museumIds.filter(id => G.siteOpen(s, id)).length, 'islands match the places that are open');
   ok(buildMap(s).nodes.filter(n => n.type === 'island').every(n => G.siteOpen(s, n.site)), 'no island for a closed place');
 }
-{ // all 20 finished: Beyond with one path per card
+{ // chapter one finished: level 21 is the go node; the free deal hangs off the crossroads as a side branch
   const s = fresh();
   for (let i = 0; i < 20; i++) stamp(s, i, { fin: 1, fast: i % 2, hard: 0, best: 300 });
-  s.road.reach = 300;
+  s.road.reach = 275;
+  const map = buildMap(s), beyond = map.nodes.filter(n => n.type === 'beyond'), free = G.freeDeal(s);
+  ok(map.go.i === 20 && map.go.card.kind === 'fixed' && map.go.card.key === 'c2:dunes:100' && map.hub.state === 'done', 'level 21 is the one to go to');
+  ok(beyond.length === free.length && free.length >= 1 && beyond.every(n => map.edges.some(e => e.to === n && e.from === map.hub)), 'the free deal is a side branch at the crossroads');
+  ok(G.dealCards(s).length === 1 && keys(map) === [...G.dealCards(s), ...free].map(c => c.key).sort().join(), 'Next town still deals level 21 only; the map adds the side branch');
+  s.bossesDown = 2; G.siteRun(s);
+  ok(G.pickCard(s, free[0], () => {}) && s.run.key === free[0].key && G.fixedNext(s).level === 21, 'a free card can be taken; level 21 waits');
+}
+{ // all 40 finished: Beyond with one path per card
+  const s = fresh();
+  for (let i = 0; i < 40; i++) stamp(s, i, { fin: 1, fast: i % 2, hard: 0, best: 300 });
+  s.road.reach = 325;
   const map = buildMap(s), cards = G.dealCards(s), beyond = map.nodes.filter(n => n.type === 'beyond');
   ok(cards.length >= 1 && beyond.length === cards.length, 'one path per card');
   ok(map.hub.state === 'done' && map.nodes.filter(n => n.type === 'road').every(n => n.state === 'done'), 'the whole road is done');

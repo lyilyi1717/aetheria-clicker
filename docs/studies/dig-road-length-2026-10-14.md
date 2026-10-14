@@ -53,6 +53,8 @@ that already.
 
 ### A. Chapter Two: the road home (recommended)
 
+**Built 14 October 2026** (`docs/dig-design.md` 2.4). Where it differs from this text: the factors came out at `ch2Hp` 3e12 and `ch2Stars` 2e5 (the player arrives about 10^12 times stronger); the Beyond panel sits between the two chapters on the map and holds the free deal as a side branch; the caravan Museum set and the sparser night bar are not built; Stars by day 30 rise to tens of T (the fault-12 check above fails).
+
 **What the player sees.** After level 20 the storyteller's end card: Grandpa's camel bell is found under the Golden Wadi
 with a note, "the caravan went home the long way". The map zooms out, the Beyond sign becomes the start of a night road,
 and the digger turns for home: **Europe, the Americas, East Asia, Africa** (the lands in reverse, at night), then a

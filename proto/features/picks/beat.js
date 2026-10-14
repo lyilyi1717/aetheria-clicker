@@ -71,7 +71,7 @@ export function picksBarOf(count, zone = 'arabia') {
   const k = Math.max(1, Math.min(MAX_PICKS, count | 0));
   const Z = ZONE_BARS[zone];
   const B = Z ? { ...Z[k], vel: velOf(Z[k].hits, k) } : PICKS_BARS[k];
-  const key = k + B.hits + B.vel;
+  const key = (Z ? zone : 'arabia') + k + B.hits + B.vel;      // the zone too: a land at night has its land's notes
   if (!parsed[key]) parsed[key] = { count: k, zone: Z ? zone : 'arabia', name: B.name, n: [...B.hits].map(ch => (ch === '.' ? 0 : Number(ch))), v: [...B.vel] };
   return parsed[key];
 }

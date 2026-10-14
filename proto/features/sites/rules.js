@@ -13,7 +13,8 @@
 //             under that contract, and the contracts feature calls `siteMedal(s, 'hard', ev)` when it is won.
 // A medal pays a few Stars, once per version.
 //
-// THE ROAD (docs/dig-design.md, section 2). Twenty levels in a fixed order (ROAD): the four lessons, then every depth from
+// THE ROAD (docs/dig-design.md, section 2; chapter two in 2.4: levels 21 to 40, `ch: 2`, keys `c2:site:floor`, ground x ch2Hp,
+// Stars x ch2Stars). Chapter one is twenty levels in a fixed order (ROAD1): the four lessons, then every depth from
 // 100 m to 275 m is met twice (learn it at a kind place, prove it at a harder one), in five lands. "Next site" deals ONE card, the next level, until that
 // level is finished. A level tried twice and not finished brings side cards beside it (a medal still to win, a twist
 // on a finished floor): Stars to come back stronger with. The road is never made softer and no level is skipped
@@ -275,14 +276,14 @@ export function siteMedal(s, medal, ev = () => {}) {
   const r = siteRun(s);
   if (medal !== 'hard' || r.medals.hard) return 0;
   r.medals.hard = 1;
-  s.road.deal = null;                      // the dealt cards carry medals: deal them again
+  s.road.deal = s.road.free = null;                      // the dealt cards carry medals: deal them again
   return award(s, ev, stampOf(s, r.site, r.floor, r.twist, r.ch), r.key, 'hard', medalPay(r.floor, chOf(r)));
 }
 
 function finish(s, ev) {
   const r = siteRun(s);
   r.done = true; r.time = r.clock;
-  s.road.deal = null;                      // cards dealt before this finish (a look from the leave button) show the road as it was
+  s.road.deal = s.road.free = null;                      // cards dealt before this finish (a look from the leave button) show the road as it was
   const st = stampOf(s, r.site, r.floor, r.twist, r.ch), ch = chOf(r);
   const first = !st.fin, fast = r.time <= runPar(r);
   let stars = first ? firstPay(r.floor, roadKind(r.site, r.floor, r.twist, ch), ch) : replayPay(r.floor, ch);
@@ -344,11 +345,9 @@ export function roadLevel(s) { const f = fixedNext(s), level = f ? f.level : ROA
 export function dealCards(s) {
   if (s.road.deal && s.road.deal.length) return s.road.deal;
   const fx = fixedNext(s);
-  const open = siteList(s), reach = Math.max(p.baseFloor, s.road.reach), cards = [], seen = new Set();
-  const add = c => { if (c && !seen.has(c.key)) { seen.add(c.key); cards.push(c); } };
-  const done = (site, floor, twist) => (s.road.stamps[siteKey(site, floor, twist)] || {}).fin;
-  const stamps = roadStamps(s);
   if (fx) {
+    const cards = [], seen = new Set(), stamps = roadStamps(s);
+    const add = c => { if (c && !seen.has(c.key)) { seen.add(c.key); cards.push(c); } };
     add({ ...card(s, fx.site, fx.floor, '', 'fixed', '', fx.ch), level: fx.level, of: fx.of });
     // stuck at this level: side cards beside it, on floors already finished
     if (fx.tries >= p.sideAfter) {
@@ -359,6 +358,20 @@ export function dealCards(s) {
     }
     return (s.road.deal = cards.slice(0, 3));
   }
+  return (s.road.deal = freeCards(s));
+}
+// The free deal (after the road, and beside chapter two): three cards, the player picks one. While chapter two runs, the map's
+// Beyond crossroads (between level 20 and level 21) offers it as a side branch: `freeDeal` (cached in road.free; never dealt by
+// dealCards, so the "Next town" button still deals the road level).
+export function freeDeal(s) {
+  if (s.road.free && s.road.free.length) return s.road.free;
+  return (s.road.free = freeCards(s));
+}
+function freeCards(s) {
+  const open = siteList(s), reach = Math.max(p.baseFloor, s.road.reach), cards = [], seen = new Set();
+  const add = c => { if (c && !seen.has(c.key)) { seen.add(c.key); cards.push(c); } };
+  const done = (site, floor, twist) => (s.road.stamps[siteKey(site, floor, twist)] || {}).fin;
+  const stamps = roadStamps(s);
   // 1. the stretch: the next floor
   const next = Math.min(p.maxFloor, reach + LAYER);
   const sx = open.filter(id => !done(id, next, ''));
@@ -378,7 +391,7 @@ export function dealCards(s) {
   for (let tries = 0; tries < 8 && cards.length < 3 && plain.length; tries++) { const b = pickOne(plain); add(card(s, b.site, b.floor, pickOne(TWISTS), 'twist')); }
   // fill: any open site at a floor you have reached
   for (let tries = 0; tries < 12 && cards.length < 3; tries++) add(card(s, pickOne(open), p.baseFloor + LAYER * Math.floor(rnd() * ((reach - p.baseFloor) / LAYER + 1)), '', 'medal'));
-  return (s.road.deal = cards.slice(0, 3));
+  return cards.slice(0, 3);
 }
 
 // patch: state to set on the new site before its ground is generated, e.g. { contract: 'noDiggers' }
@@ -390,7 +403,7 @@ export function newSite(s, site, ev = () => {}, patch, pick) {
   const floor = pick ? pick.floor : p.baseFloor, twist = pick ? pick.twist : '';
   const hard = (patch && patch.contract) || (pick && pick.hard) || '';
   const run = makeRun(site, floor, twist, hard, pick ? pick.ch : 1);
-  s.road.deal = null;
+  s.road.deal = s.road.free = null;
   reset(s, 'site', { ...(hard ? { contract: hard } : {}), ...patch, run });
   stampOf(s, site, floor, twist, run.ch).n++;
   emit(s, ev, 'newSite', { gain, stars: s.stars, key: run.key, chili: run.chili });

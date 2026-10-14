@@ -29,7 +29,8 @@ const table = (head, rows) => {
 };
 
 // the sim's numbers per road level, from a dig-month dump (same logic as the one-off levels script)
-const ROAD = ['dunes:50', 'boom:50', 'bones:75', 'gold:75'].concat(...[100, 150, 200, 250].map(d => ['dunes:' + d, 'boom:' + d, 'bones:' + (d + 25), 'gold:' + (d + 25)]));
+const ROAD = ['dunes:50', 'boom:50', 'bones:75', 'gold:75'].concat(...[100, 150, 200, 250].map(d => ['dunes:' + d, 'boom:' + d, 'bones:' + (d + 25), 'gold:' + (d + 25)]))
+  .concat(...[100, 150, 200, 250, 300].map(d => ['c2:dunes:' + d, 'c2:boom:' + d, 'c2:bones:' + (d + 25), 'c2:gold:' + (d + 25)]));   // chapter two (levels 21 to 40)
 function simLevels(dump) {
   const out = ROAD.map(() => ({ tries: [], att: [], days: [], n: 0 }));
   for (const d of dump) {

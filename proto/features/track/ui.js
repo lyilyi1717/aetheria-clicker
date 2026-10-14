@@ -7,6 +7,7 @@ import { ui } from '../../ui/app.js';
 import { medalsHtml, nextMap, reopenFinish } from '../sites/ui.js';
 import { tone, gap } from '../../ui/audio.js';
 import strings from './strings.js';
+import { levelText } from '../sites/level.js';
 
 const { t } = G;
 G.addStrings(strings, 'track');
@@ -81,7 +82,7 @@ function tick(s) {
     sig = key;
     const idx = G.roadIndex(s);
     const name = t('site_' + r.site) + (r.twist ? ', ' + t('twist_' + r.twist) : '');
-    const parts = idx >= 0 ? [t('trk_level', { n: idx + 1, of: G.ROAD.length }), t('look_zone_' + G.roadZone(s)), name] : [name];
+    const parts = idx >= 0 ? [levelText(idx + 1), t('look_zone_' + G.roadZone(s)), name] : [name];
     el.level.textContent = parts.join(' · ');
     el.level.title = el.level.textContent;
   }
