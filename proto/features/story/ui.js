@@ -160,7 +160,7 @@ export function openDesk(app, host, { stage, btns, CW = 960 }) {
     draw(g, T, CW2, GROUND) {
       g.save(); g.translate(X * CW2, GROUND + 6); g.scale(1.25, 1.25); drawHakawati(g, T, talking); g.restore();
       // the name on a dark pill, so it reads on the red rug
-      g.font = 'bold 15px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = 'bold 15px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
       const nmW = g.measureText(t('st_name')).width + 22;
       g.fillStyle = 'rgba(20,12,6,0.82)'; g.beginPath(); g.roundRect(X * CW2 - nmW / 2, GROUND + 18, nmW, 22, 11); g.fill();
       g.fillStyle = '#ffd23f'; g.fillText(t('st_name'), X * CW2, GROUND + 29.5); g.textBaseline = 'alphabetic';

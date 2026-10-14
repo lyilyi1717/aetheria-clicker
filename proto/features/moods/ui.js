@@ -185,7 +185,7 @@ function puff(x, y, col, vx = 0, vy = -26) { if (reduced || puffs.length > 24) r
 
 const drawn = [];                   // the bubbles drawn this frame
 function bubble(g, x, y, str, alpha) {
-  g.save(); g.globalAlpha = alpha; g.font = 'bold 14px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.save(); g.globalAlpha = alpha; g.font = 'bold 14px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   const w = g.measureText(str).width + 16, h = 24;
   const bx = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, x));
   let by = Math.max(h / 2 + 2, y);
@@ -246,7 +246,7 @@ function drawMoods(g, s, dt) {
       if (mo === 'doze') {
         for (let k = 0; k < 3; k++) {
           const ph = (tt * 0.8 + k * 0.33) % 1, zx = -26 + ph * 12, zy = 6 - ph * 16 - k * 3;
-          g.globalAlpha = 1 - ph; g.font = `bold ${9 + k * 3}px system-ui, sans-serif`; g.textAlign = 'start'; g.strokeStyle = '#111'; g.lineWidth = 2.4; g.fillStyle = '#e8f1ff';
+          g.globalAlpha = 1 - ph; g.font = `bold ${9 + k * 3}px system-ui, Cairo, sans-serif`; g.textAlign = 'start'; g.strokeStyle = '#111'; g.lineWidth = 2.4; g.fillStyle = '#e8f1ff';
           g.strokeText('z', zx, zy); g.fillText('z', zx, zy);
         }
         g.globalAlpha = 1;

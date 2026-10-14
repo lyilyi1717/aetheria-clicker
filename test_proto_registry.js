@@ -239,6 +239,7 @@ const kit = G.use({
   for (const f of feats) for (const n of ['rules.js', 'strings.js']) if (existsSync(`proto/features/${f}/${n}`)) files.push(`proto/features/${f}/${n}`);
   for (const f of files) {
     const src = readFileSync(f, 'utf8').replace(/\/\/.*$/gm, '');
+    if (f === 'proto/core/lang.js') continue; // the page's language switch: location and localStorage on purpose
     if (f !== 'proto/core/rng.js') ok(!/Math\.random/.test(src), `${f}: rules take chance from rnd(), not Math.random`);
     ok(!/(?<![.\w'])(document|window|localStorage|requestAnimationFrame)\b(?!\s*:)/.test(src), `${f}: no DOM in the rules`);
     ok(!/\p{Extended_Pictographic}/u.test(src), `${f}: no emoji`);

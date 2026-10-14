@@ -7,7 +7,7 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
-body { background: radial-gradient(1200px 700px at 50% 0%, #2a1d14, var(--bg)); color: var(--ink); font: 15px/1.4 system-ui, 'Segoe UI', Tahoma, sans-serif; overflow-x: hidden; }
+body { background: radial-gradient(1200px 700px at 50% 0%, #2a1d14, var(--bg)); color: var(--ink); font: 15px/1.4 system-ui, 'Segoe UI', Tahoma, Cairo, sans-serif; overflow-x: hidden; }
 [hidden] { display: none !important; }
 button { font: inherit; color: inherit; cursor: pointer; }
 .ico { flex: none; display: block; }
@@ -34,7 +34,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 #stage { position: relative; width: var(--sw); height: var(--sh); border-radius: 14px; overflow: hidden; border: 2px solid var(--line); box-shadow: 0 10px 40px rgba(0,0,0,.5); user-select: none; }
 #cv { display: block; width: var(--sw); height: var(--sh); cursor: none; touch-action: none; }
-#hud-coins, #hud-depth { position: absolute; inset-block-start: 10px; display: flex; align-items: center; gap: 8px; background: rgba(15,10,6,.72); border: 1px solid rgba(255,255,255,.14); border-radius: 22px; padding: 4px 14px 4px 5px; pointer-events: none; font-size: 24px; font-variant-numeric: tabular-nums; }
+#hud-coins, #hud-depth { position: absolute; inset-block-start: 10px; display: flex; align-items: center; gap: 8px; background: rgba(15,10,6,.72); border: 1px solid rgba(255,255,255,.14); border-radius: 22px; padding-block: 4px; padding-inline: 5px 14px; pointer-events: none; font-size: 24px; font-variant-numeric: tabular-nums; }
 #hud-coins { inset-inline-start: 10px; color: var(--gold); transform-origin: left center; }
 #hud-depth { inset-inline-end: 10px; padding-inline: 14px; }
 #hud-coins.bump { animation: bump .16s ease-out; }
@@ -53,13 +53,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #toast.gold { border-inline-start-color: var(--gold); color: var(--gold); }
 #toast.fossil { border-inline-start-color: #f6efdc; color: #f6efdc; }
 
-#banner { position: absolute; left: 0; right: 0; top: 34%; text-align: center; pointer-events: none; opacity: 0; transform: scale(.6); }
+#banner { position: absolute; inset-inline: 0; inset-block-start: 34%; text-align: center; pointer-events: none; opacity: 0; transform: scale(.6); }
 #banner.show { animation: banner 3.6s ease-out both; }
 #banner b { display: block; font-size: 40px; color: var(--gold); text-shadow: 0 3px 0 #000, 0 0 30px rgba(255,210,63,.6); }
 #banner span { display: block; font-size: 19px; text-shadow: 0 2px 0 #000; margin-top: 6px; }
 @keyframes banner { 0% { opacity: 0; transform: scale(.5); } 8% { opacity: 1; transform: scale(1.12); } 14% { transform: scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: scale(1); } }
 
-#hint { position: absolute; left: 0; right: 0; top: 128px; text-align: center; font-size: 22px; font-weight: 800; text-shadow: 0 2px 0 #000, 0 0 12px #000; pointer-events: none; opacity: 0; transition: opacity .4s; }
+#hint { position: absolute; inset-inline: 0; inset-block-start: 128px; text-align: center; font-size: 22px; font-weight: 800; text-shadow: 0 2px 0 #000, 0 0 12px #000; pointer-events: none; opacity: 0; transition: opacity .4s; }
 #hint.show { opacity: 1; animation: nudge 1s ease-in-out infinite alternate; }
 @keyframes nudge { to { transform: translateY(8px); } }
 
@@ -144,7 +144,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @media (max-height: 800px) { #hud-coins, #hud-depth { zoom: .85; } #combo { inset-block-start: 52px; } }
 
 /* ---------- the purse and the round buttons (top) ---------- */
-.purse { display: inline-flex; align-items: center; gap: 14px; min-height: 38px; padding: 2px 14px 2px 10px; background: var(--panel-2); border: 2px solid var(--line); border-radius: 22px; }
+.purse { display: inline-flex; align-items: center; gap: 14px; min-height: 38px; padding-block: 2px; padding-inline: 10px 14px; background: var(--panel-2); border: 2px solid var(--line); border-radius: 22px; }
 .purse .hit-chip { border: 0; background: none; padding: 0; }
 .purse .pchip { display: inline-flex; align-items: center; gap: 6px; font-size: 18px; font-variant-numeric: tabular-nums; }
 .rbtn { display: inline-grid; place-items: center; width: 38px; height: 38px; padding: 0; border-radius: 50%; background: var(--panel-2); border: 2px solid var(--line); color: var(--muted); }
@@ -182,3 +182,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #tips-list { position: absolute; inset-block-end: 48px; inset-inline-end: 12px; width: 280px; max-height: 50%; overflow: auto; background: rgba(15,10,6,.94); border: 1px solid rgba(255,255,255,.25); border-radius: 12px; padding: 6px 12px; font-size: 14px; }
 #tips-list p { margin: 6px 0; padding-block-end: 6px; border-block-end: 1px solid rgba(255,255,255,.12); }
 #tips-list p:last-child { border-block-end: 0; }
+
+/* Arabic: its own fonts, a larger root, no uppercase or letter spacing (Arabic has no case and spaced letters break joining).
+   The scene (the stage and the canvas) never mirrors; panels, cards, the drawer text and toasts follow dir. */
+:root[lang=ar] body { font-family: Cairo, system-ui, 'Segoe UI', Tahoma, sans-serif; font-size: 16.5px; }
+:root[lang=ar] h1, :root[lang=ar] h2, :root[lang=ar] h3, :root[lang=ar] .word, :root[lang=ar] #banner b { font-family: 'Noto Kufi Arabic', Cairo, sans-serif; }
+:root[lang=ar] *, :root[lang=ar] *::before, :root[lang=ar] *::after { text-transform: none !important; letter-spacing: normal !important; }
+#stage, #cv { direction: ltr; }
+:root[dir=rtl] .layout { direction: ltr; }          /* the drawer stays on the same side of the dig */
+:root[dir=rtl] .layout > .mid { direction: ltr; }
+:root[dir=rtl] #drawer { direction: rtl; }
+:root[dir=rtl] #toast, :root[dir=rtl] #banner, :root[dir=rtl] #hint, :root[dir=rtl] #combo, :root[dir=rtl] #tools { direction: rtl; }

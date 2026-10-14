@@ -10,7 +10,8 @@
     "sim:check": "node sim/core-pacing.mjs --assert && node sim/garden-tap.mjs --assert",
     "sim:coreloop": "node sim/core-loop.mjs",
     "sim:tower": "node sim/tower-pacing.mjs",
-    "sim:mining": "node sim/mining-pacing.mjs"
+    "sim:mining": "node sim/mining-pacing.mjs",
+    "dig:i18n": "node scripts/dig-i18n.mjs"
   },
   "keywords": ["clicker", "incremental", "idle-game", "rpg", "prestige"],
   "author": "Antigravity",

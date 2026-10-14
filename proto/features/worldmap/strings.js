@@ -44,4 +44,6 @@ export default { en: {
   chat_hungry_relax_n: 3, chat_hungry_relax_0: 'Got any dates?', chat_hungry_relax_1: 'Tea and a snack!', chat_hungry_relax_2: 'I could eat a camel.',
   chat_all_relax_n: 3, chat_all_relax_0: 'Ahh, tea.', chat_all_relax_1: 'What a good dig!', chat_all_relax_2: 'Yalla, one more cup.',
   wm_pan_left: 'Left', wm_pan_right: 'Right',
+}, ar: {
+  qh_name_m: 'المدير', qh_name_f: 'المديرة',
 } };

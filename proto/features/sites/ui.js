@@ -258,7 +258,7 @@ function drawGate(g, s) {
   const rk = G.bossInView(s);
   if (rk && rk.row === r.floor) return;       // the Gate Rock says "The Gate" on its own bar
   g.save();
-  g.font = '800 13px system-ui, sans-serif'; g.textBaseline = 'middle';
+  g.font = '800 13px system-ui, Cairo, sans-serif'; g.textBaseline = 'middle';
   const label = t('gate_flag', { n: r.floor }), w = g.measureText(label).width + 40;
   g.fillStyle = 'rgba(20,12,6,.86)'; g.strokeStyle = '#ffd23f'; g.lineWidth = 2;
   g.beginPath(); g.roundRect(8, y - 12, w, 24, 8); g.fill(); g.stroke();
