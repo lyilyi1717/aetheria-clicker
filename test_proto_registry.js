@@ -110,7 +110,7 @@ const kit = G.use({
 { // strings
   ok(G.t('kit_hello', { n: 2 }) === 'Hello 2', 'a feature string');
   G.setLang('ar');
-  ok(G.t('kit_hello', { n: 2 }) === 'مرحبا ⁦2⁩' && G.t('kit_en_only') === 'Only English', 'another language, with English as the fallback');
+  ok(G.t('kit_hello', { n: 2 }) === 'مرحبا ⁦2⁩' && G.t('kit_en_only') === '⁨Only English⁩', 'another language, with English as the fallback');
   ok(G.missingStrings('ar').includes('kit_en_only') && !G.missingStrings('ar').includes('kit_hello'), 'missing translations can be listed');
   G.setLang('en');
 }

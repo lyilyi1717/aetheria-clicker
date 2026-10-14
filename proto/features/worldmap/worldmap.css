@@ -6,6 +6,9 @@
 .wmcard .wm-lands { display: flex; gap: 6px; flex-wrap: wrap; margin-block-end: 8px; }
 .wmcard .wm-lands button { padding: 3px 10px; font-size: 12.5px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); color: var(--ink); cursor: pointer; }
 .wmcard .wm-lands button.here { border-color: var(--gold); color: var(--gold); }
+/* the land chips follow the road picture, which never mirrors: Arabia first on the left in every language; each chip's words stay Arabic */
+:root[dir=rtl] .wmcard .wm-lands { direction: ltr; }
+:root[dir=rtl] .wmcard .wm-lands button { direction: rtl; unicode-bidi: isolate; }
 .wm-stage { position: relative; border: 2px solid var(--line); border-radius: 14px; overflow: hidden; background: #000; touch-action: none; }
 .wm-stage canvas { display: block; width: 100%; cursor: grab; }
 .wm-stage canvas.hot { cursor: pointer; }

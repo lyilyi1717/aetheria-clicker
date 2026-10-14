@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.35.0';
+export const VERSION = '5.35.1';
 
 export const CHANGELOG = [
+  {
+    version: '5.35.1',
+    date: '2026-10-14',
+    title: 'Dig in Arabic: everything',
+    changes: [
+      'The rest of Dig is in Arabic now: the Museum and its thirteen sets, the Lamp\'s wishes, the second set of relics, fusion and the Recipe Book, the Forge and its tools, and the deep layers.',
+      'The "Buy all" button is in Arabic too.',
+      'In Arabic, numbers and clocks inside a line ("1:40", "+12%") no longer swap places with the words around them.',
+      'In Arabic, the land buttons above the road map run from left to right, in the same order as the map itself.'
+    ],
+    ar: {
+      title: 'الحفر بالعربية: كله',
+      changes: [
+        'بقية الحفر صارت بالعربية: المتحف وأطقمه الثلاثة عشر، وأمنيات المصباح، والمجموعة الثانية من الآثار، والدمج و«كتاب الوصفات»، والمصهر وأدواته، والطبقات العميقة.',
+        'زر «اشترِ الكل» صار بالعربية أيضاً.',
+        'بالعربية، الأرقام والأوقات داخل السطر («1:40»، «+12%») لم تعد تتبادل أماكنها مع الكلمات حولها.',
+        'بالعربية، أزرار الأراضي فوق خريطة الطريق تسير من اليسار إلى اليمين، بترتيب الخريطة نفسها.'
+      ]
+    }
+  },
   {
     version: '5.35.0',
     date: '2026-10-14',
