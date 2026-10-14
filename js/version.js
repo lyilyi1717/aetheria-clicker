@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.35.6';
+export const VERSION = '5.35.7';
 
 export const CHANGELOG = [
+  {
+    version: '5.35.7',
+    date: '2026-10-14',
+    title: 'Dig: the goal stays inside the dig, and the first hint stays readable',
+    changes: [
+      "The goal chip and its words at the top always stay above the dig now. On a laptop screen they spilled over the shop's 'Next:' line and under its first button. When room is short, a long level name ends in dots (hover it for the full name) and the chip's word can end in dots too.",
+      'When a dig is done, the goal chip steps aside so "Done here" has room.',
+      'On a fresh start, "Point at the ground to dig" waits until the big "A new site!" words have gone, so the two never cover each other.'
+    ],
+    ar: {
+      title: 'الحفر: الهدف يبقى فوق الحفرة، والتلميح الأول يبقى مقروءاً',
+      changes: [
+        'شارة الهدف وكلماتها في الأعلى تبقى الآن فوق الحفرة دائماً. على شاشة الحاسوب المحمول كانت تخرج فوق سطر «التالي:» في المتجر وتحت أول زر فيه. وإذا ضاق المكان ينتهي اسم المرحلة الطويل بنقاط (مرّر المؤشر عليه لترى الاسم كاملاً)، وقد تنتهي كلمة الشارة بنقاط أيضاً.',
+        'عندما ينتهي الحفر تتنحى شارة الهدف ليتسع المكان لزر «انتهيت هنا».',
+        'في البداية الجديدة ينتظر تلميح «أشِر إلى الأرض لتحفر» حتى تختفي عبارة «موقع جديد!» الكبيرة، فلا تغطي إحداهما الأخرى.'
+      ]
+    }
+  },
   {
     version: '5.35.6',
     date: '2026-10-14',

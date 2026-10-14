@@ -50,6 +50,31 @@ ok(read('./proto/features/settings/savecode-ui.js').split('\n').some(l => /^\s*a
   ok(bubbleSpot([], 600, 84, 120).x <= 640 - 62, 'a bubble at the edge is pulled in');
 }
 
+// ---------- the track stays inside the stage (decision 10) ----------
+{
+  const trk = read('./proto/features/track/track.css'), pcss = read('./proto/proto.css'), pick = read('./proto/features/picks/picks.css');
+  const rule = (src, sel) => { const i = src.indexOf(sel + ' {'); return i < 0 ? '' : src.slice(i, src.indexOf('}', i)); };
+  const goal = rule(trk, '#track #goal');
+  ok(/flex: 0 1 auto/.test(goal) && /min-width: 0/.test(goal), 'the goal gives way when the line is short of room');
+  const gmax = Number((goal.match(/max-width: (\d+)px/) || [])[1]);
+  ok(gmax > 0 && gmax <= 180, `the goal is at most 180 px (${gmax})`);
+  ok(/max-width: 100%/.test(rule(trk, '#track #goal-pin')), 'the chip row never gets wider than the goal');
+  ok(/max-width: 100%/.test(rule(trk, '#track #goal-text')), 'the goal words never get wider than the goal');
+  ok(/contain: inline-size/.test(rule(trk, '#trk-level')), 'the level line does not set the width of its spot (it takes what is left)');
+  ok(/max-width: 100%/.test(rule(trk, '#trk-level .lv')) && /text-overflow: ellipsis/.test(rule(trk, '#trk-level .lv')), 'the level and land end in dots when room is short');
+  ok(/min-width: 96px/.test(rule(trk, '#trk-msg')), 'the message line keeps 96 px');
+  ok(/#track\.done[^{]*#goal-pin/.test(trk), 'the chip steps aside when the dig is done');
+  const btn = rule(pick, '#goal-pin button');
+  ok(/min-width: 0/.test(btn) && /text-overflow: ellipsis/.test(btn), 'the chip word ends in dots instead of spilling');
+  ok(/position: absolute/.test(rule(pick, '#goal-pin button::after')), 'the step mark keeps its own room at the chip end');
+  // at the 1366 x 768 laptop the stage is about 518 px: the sub line, message line, Tips and the chip with dots fit
+  const gap = Number((rule(pcss, '#track').match(/gap: (\d+)px/) || [])[1]);
+  ok(gap > 0 && 518 - 3 * gap - 216 - 96 - 42 >= 130, `at 518 px the chip (about 130 px) has room (gap ${gap})`);
+  ok(/#banner\.show ~ #hint\.show \{ opacity: 0;/.test(pcss), 'the first hint waits while a banner shows');
+  const html = read('./proto.html');
+  ok(html.indexOf('id="banner"') > 0 && html.indexOf('id="banner"') < html.indexOf('id="hint"'), 'the banner comes before the hint, so the ~ rule reaches it');
+}
+
 // ---------- the night bars ----------
 const hitsOf = b => b.n.reduce((a, x) => a + x, 0);
 for (const z of BAR_ZONES.filter(z => z.startsWith('n_'))) {
