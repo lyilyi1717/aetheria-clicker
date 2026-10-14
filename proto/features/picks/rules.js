@@ -125,6 +125,8 @@ export function picksSetNear(s) {
   return best;
 }
 // which pins can be chosen now
+// the chip's hover tip and spoken label for the goal it shows: names the goal and says a tap moves on
+export const picksPinTip = what => t('pin_tip', { goal: t('pin_' + what) });
 export const picksPinOk = (s, what) => what === 'gate' || (what === 'pick2' && itemOpen(s, 'pick2')) || (what === 'set' && !!picksSetNear(s));
 // the pin in force: a pin whose thing is gone (bought, finished) falls back to the Gate
 export const picksPin = s => { const w = (s.picks && s.picks.pin) || 'gate'; return picksPinOk(s, w) ? w : 'gate'; };

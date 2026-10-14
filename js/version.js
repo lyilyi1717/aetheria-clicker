@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.35.5';
+export const VERSION = '5.35.6';
 
 export const CHANGELOG = [
+  {
+    version: '5.35.6',
+    date: '2026-10-14',
+    title: 'Dig: the New line names the right thing, and the goal chip says what a tap does',
+    changes: [
+      'The "New:" line on the finish card and the map now names what you will really dig through. Level 5 says "crystal lines" (it said the Black, which starts under its Gate), level 7 says the Black, and the later levels follow.',
+      'Hover the goal chip at the top and it says "Goal: The Gate. Tap for the next goal." A screen reader reads the same words.'
+    ],
+    ar: {
+      title: 'الحفر: سطر «جديد» يذكر الشيء الصحيح، وشارة الهدف تقول ماذا يفعل الضغط',
+      changes: [
+        'سطر «جديد» في بطاقة النهاية وعلى الخريطة يذكر الآن ما ستحفر فيه فعلاً. المستوى 5 يقول «خطوط البلّور» (كان يقول الطبقة السوداء التي تبدأ تحت بوابته)، والمستوى 7 يقول الطبقة السوداء، وهكذا بقية المستويات.',
+        'مرّر المؤشر على شارة الهدف في الأعلى فتقول «الهدف: البوابة. اضغط للهدف التالي.» وقارئ الشاشة يقرأ الكلمات نفسها.'
+      ]
+    }
+  },
   {
     version: '5.35.5',
     date: '2026-10-14',

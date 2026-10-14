@@ -90,9 +90,9 @@ function pinMount(app) {
   if (!goal) return;
   // one chip in the goal spot (art-and-sound decision 5): it shows the goal on the bar, a tap steps to the next one, and a dot
   // per choice (the filled one is this) says there are more. Three chips side by side pushed the top line over its neighbours.
-  pinRow = document.createElement('div'); pinRow.id = 'goal-pin'; pinRow.hidden = true; pinRow.title = t('pin_tip');
+  pinRow = document.createElement('div'); pinRow.id = 'goal-pin'; pinRow.hidden = true;
   for (const k of G.PICKS_PINS) {
-    const b = document.createElement('button'); b.type = 'button'; b.textContent = t('pin_' + k); b.dataset.pin = k; b.title = t('pin_tip');
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = t('pin_' + k); b.dataset.pin = k;
     b.addEventListener('click', () => {
       app.unlockAudio();
       const ok = G.PICKS_PINS.filter(x => G.picksPinOk(app.state, x));
@@ -108,7 +108,11 @@ function pinTick(s, app) {
   if (pinRow) {
     const ok = G.PICKS_PINS.filter(k => G.picksPinOk(s, k)), cur = G.picksPin(s), shown = ok.includes(cur) ? cur : ok[0];
     pinRow.hidden = ok.length < 2;
-    for (const k of G.PICKS_PINS) { pinBtns[k].hidden = k !== shown; pinBtns[k].classList.toggle('on', k === cur); }
+    for (const k of G.PICKS_PINS) {
+      const b = pinBtns[k], tip = G.picksPinTip(k);
+      b.hidden = k !== shown; b.classList.toggle('on', k === cur);
+      if (b.title !== tip) { b.title = tip; b.setAttribute('aria-label', tip); }
+    }
     const dots = ok.map(k => (k === shown ? 1 : 0)).join('');
     if (pinDots.dataset.d !== dots) { pinDots.dataset.d = dots; pinDots.innerHTML = [...dots].map(d => `<i${d === '1' ? ' class="on"' : ''}></i>`).join(''); }
   }

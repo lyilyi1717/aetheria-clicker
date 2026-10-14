@@ -125,14 +125,8 @@ function kitPickLevel(s) {
 }
 const kitCrew = s => Math.max(G.PARAMS.sites.kitCrew, G.starshopLevel(s, 'sp_head'));
 
-// the new thing a level brings, in one line: a key into strings, by the level's place and depth
-const DEPTH_NEW = { 100: 'black', 125: 'living', 150: 'angry', 175: 'hot' };
-export function newThingKey(f, idx) {
-  if (f.prove) return 'new_prove';
-  if (f.ch === 2) return idx === G.CHAPTER_LEN ? 'new_ch2' : f.zone === 'emptyquarter' ? 'new_eq' : 'new_night';
-  if (idx < 4) return 'new_site_' + f.site;
-  return 'new_layer_' + (DEPTH_NEW[f.floor] || 'more');
-}
+// the new thing a level brings (the rule is in sites/rules.js, so a test can read it)
+export const newThingKey = (f, idx) => G.newThingKey(f, idx);
 
 // the cheapest Star step the Stars on hand buy (the Pick first when they cost the same)
 function cheapestStep(s) {
