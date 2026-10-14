@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.33.2';
+export const VERSION = '5.33.3';
 
 export const CHANGELOG = [
+  {
+    version: '5.33.3',
+    date: '2026-10-14',
+    title: 'Dig: each Chapter Two Gate sized for its level',
+    changes: [
+      'Every Chapter Two level now has a Gate of its own size. From level 27 on the Gates are smaller than before, so your own pick really hurts them again instead of TNT doing all the work.',
+      'Chapter Two pays more Stars: every Star it gives is 2.5 times what it was. The whole road, both chapters, now takes about three weeks of play.',
+      'Chapter One is the same as before, and old saves load as they were.'
+    ],
+    ar: {
+      title: 'التنقيب: لكل بوابة في الفصل الثاني حجم يناسب مرحلتها',
+      changes: [
+        'لكل مرحلة في الفصل الثاني الآن بوابة بحجمها الخاص. من المرحلة 27 فما بعد أصبحت البوابات أصغر من قبل، فتؤذيها فأسك فعلاً من جديد بدل أن يقوم الديناميت بكل العمل.',
+        'الفصل الثاني يعطي نجوماً أكثر: كل نجمة يعطيها صارت مرتين ونصفاً مما كانت. الطريق كله، بفصليه، يأخذ الآن نحو ثلاثة أسابيع من اللعب.',
+        'الفصل الأول كما كان، والحفظ القديم يعمل كما هو.'
+      ]
+    }
+  },
   {
     version: '5.33.2',
     date: '2026-10-14',
