@@ -26,7 +26,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .muted { color: var(--muted); margin: 4px 0; font-size: 13.5px; }
 
 /* the slim line above the stage: level info, the message line, the goal (the track feature adds its parts) */
-#track { position: relative; height: var(--th); margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
+#track { position: relative; height: var(--th); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
 #goal { flex: none; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; align-self: stretch; }
 #goal-text { font-weight: 700; white-space: nowrap; font-size: 13px; }
 #goal .bar { position: absolute; inset-inline: 0; inset-block-end: 0; height: 3px; background: #0e0a07; border-radius: 2px; }
@@ -61,6 +61,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 #hint { position: absolute; inset-inline: 0; inset-block-start: 128px; text-align: center; font-size: 22px; font-weight: 800; text-shadow: 0 2px 0 #000, 0 0 12px #000; pointer-events: none; opacity: 0; transition: opacity .4s; }
 #hint.show { opacity: 1; animation: nudge 1s ease-in-out infinite alternate; }
+#banner.show ~ #hint.show { opacity: 0; animation: none; }   /* the first hint waits while a banner shows (S10): never covered */
 @keyframes nudge { to { transform: translateY(8px); } }
 
 #chest-btn { position: absolute; inset-block-end: 12px; inset-inline-end: 12px; display: flex; align-items: center; gap: 8px; background: var(--gold); color: var(--gold-ink); border: 2px solid #7a5a00; border-radius: 14px; padding: 6px 12px; font-weight: 800; animation: pulse .6s infinite alternate; }

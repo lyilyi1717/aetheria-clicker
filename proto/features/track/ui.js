@@ -8,6 +8,8 @@ import { medalsHtml, nextMap, reopenFinish } from '../sites/ui.js';
 import { tone, gap } from '../../ui/audio.js';
 import strings from './strings.js';
 import { levelText } from '../sites/level.js';
+import { levelLine } from './line.js';
+import { DIR } from '../../core/lang.js';
 
 const { t } = G;
 G.addStrings(strings, 'track');
@@ -34,6 +36,9 @@ function mount(app) {
   msg.id = 'trk-msg';
   for (const id of ['lesson', 'toast']) { const x = $(id); if (x) msg.appendChild(x); }
   track.insertBefore(msg, goal);
+  // Arabic: the words of the line read from the right (level, then land, then place; the gate note before the clock), while
+  // the row itself keeps its places. The goal's words are isolated where they are written (ui/app.js).
+  head.dir = msg.dir = DIR;
   // the Tips button sits in this line, beside the message line (its list still opens over the stage)
   const tips = $('tips-btn');
   if (tips) track.insertBefore(tips, goal);
@@ -85,11 +90,11 @@ function tick(s) {
     // the level and the land never get cut: only the place name (last) is allowed to shrink with dots
     const L = idx >= 0 ? G.levelOf(idx + 1) : null;
     const zone = t('look_zone_' + G.roadZone(s));
-    const head = L ? t('trk_head', { level: L.ch === 2 ? t('trk_ch2', L) : levelText(idx + 1), zone }) : '';
+    const line = levelLine({ level: L ? (L.ch === 2 ? t('trk_ch2', L) : levelText(idx + 1)) : null, zone, name, full: L ? levelText(idx + 1) : null });
     el.level.textContent = '';
-    if (head) { const a = document.createElement('span'); a.className = 'lv'; a.textContent = head; el.level.appendChild(a); }
-    const b = document.createElement('span'); b.className = 'nm'; b.textContent = head ? t('trk_then', { name }) : name; el.level.appendChild(b);
-    el.level.title = L ? t('trk_full', { level: levelText(idx + 1), zone, name }) : name;
+    if (line.lv) { const a = document.createElement('span'); a.className = 'lv'; a.textContent = line.lv; el.level.appendChild(a); }
+    const b = document.createElement('span'); b.className = 'nm'; b.textContent = line.nm; el.level.appendChild(b);
+    el.level.title = line.title;
   }
   el.gate.classList.toggle('done', !!r.done);
   el.gate.textContent = r.done ? t('trk_below') : t('trk_togate', { n: G.fmt(Math.max(0, F - Math.max(0, s.best))) });

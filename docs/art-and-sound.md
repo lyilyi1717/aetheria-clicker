@@ -1,7 +1,7 @@
 # Art and sound
 
 Owner: art-director. Looks, characters, layout, readability, sound and music for each game. Written from what the code draws
-today (14 October 2026, v5.35.0; updated v5.35.4). Decisions are at the end of each game's page; the owner can still reverse any of them.
+today (14 October 2026, v5.35.0; updated v5.35.7). Decisions are at the end of each game's page; the owner can still reverse any of them.
 
 - **Aetheria (live)** and **Core loop (paused):** the rules are `docs/ui-style-guide.md` (tokens, type, motion, Arabic) and
   `docs/game-feel-guide.md` (feedback tiers T0 to T3). Nothing more here until someone works on them.
@@ -87,17 +87,18 @@ never mirrors in Arabic.
 | S7 under S6 | end side, 10 px in, y 56 | **the Museum chip, small** (pieces 44 px and "a/b") | while the manager is on screen; the old best-depth note `#hud-record` here stays hidden |
 | S8 dig | y 104 down | blocks, Rafeeqs, Rock and its bar | nothing is laid on the Rock's bar (#367) |
 | S9 bottom start / end | 12 px from the corners | tools / Tips list, chest button, fuse button (70 px up) | the Museum arrow is drawn along the bottom edge |
-| S10 hint | centred, y 128 | "Point at the ground to dig" | first seconds only |
+| S10 hint | centred, y 128 | "Point at the ground to dig" | first seconds only; hidden while a banner shows (decision 11) |
 | S11 bubbles | over each Rafeeq (y - 52), else up to 3 steps up, else down (`moods/spot.js` `bubbleSpot`) | Rafeeq speech bubbles, **two at most** | a third waits up to 3 s for room, then is dropped (decision 6) |
 
-**Reserved spots in the track** (the 40 px line over the stage, `track/track.css`; decision 5):
+**Reserved spots in the track** (the 40 px line over the stage, `track/track.css`; decisions 5 and 10). All four always fit
+inside the stage's width (452 to 640 px; 518 at a 1366 x 768 laptop); the gap between spots is 8 px.
 
 | Spot | Who lives there | Size rule |
 |---|---|---|
-| T1 start | level line; under it the "Gate at N m" note, the countdown and the medals (`#trk-head`) | never narrower than the second line (`min-width: min-content`); only the level name may end in dots; at most 62% |
-| T2 middle | the message line: lesson or toast (`#trk-msg`; a lesson wins) | gives way first, never under 96 px, two lines at most, clipped inside its spot |
-| T3 | Tips button; "Done here" takes this place when the dig is done | its own width |
-| T4 end | the goal: one goal chip (`#goal-pin`, only with 2 or more choices) over one line of goal words, or two lines of words without the chip; progress line along the foot | at most 210 px; the words' full text is in their title |
+| T1 start | level line; under it the "Gate at N m" note, the countdown and the medals (`#trk-head`) | never narrower than the second line; the level line does not size the spot (`contain: inline-size`), it takes what is left and ends in dots, the place name first, then the land (full text in its title); grows 3 to T2's 1; at most 62% |
+| T2 middle | the message line: lesson or toast (`#trk-msg`; a lesson wins) | 96 px, grows with spare room, never under 96 px, two lines at most, clipped inside its spot |
+| T3 | Tips button; "Done here" takes this place when the dig is done | its own width (about 42 px) |
+| T4 end | the goal: one goal chip (`#goal-pin`, only with 2 or more choices) over one line of goal words, or two lines of words without the chip; progress line along the foot | at most 180 px, gives way to what is left; the chip's word ends in dots before anything spills (the step mark and dots stay); the words' full text is in their title; the chip hides when the dig is done |
 
 Rule: a new thing on the stage takes a free spot from this table (or a new row added here); it never sits on S4 or S5 while the
 manager is on screen. `test_proto_art.js` checks the S5 and S7 numbers.
@@ -209,6 +210,22 @@ The test page for every sound: `proto/soundboard.html`.
 9. **Decided (14 Oct 2026, by art-director): the save code box is named for screen readers by the section title** (#454): the
    `aria-label` line had been swallowed by a comment; it is code again, and `test_proto_art.js` checks it is not in a comment.
 
+10. **Decided (14 Oct 2026, by art-director): the track never spills past the stage; the goal shrinks to the room left, and the
+    drawer's "Next:" line stays where it is** (#461). Because the spill came from the track, not the drawer: the level line
+    ("Chapter 2, level 17/20 · The Empty Quarter · The Dunes", about 350 px) was allowed to set T1's width, so at 518 px (1366
+    laptop) T1, T2, Tips and a 210 px goal needed about 740 px and the goal was pushed 95 to 215 px past the stage, over the
+    drawer. Moving the "Next:" line would only have hidden the spill. Now the second line (Gate note, clock, medals) is T1's
+    floor and the level line ends in dots inside it (the map and the land's look say the land too, and the full text is in its
+    title); T2 keeps its 96 px for lessons, which a new player needs most; the goal is at most 180 px and gives way last, its
+    chip word ending in dots before it could ever cross the edge. Budget at 518 px: 216 (second line) + 96 + 42 (Tips) + 3 gaps
+    of 8 = 378, leaving 140 for the goal, enough for "Second Pick" with its dots (about 130). When the dig is done the chip
+    hides, so "Gate broken in 12:34" and "Done here" fit.
+11. **Decided (14 Oct 2026, by art-director): the first hint and a banner never show at once; the hint waits.** Because "A new
+    site! You now have N Stars." is 40 px gold words over the middle of the ground for 3.6 s, wrapping to two or three lines at
+    laptop width, and moving every banner (chili starts, chili won, ...) would change their place for all players to solve a
+    first-minute clash. The hint waits while `#banner.show` is on (one CSS rule, `proto.css`), then fades in; a player who digs
+    first has learnt it already.
+
 ## 9. Briefs for builders
 
 **B1. The 13 px floor** (after the localizer's string and HUD pass lands, to avoid two PRs on the same lines).
@@ -235,3 +252,9 @@ not overlapping, the manager and hakawati name plates readable, the Star board a
 - Alqahwa with no Rafeeqs, English and Arabic: the "No Rafeeqs yet" strip under the room, the coffee sign and the hakawati clear.
 - The Stars pill and the Alqahwa board with Stars near 2 T: the pill width does not jump, the gold fill reads.
 - By ear (the owner): a night land and the Empty Quarter on `proto/soundboard.html`.
+- (v5.35.7, #461) The track at 1366x768 and 1500x1000, English and Arabic, at level 37 (Chapter 2, Empty Quarter) with a toast
+  and the goal chip showing, and in the Museum tab: the goal chip and its words end inside the stage's right edge, nothing on
+  the drawer's gold "Next:" line or its first button; the level line ends in dots, the Gate note, clock and medals whole; the
+  message line still two readable lines. Also with the clock over time ("1:23 over"): the chip may end in dots but stays inside.
+  After the Gate: "Done here" and "Gate broken in ..." whole, no chip.
+- (v5.35.7) A fresh save: "Point at the ground to dig" is not shown while "A new site!" is up, and appears right after it.
