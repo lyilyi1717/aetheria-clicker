@@ -51,10 +51,13 @@ const p = {
   // "the Gate in your hits" (the bar's number) at the pick you bring grows gently from level to level instead of jumping.
   gateMul: [0.44, 8.87, 0.371, 7.49, 0.278, 7.99, 0.201, 6.23, 0.257, 9.43, 0.234, 9.45, 0.126, 6.37, 0.0645, 4.34],
   // Chapter Two (levels 21 to 40, docs/dig-design.md 2.4): the same 16 depth slots again at night, then the Empty Quarter
-  // (300 and 325 m). Levels 21 to 36 reuse gateMul slot by slot; the Empty Quarter's four Gates are gateMulCh2.
-  gateMulCh2: [7.5e-4, 1.05, 2e-4, 0.2],     // 300 learn, 300 prove, 325 learn, 325 prove (docs/dig-design.md 2.4)
+  // (300 and 325 m). Each of its 20 levels has its own Gate size: levels 21 to 26 as their chapter-one slot, then smaller, because
+  // the player's hit falls behind the ch2Hp ground from level 27 on (docs/pacing-targets.md, the 40-level road).
+  gateMulCh2: [0.44, 8.87, 0.371, 7.49, 0.278, 7.99,               // 21-26: 100 to 150 m, as levels 5 to 10
+    0.01, 0.62, 0.013, 0.59, 0.0059, 0.075, 4e-4, 0.008, 3.2e-5, 6.9e-4,  // 27-36: 175 to 275 m
+    4.7e-8, 2.6e-5, 2e-9, 8e-7],                                    // 37-40: the Empty Quarter, 300 learn, 300 prove, 325 learn, 325 prove
   ch2Hp: 3e12,                     // chapter two: every block, Big Rock and Gate is this much harder (the player arrives far stronger)
-  ch2Stars: 2e3,                  // chapter two: every Star it pays (finish, medal, replay, chili, leaving) is this much bigger
+  ch2Stars: 5e3,                  // chapter two: every Star it pays (finish, medal, replay, chili, leaving) is this much bigger
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom
   baseFloor: 50,                  // where a Gate is when no card says (old saves, the contracts board)
@@ -432,8 +435,7 @@ const chMul = s => (s.run && s.run.ch === 2 ? p.ch2Hp : 1);
 export function gateMulOf(i) {
   if (i < FIXED.length) return undefined;
   if (i < CHAPTER_LEN) return p.gateMul[i - FIXED.length];
-  const k = i - CHAPTER_LEN;                                  // chapter two: slots 0 to 15 are the slots of levels 5 to 20
-  return k < p.gateMul.length ? p.gateMul[k] : p.gateMulCh2[k - p.gateMul.length];
+  return p.gateMulCh2[i - CHAPTER_LEN];                       // chapter two: one size per level, 21 to 40
 }
 
 function migrateV2(s) {

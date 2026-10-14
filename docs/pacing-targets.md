@@ -17,8 +17,8 @@ then `node scripts/dig-levels.cjs <file>`; the same with `--only active`. Values
 | Level 4 done (first session ends on the pan to Africa) | 30-60 min | 32 / 26 min | 1 try (3) | 14 Oct |
 | Level 7 Gate (first hard level) | day 2-3, 1-2 tries | day 2.0 / 2.0, **3 / 4 tries** | **4 tries** (3) | 14 Oct |
 | Chapter one done (level 20) | - (was the road end; chapter two since #418) | day 12.6 / 11.4 (before this pass 14.0 / 11.4) | - | 14 Oct, balance pass |
-| Road done (level 40) | day 18-25 | **day 21.0 / 19.0** (before: 24.2 / never) | - | 14 Oct, balance pass |
-| Stars by day 30 | at most x10 the road without chapter two (0.8 B) | **2.1 T** (before: 68 T); cannot reach x10 by numbers, see Known walls | - | 14 Oct, balance pass |
+| Road done (level 40) | day 18-25 | **day 22.4 / 23.4** (main at fafcf35: 29.0 / 23.4) | - | 14 Oct, Gate per level pass |
+| Stars by day 30 | at most x10 the road without chapter two (0.8 B) | **8.4 T** (main at fafcf35: 1.8 T); cannot reach x10 by numbers, owner decision (fault 12, Known walls) | - | 14 Oct, Gate per level pass |
 | Share of core content seen at 1 day / 1 week / 30 days | at most 50% / 75% / 95% | **52 / 55%**, **86 / 82%**, 93 / 90% (1 h: not sampled, the series is daily) | - | 14 Oct |
 | Hits per dirt block, mid-leg, at the pick you bring | 2-6 (never above 8) | **about 80 to 14 000** (levels 5-20, see below) | - | 14 Oct |
 | Tries per Gate | about 1.1 early (1-6), 2-3 late, never above 3 | 1-2 early; late learn levels 15/17/19 **3-4** (active 3-5); prove levels often **1** | L1-6: 1, L7: 4 | 14 Oct |
@@ -139,11 +139,65 @@ at `ch2Stars` 2e5 a chapter-two level pays the player past the next few, at 2e3 
   The side cards beside a chapter-two level are chapter-one twists that pay about 2,000 times less, so the Stars never grew by half and
   seed 2 dug 90 side cards and never went back to level 39. A person goes back to the Gate, which remembers 60% of every try.
 
-**Predicted Gate table for the next pass** (not measured; one sim, `sites.gateMulCh2` as 20 entries): the slot value times the measured
-gap, 1/10 to 1/20 at levels 27 to 30, then a growing gap to 1/10^5 at level 39 (from 1.6 G and 11 G swings against about 100 k).
-21-26 as the slot; 27 0.01; 28 0.62; 29 0.013; 30 0.59; 31 0.0059; 32 0.075; 33 4e-4; 34 0.008; 35 3.2e-5; 36 6.9e-4; 37 4.7e-8;
-38 2.6e-5; 39 2e-9; 40 8e-7. Expect levels 31 to 40 to get faster (the player can hit them), so the road end moves earlier: check
-seed 2 against day 18, and lower `ch2Stars` with it if it falls short.
+### Each chapter-two Gate sized for its level (14 October 2026, 3 sims)
+
+Before = `main` at fafcf35 (v5.33.1: side cards in chapter two pay chapter-two Stars, which moved the road end from 21.0 / 19.0 to
+29.0 / 23.4). Middle = `gateMulCh2` as 20 entries with the table predicted by the pass above, `ch2Stars` 2e3. After = the same table
+and `ch2Stars` 5e3 (v5.33.2). Mixed, 2 seeds, seed 1 / seed 2; fight = the winning Gate fight in attended seconds ("-": no hit of yours
+on the Gate in that try); swings at arrival as above. Levels 1 to 20 are the same in all three runs, day for day.
+
+SUM before: `mixed: fin1 10.4m fin4 d0.3 4.9/day vers 74/149 med 74f6h share 73% (73%) Stars 885.9k/1.8T depth 250/313/400 R4 d0.6 R6 d2.7 R8 d4.9 news 100%`
+SUM middle: `mixed: fin1 10.4m fin4 d0.3 5.0/day vers 68/152 med 68f6h share 76% (75%) Stars 885.9k/2.3T depth 250/313/400 R4 d0.6 R6 d2.7 R8 d4.9 news 100%`
+SUM after: `mixed: fin1 10.4m fin4 d0.3 5.6/day vers 82/168 med 82f6h share 80% (79%) Stars 885.9k/8.4T depth 250/300/400 R4 d0.6 R6 d2.7 R8 d4.9 news 100%`
+
+`gateMulCh2` (levels 21 to 40): 0.44, 8.87, 0.371, 7.49, 0.278, 7.99 (as levels 5 to 10), 0.01, 0.62, 0.013, 0.59, 0.0059, 0.075, 4e-4,
+0.008, 3.2e-5, 6.9e-4, 4.7e-8, 2.6e-5, 2e-9, 8e-7.
+
+| Level | Before: day | tries | digs between | fight s | Middle: day | tries | fight s | **After: day** | tries | digs between | swings | fight s | Chapter-one slot: fight |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 21 | 12.6 / 11.4 | 1 / 1 | 1 / 1 | 125 / 138 | 12.6 / 11.4 | 1 / 1 | 125 / 138 | **12.6 / 11.4** | 1 / 1 | 1 / 1 | 2.2k / 2.8k | 125 / 138 | L5: 107 / 338 |
+| 22 | 13.0 / 11.6 | 1 / 2 | 3 / 2 | - / 380 | 13.0 / 11.6 | 1 / 2 | - / 380 | **13.0 / 11.6** | 1 / 2 | 3 / 2 | - / 70k | - / 380 | L6: 324 / 390 |
+| 23 | 13.0 / 12.0 | 1 / 1 | 1 / 3 | 73 / 207 | 13.0 / 12.0 | 1 / 1 | 73 / 207 | **13.0 / 12.2** | 1 / 2 | 1 / **13** | 3.8k / 276 | 73 / 136 | L7: 218 / 312 |
+| 24 | 13.2 / 12.0 | 1 / 1 | 1 / 1 | 273 / 148 | 13.2 / 12.0 | 1 / 1 | 273 / 148 | **13.0 / 12.4** | 1 / 1 | 1 / 2 | 4.3k / 5.6k | 80 / 165 | L8: - / 129 |
+| 25 | 13.2 / 12.0 | 1 / 1 | 1 / 1 | 83 / 193 | 13.2 / 12.0 | 1 / 1 | 83 / 193 | **13.2 / 12.4** | 1 / 1 | 1 / 1 | - / 1.1k | - / 153 | L9: 430 / 92 |
+| 26 | 13.4 / 12.2 | 1 / 1 | 1 / 1 | 169 / - | 13.4 / 12.2 | 1 / 1 | 169 / - | **13.4 / 12.6** | 2 / 1 | 2 / 2 | 284k / - | 440 / - | L10: 413 / - |
+| 27 | 13.6 / 13.6 | 2 / 2 | 2 / 15 | 339 / 294 | 13.4 / 13.6 | 1 / 2 | 267 / 172 | **13.6 / 13.0** | 2 / 2 | 2 / 2 | 4.6k / 833 | 350 / 497 | L11: 444 / 121 |
+| 28 | 14.4 / 14.0 | 2 / 1 | 4 / 1 | 360 / - | 13.6 / 14.0 | 1 / 1 | - / 157 | **14.0 / 13.0** | 1 / 1 | 1 / 1 | 40k / 34k | 273 / 313 | L12: - / 420 |
+| 29 | 15.2 / 14.2 | 2 / 2 | 4 / 2 | 295 / 292 | 14.0 / 14.2 | 2 / 2 | - / 290 | **14.4 / 13.6** | 1 / 2 | 2 / 4 | 24k / - | 119 / - | L13: 27 / 235 |
+| 30 | 15.4 / 14.4 | 1 / 2 | 1 / 2 | 45 / - | 14.4 / 14.4 | 2 / 2 | - / - | **14.6 / 15.0** | 2 / 2 | 2 / 6 | - / - | - / - | L14: - / 477 |
+| 31 | 16.0 / 14.6 | 2 / 2 | 3 / 2 | - / - | 15.2 / 15.0 | 1 / 2 | - / - | **15.2 / 15.4** | 2 / 2 | 3 / 3 | - / - | - / - | L15: 222 / 385 |
+| 32 | 16.6 / 15.2 | 1 / 1 | 3 / 2 | - / - | 16.2 / 15.6 | 2 / 1 | - / - | **15.4 / 15.6** | 2 / 1 | 2 / 1 | - / - | - / - | L16: 242 / 279 |
+| 33 | 17.0 / 15.4 | 2 / 2 | 2 / 2 | - / - | 16.6 / 16.0 | 2 / 2 | - / - | **15.6 / 16.0** | 1 / 2 | 1 / 2 | - / - | - / - | L17: 454 / 119 |
+| 34 | 17.4 / 15.6 | 2 / 2 | 3 / 2 | - / - | 17.0 / 16.2 | 1 / 2 | - / - | **16.0 / 16.6** | 2 / 2 | 2 / 4 | - / - | - / - | L18: 123 / 207 |
+| 35 | 17.6 / 16.2 | 2 / 1 | 2 / 2 | - / - | 17.2 / 17.0 | 2 / 2 | - / - | **16.4 / 17.0** | 2 / 1 | 3 / 1 | - / - | - / - | L19: 123 / 287 |
+| 36 | 18.6 / 16.4 | 2 / 2 | 5 / 2 | - / - | 17.4 / 17.2 | 1 / 1 | - / - | **16.6 / 17.2** | 2 / 2 | 2 / 2 | - / - | - / - | L20: 199 / 20 |
+| 37 | 23.2 / 17.2 | **10** / 1 | **27** / 3 | 10 / - | 21.0 / 17.4 | **7** / 2 | 21 / - | **17.0 / 20.6** | 1 / **8** | 1 / **20** | 5.5k / 2.9k | 267 / 15 | |
+| 38 | 23.4 / 17.6 | 2 / 2 | 2 / 3 | - / - | 21.2 / 18.0 | 2 / 1 | - / - | **17.2 / 21.0** | 1 / 1 | 1 / 1 | - / - | - / - | |
+| 39 | 28.6 / 23.2 | **11 / 11** | **29 / 30** | 1 / 3 | 25.0 / 27.4 | **8 / 17** | 17 / 1616 | **22.2 / 22.6** | **10** / **4** | **26 / 10** | 20k / 862 | 0 / 6 | |
+| 40 | 29.0 / 23.4 | 2 / 2 | 2 / 2 | - / - | 25.4 / 28.0 | 2 / 2 | - / - | **22.4 / 23.4** | 2 / 2 | 2 / 4 | - / - | - / - | |
+
+**Read.** The road end is back in 18-25 on both seeds (29.0 / 23.4 -> 22.4 / 23.4), from `ch2Stars` 5e3, not from the Gates: the table
+alone (middle) gave 25.4 / 28.0. Where the player reaches the Gate by hand the smaller Gates work: at levels 27 to 29 the arrival swings
+fell from 175k to 631k (before) to 1k to 40k, and the fight is 2 to 8 minutes like the slot (27: 350 / 497 s against 444 / 121 s; 28:
+273 / 313 against - / 420; 29: 119 against 27 / 235). The x1.5 target holds at 27 seed 1 and 28 seed 2 and misses at 27 seed 2 and
+29 seed 1, where the chapter-one slot itself is a short fight (121 s, 27 s). From level 30 on the Gate size does not reach the fight:
+
+- **Levels 30 to 36 (and some tries of 28 and 29) are finished while away, the Gate is never hit.** Logging every hit on the Gate row (a sim-only probe, not
+  shipped) shows no hit at all on the Gates of levels 31 to 36 in any try, at either size (slot table, or x1/40 to x1/6,300 of it). The
+  Star perk Wake (`sp_wake`, `awayWalk` in `proto/features/starshop/rules.js`) lets the Rafeeqs walk on past every Big Rock of a layer
+  up to the deepest one ever broken (`s.starBoss`, 11 layers after chapter one) and sets `s.bossesDown` to match; the level's finish
+  check (`s.bossesDown * LAYER >= r.floor`, `sites/rules.js` step hook) then fires on return. Every chapter-two depth up to 275 m was
+  broken in chapter one; every chapter-one prove level is the depth its learn level just broke (why prove levels 8, 12 and 14 show "-"
+  and take 1 try).
+- **Levels 37 and 39 stall above the Gate.** In the failed tries the player's own hits on the Gate add up to under 1% of it: TNT from
+  the rows above takes its 30% (`blastCap`) and the try ends 240 s later on the give-up (`MOVE.giveUp`, no new metre). The Gate then
+  falls to TNT plus its memory (bank 0.5 to 0.8) after 0 to 15 s of hitting, at any size (2e-4 or 2e-9). The wall is the last rows
+  above the Gate at 300 and 325 m, not the Gate.
+
+**Probe: the Gate of the level in play not walkable** (`passable` false for `r.floor` while the run is not done; one sim, not shipped,
+the new table, `ch2Stars` 2e3): Stars by day 7 57 k (was 886 k), level 20 on day 16.6 / 18.2 (was 12.6 / 11.4), prove levels 6 and 8
+in 5 to 6 tries, levels 21 to 29 fought for 1 to 5 minutes, and the road stops at level 33 / 32 on day 30. The walk carries the whole
+road's pacing; changing it is a rule change for the owner, then a retune of `gateMul`, `proveHp` and both chapters.
 
 ### First session (mixed, attended minutes)
 
@@ -198,8 +252,10 @@ past 100 m: the barrels are.
 | Prove levels 10, 14, 18 (and 8, 16, 20 often): 1 try right after a hard learn level | `learnPay 0.35` / `provePay 1.65` (`sites/rules.js:63`): the learn level is where the Stars-gap is paid off by grinding, and the player arrives at the prove level already over-strong; `proveHp 6` (`sites/rules.js:48`) and prove `gateMul` 6-9 do not catch up | Retune prove `gateMul` after the learn-level change below lands (one sim) | open |
 | Road too short: level 20 on day 8-11, target 18-25; from level 9 on every level is about 2x early (**closed**: chapter two, #418 and the 14 Oct balance pass, road end day 21.0 / 19.0) | Same constants as the first row, the other way: early depths (100-175 m) grow x43-x97 a leg against Stars x4.5 plus the chili hit, so levels 9-14 fall in 1-3 tries a day apart | Not a price fix: slowing levels by price brings back the grind. Owner decision: more road (levels, side levels) for days 11-25, or accept a 10 day road | needs owner |
 | Hits per dirt block 80 to 14 000 by hand mid-leg (target 2-6) | Ground grows `hp` 1.175-1.21 a row = x48-x117 a leg (`proto/core/rules.js:25-31`) while your hit grows x3.7 a leg (`valGrow 1.10`, `powGrow 1.25` at x1.5 price, `buyPow 0.55`, `rules.js:17,20,33`); prove ground x6 on top. Blast chains do 70% of the damage, so the player does not feel the pick at all | Builder brief: fresh-eyes study package 3 (steady ground, sharp Rocks): in-leg `hp` near 1.05 a row (= the pick's x3.7 a leg) with the rest moved into each 25 m `step`, and the ground's level set from the pick the road expects, the Gates kept by raising `gateMul` by the same factor. Rule-shaped (ground formula and Gate sizes move together); not a params-only PR | brief |
-| Chapter two, levels 27 to 40: the player cannot hurt the Gate | At `ch2Stars` 2e3 the hit falls behind from level 27: swings at arrival x10 to x20 the chapter-one slot at 27 to 30 (175 k to 2.3 M against 9 k to 137 k); at 31 to 36 the player never hits the Gate in the winning try; Empty Quarter learn Gates 1.6 G and 11 G swings. They fall in 1 to 3 tries to TNT (`boss.blastShare` 0.02 a barrel, `blastCap` 0.3 a try) and the Gate's memory (`gateShare` 0.6), so the fight at 37 and 39 lasts 21 to 24 minutes whatever the Gate's size | A Gate size per chapter-two level (`gateMulCh2` 20 entries; `gateMulOf` and `test_proto_rocks.js` change by two lines); predicted table above; one sim | brief (next pass) |
-| Stars by day 30 at T (fault 12) | Chapter two needs the hit x10^12 over 20 levels like chapter one; the hit grows about as Stars^1.9 (levels 21 to 36: hit x3e11 for Stars x1.3e6), so Stars must grow about x10^6 from the 1.5e7 at level 20. After level 40 the free deal is chapter-one ground at 350 to 400 m (`starsAt(400)` = 4.1e9 a floor). x10 of 0.8 B is out of reach by params | Owner: accept T after chapter two, or a rule (for example chapter-two Stars as their own coin) | needs owner |
+| Chapter two, levels 27 to 40: the player cannot hurt the Gate (**partly closed**: per-level Gates, v5.33.2, levels 27 to 29 fought 2 to 8 min; 30 to 40 in the next two rows) | Before v5.33.2, at `ch2Stars` 2e3 the hit falls behind from level 27: swings at arrival x10 to x20 the chapter-one slot at 27 to 30 (175 k to 2.3 M against 9 k to 137 k); at 31 to 36 the player never hits the Gate in the winning try; Empty Quarter learn Gates 1.6 G and 11 G swings. They fall in 1 to 3 tries to TNT (`boss.blastShare` 0.02 a barrel, `blastCap` 0.3 a try) and the Gate's memory (`gateShare` 0.6), so the fight at 37 and 39 lasts 21 to 24 minutes whatever the Gate's size | A Gate size per chapter-two level (`gateMulCh2` 20 entries; `gateMulOf` and `test_proto_rocks.js` change by two lines); done (Gate per level pass) | closed for 27-29 |
+| Gates walked past while away: chapter-two levels 30 to 36 (some tries of 28, 29) and chapter-one prove levels finish with no hit on the Gate | `awayWalk` (`sp_wake`, `proto/features/starshop/rules.js`) passes every Rock of a layer up to `s.starBoss` and sets `s.bossesDown`, which is the level's finish check (`bossesDown * LAYER >= floor`). Chapter two repeats depths broken in chapter one; a prove level repeats its learn level's depth. Probe with the Gate not walkable: level 20 day 16.6 / 18.2 (was 12.6 / 11.4), road stops at level 33 / 32 | Rule: the Gate row of the level in play (`r.floor`, run not done) is never `passable`; then retune `gateMul`, `proveHp`, `ch2Stars` (the walk carries the pacing today) | needs owner |
+| Levels 37 and 39: 4 to 10 tries, 10 to 26 other digs | The player stalls on the last rows above the Gate at 300 / 325 m (own hits on the Gate under 1% in failed tries, give-up after 240 s); the Gate falls to TNT (30%) plus its memory at any size (2e-4 or 2e-9). `ch2Hp` 3e12 on ground that grows x110 to x170 per 25 m | Next pass: log what the sim player hits in those 240 s (a sim-player stall in the Hot layer, or real ground); if ground, a per-depth `ch2Hp` is a rule change | open |
+| Stars by day 30 at T (fault 12; 8.4 T at `ch2Stars` 5e3) | Chapter two needs the hit x10^12 over 20 levels like chapter one; the hit grows about as Stars^1.9 (levels 21 to 36: hit x3e11 for Stars x1.3e6), so Stars must grow about x10^6 from the 1.5e7 at level 20. After level 40 the free deal is chapter-one ground at 350 to 400 m (`starsAt(400)` = 4.1e9 a floor). x10 of 0.8 B is out of reach by params | Owner: accept T after chapter two, or a rule (for example chapter-two Stars as their own coin) | needs owner |
 | Side cards beside a stuck chapter-two level pay almost nothing | `card(s, site, floor, twist)` makes every twist chapter one (`ch = !twist && ch === 2 ? 2 : 1`), so beside a chapter-two level the side cards pay chapter-one Stars, about 2,000 times less | Builder: deal chapter-two side cards (replay or medal of a chapter-two level) beside a chapter-two level | brief |
 | Old windows in `dig-month.mjs` | `TARGETS` rock5-rock8 (`sim/proto/dig-month.mjs:61-64`) ask mixed day 7-12 / 14-26 / 16-23 / 21-30 for the 125-200 m Rocks; measured day 2.0 / 2.6 / 3.2 / 4.0-5.0, so --assert fails them all | Replace with rows read from `fin` per road level (like `scripts/dig-levels.cjs`): mixed level 7 day 2-3, level 9 day 3.5-5, level 11 day 5.5-7.5, level 13 day 8-10, level 20 day 18-25; plus a tries row (median tries per level at most 3, prove levels at least 2 from level 9) and a "digs between" row (at most 6 before any level) | sim change, next run |
 
@@ -230,6 +286,8 @@ Core loop (`?loop=2`, paused): `node sim/redesign/run.mjs --assert`; not measure
 
 | Date | Param | From -> to | Why | Before / after |
 |---|---|---|---|---|
+| 14 Oct 2026 | `sites.gateMulCh2` | 4 entries (levels 37 to 40; 21 to 36 read `gateMul`) -> 20 entries, one per chapter-two level (`gateMulOf`) | Levels 27 to 30: Gate x10 to x20 the chapter-one slot in swings at arrival | levels 27 to 29 fought 2 to 8 min (slot 0.5 to 7 min); 30 to 40 unchanged (walk, ground) |
+| 14 Oct 2026 | `sites.ch2Stars` | 2e3 -> 5e3 | Road end 29.0 / 23.4 on main after v5.33.1 (25.4 / 28.0 with the new Gates) | road end 22.4 / 23.4; Stars by day 30 1.8 T -> 8.4 T |
 | 14 Oct 2026 | `sites.ch2Stars` | 2e5 -> 2e3 | Chapter two paid the player past the next levels: road end 24.2 / never, Stars 68 T | road end 21.0 / 19.0; Stars by day 30 2.1 T |
 | 14 Oct 2026 | `sites.gateMulCh2` | 0.003, 1.05, 4e-4, 0.2 -> 7.5e-4, 1.05, 2e-4, 0.2 | Empty Quarter learn Gates (level 39 never finished on seed 2) | no effect on the fight (TNT and the Gate's memory break it, see Known walls); level 39 in 1 / 3 tries |
 | 14 Oct 2026 | `contracts.botChiliCap` (sim player) | none -> 1200 s | Seed 1 sat 3.8 h in one chili-4 dig at 275 m | levels 19 and 20 of seed 1 1.4 to 1.8 days sooner, levels 1 to 18 unchanged |
