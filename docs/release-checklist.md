@@ -74,7 +74,7 @@ Each is Decided, with the reason. Publishing anywhere stays the owner's to appro
   CI enforces it, and telemetry rows carry `VERSION`, so a bump per road or pace change keeps real-player data
   separable. The first-run line "per wave" is withdrawn. Entries start "Dig:", give numbers players notice, say nerfs
   plainly; `no-changelog` only if a player cannot notice. Docs-only PRs skip it.
-- Telemetry default: RECOMMENDATION, shared with design-keeper, not final (a design and privacy call, the owner can
+- Telemetry default: **decided by design-keeper, 14 Oct: off by default, on by `?share=1` or the switch** (`docs/dig-design.md` decision 16); B6 goes to a builder. The recommendation as written: (a design and privacy call, the owner can
   overrule). Recommend OFF by default on the public page and on any child-facing build (Playables, itch), ON only for
   builds the owner hands to people he knows (a link flag such as `?share=1`), with the same Off switch. Reason: the
   game is pitched at children; the data is anonymous (random id, play times, no text), which is good, but a switch that
@@ -120,7 +120,7 @@ the default follows the media query and the choice persists; a row is added to `
 **B5. Budget check script.** Done when: a script prints first-frame ms, p95 frame ms over 30 s with 8 Rafeeqs, and
 save bytes, and exits 1 over the D3 budget; it starts one browser and ends it by PID. Not part of `npm test`.
 
-**B6. Telemetry default (only on the owner's yes).** Done when: telemetry sends nothing until the switch is on or
+**B6. Telemetry default (decided, dig-design decision 16).** Done when: telemetry sends nothing until the switch is on or
 `?share=1` is in the link; the switch wording is plain; the telemetry test is updated; the changelog says it.
 
 **B7. Make the flake show itself.** Done when: `test_proto_registry.js` prints, for any thrown error, the file path
