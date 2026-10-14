@@ -203,11 +203,11 @@ function drawNode(g, n, v, nm) {
     }
   }
   g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.font = '700 12.5px system-ui, Cairo, sans-serif';
+  g.font = '700 13px system-ui, Cairo, sans-serif';
   const w = 132;
   g.lineWidth = 3.5; g.lineJoin = 'round'; g.strokeStyle = 'rgba(20,12,6,0.85)'; g.fillStyle = nm.locked ? '#d8cdbd' : '#fff6e0';
-  if (nm.name) { const s = fit(g, nm.name, w); g.strokeText(s, 0, y); g.fillText(s, 0, y); y += 14; }
-  g.font = '600 11.5px system-ui, Cairo, sans-serif'; g.fillStyle = nm.locked ? '#c9bfae' : '#ffe9a8';
+  if (nm.name) { const s = fit(g, nm.name, w); g.strokeText(s, 0, y); g.fillText(s, 0, y); y += 15; }
+  g.font = '600 13px system-ui, Cairo, sans-serif'; g.fillStyle = nm.locked ? '#c9bfae' : '#ffe9a8';
   if (nm.sub) { const s = fit(g, nm.sub, w); g.strokeText(s, 0, y); g.fillText(s, 0, y); }
   if (n.museum) drawMuseum(g, n.museum, y + 8, nm.locked, time, redraw);
   g.restore();
@@ -224,7 +224,7 @@ function drawMuseum(g, m, y, locked, time, redraw) {
   g.beginPath(); g.roundRect(-w / 2 - 12, y, w + 24, h + 6, 8); g.fill(); g.stroke();
   g.shadowBlur = 0;
   if (im.ready) g.drawImage(im, -w / 2 - 8, y + 3, w - 20, Math.round((w - 20) * 78 / 128));
-  g.font = '800 11px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = '800 13px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillStyle = m.done ? '#ffe9a8' : '#f6efdc';
   g.fillText(m.have + '/' + m.of, w / 2 - 8, y + 3 + (h - 5) / 2);
   g.restore();
@@ -240,12 +240,12 @@ function drawDigger(g, x, y, bob, redraw) {
 function drawSign(g, p, text, sub) {
   g.save(); g.translate(p.x + 18, 16);
   g.font = '800 17px system-ui, Cairo, sans-serif'; const w1 = g.measureText(text).width;
-  g.font = '600 12px system-ui, Cairo, sans-serif'; const w = Math.max(w1, g.measureText(sub).width) + 24;
+  g.font = '600 13px system-ui, Cairo, sans-serif'; const w = Math.max(w1, g.measureText(sub).width) + 24;
   g.fillStyle = 'rgba(24,14,8,0.82)'; g.strokeStyle = '#ffd23f'; g.lineWidth = 2;
   g.beginPath(); g.roundRect(0, 0, w, 44, 10); g.fill(); g.stroke();
   g.textAlign = 'left'; g.textBaseline = 'middle';
   g.font = '800 17px system-ui, Cairo, sans-serif'; g.fillStyle = '#ffd23f'; g.fillText(text, 12, 14);
-  g.font = '600 12px system-ui, Cairo, sans-serif'; g.fillStyle = '#e8dcc6'; g.fillText(sub, 12, 31);
+  g.font = '600 13px system-ui, Cairo, sans-serif'; g.fillStyle = '#e8dcc6'; g.fillText(sub, 12, 31);
   g.restore();
 }
 

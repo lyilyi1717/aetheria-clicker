@@ -109,7 +109,7 @@ function drawBar(g, s, b) {
   rr(g, bx, by, bw, bh, 7); g.strokeStyle = '#1c1830'; g.lineWidth = 2; g.stroke();
   const sw = G.bossSwings(s, b), gate = s.run && !s.run.done && s.run.floor === b.row;
   const label = t((gate ? 'rock_gate_' : 'rock_') + (sw.n === 1 ? 'swing' : 'swings'), { n: fmt(sw.n), time: t('time_' + sw.time.unit, { n: sw.time.n }) });
-  g.save(); g.font = '800 12px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.save(); g.font = '800 13px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.lineJoin = 'round'; g.lineWidth = 3.5; g.strokeStyle = 'rgba(14,10,7,.95)'; g.fillStyle = '#fff';
   g.strokeText(label, W / 2, by + bh / 2 + 0.5); g.fillText(label, W / 2, by + bh / 2 + 0.5);
   g.restore();

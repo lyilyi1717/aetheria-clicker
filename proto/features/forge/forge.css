@@ -10,7 +10,7 @@
 .tool.can:hover { transform: translateY(-3px); }
 .tool.pulse { animation: forge-pulse .9s ease-out; }
 @keyframes forge-pulse { 0% { box-shadow: 0 0 0 0 rgba(255,210,63,.9); transform: scale(1.18); } 100% { box-shadow: 0 0 0 16px rgba(255,210,63,0); transform: scale(1); } }
-.forge-ore { margin-block: 6px 0; font-size: 12px; }
+.forge-ore { margin-block: 6px 0; font-size: 13px; }
 
 /* the bar sits in the clear band under the held Big Rock: a little smaller, so it never reaches the Rock */
 #tools { gap: 6px; }

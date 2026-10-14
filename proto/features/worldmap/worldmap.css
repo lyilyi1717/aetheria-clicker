@@ -4,7 +4,7 @@
 .wmcard h2 { margin: 0; font-size: 22px; }
 .wmcard .wm-sub { color: var(--muted); font-size: 14px; flex: 1; }
 .wmcard .wm-lands { display: flex; gap: 6px; flex-wrap: wrap; margin-block-end: 8px; }
-.wmcard .wm-lands button { padding: 3px 10px; font-size: 12.5px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); color: var(--ink); cursor: pointer; }
+.wmcard .wm-lands button { padding: 3px 10px; font-size: 13px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); color: var(--ink); cursor: pointer; }
 .wmcard .wm-lands button.here { border-color: var(--gold); color: var(--gold); }
 /* the land chips follow the road picture, which never mirrors: Arabia first on the left in every language; each chip's words stay Arabic */
 :root[dir=rtl] .wmcard .wm-lands { direction: ltr; }
@@ -19,7 +19,7 @@
 .wm-pan:dir(rtl) svg { scale: -1 1; }
 .wm-pan.l { inset-inline-start: 8px; }
 .wm-pan.r { inset-inline-end: 8px; }
-.wm-skip { position: absolute; inset-inline-end: 12px; bottom: 10px; padding: 3px 10px; border-radius: 10px; background: rgba(24,14,8,.78); color: var(--muted); font-size: 12px; pointer-events: none; }
+.wm-skip { position: absolute; inset-inline-end: 12px; bottom: 10px; padding: 3px 10px; border-radius: 10px; background: rgba(24,14,8,.78); color: var(--muted); font-size: 13px; pointer-events: none; }
 .wm-info { display: flex; align-items: center; gap: 14px; margin-block-start: 10px; min-height: 112px; }
 .wm-info .wm-ic { flex: none; }
 .wm-info .wm-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -31,7 +31,7 @@
 .wm-info .mrow { margin: 0; flex: none; }
 .wm-info .wm-go { flex: none; min-width: 170px; font-size: 18px; padding: 12px 22px; }
 .wm-info .wm-go[hidden] { display: none; }
-.wm-leave { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
+.wm-leave { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
 .wm-info .wm-btns { flex: none; display: flex; flex-direction: column; gap: 6px; }
 .wm-info .wm-go2 { padding: 8px 14px; font-size: 14px; }
 .wm-info .wm-go2[hidden] { display: none; }

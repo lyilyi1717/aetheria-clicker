@@ -89,9 +89,9 @@ export function drawManager(g, s, dt) {
     g.restore();
   }
   // the name plate
-  g.save(); g.globalAlpha = k; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold 11px system-ui, Cairo, sans-serif';
+  g.save(); g.globalAlpha = k; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold 13px system-ui, Cairo, sans-serif';
   const nm = G.t(fem ? 'bossf_name' : 'boss_name') + (LANG === 'ar' ? '' : '  ' + G.tIn('ar', fem ? 'bossf_name' : 'boss_name')), pw = g.measureText(nm).width + 12;
-  rr(g, x0 - pw / 2, y0 + 3, pw, 14, 5); g.fillStyle = '#2b2118'; g.fill(); g.fillStyle = '#ffd23f'; g.fillText(nm, x0, y0 + 10.5);
+  rr(g, x0 - pw / 2, y0, pw, 17, 5); g.fillStyle = '#2b2118'; g.fill(); g.fillStyle = '#ffd23f'; g.fillText(nm, x0, y0 + 8.5);
   g.restore();
   // the text box
   if (mem.line && !s.chatterQuiet) {

@@ -4,7 +4,7 @@
 #foreman .job:hover { border-color: var(--muted); }
 #foreman .job:active { transform: scale(.96); }
 #foreman .job b { font-size: 14px; }
-#foreman .job .key { position: absolute; inset-block-start: 5px; inset-inline-start: 8px; font-size: 12px; font-weight: 800; color: var(--muted); }
+#foreman .job .key { position: absolute; inset-block-start: 5px; inset-inline-start: 8px; font-size: 13px; font-weight: 800; color: var(--muted); }
 #foreman .job.on { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(255,210,63,.3), 0 0 18px rgba(255,210,63,.25); background: #3a2a17; }
 #foreman .job.on b { color: var(--gold); }
 #foreman .job:last-child:nth-child(odd) { grid-column: 1 / -1; }

@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.35.2';
+export const VERSION = '5.35.3';
 
 export const CHANGELOG = [
+  {
+    version: '5.35.3',
+    date: '2026-10-14',
+    title: 'Dig: no text smaller than 13 px',
+    changes: [
+      'Small writing in Dig is bigger now: the track line, the goal, the map labels, the name plates of the manager and Alqahwa, the Museum hall, the Star board, the Wardrobe, and the notes on cards and buttons are all at least 13 px.',
+      'The manager name plate sits a little higher and taller, so it stays inside the sky and is easier to read.'
+    ],
+    ar: {
+      title: 'الحفر: لا كتابة أصغر من 13 بكسل',
+      changes: [
+        'الكتابة الصغيرة في الحفر صارت أكبر: سطر الطريق، والهدف، وأسماء الخريطة، ولوحات اسم المدير واسم القهوة، وقاعة المتحف، ولوحة النجوم، وخزانة الملابس، والملاحظات على البطاقات والأزرار، كلها 13 بكسل على الأقل.',
+        'لوحة اسم المدير صارت أعلى وأطول قليلاً، فتبقى داخل السماء وتُقرأ أسهل.'
+      ]
+    }
+  },
   {
     version: '5.35.2',
     date: '2026-10-14',

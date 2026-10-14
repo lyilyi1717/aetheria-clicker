@@ -114,7 +114,7 @@ function lineFor(s, gst) {
 }
 
 function bubble(g, text, x, y, a) {
-  g.save(); g.globalAlpha = a; g.font = 'bold 12.5px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.save(); g.globalAlpha = a; g.font = 'bold 13px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   const w = g.measureText(text).width + 16;
   g.fillStyle = '#fffdf2'; g.strokeStyle = '#1b1410'; g.lineWidth = 2;
   g.beginPath(); g.roundRect(x - w / 2, y - 12, w, 22, 8); g.fill(); g.stroke();
@@ -198,7 +198,7 @@ export function openAlqahwa(app, opts = {}) {
         g.fillStyle = 'rgba(0,0,0,0.25)'; g.beginPath(); g.ellipse(0, 4 + o.bob / 1.15, 16, 4, 0, 0, 7); g.fill();
         bossFigure(g, boss.fem, { jump: 0, sipLeft: boss.sip, wave: boss.wave, asleep: false, spill: 0 }, T);
         g.restore();
-        g.fillStyle = '#ffd23f'; g.font = 'bold 11px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.fillText(t(boss.fem ? 'qh_name_f' : 'qh_name_m'), o.x, GROUND + 20);
+        g.fillStyle = '#ffd23f'; g.font = 'bold 13px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.fillText(t(boss.fem ? 'qh_name_f' : 'qh_name_m'), o.x, GROUND + 20);
         continue;
       }
       const mood = !o.arrived ? null : o.act === 'sit' || o.act === 'sip' ? 'tea' : o.act === 'chat' ? (o.lineT > 0 ? 'laugh' : 'happy') : null;
@@ -207,7 +207,7 @@ export function openAlqahwa(app, opts = {}) {
       g.save(); g.translate(o.x, GROUND - 21 * 1.6 + 12); g.scale(1.6, 1.6);
       try { drawRafeeq(g, s, o.d, o.i, 0, dt, wear ? { wear } : {}); } catch (e) { /* a missing pose must not break the room */ }
       g.restore();
-      g.fillStyle = '#fff6e0'; g.strokeStyle = 'rgba(20,12,6,0.85)'; g.lineWidth = 3; g.lineJoin = 'round'; g.font = 'bold 11px system-ui, Cairo, sans-serif'; g.textAlign = 'center';
+      g.fillStyle = '#fff6e0'; g.strokeStyle = 'rgba(20,12,6,0.85)'; g.lineWidth = 3; g.lineJoin = 'round'; g.font = 'bold 13px system-ui, Cairo, sans-serif'; g.textAlign = 'center';
       const nm = G.rafeeqName ? G.rafeeqName(s, o.i) : t('crew_name', { n: o.i + 1 });
       g.strokeText(nm, o.x, GROUND + 20); g.fillText(nm, o.x, GROUND + 22);
       if (o.line && o.lineT > 0) bubble(g, o.line, o.x, GROUND - 92, Math.min(1, o.lineT * 2));

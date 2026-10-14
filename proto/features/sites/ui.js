@@ -410,7 +410,7 @@ ui({
           if (z !== lastZ) {
             lastZ = z;
             const lab = document.createElement('span'); lab.className = 'zlab'; lab.textContent = t('look_zone_' + (order[z] || 'arabia'));
-            lab.style.cssText = 'flex-basis:100%;width:100%;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-block:4px 0';
+            lab.style.cssText = 'flex-basis:100%;width:100%;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-block:4px 0';
             road.appendChild(lab);
           }
           const d = document.createElement('span');

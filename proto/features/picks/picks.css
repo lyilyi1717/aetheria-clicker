@@ -1,7 +1,7 @@
 /* the pin: chips beside the goal bar, a pin on the Second Pick, a note on the cheap buttons */
 #goal-pin { display: flex; gap: 4px; flex: none; }
-#goal-pin button { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; }
+#goal-pin button { font-size: 13px; font-weight: 700; padding: 3px 9px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; }
 #goal-pin button.on { color: #1a1206; background: var(--gold); border-color: var(--gold); }
-.shop-item .pin-btn { align-self: flex-start; margin-block-start: 3px; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 10px; border: 1px solid var(--gold); color: var(--gold); cursor: pointer; }
+.shop-item .pin-btn { align-self: flex-start; margin-block-start: 3px; font-size: 13px; font-weight: 800; padding: 2px 9px; border-radius: 10px; border: 1px solid var(--gold); color: var(--gold); cursor: pointer; }
 .shop-item .pin-btn.on { color: #1a1206; background: var(--gold); }
-.shop-item .delay-note { font-size: 11.5px; color: var(--muted); font-style: italic; }
+.shop-item .delay-note { font-size: 13px; color: var(--muted); font-style: italic; }
