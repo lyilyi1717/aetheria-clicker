@@ -141,8 +141,13 @@ function draft(s, trk, ev) {
   G.takeRelic(s, offer[0] || null, ev);
 }
 
-function pickTarget(s, ctx) {
+export function pickTarget(s, ctx) {
   const p = ctx.p, col = ctx.col;
+  // a Rock fought in the dark: a human sees "Too dark: break the lantern above" and breaks that lantern first (one cheap move)
+  const tell = s.boss && G.bossTell ? G.bossTell(s) : null;
+  if (tell && tell.kind === 'dark' && tell.r !== undefined && G.cellAt(s, tell.r, tell.c) && G.reachable(s, tell.r, tell.c)) {
+    const dc = Math.abs(tell.c - col); ctx.lagNext = dc ? p.lag * 0.5 : 0; ctx.col = tell.c; return [tell.r, tell.c];
+  }
   // a Big Rock close below: maybe clear the row above it so the crack can be reached
   for (let i = 1; i < G.VIEW_ROWS; i++) if (G.isBossRow(s.top + i)) {
     if (ctx.clearRow !== s.top + i) { ctx.clearRow = s.top + i; ctx.clear = rnd() < p.clear; }

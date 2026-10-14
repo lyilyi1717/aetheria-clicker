@@ -14,7 +14,7 @@ const { t } = G;
 
 const SUPABASE_URL = 'https://hutjfgbjjagqdjjeszqj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_mxWGt9Ul4V2q4Wb0DEmV9Q_UhBH6T-f';   // public by design, like the leaderboard's
-const FLUSH_EVERY = 60, FLUSH_AT = 10, MIN_SESSION = 5;
+const FLUSH_EVERY = 60, FLUSH_AT = 10;
 
 export const tel = (() => {
   try {
@@ -27,8 +27,10 @@ export const tel = (() => {
 })();
 
 const guard = fn => (...a) => { try { return fn(...a); } catch (e) { return undefined; } };
-let lastRow = null, siteWall = Date.now(), paceWall = Date.now(), sessStart = Date.now(), attSum = 0, lastClock = -1, flushT = 0;
-let awayCoins = 0, awaySecs = 0, awayBefore = tel ? tel.awayBefore() : null, lastDeal = [];
+let lastRow = null, siteWall = Date.now(), paceWall = Date.now(), lastClock = -1, flushT = 0;
+let awayCoins = 0, awaySecs = 0, lastDeal = [], hideTimer = 0;
+// the visit in progress (null while the page has been hidden long enough that the last one is over)
+let vis = G.visitNew(Date.now(), tel ? tel.awayBefore() : null);
 
 const roadLevel = s => G.roadIndex(s) + 1;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -63,14 +65,15 @@ function offeredRelics() {
   return out;
 }
 
-function sendSession() {
-  const secs = (Date.now() - sessStart) / 1000;
-  if (secs >= MIN_SESSION) {
-    tel.add('sessions', { len_s: Math.round(clamp(secs, 0, 1.7e5)), att_s: Math.round(clamp(attSum, 0, 1.7e5)),
-      away_before_s: awayBefore, away_s: awaySecs ? Math.round(awaySecs) : null, away_coins: awayCoins || null });
+// One visit = one session row. A hide under five minutes (G.VISIT.gapS) does not end it; see visitStep in telemetry/rules.js.
+function visit(ev) {
+  if (!vis) { if (ev === 'show') vis = G.visitNew(Date.now()); return; }
+  const r = G.visitStep(vis, ev, Date.now());
+  vis = r.v;
+  if (r.row) {
+    tel.add('sessions', { ...r.row, away_before_s: vis.awayBefore, away_s: awaySecs ? Math.round(awaySecs) : null, away_coins: awayCoins || null });
   }
-  sessStart = Date.now(); attSum = 0; awayBefore = null; awaySecs = 0; awayCoins = 0;
-  tel.markLast();
+  if (r.ended) { awaySecs = 0; awayCoins = 0; vis = ev === 'show' ? G.visitNew(Date.now()) : null; }
 }
 
 function mountSwitch() {
@@ -90,9 +93,15 @@ function mountSwitch() {
 
 if (tel) {
   document.addEventListener('visibilitychange', guard(() => {
-    if (document.hidden) { sendSession(); tel.flush(true); } else { sessStart = Date.now(); paceWall = Date.now(); }
+    clearTimeout(hideTimer);
+    if (document.hidden) {
+      if (vis) vis = G.visitStep(vis, 'hide', Date.now()).v;
+      tel.markLast(); tel.flush(true);
+      // a hidden tab can still run a timer: when the gap has passed, the visit is over and its row goes out
+      hideTimer = setTimeout(guard(() => { if (document.hidden) { visit('tick'); tel.flush(true); } }), G.VISIT.gapS * 1000 + 1000);
+    } else { visit('show'); paceWall = Date.now(); }
   }));
-  addEventListener('pagehide', guard(() => { sendSession(); tel.flush(true); }));
+  addEventListener('pagehide', guard(() => { visit('end'); tel.markLast(); tel.flush(true); }));
 }
 
 ui({
@@ -104,7 +113,7 @@ ui({
     if (!tel || !tel.active()) return;
     // the last look at the site in play: a New Site resets the state before its event, so the try's row is taken from here
     if (s.run) {
-      if (lastClock >= 0 && s.run.clock > lastClock) attSum += s.run.clock - lastClock;
+      if (lastClock >= 0 && s.run.clock > lastClock && vis) vis = G.visitAtt(vis, s.run.clock - lastClock);
       lastClock = s.run.clock;
       if (s.run.key) lastRow = G.telemetryTryRow(s, s.run.done ? 'newsite' : 'left');
     }
