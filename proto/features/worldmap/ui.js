@@ -8,7 +8,7 @@ import { ui } from '../../ui/app.js';
 import { sfx } from '../../ui/audio.js';
 import { icon, helmet, pickShape, S } from '../../ui/icons.js';
 import strings from './strings.js';
-import { nextMap, newThingKey, medalsHtml, pipsHtml, chiliFacts } from '../sites/ui.js';
+import { nextMap, newThingKey, medalsHtml, pipsHtml, chiliFacts, chiliPayLine } from '../sites/ui.js';
 import { buildMap, PW, HH } from './layout.js';
 import { paint, along } from './draw.js';
 import { openAlqahwa, stopAlqahwa } from './alqahwa.js';
@@ -59,7 +59,7 @@ function start(app, m, map, opts) {
   if (viewOnly) leave.textContent = t('wm_wait');
   else {
     const run = G.siteRun(s), gain = G.starsFor(s);
-    leave.textContent = (run.done ? (gain > 0 ? t('next_reward', { n: G.fmt(gain) }) : t('next_leave_done')) : t('next_leave', { n: G.fmt(gain) }) + ' ' + G.bossGateKeeps(s)).trim();
+    leave.textContent = run.done ? (gain > 0 ? t('next_reward', { n: G.fmt(gain) }) : t('next_leave_done')) : G.bossGateKeepsPct(s) ? t('next_leave_keeps', { n: G.fmt(gain), k: G.bossGateKeepsPct(s) }) : t('next_leave', { n: G.fmt(gain) });
   }
 
   // ---------- the walk ----------
@@ -138,7 +138,7 @@ function start(app, m, map, opts) {
         if (nextChili) {
           const f = chiliFacts(n.floor, nextChili.chili);
           nw.textContent = t('chili_next', { name: f.name, rule: f.rule }); nw.classList.add('hard');
-          pay.textContent = t('chili_next_pay', { n: f.stars, hit: f.hit, a: f.ground, b: f.rock });
+          pay.textContent = chiliPayLine(f);
         }
         if (again && !viewOnly) {
           c1 = again;

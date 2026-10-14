@@ -173,7 +173,9 @@ export function openAlqahwa(app, opts = {}) {
   function frame() {
     if (stopped) return;
     if (!m.isConnected) { stopAlqahwa(); return; }
-    const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now; T += dt;
+    const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (document.hidden) { timer = setTimeout(frame, 250); return; }       // a hidden tab draws nothing and does not move the room on
+    T += dt;
     guests.forEach(o => stepGuest(o, dt));
     if (boss) {
       boss.sipT -= dt; boss.left -= dt; boss.lineT = Math.max(0, boss.lineT - dt);
@@ -208,7 +210,7 @@ export function openAlqahwa(app, opts = {}) {
       g.strokeText(nm, o.x, GROUND + 20); g.fillText(nm, o.x, GROUND + 22);
       if (o.line && o.lineT > 0) bubble(g, o.line, o.x, GROUND - 92, Math.min(1, o.lineT * 2));
     }
-    timer = document.hidden ? setTimeout(frame, 33) : requestAnimationFrame(frame);
+    timer = requestAnimationFrame(frame);
   }
   function stop() { stopped = true; cancelAnimationFrame(timer); clearTimeout(timer); if (window.dig && window.dig.alqahwa === api) delete window.dig.alqahwa; }
   const api = { guests, boss, stop };

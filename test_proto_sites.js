@@ -230,9 +230,9 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
     ok(G.chiliHit(big) === G.PARAMS.sites.chiliHitCap && G.chiliHit(big) <= 1.6 + 1e-9, 'the chilies never add more than the cap'); }
   { const q = fresh(6); const f = G.ROAD[0]; q.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 9, n: 1 }; q.bossesDown = 2; q.road.reach = 50;
     G.pickCard(q, G.replayCard(q, G.siteKey(f.site, f.floor), true), NO);
-    const plainBoss = (() => { const z = fresh(7); const pf = G.ROAD[0]; z.run = { ...G.siteRun(z), site: pf.site, floor: pf.floor }; return G.fold('bossHp', z, 100); })();
-    ok(Math.abs(G.fold('bossHp', q, 100) / plainBoss - G.PARAMS.sites.chiliRock) < 1e-9, 'a chili level makes the Big Rocks harder by the pip step');
-    G.leaveContract(q, NO); ok(G.fold('bossHp', q, 100) === plainBoss, 'and leaving makes them plain again'); }
+    const plainBoss = (() => { const z = fresh(7); const pf = G.ROAD[0]; z.run = { ...G.siteRun(z), site: pf.site, floor: pf.floor }; return G.fold('bossHp', z, 100, z.run.floor); })();
+    ok(Math.abs(G.fold('bossHp', q, 100, q.run.floor) / plainBoss - G.PARAMS.sites.chiliRock) < 1e-9, 'a chili level makes the Big Rocks harder by the pip step');
+    G.leaveContract(q, NO); ok(G.fold('bossHp', q, 100, q.run.floor) === plainBoss, 'and leaving makes them plain again'); }
   // a level that is the road level and unfinished cannot be replayed
   ok(G.replayCard(s, G.siteKey(kNext.site, kNext.floor), false) === null, 'the road level itself is not a replay until finished');
   // not allowed to move on: refused

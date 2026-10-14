@@ -37,6 +37,8 @@ export function managerMount(app) {
 }
 export const managerHit = d => { if (d.src !== 'crew') live.hitAt = live.clock; };
 export const managerAway = s => { if (G.chatterBossShown(s)) mem.welcome = true; };
+// the rules granted extra time ('legExtended'): he says the line and the clock pops
+export const managerExtended = s => { G.chatterBossExtended(s, mem, { muted: moodsMem.mute, rnd: Math.random }); };
 export const managerOnOrder = fn => { live.emote = fn; };
 
 function digging() {
@@ -51,7 +53,7 @@ export function drawManager(g, s, dt) {
   const ev = G.chatterBossStep(s, mem, dt, { muted: moodsMem.mute, digging: digging(), rnd: Math.random });
   if (shown) {
     const run = G.siteRun(s);
-    G.chatterTimeStep(s, mem, run, G.legLeft(run, s.bossesDown), { muted: moodsMem.mute, rnd: Math.random, extend: secs => G.legExtend(s, secs) });
+    G.chatterTimeStep(s, mem, run, G.legLeft(run, s.bossesDown), { muted: moodsMem.mute, rnd: Math.random });
   }
   if (ev === 'order' && mem.lineTo >= 0 && live.emote) live.emote(s.diggers[mem.lineTo]);
   if (mem.answerIn === -2) {

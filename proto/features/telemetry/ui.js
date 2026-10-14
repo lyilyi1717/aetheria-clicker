@@ -46,6 +46,13 @@ function sendChoice(s, kind, item, lv, extra = {}) {
     coins: s.coins, stars: s.stars, price: 0, offered: [], ...extra });
   maybeFlush();
 }
+function sendBuy(s, d) {
+  if (!tel || !tel.active()) return;
+  const u = G.ITEMS[d.id]; if (!u) return;
+  const price = G.telemetryBuyPrice(s, d.id, d.level, G.upgradeCost), w = G.SHOPS[u.shop].wallet;
+  sendChoice(s, 'buy', d.id, d.level, { shop: String(d.shop || u.shop).slice(0, 16), price,
+    coins: s.coins + (w === 'coins' ? price : 0), stars: s.stars + (w === 'stars' ? price : 0) });
+}
 function maybeFlush() { if (tel.size() >= FLUSH_AT) tel.flush(); }
 
 // the cards on screen right now, by relic id (read off the draft card; the chest feature does not hand the list over)
@@ -115,13 +122,9 @@ ui({
       if (offered.length > 1) sendChoice(app.state, 'card', d.key, 0, { offered: offered.slice(0, 4), att_s: 0 });
       lastDeal = []; lastClock = -1; siteWall = Date.now(); paceWall = Date.now();
     }),
-    buy: guard((d, app) => {
-      if (!tel || !tel.active()) return;
-      const s = app.state, u = G.ITEMS[d.id]; if (!u) return;
-      const price = G.telemetryBuyPrice(s, d.id, d.level, G.upgradeCost), w = G.SHOPS[u.shop].wallet;
-      sendChoice(s, 'buy', d.id, d.level, { shop: String(d.shop || u.shop).slice(0, 16), price,
-        coins: s.coins + (w === 'coins' ? price : 0), stars: s.stars + (w === 'stars' ? price : 0) });
-    }),
+    // a "Buy all" sends its levels as 'buy' marked batch (skipped here) and then one 'buyBatch' per upgrade with the final level
+    buy: guard((d, app) => { if (!d.batch) sendBuy(app.state, d); }),
+    buyBatch: guard((d, app) => sendBuy(app.state, d)),
     relic: guard((d, app) => {
       if (!tel || !tel.active()) return;
       sendChoice(app.state, 'relic', d.id, d.level, { offered: offeredRelics().slice(0, 4) });

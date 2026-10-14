@@ -33,6 +33,8 @@ export const chatterParams = {
 export const chatter = use({
   id: 'chatter', params: chatterParams, strings,
   state: { bossFem: { init: () => null, perSite: true }, chatterQuiet: { init: () => false, survives: ['site', 'land'] } },
+  // almodeer's extra time is decided here, in the rules, from the core random source (never in the draw code)
+  hooks: { step: { at: 700, fn(s, dt, ev) { chatterLegRoll(s, ev); } } },
 });
 
 const seatTrait = i => CHATTER_TRAITS[((i | 0) % 6 + 6) % 6];
@@ -172,15 +174,39 @@ const timeLine = (s, mem, moment, rnd) => {
   const name = s.diggers.length ? chatterName(s, Math.min(s.diggers.length - 1, Math.floor(rnd() * s.diggers.length))) : '';
   return fillName(a[Math.min(a.length - 1, Math.floor(rnd() * a.length))], name);
 };
+// The roll for extra time: once per leg, the first step the leg is at 0 or under, with 3+ Rafeeqs hired (the same condition the page
+// shows him by). The result is kept in the run (run.legRoll = the leg), so a reload cannot roll again. Emits 'legExtended' via G.legExtend.
+// Returns the seconds granted (0 for none).
+export function chatterLegRoll(s, ev = () => {}, p = chatterBossParams) {
+  const run = s.run;
+  if (!run || run.done || !chatterBossShown(s, p)) return 0;
+  const c = G.legLeft(run, s.bossesDown);
+  if (c.left > 0 || run.legRoll === c.idx) return 0;
+  run.legRoll = c.idx;
+  if (!(rnd() < p.extendChance)) return 0;
+  return G.legExtend(s, Math.max(p.extendSecs, Math.round(c.len * p.extendQuarter)), ev);
+}
+// The page calls this on the 'legExtended' event: almodeer jumps, the clock pops, and he says the line. Returns 'extend' or ''.
+// c = { muted, rnd }
+export function chatterBossExtended(s, mem, c, p = chatterBossParams) {
+  if (!chatterBossShown(s, p)) return '';
+  mem.bump = 0.9;
+  if (s.chatterQuiet || c.muted) return '';
+  if (mem.asleep) { mem.asleep = false; mem.spill = 1.4; mem.idle = 0; }
+  mem.line = timeLine(s, mem, 'extend', c.rnd); mem.lineLeft = p.timeShow; mem.lineTo = -1; mem.last = mem.line;
+  mem.next = Math.max(mem.next, mem.clock + p.gapMin / 2);
+  mem.jump = Math.max(mem.jump, 0.5);
+  return 'extend';
+}
 // One frame of his clock talk. info = legLeft(run), run = the run. Says a line at: the start, half left, 30 s, 10 s, 0 (and
-// sometimes grants extra time at 0, once per leg), a Rock broken early or late. Only the lowest moment passed in a frame is
+// a Rock broken early or late. Only the lowest moment passed in a frame is
 // said; a run met half-way through a leg only marks what is behind it. Returns the moment said or ''.
-// c = { muted, rnd, extend(secs) -> granted secs }
+// c = { muted, rnd }. Extra time is not decided here (see chatterLegRoll); the page says that line on the 'legExtended' event.
 export function chatterTimeStep(s, mem, run, info, c, p = chatterBossParams) {
   if (!chatterBossShown(s, p)) { mem.tm = { idx: null, fired: {} }; return ''; }
   if (mem.tm.ref !== run) mem.tm = { idx: null, fired: {}, ref: run, done: !!run.done };      // a new run (a new site) starts over
   const tm = mem.tm, rnd = c.rnd, quiet = !!s.chatterQuiet, prev = run.legLast;
-  let say = '', extra = 0;
+  let say = '';
   if (run.done && !tm.done && prev) { tm.done = true; say = prev.left >= p.timeGap ? 'early' : 'late'; }
   else if (tm.idx !== info.idx) {
     const first = tm.idx === null;
@@ -195,16 +221,12 @@ export function chatterTimeStep(s, mem, run, info, c, p = chatterBossParams) {
   for (const [k, hit] of marks) if (hit && !tm.fired[k]) { tm.fired[k] = 1; low = k; }
   if (!say && low && !run.done) say = low;
   if (!say) return '';
-  if (say === 'zero' && c.extend && rnd() < p.extendChance) {
-    extra = c.extend(Math.max(p.extendSecs, Math.round(len * p.extendQuarter)));
-    if (extra > 0) { say = 'extend'; mem.bump = 0.9; }
-  }
   if (quiet || c.muted) return '';
-  if (mem.asleep) { if (say !== 't10' && say !== 'extend') return ''; mem.asleep = false; mem.jump = 0.5; mem.spill = 1.4; mem.idle = 0; }
-  else if (mem.lineLeft > 0 && say !== 't10' && say !== 'zero' && say !== 'extend') return '';
+  if (mem.asleep) { if (say !== 't10') return ''; mem.asleep = false; mem.jump = 0.5; mem.spill = 1.4; mem.idle = 0; }
+  else if (mem.lineLeft > 0 && say !== 't10' && say !== 'zero') return '';
   mem.line = timeLine(s, mem, say, rnd); mem.lineLeft = p.timeShow; mem.lineTo = -1; mem.last = mem.line;
   mem.next = Math.max(mem.next, mem.clock + p.gapMin / 2);
-  if (say === 'extend' || say === 'early') mem.jump = Math.max(mem.jump, 0.5);
+  if (say === 'early') mem.jump = Math.max(mem.jump, 0.5);
   return say;
 }
 // One step. c = { muted (a card is open / last third of a Rock fight), digging (the player digs or auto dig is on), rnd }.

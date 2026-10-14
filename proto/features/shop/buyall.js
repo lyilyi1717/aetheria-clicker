@@ -35,6 +35,12 @@ export function buyAll(s, shop, ev = () => {}) {
 }
 
 // what buyAll would do, without doing it (it runs on a copy of the state)
+// Also { need }: the purse at which the plan would grow (what it spent plus the cheapest purchase still open, Infinity for none).
+// The plan is the same for any purse from `spent` up to `need` (same levels and locks), so a page need not redo it between those.
 export function buyAllPlan(s, shop) {
-  return buyAll(structuredClone(s), shop);
+  const c = structuredClone(s), r = buyAll(c, shop);
+  c[SHOPS[shop].wallet] = Number.MAX_VALUE;
+  const id = cheapestBuy(c, shop);
+  r.need = id ? r.spent + upgradeCost(c, id) : Infinity;
+  return r;
 }
