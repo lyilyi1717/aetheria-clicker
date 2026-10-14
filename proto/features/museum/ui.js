@@ -36,9 +36,19 @@ function paintStrip() {
   strip.hidden = false;
   strip.classList.toggle('done', lv.done);
   strip.style.setProperty('--c', lv.col);
-  strip.innerHTML = `${setSvg(lv.set, i => lv.pieces[i].have, lv.col)}<span class="ms-t"><b></b><span class="ms-n"></span></span>`;
-  strip.querySelector('b').textContent = t('mus_strip', { set: t('wset_' + lv.set) });
-  strip.querySelector('.ms-n').textContent = lv.done ? t('mus_done') : t('mus_count', { a: lv.have, b: lv.of });
+  strip.innerHTML = `${setSvg(lv.set, i => lv.pieces[i].have, lv.col)}<span class="ms-t"><b></b><span class="ms-n"></span></span><span class="ms-k"></span>`;
+  const name = t('mus_strip', { set: t('wset_' + lv.set) }), count = lv.done ? t('mus_done') : t('mus_count', { a: lv.have, b: lv.of });
+  strip.querySelector('b').textContent = name;
+  strip.querySelector('.ms-n').textContent = count;
+  strip.querySelector('.ms-k').textContent = `${lv.have}/${lv.of}`;     // the short count, for the side spot
+  strip.setAttribute('aria-label', name + ' ' + count);
+}
+// The layout map (docs/art-and-sound.md): the top centre of the dig is the manager's from 3 Rafeeqs on (his countdown pill
+// and his text box), so the chip moves to its side spot under the depth pill and shows only the pieces and "a/b".
+function placeStrip(s) {
+  if (!strip) return;
+  const side = !!G.chatterBossShown(s);
+  if (side !== strip.classList.contains('side')) strip.classList.toggle('side', side);
 }
 
 // ---------- the skeleton in the background (an offscreen canvas, redrawn only when something changes) ----------
@@ -142,7 +152,7 @@ ui({
     strip.id = 'mus-strip'; strip.hidden = true;
     app.el.stage.appendChild(strip);
   },
-  tick(s) { refresh(s); },
+  tick(s) { refresh(s); placeStrip(s); },
   on: {
     // the Museum panel and the "new bone" moments live in proto/features/wing2/ui.js; here only a bone no set wanted
     fossil(d, app) {

@@ -5,7 +5,14 @@
 #mus-strip .wart { width: 64px; height: auto; flex: none; }
 #mus-strip .ms-t { display: flex; flex-direction: column; line-height: 1.15; }
 #mus-strip b { font-size: 13px; }
-#mus-strip .ms-n { font-size: 12px; color: #ffe9a8; }
+#mus-strip .ms-n { font-size: 13px; color: #ffe9a8; }
+#mus-strip .ms-k { display: none; font-size: 15px; font-weight: 800; color: #ffe9a8; font-variant-numeric: tabular-nums; }
+/* the side spot (docs/art-and-sound.md, layout map): from 3 Rafeeqs the top centre is the manager's (countdown pill, text box),
+   so the chip sits under the depth pill, small: the set's pieces and "a/b" */
+#mus-strip.side { inset-inline: auto 10px; margin-inline: 0; inset-block-start: 56px; gap: 6px; padding: 3px 9px 3px 5px; }
+#mus-strip.side .wart { width: 44px; }
+#mus-strip.side .ms-t { display: none; }
+#mus-strip.side .ms-k { display: block; }
 #mus-strip.pop { animation: mspop .7s ease-out; }
 #mus-strip.done .wart { filter: drop-shadow(0 0 5px var(--c)); }
 @keyframes mspop { 0% { transform: scale(1); } 30% { transform: scale(1.18); box-shadow: 0 0 18px 4px rgba(255, 233, 168, .8); } 100% { transform: scale(1); } }
