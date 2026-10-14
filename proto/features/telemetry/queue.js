@@ -1,7 +1,7 @@
 // Dig feature: anonymous play data, the sending side without a page. Plain functions over injected parts (storage, fetch,
 // clock), so a test runs them with fakes and no network. The page (ui.js) hands it real ones.
 //
-// What it keeps: a random player id made on the device (no account, no email), a consent switch, a start day, and a queue of
+// What it keeps: a random player id made on the device (no account, no email), a consent switch (stored 'on' or 'off'; nothing stored means off), a start day, and a queue of
 // rows waiting to go. What it never does: send from a test, sim, `?speed=` or local page (see telemetryGate), send when the
 // switch is Off, or throw into the game (every call is guarded; offline simply leaves the rows queued, up to a cap).
 export const TEL_TABLES = { tries: 'dig_tries', choices: 'dig_choices', pace: 'dig_pace', sessions: 'dig_sessions' };
@@ -48,9 +48,16 @@ export function createTelemetry(env) {
   const size = () => { load(); return Object.keys(TEL_TABLES).reduce((a, t) => a + q[t].length, 0); };
 
   const api = {
-    consent: () => get(TEL_KEYS.consent) !== 'off',
-    // Off: nothing is sent and what waits is dropped
-    setConsent(on) { if (on) del(TEL_KEYS.consent); else { set(TEL_KEYS.consent, 'off'); q = {}; for (const t of Object.keys(TEL_TABLES)) q[t] = []; del(TEL_KEYS.queue); } },
+    // Off unless the player (or the share link) turned it on: a device that never chose counts as off (dig-design decision 16)
+    consent: () => get(TEL_KEYS.consent) === 'on',
+    // a ?share=1 link turns it on and stores that, unless this device was set to Off on purpose (that choice wins)
+    applyShare(search = '') {
+      let on = false; try { on = new URLSearchParams(search).get('share') === '1'; } catch { /* no flag */ }
+      if (on && get(TEL_KEYS.consent) !== 'off') set(TEL_KEYS.consent, 'on');
+      return api.consent();
+    },
+    // Off: nothing is sent and what waits is dropped; rows already sent stay
+    setConsent(on) { if (on) set(TEL_KEYS.consent, 'on'); else { set(TEL_KEYS.consent, 'off'); q = {}; for (const t of Object.keys(TEL_TABLES)) q[t] = []; del(TEL_KEYS.queue); } },
     active: () => !!env.allowed && api.consent(),
     pid() {
       let id = get(TEL_KEYS.pid);

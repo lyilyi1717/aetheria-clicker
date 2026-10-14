@@ -50,17 +50,17 @@ function openSettings(app) {
   }
   const sw = m.querySelector('.set-sw');
   const sound = document.createElement('button'); sound.type = 'button'; sound.className = 'ghost set-switch';
-  const paintSound = () => { sound.textContent = `${t('set_sound')}: ${t(isMuted() ? 'set_sound_off' : 'set_sound_on')}`; sound.setAttribute('aria-pressed', isMuted() ? 'false' : 'true'); };
+  const paintSound = () => { sound.textContent = t(isMuted() ? 'set_sound_is_off' : 'set_sound_is_on'); sound.setAttribute('aria-pressed', isMuted() ? 'false' : 'true'); };
   sound.addEventListener('click', () => { const b = document.getElementById('mute'); if (b) b.click(); paintSound(); });
   paintSound(); sw.append(sound);
   if (tel) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'ghost set-switch';
-    const paint = () => { b.textContent = `${t('set_tel')}: ${t(tel.consent() ? 'set_sound_on' : 'set_sound_off')}`; b.setAttribute('aria-pressed', tel.consent() ? 'true' : 'false'); };
+    const paint = () => { b.textContent = t(tel.consent() ? 'set_tel_is_on' : 'set_tel_is_off'); b.title = t(tel.consent() ? 'tel_note_on' : 'tel_note_off'); b.setAttribute('aria-pressed', tel.consent() ? 'true' : 'false'); };
     b.addEventListener('click', () => { tel.setConsent(!tel.consent()); paint(); });
     paint(); sw.append(b);
   }
   const calm = document.createElement('button'); calm.type = 'button'; calm.className = 'ghost set-switch';
-  const paintCalm = () => { calm.textContent = `${t('set_calm')}: ${t(motion.isReduced() ? 'set_sound_on' : 'set_sound_off')}`; calm.setAttribute('aria-pressed', motion.isReduced() ? 'true' : 'false'); };
+  const paintCalm = () => { calm.textContent = t(motion.isReduced() ? 'set_calm_is_on' : 'set_calm_is_off'); calm.setAttribute('aria-pressed', motion.isReduced() ? 'true' : 'false'); };
   calm.addEventListener('click', () => { motion.setReduced(!motion.isReduced(), document.documentElement); if (store) motion.save(store, motion.isReduced()); paintCalm(); });
   paintCalm(); sw.append(calm);
   const sc = document.createElement('div'); m.querySelector('.set-done').before(sc); buildSaveCode(app, sc);

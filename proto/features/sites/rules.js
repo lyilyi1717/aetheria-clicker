@@ -66,7 +66,7 @@ const p = {
   // two against x50 in chapter one). While Rock Friend walked past chapter-two Gates and time away dug its ground at plain-ground
   // cost, one ch2Hp worked; once both stopped (decision 13), levels 25 and on were a wall. Each entry puts the level at about
   // 3 to 5 times easier than its slot, against the hit the player brings. A side card (a twist) of a level uses the level's entry.
-  ch2Hard: [0.5, 0.3, 0.03, 0.015, 1e-3, 5e-4, 1e-4, 1e-4, 6e-5, 6e-5, 3e-5, 3e-5, 1.2e-5, 1.2e-5, 5e-6, 5e-6, 2e-6, 2e-6, 8e-7, 8e-7],
+  ch2Hard: [0.5, 0.3, 0.03, 0.015, 1e-3, 5e-4, 1e-4, 3.3e-5, 7e-6, 2e-6, 8e-7, 2.5e-7, 2.5e-7, 6e-8, 5e-8, 1.5e-8, 6e-9, 2e-9, 8e-10, 3e-10],
   ch2Stars: 5e3,                  // chapter two: every Star it pays (finish, medal, replay, chili, leaving) is this much bigger
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom

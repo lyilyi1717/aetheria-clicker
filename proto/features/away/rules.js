@@ -18,6 +18,7 @@ import { rnd } from '../../core/rng.js';
 import { COLS, groundHp, dirtVal, shiftRow } from '../../core/grid.js';
 import { coinMult } from '../../core/rules.js';
 import strings from './strings.js';
+import stringsAr from './strings.ar.js';
 
 const p = {
   capHours: 12,
@@ -122,5 +123,5 @@ export const away = use({
   id: 'away',
   params: p,
   legacy: { offlineCapHours: 'capHours' },
-  strings,
+  strings, stringsAr,
 });

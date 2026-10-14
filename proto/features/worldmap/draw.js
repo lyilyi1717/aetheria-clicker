@@ -285,7 +285,7 @@ export function paint(g, map, v) {
     if (n.type === 'town') { nm.name = t('wm_town'); nm.sub = t('wm_town_sub'); }
     else if (n.type === 'road') { nm.name = t('site_' + n.site); nm.sub = n.prove ? t('wm_hard_ground', { n: n.floor }) : t('wm_depth', { n: n.floor }); }
     else if (n.type === 'hub') nm.name = t('wm_beyond');
-    else { nm.name = t('site_' + n.site) + (n.twist ? ', ' + t('twist_' + n.twist) : ''); nm.sub = n.floor ? t('wm_depth', { n: n.floor }) : t('wm_island'); }
+    else { nm.name = n.twist ? t('site_twist', { site: t('site_' + n.site), twist: t('twist_' + n.twist) }) : t('site_' + n.site); nm.sub = n.floor ? t('wm_depth', { n: n.floor }) : t('wm_island'); }
     drawNode(g, n, { ...v, go: heldTarget ? null : v.go }, nm);
   }
   g.globalAlpha = 1;

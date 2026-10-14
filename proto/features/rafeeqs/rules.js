@@ -8,8 +8,9 @@
 //   rafeeqBest(s) -> the seat who brought the most coins this level, or -1      rafeeqRename(s, i, text) -> the name now
 import { use } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
-import { t } from '../../core/strings.js';
+import { t, langNow } from '../../core/strings.js';
 import strings from './strings.js';
+import stringsAr from './strings.ar.js';
 import { RAFEEQ_NICKS, nickById } from './names.js';
 export { RAFEEQ_NICKS };
 export const RAFEEQ_NAMES = RAFEEQ_NICKS.map(n => n.id);
@@ -71,7 +72,13 @@ export function rafeeqSeats(s) { if (!s.rafeeqSeats) s.rafeeqSeats = []; while (
 const seatOf = (s, i) => (s.rafeeqSeats || [])[i] || null;
 const diggerOf = (s, i) => s.diggers[i] || null;
 
-export function rafeeqName(s, i) { const x = seatOf(s, i); return x && x.name ? x.name : t('crew_name', { n: i + 1 }); }
+// in Arabic a nickname shows in its own script (names.js `ar`); the Arabizi id is never shown there
+export function rafeeqName(s, i) {
+  const x = seatOf(s, i);
+  if (!x || !x.name) return t('crew_name', { n: i + 1 });
+  const nk = langNow() === 'ar' && !handNamed(x) ? nickById(x.given) : null;
+  return nk ? nk.ar : x.name;
+}
 export function rafeeqTrait(s, i) { const x = seatOf(s, i); return x ? x.trait : RAFEEQ_TRAITS[i % RAFEEQ_TRAITS.length]; }
 export function rafeeqPair(s, i) { const x = seatOf(s, i); return x ? { friend: x.friend, rival: x.rival } : { friend: -1, rival: -1 }; }
 
@@ -79,7 +86,8 @@ export function rafeeqRename(s, i, text) {
   const x = seatOf(s, i);
   if (!x) return rafeeqName(s, i);
   const clean = Array.from(String(text == null ? '' : text).replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim()).slice(0, p.maxName).join('').trim();
-  x.name = clean || x.given;   // (empty brings his nickname back)
+  const nk = nickById(x.given);
+  x.name = !clean || (nk && clean === nk.ar) ? x.given : clean;   // (empty, or his nickname in Arabic, brings his nickname back)
   return x.name;
 }
 
@@ -99,7 +107,7 @@ export function rafeeqBest(s) {
 }
 
 export const rafeeqs = use({
-  id: 'rafeeqs', params: p, strings,
+  id: 'rafeeqs', params: p, strings, stringsAr,
   state: { rafeeqSeats: { init: () => [], survives: ['site', 'land'] } },
   hooks: {
     // seats fill themselves whenever there are more Rafeeqs than seats: the shop, a Star perk or a start kit all count

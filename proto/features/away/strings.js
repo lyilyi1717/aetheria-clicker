@@ -23,6 +23,4 @@ export default { en: {
   away_joke_6: 'A Rafeeq found a very old coin and bit it. It was real.',
   away_joke_7: 'The Rafeeqs had a tea break. A short one. Mostly.',
   sec: '{n} s', min: '{n} min', hours: '{h} h {m} min',
-}, ar: {
-  away_gate: 'حفر رفقاؤك حتى البوابة. إنها بانتظارك.',
 } };

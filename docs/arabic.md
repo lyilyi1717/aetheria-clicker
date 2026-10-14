@@ -57,6 +57,33 @@ Use these exactly. If a word is not here and is new, add it here in the same PR.
 | Chest | الصندوق | |
 | Beat (pick rhythm) | الإيقاع | rhythm names (Boom-tak, Gulf clap) stay as the sound: «بوم تك»، «التصفيق الخليجي» |
 | Away summary | ملخّص الغياب | |
+| Block / Ore / Metal | الكتلة / الخام / المعدن | ore is «الخام» so it never collides with the Forge's metal «المعدن» |
+| Dirt, Stone, Hard rock | تراب، حجر، صخر صلب | Copper, Silver, Gold, Gem = نحاس، فضة، ذهب، جوهرة |
+| Ground layers: Sand, Red Clay, Blue Slate, The Deep | الرمل، الطين الأحمر، الحجر الأزرق، الأعماق | Crystal Cave = كهف البلّور; crystal = بلّورة, prism = منشور |
+| Lantern (relic, dark Rock) / Lamp (wish) | الفانوس / المصباح | the genie Lamp is not the lantern |
+| Torch / torch crate | المشعل / صندوق المشاعل | |
+| Combo | كومبو ×{n} | as Aetheria's «الكومبو»; multiplier sign × |
+| Relic level (Lv) | المستوى | a road stage is «المرحلة»; a relic's level is «المستوى» |
+| Record (deepest dig) | الرقم القياسي | |
+| Swing / hit | الضربة | «الضربات الباقية: نحو {n}» (count after a colon, no plural agreement to get wrong) |
+| Beat, beats a minute | الإيقاع، في الدقيقة | Faster Hands = أيدٍ أسرع |
+| Goal / Save for it | الهدف / ادّخر له | |
+| Tips | نصائح | |
+| Save code / Show my code / Load a code | رمز الحفظ / «اعرض رمزي» / «حمّل رمزاً» | Settings labels in pass 2 must use these |
+| Reduce motion | تقليل الحركة | |
+| Units m, s, min, h | م، ث، د، س | «{n} م»; K/M/B stay Latin |
+| Site | الموقع | a dig place on the road |
+| Side path / Beyond (the hub) | الدرب / ما بعد الطريق | «اختر درباً»; the road stays «الطريق» |
+| Hard medal | الميدالية الصعبة | the third medal (win the hard rule); not the chili levels |
+| On / Off (a switch) | مشغّل / مطفأ | agrees with its noun: «مشاركة أوقات لعبي: مشغّلة» |
+| Welcome back (away card) | أهلاً بعودتك | |
+| Menu (Alqahwa) | القائمة | «بيت القهوة» only as the subtitle for "The coffee house" |
+| Contract board / tier / rule / prize / stamped | لوحة العقود / الدرجة / الشرط / الجائزة / المختومة | tier is «الدرجة», never «المستوى» (that is a relic or pick level) |
+| Contracts | بيديك فقط، في الظلام، الرمل الزاحف، الديناميت فقط، المعول الزجاجي، أثر واحد فقط، غني وكسول، أطعم الصخرة، الرمل الجاف، وحدك في الظلام | Bare Hands, In the Dark, Rising Sand, TNT Only, Glass Pick, One Relic Only, Rich and Lazy, Feed the Rock, Dry Sand, Blind and Alone |
+| Chili levels | خفيفة، حارّة، شطّة، نار، يا يمّه! | Mild, Hot, Shatta, Fire, Ya Mama! (the Gulf cry keeps the joke) |
+| Wardrobe slots | غطاء الرأس، الملابس، اللون، النقشة | Hat, Clothes, Colour, Cloth |
+| Gulf clothes | غترة، ثوب، بشت، صديري، طاقية، مربعات الشماغ، زري ذهبي | Ghutra, Thobe, Bisht, Vest, Cap, Shemagh Check, Gold Thread (the bisht's gold edge) |
+| Museum sets named so far | طقم شاي الجدة، عُدّة الطيّار الضائع، قلادة اللؤلؤ، قرش الكثبان، منصة النفط القديمة | Grandma's Tea Set, Lost Pilot's Kit, Pearl Necklace (not «عقد»: that is a contract), Dune Shark, Old Oil Rig. `wing2` (pass 4) must use these |
 
 ### Characters
 | English | Arabic | Note |
@@ -65,6 +92,7 @@ Use these exactly. If a word is not here and is new, add it here in the same PR.
 | almodeer (manager, man) | المدير | drinks tea; stern, fond |
 | almodeera (manager, woman) | المديرة | drinks matcha behind her burqe3; dry, fond |
 | The hakawati (storyteller) | الحكواتي | |
+| The Foreman (Abu Nasser) | المشرف (أبو ناصر) | jobs: «اتبعوني»، «إلى الخام»، «بجانبي»، «احفروا للأسفل»، «استراحة شاي» |
 | Grandpa / his bell / his caravan | الجد / جرسه / قافلته | the lost caravan = القافلة الضائعة |
 | Traits: Eager, Sleepy, Joker, Careful, Proud, Hungry | متحمّس، نعسان، مرِح، حذر، فخور، جوعان | |
 
@@ -96,8 +124,8 @@ Counted 14 Oct 2026.
 |---|---|---|
 | Aetheria | `js/i18n/en.js` + `ar.js` (`node test_r37_i18n.js`) | **2,307 / 2,307 keys** and 465 data keys; 4,055 checks pass |
 | Core loop (`?loop=2`) | `js/i18n/coreloop/` | paused; not counted |
-| Dig | `proto/features/*/strings.js`, `proto/ui/strings.js` | **0 / 2,169 strings** (36 files). Plumbing: `t()`, `addStrings({ en, ar })`, `missingStrings()` exist; nothing calls `setLang`, no switch, no RTL CSS. |
-| Changelog (About tab) | `js/version.js` | every entry has Arabic; Dig entries 5.32.0 to 5.33.3 reviewed 14 Oct 2026 |
+| Dig | `proto/features/*/strings.js`, `proto/ui/strings.js` (`npm run dig:i18n`) | **693 / 2,195 strings** after pass 2 (14 Oct 2026). 25 folders complete and listed in `COMPLETE` (`test_dig_i18n.js`). Switch hidden (`?lang=ar` only). |
+| Changelog (About tab) | `js/version.js` | every entry has Arabic; Dig entries 5.32.0 to 5.33.6 reviewed 14 Oct 2026 |
 
 Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 154, starshop 102, rafeeqs 96, contracts 92, worldmap 79, wardrobe 69, picks 68, relics2 62, fusion 56, moods 47, deep 45, ui 42, boss 41, forge 32, away 28, shop 22, foreman 15, look 14, chest 13, settings 12, diggers 11, museum 11, water 9, crystal 8, relics 8, ground 7, track 7, telemetry 5, combo 4, crits 4, ores 4, tnt 3, oil 2. (Count with a throwaway script that imports each `strings.js` default and counts `en` keys; a count kept in the repo is part of the plumbing brief.)
 
@@ -117,10 +145,40 @@ Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 1
 
 **Decided: the Arabic switch is hidden until pass 3 is merged.** Before that it works only with `?lang=ar` (for the owner and screen-checker), because half Arabic and half English in the first hour is worse than all English. The Settings button is added with pass 3, together with its changelog entry.
 
+**Decided (14 Oct 2026, by localizer): pass 1 ships 18 folders and moves `away`, `settings` and `telemetry` to pass 2**, because other agents have open work in those folders today (away code, settings, telemetry) and a translation must not race their edits; they are small (62 strings) and pass 2 takes them first. Pass 1 done: ui 42, picks 68, boss 41, shop 22, foreman 15, look 14, chest 13, diggers 11, water 9, crystal 8, relics 8, ground 7, track 7, combo 4, crits 4, ores 4, tnt 3, oil 2 = 286.
+
+**Decided (14 Oct 2026, by localizer): Arabic for a small folder lives in the same `strings.js` as an `ar:` table**, not in `strings.ar.js`, because it needs no change to the feature's `index.js` (no `stringsAr` import), keeps English and Arabic side by side for review, and cannot conflict with code edits. `strings.ar.js` stays for the big generated tables (chatter, rafeeqs).
+
+**Decided (14 Oct 2026, by localizer): counts go after a colon** («الضربات الباقية: نحو {n}»، «رفقاء يحفرون بجانبك: {n}») wherever the English puts a number before a plural noun, because Arabic noun agreement changes with the number (3 to 10 plural, 11 and up singular) and one fixed string cannot be right for every `{n}`. Where the colon form reads badly (prices: «{n} عملة»، «{n} نجمة») the singular tamyeez is kept, as Arabic games do.
+
+**Decided (14 Oct 2026, by localizer): arrows from old to new value point left (←)** in Arabic («ضربتك: {a} ← {b}»), because the line reads right to left; → would point back at the old value.
+
+**Decided (14 Oct 2026, by localizer): the sound words stay sounds** (BOOM = «بووم»، plop = «بلوب»، clink = «طنّ»), and the soggy TNT joke keeps its shape: «ديناميت مبلول. لا يقول إلا «بلوب».».
+
+**Decided (14 Oct 2026, by localizer): pass 2 ships 7 folders and moves `sites` and `starshop` to pass 2b**, because a roadmap-architect is editing `sites/rules.js` and `starshop/rules.js` today (open PR "the Gate is yours"). Pass 2 done: away 28, settings 33, telemetry 6, worldmap 79, rafeeqs 98 (61 nickname lines), wardrobe 69, contracts 92. Pass 2b (sites 161, starshop 102) goes before pass 3, so the switch still goes live only when the whole first hour has Arabic.
+
+**Decided (14 Oct 2026, by localizer): `away` keeps its Arabic in `away/strings.ar.js`**, not as an `ar:` table in `strings.js`, because the open "Gate is yours" PR adds a key and an `ar:` table to `away/strings.js`; a sibling file cannot conflict with it. When that PR merges, its `away_gate` Arabic may move into `strings.ar.js` (either place loads).
+
+**Decided (14 Oct 2026, by localizer): a switch says its whole line per language** (`set_sound_is_on` «الصوت: مشغّل», `set_tel_is_on` «مشاركة أوقات لعبي: مشغّلة»), replacing "label: On" glued from two keys, because in Arabic "on" must agree with the noun (مشغّل / مشغّلة) and one shared «On» cannot. The page's own mute button now says «مشغّل» too (was «يعمل»), one word for one meaning.
+
+**Decided (14 Oct 2026, by localizer): in Arabic a Rafeeq's nickname is his name in Arabic script** (`names.js` `ar`), never the Arabizi id; English shows the id as before. Keeping the Arabic name in the rename box keeps the nickname (it is not a hand name), and the card's line shows the script in brackets only in English («(الداشر)» would repeat the name in Arabic). The save keeps the id, so switching language never changes a save.
+
+**Decided (14 Oct 2026, by localizer): no more glued text in the crew row, the level line and the road map.** «يغربل، كسر: {b}، عملات: {c}» is one key (`crew_row_sv`); the level line uses `trk_head`, `trk_then`, `trk_full`; a site and its twist use the existing `site_twist` everywhere (the road map canvas and the level line built it from `', '` before), so Arabic gets «،» once `sites` has its Arabic.
+
+**Decided (14 Oct 2026, by localizer): the road map's pan buttons are named by where they point on screen** (`wm_pan_left` = «يمين» in Arabic), because in right to left the start button sits on the right and pans right (`worldmap/ui.js`, `rtl()`); a button on the right labelled «يسار» would lie.
+
+**Decided (14 Oct 2026, by localizer): a goal with a count may also say «عددها {n}»** («أنهِ مراحل عددها {n}»، «فُز بعقود عددها {n}»), next to the colon form, because it reads as a sentence and is right for every number; a fixed small number in a prize gets its real grammar («نجمتان»، «3 نجوم»، «5 نجوم»), since it never changes.
+
+**Decided (14 Oct 2026, by localizer): the Hard medal is «الميدالية الصعبة»**, the plainest word for a 7 year old, and kept apart from the chili levels («مرحلة الشطة»).
+
+**Decided (14 Oct 2026, by localizer): 5.33.6 reworded** (wording only, no new version, as decided for pass 1): the title said play times themselves were «مطفأة»; it is the sharing that is off («مشاركة أوقات لعبك مطفأة حتى تشغّلها أنت»). Also «من تلقاء نفسه», «أرسل إليك», «ويبقى الإطفاء محفوظاً» for "Off is kept", and «لا تحمل اسمك» for "anonymous".
+
+**Decided (14 Oct 2026, by localizer): rhythm names are translated by picture, not word** (Gallop = «ركض الخيل»، Clave = «كلافي»، Samba and Carnival kept as the loanwords a child knows), because a 7 year old hears them as sounds and places.
+
 ## 6. Dig: plumbing and passes
 
 ### What exists
-`proto/core/strings.js`: `addStrings({ en, ar }, owner)` fills per-language tables (a duplicate key throws); `t(key, vars)` reads `TABLES[lang]` then falls back to English; `setLang(l)`, `missingStrings(l)`, `listOf()` (uses `Intl.ListFormat(lang)`). `proto.html` is `lang="en" dir="ltr"`. Nothing calls `setLang`.
+`proto/core/strings.js`: `addStrings({ en, ar }, owner)` fills per-language tables (a duplicate key throws); `t(key, vars)` reads `TABLES[lang]` then falls back to English; `setLang(l)`, `langNow()` (for data that carries its own script, such as the nicknames), `missingStrings(l)`, `listOf()` (uses `Intl.ListFormat(lang)`). `proto.html` is `lang="en" dir="ltr"`. Nothing calls `setLang`.
 
 ### What the plumbing must do
 1. **Choose the language once, at load, and reload to change it** (as Aetheria: `js/i18n/lang.js`). Order: `?lang=ar|en`, then localStorage key `DIG_PROTO_LANG`, else English (no browser sniffing for Dig yet). The Dig save is untouched: language is not game state. Call `setLang` before any `addStrings` consumer renders and before `main.js` builds the DOM.
@@ -137,7 +195,8 @@ Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 1
 |---|---|---|---|
 | 0 | plumbing (above) | 0 | no text |
 | 1 | `ui` 42, `shop` 22, `picks` 68, `boss` 41, `away` 28, `foreman` 15, `settings` 12, `look` 14, `chest` 13, `diggers` 11, `water` 9, `crystal` 8, `relics` 8, `ground` 7, `track` 7, `telemetry` 5, `combo` 4, `crits` 4, `ores` 4, `tnt` 3, `oil` 2 | 327 | the first five minutes: the dig, the first pick, the first Rock and Gate |
-| 2 | `worldmap` 79, `starshop` 102, `sites` 161, `rafeeqs` 96 (with the 61 nickname lines), `wardrobe` 69, `contracts` 92 | 599 | the first hour: finish card, road map, Alqahwa, Star tracks, the crew |
+| 2 (done) | `away` 28, `settings` 33, `telemetry` 6 (moved from pass 1), `worldmap` 79, `rafeeqs` 98 (with the 61 nickname lines), `wardrobe` 69, `contracts` 92 | 405 | the first hour: road map, Alqahwa, the crew, the welcome-back card |
+| 2b | `sites` 161, `starshop` 102 | 263 | the finish card and Star tracks; waits for the open sites/starshop rules work |
 | 3 | `chatter` 670, `moods` 47 | 717 | the crew's voices, heard from the first hire; the switch goes live after this pass |
 | 4 | `story` 154, `wing2` 166, `museum` 11, `relics2` 62, `fusion` 56, `forge` 32, `deep` 45 | 526 | hakawati, Museum, fusion: arrive later; the story needs the owner's ear most |
 
