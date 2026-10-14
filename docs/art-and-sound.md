@@ -96,7 +96,7 @@ inside the stage's width (452 to 640 px; 518 at a 1366 x 768 laptop); the gap be
 | Spot | Who lives there | Size rule |
 |---|---|---|
 | T1 start | level line; under it the "Gate at N m" note, the countdown and the medals (`#trk-head`) | never narrower than the second line; the level line does not size the spot (`contain: inline-size`), it takes what is left and ends in dots, the place name first, then the land (full text in its title); grows 3 to T2's 1; at most 62% |
-| T2 middle | the message line: lesson or toast (`#trk-msg`; a lesson wins); the only home of nudges such as "You have Stars. Spend them at the Alqahwa." (decision 12) | 96 px, grows with spare room, never under 96 px, two lines at most, clipped inside its spot |
+| T2 middle | the message line: lesson or toast (`#trk-msg`; a lesson wins); the only home of nudges such as "Spend Stars at Alqahwa." (decision 12) | toasts: 96 px, grows with spare room, never under 96 px, two lines at most, clipped inside its spot. **A lesson takes T2 to T4** while it shows (decision 14): T3 and T4 step aside, T1 stays at its floor; about 280 px at 1366 x 768, 400 at 1500 x 1000, three lines of 13 px at most (45 px, inside the line and the 6 px under it) |
 | T3 | Tips button; "Done here" takes this place when the dig is done | its own width (about 42 px) |
 | T4 end | the goal: one goal chip (`#goal-pin`, only with 2 or more choices) over one line of goal words, or two lines of words without the chip; progress line along the foot. Only the goal the chip names, never a nudge (decision 12) | at most 180 px, gives way to what is left; the chip's word ends in dots before anything spills (the step mark and dots stay); the words' full text is in their title; a label with a count ("Second Pick: 3.00K / 100K") is one line where only the label ends in dots and the count always shows (decision 13); the chip hides when the dig is done |
 
@@ -240,6 +240,25 @@ The test page for every sound: `proto/soundboard.html`.
     kept), and `#goal-text.split` (`track/track.css`) lays them out in the page direction (Arabic: label on the right, count on
     its left). Words that do not end in a count stay one piece. The full line stays in the title.
 
+14. **Decided (14 Oct 2026, by art-director): a lesson takes the whole top line after T1 while it shows; Tips and the goal step
+    aside and come back when it ends** (handed over by the localizer, `docs/arabic.md` section 5). Because 18 lessons teach a
+    rule a new player needs and need 3 to 6 lines in the 85 px of T2, and every other place is taken: the sky band holds the
+    pills, the Museum chip and the manager's box (S1 to S7), the top row of the dig is where the player digs and where the
+    Rock's bar sits (the camera keeps the dig face there), the hint sits at y 128, and the bottom corners hold the tools and
+    the chest. The top line is where a player already looks for lessons, so a card over the sky would teach a second place.
+    T1 (the Gate note, clock and medals) never hides, so the race against the clock is never covered; only its level line may
+    end in a few more dots for those seconds (its full text is in its title). The goal and Tips can wait 3 to 9 s: the goal
+    changes slowly and a click on the lesson brings them back at once. With T2 to T4 the lesson has about 280 px at 1366 x 768
+    (518 - 216 - 8 gap - 11 edge) and 400 at 1500 x 1000; every lesson fits two lines there in English and Arabic, three are
+    allowed (13 px bold, line height 1.15, 45 px, never over the stage). Every lesson uses this place, short or long, so the
+    line does not change shape by text length. Motion: the lesson unrolls from the message line's edge in 0.3 s (from the
+    right in Arabic) and fades; at its end it goes at once and Tips and the goal fade back in 0.3 s. Reduce motion (Settings or
+    the browser): no unroll, the fade only. Read time: a lesson of up to 30 letters keeps 3 to 6 s; each 15 letters more add
+    1 s, so the longest stay 6 s before the next may come and 9 s at most (`readTime`, `proto/ui/lessons.js`). Toasts keep T2's
+    96 px and two lines. Built in `track/track.css`; the budget and a word-by-word wrap estimate in
+    `proto/features/track/lessonfit.js`; `test_proto_lessonfit.js` checks every `t_*`, `fz_lesson_*` and `gate_remember` line,
+    English and Arabic, fits three lines at 270 px.
+
 ## 9. Briefs for builders
 
 **B1. The 13 px floor** (after the localizer's string and HUD pass lands, to avoid two PRs on the same lines).
@@ -253,6 +272,11 @@ sees at 1500x1000 and 1366x768, in English and Arabic: the track line not cut, t
 not overlapping, the manager and hakawati name plates readable, the Star board and the Museum hall without clipped text.
 
 ## 10. What screen-checker should look at next
+
+- A long lesson (crystal at Crystal Cave, a grump or a torch crate in the Deep, "This relic has a partner"), English and
+  Arabic, at 1366x768 and 1500x1000: the whole text shows in the top line with no dots; Tips and the goal are gone while it
+  shows and come back after; the Gate note, clock and medals stay put; nothing of the lesson reaches the stage (pills, the
+  Museum chip, the manager's box, the Rock's bar). With Reduce motion on: no unroll, a plain fade.
 
 - The dig with 3 Rafeeqs, English and Arabic: the small Museum chip under the depth pill, the manager's box and countdown pill
   fully clear, at 1500x1000 and 1366x768; with 2 Rafeeqs the full chip at the top centre.
