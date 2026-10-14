@@ -131,6 +131,15 @@ export const ROAD = [...ROAD1, ...ROAD2];
 export const chOf = x => (x && x.ch === 2 ? 2 : 1);
 // a road level's stamp key
 export const roadKey = f => siteKey(f.site, f.floor, '', f.ch);
+// the new thing a level brings, as a key into strings: by the level's place and the layer it is dug through (the last one it
+// crosses, the 25 m above its Gate), not the one below the Gate. Level 5 (Gate at 100 m) is dug through the crystal layer.
+const DEPTH_NEW = { 75: 'crystal', 100: 'black', 125: 'living', 150: 'angry', 175: 'hot' };
+export function newThingKey(f, idx) {
+  if (f.prove) return 'new_prove';
+  if (f.ch === 2) return idx === CHAPTER_LEN ? 'new_ch2' : f.zone === 'emptyquarter' ? 'new_eq' : 'new_night';
+  if (idx < 4) return 'new_site_' + f.site;
+  return 'new_layer_' + (DEPTH_NEW[f.floor - LAYER] || 'more');
+}
 // what the screen calls a road level (1 to 40): { ch, n, of } = "Level n of 20" or "Chapter 2, level n of 20"
 export const levelOf = level => ({ ch: level > CHAPTER_LEN ? 2 : 1, n: level > CHAPTER_LEN ? level - CHAPTER_LEN : level, of: CHAPTER_LEN });
 // the road level of the dig in play (index into ROAD), or -1 for a side level / after the road
