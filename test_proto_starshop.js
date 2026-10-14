@@ -135,9 +135,8 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
   const f = ready(0); f.best = 0; give(f, 'pick', 37);
   const top = f.top, coins = f.coins, seen = [];
   G.run('swung', f, { r: f.top, c: 3, dmg: 1 }, (k, d) => seen.push(k));
-  ok(f.top > top && f.top < G.LAYER && f.coins > coins && f.starFell && seen.includes('starFell'), 'Falling Star: the dig falls and the ground pays');
-  let rock = false; for (let r = f.top; r < f.top + G.VIEW_ROWS; r++) if (r === G.LAYER) rock = true;
-  ok(rock, 'the first Big Rock is in sight');
+  ok(f.top > top && f.top === G.LAYER && f.coins > coins && f.starFell && seen.includes('starFell'), 'Falling Star: the dig falls and the ground pays');
+  ok(f.rows[0].every(c => c && c.t === 'boss'), 'the first Big Rock is right below, whole');
   const at = f.top; G.run('swung', f, { r: f.top, c: 3, dmg: 1 }, () => {});
   ok(f.top === at, 'only the first swing');
   // a locked item cannot be bought, whatever the page shows

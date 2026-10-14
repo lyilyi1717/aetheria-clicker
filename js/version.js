@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.10';
+export const VERSION = '5.36.11';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.11',
+    date: '2026-10-14',
+    title: 'Dig: Rock Friend and Falling Star dig right up to the Rock',
+    changes: [
+      'With Rock Friend, the crew now walks past the Rocks you have beaten and digs down to the row right above the next Rock that is still standing, hardest rows included, then waits there. Before, they stopped about 8 rows short.',
+      'Falling Star drops you to the row right above the first Big Rock, not 8 rows above it.',
+      'The Gate of the level you are playing is still yours: the crew waits above it and never breaks it.'
+    ],
+    ar: {
+      title: 'حفار: صديق الصخرة والنجمة الساقطة يحفران حتى الصخرة',
+      changes: [
+        'مع صديق الصخرة، صار الطاقم يمر بالصخور التي كسرتها ويحفر حتى الصف الذي فوق الصخرة التالية الواقفة مباشرة، حتى أصعب الصفوف، ثم ينتظر هناك. قبل ذلك كان يقف قبلها بنحو 8 صفوف.',
+        'النجمة الساقطة تنزل بك إلى الصف الذي فوق أول صخرة كبيرة مباشرة، لا قبلها بـ 8 صفوف.',
+        'بوابة المستوى الذي تلعبه تبقى لك: الطاقم ينتظر فوقها ولا يكسرها أبداً.'
+      ]
+    }
+  },
   {
     version: '5.36.10',
     date: '2026-10-14',
