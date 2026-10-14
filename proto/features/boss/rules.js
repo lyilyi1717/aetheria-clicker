@@ -244,9 +244,12 @@ export const boss = use({
       for (let i = 0; i < VIEW_ROWS; i++) if (isBossRow(s.top + i) && s.rows[i].some(x => x)) return i <= VIEW_ROWS - 3;
       return false;
     },
-    // the crew stops at a Big Rock and waits for you
+    // the crew digs down to the row right above a standing Big Rock and waits there (decision 20): the rows next to
+    // the Rock are the hardest of the layer and are dug at their real price (`groundHp`); the Rock itself is never
+    // touched while away. `r` is the next row to dig and is always `s.top` (each dug row shifts the view). A Rock
+    // already broken has an empty row and is no wall; a Rock still below the view is always standing.
     awayStop(s, r, out) {
-      if (bossInView(s) || isBossRow(r + VIEW_ROWS - 2)) { out.atBoss = true; return true; }
+      if (isBossRow(r) && s.rows[r - s.top].some(x => x)) { out.atBoss = true; return true; }
       return false;
     },
   },
