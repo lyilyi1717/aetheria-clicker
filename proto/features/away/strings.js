@@ -8,6 +8,7 @@ export default { en: {
   away_newbone1: '1 is new for the Museum', away_newbones: '{n} are new for the Museum',
   away_chests: '{n} chests to open', away_chest1: '1 chest to open',
   away_boss: 'They reached the Big Rock and waited for you. The Rock is yours to break.',
+  away_gate: 'Your Rafeeqs dug to the Gate. It is waiting for you.',
   away_ok: 'Back to the dig',
   away_open: 'Open the first chest',
   away_short: 'Back already! Your Rafeeqs banked {n} coins.',

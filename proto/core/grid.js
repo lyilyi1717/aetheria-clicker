@@ -54,6 +54,11 @@ function curve(r, a, key, stepKey, land) {
 // the first three rows are soft, so the very first block breaks in two hits
 export const dirtHp = (r, land = 'desert') => (r < 3 ? 2 + r : curve(r, PARAMS.core.hp0, 'hp', 'step', land));
 export const dirtVal = (r, land = 'desert') => curve(r, PARAMS.core.val0, 'val', 'pay', land);
+// How hard plain ground at row r is in THIS dig, per block: the depth curve times every multiplier the `row` hooks put on a
+// row as it is made, through the `groundHp` mod (sites: prove, chili, the heavy twist, chapter two). Time away prices its
+// rows and its sieve with this, so a row away costs what it costs live. The site's own hardness (genRow, 1 to 1.35) stays
+// out, as it always was: the same for every level of a site, and `away.rowCost` was set without it.
+export const groundHp = (s, r) => dirtHp(r) * fold('groundHp', s, 1);
 // How strong a dig has to be to stand at row r: hardness over what the coins of that depth can buy.
 // (A pick level is x powGrow for x 1.5 the price, so coins turn into hits with the power log(powGrow)/log(1.5).)
 export const wallAt = (r, land = 'desert') => dirtHp(Math.max(r, 3), land) / Math.pow(dirtVal(Math.max(r, 3), land), PARAMS.core.buyPow);

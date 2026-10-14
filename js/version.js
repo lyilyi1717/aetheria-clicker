@@ -3,9 +3,31 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.33.6';
+export const VERSION = '5.34.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.34.0',
+    date: '2026-10-14',
+    title: 'Dig: the Gate is yours',
+    changes: [
+      'Time away never finishes a level for you any more. Your Rafeeqs dig down to the Gate, wait there and sieve rubble until you come back. The away card says so, and the Gate is yours to break.',
+      'Rock Friend still walks your Rafeeqs past the Big Rocks above the Gate. Falling Star also stops at the Gate.',
+      'Digging while you are away now costs what the same ground costs while you watch. Second levels of a depth, chili levels, heavy ground and chapter two now go slower while you are away (a nerf to time away there).',
+      'To make up for it, the Gate of every second level of a depth is 2 to 6 times smaller (level 6: was 8.9 times the usual size, now 3), level 17 and level 20 have smaller Gates, and chapter two gets softer level by level the further you go.',
+      'Old saves load as they were.'
+    ],
+    ar: {
+      title: 'الحفر: البوابة لك',
+      changes: [
+        'الغياب لا يُنهي المرحلة عنك بعد الآن. يحفر رفقاؤك حتى البوابة، وينتظرون عندها ويغربلون الركام حتى تعود. ملخّص الغياب يخبرك بذلك، والبوابة لك لتكسرها.',
+        'ما زال صديق الصخور يعبر برفقائك الصخور الكبيرة التي فوق البوابة. والنجمة الساقطة تتوقف عند البوابة أيضًا.',
+        'الحفر أثناء غيابك يكلّف الآن ما تكلّفه الأرض نفسها وأنت تشاهد. المرحلة الثانية من كل عمق، ومراحل الشطة، والأرض الثقيلة، والفصل الثاني صارت أبطأ أثناء غيابك (إضعاف للغياب هناك).',
+        'وفي المقابل صارت بوابة كل مرحلة ثانية من العمق أصغر من مرتين إلى ست مرات (المرحلة 6: كانت 8.9 أضعاف الحجم المعتاد، والآن 3)، وصغرت بوابتا المرحلتين 17 و20، وصار الفصل الثاني ألين مرحلةً بعد مرحلة كلما تقدمت.',
+        'الحفظ القديم يُفتح كما كان.'
+      ]
+    }
+  },
   {
     version: '5.33.6',
     date: '2026-10-14',

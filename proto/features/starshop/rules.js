@@ -17,7 +17,7 @@
 //   starshopKettle(s)     true: the Foreman's tea break gives its rush with no sitting (Second Kettle)
 import { use, emit, PARAMS, fold, RELICS, ITEMS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
-import { COLS, VIEW_ROWS, LAYER, dirtHp, dirtVal, shiftRow, layerOf, cellAt } from '../../core/grid.js';
+import { COLS, VIEW_ROWS, LAYER, groundHp, dirtVal, shiftRow, layerOf, cellAt } from '../../core/grid.js';
 import { coinMult, damage, pickPower, buy, grantFree } from '../../core/rules.js';
 import { fmt, t } from '../../core/strings.js';
 import '../shop/rules.js';
@@ -172,7 +172,8 @@ export function starshopReroll(s) {
 }
 
 // ---------- away: past a Big Rock you have beaten ----------
-const passable = (s, R) => lv(s, 'sp_wake') > 0 && layerOf(R) <= s.starBoss;
+// never the Gate of the level in play: the `awayPassable` mod (sites) says no to it, on every kind of run
+const passable = (s, R) => lv(s, 'sp_wake') > 0 && layerOf(R) <= s.starBoss && fold('awayPassable', s, true, R);
 // is a Big Rock you cannot pass in view of the crew standing at row r?
 function blocked(s, r) {
   for (let R = r; R <= r + VIEW_ROWS - 1; R++) if (R > 0 && R % LAYER === 0 && !passable(s, R)) return true;
@@ -288,7 +289,7 @@ export const starshop = use({
       let budget = out.budget;
       let rows = 0, coins = 0, chests = 0;
       while (out.metres + rows < A.maxRows && !blocked(s, s.top)) {
-        const cost = dirtHp(s.top) * COLS * A.rowCost;
+        const cost = groundHp(s, s.top) * COLS * A.rowCost;      // the ground as it is in this dig
         if (budget < cost) break;
         budget -= cost;
         coins += dirtVal(s.top) * COLS * A.rowPay * coinMult(s);
