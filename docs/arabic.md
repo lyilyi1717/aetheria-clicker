@@ -95,6 +95,21 @@ Use these exactly. If a word is not here and is new, add it here in the same PR.
 | The Foreman (Abu Nasser) | المشرف (أبو ناصر) | jobs: «اتبعوني»، «إلى الخام»، «بجانبي»، «احفروا للأسفل»، «استراحة شاي» |
 | Grandpa / his bell / his caravan | الجد / جرسه / قافلته | the lost caravan = القافلة الضائعة |
 | Traits: Eager, Sleepy, Joker, Careful, Proud, Hungry | متحمّس، نعسان، مرِح، حذر، فخور، جوعان | |
+| Jiddo (Grandpa's own name in his notes) | جدّو | «الجد» in the hakawati's telling, «جدّو» where he signs |
+| Uncles (the old bones) | الأعمام / «يا أعمامي» | Grandpa's joke stays: the bones are the oldest uncles |
+| Clue (each story's last line) | الدليل: | always the first word, then a colon |
+| Chatter (panel) / Rafeeqs talk | الأحاديث / كلام الرفقاء: مشغّل، مطفأ | |
+| Cheer | هتاف | «يرفع كل الرفقاء معاولهم ويهتفون «يلا»» |
+
+### Memes and calls (kept as they are)
+| English (Arabizi) | Arabic | Note |
+|---|---|---|
+| ar7boooo (welcome back) | أرحبووو | the owner's meme; three «و», never «أهلاً» |
+| Zoooooo6 (the extra-time gotcha) | زووووووط | keep the long vowel; the number of «و» may vary as the English does |
+| habibi / habibis | حبيبي / يا حبايب | almodeera's warmth; she says it, he does not |
+| matcha / karak / tea | الماتشا / الكرك / الشاي | almodeera drinks matcha (feminine noun: «الماتشا باردة»), almodeer tea |
+| Team / Everyone / Rafeeqs (a manager's call) | almodeer: «يا جماعة»، «الكل»، «يا رفقاء»; almodeera: «فريقي»، «الكل»، «رفقائي» | two voices, two ways to call the crew |
+| on shift / the client / the memo | الدوام / العميل / التعميم | Gulf office words: they make the managers sound like an office |
 
 ### Rafeeq nicknames (61)
 The Arabic script lives in `proto/features/rafeeqs/names.js` (`ar:` field; the `id` is the owner's Arabizi). **Do not retranslate or "correct" them**: they are the owner's Saudi-meme names. Only the `line` (trait line, English) needs an Arabic line, as key `nk_line_<id>`. Tone: one short line, as a friend teasing a friend, e.g. الداشر -> «دائماً يتمشّى بعيداً».
@@ -124,7 +139,7 @@ Counted 14 Oct 2026.
 |---|---|---|
 | Aetheria | `js/i18n/en.js` + `ar.js` (`node test_r37_i18n.js`) | **2,307 / 2,307 keys** and 465 data keys; 4,055 checks pass |
 | Core loop (`?loop=2`) | `js/i18n/coreloop/` | paused; not counted |
-| Dig | `proto/features/*/strings.js`, `proto/ui/strings.js` (`npm run dig:i18n`) | **693 / 2,195 strings** after pass 2 (14 Oct 2026). 25 folders complete and listed in `COMPLETE` (`test_dig_i18n.js`). Switch hidden (`?lang=ar` only). |
+| Dig | `proto/features/*/strings.js`, `proto/ui/strings.js` (`npm run dig:i18n`) | **1,559 / 2,194 strings** after pass 3 (14 Oct 2026). 28 folders complete and listed in `COMPLETE` (`test_dig_i18n.js`). Switch hidden (`?lang=ar` only) until pass 2b. |
 | Changelog (About tab) | `js/version.js` | every entry has Arabic; Dig entries 5.32.0 to 5.33.6 reviewed 14 Oct 2026 |
 
 Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 154, starshop 102, rafeeqs 96, contracts 92, worldmap 79, wardrobe 69, picks 68, relics2 62, fusion 56, moods 47, deep 45, ui 42, boss 41, forge 32, away 28, shop 22, foreman 15, look 14, chest 13, settings 12, diggers 11, museum 11, water 9, crystal 8, relics 8, ground 7, track 7, telemetry 5, combo 4, crits 4, ores 4, tnt 3, oil 2. (Count with a throwaway script that imports each `strings.js` default and counts `en` keys; a count kept in the repo is part of the plumbing brief.)
@@ -175,6 +190,20 @@ Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 1
 
 **Decided (14 Oct 2026, by localizer): rhythm names are translated by picture, not word** (Gallop = «ركض الخيل»، Clave = «كلافي»، Samba and Carnival kept as the loanwords a child knows), because a 7 year old hears them as sounds and places.
 
+**Decided (14 Oct 2026, by localizer): pass 3 also takes `story`** (the hakawati's 40 levels, moved from pass 4), because the hakawati's first story opens after level 1, inside the first hour, and the story needs the owner's ear most: the sooner it is in a PR, the sooner he reads it. Pass 3 done: chatter 668, moods 47, story 154 = 869.
+
+**Decided (14 Oct 2026, by localizer): the switch stays hidden after pass 3** (this replaces "the switch goes live after pass 3"), because `sites` (161) and `starshop` (102) still have no Arabic: the finish card and the Star tracks come in the first hour, and half English there is what the hidden switch is for. The switch, its Settings button and its changelog entry ship with pass 2b, once the open sites/starshop rules work has merged.
+
+**Decided (14 Oct 2026, by localizer): the two managers are two voices in Arabic too.** almodeer calls «يا {name}، ...», uses Gulf office words (الدوام، العميل، «سنقول: زحمة») and blusters; almodeera calls «{name}، ...» with no «يا», speaks of herself in the feminine («أنا هادئة»، «أنا التي أكتب الساعة»), writes things down («سجّلتُ»، «في دفتري») and calls the crew «فريقي» and «رفقائي». Her lines are her own jokes, not his with a feminine ending. "A woman needs her matcha" became «المديرة تحتاج الماتشا», the same joke about her and her matcha, without a line about women in general.
+
+**Decided (14 Oct 2026, by localizer): the memes stay themselves** («أرحبووو»، «زووووووط»، «حبيبي»), written in Arabic letters, because they are the owner's Saudi jokes and a Gulf child reads them as sound; the nickname lines keep the nickname's own joke («ضربة نشمية» for alnashmi, «كفو» for alkafo, «بكرة صار اليوم» for bokrah, «الكشتة بعد الدوام» for alkashat).
+
+**Decided (14 Oct 2026, by localizer): a word joke that dies in Arabic gets a new joke of the same size**: "La la la, dig!" would read «لا لا لا» (no, no, no), so the singer says «ترا لا لا، نحفر!»; "Tick, tock, half a clock" rhymes as «تك، تاك، طار نصف الوقت»; "Hungry and angry" as «جوعان وزعلان»; "They call me Muscles" as «ينادونني أبو العضلات».
+
+**Decided (14 Oct 2026, by localizer): the countdown keeps Western digits where the English has digits** («30 ثانية»، «10 ثوانٍ»، «10! 9!») and words where it shouts a word ("TEN!" = «عشرة!»), with the real grammar for each fixed number, since these never change. Rafeeq bubbles keep the house rule: five words at most, no digits (checked for the Arabic too).
+
+**Decided (14 Oct 2026, by localizer): speech on the canvas is drawn right to left in Arabic.** The scene never mirrors, but a bubble's words do: `g.direction = DIR` for the Rafeeq bubbles, the name tag and almodeer's box, whose lines start from the box's right edge in Arabic. Without it a line ending in «!» or «؟» shows the mark on the wrong side. English draws exactly as before.
+
 ## 6. Dig: plumbing and passes
 
 ### What exists
@@ -197,8 +226,8 @@ Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 1
 | 1 | `ui` 42, `shop` 22, `picks` 68, `boss` 41, `away` 28, `foreman` 15, `settings` 12, `look` 14, `chest` 13, `diggers` 11, `water` 9, `crystal` 8, `relics` 8, `ground` 7, `track` 7, `telemetry` 5, `combo` 4, `crits` 4, `ores` 4, `tnt` 3, `oil` 2 | 327 | the first five minutes: the dig, the first pick, the first Rock and Gate |
 | 2 (done) | `away` 28, `settings` 33, `telemetry` 6 (moved from pass 1), `worldmap` 79, `rafeeqs` 98 (with the 61 nickname lines), `wardrobe` 69, `contracts` 92 | 405 | the first hour: road map, Alqahwa, the crew, the welcome-back card |
 | 2b | `sites` 161, `starshop` 102 | 263 | the finish card and Star tracks; waits for the open sites/starshop rules work |
-| 3 | `chatter` 670, `moods` 47 | 717 | the crew's voices, heard from the first hire; the switch goes live after this pass |
-| 4 | `story` 154, `wing2` 166, `museum` 11, `relics2` 62, `fusion` 56, `forge` 32, `deep` 45 | 526 | hakawati, Museum, fusion: arrive later; the story needs the owner's ear most |
+| 3 (done) | `chatter` 668, `moods` 47, `story` 154 (moved from pass 4) | 869 | the crew's voices, heard from the first hire, and the hakawati |
+| 4 | `wing2` 166, `museum` 11, `relics2` 62, `fusion` 56, `forge` 32, `deep` 45 | 372 | Museum, fusion: arrive later |
 
 Total 2,169. Each pass is one worktree and one draft PR (pass 3 splits into `chatter` lines by trait if it grows past review size); the owner reviews the Arabic in the PR. screen-checker takes one RTL screenshot set after pass 1 (`?lang=ar`): the dig, the shop tab, the finish card, and the drawer, at desktop width only.
 

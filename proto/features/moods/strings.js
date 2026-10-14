@@ -15,4 +15,20 @@ export default { en: {
   m_proud_n: 3, m_proud_0: 'Easy!', m_proud_1: 'We did it!', m_proud_2: 'Bow to us!',
   m_cold_n: 1, m_cold_0: 'Brrr!',
   m_wet_n: 2, m_wet_0: 'My shoes!', m_wet_1: 'Splash!',
+}, ar: {
+  // a Rafeeq's bubble: a short cry, Gulf-flavoured plain Arabic (docs/arabic.md, section 3)
+  m_angry_n: 3, m_angry_0: 'غرر!', m_angry_1: 'صخرة سخيفة!', m_angry_2: 'تحرّك!',
+  m_kick_n: 2, m_kick_0: 'خذ هذه!', m_kick_1: 'آي! إصبعي!',
+  m_happy_n: 3, m_happy_0: 'يلا!', m_happy_1: 'أووه!', m_happy_2: 'حقّي!',
+  m_rich_n: 2, m_rich_0: 'يلمع!', m_rich_1: 'صرنا أغنياء!',
+  m_laugh_n: 3, m_laugh_0: 'هههه!', m_laugh_1: 'هيهيهي!', m_laugh_2: 'انظروا إليه!',
+  m_sooty_n: 3, m_sooty_0: 'لست أنا!', m_sooty_1: 'أنا بخير!', m_sooty_2: 'كح كح!',
+  m_tea_n: 3, m_tea_0: 'شاي؟', m_tea_1: 'وقت الكرك.', m_tea_2: 'ممم، حلو.',
+  m_doze_n: 1, m_doze_0: 'خمس دقايق...',
+  m_guilty_n: 3, m_guilty_0: 'لست أنا!', m_guilty_1: 'أنا أشتغل!', m_guilty_2: 'أي شاي؟',
+  m_scared_n: 2, m_scared_0: 'إنها تنظر إليّ!', m_scared_1: 'يمّه!',
+  m_dizzy_n: 2, m_dizzy_0: 'أوووه...', m_dizzy_1: 'صخرتان؟',
+  m_proud_n: 3, m_proud_0: 'سهلة!', m_proud_1: 'فعلناها!', m_proud_2: 'انحنوا لنا!',
+  m_cold_n: 1, m_cold_0: 'بررر!',
+  m_wet_n: 2, m_wet_0: 'حذائي!', m_wet_1: 'طشّ!',
 } };

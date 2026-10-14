@@ -7,9 +7,10 @@ import { addStrings, setLang, t, tIn, missingStrings } from './proto/core/string
 import { LANG, DIR } from './proto/core/lang.js';
 
 // pass 1 (14 Oct 2026): the first five minutes. pass 2: away, settings, telemetry and the first hour
-// (sites and starshop wait for a later pass: other work is open in those folders)
+// (sites and starshop wait for a later pass: other work is open in those folders). pass 3: chatter, moods, story
 const COMPLETE = ['ui', 'shop', 'picks', 'boss', 'foreman', 'look', 'chest', 'diggers', 'water', 'crystal', 'relics', 'ground', 'track', 'combo', 'crits', 'ores', 'tnt', 'oil',
-  'away', 'settings', 'telemetry', 'worldmap', 'rafeeqs', 'wardrobe', 'contracts'];
+  'away', 'settings', 'telemetry', 'worldmap', 'rafeeqs', 'wardrobe', 'contracts',
+  'chatter', 'moods', 'story'];   // pass 3: the crew's voices and the hakawati
 
 let failed = 0;
 const ok = (c, m) => { if (!c) { failed++; console.error('FAIL: ' + m); } };
