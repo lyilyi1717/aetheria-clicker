@@ -9,6 +9,7 @@ import { drawRafeeq, look } from '../diggers/art.js';
 import { bossFigure } from '../chatter/manager.js';
 import { starPanel } from '../starshop/ui.js';
 import { alqahwa, goNextHere } from '../sites/ui.js';
+import { openDesk } from '../story/ui.js';
 import { qahwaGuests, qahwaSpots, qahwaNextAct, QAHWA_SPOTS } from './flow.js';
 
 const { t } = G;
@@ -156,6 +157,7 @@ export function openAlqahwa(app, opts = {}) {
   const guests = who.rafeeqs.map((i, k) => makeGuest(s, i, spots[k] * CW));
   $('.qh-empty').textContent = t('qh_empty'); $('.qh-empty').hidden = guests.length > 0 || !!who.manager;
   const boss = who.manager ? { kind: 'm', fem: who.manager === 'f', x: 0.73 * CW, tx: 0.73 * CW, act: 'sit', left: 2, face: -1, sip: 0, wave: 0, sipT: 2, line: '', lineT: 0, said: -9, bob: 0 } : null;
+  const desk = openDesk(app, m, { stage: $('.qh-stage'), btns: $('.qh-btns'), CW });      // the hakawati (story/ui.js)
   guests.forEach(o => { o.act = 'sit'; o.left = 1 + rnd() * 3; o.arrived = true; });
   let T = 0, last = performance.now(), timer = 0, stopped = false;
 
@@ -188,7 +190,7 @@ export function openAlqahwa(app, opts = {}) {
     boardT -= dt; if (boardT <= 0) { boardT = 0.25; refreshBoard(); }
     // draw
     g.clearRect(0, 0, CW, CH);
-    room(g, T); cushions(g); counter(g, T);
+    room(g, T); cushions(g); counter(g, T); desk.draw(g, T, CW, GROUND);
     const order = [...guests.map(o => ({ y: 0, o })), ...(boss ? [{ y: 0, o: boss }] : [])].sort((a, b) => a.o.x - b.o.x);
     for (const { o } of order) {
       if (o.kind === 'm') {
@@ -212,7 +214,7 @@ export function openAlqahwa(app, opts = {}) {
     }
     timer = requestAnimationFrame(frame);
   }
-  function stop() { stopped = true; cancelAnimationFrame(timer); clearTimeout(timer); if (window.dig && window.dig.alqahwa === api) delete window.dig.alqahwa; }
+  function stop() { stopped = true; desk.stop(); cancelAnimationFrame(timer); clearTimeout(timer); if (window.dig && window.dig.alqahwa === api) delete window.dig.alqahwa; }
   const api = { guests, boss, stop };
   if (window.dig) window.dig.alqahwa = api;
   live = { stop };

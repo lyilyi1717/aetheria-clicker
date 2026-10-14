@@ -31,6 +31,7 @@ export * from './settings/rules.js';
 export * from './shop/rules.js';
 export * from './sites/rules.js';
 export * from './starshop/rules.js';
+export * from './story/rules.js';
 export * from './telemetry/rules.js';
 export * from './tnt/rules.js';
 export * from './track/rules.js';
