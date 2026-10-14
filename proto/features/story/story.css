@@ -1,10 +1,10 @@
 /* the hakawati: the telling bubble and the book, inside the Alqahwa window */
-.st-pane { position: absolute; inset-inline: 16%; inset-block-start: 14px; padding: 10px 16px 12px; background: #fffdf2; color: #1b1410; border: 3px solid #1b1410; border-radius: 14px; box-shadow: 0 4px 0 rgba(0,0,0,0.25); text-align: start; }
+.st-pane { position: absolute; inset-inline-start: 2%; inline-size: 37%; inset-block-start: 10px; z-index: 2; padding: 10px 16px 12px; background: #fffdf2; color: #1b1410; border: 3px solid #1b1410; border-radius: 14px; box-shadow: 0 4px 0 rgba(0,0,0,0.25); text-align: start; }
 .st-pane[hidden], .st-book[hidden] { display: none; }
 .st-top { display: flex; align-items: baseline; gap: 10px; margin-block-end: 4px; }
 .st-name { color: #8f2a1f; }
 .st-ch { color: #6d5a3c; font-size: 13px; }
-.st-line { margin: 0 0 8px; font-size: 20px; line-height: 1.35; font-weight: 600; cursor: pointer; }
+.st-line { margin: 0 0 8px; font-size: 17px; line-height: 1.35; font-weight: 600; cursor: pointer; }
 .st-btns { display: flex; align-items: center; gap: 10px; }
 .st-btns .st-gap { flex: 1; }
 .st-pane .ghost { color: #6d5a3c; border-color: #b79b6a; }

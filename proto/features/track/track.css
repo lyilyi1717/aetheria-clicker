@@ -36,7 +36,7 @@
 @keyframes trkBump { 30% { transform: scale(1.5); } }
 
 /* the dig is done: Tips and the message line step aside so the line fits; "Done here" is a bright gold button in the Tips place */
-#track.done #tips-btn, #track.done #trk-msg { display: none; }
+#track.done #tips-btn, #track.done #trk-msg, #track.done #goal-text { display: none; }
 #track.done #trk-head { flex: 1 1 auto; }
 #trk-done { flex: none; padding: 4px 14px; font-size: 14px; font-weight: 800; border-radius: 10px; cursor: pointer; background: var(--gold); color: var(--gold-ink); border: 2px solid #7a5a00; box-shadow: 0 0 10px rgba(255, 210, 63, .7); animation: trkGlow 1.4s ease-in-out infinite alternate; }
 #trk-done[hidden] { display: none; }
