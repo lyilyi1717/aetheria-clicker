@@ -402,7 +402,7 @@ ui({
         const road = el.querySelector('.road');
         road.textContent = '';
         // grouped by continent, with a small label over each group
-        const zoneOf = x => { const f = (G.ROAD || []).find(f => f.site === x.site && f.floor === x.floor); return f ? f.zone : G.roadZone({ run: { floor: x.floor } }); };
+        const zoneOf = x => { const f = (G.ROAD || []).find(f => f.site === x.site && f.floor === x.floor && f.ch === (x.ch === 2 ? 2 : 1)); return f ? f.zone : G.roadZone({ run: { floor: x.floor } }); };
         const order = G.ZONES || [];
         const sorted = stamps.map((x, i) => ({ x, i, z: Math.max(0, order.indexOf(zoneOf(x))) })).sort((a, b) => (a.z - b.z) || (a.i - b.i));
         let lastZ = -1;

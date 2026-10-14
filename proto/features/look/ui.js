@@ -12,7 +12,7 @@ let due = 0;
 function arrive(app) {
   const s = app.state, r = s.run;
   if (!r) return;
-  const i = (G.ROAD || []).findIndex(f => f.site === r.site && f.floor === r.floor);
+  const i = G.roadIndex(s);                       // chapter-aware: a night level is not its chapter-one twin
   const place = G.hasString('site_' + r.site) ? t('site_' + r.site) : r.site;
   const zone = i >= 0 ? G.ROAD[i].zone : '';
   const inZone = G.ROAD.filter(f => f.zone === zone);
