@@ -14,9 +14,9 @@ export default { en: {
   track_step: 'Step {n}',
   track_after: 'Then',
   track_more_pick: 'Your hit x1.5.',
-  track_more_camp: 'A stronger camp.',
+  track_more_camp: 'Rafeeq hit: {a}% of yours, then {b}%.',
   track_more_bag: 'Coins x1.5 more.',
-  track_plain_camp: 'Stronger Rafeeqs',
+  track_plain_camp: 'Rafeeq hit +{p}%',
   track_plain_bag: 'More Coins',
 
   hit_label: 'Your hit',
@@ -83,9 +83,9 @@ export default { en: {
   track_step: 'الخطوة {n}',
   track_after: 'ثم',
   track_more_pick: 'ضربتك ×1.5.',
-  track_more_camp: 'مخيّم أقوى.',
+  track_more_camp: 'ضربة الرفيق: {a}% من ضربتك، ثم {b}%.',
   track_more_bag: 'العملات ×1.5 مرة أخرى.',
-  track_plain_camp: 'رفقاء أقوى',
+  track_plain_camp: 'ضربة الرفيق +{p}%',
   track_plain_bag: 'عملات أكثر',
 
   // a pick's name is "معول" + its material: «معول النحاس II»، «معول الخشب»، «معول النجمة +2»
