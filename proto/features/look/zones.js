@@ -1,6 +1,6 @@
 // Dig look: the horizon of each continent, drawn on canvas (no images). One function per zone paints the far land into
-// the sky canvas of a place: `makeZoneProps({ W, SKY, sun })` hands back { africa(g), eastasia(g), americas(g), europe(g) }.
-// Arabia is not here: it keeps the place's own horizon.
+// the sky canvas of a place: `makeZoneProps({ W, SKY, sun })` hands back { africa(g), eastasia(g), americas(g), europe(g),
+// n_africa(g) ... (the same lands at night, chapter two), emptyquarter(g) }. Arabia is not here: it keeps the place's own horizon.
 export function makeZoneProps({ W, SKY, sun }) {
   const acacia = (g, x, base, h, col) => {
     g.strokeStyle = '#3a2814'; g.lineWidth = 4; g.lineCap = 'round';
@@ -84,7 +84,31 @@ export function makeZoneProps({ W, SKY, sun }) {
     g.fillStyle = col;
     for (const [dx, dy, r] of [[0, 0, 11], [12, -4, 13], [26, 0, 10], [12, 4, 11]]) { g.beginPath(); g.arc(x + dx * s, y + dy * s, r * s, 0, 7); g.fill(); }
   };
-  return {
+  // chapter two: a land at night is its day props under a dark veil, then stars and a moon over them
+  const night = paint => g => {
+    paint(g);
+    g.fillStyle = 'rgba(12,16,44,0.5)'; g.fillRect(0, 0, W, SKY);
+    let k = 7; const r = () => (k = (k * 1664525 + 1013904223) >>> 0) / 4294967296;
+    g.fillStyle = '#fff';
+    for (let i = 0; i < 40; i++) { g.globalAlpha = 0.35 + r() * 0.65; g.fillRect(r() * W, r() * (SKY * 0.55), 1.6, 1.6); }
+    g.globalAlpha = 1;
+    sun(g, W * 0.78, 30, 13, '#f4f0dc', 'rgba(230,230,255,0.22)');
+    g.fillStyle = 'rgba(12,16,44,0.85)'; g.beginPath(); g.arc(W * 0.78 + 6, 27, 11, 0, 7); g.fill();     // a crescent
+  };
+  // the Empty Quarter: high red dunes in rows under a low sun, and a far line of camels
+  const dunes = (g, col, base, amp, ph, len) => {
+    g.fillStyle = col; g.beginPath(); g.moveTo(0, SKY);
+    for (let x = 0; x <= W; x += 12) g.lineTo(x, SKY - base - Math.pow(Math.abs(Math.sin(x / len + ph)), 1.6) * amp);
+    g.lineTo(W, SKY); g.closePath(); g.fill();
+  };
+  const camel = (g, x, y, k) => {
+    g.fillStyle = '#4a1e10';
+    g.beginPath(); g.ellipse(x, y, 9 * k, 4 * k, 0, 0, 7); g.fill();                       // body
+    g.beginPath(); g.ellipse(x - 1 * k, y - 4 * k, 4 * k, 3 * k, 0, 0, 7); g.fill();       // hump
+    g.fillRect(x + 7 * k, y - 8 * k, 2 * k, 7 * k); g.fillRect(x + 7 * k, y - 9 * k, 5 * k, 2 * k);   // neck, head
+    for (const dx of [-6, -3, 3, 6]) g.fillRect(x + dx * k, y + 2 * k, 1.2 * k, 7 * k);    // legs
+  };
+  const props = {
     africa(g) {   // a low orange sun, far hills, a baobab and flat-topped acacias
       sun(g, W - 150, SKY - 26, 32, '#ffd27a', 'rgba(255,170,70,0.3)');
       ridge(g, '#b9763c', 22, 14, 1.3);
@@ -121,5 +145,15 @@ export function makeZoneProps({ W, SKY, sun }) {
       windmill(g, 480, SKY - 12);
       g.fillStyle = '#4f8a4a'; g.fillRect(0, SKY - 5, W, 5);
     },
+    emptyquarter(g) {   // the home land of the caravan: red sand, high dunes, a low sun, camels far off
+      sun(g, W * 0.3, SKY - 40, 30, '#ffd88a', 'rgba(255,150,70,0.3)');
+      dunes(g, '#d9733a', 50, 40, 0.3, 110);
+      dunes(g, '#c85a2a', 30, 34, 1.9, 80);
+      for (let i = 0; i < 5; i++) camel(g, 380 + i * 26, SKY - 34 - (i % 2), 0.9);
+      dunes(g, '#b4471f', 12, 22, 3.3, 60);
+      g.fillStyle = '#a63e1a'; g.fillRect(0, SKY - 5, W, 5);
+    },
   };
+  for (const z of ['africa', 'eastasia', 'americas', 'europe']) props['n_' + z] = night(props[z]);
+  return props;
 }

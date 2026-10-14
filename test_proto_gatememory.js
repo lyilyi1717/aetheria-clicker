@@ -10,7 +10,7 @@ const P = G.PARAMS.boss;
 function atGate(idx = G.FIXED.length, bank = 0, tries = 1) {
   G.seedRng(5);
   const s = G.newState();
-  for (const f of G.ROAD.slice(0, G.FIXED.length)) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 90, n: 1 };
+  for (const f of G.ROAD.slice(0, G.FIXED.length)) s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 90, n: 1 };
   const lv = G.ROAD[idx]; s.site = lv.site;
   s.top = lv.floor - 5; s.best = lv.floor - 4;
   for (let i = 0; i < G.KEEP_ROWS; i++) s.rows[i] = G.genRow(s, s.top + i);

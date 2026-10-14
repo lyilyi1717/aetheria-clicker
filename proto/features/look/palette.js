@@ -31,6 +31,13 @@ export const ZONE_LOOK = {
   eastasia: { sky: ['#cfdde0', '#f1f0ea'], far: '#9db3aa', ground: ['#8fb09c', 0.16] },
   americas: { sky: ['#5fb6d8', '#f3c9a0'], far: '#b5553a', ground: ['#c2402a', 0.16] },
   europe:   { sky: ['#8fa6b8', '#d6dde0'], far: '#6f9a62', ground: ['#5f9a58', 0.16] },
+  // chapter two, the road home at night: each land's look under a dark sky (zones.js paints its props with stars and a moon),
+  // and the ground a little bluer; then the Empty Quarter, red sand under a low red sun
+  n_europe:   { sky: ['#141c38', '#3c4c6e'], far: '#2f4a3a', ground: ['#2a3a6a', 0.16] },
+  n_americas: { sky: ['#101a36', '#46405e'], far: '#4a2a2a', ground: ['#3a2a5a', 0.16] },
+  n_eastasia: { sky: ['#18203a', '#4e5a6a'], far: '#34463f', ground: ['#2a4a5a', 0.16] },
+  n_africa:   { sky: ['#1e1634', '#5a3a4a'], far: '#4a3020', ground: ['#4a2a3a', 0.16] },
+  emptyquarter: { sky: ['#e2683a', '#ffc27a'], far: '#c8502a', ground: ['#d0441c', 0.16] },
 };
 const PLACE_SHARE = 0.3;
 export const placeLook = (key, zone) => {

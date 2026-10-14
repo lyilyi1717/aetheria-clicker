@@ -10,7 +10,7 @@
 // road level whose lost-try line was last told. A save without it starts empty, so every level already finished is "unread" in
 // the book, but the telling shows only the latest one: nobody is buried in stories.
 import { use } from '../../core/registry.js';
-import { ROAD, fixedNext, roadIndex } from '../sites/rules.js';
+import { ROAD, CHAPTER_LEN, fixedNext, roadIndex } from '../sites/rules.js';
 import strings from './strings.js';
 
 const LOST = 5;       // how many lost-try lines there are
@@ -67,7 +67,7 @@ export const storyIsEnd = n => (STORY_BEATS[n - 1] || {}).end || '';       // ''
 export function storyBook(s) {
   const un = storyUnlocked(s), out = [];
   for (const b of STORY_BEATS) {
-    if (b.level > ROAD.length) break;                       // chapters the road does not reach yet stay hidden
+    if (b.level > ROAD.length || (b.level > CHAPTER_LEN && un < CHAPTER_LEN)) break;   // chapter two stays hidden until chapter one is told
     let ch = out.find(c => c.zone === b.zone);
     if (!ch) out.push(ch = { zone: b.zone, no: b.chapter, beats: [] });
     ch.beats.push({ n: b.level, open: b.level <= un, read: storyRead(s, b.level), end: b.end, keys: storyKeys(b.level) });

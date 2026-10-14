@@ -78,7 +78,7 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
 }
 { // the deal: three distinct cards from a road that is done; it is kept until you pick; mixes kinds
   const s = fresh();
-  for (const f of G.ROAD) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 };
+  for (const f of G.ROAD) s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 };
   s.road.reach = 200; s.bossesDown = 2; G.siteRun(s); s.run.done = true;
   const d = G.dealCards(s);
   ok(d.length === 3 && new Set(d.map(c => c.key)).size === 3, 'three different cards');
@@ -91,7 +91,7 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
 }
 { // the Museum's sites join the deal when their set is done
   const s = fresh();
-  for (const f of G.ROAD) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 1, hard: 1, best: 400, n: 1 };
+  for (const f of G.ROAD) s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 1, hard: 1, best: 400, n: 1 };
   s.road.reach = 75; G.siteRun(s);
   G.SITES.sharks.open_ = G.SITES.sharks.open; G.SITES.sharks.open = () => true;
   let seen = false;
@@ -114,7 +114,7 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
 }
 { // the Hard medal: a card with a hard rule starts the dig under its contract; winning it is the third medal
   const s = fresh();
-  for (const f of G.ROAD) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 };
+  for (const f of G.ROAD) s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 };
   s.road.reach = 50; s.bossesDown = 2; G.siteRun(s);
   ok(G.hardOf('dunes', 50) === 'bare' && G.hardOf('dunes', 75) === 'rising' && G.hardOf('boom', 50) === 'tntOnly', 'each site has its hard rule: a contract, deeper floors the next one');
   ok(G.pickCard(s, { site: 'dunes', floor: 50, twist: '', hard: 'bare' }, NO) && s.contract === 'bare' && s.run.hard === 'bare', 'the dig starts under the contract');
@@ -143,9 +143,42 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   ok(old.road.stamps['boom:50'] && old.road.stamps['boom:50'].fin === 0 && old.road.stamps['gold:75'] && old.road.stamps['gold:75'].fin === 0, 'sites it had visited are stamps, not finished');
   ok(G.fixedNext(old).site === 'dunes' || G.fixedNext(old).site === 'bones', 'the visited ones are past their lesson');
 }
+{ // chapter two (sites slice v3): a save from before it, past the road, keeps its stamps and is dealt level 21 at its next move
+  const s = fresh();
+  for (const f of G.ROAD1) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 1, hard: 0, chili: 2, best: 400, n: 1, bank: 0 };
+  s.road.reach = 300; s.bossesDown = 2; G.siteRun(s); s.run.floor = 300; s.run.key = 'gold:300';
+  const o = JSON.parse(G.serialize(s));
+  o.fv.sites = 2;
+  for (const st of Object.values(o.road.stamps)) delete st.ch;
+  delete o.run.ch;
+  o.road.deal = [{ key: 'gold:300', site: 'gold', floor: 300, twist: '', kind: 'stretch' }];
+  const back = G.deserialize(JSON.stringify(o));
+  ok(back && Object.values(back.road.stamps).every(st => st.ch === 1) && back.run.ch === 1 && back.road.deal === null, 'old stamps and the dig in play are chapter one; the old deal is dropped');
+  ok(back.road.stamps['gold:275'].fin === 1 && back.road.stamps['gold:275'].chili === 2 && back.stars === s.stars, 'stamps, chili pips and Stars stay');
+  ok(back.run.key === 'gold:300' && !back.run.done && G.roadIndex(back) === -1, 'the dig in play goes on as it was');
+  const d = G.dealCards(back);
+  ok(G.fixedNext(back).level === 21 && d.length === 1 && d[0].key === 'c2:dunes:100', 'its next Next town deals chapter 2, level 1');
+  ok(G.pickCard(back, d[0], NO) && back.run.ch === 2 && back.road.stamps['c2:dunes:100'].ch === 2 && back.road.stamps['dunes:100'].fin === 1, 'level 21 has its own stamp; level 5 keeps its own');
+  const again = G.deserialize(G.serialize(back));
+  ok(again.run.ch === 2 && G.roadIndex(again) === 20, 'a chapter-two dig survives a save');
+}
+{ // chapter two: the same slot, harder ground and bigger Stars; par held below 275 m
+  const a = fresh(), b = fresh();
+  for (const s of [a, b]) { for (const f of G.ROAD1) s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: 1, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 }; s.bossesDown = 2; G.siteRun(s); }
+  G.pickCard(a, { site: 'dunes', floor: 100, twist: '', hard: '' }, NO);
+  G.pickCard(b, G.dealCards(b)[0], NO);
+  const P = G.PARAMS.sites;
+  const dirtOf = x => { for (let r = 5; r < 20; r++) { const c = x.rows[r].find(c => c && c.t === 'dirt'); if (c) return [r, c.max]; } return [0, 0]; };
+  const [ra, ha] = dirtOf(a), [rb, hb] = dirtOf(b), want = r => G.dirtHp(r) * G.BLOCKS.dirt.hp * G.SITES.dunes.hp;
+  ok(b.run.ch === 2 && ra && rb && Math.abs((hb / want(rb)) / (ha / want(ra)) / P.ch2Hp - 1) < 0.01, 'chapter-two ground is ch2Hp times harder');
+  ok(G.fold('bossHp', b, 100, 100) / G.fold('bossHp', a, 100, 100) === P.ch2Hp && G.fold('bossHp', b, 100, 50) / G.fold('bossHp', a, 100, 50) === P.ch2Hp, 'its Gate and its Big Rocks too');
+  ok(G.firstPay(100, 'learn', 2) === Math.round(G.firstPay(100, 'learn') * P.ch2Stars) || Math.abs(G.firstPay(100, 'learn', 2) / (G.starsAt(100) * P.learnPay * P.ch2Stars) - 1) < 1e-6, 'and pays ch2Stars times the Stars');
+  ok(G.sitePar(275) === Math.round(300 * Math.pow(1.45, 9)) && G.sitePar(300) === Math.round(G.sitePar(275) * 1.1) && G.sitePar(325) < G.sitePar(275) * 1.25, 'par at 300 and 325 m stays near 275 m');
+  ok(P.maxFloor === 325, 'Gates go to 325 m');
+}
 { // the cards are drawn from rules only: no DOM, nothing random outside the core source
   const a = fresh(7), b = fresh(7);
-  for (const s of [a, b]) { for (const f of G.ROAD) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 }; s.road.reach = 75; G.siteRun(s); }
+  for (const s of [a, b]) { for (const f of G.ROAD) s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n: 1 }; s.road.reach = 75; G.siteRun(s); }
   G.seedRng(5); const da = G.dealCards(a).map(c => c.key).join();
   G.seedRng(5); const db = G.dealCards(b).map(c => c.key).join();
   ok(da === db, 'the same seed deals the same cards');
@@ -153,13 +186,16 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
 
 { // the road: fourteen levels in order; a level stays until it is finished; stuck brings side cards
   const s = fresh();
-  const fin = (f, n = 1) => { s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n }; };
-  ok(G.ROAD.length === 20 && G.ROAD[19].floor === 275 && G.ZONES.every(z => G.ROAD.filter(f => f.zone === z).length === 4) && G.ROAD.slice(0, 4).every((f, i) => f.site === G.FIXED[i].site && f.floor === G.FIXED[i].floor) && G.ROAD.every(f => G.ZONES.includes(f.zone)), 'twenty levels, four in each land, the first four as before');
-  ok([50, 75, 100, 125, 150, 175, 200, 225, 250, 275].every(fl => G.ROAD.filter(f => f.floor === fl).length === 2), 'every depth is met twice');
+  const fin = (f, n = 1) => { s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 400, n }; };
+  const R1 = G.ROAD1;
+  ok(R1.length === 20 && R1[19].floor === 275 && G.ZONES.slice(0, 5).every(z => R1.filter(f => f.zone === z).length === 4) && R1.slice(0, 4).every((f, i) => f.site === G.FIXED[i].site && f.floor === G.FIXED[i].floor) && R1.every(f => G.ZONES.includes(f.zone) && f.ch === 1), 'chapter one: twenty levels, four in each land, the first four as before');
+  ok([50, 75, 100, 125, 150, 175, 200, 225, 250, 275].every(fl => R1.filter(f => f.floor === fl).length === 2), 'every depth is met twice');
+  ok(G.ROAD.length === 40 && G.ROAD2.length === 20 && G.ROAD2.every(f => f.ch === 2) && G.ROAD2.map(f => f.zone).filter((z, i, a) => a.indexOf(z) === i).join() === 'n_europe,n_americas,n_eastasia,n_africa,emptyquarter' && G.ROAD[39].floor === 325 && G.ROAD[36].floor === 300, 'chapter two: twenty levels, the lands in reverse at night, then the Empty Quarter at 300 and 325 m');
+  ok(new Set(G.ROAD.map(G.roadKey)).size === 40 && G.roadKey(G.ROAD[20]) === 'c2:dunes:100', 'every level has its own stamp key');
   for (const f of G.FIXED) fin(f);
   s.road.reach = 75;
   let d = G.dealCards(s);
-  ok(d.length === 1 && d[0].kind === 'fixed' && d[0].level === 5 && d[0].of === 20 && d[0].site === 'dunes' && d[0].floor === 100, 'after the four: level 5 of 20, one card');
+  ok(d.length === 1 && d[0].kind === 'fixed' && d[0].level === 5 && d[0].of === 40 && G.levelOf(d[0].level).of === 20 && d[0].site === 'dunes' && d[0].floor === 100, 'after the four: level 5 of 20, one card');
   ok(G.roadLevel(s).level === 5, 'the road knows the level');
   s.road.stamps[G.siteKey('dunes', 100)] = { site: 'dunes', floor: 100, twist: '', fin: 0, fast: 0, hard: 0, best: 0, n: 1 };
   s.road.deal = null; d = G.dealCards(s);
@@ -168,8 +204,13 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   s.road.deal = null; d = G.dealCards(s);
   ok(d.length > 1 && d[0].kind === 'fixed' && d[0].level === 5 && d.slice(1).every(c => c.kind !== 'fixed' && c.floor <= 75), 'two failed tries: the level stays first, side cards on finished floors beside it');
   ok(G.fixedNext(s).level === 5, 'a level past the fourth is never skipped');
+  for (const f of G.ROAD1) fin(f);
+  const c2 = G.fixedNext(s);
+  ok(c2 && c2.level === 21 && c2.ch === 2 && c2.n === 1 && c2.chOf === 20 && c2.zone === 'n_europe' && G.roadLevel(s).ch === 2 && G.roadLevel(s).n === 1, 'after level 20: chapter 2, level 1 of 20');
+  s.road.deal = null; d = G.dealCards(s);
+  ok(d.length === 1 && d[0].key === 'c2:dunes:100' && d[0].ch === 2, 'Next town deals level 21 alone');
   for (const f of G.ROAD) fin(f);
-  ok(G.fixedNext(s) === null && G.roadLevel(s).level === 21, 'the road ends');
+  ok(G.fixedNext(s) === null && G.roadLevel(s).level === 41, 'the road ends after level 40');
 }
 
 { // a road depth pays most when proved; leaving never beats finishing again
@@ -182,7 +223,7 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
 
 { // a finished level can be dug again from the map: plain or hard; no first-finish or medal is paid twice; the road stays put
   const s = fresh(2);
-  const mk = (i, v) => { const f = G.ROAD[i]; s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 500, n: 1, ...v }; };
+  const mk = (i, v) => { const f = G.ROAD[i]; s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 500, n: 1, ...v }; };
   for (let i = 0; i < 3; i++) mk(i, i === 1 ? { fast: 1 } : {});
   s.road.reach = G.ROAD[2].floor; s.bossesDown = 2; G.siteRun(s);
   const k0 = G.siteKey(G.ROAD[0].site, G.ROAD[0].floor), kNext = G.fixedNext(s);
@@ -228,8 +269,8 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   ok(Math.abs(s.road.chiliHit - 0.08) < 1e-9 && G.replayCard(s, k0, true) === null, 'pip 5 adds 5% more, and then there is no next pip');
   { const big = fresh(5); for (let i = 0; i < 40; i++) big.road.stamps['x' + i] = { site: 'dunes', floor: 50 + i, twist: '', fin: 1, chili: 5, hard: 1 };
     ok(G.chiliHit(big) === G.PARAMS.sites.chiliHitCap && G.chiliHit(big) <= 1.6 + 1e-9, 'the chilies never add more than the cap'); }
-  { const q = fresh(6); const f = G.ROAD[0]; q.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 9, n: 1 }; q.bossesDown = 2; q.road.reach = 50;
-    G.pickCard(q, G.replayCard(q, G.siteKey(f.site, f.floor), true), NO);
+  { const q = fresh(6); const f = G.ROAD[0]; q.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 9, n: 1 }; q.bossesDown = 2; q.road.reach = 50;
+    G.pickCard(q, G.replayCard(q, G.roadKey(f), true), NO);
     const plainBoss = (() => { const z = fresh(7); const pf = G.ROAD[0]; z.run = { ...G.siteRun(z), site: pf.site, floor: pf.floor }; return G.fold('bossHp', z, 100, z.run.floor); })();
     ok(Math.abs(G.fold('bossHp', q, 100, q.run.floor) / plainBoss - G.PARAMS.sites.chiliRock) < 1e-9, 'a chili level makes the Big Rocks harder by the pip step');
     G.leaveContract(q, NO); ok(G.fold('bossHp', q, 100, q.run.floor) === plainBoss, 'and leaving makes them plain again'); }
@@ -237,7 +278,7 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   ok(G.replayCard(s, G.siteKey(kNext.site, kNext.floor), false) === null, 'the road level itself is not a replay until finished');
   // not allowed to move on: refused
   const lock = fresh(3); mk2(lock);
-  function mk2(x) { const f = G.ROAD[0]; x.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 9, n: 1 }; x.bossesDown = 0; }
+  function mk2(x) { const f = G.ROAD[0]; x.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 9, n: 1 }; x.bossesDown = 0; }
   const rc = G.replayCard(lock, G.siteKey(G.ROAD[0].site, G.ROAD[0].floor), false);
   ok(rc && G.pickCard(lock, rc, NO) === false, 'before the Gate is broken nobody can move on, replay or not');
 }

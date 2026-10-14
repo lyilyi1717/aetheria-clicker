@@ -13,6 +13,7 @@ import { buildMap, PW, HH } from './layout.js';
 import { paint, along } from './draw.js';
 import { openAlqahwa, stopAlqahwa } from './alqahwa.js';
 import { autoEnterCard } from './flow.js';
+import { levelText } from '../sites/level.js';
 
 // a chevron pointing toward the start of the text (the left one); the right button turns it round, both follow the text direction
 const CHEVRON = '<svg viewBox="0 0 12 20" width="14" height="24" aria-hidden="true"><path d="M10 2 L2 10 L10 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -47,7 +48,7 @@ function start(app, m, map, opts) {
   const $ = q => m.querySelector(q);
   const cv = $('canvas'), g = cv.getContext('2d'), stage = $('.wm-stage');
   $('h2').textContent = t('wm_title');
-  $('.wm-sub').textContent = map.nextIdx < G.ROAD.length ? t('fin_next_level', { n: map.nextIdx + 1, of: G.ROAD.length }) : t('wm_hub_open');
+  $('.wm-sub').textContent = map.nextIdx < G.ROAD.length ? levelText(map.nextIdx + 1) : t('wm_hub_open');
   $('.wm-back').textContent = t('wm_back'); $('.wm-back').addEventListener('click', () => app.modal.close());
   $('.wm-pan.l').innerHTML = CHEVRON; $('.wm-pan.r').innerHTML = CHEVRON;
   $('.wm-pan.l').title = t('wm_pan_left'); $('.wm-pan.r').title = t('wm_pan_right');
@@ -64,7 +65,7 @@ function start(app, m, map, opts) {
 
   // ---------- the walk ----------
   const fromKey = opts.from && opts.from.key;
-  const fromNode = fromKey ? map.nodes.find(n => n.type === 'road' && G.siteKey(n.site, n.floor) === fromKey) : null;
+  const fromNode = fromKey ? map.nodes.find(n => n.type === 'road' && G.roadKey(n) === fromKey) : null;
   const target = fromNode && fromNode.i === map.nextIdx - 1 ? (map.nextIdx < G.ROAD.length ? map.nodes.find(n => n.type === 'road' && n.i === map.nextIdx) : map.hub) : null;
   const edge = target ? map.edges.find(e => e.from === fromNode && e.to === target) : null;
   const won = fromNode && fromNode.stamp ? ['fin', 'fast', 'hard'].map((k, i) => (fromNode.stamp[k] ? i : -1)).filter(i => i >= 0) : [];
@@ -126,15 +127,15 @@ function start(app, m, map, opts) {
     if (n.type === 'road') {
       const f = G.ROAD[n.i];
       name.textContent = t('site_' + n.site);
-      line.textContent = t('zone_level', { zone: t('look_zone_' + n.zone), level: t('fin_next_level', { n: n.level, of: G.ROAD.length }) });
+      line.textContent = t('zone_level', { zone: t('look_zone_' + n.zone), level: levelText(n.level) });
       gt.textContent = t('gate_par', { gate: t('next_gate', { n: n.floor }), par: t('next_par', { t: clock(G.sitePar(n.floor)) }) });
       nw.textContent = t(newThingKey(f, n.i)); nw.classList.toggle('hard', !!n.prove);
       if (n.state === 'locked') pay.textContent = t('wm_locked', { n: n.level - 1 });
       else if (n.state === 'done' && n.stamp && n.stamp.fin) {
-        const again = G.replayCard(s, G.siteKey(n.site, n.floor), false);
+        const again = G.replayCard(s, G.roadKey(f), false);
         const all = n.stamp.fast && G.pipsOf(n.stamp) >= G.PARAMS.sites.chiliPips;
         pay.textContent = all ? t('wm_all_won') : t('wm_again_line', { t: clock(n.stamp.best), par: clock(G.sitePar(n.floor)) });
-        const nextChili = G.replayCard(s, G.siteKey(n.site, n.floor), true);        // the next chili: its rules and what it pays, shown before you start
+        const nextChili = G.replayCard(s, G.roadKey(f), true);        // the next chili: its rules and what it pays, shown before you start
         if (nextChili) {
           const f = chiliFacts(n.floor, nextChili.chili);
           nw.textContent = t('chili_next', { name: f.name, rule: f.rule }); nw.classList.add('hard');
@@ -150,7 +151,7 @@ function start(app, m, map, opts) {
       mrow.innerHTML = medalsHtml(n.stamp) + (n.stamp && n.stamp.fin ? `<div class="chilirow">${pipsHtml(G.pipsOf(n.stamp), 20, 0)}</div>` : '');
     } else if (n.type === 'hub') {
       name.textContent = t('wm_beyond');
-      line.textContent = n.state === 'done' ? t('wm_hub_open') : t('wm_hub_locked', { n: G.ROAD.length });
+      line.textContent = n.state !== 'done' ? t('wm_hub_locked', { n: G.CHAPTER_LEN }) : map.nextIdx < G.ROAD.length ? t('wm_hub_ch2') : t('wm_hub_open');
     } else {
       name.textContent = n.twist ? t('site_twist', { site: t('site_' + n.site), twist: t('twist_' + n.twist) }) : t('site_' + n.site);
       line.textContent = c ? c.hard ? t('tag_hard', { tag: t('tag_' + c.kind), rule: t('next_hard', { rule: ruleLine(c.hard) }) }) : t('tag_' + c.kind) : t('wm_island');

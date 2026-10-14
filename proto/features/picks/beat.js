@@ -57,6 +57,11 @@ export const ZONE_BARS = {
     4: { name: 'bar_europe_4', hits: '4..44..44..44..4' },
   },
 };
+// Chapter two (the road home at night): each land at night keeps its own groove (the same notes, so the same hits; the kit plays
+// it lower and softer, kits.js), and the Empty Quarter plays the home groove of Arabia on the old kit (the tabl and the clap).
+const nightOf = (zone, bars) => Object.fromEntries(Object.entries(bars).map(([k, b]) => [k, { ...b, name: b.name.replace('bar_' + zone, 'bar_n_' + zone) }]));
+for (const z of ['europe', 'americas', 'eastasia', 'africa']) ZONE_BARS['n_' + z] = nightOf(z, ZONE_BARS[z]);
+ZONE_BARS.emptyquarter = Object.fromEntries(Object.entries(PICKS_BARS).map(([k, b]) => [k, { name: 'bar_emptyquarter_' + k, hits: b.hits }]));
 export const BAR_ZONES = ['arabia', ...Object.keys(ZONE_BARS)];
 const velOf = (hits, count) => [...hits].map((ch, i) => (ch === '.' ? '.' : Number(ch) < count ? 'o' : i % 4 === 0 ? 'X' : 'x')).join('');
 
@@ -66,7 +71,7 @@ export function picksBarOf(count, zone = 'arabia') {
   const k = Math.max(1, Math.min(MAX_PICKS, count | 0));
   const Z = ZONE_BARS[zone];
   const B = Z ? { ...Z[k], vel: velOf(Z[k].hits, k) } : PICKS_BARS[k];
-  const key = k + B.hits + B.vel;
+  const key = (Z ? zone : 'arabia') + k + B.hits + B.vel;      // the zone too: a land at night has its land's notes
   if (!parsed[key]) parsed[key] = { count: k, zone: Z ? zone : 'arabia', name: B.name, n: [...B.hits].map(ch => (ch === '.' ? 0 : Number(ch))), v: [...B.vel] };
   return parsed[key];
 }

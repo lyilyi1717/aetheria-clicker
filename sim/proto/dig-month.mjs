@@ -292,8 +292,19 @@ async function main() {
   if (!arg('sum', false)) console.log(`Dig, the first ${DAYS} days. ${SEEDS} seed(s), step ${DT} s. Players: ` + Object.entries(PLAYERS).map(([k, v]) => `${k} = ${v.note}`).join('; ') + '.');
   if (!arg('sum', false)) console.log(`Move policy (player.mjs): finished = Next site at once; else stalled ${PROFILES.mid.stall} s (mid), next level more than ${MOVE.far} s of income away, ${MOVE.budget} x par spent; or stalled ${MOVE.giveUp} s.`);
   const base = await runAll(SET);
-  if (arg('dump', false)) (await import('node:fs')).writeFileSync(arg('dump'), JSON.stringify(base.map(r => ({ player: r.player, seed: r.seed, fin: r.fin, gates: r.gates, medals: r.medals, resets: r.resets, series: r.series, marks: r.marks, blk: r.blk, dmg: r.dmg }))));
-  if (arg('sum', false)) { const out = v => console.log('SUM ' + JSON.stringify(v.ov) + ' ' + sumLine(v.res).split(String.fromCharCode(10)).join(' | ')); out({ ov: SET, res: base }); if (AB) for (const v of (Array.isArray(AB) ? AB : [AB])) out({ ov: v, res: await runAll({ ...SET, ...v }) }); return; }
+  // --dump file.json: the base runs; with --sum and --ab, each variant k also goes to file-ab<k>.json (for scripts/dig-levels.cjs)
+  const dumpTo = async (file, res) => (await import('node:fs')).writeFileSync(file, JSON.stringify(res.map(r => ({ player: r.player, seed: r.seed, fin: r.fin, gates: r.gates, medals: r.medals, resets: r.resets, series: r.series, marks: r.marks, blk: r.blk, dmg: r.dmg }))));
+  if (arg('dump', false)) await dumpTo(arg('dump'), base);
+  if (arg('sum', false)) {
+    const out = v => console.log('SUM ' + JSON.stringify(v.ov) + ' ' + sumLine(v.res).split(String.fromCharCode(10)).join(' | '));
+    out({ ov: SET, res: base });
+    if (AB) for (const [k, v] of (Array.isArray(AB) ? AB : [AB]).entries()) {
+      const res = await runAll({ ...SET, ...v });
+      out({ ov: v, res });
+      if (arg('dump', false)) await dumpTo(String(arg('dump')).replace(/(\.json)?$/, '-ab' + k + '.json'), res);
+    }
+    return;
+  }
   const fails = report(`=== ${AB ? 'BASELINE' : 'RUN'} ${JSON.stringify(SET)} ===`, base);
   if (AB) for (const v of (Array.isArray(AB) ? AB : [AB])) { const ov = { ...SET, ...v }; report(`=== VARIANT ${JSON.stringify(v)} ===`, await runAll(ov)); }
   console.error(`(${((Date.now() - t0) / 1000).toFixed(0)} s)`);

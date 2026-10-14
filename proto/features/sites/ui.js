@@ -6,6 +6,7 @@ import { AT, H, W, SKY, yOf, CELL, screenFlash, shake, ring, spark } from '../..
 import { sfx, tone, noise, gap } from '../../ui/audio.js';
 import { icon, S, badge, star } from '../../ui/icons.js';
 import { ofLevel } from '../rafeeqs/portrait.js';
+import { levelText } from './level.js';
 import { finishChoices, chiliPop } from '../worldmap/flow.js';
 
 const { t } = G;
@@ -127,6 +128,7 @@ const kitCrew = s => Math.max(G.PARAMS.sites.kitCrew, G.starshopLevel(s, 'sp_hea
 const DEPTH_NEW = { 100: 'black', 125: 'living', 150: 'angry', 175: 'hot' };
 export function newThingKey(f, idx) {
   if (f.prove) return 'new_prove';
+  if (f.ch === 2) return idx === G.CHAPTER_LEN ? 'new_ch2' : f.zone === 'emptyquarter' ? 'new_eq' : 'new_night';
   if (idx < 4) return 'new_site_' + f.site;
   return 'new_layer_' + (DEPTH_NEW[f.floor] || 'more');
 }
@@ -143,21 +145,23 @@ function cheapestStep(s) {
 const esc = x => String(x).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 const row = (ic, text) => `<li><span class="ic">${icon(ic, 22)}</span><span>${esc(text)}</span></li>`;
 
-// the card after the whole road
-function showEnd(app) {
-  const s = app.state, stamps = G.roadStamps(s).filter(x => G.ROAD.some(f => f.site === x.site && f.floor === x.floor) && !x.twist);
+// the card after a chapter: ch 1 (level 20, Grandpa's bell: chapter two starts) or 2 (level 40, the whole road)
+function showEnd(app, ch = 2) {
+  const keys = new Set(G.ROAD.filter(f => ch === 2 || f.ch !== 2).map(G.roadKey));
+  const s = app.state, stamps = G.roadStamps(s).filter(x => keys.has(x.key));
   const medals = stamps.reduce((n, x) => n + (x.fin ? 1 : 0) + (x.fast ? 1 : 0) + (x.hard ? 1 : 0), 0), time = stamps.reduce((n, x) => n + (x.best || 0), 0);
   const m = app.modal.open('finish', `<div class="card finish end"><div class="seal"><span class="sealic"></span><b class="word"></b></div><h2></h2><p class="more sub"></p>`
     + `<ul class="tot"></ul><p class="more deal"></p><div class="btns"><button class="primary gold"></button></div></div>`);
   if (!m) return false;
   m.querySelector('.sealic').innerHTML = icon('gate', 44);
-  m.querySelector('.word').textContent = t('end_stamp');
-  m.querySelector('h2').textContent = t('end_title');
-  m.querySelector('.sub').textContent = t('end_sub');
-  m.querySelector('.tot').innerHTML = row('gate', t('end_levels', { n: stamps.filter(x => x.fin).length, of: G.ROAD.length }))
+  const c1 = ch === 1 ? '_ch1' : '';
+  m.querySelector('.word').textContent = t('end_stamp' + c1);
+  m.querySelector('h2').textContent = t('end_title' + c1);
+  m.querySelector('.sub').textContent = t('end_sub' + c1);
+  m.querySelector('.tot').innerHTML = row('gate', t('end_levels', { n: stamps.filter(x => x.fin).length, of: keys.size }))
     + row('medal_fin', t('end_medals', { n: medals })) + row('watch', t('end_time', { t: clock(time) }));
-  m.querySelector('.deal').textContent = t('end_deal');
-  const go = m.querySelector('.gold'); go.textContent = t('end_go');
+  m.querySelector('.deal').textContent = t('end_deal' + c1);
+  const go = m.querySelector('.gold'); go.textContent = t('end_go' + c1);
   go.addEventListener('click', () => { app.modal.close(); goNext(app, lastFin); });
   sfx.star(); screenFlash('#fff', 0.8); shake(0.8);
   return true;
@@ -179,8 +183,9 @@ function fillChili(m, s, d) {
 function showFinish(app, d, again) {
   const s = app.state;
   lastD = d;
-  const last = G.ROAD[G.ROAD.length - 1];
-  if (d.first && !d.twist && last && d.site === last.site && d.floor === last.floor && !G.fixedNext(s)) return showEnd(app);
+  const lv = d.first && !d.twist ? G.ROAD.findIndex(f => f.site === d.site && f.floor === d.floor && f.ch === (d.ch || 1)) + 1 : 0;
+  if (lv === G.ROAD.length && !G.fixedNext(s)) return showEnd(app, 2);
+  if (lv === G.CHAPTER_LEN) return showEnd(app, 1);
   const m = app.modal.open('finish', `<div class="card finish"><div class="seal"><span class="sealic"></span><b class="word"></b></div><h2></h2><p class="more gate"></p>`
     + `<p class="time"></p><p class="more fast"></p><p class="found"></p><div class="rq-of"></div><div class="mrow"></div><div class="chilirow"></div><p class="more chilitxt"></p><p class="more chilenext"></p><p class="earn"></p>`
     + `<div class="fcols"><section class="keep"><h3></h3><ul></ul></section><section class="kit"><h3></h3><ul></ul><div class="nextlvl"></div></section></div>`
@@ -229,7 +234,7 @@ function showFinish(app, d, again) {
     if (nx) {
       box.innerHTML = `<span class="ic">${icon('site_' + nx.site, 40)}</span><div><b></b><span class="pl"></span><span class="gt"></span><span class="nw"></span></div>`;
       box.querySelector('b').textContent = t('fin_next_at', { name: t('site_' + nx.site), land: t('look_zone_' + nx.zone) });
-      box.querySelector('.pl').textContent = t('fin_next_level', { n: nx.level, of: nx.of });
+      box.querySelector('.pl').textContent = levelText(nx.level);
       box.querySelector('.gt').textContent = t('next_gate', { n: nx.floor });
       const nw = box.querySelector('.nw'); nw.textContent = t(newThingKey(nx, nx.level - 1)); nw.classList.toggle('hard', !!nx.prove);
     } else box.textContent = t('fin_next_deal');
@@ -397,7 +402,7 @@ ui({
         const road = el.querySelector('.road');
         road.textContent = '';
         // grouped by continent, with a small label over each group
-        const zoneOf = x => { const f = (G.ROAD || []).find(f => f.site === x.site && f.floor === x.floor); return f ? f.zone : G.roadZone({ run: { floor: x.floor } }); };
+        const zoneOf = x => { const f = (G.ROAD || []).find(f => f.site === x.site && f.floor === x.floor && f.ch === (x.ch === 2 ? 2 : 1)); return f ? f.zone : G.roadZone({ run: { floor: x.floor } }); };
         const order = G.ZONES || [];
         const sorted = stamps.map((x, i) => ({ x, i, z: Math.max(0, order.indexOf(zoneOf(x))) })).sort((a, b) => (a.z - b.z) || (a.i - b.i));
         let lastZ = -1;

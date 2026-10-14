@@ -4,7 +4,7 @@ import strings from './proto/features/story/strings.js';
 
 let bad = 0;
 const ok = (c, m) => { if (!c) { bad++; console.error('FAIL: ' + m); } };
-const fin = (s, n) => { for (let i = 0; i < n; i++) { const f = G.ROAD[i]; s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, chili: 0, best: 0, n: 1, bank: 0 }; } };
+const fin = (s, n) => { for (let i = 0; i < n; i++) { const f = G.ROAD[i]; s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, chili: 0, best: 0, n: 1, bank: 0 }; } };
 
 { // the data: one entry per road level, three lines each, every string there
   ok(G.STORY_BEATS.length === 40 && G.ROAD.length >= 20 && G.ROAD.length <= 40, 'a beat for every level of the two chapters');
@@ -30,8 +30,9 @@ const fin = (s, n) => { for (let i = 0; i < n; i++) { const f = G.ROAD[i]; s.roa
   ok(G.storyUnlocked(t) === 20 && G.storyIsEnd(20) === 'bell', 'level 20 gives the bell and the note');
   ok(!G.storyFound(t), 'the caravan is not found at level 20');
   const u = G.newState(); fin(u, 19);
-  const book = G.storyBook(t);
-  ok(book.length === 5 && book.map(c => c.zone).join() === 'arabia,africa,eastasia,americas,europe', 'five lands of chapter one, in road order; chapter two stays hidden until the road reaches it');
+  const book = G.storyBook(u);
+  ok(book.length === 5 && book.map(c => c.zone).join() === 'arabia,africa,eastasia,americas,europe', 'five lands of chapter one, in road order; chapter two stays hidden until chapter one is told');
+  ok(G.storyBook(t).length === 10 && G.storyBook(t).slice(5).map(c => c.zone).join() === G.ZONES.slice(5).join(), 'after level 20 the book shows chapter two, its lands in the order of the road');
   ok(book.every(c => c.beats.length === 4), 'four beats a land');
   ok(G.storyBook(u)[4].beats[3].open === false && G.storyBook(u)[4].beats[2].open === true, 'the book locks what is not yet told');
 }
@@ -64,7 +65,7 @@ const fin = (s, n) => { for (let i = 0; i < n; i++) { const f = G.ROAD[i]; s.roa
   const s = G.newState(); fin(s, 4);
   ok(G.storyLostLine(s) === '', 'no tries at the next level, no line');
   const f = G.fixedNext(s);
-  s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 0, fast: 0, hard: 0, chili: 0, best: 0, n: 1, bank: 0 };
+  s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 0, fast: 0, hard: 0, chili: 0, best: 0, n: 1, bank: 0 };
   ok(/^st_lost_[1-5]$/.test(G.storyLostLine(s)), 'one try and left: a line');
   G.storyLostMark(s);
   ok(G.storyLostLine(s) === '', 'told once');

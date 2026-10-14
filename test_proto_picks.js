@@ -84,7 +84,7 @@ const TEMPOS = P.tempos.slice(), COUNTS = [1, 2, 3, 4], TOP = Math.max(...TEMPOS
   ok(near(G.picksStep(s), 15 / 132) && near(G.picksHps(s), 2 * 8 * 132 / 240), 'the step and the hits a second follow the tempo');
   ok(!G.itemOpen(s, 'tempo') && !G.canBuy(s, 'tempo') && /Americas/.test(G.picksTempoLock(s)), '144 is shut: "' + G.picksTempoLock(s) + '"');
   s.coins = 1e12;
-  const stamp = lvl => { const f = G.ROAD[lvl - 1]; s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 0, n: 1 }; };
+  const stamp = lvl => { const f = G.ROAD[lvl - 1]; s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 0, n: 1 }; };
   stamp(15); ok(!G.canBuy(s, 'tempo'), 'level 15 does not open 144');
   stamp(16); ok(G.canBuy(s, 'tempo') && G.picksTempoLock(s) === '' && G.buy(s, 'tempo') && G.picksBpm(s) === 144, 'finishing the Americas (level 16) opens 144');
   ok(!G.canBuy(s, 'tempo') && /road/.test(G.picksTempoLock(s)), '160 is shut: "' + G.picksTempoLock(s) + '"');
@@ -93,7 +93,7 @@ const TEMPOS = P.tempos.slice(), COUNTS = [1, 2, 3, 4], TOP = Math.max(...TEMPOS
   ok(Math.abs(G.deserialize(G.serialize(s)).up.tempo - 5) === 0 && G.picksBpm(G.deserialize(G.serialize(s))) === 160, 'a save keeps the opened tempos (the stamps stay)');
   s.up.tempo = 5; const kept = G.deserialize(G.serialize(s)); ok(G.picksBpm(kept) === 160, 'an old save already past 132 keeps its tempo');
   // 160 stays shut for a player who finished the Americas only, even after a New Site
-  const t2 = G.newState(); t2.road.stamps = {}; { const f = G.ROAD[15]; t2.road.stamps[G.siteKey(f.site, f.floor)] = { fin: 1 }; }
+  const t2 = G.newState(); t2.road.stamps = {}; { const f = G.ROAD[15]; t2.road.stamps[G.roadKey(f)] = { fin: 1 }; }
   t2.up.tempo = 3; t2.total = 1e9; G.reset(t2, 'site'); t2.up.tempo = 4;
   ok(!G.itemOpen(t2, 'tempo') && G.picksTempoLock(t2) !== '', 'the opened tempo is kept for ever, the next one is still shut');
   // a New Site: the picks stay, the tempo starts again
@@ -328,7 +328,7 @@ for (const n of COUNTS) for (const bpm of TEMPOS) {
     let min = 1e9; for (let i = 1; i < ts.length; i++) min = Math.min(min, ts[i] - ts[i - 1]);
     ok(min >= P.floor - 1e-9, zone + ' ' + n + ': every step at ' + TOP + ' is 75 ms or more apart (' + (min * 1000).toFixed(1) + ')');
   }
-  ok(seen.size === 20, 'twenty different names');
+  ok(seen.size === G.ZONES.length * 4, 'a different name for every bar of every land');
   ok(G.picksBarOf(1).name === 'bar_1' && G.picksBarOf(4, 'arabia').name === 'bar_4', 'Arabia keeps the old bars');
 }
 
@@ -336,10 +336,10 @@ for (const n of COUNTS) for (const bpm of TEMPOS) {
   const s = G.newState();
   ok(G.roadZone(s) === 'arabia' && G.picksBar(s).zone === 'arabia', 'a new dig plays the Arabia bar');
   for (const f of G.ROAD) {
-    s.run = { ...s.run, site: f.site, floor: f.floor, twist: '' };
+    s.run = { ...s.run, site: f.site, floor: f.floor, twist: '', ch: f.ch };
     ok(G.roadZone(s) === f.zone && G.picksBar(s).zone === f.zone, f.site + ' ' + f.floor + ' plays the ' + f.zone + ' bar');
   }
-  s.run = { ...s.run, site: 'dunes', floor: 100, twist: 'heavy' };
+  s.run = { ...s.run, site: 'dunes', floor: 100, twist: 'heavy', ch: 1 };
   ok(G.picksBar(s).zone === 'africa', 'a side level plays the beat of the deepest road level at or above its floor');
 }
 

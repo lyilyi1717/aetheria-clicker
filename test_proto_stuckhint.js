@@ -13,7 +13,7 @@ function atGate(tries = 1, floor = 25) {
   for (let i = 0; i < G.KEEP_ROWS; i++) s.rows[i] = G.genRow(s, s.top + i);
   for (let i = 0; i < 5; i++) s.rows[i] = s.rows[i].map(() => null);
   // the lessons are finished; the run is the next level of the road, tried `tries` times
-  for (const f of G.ROAD.slice(0, G.FIXED.length)) s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 90, n: 1 };
+  for (const f of G.ROAD.slice(0, G.FIXED.length)) s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 90, n: 1 };
   const lv = G.ROAD[G.FIXED.length]; floor = lv.floor; s.site = lv.site;
   s.top = floor - 5; s.best = floor - 4;
   for (let i = 0; i < G.KEEP_ROWS; i++) s.rows[i] = G.genRow(s, s.top + i);

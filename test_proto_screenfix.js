@@ -36,7 +36,7 @@ const run = (s, secs, ev = NO) => { for (let i = 0; i < secs * 20; i++) G.step(s
 
 { // the finish card's Stars equal the pip's pay (and a Fast medal on top, nothing else)
   G.seedRng(2); const s = G.newState();
-  const mk = (i, v) => { const f = G.ROAD[i]; s.road.stamps[G.siteKey(f.site, f.floor)] = { site: f.site, floor: f.floor, twist: '', fin: 1, fast: 0, hard: 0, best: 500, n: 1, ...v }; };
+  const mk = (i, v) => { const f = G.ROAD[i]; s.road.stamps[G.roadKey(f)] = { site: f.site, floor: f.floor, ch: f.ch, twist: '', fin: 1, fast: 0, hard: 0, best: 500, n: 1, ...v }; };
   for (let i = 0; i < 3; i++) mk(i, {});
   s.road.reach = G.ROAD[2].floor; s.bossesDown = 2; G.siteRun(s);
   const k0 = G.siteKey(G.ROAD[0].site, G.ROAD[0].floor);

@@ -20,6 +20,8 @@ export default { en: {
   wm_not_yet: 'Not finished yet.',
   wm_hub_locked: 'Finish level {n} to get here.',
   wm_hub_open: 'The road is done. Pick a path.',
+  wm_hub_ch2: 'Chapter One is done. Pick a side path here, or walk on home.',
+  wm_land_sub2: 'Chapter 2, levels {a} to {b}, {n} done',
   wm_go_hint: 'Click a stone to look. Drag the map to move it.',
   wm_skip: 'Click to skip',
   // the coffee house (Alqahwa) and the after-dig choice

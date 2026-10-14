@@ -2,10 +2,13 @@
 // 'arabia' has no kit here: it keeps the game's own sounds as they are. Each other land gives new voices to the
 // pick's sounds: hit (a swing; `hard` is a big one), crit (a lucky hit) and crew (a Rafeeq's swing, the clap
 // on the off-beat). The deeper the layer, the lower the notes (depthPitch) and the darker the noise.
+// Chapter two: each land at night (n_africa ...) plays its own kit a few notes lower; the Empty Quarter has the old kit of home,
+// a tabl (a low drum) and a clap.
 import { addVoices, addSfx, tone, noise, gap, pent, wob, depthPitch, kitDepth } from '../../ui/audio.js';
 
 let turn = 0;                       // which of the kit's sounds comes next (a hit plays them in turn)
-const dp = () => depthPitch();
+let nightMul = 1;                   // chapter two: a land at night plays its own kit this much lower (see `night` below)
+const dp = () => depthPitch() * nightMul;
 const dark = f => f * (1 - 0.1 * kitDepth());   // a noise filter, a little darker the deeper it is
 
 const africa = {
@@ -78,7 +81,28 @@ const europe = {
   crew() { if (gap('crew', 0.09)) tone(1700 * wob() * dp(), { type: 'square', d: 0.02, vol: 0.03 }); },                  // a rim click
 };
 
-export const KITS = { africa, eastasia, americas, europe };
+// a land at night: the same voices, lower (nightMul is set only while a night voice plays)
+const NIGHT = 0.84;
+const night = k => Object.fromEntries(Object.entries(k).map(([n, f]) => [n, (...a) => { nightMul = NIGHT; try { return f(...a); } finally { nightMul = 1; } }]));
+// the Empty Quarter: the old kit, a tabl and a clap
+const emptyquarter = {
+  hit(hard) {
+    if (!gap('hit', 0.035)) return;
+    const k = hard ? 0 : (turn++ % 2) + 1;
+    if (k === 0) { tone(74 * wob() * dp(), { type: 'sine', d: 0.24, vol: 0.44, slide: 44 }); noise({ d: 0.05, vol: 0.08, from: dark(700), to: 150 }); }   // tabl, the big side
+    else if (k === 1) tone(130 * wob() * dp(), { type: 'sine', d: 0.12, vol: 0.3, slide: 90 });                                                          // tabl, the small side
+    else noise({ d: 0.06, vol: 0.16, from: dark(2600), to: 1200, type: 'bandpass' });                                                                  // a clap
+  },
+  crit() {
+    if (!gap('crit', 0.05)) return;
+    tone(66 * dp(), { type: 'sine', d: 0.3, vol: 0.5, slide: 40 });
+    noise({ d: 0.07, vol: 0.18, from: dark(2600), to: 1200, type: 'bandpass', at: 0.06 });
+    noise({ d: 0.07, vol: 0.18, from: dark(2600), to: 1200, type: 'bandpass', at: 0.12 });
+  },
+  crew() { if (gap('crew', 0.09)) noise({ d: 0.05, vol: 0.07, from: dark(2400), to: 1100, type: 'bandpass' }); },    // a soft clap
+};
+
+export const KITS = { africa, eastasia, americas, europe, n_europe: night(europe), n_americas: night(americas), n_eastasia: night(eastasia), n_africa: night(africa), emptyquarter };
 for (const [zone, k] of Object.entries(KITS)) addVoices(zone, k);
 
 // A short call when a level in a new land begins: three notes in that land's own sounds.
@@ -103,6 +127,14 @@ const stings = {
     noise({ d: 0.09, vol: 0.2, from: 4500, to: 2200, type: 'highpass', at: 0.1 });
     [pent(10), pent(12)].forEach((f, i) => { tone(f, { type: 'sine', d: 0.4, vol: 0.12, at: 0.22 + i * 0.12 }); tone(f * 2.76, { type: 'sine', d: 0.14, vol: 0.04, at: 0.22 + i * 0.12 }); });
   },
+};
+// chapter two: a land at night calls with a low soft note under its own sting; the Empty Quarter with the tabl and two claps
+const nightCall = land => () => { tone(pent(0) / 2, { type: 'sine', d: 0.6, vol: 0.12 }); stings[land](); };
+for (const z of ['europe', 'americas', 'eastasia', 'africa']) stings['n_' + z] = nightCall(z);
+stings.emptyquarter = () => {
+  tone(74, { type: 'sine', d: 0.24, vol: 0.44, slide: 44 });
+  noise({ d: 0.06, vol: 0.18, from: 2600, to: 1200, type: 'bandpass', at: 0.18 }); noise({ d: 0.06, vol: 0.18, from: 2600, to: 1200, type: 'bandpass', at: 0.3 });
+  tone(pent(2), { type: 'triangle', d: 0.4, vol: 0.13, at: 0.42 });
 };
 export const STING_ZONES = Object.keys(stings);
 addSfx({ picksSting(zone) { if (gap('picksSting', 0.5) && stings[zone]) stings[zone](); } });

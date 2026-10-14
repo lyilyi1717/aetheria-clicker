@@ -44,6 +44,7 @@ for (const z of ZONES.slice(1)) {
     ok(contrast(col, oreBacking(lookFor(id, {}, p, z)[base[o]], col, k0)) >= MIN_CONTRAST - 0.05, `${o} reads on ${id} at ${p} in ${z}`);
   }
 }
-ok(ROAD.every(f => roadZone({ run: { site: f.site, floor: f.floor, twist: '' } }) === f.zone), 'roadZone follows the road');
+ok(ROAD.every(f => roadZone({ run: { site: f.site, floor: f.floor, ch: f.ch, twist: '', ch: f.ch } }) === f.zone), 'roadZone follows the road');
+ok(roadZone({ run: { site: 'dunes', floor: 100, twist: '' } }) === 'africa' && roadZone({ run: { site: 'dunes', floor: 100, twist: '', ch: 2 } }) === 'n_europe' && roadZone({ run: { site: 'gold', floor: 325, twist: '', ch: 2 } }) === 'emptyquarter' && roadZone({ run: { site: 'gold', floor: 325, twist: 'dim' } }) === 'europe', 'chapter two has its own lands; a side level stays in chapter one');
 console.log(bad ? `${bad} failed` : 'look: all ok');
 process.exit(bad ? 1 : 0);
