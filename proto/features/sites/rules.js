@@ -49,12 +49,18 @@ const p = {
   // The Gate of each road level after the lessons, as a multiple of the ground's formula (docs/dig-design.md 2.3c): sized so that
   // "the Gate in your hits" (the bar's number) at the pick you bring grows gently from level to level instead of jumping.
   gateMul: [0.44, 8.87, 0.371, 7.49, 0.278, 7.99, 0.201, 6.23, 0.257, 9.43, 0.234, 9.45, 0.126, 6.37, 0.0645, 4.34],
+  // Chapter Two (levels 21 to 40, docs/dig-design.md 2.4): the same 16 depth slots again at night, then the Empty Quarter
+  // (300 and 325 m). Levels 21 to 36 reuse gateMul slot by slot; the Empty Quarter's four Gates are gateMulCh2.
+  gateMulCh2: [0.003, 1.05, 4e-4, 0.2],      // 300 learn, 300 prove, 325 learn, 325 prove (the last two not yet measured, see 2.4)
+  ch2Hp: 3e12,                     // chapter two: every block, Big Rock and Gate is this much harder (the player arrives far stronger)
+  ch2Stars: 2e5,                  // chapter two: every Star it pays (finish, medal, replay, chili, leaving) is this much bigger
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom
   baseFloor: 50,                  // where a Gate is when no card says (old saves, the contracts board)
-  maxFloor: 300,                  // no Gate deeper than this is dealt
-  // the stopwatch: par = parBase seconds at 50 m, x parGrow for every 25 m deeper, x parTwist with a twist
-  parBase: 300, parGrow: 1.45, parTwist: 1.15,
+  maxFloor: 325,                  // no Gate deeper than this is dealt (was 300; the Empty Quarter's last Gates are at 325 m)
+  // the stopwatch: par = parBase seconds at 50 m, x parGrow for every 25 m deeper, x parTwist with a twist;
+  // below parTop only x parTopGrow per 25 m (275 m is already 8,500 s: no 3-hour par at 325 m)
+  parBase: 300, parGrow: 1.45, parTwist: 1.15, parTop: 275, parTopGrow: 1.1,
   // Stars (a floor is worth starsAt(floor))
   medalShare: 0.5,                // Fast and Hard: this share of the floor's worth, once each
   replayShare: 0.25,              // finishing a version again
@@ -87,29 +93,45 @@ export const FIXED = [
 // The whole road: the four lessons, then each deeper floor twice (learn it at the first place, prove it at the second).
 // The road is cut into ZONES (continents): home first, then four lands, each with its own look and its own beat for the
 // pick. Inside a zone the levels go from learn to prove (`prove`: harder ground and a harder Gate).
-export const ZONES = ['arabia', 'africa', 'eastasia', 'americas', 'europe'];
+// Chapter two walks home at night: the four lands in reverse (n_ = the land at night), then the Empty Quarter.
+export const ZONES = ['arabia', 'africa', 'eastasia', 'americas', 'europe', 'n_europe', 'n_americas', 'n_eastasia', 'n_africa', 'emptyquarter'];
 // Four levels in each land after home: two depths, each met to learn it and then to prove it (`prove`: harder).
-const LAND = (zone, d) => [
-  { site: 'dunes', floor: d, zone }, { site: 'boom', floor: d, zone, prove: true },
-  { site: 'bones', floor: d + LAYER, zone }, { site: 'gold', floor: d + LAYER, zone, prove: true },
+// `ch` is the chapter (1 or 2); a level of chapter two has its own stamp key (`c2:dunes:100`, see siteKey).
+const LAND = (zone, d, ch = 1) => [
+  { site: 'dunes', floor: d, zone, ch }, { site: 'boom', floor: d, zone, prove: true, ch },
+  { site: 'bones', floor: d + LAYER, zone, ch }, { site: 'gold', floor: d + LAYER, zone, prove: true, ch },
 ];
-export const ROAD = [
-  ...FIXED.map(f => ({ ...f, zone: 'arabia' })),
+export const CHAPTER_LEN = 20;            // levels in a chapter: the screen says "Level N of 20", then "Chapter 2, level N of 20"
+export const ROAD1 = [
+  ...FIXED.map(f => ({ ...f, zone: 'arabia', ch: 1 })),
   ...LAND('africa', 100), ...LAND('eastasia', 150), ...LAND('americas', 200), ...LAND('europe', 250),
 ];
+// Chapter two, the road home (levels 21 to 40): the depth slots of levels 5 to 20 again, in the same order, at night, with the
+// lands in reverse; then the Empty Quarter at 300 and 325 m, where the caravan is found.
+export const ROAD2 = [
+  ...LAND('n_europe', 100, 2), ...LAND('n_americas', 150, 2), ...LAND('n_eastasia', 200, 2), ...LAND('n_africa', 250, 2),
+  ...LAND('emptyquarter', 300, 2),
+];
+export const ROAD = [...ROAD1, ...ROAD2];
+// the chapter of a run, card or stamp (1 when it has none: every save from before chapter two)
+export const chOf = x => (x && x.ch === 2 ? 2 : 1);
+// a road level's stamp key
+export const roadKey = f => siteKey(f.site, f.floor, '', f.ch);
+// what the screen calls a road level (1 to 40): { ch, n, of } = "Level n of 20" or "Chapter 2, level n of 20"
+export const levelOf = level => ({ ch: level > CHAPTER_LEN ? 2 : 1, n: level > CHAPTER_LEN ? level - CHAPTER_LEN : level, of: CHAPTER_LEN });
 // the road level of the dig in play (index into ROAD), or -1 for a side level / after the road
-export const roadIndex = s => { const r = s.run; return r && !r.twist ? ROAD.findIndex(f => f.site === r.site && f.floor === r.floor) : -1; };
-// the zone of the dig in play: its road level's, else the zone of the deepest road level at or above its floor
+export const roadIndex = s => { const r = s.run; return r && !r.twist ? ROAD.findIndex(f => f.site === r.site && f.floor === r.floor && f.ch === chOf(r)) : -1; };
+// the zone of the dig in play: its road level's, else the zone of the deepest chapter-one level at or above its floor
 export function roadZone(s) {
   const i = roadIndex(s);
   if (i >= 0) return ROAD[i].zone;
   const fl = (s.run && s.run.floor) || 0;
   let z = 'arabia';
-  for (const f of ROAD) if (f.floor <= fl) z = f.zone;
+  for (const f of ROAD1) if (f.floor <= fl) z = f.zone;      // a side level is in chapter one's lands
   return z;
 }
 // this dig is the "prove it" level of its depth (no twist on it)
-export const roadProve = s => { const r = s.run; return !!(r && !r.twist && ROAD.some(f => f.prove && f.site === r.site && f.floor === r.floor)); };
+export const roadProve = s => { const i = roadIndex(s); return i >= 0 && !!ROAD[i].prove; };
 // stacked on a known floor for a harder version
 export const TWISTS = ['heavy', 'dim', 'barrels'];
 // the hard rule of a site: contracts in order, a deeper floor uses the next one
@@ -121,18 +143,23 @@ export const siteOpen = (s, site) => !!SITES[site] && (!SITES[site].open || !!SI
 export const siteList = s => Object.keys(SITES).filter(id => siteOpen(s, id));
 
 // ---------- versions, keys, par, worth ----------
-export const siteKey = (site, floor, twist) => site + ':' + floor + (twist ? ':' + twist : '');
-export const sitePar = (floor, twist) => Math.round(p.parBase * Math.pow(p.parGrow, (floor - p.baseFloor) / LAYER) * (twist ? p.parTwist : 1));
+export const siteKey = (site, floor, twist, ch) => (ch === 2 ? 'c2:' : '') + site + ':' + floor + (twist ? ':' + twist : '');
+export function sitePar(floor, twist) {
+  const top = Math.min(floor, p.parTop), below = Math.max(0, floor - p.parTop) / LAYER;
+  return Math.round(p.parBase * Math.pow(p.parGrow, (top - p.baseFloor) / LAYER) * Math.pow(p.parTopGrow, below) * (twist ? p.parTwist : 1));
+}
 export function hardOf(site, floor) {
   const l = HARD[site];
   if (!l || !CONTRACTS[l[0]]) return null;
   return l[Math.max(0, Math.min(l.length - 1, Math.round((floor - p.baseFloor) / LAYER)))];
 }
 // the road level at (site, floor) with no twist: 'learn', 'prove' or '' (not on the road)
-const roadKind = (site, floor, twist) => { if (twist) return ''; const f = ROAD.find(x => x.site === site && x.floor === floor); return f ? (f.prove ? 'prove' : f.floor > FIXED[FIXED.length - 1].floor ? 'learn' : '') : ''; };
-export const firstPay = (floor, kind = '') => Math.max(1, Math.round(starsAt(floor) * (kind === 'prove' ? p.provePay : kind === 'learn' ? p.learnPay : 1)));
-export const medalPay = floor => Math.max(1, Math.round(p.medalShare * starsAt(floor)));
-export const replayPay = floor => Math.max(1, Math.ceil(p.replayShare * starsAt(floor)));
+const roadKind = (site, floor, twist, ch = 1) => { if (twist) return ''; const f = ROAD.find(x => x.site === site && x.floor === floor && x.ch === ch); return f ? (f.prove ? 'prove' : f.floor > FIXED[FIXED.length - 1].floor ? 'learn' : '') : ''; };
+// what a floor is worth in Stars in a chapter: chapter two pays sites.ch2Stars times more
+export const worthAt = (floor, ch = 1) => starsAt(floor) * (ch === 2 ? p.ch2Stars : 1);
+export const firstPay = (floor, kind = '', ch = 1) => Math.max(1, Math.round(worthAt(floor, ch) * (kind === 'prove' ? p.provePay : kind === 'learn' ? p.learnPay : 1)));
+export const medalPay = (floor, ch = 1) => Math.max(1, Math.round(p.medalShare * worthAt(floor, ch)));
+export const replayPay = (floor, ch = 1) => Math.max(1, Math.ceil(p.replayShare * worthAt(floor, ch)));
 
 // ---------- the countdown: legs ----------
 // A leg runs from the start (or the last Big Rock) to the next Big Rock; the last one ends at the Gate. The par is split
@@ -189,7 +216,7 @@ function legSync(s, ev) {
 }
 
 // ---------- the road: stamps ----------
-const blankStamp = (site, floor, twist) => ({ site, floor, twist: twist || '', fin: 0, fast: 0, hard: 0, chili: 0, best: 0, n: 0, bank: 0 });
+const blankStamp = (site, floor, twist, ch) => ({ site, floor, twist: twist || '', ch: ch === 2 ? 2 : 1, fin: 0, fast: 0, hard: 0, chili: 0, best: 0, n: 0, bank: 0 });
 // chili pips cleared on a stamp (0 to 5). An old Hard medal counts as the first pip.
 export const pipsOf = st => Math.min(p.chiliPips, Math.max(st && st.chili || 0, st && st.hard ? 1 : 0));
 // the hit a pip adds when it is cleared (0 for most), and everything the chilies add now
@@ -200,19 +227,20 @@ export function chiliHit(s) {
   return Math.min(p.chiliHitCap, sum);
 }
 // Stars for clearing pip n of a level for the first time
-export const chiliPay = (floor, n) => Math.max(1, Math.round(starsAt(floor) * (p.chiliStars[n - 1] || 0)));
+export const chiliPay = (floor, n, ch = 1) => Math.max(1, Math.round(worthAt(floor, ch) * (p.chiliStars[n - 1] || 0)));
 // the chili count of a hard rule id ('chili3' -> 3), else 0
 export const chiliOfRule = id => { const m = /^chili(\d)$/.exec(id || ''); return m ? +m[1] : 0; };
-function stampOf(s, site, floor, twist) {
-  const k = siteKey(site, floor, twist);
-  return s.road.stamps[k] || (s.road.stamps[k] = blankStamp(site, floor, twist));
+function stampOf(s, site, floor, twist, ch) {
+  const k = siteKey(site, floor, twist, ch);
+  return s.road.stamps[k] || (s.road.stamps[k] = blankStamp(site, floor, twist, ch));
 }
 export const roadStamps = s => Object.entries(s.road.stamps).map(([key, st]) => ({ key, ...st }));
 export const siteFinished = (s, site) => Object.values(s.road.stamps).some(st => st.site === site && st.fin);
 export const roadFinished = s => Object.values(s.road.stamps).filter(st => st.fin).length;
 
-function makeRun(site, floor, twist, hard) {
-  return { key: siteKey(site, floor, twist), site, floor, twist: twist || '', hard: hard || '', chili: chiliOfRule(hard), par: sitePar(floor, twist),
+function makeRun(site, floor, twist, hard, ch) {
+  ch = !twist && ch === 2 ? 2 : 1;
+  return { key: siteKey(site, floor, twist, ch), site, floor, twist: twist || '', ch, hard: hard || '', chili: chiliOfRule(hard), par: sitePar(floor, twist),
     clock: 0, started: false, done: false, time: 0, medals: { fin: 0, fast: 0, hard: 0 }, found: { chest: 0, ore: 0, bone: 0 }, paid: 0 };
 }
 // the run of the site in play (a save from before has none: the next Big Rock is its floor)
@@ -224,13 +252,13 @@ export function siteRun(s) {
   }
   return s.run;
 }
-export const siteStamp = s => { const r = siteRun(s); return stampOf(s, r.site, r.floor, r.twist); };
+export const siteStamp = s => { const r = siteRun(s); return stampOf(s, r.site, r.floor, r.twist, r.ch); };
 
 // Stars a move pays now (the label on the button)
 export function starsFor(s) {
-  const r = siteRun(s), best = Math.max(0, s.best);
-  if (!r.done) return Math.max(1, Math.min(Math.floor(p.leaveShare * starsAt(best)), Math.floor(p.leaveCap * replayPay(r.floor))));
-  return best >= r.floor + p.deepFrom ? Math.floor(p.deepShare * Math.max(0, starsAt(best) - starsAt(r.floor))) : 0;
+  const r = siteRun(s), best = Math.max(0, s.best), ch = chOf(r);
+  if (!r.done) return Math.max(1, Math.min(Math.floor(p.leaveShare * worthAt(best, ch)), Math.floor(p.leaveCap * replayPay(r.floor, ch))));
+  return best >= r.floor + p.deepFrom ? Math.floor(p.deepShare * Math.max(0, worthAt(best, ch) - worthAt(r.floor, ch))) : 0;
 }
 
 // ---------- medals and the finish ----------
@@ -248,23 +276,23 @@ export function siteMedal(s, medal, ev = () => {}) {
   if (medal !== 'hard' || r.medals.hard) return 0;
   r.medals.hard = 1;
   s.road.deal = null;                      // the dealt cards carry medals: deal them again
-  return award(s, ev, stampOf(s, r.site, r.floor, r.twist), r.key, 'hard', medalPay(r.floor));
+  return award(s, ev, stampOf(s, r.site, r.floor, r.twist, r.ch), r.key, 'hard', medalPay(r.floor, chOf(r)));
 }
 
 function finish(s, ev) {
   const r = siteRun(s);
   r.done = true; r.time = r.clock;
   s.road.deal = null;                      // cards dealt before this finish (a look from the leave button) show the road as it was
-  const st = stampOf(s, r.site, r.floor, r.twist);
+  const st = stampOf(s, r.site, r.floor, r.twist, r.ch), ch = chOf(r);
   const first = !st.fin, fast = r.time <= runPar(r);
-  let stars = first ? firstPay(r.floor, roadKind(r.site, r.floor, r.twist)) : replayPay(r.floor);
+  let stars = first ? firstPay(r.floor, roadKind(r.site, r.floor, r.twist, ch), ch) : replayPay(r.floor, ch);
   // a chili level: the first clear of a pip pays the pip's Stars and keeps its hit bonus for ever
   let chili = null;
   const cn = r.chili;
   if (cn) {
     if (cn > pipsOf(st) && s.contract === r.hard) {
       st.chili = cn; if (!st.hard) { st.hard = 1; r.medals.hard = 1; }      // pip 1 is the old Hard medal
-      stars = chiliPay(r.floor, cn);
+      stars = chiliPay(r.floor, cn, ch);
       s.road.chiliHit = chiliHit(s);
       chili = { n: cn, stars, gain: chiliGain(cn), hit: s.road.chiliHit };
     }
@@ -277,19 +305,20 @@ function finish(s, ev) {
   st.fin = 1; r.medals.fin = 1;
   st.best = st.best ? Math.min(st.best, r.time) : r.time;
   s.road.reach = Math.max(s.road.reach, r.floor);
-  if (fast) { r.medals.fast = 1; stars += award(s, ev, st, r.key, 'fast', medalPay(r.floor)); }
+  if (fast) { r.medals.fast = 1; stars += award(s, ev, st, r.key, 'fast', medalPay(r.floor, ch)); }
   if (chili) emit(s, ev, 'chiliWon', { key: r.key, site: r.site, floor: r.floor, ...chili, pips: pipsOf(st) });
-  emit(s, ev, 'siteFinished', { key: r.key, site: r.site, floor: r.floor, twist: r.twist, time: r.time, par: runPar(r), first, stars, fast,
+  emit(s, ev, 'siteFinished', { key: r.key, site: r.site, floor: r.floor, twist: r.twist, ch, time: r.time, par: runPar(r), first, stars, fast,
     medals: { fin: 1, fast: st.fast, hard: st.hard }, found: { ...r.found }, stamps: roadFinished(s), chili: cn, chiliWon: !!chili });
 }
 
 // ---------- the deal ----------
-// A card: { key, site, floor, twist, hard, kind: 'fixed' | 'stretch' | 'new' | 'medal' | 'twist', par, medals, stars, medalStars }
-function card(s, site, floor, twist, kind, hard) {
-  const st = s.road.stamps[siteKey(site, floor, twist)];
-  return { key: siteKey(site, floor, twist), site, floor, twist: twist || '', hard: hard || '', kind, par: sitePar(floor, twist),
+// A card: { key, site, floor, twist, ch, hard, kind: 'fixed' | 'stretch' | 'new' | 'medal' | 'twist', par, medals, stars, medalStars }
+function card(s, site, floor, twist, kind, hard, ch) {
+  ch = !twist && ch === 2 ? 2 : 1;
+  const key = siteKey(site, floor, twist, ch), st = s.road.stamps[key];
+  return { key, site, floor, twist: twist || '', ch, hard: hard || '', kind, par: sitePar(floor, twist),
     medals: { fin: st ? st.fin : 0, fast: st ? st.fast : 0, hard: st ? st.hard : 0 },
-    stars: st && st.fin ? replayPay(floor) : firstPay(floor, roadKind(site, floor, twist)), medalStars: medalPay(floor), hardRule: hardOf(site, floor), pips: st ? pipsOf(st) : 0 };
+    stars: st && st.fin ? replayPay(floor, ch) : firstPay(floor, roadKind(site, floor, twist, ch), ch), medalStars: medalPay(floor, ch), hardRule: hardOf(site, floor), pips: st ? pipsOf(st) : 0 };
 }
 // the next chili of a finished level, as a card: { hard: 'chili3', chili: 3, chiliStars, chiliGain } or null (all five won, or a twist level)
 export function chiliCard(s, key) {
@@ -297,19 +326,20 @@ export function chiliCard(s, key) {
   if (!st || !st.fin || st.twist || !siteOpen(s, st.site)) return null;
   const n = pipsOf(st) + 1;
   if (n > p.chiliPips || !CONTRACTS['chili' + n]) return null;
-  return { ...card(s, st.site, st.floor, st.twist, 'replay', 'chili' + n), chili: n, stars: chiliPay(st.floor, n), chiliGain: chiliGain(n) };
+  return { ...card(s, st.site, st.floor, st.twist, 'replay', 'chili' + n, chOf(st)), chili: n, stars: chiliPay(st.floor, n, chOf(st)), chiliGain: chiliGain(n) };
 }
-// the next level of the road, or null when the road is done: { site, floor, level (1 ...), of, tries }.
-// A level is passed when it is finished; one of the first four also when it was tried twice.
+// the next level of the road, or null when the road is done: { site, floor, ch, level (1 to 40), of (40), n and chOf (the level
+// in its chapter: "Chapter 2, level n of chOf"), tries }. A level is passed when it is finished; one of the first four also when
+// it was tried twice. A save that had finished all twenty levels before chapter two existed gets level 21 here on its next move.
 export function fixedNext(s) {
   for (let i = 0; i < ROAD.length; i++) {
-    const f = ROAD[i], st = s.road.stamps[siteKey(f.site, f.floor)];
-    if (!st || (!st.fin && (i >= FIXED.length || st.n < 2))) return { ...f, level: i + 1, of: ROAD.length, tries: st ? st.n : 0 };
+    const f = ROAD[i], st = s.road.stamps[roadKey(f)];
+    if (!st || (!st.fin && (i >= FIXED.length || st.n < 2))) { const L = levelOf(i + 1); return { ...f, level: i + 1, of: ROAD.length, n: L.n, chOf: L.of, tries: st ? st.n : 0 }; }
   }
   return null;
 }
-// where the player is on the road: { level, of } (level is of + 1 when the road is done)
-export function roadLevel(s) { const f = fixedNext(s); return { level: f ? f.level : ROAD.length + 1, of: ROAD.length }; }
+// where the player is on the road: { level, of, ch, n } (level is of + 1 when the road is done)
+export function roadLevel(s) { const f = fixedNext(s), level = f ? f.level : ROAD.length + 1; return { ...levelOf(Math.min(level, ROAD.length)), level, of: ROAD.length }; }
 
 export function dealCards(s) {
   if (s.road.deal && s.road.deal.length) return s.road.deal;
@@ -319,11 +349,11 @@ export function dealCards(s) {
   const done = (site, floor, twist) => (s.road.stamps[siteKey(site, floor, twist)] || {}).fin;
   const stamps = roadStamps(s);
   if (fx) {
-    add({ ...card(s, fx.site, fx.floor, '', 'fixed'), level: fx.level, of: fx.of });
+    add({ ...card(s, fx.site, fx.floor, '', 'fixed', '', fx.ch), level: fx.level, of: fx.of });
     // stuck at this level: side cards beside it, on floors already finished
     if (fx.tries >= p.sideAfter) {
       const left = stamps.filter(st => st.fin && siteOpen(s, st.site) && !st.fast);
-      if (left.length) { left.sort((a, b) => (b.floor - a.floor) || (a.key < b.key ? -1 : 1)); const st = left[0]; add(card(s, st.site, st.floor, st.twist, 'medal')); }
+      if (left.length) { left.sort((a, b) => (b.floor - a.floor) || (a.key < b.key ? -1 : 1)); const st = left[0]; add(card(s, st.site, st.floor, st.twist, 'medal', '', chOf(st))); }
       const plain = stamps.filter(st => st.fin && !st.twist && siteOpen(s, st.site)).sort((a, b) => b.floor - a.floor);
       for (let tries = 0; tries < 8 && cards.length < 3 && plain.length; tries++) { const b = plain[0]; add(card(s, b.site, b.floor, pickOne(TWISTS), 'twist')); }
     }
@@ -341,7 +371,7 @@ export function dealCards(s) {
   if (left.length) {
     left.sort((a, b) => (a.floor - b.floor) || (a.key < b.key ? -1 : 1));
     const st = pickOne(left.slice(0, 3)), cc = st.twist ? null : chiliCard(s, st.key);
-    add(cc && (st.fast || rnd() < 0.5) ? { ...cc, kind: 'medal' } : card(s, st.site, st.floor, st.twist, 'medal', ''));
+    add(cc && (st.fast || rnd() < 0.5) ? { ...cc, kind: 'medal' } : card(s, st.site, st.floor, st.twist, 'medal', '', chOf(st)));
   }
   // 4. a twist stacked on a floor you have finished
   const plain = stamps.filter(st => st.fin && !st.twist && siteOpen(s, st.site));
@@ -359,10 +389,10 @@ export function newSite(s, site, ev = () => {}, patch, pick) {
   s.stars += gain; s.sites += 1; s.site = site;
   const floor = pick ? pick.floor : p.baseFloor, twist = pick ? pick.twist : '';
   const hard = (patch && patch.contract) || (pick && pick.hard) || '';
-  const run = makeRun(site, floor, twist, hard);
+  const run = makeRun(site, floor, twist, hard, pick ? pick.ch : 1);
   s.road.deal = null;
   reset(s, 'site', { ...(hard ? { contract: hard } : {}), ...patch, run });
-  stampOf(s, site, floor, twist).n++;
+  stampOf(s, site, floor, twist, run.ch).n++;
   emit(s, ev, 'newSite', { gain, stars: s.stars, key: run.key, chili: run.chili });
   return true;
 }
@@ -372,30 +402,48 @@ export function replayCard(s, key, hard = false) {
   const st = s.road.stamps[key];
   if (!st || !st.fin || !siteOpen(s, st.site)) return null;
   if (hard) return chiliCard(s, key);
-  return card(s, st.site, st.floor, st.twist, 'replay', '');
+  return card(s, st.site, st.floor, st.twist, 'replay', '', chOf(st));
 }
 // a replay card must be for a stamp that is finished; every other card is taken as it is
 export const pickCard = (s, c, ev) => (c.kind === 'replay' && !replayCard(s, c.key, !!c.hard)) ? false : newSite(s, c.site, ev, undefined, c);
 
 const twistOf = s => (s.run && s.run.twist) || '';
 const chiliMul = (s, base) => { const r = s.run; return r && r.chili ? Math.pow(base, r.chili) : 1; };
+// chapter two: the ground, the Big Rocks and the Gate are sites.ch2Hp times harder
+const chMul = s => (s.run && s.run.ch === 2 ? p.ch2Hp : 1);
+// the Gate size of the road level at index i (0-based into ROAD), or undefined for a lesson or no road level (the formula)
+export function gateMulOf(i) {
+  if (i < FIXED.length) return undefined;
+  if (i < CHAPTER_LEN) return p.gateMul[i - FIXED.length];
+  const k = i - CHAPTER_LEN;                                  // chapter two: slots 0 to 15 are the slots of levels 5 to 20
+  return k < p.gateMul.length ? p.gateMul[k] : p.gateMulCh2[k - p.gateMul.length];
+}
+
+function migrateV2(s) {
+  if (s.sites >= 14) s.seen.legacyBoard = true;      // the contracts board was open (it used to open at 14 New Sites): it stays open
+  for (const k of Object.keys(s.unlocked || {})) {
+    if (!k.startsWith('site:')) continue;
+    const site = k.slice(5);
+    if (!SITES[site] || Object.values(s.road.stamps).some(st => st.site === site)) continue;
+    const fixed = FIXED.find(f => f.site === site), floor = fixed ? fixed.floor : p.baseFloor;
+    s.road.stamps[siteKey(site, floor)] = { ...blankStamp(site, floor), n: 2 };      // visited (and so past its lesson), not finished
+  }
+}
 
 export const sites = use({
   id: 'sites',
   params: p,
   legacy: { starCoin: 'starCoin', starPick: 'starPick' },
   strings,
-  version: 2,
-  // a save from before: the sites it had visited are stamps with no medals
-  migrate(s) {
-    if (s.sites >= 14) s.seen.legacyBoard = true;      // the contracts board was open (it used to open at 14 New Sites): it stays open
-    for (const k of Object.keys(s.unlocked || {})) {
-      if (!k.startsWith('site:')) continue;
-      const site = k.slice(5);
-      if (!SITES[site] || Object.values(s.road.stamps).some(st => st.site === site)) continue;
-      const fixed = FIXED.find(f => f.site === site), floor = fixed ? fixed.floor : p.baseFloor;
-      s.road.stamps[siteKey(site, floor)] = { ...blankStamp(site, floor), n: 2 };      // visited (and so past its lesson), not finished
-    }
+  version: 3,
+  // v2, a save from before the road: the sites it had visited are stamps with no medals.
+  // v3, chapter two: every stamp and the run in play are chapter one (`ch: 1`; their keys do not change), and a deal dealt after
+  // level 20 is dropped, so a save past the road is dealt level 21 at its next "Next town".
+  migrate(s, from = 1) {
+    if (from < 2) migrateV2(s);
+    if (s.road && s.road.stamps) for (const st of Object.values(s.road.stamps)) if (st && typeof st === 'object' && st.ch !== 2) st.ch = 1;
+    if (s.run && s.run.ch !== 2) s.run.ch = 1;
+    if (s.road) s.road.deal = null;
   },
   state: {
     stars: { init: () => 0, survives: ['site', 'land'] },
@@ -421,8 +469,8 @@ export const sites = use({
     // r = the row of the Rock. The Gate (the Rock at the run's floor row) of a road level has its own size (gateMul); the Big Rocks
     // before it use the normal size (times the prove factor on a prove level); a chili level makes every Rock harder still
     bossHp: (v, s, r) => {
-      const i = roadIndex(s) - FIXED.length, gate = !!s.run && r === s.run.floor;
-      return (gate && i >= 0 && p.gateMul[i] !== undefined ? v * p.gateMul[i] : roadProve(s) ? v * p.proveHp : v) * chiliMul(s, p.chiliRock);
+      const g = s.run && r === s.run.floor ? gateMulOf(roadIndex(s)) : undefined;
+      return (g !== undefined ? v * g : roadProve(s) ? v * p.proveHp : v) * chiliMul(s, p.chiliRock) * chMul(s);
     },
   },
   hooks: {
@@ -440,7 +488,7 @@ export const sites = use({
     // a twist is stacked on the ground as it is made
     row(s, ctx) {
       const tw = twistOf(s);
-      const hm = (tw === 'heavy' ? p.twistHp : 1) * (roadProve(s) ? p.proveHp : 1) * chiliMul(s, p.chiliGround);
+      const hm = (tw === 'heavy' ? p.twistHp : 1) * (roadProve(s) ? p.proveHp : 1) * chiliMul(s, p.chiliGround) * chMul(s);
       if (hm !== 1) { for (const c of ctx.row) if (c && c.t !== 'boss') { c.hp = Math.round(c.hp * hm); c.max = c.hp; } }
       if (tw === 'barrels' && BLOCKS.tnt && ctx.r > 2 && ctx.r % p.twistBarrel === 0) ctx.put('tnt');
     },

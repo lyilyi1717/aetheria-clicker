@@ -24,7 +24,7 @@
 import { use, emit } from '../../core/registry.js';
 import { swing, itemLevel, itemOpen, buy } from '../../core/rules.js';
 import { starshopPunch } from '../starshop/rules.js';
-import { roadZone, ROAD, siteKey } from '../sites/rules.js';
+import { roadZone, ROAD, roadKey } from '../sites/rules.js';
 import { t } from '../../core/strings.js';
 import { WING, wingCount, wingDone } from '../wing2/rules.js';
 import { PICKS_BARS, ZONE_BARS, BAR_ZONES, MAX_PICKS, picksBarOf, stepSec, hitsPerSec, barFaults } from './beat.js';
@@ -67,7 +67,7 @@ const p = {
 const bpmOf = lv => Math.min(p.tempos[Math.max(0, Math.min(p.tempos.length - 1, lv))], 15 / p.floor);
 
 // is the road level finished (ever)? Level 16 ends the Americas, level 20 ends the road.
-const roadDone = n => s => { const f = ROAD[n - 1], st = f && s.road && s.road.stamps[siteKey(f.site, f.floor)]; return !!(st && st.fin); };
+const roadDone = n => s => { const f = ROAD[n - 1], st = f && s.road && s.road.stamps[roadKey(f)]; return !!(st && st.fin); };
 // the gate that stands in front of the next Faster Hands level: { bpm, level, text } or null (the next step is free to buy, or there is none)
 export function picksTempoGate(s) {
   const lv = (s.up && s.up.tempo) || 0, bpm = p.tempos[lv + 1];
