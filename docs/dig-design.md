@@ -43,7 +43,7 @@ Before the road the game dealt three random cards after the fourth level, for ev
 
 1. **One main level at a time, in a fixed order** (**built**). The screen says "Level 5 of 20". The road deals one card, the next level, until it is finished. After two failed tries (`sites.sideAfter`) side cards (a Fast medal, a twist on a finished floor) are dealt beside it. The first four levels also pass after two tries: they are lessons. `ROAD`, `fixedNext`, `dealCards` in `proto/features/sites/rules.js`.
 2. **A level starts where the player is** (**partly built**). Every level after the first starts with one free Rafeeq waiting (`sites.kitCrew`), and the coin prices start fresh: free levels are a discount, so the next purchase costs the first price (`grantFree`, #366). The pick starts bare unless Warm Pick is bought (The Pick steps 5 and 13: 50% / 70% of your best pick level, `starshop.warmFrac`). A free share of the pick for everyone (`sites.kitPick`, was 40%) was tried and taken out: it made every level about five times faster (#366, owner's fallback). **Not built:** "the first 25 m passes in about a minute".
-3. **A Gate is sized by a test, not by a formula** (**built as a table**). Each road level from 5 on has its own Gate size (`sites.gateMul`, 2.3c), set so the Gate in your swings at arrival rises gently from level to level. The Gate is never made softer for a weak player; instead it remembers (2.3c), the stuck hint names the next step with numbers, and side levels and chili levels are doors. **Broken:** late learn levels still take 3 to 5 tries (fault 19, #397).
+3. **A Gate is sized by a test, not by a formula** (**built as a table**). Each road level from 5 on has its own Gate size (`sites.gateMul`, 2.3c), set so the Gate in your swings at arrival rises gently from level to level. The Gate is never made softer for a weak player; instead it remembers (2.3c), the stuck hint names the next step with numbers, and side levels and chili levels are doors. Late learn levels 13, 17 and 19 take 3 tries or fewer since The Pick's steps past 20 cost x1.35 (fault 19, #397; level 7 is still 4 / 3).
 4. **A level ends** (**built**). Gate down, the finish card, the Alqahwa or the next town. Digging on below the Gate is a choice ("Keep digging"), with "Done here" to come back to the card. After level 20 the chapter card (Grandpa's bell) and chapter two (2.4); after level 40 the end card, then the deal of three cards: that is where open-ended play lives.
 
 ### 2.3 The road (built: order, lands, looks, beats, Gate table; balance in progress)
@@ -57,25 +57,25 @@ Twenty levels, `ROAD` in `proto/features/sites/rules.js`. Home (Arabia) holds th
 | 3 | Arabia | Valley of Beasts | 75 m | lesson | Water (50 to 75 m); bones, chests; the Museum opens | formula | 1 / 1, day 0.2 |
 | 4 | Arabia | Golden Wadi | 75 m | lesson | Rich ore; the Forge | formula | 1 / 1, day 0.4 / 0.2 |
 | 5 | Africa | The Dunes | 100 m | learn | Crystal lines (75 to 100 m) | 0.44 | 1 / 2, day 0.6 |
-| 6 | Africa | Powder Valley | 100 m | prove | Harder ground, harder Gate | 3.0 | 1 / 5, day 1.0 / 1.2 |
-| 7 | Africa | Valley of Beasts | 125 m | learn | The Black: you dig by light | 0.371 | 1 / 3, day 1.2 / 2.0 |
-| 8 | Africa | Golden Wadi | 125 m | prove | | 1.4 | 2 / 1, day 1.6 / 2.0 |
-| 9 | East Asia | The Dunes | 150 m | learn | The Living Rock: moss grows back | 0.278 | 2 / 1, day 2.2 / 2.4 |
-| 10 | East Asia | Powder Valley | 150 m | prove | | 1.9 | 2 / 4, day 2.6 / 3.2 |
-| 11 | East Asia | Valley of Beasts | 175 m | learn | The Angry Layer: the Rock hits back | 0.201 | 2 / 3, day 3.0 / 4.0 |
-| 12 | East Asia | Golden Wadi | 175 m | prove | | 2.7 | 4 / 1, day 3.4 / 4.2 |
-| 13 | the Americas | The Dunes | 200 m | learn | The Hot Layer: water against heat | 0.257 | 4 / 4, day 5.0 / 5.6 |
-| 14 | the Americas | Powder Valley | 200 m | prove | | 3.5 | 2 / 2, day 5.4 / 6.2 |
-| 15 | the Americas | Valley of Beasts | 225 m | learn | Deeper ground (no law of its own: **not built**) | 0.234 | 2 / 2, day 6.0 / 7.2 |
-| 16 | the Americas | Golden Wadi | 225 m | prove | Finishing it opens 144 beats a minute | 2.4 | 3 / 3, day 7.0 / 8.2 |
-| 17 | Europe | The Dunes | 250 m | learn | Deeper ground (**not built**) | 0.09 | 2 / 6, day 7.4 / 12.6 |
-| 18 | Europe | Powder Valley | 250 m | prove | | 1.9 | 3 / 1, day 8.0 / 13.0 |
-| 19 | Europe | Valley of Beasts | 275 m | learn | Deeper ground (**not built**) | 0.0645 | 6 / 3, day 14.4 / 14.0 |
-| 20 | Europe | Golden Wadi | 275 m | prove | The last Gate; the end card; 160 beats a minute | 1.4 | 2 / 4, day 15.0 / 14.6 |
+| 6 | Africa | Powder Valley | 100 m | prove | Harder ground, harder Gate | 3.0 | 2 / 1, day 1.0 / 1.2 |
+| 7 | Africa | Valley of Beasts | 125 m | learn | The Black: you dig by light | 0.371 | 4 / 3, day 2.0 / 1.6 |
+| 8 | Africa | Golden Wadi | 125 m | prove | | 1.4 | 2 / 2, day 2.4 / 2.2 |
+| 9 | East Asia | The Dunes | 150 m | learn | The Living Rock: moss grows back | 0.278 | 1 / 2, day 2.4 / 3.6 |
+| 10 | East Asia | Powder Valley | 150 m | prove | | 1.9 | 2 / 4, day 3.0 / 4.4 |
+| 11 | East Asia | Valley of Beasts | 175 m | learn | The Angry Layer: the Rock hits back | 0.201 | 3 / 3, day 3.6 / 5.0 |
+| 12 | East Asia | Golden Wadi | 175 m | prove | | 2.7 | 3 / 3, day 4.2 / 5.6 |
+| 13 | the Americas | The Dunes | 200 m | learn | The Hot Layer: water against heat | 0.257 | 2 / 3, day 4.6 / 6.6 |
+| 14 | the Americas | Powder Valley | 200 m | prove | | 3.5 | 4 / 2, day 5.6 / 7.2 |
+| 15 | the Americas | Valley of Beasts | 225 m | learn | Deeper ground (no law of its own: **not built**) | 0.234 | 3 / 3, day 6.6 / 8.0 |
+| 16 | the Americas | Golden Wadi | 225 m | prove | Finishing it opens 144 beats a minute | 2.4 | 2 / 1, day 7.2 / 8.6 |
+| 17 | Europe | The Dunes | 250 m | learn | Deeper ground (**not built**) | 0.09 | 3 / 1, day 9.0 / 9.2 |
+| 18 | Europe | Powder Valley | 250 m | prove | | 1.2 | 3 / 3, day 9.6 / 10.0 |
+| 19 | Europe | Valley of Beasts | 275 m | learn | Deeper ground (**not built**) | 0.0645 | 3 / 3, day 10.6 / 11.2 |
+| 20 | Europe | Golden Wadi | 275 m | prove | The last Gate; the end card; 160 beats a minute | 0.8 | 1 / 4, day 11.0 / 12.2 |
 
 - **Broken:** the "New:" line on the finish card and the map names the layer *below* the Gate (level 5 says "the Black", which starts at 100 m, under its Gate). The column above is the design. Fault 21, #395.
 - **Targets** (#374; balance-analyst owns them in `docs/pacing-targets.md`): every road level in 1 to 3 tries for the mixed player, with few other digs between; prove levels a little harder than the learn level before them; levels 1 to 4 inside 35 minutes; level 20 between day 10 and 15 and level 40 between day 18 and 25 (decision 6).
-- **Measured, and where it misses** (#437, run 5, the run on `main` since v5.34.0; `docs/pacing-targets.md`, "The Gate is yours"): level 20 on day 15.0 / 14.6 (target 10 to 15: met, at the edge), level 40 on day 23.2 / 24.4 (target 18 to 25: met). Misses: levels 13, 17 and 19 (late learn levels, median 4 to 4.5 tries; level 17 seed 2 had 38 other digs before it, level 19 seed 1 had 45), level 6 seed 2 (5 tries), and prove levels 8 and 12 took fewer tries than their learn level on one seed each. Work order 3 (#397).
+- **Measured, and where it misses** (#394, #397, #398, 14 Oct; `docs/pacing-targets.md`, "Camp steps count"): level 20 on day 11.0 / 12.2 (target 10 to 15: met), level 40 on day 18.6 / 20.2 (target 18 to 25: met). Levels 13, 17, 19 at 2 / 3, 3 / 1, 3 / 3 tries (were 4 / 4, 2 / 6, 6 / 3). Misses: level 7 (4 / 3 tries, was 1 / 3), prove levels 6, 8, 14, 16 and 20 took fewer tries than their learn level on one seed each, levels 9 to 12 come 0.4 to 1.4 days later than before.
 - **Lands (built):** a look per land (sky, horizon, ground tint; `proto/features/look/`, #345), a beat per land (Africa djembe and shaker, East Asia taiko, wood block and bell, the Americas conga, clave and cowbell, Europe march drum, snare and bells; Arabia keeps the home kit; deeper layers lower the pitch; a sting on arriving; #344). **Nobody has listened to the land beats** (fault 15).
 - **Side levels** (built): beside a level tried twice; labelled with what they pay. The two Museum places (Shark Bay, The Mirage) open when their sets are done.
 - **Replays** (built, #370): any finished level can be dug again from the map, plain (for the Fast medal) or as its next chili (2.3d).
@@ -134,6 +134,7 @@ A finished level can be dug again up to five times, each time with one more rule
 
 ### 2.3e How the road was tuned (history, newest first)
 
+- 14 Oct (#394, #397, #398, Camp steps count): plain Camp steps add 0.02 of your hit to a Rafeeq's; The Pick x1.35 a step past step 20; the sim player saves its Stars for The Pick at a level tried twice (what the Rock bar tells a person); `ch2Stars` 5e3 to 2e3; prove Gates of 18 and 20 at 1.2 and 0.8. Levels 13 / 17 / 19 median tries 4 / 4 / 4.5 to 2.5 / 2 / 3; level 20 day 11.0 / 12.2; road end day 18.6 / 20.2.
 - 14 Oct (#430, #429, the Gate is yours): the Gate is never walked while away and away rows cost what they cost live; prove Gates cut to about 1.5 x their learn level in swings, chapter two `ch2Hp` x `ch2Hard[level]`. Level 20 day 15.0 / 14.6 (was 12.6 / 11.4); road end day 23.2 / 24.4 (was 22.4 / 23.4).
 - 14 Oct (#388, chili): road end day 20.6 / 21.0 (baseline 17.6 / 22.4).
 - 14 Oct (#386, Gate table): level 7 from 4 tries and 52 min to 1 to 2 tries and 18 min; learn levels' median tries 4 to 3; road end day 17 to 22 down to 12 to 14. Late learn levels (17, 19) still 4 to 5 tries: limited by Stars (many digs between), not by the Gate; lowering the Gate further did not move them. A ground-growth pass (#389) made them harder and was closed. Next lever: the price of The Pick past step 20 (#397).
@@ -240,8 +241,8 @@ All of it is flavour: nothing here changes how strong a Rafeeq is.
 | Chests, relics, fusion | Pick 1 of 3; 17 recipes. The first fuse needs only level 1 + 1, and until then chests offer Hop and Twin; later an offered partner is forced onto the card after 2 chests; a new recipe then needs 2 + 2, a known one 1 + 1. Fusing lifts both halves to their top level | built |
 | The Big Rock and the Gate | Section 2.3c | built; fault 18 |
 | The Deep | Four layers with a law each, 100 to 200 m | built; below 200 m no law (not built) |
-| The road, medals, the countdown | Sections 2.2 to 2.3b | built; late learn levels too many tries (fault 19) |
-| Star tracks (at the Alqahwa) | The Pick: hit x1.5 a step, a new pick material every 4 steps (stone to star), rules on steps 1, 5, 9, 13, 17, 21, 25, 29, 33, 37. The Bag: coins x1.5 a step, 12 named perks. The Camp: 7 named perks (Rafeeqs waiting, Good Shoes, Second Kettle, the whole camp at 12). A step costs 2 Stars x1.5 per step already on that track. Third and fourth pick for 150 and 50,000 Stars after the 100 m and 150 m Rocks | built; **broken:** Camp steps between and after its perks cost Stars and do nothing (fault 17, #394; decision 7: each plain step lifts a Rafeeq's hit) |
+| The road, medals, the countdown | Sections 2.2 to 2.3b | built |
+| Star tracks (at the Alqahwa) | The Pick: hit x1.5 a step, a new pick material every 4 steps (stone to star), rules on steps 1, 5, 9, 13, 17, 21, 25, 29, 33, 37. The Bag: coins x1.5 a step, 12 named perks. The Camp: 7 named perks (Rafeeqs waiting, Good Shoes, Second Kettle, the whole camp at 12). A step costs 2 Stars x1.5 per step already on that track (The Pick past step 20: x1.35, #397); every plain Camp step adds 2% of your hit to a Rafeeq's (#394). Third and fourth pick for 150 and 50,000 Stars after the 100 m and 150 m Rocks | built; the plain Camp steps' line on the board does not yet say "Rafeeq hit +2%" (fault 17) |
 | Chili levels | Section 2.3d | built |
 | Contracts | The board, goals that fit your road level | built |
 | The Museum | 13 sets; each finished set opens a thing. Bones and bundles that still hold a piece you lack glint (an arrow points at one just below the view); the set you are collecting is drawn faintly behind the ground and fills in piece by piece; a chip counts it; every map stone shows its set (#385). A find goes to the earliest unfinished set 80% of the time and is a missing piece 75% of the time | built. **Not built:** a sure piece by the fourth find (decision 10, decided: build), "Museum 41%" with prizes, sets tied to two or three levels (decision 10: not now) |
@@ -260,20 +261,20 @@ All of it is flavour: nothing here changes how strong a Rafeeq is.
 
 The numbers live in the code: `PARAMS` in each feature's `rules.js`, the growth table in `proto/core/rules.js` (`core.grow`). The check is `node sim/proto/dig-month.mjs --only mixed --seeds 2 --jobs 2 --sum --dump <file>`, then `node scripts/dig-levels.cjs <file>` (one sim at a time; see `docs/agents/common-brief.md`). Targets: `docs/pacing-targets.md` (balance-analyst).
 
-Last measured (mixed player, seed 1 / seed 2; #437 run 5, 14 October 2026; nothing merged after it moves pace):
+Last measured (mixed player, seed 1 / seed 2; #394 #397 #398 run 4, 14 October 2026):
 
 | | Mixed (4 x 12 min a day) |
 |---|---|
 | First level finished | 10.4 min |
 | Fourth level finished | day 0.3 (about 30 min of play) |
-| Chapter one finished (level 20) | day 15.0 / 14.6 (target 10 to 15) |
-| The road finished (level 40) | day 23.2 / 24.4 (target 18 to 25) |
-| Levels above 3 median tries | 13, 17, 19 (#397) and 28 |
-| Stars by day 7 / day 30 (median) | 397,200 / 1.4 T |
+| Chapter one finished (level 20) | day 11.0 / 12.2 (target 10 to 15) |
+| The road finished (level 40) | day 18.6 / 20.2 (target 18 to 25) |
+| Levels above 3 median tries | 7 (4 / 3) |
+| Stars by day 7 / day 30 (median) | 236,100 / 910 B |
 | Hit from chilies by day 30 | +70% to +75% |
 | Active and idle players | not measured since 13 October (before the road was built) |
 
-- **Broken:** the old targets in `dig-month.mjs` (`TARGETS`: Big Rock days from before the road) fail on targets nobody wants and do not check tries per level (fault 20, #398).
+- `dig-month.mjs --assert` checks the road (#398): the day levels 4, 8, 20 and 40 are first finished (lands in between shown), and per road level a median of at most 3 tries and 6 other digs (x1.25). On `main` before #394/#397: land days ok, levels 13, 17, 19 and 28 over; after: all hold (level 7 at 3.5, inside x1.25). `node scripts/dig-targets.mjs <dump>` reads them from a dump.
 - Per-metre growth: one Stronger Pick level is used up by about a metre of deep ground (x1.25 hit for x1.5 price against x1.2 a metre). The study's "steady ground, sharp Rocks" would change this (decision 9: not now).
 
 ## 5. Bugs and open faults
@@ -296,10 +297,10 @@ Last measured (mixed player, seed 1 / seed 2; #437 run 5, 14 October 2026; nothi
 | 14 | Contract hats were drawn 2 px high | study | fixed (#342) |
 | 15 | Never looked at on a real screen or heard: water, crystal lines, lava, Forge tools in use, fusion twists, pick materials, the land beats, the chili clear moment, the dark Gate's tell, the Museum edge arrow, and the #456 and #457 fixes (`docs/art-and-sound.md`, "What screen-checker should look at next") | team | open (screen-checker; sound needs the owner's ears). Seen since: the wish card, "BOOM" in Arabic, every Arabic screen (`docs/seen-on-screen.md`, fifth pass) |
 | 16 | The Rock bar did not show how much was left | owner | fixed (#342, #387) |
-| 17 | Camp track steps between and after its named perks cost Stars and do nothing (`starshop.campShare` 0) | design-keeper | open, #394 |
+| 17 | Camp track steps between and after its named perks cost Stars and do nothing (`starshop.campShare` 0) | design-keeper | numbers done (#394: 0.02 a plain step); the step's line on the board still needs "Rafeeq hit +2%" (builder, with the localizer) |
 | 18 | `sites.gateMul` is applied to every Big Rock of a road level, documented as the Gate only | design-keeper | done, #396 (Gate only, 14 Oct) |
-| 19 | Late learn levels (15, 17, 19) still take 3 to 5 tries; Stars hold them, not the Gate | sim | open, #397 |
-| 20 | The month sim's targets predate the road | sim | open, #398 |
+| 19 | Late learn levels (15, 17, 19) still take 3 to 5 tries; Stars hold them, not the Gate | sim | done, #397 (13, 17, 19 at 3 tries or fewer; level 7 open at 4 / 3) |
+| 20 | The month sim's targets predate the road | sim | done, #398 |
 | 21 | The "New:" line of a level names the layer below its Gate (level 5 says the Black) | design-keeper | open, #395 |
 | 22 | "TNT does not work on the boss" (owner, 13 Oct) | owner | fixed (#386) |
 | 23 | Text of the stuck hint, "BOOM", chili lines and every Dig string is English only | team | fixed (#439 to #449: 2196 / 2196 strings; switch live in #446) |

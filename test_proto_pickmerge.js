@@ -26,8 +26,32 @@ const P = G.PARAMS.diggers, SP = G.PARAMS.starshop;
 }
 { // The Camp steps no longer multiply the Rafeeq hit; they lift the share
   const s = G.newState(); s.starUp.tr_camp = 6;
-  ok(near(G.crewShare(s), 0.6 + SP.campShare * 6), 'six Camp steps: the share is 60% + 6 steps');
+  ok(near(G.crewShare(s), 0.6 + SP.campShare * 2), 'six Camp steps: the share is 60% + the two plain steps (4 and 6)');
   ok(near(G.crewPower(s), G.crewShare(s) * G.pickPower(s)), 'and no x1.5 a step on top');
+}
+{ // every plain Camp step (no named perk on it) lifts a Rafeeq's hit by campShare of yours; a perk step does not (#394)
+  ok(SP.campShare > 0, 'a plain Camp step does something');
+  const s = G.newState(); s.stars = 1e6; s.total = 1e6;
+  const share = () => G.crewShare(s);
+  for (let n = 1; n <= 20; n++) {
+    const before = share(), hit = () => G.crewPower(s) / G.pickPower(s);
+    ok(G.buy(s, 'tr_camp'), `Camp step ${n} can be bought`);
+    const plain = !G.STARSHOP_STEPS.camp[n];
+    ok(near(share() - before, plain ? SP.campShare : 0), `Camp step ${n}: ${plain ? '+' + SP.campShare : 'its perk, no'} share`);
+    ok(near(hit(), share()), `Camp step ${n}: a Rafeeq hits for the share of yours`);
+  }
+  ok(near(share(), 0.6 + SP.campShare * 13), 'twenty Camp steps: 13 of them plain');
+}
+{ // The Pick costs x pickLateGrow a step past pickLateFrom steps; the Camp and the Bag keep costGrow
+  const c = G.starshopStepCost, F = SP.pickLateFrom;
+  ok(c(F, 'pick') === c(F, 'camp') && c(F - 1, 'pick') === c(F - 1, 'bag'), 'the same price up to the late steps');
+  ok(near(c(F + 10, 'pick'), Math.round(SP.cost0 * Math.pow(SP.costGrow, F) * Math.pow(SP.pickLateGrow, 10))), 'The Pick past step 20: x pickLateGrow a step');
+  ok(c(F + 10, 'camp') === Math.round(SP.cost0 * Math.pow(SP.costGrow, F + 10)), 'the Camp keeps x costGrow');
+  const s = G.newState(); s.stars = 1e12; s.total = 1e12;
+  for (let i = 0; i < F + 5; i++) G.buy(s, 'tr_pick');
+  let spent = 0; for (let k = 0; k < F + 5; k++) spent += c(k, 'pick');
+  ok(s.starSpent === spent, 'Stars spent count the late price');
+  ok(G.upgradeCost(s, 'tr_pick') === c(F + 5, 'pick'), 'the shop shows the late price');
 }
 { // the sieve at a Big Rock pays at most `sieveCap` blocks of dirt a hit
   const clearRow = (s, i) => { for (let c = 0; c < G.COLS; c++) s.rows[i][c] = null; };

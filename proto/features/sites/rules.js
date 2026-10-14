@@ -52,13 +52,14 @@ const p = {
   // Prove entries cut 14 Oct 2026 (the Gate is yours, decision 13): a prove Gate is now always fought, so it is sized at about 1.5
   // times its learn level's Gate in swings at arrival, smoothed so no prove Gate is 3x its neighbour; levels 16, 17 and 20 a
   // little smaller again after the first measurement (3 to 6 tries). docs/pacing-targets.md, "The Gate is yours".
-  gateMul: [0.44, 3.0, 0.371, 1.4, 0.278, 1.9, 0.201, 2.7, 0.257, 3.5, 0.234, 2.4, 0.09, 1.9, 0.0645, 1.4],
+  // Levels 18 and 20 cut again (1.9, 1.4 -> 1.2, 0.8) once the late learn levels sped up (#397): level 20 took 4 / 4 tries.
+  gateMul: [0.44, 3.0, 0.371, 1.4, 0.278, 1.9, 0.201, 2.7, 0.257, 3.5, 0.234, 2.4, 0.09, 1.2, 0.0645, 0.8],
   // Chapter Two (levels 21 to 40, docs/dig-design.md 2.4): the same 16 depth slots again at night, then the Empty Quarter
   // (300 and 325 m). Since 14 Oct 2026 (the Gate is yours, decision 13) a chapter-two level is its chapter-one slot made
   // ch2Hp x ch2Hard[level] harder in everything: ground, Big Rocks and the Gate. Its Gate size is the slot's (gateMulCh2 21 to 36
   // copy gateMul); the Empty Quarter has its own (a learn and a prove size like levels 19 and 20).
   gateMulCh2: [0.44, 3.0, 0.371, 1.4, 0.278, 1.9,               // 21-26: 100 to 150 m, as levels 5 to 10
-    0.201, 2.7, 0.257, 3.5, 0.234, 2.4, 0.09, 1.9, 0.0645, 1.4,      // 27-36: 175 to 275 m, as levels 11 to 20
+    0.201, 2.7, 0.257, 3.5, 0.234, 2.4, 0.09, 1.2, 0.0645, 0.8,      // 27-36: 175 to 275 m, as levels 11 to 20
     0.06, 2.0, 0.06, 2.0],                                          // 37-40: the Empty Quarter, 300 learn, 300 prove, 325 learn, 325 prove
   ch2Hp: 3e12,                     // chapter two: every block, Big Rock and Gate is this much harder (the player arrives far stronger) ...
   // ... times this, per level 21 to 40. The player's hit over the hit at its chapter-one slot falls from about 1e12 at level 21 to
@@ -67,7 +68,7 @@ const p = {
   // cost, one ch2Hp worked; once both stopped (decision 13), levels 25 and on were a wall. Each entry puts the level at about
   // 3 to 5 times easier than its slot, against the hit the player brings. A side card (a twist) of a level uses the level's entry.
   ch2Hard: [0.5, 0.3, 0.03, 0.015, 1e-3, 5e-4, 1e-4, 3.3e-5, 7e-6, 2e-6, 8e-7, 2.5e-7, 2.5e-7, 6e-8, 5e-8, 1.5e-8, 6e-9, 2e-9, 8e-10, 3e-10],
-  ch2Stars: 5e3,                  // chapter two: every Star it pays (finish, medal, replay, chili, leaving) is this much bigger
+  ch2Stars: 2e3,                  // chapter two: every Star it pays (finish, medal, replay, chili, leaving) is this much bigger (5e3 -> 2e3 with The Pick's cheaper late steps, #397)
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom
   baseFloor: 50,                  // where a Gate is when no card says (old saves, the contracts board)

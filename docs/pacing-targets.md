@@ -15,13 +15,13 @@ then `node scripts/dig-levels.cjs <file>`; the same with `--only active`. Values
 | First Big Rock broken | 3-5 min | 3.8 / 3.7 min | - | 14 Oct |
 | Level 1 Gate | 8-12 min | 9.5 / 11.6 min | 1 try (3) | 14 Oct |
 | Level 4 done (first session ends on the pan to Africa) | 30-60 min | 32 / 26 min | 1 try (3) | 14 Oct |
-| Level 7 Gate (first hard level) | day 2-3, 1-2 tries | day 2.0 / 2.0, **3 / 4 tries** | **4 tries** (3) | 14 Oct |
-| Chapter one done (level 20) | day 10-15 (dig-design decision 6) | **day 15.0 / 14.6** (main 12.6 / 11.4, with the Gate walked while away) | - | 14 Oct, the Gate is yours (run 5) |
-| Road done (level 40) | day 18-25 | **day 23.2 / 24.4** (main 22.4 / 23.4, with the Gate walked while away) | - | 14 Oct, the Gate is yours (run 5) |
-| Stars by day 30 | retired (dig-design decision 14: one coin at any size); balance-analyst to replace with the next step's cost in digs at levels 20, 30, 40 | **8.4 T** (main at fafcf35: 1.8 T) | - | 14 Oct, Gate per level pass |
+| Level 7 Gate (first hard level) | day 2-3, 1-2 tries | day 2.0 / 1.6, **4 / 3 tries** (main 1.2 / 2.0, 1 / 3) | **4 tries** (3) | 14 Oct, Camp steps count (run 4) |
+| Chapter one done (level 20) | day 10-15 (dig-design decision 6) | day 11.0 / 12.2 (main 15.0 / 14.6) | - | 14 Oct, Camp steps count (run 4) |
+| Road done (level 40) | day 18-25 | day 18.6 / 20.2 (main 23.2 / 24.4; seed 1 0.6 days from the edge) | - | 14 Oct, Camp steps count (run 4) |
+| Stars by day 30 | retired (dig-design decision 14: one coin at any size); balance-analyst to replace with the next step's cost in digs at levels 20, 30, 40 | 910 B (main 1.4 T) | - | 14 Oct, Camp steps count (run 4) |
 | Share of core content seen at 1 day / 1 week / 30 days | at most 50% / 75% / 95% | **52 / 55%**, **86 / 82%**, 93 / 90% (1 h: not sampled, the series is daily) | - | 14 Oct |
 | Hits per dirt block, mid-leg, at the pick you bring | 2-6 (never above 8) | **about 80 to 14 000** (levels 5-20, see below) | - | 14 Oct |
-| Tries per Gate | about 1.1 early (1-6), 2-3 late, never above 3 | 1-2 early; late learn levels 15/17/19 **3-4** (active 3-5); prove levels often **1** | L1-6: 1, L7: 4 | 14 Oct |
+| Tries per Gate (`--assert`: median at most 3, x1.25) | about 1.1 early (1-6), 2-3 late, never above 3 | 1-2 early; **level 7: 4 / 3**; learn levels 13 / 15 / 17 / 19: 2 / 3, 3 / 3, 3 / 1, 3 / 3 (main 4 / 4, 2 / 2, 2 / 6, 6 / 3); prove 14 and 20 take 4 on one seed; chapter two 1-3 | L1-6: 1, L7: 4 | 14 Oct, Camp steps count (run 4) |
 
 ### Per road level (mixed player: four 12 minute visits a day)
 
@@ -283,6 +283,112 @@ Prove levels at least as many tries as their learn level: no (levels 8, 12 on on
 3 / 1 but put level 30 at 3 / 4 and level 40 on day 23.2 / 25.2 (out by 0.2 days on seed 2), so run 5's table is kept: the two runs
 differ by about the noise of one seed. Open: level 28 at median 4; chapter one's late learn levels (#397).
 
+### Camp steps count, and the late learn levels open in three tries (14 October 2026, 4 sims, #394 #397 #398)
+
+Before = `main` at 0e12d07 (run 5 above). After = this branch: `starshop.campShare` 0 -> 0.02 (plain Camp steps only), The Pick past
+step 20 x1.35 a step (was x1.5), prove Gates of levels 18 and 20 (and 34, 36) 1.9 / 1.4 -> 1.2 / 0.8, `ch2Stars` 5e3 -> 2e3, and the
+sim player saves its Stars for The Pick at a level it has tried twice. Mixed, 2 seeds, seed 1 / seed 2. "Other digs" = digs on other
+cards since the level before was finished (the level's own tries left out; `roadLevels` in `dig-month.mjs`).
+
+SUM before: `mixed: fin1 10.4m fin4 d0.3 5.4/day vers 78/164 med 78f8h share 78% (78%) Stars 397.2k/1.4T depth 238/275/400 R4 d0.6 R6 d2.3 R8 d5.3 news 100%`
+SUM after: `mixed: fin1 10.4m fin4 d0.3 5.3/day vers 85/162 med 85f7h share 80% (80%) Stars 236.1k/909.9B depth 217/283/413 R4 d0.6 R6 d3.0 R8 d5.6 news 100%`
+
+| Level | Before: day | tries | other digs | **After: day** | tries | other digs |
+|---|---|---|---|---|---|---|
+| 1 | 0.0 / 0.0 | 1 / 1 | 0 / 0 | **0.0 / 0.0** | 1 / 1 | 0 / 0 |
+| 2 | 0.2 / 0.2 | 1 / 1 | 0 / 0 | **0.2 / 0.2** | 1 / 1 | 0 / 0 |
+| 3 | 0.2 / 0.2 | 1 / 1 | 0 / 0 | **0.2 / 0.2** | 1 / 1 | 0 / 0 |
+| 4 | 0.4 / 0.2 | 1 / 1 | 1 / 0 | **0.4 / 0.2** | 1 / 1 | 1 / 0 |
+| 5 | 0.6 / 0.6 | 1 / 2 | 2 / 0 | **0.6 / 0.6** | 1 / 2 | 2 / 0 |
+| 6 | 1.0 / 1.2 | 1 / 5 | 2 / 0 | **1.0 / 1.2** | 2 / 1 | 0 / 2 |
+| 7 | 1.2 / 2.0 | 1 / 3 | 0 / 2 | **2.0 / 1.6** | 4 / 3 | 9 / 2 |
+| 8 | 1.6 / 2.0 | 2 / 1 | 1 / 0 | **2.4 / 2.2** | 2 / 2 | 0 / 0 |
+| 9 | 2.2 / 2.4 | 2 / 1 | 0 / 1 | **2.4 / 3.6** | 1 / 2 | 0 / 6 |
+| 10 | 2.6 / 3.2 | 2 / 4 | 1 / 0 | **3.0 / 4.4** | 2 / 4 | 1 / 0 |
+| 11 | 3.0 / 4.0 | 2 / 3 | 0 / 3 | **3.6 / 5.0** | 3 / 3 | 3 / 2 |
+| 12 | 3.4 / 4.2 | 4 / 1 | 0 / 0 | **4.2 / 5.6** | 3 / 3 | 0 / 1 |
+| 13 | 5.0 / 5.6 | 4 / 4 | 10 / 9 | **4.6 / 6.6** | 2 / 3 | 0 / 4 |
+| 14 | 5.4 / 6.2 | 2 / 2 | 1 / 0 | **5.6 / 7.2** | 4 / 2 | 0 / 0 |
+| 15 | 6.0 / 7.2 | 2 / 2 | 0 / 2 | **6.6 / 8.0** | 3 / 3 | 3 / 3 |
+| 16 | 7.0 / 8.2 | 3 / 3 | 1 / 2 | **7.2 / 8.6** | 2 / 1 | 1 / 2 |
+| 17 | 7.4 / 12.6 | 2 / 6 | 0 / 32 | **9.0 / 9.2** | 3 / 1 | 5 / 1 |
+| 18 | 8.0 / 13.0 | 3 / 1 | 0 / 0 | **9.6 / 10.0** | 3 / 3 | 1 / 1 |
+| 19 | 14.4 / 14.0 | 6 / 3 | 39 / 3 | **10.6 / 11.2** | 3 / 3 | 4 / 2 |
+| 20 | 15.0 / 14.6 | 2 / 4 | 0 / 0 | **11.0 / 12.2** | 1 / 4 | 0 / 0 |
+| 21 | 15.0 / 15.6 | 1 / 1 | 0 / 6 | **11.4 / 12.4** | 1 / 1 | 2 / 1 |
+| 22 | 15.0 / 16.2 | 1 / 2 | 0 / 9 | **11.6 / 12.6** | 1 / 1 | 0 / 0 |
+| 23 | 15.2 / 16.2 | 1 / 1 | 1 / 0 | **12.0 / 13.2** | 1 / 2 | 2 / 9 |
+| 24 | 16.0 / 16.6 | 1 / 2 | 3 / 0 | **12.0 / 13.4** | 1 / 1 | 1 / 2 |
+| 25 | 16.2 / 16.6 | 1 / 1 | 0 / 0 | **12.2 / 13.6** | 1 / 1 | 0 / 0 |
+| 26 | 16.4 / 18.0 | 1 / 2 | 0 / 3 | **12.2 / 14.2** | 1 / 1 | 0 / 2 |
+| 27 | 17.0 / 18.6 | 3 / 3 | 0 / 1 | **12.6 / 14.6** | 1 / 2 | 0 / 1 |
+| 28 | 18.2 / 19.4 | 5 / 3 | 2 / 1 | **14.0 / 15.2** | 2 / 3 | 11 / 1 |
+| 29 | 19.0 / 20.0 | 2 / 3 | 4 / 0 | **14.2 / 15.6** | 3 / 2 | 0 / 0 |
+| 30 | 19.4 / 20.6 | 2 / 1 | 0 / 2 | **14.4 / 15.6** | 2 / 1 | 0 / 0 |
+| 31 | 20.0 / 21.0 | 3 / 1 | 0 / 0 | **15.4 / 16.4** | 1 / 2 | 2 / 1 |
+| 32 | 20.2 / 21.2 | 1 / 1 | 0 / 0 | **15.6 / 16.6** | 1 / 2 | 0 / 0 |
+| 33 | 21.2 / 21.6 | 3 / 3 | 9 / 0 | **16.0 / 18.0** | 2 / 1 | 0 / 3 |
+| 34 | 21.4 / 22.0 | 1 / 1 | 1 / 0 | **16.2 / 18.2** | 1 / 2 | 0 / 0 |
+| 35 | 22.0 / 22.6 | 2 / 3 | 0 / 0 | **17.0 / 18.6** | 2 / 2 | 1 / 0 |
+| 36 | 22.2 / 22.6 | 1 / 1 | 0 / 0 | **17.6 / 18.6** | 1 / 1 | 3 / 0 |
+| 37 | 22.4 / 23.2 | 1 / 2 | 1 / 0 | **18.0 / 19.0** | 1 / 1 | 0 / 0 |
+| 38 | 22.6 / 23.4 | 1 / 1 | 0 / 1 | **18.2 / 19.2** | 1 / 1 | 0 / 1 |
+| 39 | 23.2 / 24.0 | 2 / 2 | 0 / 0 | **18.4 / 20.0** | 2 / 1 | 0 / 2 |
+| 40 | 23.2 / 24.4 | 1 / 1 | 0 / 2 | **18.6 / 20.2** | 1 / 1 | 0 / 1 |
+
+The four sims (one `--ab` run each, summary lines only):
+
+| Run | Variant | L13 / L17 / L19 tries | L20 day | L40 day | Note |
+|---|---|---|---|---|---|
+| 1 | main | 4/4, 2/6, 6/3 | 15.0 / 14.6 | 23.2 / 24.4 | before |
+| 1 | `campShare` 0.02 | 3/4, 1/3, 5/5 | 15.0 / 15.4 | 22.0 / 24.6 | road end -5% / +1%: the Camp alone moves the road under 10% |
+| 1 | `campShare` 0.05 | 3/3, 4/3, 4/5 | 15.4 / 15.6 | 22.0 / 22.4 | Stars by day 7 397 k -> 117 k |
+| 1 | 0.02 + Pick x1.35 past 20 | 3/4, 4/3, 4/4 | 13.2 / 14.0 | 18.6 / 18.0 | |
+| 2 | 0.02 + stuck player saves for The Pick | 2/3, 3/3, 3/4 | 13.0 / 14.2 | 21.6 / 22.2 | |
+| 2 | + learn Gates 13, 17, 19 x0.3 | 1/2, 3/3, 4/4 | 14.6 / 14.2 | 22.2 / 21.6 | the Gate is not the lever |
+| 2 | + Pick x1.35 | 2/3, 3/1, 3/3 | 11.4 / 12.0 | 17.6 / 17.6 | road end out by 0.4 days |
+| 3 | + Pick x1.35, `ch2Stars` 2e3 | 2/3, 3/1, 3/3 | 11.4 / 12.0 | 22.0 / 19.0 | level 20: 4 / 4 tries |
+| 3 | `provePay` 2.5 instead of the Pick | 3/3, 3/3, 4/4 | 15.0 / 13.0 | 22.6 / 22.2 | |
+| 4 | **+ prove Gates 18, 20 at 1.2 / 0.8 (shipped)** | **2/3, 3/1, 3/3** | **11.0 / 12.2** | **18.6 / 20.2** | level 20: 1 / 4 |
+| 4 | same, `ch2Stars` 2.5e3 | same | same | 16.4 / 18.6 | |
+| 4 | same, prove Gates 0.85 / 0.63 | 2/3, 3/1, 3/3 | 11.2 / 12.2 | 19.4 / 18.4 | level 20: 3 / 3 |
+
+**What held the late learn levels.** Per try at levels 13, 17 and 19 (main, `dump.gates`): the Gate at arrival was 60 k to 140 k swings
+and fell when 0.6 k to 2.6 k were left; between tries the bank grew 0.2 to 0.3 a try (TNT's 30% plus the Gate's 60% memory) and the
+hit x3 to x10 from Stars earned on side cards. A third of the tries at 17 and 19 ended on the ground above the Gate (226 to 259 m),
+not at it. So a smaller Gate does little (run 2, x0.3: same tries) and the Stars between tries decide it: the sim player spent them
+evenly on three tracks, one Pick step in three.
+
+- **Decided (14 Oct 2026, by balance-analyst): `campShare` = 0.02, on the plain Camp steps only** (4, 6, 8, 10, 11, then every step from
+  13; the named steps keep their perk and add nothing more), because design-keeper decision 7 asks for "a small share" on the plain
+  steps and the road to move under 10%: at 0.02 the road end moved -5% / +1% (run 1); 0.05 cut Stars by day 7 from 397 k to 117 k. A
+  Rafeeq goes from 60% of your hit to 62%, 64% ...: about 106% at Camp step 30 (chapter one's end) and 160% at step 60. A Pick step
+  is still the bigger buy (x1.5 for you and every Rafeeq).
+- **Decided: The Pick costs x1.35 a step past step 20** (`starshop.pickLateFrom` 20, `pickLateGrow` 1.35; Camp and Bag keep x1.5;
+  steps 1 to 20 and every Star already spent unchanged), because the late levels are held by Stars and this is the lever that reaches
+  the hit (Stars^1.35 instead of Stars^1 for The Pick). It took level 19 from 6 / 3 to 3 / 3 together with the policy below.
+- **Decided: the sim player saves its Stars for The Pick at a road level it has tried twice** (`starshop.botStuckPick`, sim only,
+  `sim/proto/player.mjs`), because that is what the game tells a person there: the Rock bar's hint says "spend Stars on The Pick" with
+  a button for it, and the side cards say how many Stars the next Pick step needs. Before, it spread every Star over three tracks even
+  when stuck. Elsewhere it still buys the cheapest step, Pick first (an even spend).
+- **Decided: `ch2Stars` 5e3 -> 2e3**, because the cheaper Pick also makes chapter two's Stars buy more hit, which took the road end to
+  17.6 / 17.6 (out of 18 to 25); at 2e3 it is 18.6 / 20.2 (2.5e3 gave 16.4 / 18.6: the noise of one seed is about 2 days here).
+- **Decided: the prove Gates of levels 18 and 20 are 1.2 and 0.8** (were 1.9 and 1.4; `gateMulCh2` 34 and 36 copy them, decision of
+  run 5), because with the learn levels faster the player meets them with fewer Stars: level 20 took 4 / 4 tries at 1.4. 0.85 / 0.63
+  gave the same within noise (3 / 3), so the smaller cut ships.
+- **Decided: `--assert` checks the road** (#398): the day each land is first finished (levels 4, 8, 20 and 40 asserted; 12 to 36 shown)
+  and, per road level, median tries at most 3 and other digs at most 6 (each x1.25, `TOL`), for mixed and active. The old Big Rock rows
+  4 to 8 (mixed day 3 to 30 for 100 to 200 m) are gone; rock 3 (75 m) moved from mixed day 0.4-2.5 to 0.1-1 (it is level 3 now).
+  `node scripts/dig-targets.mjs <dump>` reads the same targets from a dump without a new sim.
+
+**Against the targets.** Levels 13, 17 and 19 at 3 tries or fewer on both seeds: met (2 / 3, 3 / 1, 3 / 3). Level 20 on day 11.0 /
+12.2 and level 40 on day 18.6 / 20.2: met. `--assert` road rows on `main` (run 1 dump): land days all ok; levels 13, 17, 19 (4, 4, 4.5
+tries; 9.5, 16, 21 other digs) and 28 (4 tries) over. After: every level at most 3.5 median tries (7: 4 / 3, the only one above 3)
+and at most 6 median other digs: the `--assert` road check passes. **Not met:** level 7 is 4 / 3 (main 1 / 3; two of seed 1's tries
+end at 101 and 102 m, the player leaving just under the 100 m Rock); levels 9 to 12 come 0.4 to 1.4 days later (cause not measured, see
+Known walls); prove levels take at least as many tries as their learn level at 10, 12, 18 only (6, 8, 14, 16, 20 miss on one seed
+each; main missed at 8, 12, 14, 18, 20). Stars by day 7 397 k -> 236 k.
+
 ### First session (mixed, attended minutes)
 
 | Beat (fresh-eyes study 6) | Target | Sim |
@@ -332,7 +438,8 @@ past 100 m: the barrels are.
 
 | Where | Cause (the numbers) | Fix | State |
 |---|---|---|---|
-| Late learn levels 15, 17, 19 (and 7): 3-4 tries, 7-11 other digs before level 19 (active 19-36) | Per 25 m below 225 m the ground formula (dirt and Gate) grows `1.175^25 x step` = x110 to x170 (`proto/core/rules.js:30-31`); Stars grow x4.5 (`starGrow`, `proto/core/rules.js:35`) and a Pick step is x1.5 hit for x1.5 price (`proto/features/starshop/rules.js:28,30`), so all the Stars of a depth buy x4.5. `gateMul` (`proto/features/sites/rules.js:51`, 0.126 and 0.0645 at levels 17 and 19) closes most of the gap; the rest is closed by replays at 0.25 of a floor's worth (`replayShare`, `sites/rules.js:60`). Level 19: 4.3M pick hits at arrival, 172k / 503k at the winning try: x9-25 bought with Stars from other digs | Proposed below (price of Pick steps past step 20) | proposal, not built |
+| Late learn levels 15, 17, 19 (and 7): 3-4 tries, 7-11 other digs before level 19 (active 19-36) | Per 25 m below 225 m the ground formula (dirt and Gate) grows `1.175^25 x step` = x110 to x170 (`proto/core/rules.js:30-31`); Stars grow x4.5 (`starGrow`, `proto/core/rules.js:35`) and a Pick step is x1.5 hit for x1.5 price (`proto/features/starshop/rules.js:28,30`), so all the Stars of a depth buy x4.5. `gateMul` (`proto/features/sites/rules.js:51`, 0.126 and 0.0645 at levels 17 and 19) closes most of the gap; the rest is closed by replays at 0.25 of a floor's worth (`replayShare`, `sites/rules.js:60`). Level 19: 4.3M pick hits at arrival, 172k / 503k at the winning try: x9-25 bought with Stars from other digs | The Pick x1.35 a step past 20 and the stuck player saving for it (Camp steps count, above) | **closed** for 13, 17, 19 (3 tries or fewer on both seeds); level 7 open (4 / 3) |
+| Levels 9 to 12 come 0.4 to 1.4 days later with stronger Rafeeqs (`campShare` 0.02 alone: level 8 day 1.6 / 2.0 -> 2.0 / 2.6, Stars by day 7 397 k -> 189 k; at 0.05: 117 k) | Not measured. Likely: time away is dug at the crew's hit (`awayDps`, `proto/features/diggers/rules.js`), so a stronger crew brings the dig to the Gate while away; the player then meets the Gate with the rows above it (their TNT, 30% of the Gate a try, `blastCap`) already gone, and leaves after 240 s with no new metre (`MOVE.giveUp`) | Next pass: log per try whether the Gate was reached while away, and its blast share, `campShare` 0 against 0.02 | open |
 | Prove levels 10, 14, 18 (and 8, 16, 20 often): 1 try right after a hard learn level | `learnPay 0.35` / `provePay 1.65` (`sites/rules.js:63`): the learn level is where the Stars-gap is paid off by grinding, and the player arrives at the prove level already over-strong; `proveHp 6` (`sites/rules.js:48`) and prove `gateMul` 6-9 do not catch up | Retune prove `gateMul` after the learn-level change below lands (one sim) | open |
 | Road too short: level 20 on day 8-11, target 18-25; from level 9 on every level is about 2x early (**closed**: chapter two, #418 and the 14 Oct balance pass, road end day 21.0 / 19.0) | Same constants as the first row, the other way: early depths (100-175 m) grow x43-x97 a leg against Stars x4.5 plus the chili hit, so levels 9-14 fall in 1-3 tries a day apart | Not a price fix: slowing levels by price brings back the grind. Done: chapter two | decided (dig-design decision 6: level 20 day 10-15, level 40 day 18-25) |
 | Hits per dirt block 80 to 14 000 by hand mid-leg (target 2-6) | Ground grows `hp` 1.175-1.21 a row = x48-x117 a leg (`proto/core/rules.js:25-31`) while your hit grows x3.7 a leg (`valGrow 1.10`, `powGrow 1.25` at x1.5 price, `buyPow 0.55`, `rules.js:17,20,33`); prove ground x6 on top. Blast chains do 70% of the damage, so the player does not feel the pick at all | Builder brief: fresh-eyes study package 3 (steady ground, sharp Rocks): in-leg `hp` near 1.05 a row (= the pick's x3.7 a leg) with the rest moved into each 25 m `step`, and the ground's level set from the pick the road expects, the Gates kept by raising `gateMul` by the same factor. Rule-shaped (ground formula and Gate sizes move together); not a params-only PR | brief |
@@ -341,9 +448,9 @@ past 100 m: the barrels are.
 | Levels 37 and 39: 4 to 10 tries, 10 to 26 other digs | The player stalls on the last rows above the Gate at 300 / 325 m (own hits on the Gate under 1% in failed tries, give-up after 240 s); the Gate falls to TNT (30%) plus its memory at any size (2e-4 or 2e-9). `ch2Hp` 3e12 on ground that grows x110 to x170 per 25 m | Next pass: log what the sim player hits in those 240 s (a sim-player stall in the Hot layer, or real ground); if ground, a per-depth `ch2Hp` (allowed: dig-design decision 15) | open, #431 |
 | Stars by day 30 at T (fault 12; 8.4 T at `ch2Stars` 5e3) | Chapter two needs the hit x10^12 over 20 levels like chapter one; the hit grows about as Stars^1.9 (levels 21 to 36: hit x3e11 for Stars x1.3e6), so Stars must grow about x10^6 from the 1.5e7 at level 20. After level 40 the free deal is chapter-one ground at 350 to 400 m (`starsAt(400)` = 4.1e9 a floor). x10 of 0.8 B is out of reach by params | One coin at any size; target retired | decided (dig-design decision 14) |
 | Side cards beside a stuck chapter-two level pay almost nothing | `card(s, site, floor, twist)` makes every twist chapter one (`ch = !twist && ch === 2 ? 2 : 1`), so beside a chapter-two level the side cards pay chapter-one Stars, about 2,000 times less | Builder: deal chapter-two side cards (replay or medal of a chapter-two level) beside a chapter-two level | brief |
-| Old windows in `dig-month.mjs` | `TARGETS` rock5-rock8 (`sim/proto/dig-month.mjs:61-64`) ask mixed day 7-12 / 14-26 / 16-23 / 21-30 for the 125-200 m Rocks; measured day 2.0 / 2.6 / 3.2 / 4.0-5.0, so --assert fails them all | Replace with rows read from `fin` per road level (like `scripts/dig-levels.cjs`): mixed level 7 day 2-3, level 9 day 3.5-5, level 11 day 5.5-7.5, level 13 day 8-10, level 20 day 18-25; plus a tries row (median tries per level at most 3, prove levels at least 2 from level 9) and a "digs between" row (at most 6 before any level) | sim change, next run |
+| Old windows in `dig-month.mjs` | `TARGETS` rock5-rock8 (`sim/proto/dig-month.mjs:61-64`) ask mixed day 7-12 / 14-26 / 16-23 / 21-30 for the 125-200 m Rocks; measured day 2.0 / 2.6 / 3.2 / 4.0-5.0, so --assert fails them all | Replace with rows read from `fin` per road level (like `scripts/dig-levels.cjs`): mixed level 7 day 2-3, level 9 day 3.5-5, level 11 day 5.5-7.5, level 13 day 8-10, level 20 day 18-25; plus a tries row (median tries per level at most 3, prove levels at least 2 from level 9) and a "digs between" row (at most 6 before any level) | **closed** (#398): land days and per-level tries / other digs, see Camp steps count |
 
-### The smallest next change (proposal, not built)
+### The smallest next change (built 14 Oct 2026 as x1.35 past step 20, with the stuck player saving for it; kept for the reasoning)
 
 **Pick track: steps past 20 cost x1.35 each instead of x1.5** (`starshopStepCost`, `proto/features/starshop/rules.js:84`;
 a second growth constant from step 20, so steps 1-20 and every save's spent Stars are untouched). The Camp and the Bag keep x1.5.
@@ -370,6 +477,12 @@ Core loop (`?loop=2`, paused): `node sim/redesign/run.mjs --assert`; not measure
 
 | Date | Param | From -> to | Why | Before / after |
 |---|---|---|---|---|
+| 14 Oct 2026 | `starshop.campShare` (plain Camp steps only) | 0 (every step) -> 0.02 (plain steps) | #394, decision 7: a Camp step did nothing | road end 23.2 / 24.4 -> 22.0 / 24.6 alone |
+| 14 Oct 2026 | `starshop.pickLateFrom`, `pickLateGrow` (new) | x1.5 every step -> x1.35 past step 20 (Pick only) | #397: late learn levels held by Stars | levels 13 / 17 / 19 median 4 / 4 / 4.5 -> 2.5 / 2 / 3 (with the next row) |
+| 14 Oct 2026 | `starshop.botStuckPick` (sim player, new) | even spend -> The Pick only at a level tried twice | A person follows the Rock bar's "spend on The Pick" | see the row above |
+| 14 Oct 2026 | `sites.ch2Stars` | 5e3 -> 2e3 | The cheaper Pick took the road end to 17.6 / 17.6 | road end 18.6 / 20.2; Stars by day 30 1.4 T -> 910 B |
+| 14 Oct 2026 | `sites.gateMul` 18, 20 (and `gateMulCh2` 34, 36) | 1.9, 1.4 -> 1.2, 0.8 | Level 20 at 4 / 4 tries once the learn levels sped up | level 20 1 / 4 tries, day 11.0 / 12.2 |
+| 14 Oct 2026 | `dig-month.mjs` `TARGETS` | Big Rock days rock4-rock8 -> land days and per-level tries / other digs | #398 | main: 7 road misses; after: 0 (level 7 at 3.5, within x1.25) |
 | 14 Oct 2026 | `sites.gateMul` (prove entries, level 17) | 8.87, 7.49, 7.99, 6.23, 9.43, 9.45, 6.37, 4.34 -> 3.0, 1.4, 1.9, 2.7, 3.5, 2.4, 1.9, 1.4; 0.126 -> 0.09 | The Gate is yours: prove Gates are fought now (run 2: 4 to 8 tries) | level 20 day 18.0 / 15.2 (rules only) -> 15.0 / 14.6 |
 | 14 Oct 2026 | `sites.ch2Hard` (new), `gateMulCh2` | one `ch2Hp` for all of chapter two -> x `ch2Hard[level]` (0.5 to 3e-10) on ground, Rocks and Gate; `gateMulCh2` 21-36 = `gateMul` | Run 2 stopped at level 24 / 24: chapter-two ground priced honestly is a wall | head only (run 4): road stops at level 34 / 33; with the tail (run 5): road end 23.2 / 24.4, Stars by day 30 1.4 T |
 | 14 Oct 2026 | `sites.gateMulCh2` | 4 entries (levels 37 to 40; 21 to 36 read `gateMul`) -> 20 entries, one per chapter-two level (`gateMulOf`) | Levels 27 to 30: Gate x10 to x20 the chapter-one slot in swings at arrival | levels 27 to 29 fought 2 to 8 min (slot 0.5 to 7 min); 30 to 40 unchanged (walk, ground) |
@@ -384,5 +497,5 @@ Core loop (`?loop=2`, paused): `node sim/redesign/run.mjs --assert`; not measure
 
 One sim at a time, in the foreground, redirected to a file; read only the summary lines.
 `node sim/proto/dig-month.mjs --only mixed --seeds 2 --jobs 2 --sum --dump out.json > out.txt` (about 1.5 min; active about
-2.5 min), then `node scripts/dig-levels.cjs out.json [--gates]` (`--gates` adds the swings at arrival and the Gate fight seconds per level). Never above
+2.5 min), then `node scripts/dig-levels.cjs out.json [--gates]` and `node scripts/dig-targets.mjs out.json` (the `--assert` targets, from the dump) (`--gates` adds the swings at arrival and the Gate fight seconds per level). Never above
 `--jobs 3`. Several variants in one run: `--ab '[{...},{...}]'` (each variant also dumped to `out-ab<k>.json`), about 1.6 min per variant.

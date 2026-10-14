@@ -2,9 +2,11 @@
 // them on three tracks, one step at a time, in order inside a track; you choose the track:
 //   The Pick  every step: your hit x1.5; a new pick material every 4 steps (stone, copper, bronze, iron, steel,
 //             silver, gold, crystal, sky-iron, star); some steps bring a rule
-//   The Camp  every step: the share of your hit a Rafeeq has goes up; the old Rafeeq perks are steps
+//   The Camp  every plain step: the share of your hit a Rafeeq has goes up; the old Rafeeq perks are steps
 //   The Bag   every step: coins x1.5; the old chest and luck perks are steps
 // A step costs cost0 * costGrow^(steps you already have on that track): 2, 3, 5, 7, 10, 15, 23, 34, ...
+// The Pick past step pickLateFrom (20) grows by pickLateGrow (1.35) instead: the late learn levels were held by Stars (#397).
+// The Camp's plain steps (no named perk) each add campShare of your hit to a Rafeeq's hit (#394).
 // The 29 named steps (STARSHOP_STEPS) hold every perk the old Star Shop had, with every level.
 // The old names stay as derived levels (starshopLevel(s, 'sp_eyes') ...) so other code and the page read them as before.
 // A save from before gets every Star it ever earned back to spend (once, in `migrate`).
@@ -26,8 +28,10 @@ import strings from './strings.js';
 
 const p = {
   step: 1.5,                                // every step of the Pick and Bag tracks: x1.5 (the Camp adds to the Rafeeq share instead)
-  campShare: 0,                              // every Camp step: a Rafeeq's share of your hit, in points of 1 (0.05 = 5 points)
+  campShare: 0.02,                            // every plain Camp step (no named perk on it): a Rafeeq's hit + this share of yours (0.05 = 5 points)
   cost0: 2, costGrow: 1.5,                  // the first step costs 2 Stars, each next one x1.5
+  pickLateFrom: 20, pickLateGrow: 1.35,     // The Pick only: from this many steps on, each next step costs x pickLateGrow (Camp and Bag keep costGrow)
+  botStuckPick: true,                       // sim player only (sim/proto/player.mjs): at a road level tried twice, Stars go to The Pick (the Rock bar's advice)
   perMaterial: 4,                           // steps of The Pick per material
   chestRow: 3, boneRow: 5, oilRow: 7,       // how close to the surface (metres)
   warmFrac: [0.5, 0.7],                     // the share of your best pick level a new site starts with, by perk level
@@ -81,7 +85,16 @@ const hasStep = (s, track, rule) => {
   return false;
 };
 
-export const starshopStepCost = steps => Math.round(p.cost0 * Math.pow(p.costGrow, steps));
+// the price of the next step on a track that has `steps` (The Pick grows by pickLateGrow past pickLateFrom steps)
+export const starshopStepCost = (steps, track) => {
+  const late = track === 'pick' ? Math.max(0, steps - p.pickLateFrom) : 0;
+  return Math.round(p.cost0 * Math.pow(p.costGrow, steps - late) * Math.pow(p.pickLateGrow, late));
+};
+// Camp steps with no named perk on them (4, 6, 8, 10, 11, then every step from 13): each lifts a Rafeeq's hit by campShare
+export const starshopCampPlain = s => {
+  const n = starshopSteps(s, 'camp');
+  return n - Object.keys(STARSHOP_STEPS.camp).filter(k => +k <= n).length;
+};
 export const starshopRule = (track, n) => STARSHOP_STEPS[track][n] || null;
 // the pick on `steps` steps: { mat, n: 1..4 inside the material (0: the wooden start), plus: steps beyond the Star Pick's four }
 export function starshopPickAt(steps) {
@@ -220,15 +233,15 @@ export const starshop = use({
   shops: { star: { wallet: 'stars', levels: 'starUp', survives: ['site', 'land'] } },
   items: Object.fromEntries(STARSHOP_TRACKS.map((tr, i) => ['tr_' + tr, {
     at: 10 + i * 10, shop: 'star', base: p.cost0, grow: p.costGrow, levels: 'grind',
-    cost: (s, l) => starshopStepCost(l),
+    cost: (s, l) => starshopStepCost(l, tr),
     open: s => s.stars > 0 || s.starSpent > 0,
-    bought(s, level) { s.starSpent += starshopStepCost(level - 1); s.starRefund = 0; },
+    bought(s, level) { s.starSpent += starshopStepCost(level - 1, tr); s.starRefund = 0; },
   }])),
   unlocks: STARSHOP_TRACKS.flatMap(tr => Object.keys(STARSHOP_STEPS[tr]).map(n => ({ id: `tr:${tr}:${n}`, cat: 'grind', group: 'Star track steps' }))),
   firsts: { buy: d => (d.shop === 'star' && d.id.startsWith('tr_') && STARSHOP_STEPS[d.id.slice(3)][d.level] ? `tr:${d.id.slice(3)}:${d.level}` : null) },
   mods: {
     pickPower: { at: 21, fn: (v, s) => v * Math.pow(p.step, starshopSteps(s, 'pick')) },
-    crewShare: { at: 21, fn: (v, s) => v + p.campShare * starshopSteps(s, 'camp') },     // every Camp step: a Rafeeq hits a little closer to your own hit (not a second multiplier)
+    crewShare: { at: 21, fn: (v, s) => v + p.campShare * starshopCampPlain(s) },     // every plain Camp step: a Rafeeq's hit + campShare of yours (added, not a second multiplier)
     coinMult:  { at: 21, fn: (v, s) => v * Math.pow(p.step, starshopSteps(s, 'bag')) },
     // Wide Hands adds a card; the cap comes last, so Wide Hands + Pearl Eye + a prize never show more than cardsCap
     draftCards: { at: 9999, fn: (v, s) => Math.min(p.cardsCap, v + lv(s, 'sp_cards')) },

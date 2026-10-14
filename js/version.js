@@ -3,9 +3,31 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.35.8';
+export const VERSION = '5.36.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.0',
+    date: '2026-10-14',
+    title: 'Dig: every Camp step counts, and the late levels open sooner',
+    changes: [
+      'Every step of the Camp track at Alqahwa now does something. A step with no perk on it makes each Rafeeq hit harder by 2% of your hit: a Rafeeq hits for 60% of your hit, then 62%, 64% and so on. These are steps 4, 6, 8, 10, 11 and every step from 13 on.',
+      'The Pick costs less after step 20: each next step costs x1.35 the one before, was x1.5. The first 20 steps cost the same as before.',
+      'The Gates of levels 18 and 20 are smaller: about two thirds and a little over half of what they were. The same goes for levels 34 and 36 in chapter two.',
+      'Chapter two pays fewer Stars: every Star it gives is now two fifths of what it was. This is a nerf, and the cheaper Pick makes up for it. Stars you already have stay yours.',
+      'In our test runs levels 13, 17 and 19 now open in 3 tries or fewer (they took about 4), chapter one ends around day 11 to 12 (was day 15), and the whole road around day 19 to 20 (was day 23 to 24).'
+    ],
+    ar: {
+      title: 'الحفر: كل خطوة في المخيّم لها أثر، والمستويات المتأخرة تُفتح أسرع',
+      changes: [
+        'كل خطوة في مسار المخيّم في القهوة صار لها أثر الآن. الخطوة التي ليس عليها ميزة تجعل ضربة كل رفيق أقوى بمقدار 2% من ضربتك: يضرب الرفيق 60% من ضربتك، ثم 62%، ثم 64%، وهكذا. هذه هي الخطوات 4 و6 و8 و10 و11 وكل خطوة من 13 فما بعد.',
+        'المعول أرخص بعد الخطوة 20: كل خطوة تالية تكلّف ×1.35 من التي قبلها، وكانت ×1.5. أول 20 خطوة بالسعر نفسه كما كانت.',
+        'بوابتا المستويين 18 و20 أصغر: نحو ثلثي ما كانتا وأكثر بقليل من النصف. وكذلك المستويان 34 و36 في الفصل الثاني.',
+        'الفصل الثاني يعطي نجوماً أقل: كل نجمة يعطيها صارت خُمسَي ما كانت. هذا إضعاف، والمعول الأرخص يعوّضه. النجوم التي معك تبقى لك.',
+        'في تجاربنا صارت المستويات 13 و17 و19 تُفتح في 3 محاولات أو أقل (كانت نحو 4)، وينتهي الفصل الأول نحو اليوم 11 أو 12 (كان اليوم 15)، والطريق كله نحو اليوم 19 أو 20 (كان اليوم 23 أو 24).'
+      ]
+    }
+  },
   {
     version: '5.35.8',
     date: '2026-10-14',
