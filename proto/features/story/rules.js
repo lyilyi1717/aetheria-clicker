@@ -53,6 +53,13 @@ export function storyNew(s) {
 }
 // every unlocked beat not yet heard (the book marks them New)
 export function storyUnread(s) { const out = []; for (let n = 1; n <= storyUnlocked(s); n++) if (!storyRead(s, n)) out.push(n); return out; }
+// the player has heard these lines (each carries its beat number n; a lost-try line carries lost): mark them and say how many beats are still unread
+export function storyHeard(s, lines) {
+  for (const L of lines) { if (L.n) storyMark(s, L.n); if (L.lost) storyLostMark(s); }
+  return storyUnread(s).length;
+}
+// the brass bell hangs in the coffee house once the ending of chapter one (level 20) was told
+export const storyBellHangs = s => storyRead(s, 20);
 export const storyKeys = n => { const b = STORY_BEATS[n - 1]; return b ? Array.from({ length: b.lines }, (_, i) => `st_${n}_${i + 1}`) : []; };
 export const storyZone = n => (STORY_BEATS[n - 1] || {}).zone || '';
 export const storyIsEnd = n => (STORY_BEATS[n - 1] || {}).end || '';       // '', 'bell' or 'caravan'

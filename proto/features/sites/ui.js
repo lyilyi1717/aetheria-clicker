@@ -184,8 +184,8 @@ function showFinish(app, d, again) {
   const m = app.modal.open('finish', `<div class="card finish"><div class="seal"><span class="sealic"></span><b class="word"></b></div><h2></h2><p class="more gate"></p>`
     + `<p class="time"></p><p class="more fast"></p><p class="found"></p><div class="rq-of"></div><div class="mrow"></div><div class="chilirow"></div><p class="more chilitxt"></p><p class="more chilenext"></p><p class="earn"></p>`
     + `<div class="fcols"><section class="keep"><h3></h3><ul></ul></section><section class="kit"><h3></h3><ul></ul><div class="nextlvl"></div></section></div>`
-    + `<div class="choices"><button class="choice qh"><span class="ic"></span><b></b><span class="d"></span></button><button class="choice primary gold nt"><span class="ic"></span><b></b><span class="d"></span></button></div>`
-    + `<div class="btns"><button class="ghost"></button></div></div>`);
+    + `<div class="fpin"><div class="choices"><button class="choice qh"><span class="ic"></span><b></b><span class="d"></span></button><button class="choice primary gold nt"><span class="ic"></span><b></b><span class="d"></span></button></div>`
+    + `<div class="btns"><button class="ghost"></button></div></div></div>`);
   if (!m) return false;
   m.querySelector('.sealic').innerHTML = icon('site_' + d.site, 44);
   m.querySelector('.word').textContent = t('fin_stamp');

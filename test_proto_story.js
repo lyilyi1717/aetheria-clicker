@@ -71,5 +71,18 @@ const fin = (s, n) => { for (let i = 0; i < n; i++) { const f = G.ROAD[i]; s.roa
   fin(s, 5);
   ok(G.storyLostLine(s) === '', 'a finished level asks for nothing');
 }
+{ // the level-20 ending: hearing it clears the count, and the bell hangs afterwards
+  const s = G.newState(); fin(s, 20);
+  for (let n = 1; n <= 19; n++) G.storyMark(s, n);
+  ok(G.storyUnread(s).join() === '20' && !G.storyBellHangs(s), 'only the ending is unread, no bell yet');
+  const lines = G.storyKeys(20).map(key => ({ key, n: 20 }));
+  const left = G.storyHeard(s, lines);
+  ok(left === 0 && G.storyUnread(s).length === 0 && G.storyNew(s) === 0 && G.storyTeaser(s) === '', 'hearing level 20 leaves nothing unread');
+  ok(G.storyBellHangs(s), 'the bell hangs once the ending was heard');
+  const t2 = G.newState(); fin(t2, 20);
+  ok(G.storyHeard(t2, lines) === 19, 'older unread beats stay counted until read');
+  const back = G.deserialize(G.serialize(s));
+  ok(back.story.read.includes(20) && G.storyBellHangs(back), 'the bell survives a save');
+}
 if (bad) { console.error(bad + ' failed'); process.exit(1); }
 console.log('story: ok');

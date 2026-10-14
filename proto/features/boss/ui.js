@@ -118,8 +118,11 @@ function drawBar(g, s, b) {
   if (tell) {
     const nolamp = tell.r === undefined, base = 'rock_tell_' + tell.kind;
     const txt = t(nolamp && tell.kind !== 'lit' ? base + (tell.kind === 'dark' ? '_nolamp' : tell.kind === 'grow' ? '_notorch' : '_nowater') : base, { n: tell.pct });
-    g.save(); g.font = '800 12px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.save(); g.font = '800 13px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.lineJoin = 'round'; g.lineWidth = 3.5; g.strokeStyle = 'rgba(14,10,7,.95)'; g.fillStyle = tell.kind === 'lit' ? '#9dffcf' : '#ffd36a';
+    const pw = g.measureText(txt).width + 16;
+    g.fillStyle = 'rgba(14,10,7,.6)'; rr(g, W / 2 - pw / 2, by - 19, pw, 20, 10); g.fill();
+    g.fillStyle = tell.kind === 'lit' ? '#9dffcf' : '#ffd36a';
     g.strokeText(txt, W / 2, by - 9); g.fillText(txt, W / 2, by - 9);
     g.restore();
   }
@@ -132,6 +135,8 @@ function paintHint(s, app) {
   const b = G.bossInView(s);
   const show = !!b && !b.off && G.bossStuck(s);
   if (!show) { if (!h.hidden) h.hidden = true; return; }
+  const bn = document.getElementById('banner');
+  if (bn && bn.classList.contains('show')) { h.hidden = true; h._sig = ''; return; }     // the layer name is on screen: wait, so the box never covers it
   const a = G.bossAdvice(s);
   const sig = a.kind + ':' + a.n + ':' + a.after;
   const law = a.kind === 'dark' || a.kind === 'grow' || a.kind === 'hot';
