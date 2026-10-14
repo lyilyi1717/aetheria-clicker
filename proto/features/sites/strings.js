@@ -34,7 +34,7 @@ export default { en: {
   chili_won_line: '{name} cleared! Your hit +{p}% for ever.',
   next_leave_keeps: 'You leave this site before its Gate: +{n} Stars. The Gate keeps {k}% of your damage for next time.',
   site_par_best: 'Fast under {t}. Your best {b}.',
-  goal_gate_swing: 'Break the Gate: about 1 swing left',
+  goal_gate_swing: '1 swing or so to break the Gate',
   chili_won_title: '{name} cleared!',
   chili_won_hit: 'Your hit +{p}% for ever',
   chili_won_stars: '+{n} Stars. Chili {k} of 5.',
@@ -145,8 +145,8 @@ export default { en: {
   end_deal_ch1: 'Chapter Two: the road home. Twenty more levels, then the Empty Quarter.',
   end_go_ch1: 'Walk home',
   // the goal bar
-  goal_gate: 'Break the Gate: about {n} swings left',
-  goal_gate_far: 'The Gate of {name} is at {n} m',
+  goal_gate: '{n} swings or so to break the Gate',
+  goal_gate_far: '{n} m: the Gate of {name}',
   gate_flag: 'THE GATE  {n} m',
   site_dunes: 'The Dunes', site_dunes_d: 'Plain sand. Nothing strange.',
   site_boom: 'Powder Valley', site_boom_d: 'TNT everywhere. The rock is a little harder.',
@@ -302,7 +302,7 @@ export default { en: {
   end_go_ch1: 'امشِ إلى البيت',
   // the goal bar
   goal_gate: 'اكسر البوابة، الضربات الباقية: نحو {n}',
-  goal_gate_far: 'بوابة {name} على عمق {n} م',
+  goal_gate_far: '{n} م: بوابة {name}',
   gate_flag: 'البوابة  {n} م',
   site_dunes: 'الكثبان', site_dunes_d: 'رمل عادي. لا شيء غريب.',
   site_boom: 'وادي البارود', site_boom_d: 'ديناميت في كل مكان. والصخر أصعب قليلاً.',

@@ -7,6 +7,7 @@ import { t, setLang, hasString } from './proto/core/strings.js';
 import { ownDir, goalParts } from './proto/core/lang.js';
 import track from './proto/features/track/strings.js';
 import sites from './proto/features/sites/strings.js';
+import boss from './proto/features/boss/strings.js';
 import { levelLine } from './proto/features/track/line.js';
 
 let failed = 0;
@@ -106,13 +107,24 @@ setLang('en');
 
 // ---------- decisions 17 to 19 (eighth pass): the Gate goal keeps its number, the Arabic chip points left, no lone last word ----------
 if (!hasString('goal_gate_far')) G.addStrings(sites, 'sites');
+// localizer, 14 Oct: the Gate and Big Rock goals lead with their number, so the line is one piece that ends in dots and the
+// number shows at any width; a goal that ends in its number (the Arabic swings goal) still splits under decision 18
+const bare = (s) => String(s).replace(/[⁦-⁩]/g, '');
+const keepsNum = (text, num) => {
+  const p = goalParts(text, num);
+  return p ? /\d/.test(p.count) && !p.lead.includes(num) : bare(text).startsWith(num);
+};
+if (!hasString('goal_rock')) G.addStrings(boss, 'boss');
 for (const lang of ['en', 'ar']) {
   setLang(lang);
-  const far = goalParts(t('goal_gate_far', { name: 'X', n: 150 }), '150');
-  ok(far && far.count.replace(/[⁦-⁩]/g, '').startsWith('150') && !/150/.test(far.lead), `${lang}: the far Gate goal keeps its metres whole: ` + JSON.stringify(far));
-  const sw = goalParts(t('goal_gate', { n: '12' }), '12');
-  ok(sw && /12/.test(sw.count) && !/12/.test(sw.lead), `${lang}: the swings goal keeps its number whole: ` + JSON.stringify(sw));
+  const far = t('goal_gate_far', { name: 'X', n: 150 });
+  ok(bare(far).startsWith('150') && goalParts(far, '150') === null, `${lang}: the far Gate goal leads with its metres: ` + far);
+  ok(bare(t('goal_rock', { n: 50 })).startsWith('50'), `${lang}: the Big Rock goal leads with its metres`);
+  const sw = t('goal_gate', { n: '12' });
+  ok(keepsNum(sw, '12'), `${lang}: the swings goal keeps its number whole: ` + sw);
 }
+setLang('en');
+ok(/^12 swings or so\b/.test(bare(t('goal_gate', { n: '12' }))), 'en: the swings goal says the count is an estimate');
 setLang('en');
 {
   const sui = src('proto/features/sites/ui.js');

@@ -3,9 +3,23 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.5';
+export const VERSION = '5.36.6';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.6',
+    date: '2026-10-14',
+    title: 'Dig: the Gate goal leads with its number',
+    changes: [
+      'The goal under the chip now starts with its number, so you see it first at any width: "150 m: the Gate of The Dunes" (was "The Gate of The Dunes is at 150 m"), "50 m: the Big Rock" (was "The Big Rock is at 50 m") and "12 swings or so to break the Gate" (was "Break the Gate: about 12 swings left"). The swings are still a guess, so the goal says "or so".'
+    ],
+    ar: {
+      title: 'الحفر: هدف البوابة يبدأ برقمه',
+      changes: [
+        'الهدف تحت الشارة يبدأ الآن برقمه، فتراه أولاً مهما ضاق المكان: «150 م: بوابة الكثبان» (كانت «بوابة الكثبان على عمق 150 م») و«50 م: الصخرة الكبيرة» (كانت «الصخرة الكبيرة عند 50 م»). هدف الضربات بقي كما هو، ينتهي برقمه الذي يظهر دائماً: «اكسر البوابة، الضربات الباقية: نحو 12».'
+      ]
+    }
+  },
   {
     version: '5.36.5',
     date: '2026-10-14',
@@ -19,7 +33,7 @@ export const CHANGELOG = [
     ar: {
       title: 'الحفر: الدروس تبدو كملاحظات، والهدف يبقى حين يتّسع له المكان',
       changes: [
-        'الدروس في السطر العلوي صارت على لوح خفيف مع شريطها الملوّن، فلم تعد تشبه سطر «التالي:» في اللوحة بجانبها.',
+        'الدروس في السطر العلوي صارت على خلفية خفيفة مع شريطها الملوّن، فلم تعد تشبه سطر «التالي:» في اللوحة بجانبها.',
         'الدرس القصير الذي يتّسع بجانب «نصائح» والهدف يتركهما في مكانهما. الدرس الطويل وحده ما زال يأخذ السطر العلوي كله بضع ثوانٍ.',
         'حين يضيق المكان على الهدف تحت الشارة تنتهي كلماته بنقاط ويبقى الرقم: الأمتار إلى البوابة أو الضربات الباقية تظهر دائماً.',
         'العربية: سهم شارة الهدف يشير الآن إلى اليسار، جهة الهدف التالي، وبطاقة المخيّم لم تعد تترك «72%.» وحدها في سطرها الأخير.'
