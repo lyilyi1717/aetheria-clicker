@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.33.4';
+export const VERSION = '5.33.5';
 
 export const CHANGELOG = [
   {
-    version: '5.33.4',
+    version: '5.33.5',
     date: '2026-10-14',
     title: 'Dig: a Reduce motion switch',
     changes: [
@@ -21,6 +21,22 @@ export const CHANGELOG = [
         'في إعدادات الحفر مفتاح جديد اسمه تقليل الحركة. عند تشغيله لا تهتز الشاشة، ولا توجد ومضات على الشاشة، وتصغر شرارات الحفر وانفجارات العملات، وتبقى الأزرار النابضة ساكنة.',
         'يبدأ مشغّلاً إذا طلب المتصفح حركة أقل، ويبدأ مطفأً غير ذلك. اختيارك يُحفظ على هذا الجهاز.',
         'الأصوات والأرقام وقواعد اللعبة لا تتغير.'
+      ]
+    }
+  },
+  {
+    version: '5.33.4',
+    date: '2026-10-14',
+    title: 'Dig: save codes',
+    changes: [
+      'Settings now has a Save code. Press Show my code to copy your whole dig as one line of text, and keep it safe or paste it into another browser with Load a code.',
+      'Before a code replaces anything, Dig shows "Level N, X Stars, saved ..." and asks you to confirm. A code that is cut, mistyped or from a newer Dig is turned away, and your own save is never touched.'
+    ],
+    ar: {
+      title: 'الحفر: رموز الحفظ',
+      changes: [
+        'في الإعدادات الآن رمز الحفظ. اضغط «أرني رمزي» لنسخ حفرك كله في سطر واحد من النص، واحفظه في مكان آمن أو الصقه في متصفح آخر بـ«حمّل رمزاً».',
+        'قبل أن يستبدل الرمز أي شيء، يعرض الحفر «المرحلة كذا، كذا نجمة، حُفظت في ...» ويطلب منك التأكيد. الرمز المقطوع أو الذي فيه خطأ أو الصادر من نسخة أحدث يُرفض، وحفظك أنت لا يُمَسّ أبداً.'
       ]
     }
   },

@@ -20,8 +20,12 @@ if (files.length === 0) {
 
 for (const f of files) {
   console.log(`\n=== ${f} ===`);
-  const r = spawnSync(process.execPath, [f], { cwd: root, stdio: 'inherit' });
+  const r = spawnSync(process.execPath, [f], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  process.stdout.write(r.stdout || ''); process.stderr.write(r.stderr || '');
   if (r.status !== 0) {
+    // a failure scrolls away in a long run: show the end of the failing file's output again, last
+    console.error(`\n${f} failed (exit ${r.status ?? r.signal}). Last 20 lines of its output:`);
+    console.error(((r.stdout || '') + (r.stderr || '')).trimEnd().split('\n').slice(-20).join('\n'));
     console.error(`\n${f} failed (exit ${r.status ?? r.signal}).`);
     process.exit(r.status || 1);
   }

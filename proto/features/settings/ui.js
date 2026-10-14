@@ -8,6 +8,7 @@ import { setLevels, getLevels, preview, isMuted, unlock } from '../../ui/audio.j
 import { load, save } from '../../ui/volume.js';
 import { tel } from '../telemetry/ui.js';
 import * as motion from '../../ui/motion.js';
+import { buildSaveCode } from './savecode-ui.js';
 
 const { t } = G;
 
@@ -62,6 +63,7 @@ function openSettings(app) {
   const paintCalm = () => { calm.textContent = `${t('set_calm')}: ${t(motion.isReduced() ? 'set_sound_on' : 'set_sound_off')}`; calm.setAttribute('aria-pressed', motion.isReduced() ? 'true' : 'false'); };
   calm.addEventListener('click', () => { motion.setReduced(!motion.isReduced(), document.documentElement); if (store) motion.save(store, motion.isReduced()); paintCalm(); });
   paintCalm(); sw.append(calm);
+  const sc = document.createElement('div'); m.querySelector('.set-done').before(sc); buildSaveCode(app, sc);
   const done = m.querySelector('.set-done'); done.textContent = t('set_close');
   done.addEventListener('click', () => close(app));
   m.addEventListener('click', e => { if (e.target === m) close(app); });
