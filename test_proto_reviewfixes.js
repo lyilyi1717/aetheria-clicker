@@ -10,8 +10,8 @@ const NO = () => {};
 const mem = () => { const m = new Map(); return { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: k => m.delete(k) }; };
 
 (async () => { // telemetry: per-table batches fit the server's limits, one send per table per minute, the rest stays queued
-  let now = 1e12; const calls = [];
-  const tel = createTelemetry({ store: mem(), ver: '1', url: 'https://x.test', key: 'k', now: () => now, rand: Math.random, allowed: true,
+  let now = 1e12; const calls = []; const st = mem(); st.setItem('DIG_TELEMETRY', 'on');
+  const tel = createTelemetry({ store: st, ver: '1', url: 'https://x.test', key: 'k', now: () => now, rand: Math.random, allowed: true,
     fetch: async (url, init) => { calls.push({ url, n: JSON.parse(init.body).length }); return { ok: true, status: 201 }; } });
   for (let i = 0; i < 100; i++) { tel.add('tries', { a: i }); tel.add('choices', { a: i }); tel.add('pace', { a: i }); tel.add('sessions', { a: i }); }
   await tel.flush();

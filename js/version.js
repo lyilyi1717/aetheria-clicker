@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.33.5';
+export const VERSION = '5.33.6';
 
 export const CHANGELOG = [
+  {
+    version: '5.33.6',
+    date: '2026-10-14',
+    title: 'Dig: your play times are off unless you turn them on',
+    changes: [
+      'Dig no longer shares your play times by default. Settings and the Tips list now say "Share my play times: off. Turn on to help balance the game", and the button turns it on.',
+      'If you opened a link from the person who sent you the game, it may turn sharing on for you. You can switch it off any time, and Off is kept.',
+      'Sharing is anonymous: no name, no email, and never your save. Turning it off stops everything that was waiting. What was already sent earlier stays.'
+    ],
+    ar: {
+      title: 'الحفر: أوقات لعبك مطفأة إلا إذا شغّلتها',
+      changes: [
+        'لم يعد الحفر يشارك أوقات لعبك من نفسه. تقول الإعدادات وقائمة النصائح الآن «مشاركة أوقات لعبي: مطفأة. شغّلها لتساعد في ضبط اللعبة»، والزر يشغّلها.',
+        'إذا فتحت رابطاً من الشخص الذي أرسل لك اللعبة فقد يشغّل المشاركة لك. تستطيع إطفاءها في أي وقت، ويُحفظ اختيارك.',
+        'المشاركة بدون اسم: لا اسم ولا بريد، ولا يُرسل حفظك أبداً. عند الإطفاء يتوقف كل ما كان ينتظر الإرسال. وما أُرسل قبل ذلك يبقى.'
+      ]
+    }
+  },
   {
     version: '5.33.5',
     date: '2026-10-14',

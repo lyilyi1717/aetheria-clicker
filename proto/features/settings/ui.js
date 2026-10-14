@@ -55,7 +55,7 @@ function openSettings(app) {
   paintSound(); sw.append(sound);
   if (tel) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'ghost set-switch';
-    const paint = () => { b.textContent = `${t('set_tel')}: ${t(tel.consent() ? 'set_sound_on' : 'set_sound_off')}`; b.setAttribute('aria-pressed', tel.consent() ? 'true' : 'false'); };
+    const paint = () => { b.textContent = `${t('set_tel')}: ${t(tel.consent() ? 'set_sound_on' : 'set_sound_off')}`; b.title = t(tel.consent() ? 'tel_note_on' : 'tel_note_off'); b.setAttribute('aria-pressed', tel.consent() ? 'true' : 'false'); };
     b.addEventListener('click', () => { tel.setConsent(!tel.consent()); paint(); });
     paint(); sw.append(b);
   }

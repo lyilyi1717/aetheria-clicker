@@ -1,7 +1,7 @@
 // Dig feature (page side): anonymous play data. It listens to what the game already says (a site finished, a new site, a
 // purchase, a relic taken, a pace sample, time away), builds rows, queues them in localStorage and sends them in small
 // batches (when the page hides, or about once a minute). It never blocks the game and never throws into it.
-// The one switch ("Turn off / Turn on") sits under the Tips list. Off sends nothing and drops the queue.
+// The one switch ("Turn off / Turn on") sits under the Tips list. It starts Off; ?share=1 or the switch turns it on. Off sends nothing and drops the queue.
 // WHAT GOES: a random id made on this device, version, site/floor/road level, try number, seconds, depth, coins, Stars, pick
 // strength, how many Rafeeqs, forge levels, what was bought or picked (and the cards offered), pace samples, session length.
 // WHAT DOES NOT: name, email, address, IP (the server never stores one), the save itself.
@@ -25,6 +25,8 @@ export const tel = (() => {
     });
   } catch { return null; }
 })();
+
+try { if (tel) tel.applyShare(location.search); } catch { /* the link flag is optional */ }
 
 const guard = fn => (...a) => { try { return fn(...a); } catch (e) { return undefined; } };
 let lastRow = null, siteWall = Date.now(), paceWall = Date.now(), lastClock = -1, flushT = 0;
@@ -80,9 +82,9 @@ function mountSwitch() {
   const box = document.getElementById('tips-list');
   if (!box || !tel) return;
   const row = document.createElement('div'); row.id = 'tel-note';
-  const msg = document.createElement('span'); msg.textContent = t('tel_note');
+  const msg = document.createElement('span');
   const b = document.createElement('button'); b.type = 'button'; b.className = 'ghost';
-  const paint = () => { b.textContent = tel.consent() ? t('tel_switch_off') : t('tel_switch_on'); b.title = tel.consent() ? t('tel_on') : t('tel_off'); b.setAttribute('aria-pressed', tel.consent() ? 'true' : 'false'); };
+  const paint = () => { msg.textContent = t(tel.consent() ? 'tel_note_on' : 'tel_note_off'); b.textContent = tel.consent() ? t('tel_switch_off') : t('tel_switch_on'); b.title = tel.consent() ? t('tel_on') : t('tel_off'); b.setAttribute('aria-pressed', tel.consent() ? 'true' : 'false'); };
   b.addEventListener('click', () => { tel.setConsent(!tel.consent()); paint(); });
   paint();
   row.append(msg, b);

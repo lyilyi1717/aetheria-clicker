@@ -8,6 +8,7 @@ const fresh = (seed = 1) => { G.seedRng(seed); return G.newState(); };
 const mem = () => { const m = new Map(); return { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: k => m.delete(k), m }; };
 const mk = (o = {}) => {
   const calls = [], store = o.store || mem();
+  if (!o.store && o.consent !== 'none') store.setItem(TEL_KEYS.consent, o.consent || 'on');   // a device that chose On (a bare device is Off)
   const env = { store, ver: '1.2.3', url: 'https://x.test', key: 'k', now: () => o.now || 1e12, rand: Math.random, allowed: o.allowed !== false,
     fetch: async (url, init) => { calls.push({ url, init }); if (o.fail) throw new Error('offline'); return { ok: !o.status, status: o.status || 201 }; } };
   return { tel: createTelemetry(env), calls, store };
@@ -92,6 +93,35 @@ assert.equal(telemetryGate({ hostname: 'a.b', protocol: 'file:' }), false);
     assert.equal(tel.consent(), false); assert.equal(tel.size(), 0); assert.equal(store.getItem(TEL_KEYS.queue), null);
     assert.equal(tel.add('tries', { a: 1 }), false); assert.equal(await tel.flush(), 0); assert.equal(calls.length, 0);
     tel.setConsent(true); assert.equal(tel.add('tries', { a: 1 }), true);
+  }
+  { // default: a device that never chose is Off, sends nothing, queues nothing
+    const { tel, calls, store } = mk({ consent: 'none' });
+    assert.equal(tel.consent(), false); assert.equal(tel.active(), false);
+    assert.equal(tel.add('tries', { a: 1 }), false); assert.equal(tel.size(), 0); assert.equal(await tel.flush(), 0); assert.equal(calls.length, 0);
+    assert.equal(store.getItem(TEL_KEYS.consent), null, 'nothing is stored until a choice is made');
+    // a page without the flag changes nothing
+    assert.equal(tel.applyShare(''), false); assert.equal(tel.applyShare('?loop=3'), false); assert.equal(tel.applyShare('?share=0'), false);
+    // the switch turns it on, and that is kept across a reload
+    tel.setConsent(true); assert.equal(tel.consent(), true); assert.equal(store.getItem(TEL_KEYS.consent), 'on');
+    assert.equal(mk({ store }).tel.consent(), true);
+  }
+  { // ?share=1 turns it on, stores it, and later pages without the flag keep it
+    const { tel, store } = mk({ consent: 'none' });
+    assert.equal(tel.applyShare('?loop=3&share=1'), true); assert.equal(store.getItem(TEL_KEYS.consent), 'on');
+    const later = mk({ store }).tel; assert.equal(later.applyShare('?loop=3'), true); assert.equal(later.add('tries', { a: 1 }), true);
+  }
+  { // an explicit Off wins over a later page without the flag, and over a share link
+    const { tel, store } = mk({ consent: 'none' });
+    tel.applyShare('?share=1'); tel.setConsent(false); assert.equal(store.getItem(TEL_KEYS.consent), 'off');
+    const later = mk({ store }).tel;
+    assert.equal(later.applyShare('?loop=3'), false); assert.equal(later.consent(), false);
+    assert.equal(later.applyShare('?share=1'), false, 'a link does not undo a choice of Off'); assert.equal(later.add('tries', { a: 1 }), false);
+  }
+  { // old stored choices: the old build kept 'off' for Off and nothing for On
+    const off = mem(); off.setItem(TEL_KEYS.consent, 'off'); assert.equal(mk({ store: off }).tel.consent(), false);
+    const old = mem(); old.setItem(TEL_KEYS.pid, '11111111-1111-4111-8111-111111111111'); old.setItem(TEL_KEYS.queue, JSON.stringify({ tries: [{ a: 1 }] }));
+    const t = mk({ store: old }).tel; assert.equal(t.consent(), false, 'an old device with no stored choice is Off now'); assert.equal(t.pid(), '11111111-1111-4111-8111-111111111111');
+    assert.equal(t.applyShare('?share=1'), true, 'and the share link turns it on');
   }
   { // a page that is not allowed (test, local) sends nothing even with consent
     const { tel, calls } = mk({ allowed: false });
