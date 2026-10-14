@@ -91,7 +91,7 @@ export function openDesk(app, host, { stage, btns, CW = 960 }) {
     };
     const finish = () => {
       pane.hidden = true; talking = false;
-      for (const L of lines) { if (L.n) G.storyMark(s, L.n); if (L.lost) G.storyLostMark(s); }
+      G.storyHeard(s, lines);
       label(); app.save && app.save();
       if (done) done();
     };
@@ -160,17 +160,22 @@ export function openDesk(app, host, { stage, btns, CW = 960 }) {
     draw(g, T, CW2, GROUND) {
       g.save(); g.translate(X * CW2, GROUND + 6); g.scale(1.25, 1.25); drawHakawati(g, T, talking); g.restore();
       g.fillStyle = '#ffd23f'; g.font = 'bold 11px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText(t('st_name'), X * CW2, GROUND + 28);
+      // the brass bell hangs from a cord over the table once its ending was told, and sways; it rings wide for nine seconds after the telling
+      if (G.storyBellHangs(s) || kind === 'bell') {
+        if (kind === 'bell' && finaleT >= 0 && T0 < 0) T0 = T;
+        const ring = kind === 'bell' && finaleT >= 0 ? Math.max(0, 1 - (T - T0) / 9) : 0;
+        const sw = reduced ? 0 : Math.sin(T * (ring ? 6 : 1.6)) * (0.05 + 0.35 * ring);
+        g.save(); g.translate(X * CW2 + 80, 30); g.strokeStyle = INK; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(0, -30); g.lineTo(0, 0); g.stroke();
+        g.rotate(sw); g.translate(0, 24); g.fillStyle = '#d8a328'; g.lineWidth = 2.5;
+        g.beginPath(); g.moveTo(-14, 26); g.quadraticCurveTo(-14, -2, 0, -4); g.quadraticCurveTo(14, -2, 14, 26); g.closePath(); g.fill(); g.stroke();
+        g.beginPath(); g.arc(0, 29, 4, 0, 7); g.fill(); g.stroke(); g.restore();
+      }
       if (finaleT >= 0) {
         if (T0 < 0) T0 = T;
         const k = (T - T0) / 9;                              // nine seconds across the room, then the camels stay home at the right end
-        if (k > 1.2) { finaleT = -1; return; }
-        if (kind === 'bell') {        // the brass bell swings over the table and rings
-          const sw = reduced ? 0 : Math.sin((T - T0) * 6) * 0.35 * Math.max(0, 1 - k);
-          g.save(); g.translate(X * CW2 + 70, GROUND - 120); g.rotate(sw); g.fillStyle = '#d8a328'; g.strokeStyle = INK; g.lineWidth = 2.5;
-          g.beginPath(); g.moveTo(-14, 26); g.quadraticCurveTo(-14, -2, 0, -4); g.quadraticCurveTo(14, -2, 14, 26); g.closePath(); g.fill(); g.stroke();
-          g.beginPath(); g.arc(0, 29, 4, 0, 7); g.fill(); g.stroke(); g.restore();
-          return;
-        }
+        if (k > 1.2) { finaleT = -1; kind = ''; return; }
+        if (kind === 'bell') return;                         // the bell is drawn below, ringing wide for these seconds
         for (let i = 0; i < 5; i++) {
           const f = reduced ? 0.3 + i * 0.1 : Math.min(1, Math.max(0, k * 1.1 - i * 0.07));
           g.save(); g.translate(-40 + f * (CW2 * 0.62), GROUND + 4 - 36); g.scale(1.3, 1.3); camel(g, T * 6 + i); g.restore();

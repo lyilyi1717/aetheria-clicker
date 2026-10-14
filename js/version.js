@@ -3,9 +3,31 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.32.0';
+export const VERSION = '5.32.1';
 
 export const CHANGELOG = [
+  {
+    version: '5.32.1',
+    date: '2026-10-14',
+    title: 'Dig: small screen fixes',
+    changes: [
+      'After you break the Gate, the top line no longer cuts a note in half.',
+      'The finish card keeps Go to Alqahwa and Next town at the bottom, always in view, even when the card is tall.',
+      'In Alqahwa, the story scroll now sits beside the hakawati so you can see him, and the No Rafeeqs yet words move to the side.',
+      'In a dark Gate, the Lit and Too dark lines are bigger and easy to read, and the help box waits until the layer name is gone.',
+      'Once the level 20 story is told, the brass bell hangs in Alqahwa and sways, and the Story count goes down.'
+    ],
+    ar: {
+      title: 'الحفر: إصلاحات صغيرة للشاشة',
+      changes: [
+        'بعد كسر البوابة، لم يعد الشريط العلوي يقطع الملاحظة نصفين.',
+        'بطاقة النهاية تُبقي زرّي الذهاب إلى القهوة والبلدة التالية في أسفلها ظاهرين دائماً، حتى لو كانت البطاقة طويلة.',
+        'في القهوة، صارت لفّة الحكاية بجانب الحكواتي حتى تراه، وانتقلت عبارة لا رفقاء بعد إلى الجانب.',
+        'في البوابة المظلمة صارت عبارتا مضاءة ومظلمة جداً أكبر وأوضح، وصندوق المساعدة ينتظر حتى يختفي اسم الطبقة.',
+        'بعد أن تُروى حكاية المرحلة العشرين، يتدلّى الجرس النحاسي في القهوة ويتأرجح، وينقص عدّاد الحكايات.'
+      ]
+    }
+  },
   {
     version: '5.32.0',
     date: '2026-10-14',

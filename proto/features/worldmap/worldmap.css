@@ -41,7 +41,7 @@
 .qhcard .qh-stars { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; border: 2px solid var(--gold); border-radius: 14px; background: var(--panel-2); font-size: 18px; }
 .qh-stage { position: relative; border: 3px solid #2b1a0c; border-radius: 14px; overflow: hidden; background: #c99a5a; }
 .qh-stage canvas { display: block; width: 100%; height: auto; }
-.qh-empty { position: absolute; inset-inline: 0; inset-block-end: 40px; margin: 0; text-align: center; font-weight: 700; color: #fff6e0; text-shadow: 0 1px 3px #000; }
+.qh-empty { position: absolute; inset-inline-start: 2%; inline-size: 36%; inset-block-end: 40px; margin: 0; text-align: start; font-weight: 700; color: #fff6e0; text-shadow: 0 1px 3px #000; }
 .qh-empty[hidden] { display: none; }
 .qh-board { margin-block-start: 10px; padding: 10px 14px; border: 3px solid #c9a24a; border-radius: 12px; background: #24301f; }
 .qh-board .qh-menu { margin: 0 0 6px; font-size: 18px; letter-spacing: 2px; text-transform: uppercase; color: #ffe9a8; text-align: center; }
