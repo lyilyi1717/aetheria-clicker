@@ -23,6 +23,7 @@ or extends an agent for it.
 - Sims through a summary script; read one line per run, never a whole report.
 - At most one headless Chrome in the whole session, only through the shot driver `node scripts/shot.mjs <url> <script.js> [out.png]` (it kills its own Chrome), and only screen-checker uses it.
 - Dig month sim: `node sim/proto/dig-month.mjs --only mixed --seeds 2 --jobs 2 --sum --dump <file>`, then `node scripts/dig-levels.cjs <file>` for days and tries per road level. Real players: `node sim/proto/player-stats.mjs [--choices|--pace] [--vs <file>]`.
+- The owner's own servers run on these ports; never start a server on them and never stop them: 7000 (App Hub), 8080 and 8081 (local model servers), 8101 (the game), 8765 (the GPU monitor). Before starting your own server, check the port is free (`netstat -ano | grep LISTENING | grep :<port>`); if it is taken, pick another. Stop only a PID you started yourself and wrote down; never stop the process that happens to be listening on a port (on 15 October a check stopped the GPU monitor this way).
 - Never kill a process by name (`taskkill /IM ...`). Stop only what you started, by PID or port.
 - Never touch the server on port 8101 and never use `localhost` (the owner's save); use 127.0.0.1 and your own port.
 - Before reporting, list what you started and confirm each has ended.
