@@ -7,6 +7,7 @@ import { fx, rr } from '../../ui/render.js';
 import { moodsMem, moodsSay } from '../moods/ui.js';
 
 const INK = '#1b1410';
+const BOX_WRAP = 180;                                       // the widest line of his text box, in canvas px (the box is 20 more)
 export const bossView = G.chatterBossMem();                // the page's own memory (never saved); shots and tests read it
 const mem = bossView;
 const live = { held: false, hitAt: -99, clock: 0, auto: false, autoCheck: -9, emote: null, mounted: false, shownT: 0 };
@@ -96,7 +97,8 @@ export function drawManager(g, s, dt) {
   if (mem.line && !s.chatterQuiet) {
     g.save(); g.globalAlpha = Math.min(1, mem.lineLeft * 3) * k; g.font = 'bold 14px system-ui, Cairo, sans-serif'; g.textAlign = 'start'; g.textBaseline = 'middle'; g.direction = DIR;
     const rows = [''];
-    for (const w of mem.line.split(' ')) { const cur = rows[rows.length - 1], tryRow = cur ? cur + ' ' + w : w; if (g.measureText(tryRow).width > 190 && cur) rows.push(w); else rows[rows.length - 1] = tryRow; }
+    // the box keeps to its spot (docs/art-and-sound.md, layout map): x 286 to 486, so it never reaches the Museum chip under the depth pill
+    for (const w of mem.line.split(' ')) { const cur = rows[rows.length - 1], tryRow = cur ? cur + ' ' + w : w; if (g.measureText(tryRow).width > BOX_WRAP && cur) rows.push(w); else rows[rows.length - 1] = tryRow; }
     const w = Math.max(...rows.map(r => g.measureText(r).width)) + 20, h = rows.length * 17 + 10, bx = x0 + 36, by = 24;
     rr(g, bx, by, w, h, 8); g.fillStyle = '#fffdf2'; g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
     g.beginPath(); g.moveTo(bx + 1, by + 14); g.lineTo(bx - 9, by + 22); g.lineTo(bx + 1, by + 26); g.fillStyle = '#fffdf2'; g.fill(); g.stroke();
