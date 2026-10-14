@@ -56,6 +56,9 @@ console.log('--- Testing drill timer carry-over (B2) ---');
 gs.miningGrid.autoDrills = 10; // 5 hits/s
 gs.miningGrid.pickaxeTier = 0;
 ms.generateNewGrid();
+// The grid rolls its tiles with Math.random: a bomb tile the drills break blasts its 3x3 area and
+// stairs end the tick early, so make every tile plain stone to count drill hits only.
+gs.miningGrid.blocks.forEach(b => { b.content = 'stone'; });
 const hpBefore = gs.miningGrid.blocks.reduce((s, b) => s + b.hp, 0);
 ms.random = () => 0.999; // no Shatter, Cleave, Chain or crit on the drill hits (R68)
 ms.autoDrillTimer = 0;
