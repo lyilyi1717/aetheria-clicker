@@ -2,16 +2,16 @@
 .wset { padding: 8px 0; border-top: 1px solid rgba(255,255,255,.06); cursor: pointer; }
 .wset:first-child { border-top: 0; }
 .wset .wh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.wset .wn { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.wset .wn { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 .wset.done b, .wset.done .wn { color: var(--good); }
 .wset.locked { opacity: .5; cursor: default; }
-.wset .wr { color: var(--muted); font-size: 12px; margin-block: 2px 4px; }
-.wset ul { list-style: none; margin: 4px 0 0; padding: 0; font-size: 12px; color: var(--muted); }
+.wset .wr { color: var(--muted); font-size: 13px; margin-block: 2px 4px; }
+.wset ul { list-style: none; margin: 4px 0 0; padding: 0; font-size: 13px; color: var(--muted); }
 .wset li { padding-block: 1px; }
 .wset li b { color: var(--text, #f3e9d8); font-weight: 700; }
-.wset li .rare { background: var(--gold); color: var(--gold-ink); border-radius: 6px; padding: 0 5px; margin-inline-start: 4px; font-size: 10px; font-weight: 800; }
+.wset li .rare { background: var(--gold); color: var(--gold-ink); border-radius: 6px; padding: 0 5px; margin-inline-start: 4px; font-size: 13px; font-weight: 800; }
 .wset li.got { opacity: .55; }
-.wjar { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+.wjar { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
 
 .wart { width: 100%; max-width: 190px; height: auto; display: block; margin-block: 4px; }
 .wart .pt { fill: #2a1f15; stroke: #4a3822; stroke-width: 1; }
@@ -39,8 +39,8 @@
 .whall .hitem .wart { margin: 0; }
 .whall .hitem.treasure { animation-name: wglint; }
 .whall .hitem.hop { animation: whop .6s ease-out; }
-.whall .hint { color: var(--muted); font-size: 11px; margin: 3px 0 0; }
-.whall .parade { font-size: 12px; padding: 1px 10px; border-radius: 9px; background: var(--gold); color: var(--gold-ink); border: 1px solid #7a5a00; font-weight: 800; }
+.whall .hint { color: var(--muted); font-size: 13px; margin: 3px 0 0; }
+.whall .parade { font-size: 13px; padding: 1px 10px; border-radius: 9px; background: var(--gold); color: var(--gold-ink); border: 1px solid #7a5a00; font-weight: 800; }
 .whall.march .hitem { animation: wmarch 5s linear both; animation-delay: calc(var(--k) * .55s); }
 @keyframes wbob { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-2px) rotate(1.5deg); } }
 @keyframes wglint { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
@@ -51,11 +51,11 @@
 .wdoes { background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px 8px; margin-bottom: 8px; }
 .wdoes h3 { margin: 0 0 4px; font-size: 13px; color: var(--gold); }
 .wdoes ul { list-style: none; margin: 0; padding: 0; }
-.wdoes li { display: flex; gap: 8px; align-items: center; padding-block: 3px; font-size: 12px; color: var(--muted); }
+.wdoes li { display: flex; gap: 8px; align-items: center; padding-block: 3px; font-size: 13px; color: var(--muted); }
 .wdoes li .ico { flex: none; }
 .wdoes li b { color: var(--text, #f3e9d8); }
 .wdoes li i { font-style: normal; }
-.wdoes .hint { color: var(--muted); font-size: 11px; margin: 3px 0 0; }
+.wdoes .hint { color: var(--muted); font-size: 13px; margin: 3px 0 0; }
 .wset .wr { display: flex; gap: 6px; align-items: center; }
 .wset .wr .ico { flex: none; }
 .wing-card .wrew { display: flex; gap: 10px; align-items: center; justify-content: center; text-align: start; }
@@ -65,4 +65,4 @@
 .wishbtn { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 120px; padding: 12px 8px; border-radius: 12px; border: 2px solid var(--line); background: rgba(255,255,255,.06); color: inherit; cursor: pointer; font: inherit; }
 .wishbtn:hover { border-color: var(--gold); transform: translateY(-2px); }
 .wishbtn b { font-size: 14px; }
-.wishbtn span { color: var(--muted); font-size: 12px; }
+.wishbtn span { color: var(--muted); font-size: 13px; }

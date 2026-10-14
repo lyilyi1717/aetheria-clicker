@@ -26,6 +26,6 @@
 .fz-rec.s2 { border-color: #b97bff; }
 .fz-rec .row { display: flex; align-items: center; gap: 2px; }
 .fz-rec b { font-size: 14px; }
-.fz-rec .d { grid-column: 1 / -1; color: var(--muted); font-size: 12px; text-align: start; }
+.fz-rec .d { grid-column: 1 / -1; color: var(--muted); font-size: 13px; text-align: start; }
 .fz-rec.s0 { opacity: .6; }
 @media (prefers-reduced-motion: reduce) { #fuse-btn { animation: none; } }

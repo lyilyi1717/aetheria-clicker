@@ -17,8 +17,8 @@
 .st-beats { display: flex; flex-wrap: wrap; gap: 6px; margin-block-start: 3px; }
 .st-book .ghost { color: #3a2412; border-color: #8a6a3c; background: rgba(255,255,255,0.4); }
 .st-book .ghost:disabled { opacity: 0.4; }
-.st-beat i { margin-inline-start: 6px; padding: 0 6px; border-radius: 8px; background: #d7332b; color: #fff; font-style: normal; font-size: 11px; }
+.st-beat i { margin-inline-start: 6px; padding: 0 6px; border-radius: 8px; background: #d7332b; color: #fff; font-style: normal; font-size: 13px; }
 .st-empty { color: #6d5a3c; }
 .st-open { position: relative; }
-.st-dot { display: inline-block; margin-inline-start: 6px; min-width: 16px; padding: 0 4px; border-radius: 8px; background: #d7332b; color: #fff; font-size: 11px; text-align: center; }
+.st-dot { display: inline-block; margin-inline-start: 6px; min-width: 16px; padding: 0 4px; border-radius: 8px; background: #d7332b; color: #fff; font-size: 13px; text-align: center; }
 .st-tease { color: var(--gold); font-weight: 700; }

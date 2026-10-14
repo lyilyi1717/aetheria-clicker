@@ -1,5 +1,5 @@
 /* Dig relics2: the "goes with" mark on a chest card. */
-.relic-card .r2-pair { display: inline-flex; align-items: center; gap: 6px; margin-block-start: auto; padding-block: 3px; padding-inline: 6px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 12px; font-weight: 700; text-align: start; }
+.relic-card .r2-pair { display: inline-flex; align-items: center; gap: 6px; margin-block-start: auto; padding-block: 3px; padding-inline: 6px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 13px; font-weight: 700; text-align: start; }
 .relic-card .r2-pair .ico { flex: none; }
 .relic-card .r2-pair.have { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
 .relic-card.r2-match { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(255, 210, 63, .25); }

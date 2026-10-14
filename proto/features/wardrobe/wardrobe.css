@@ -13,8 +13,8 @@
 .wd-arrow:hover { color: var(--gold); border-color: var(--gold); }
 .wd-ic { flex: none; inline-size: 40px; block-size: 40px; }
 .wd-lab { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; line-height: 1.2; text-align: start; }
-.wd-lab small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-.wd-lab em { font-style: normal; color: var(--muted); font-size: 12px; }
+.wd-lab small { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+.wd-lab em { font-style: normal; color: var(--muted); font-size: 13px; }
 .wd-lab em:empty { display: none; }
 .wd-row.locked .wd-ic { filter: grayscale(1) brightness(.7); opacity: .75; }
 .wd-row.locked b { color: var(--muted); }
