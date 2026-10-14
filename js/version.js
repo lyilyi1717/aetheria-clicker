@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.33.2';
+export const VERSION = '5.33.3';
 
 export const CHANGELOG = [
   {
-    version: '5.33.2',
+    version: '5.33.3',
     date: '2026-10-14',
     title: 'Dig: each Chapter Two Gate sized for its level',
     changes: [
@@ -21,6 +21,28 @@ export const CHANGELOG = [
         'لكل مرحلة في الفصل الثاني الآن بوابة بحجمها الخاص. من المرحلة 27 فما بعد أصبحت البوابات أصغر من قبل، فتؤذيها فأسك فعلاً من جديد بدل أن يقوم الديناميت بكل العمل.',
         'الفصل الثاني يعطي نجوماً أكثر: كل نجمة يعطيها صارت مرتين ونصفاً مما كانت. الطريق كله، بفصليه، يأخذ الآن نحو ثلاثة أسابيع من اللعب.',
         'الفصل الأول كما كان، والحفظ القديم يعمل كما هو.'
+      ]
+    }
+  },
+  {
+    version: '5.33.2',
+    date: '2026-10-14',
+    title: 'Dig: third round of screen fixes',
+    changes: [
+      'The line above the dig no longer cuts words. The level and the land name always show (Chapter Two now reads "Ch. 2, level 1/20"), and the goal wraps to two lines, so "You have Stars. Spend them at the Alqahwa." can be read in full.',
+      'On the road map, the side cards next to a level and the free cards at the crossroads are spaced out, so they no longer sit on each other or on their Museum chips.',
+      'The hakawati’s name in Alqahwa is bigger and sits on a dark plate, so you can read it on the red rug.',
+      'The Empty Quarter now has red-orange sand blocks, so it looks different from the other lands. Ore is still easy to see.',
+      'The words on the Chapter One stamp no longer touch the arch picture.'
+    ],
+    ar: {
+      title: 'التنقيب: الجولة الثالثة من إصلاحات الشاشة',
+      changes: [
+        'السطر فوق الحفر لم يعد يقطع الكلمات. يظهر المستوى واسم الأرض دائماً (الفصل الثاني يُكتب الآن «ف2، المرحلة 1/20»)، والهدف يلتف على سطرين فيمكن قراءة «لديك نجوم. أنفقها في المقهى» كاملة.',
+        'على خريطة الطريق، البطاقات الجانبية بجانب المرحلة وبطاقات مفترق الطرق المجانية صارت متباعدة، فلا تركب بعضها ولا تغطي شارات المتحف.',
+        'اسم الحكواتي في المقهى صار أكبر ويقف على لوحة داكنة، فيمكن قراءته على السجادة الحمراء.',
+        'الربع الخالي صار له قوالب رمل بلون أحمر برتقالي، فيختلف شكله عن باقي الأراضي. والخام ما زال سهل الرؤية.',
+        'كلمات ختم الفصل الأول لم تعد تلمس صورة القوس.'
       ]
     }
   },

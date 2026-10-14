@@ -82,9 +82,13 @@ function tick(s) {
     sig = key;
     const idx = G.roadIndex(s);
     const name = t('site_' + r.site) + (r.twist ? ', ' + t('twist_' + r.twist) : '');
-    const parts = idx >= 0 ? [levelText(idx + 1), t('look_zone_' + G.roadZone(s)), name] : [name];
-    el.level.textContent = parts.join(' · ');
-    el.level.title = el.level.textContent;
+    // the level and the land never get cut: only the place name (last) is allowed to shrink with dots
+    const L = idx >= 0 ? G.levelOf(idx + 1) : null;
+    const head = L ? (L.ch === 2 ? t('trk_ch2', L) : levelText(idx + 1)) + ' · ' + t('look_zone_' + G.roadZone(s)) : '';
+    el.level.textContent = '';
+    if (head) { const a = document.createElement('span'); a.className = 'lv'; a.textContent = head; el.level.appendChild(a); }
+    const b = document.createElement('span'); b.className = 'nm'; b.textContent = (head ? ' · ' : '') + name; el.level.appendChild(b);
+    el.level.title = (L ? levelText(idx + 1) + ' · ' + t('look_zone_' + G.roadZone(s)) + ' · ' : '') + name;
   }
   el.gate.classList.toggle('done', !!r.done);
   el.gate.textContent = r.done ? t('trk_below') : t('trk_togate', { n: G.fmt(Math.max(0, F - Math.max(0, s.best))) });

@@ -37,12 +37,18 @@ ok(placeLook('dunes', 'arabia').sky === SITE_LOOK.dunes.sky && lookFor('sand', {
 const skies = ZONES.map(z => placeLook('dunes', z).sky[0]);
 ok(new Set(skies).size === ZONES.length, 'each continent has its own sky');
 for (const z of ZONES.slice(1)) {
-  ok(dist(lookFor('sand', {}, 'dunes', z).dirt, lookFor('sand', {}, 'dunes', 'arabia').dirt) < 60, `${z} ground shifts gently`);
+  ok(dist(lookFor('sand', {}, 'dunes', z).dirt, lookFor('sand', {}, 'dunes', 'arabia').dirt) < (z === 'emptyquarter' ? 120 : 60), `${z} ground shifts gently`);
   ok(dist(lookFor('sand', {}, 'boom', z).dirt, lookFor('sand', {}, 'dunes', z).dirt) > 25, `places still read in ${z}`);
   for (const [o, col] of Object.entries(ORES)) for (const id of ids) for (const p of places) {
     const k0 = base[o] === 'dirt' ? -0.18 : -0.35;
     ok(contrast(col, oreBacking(lookFor(id, {}, p, z)[base[o]], col, k0)) >= MIN_CONTRAST - 0.05, `${o} reads on ${id} at ${p} in ${z}`);
   }
+}
+{ // the Empty Quarter's blocks are red sand: redder and further from every other land than they are from each other
+  const ed = lookFor('sand', {}, 'dunes', 'emptyquarter').dirt, rgbOf = h => { const v = parseInt(h.slice(1), 16); return [v >> 16, (v >> 8) & 255, v & 255]; };
+  const [r, g, b] = rgbOf(ed);
+  ok(r > g * 1.35 && r > b * 1.8, 'Empty Quarter dirt is red-orange');
+  for (const z of ZONES.filter(z => z !== 'emptyquarter')) ok(dist(ed, lookFor('sand', {}, 'dunes', z).dirt) > (z === 'americas' || z === 'africa' ? 15 : z === 'n_africa' || z === 'n_americas' ? 30 : 40), `Empty Quarter ground differs from ${z}`);
 }
 ok(ROAD.every(f => roadZone({ run: { site: f.site, floor: f.floor, ch: f.ch, twist: '', ch: f.ch } }) === f.zone), 'roadZone follows the road');
 ok(roadZone({ run: { site: 'dunes', floor: 100, twist: '' } }) === 'africa' && roadZone({ run: { site: 'dunes', floor: 100, twist: '', ch: 2 } }) === 'n_europe' && roadZone({ run: { site: 'gold', floor: 325, twist: '', ch: 2 } }) === 'emptyquarter' && roadZone({ run: { site: 'gold', floor: 325, twist: 'dim' } }) === 'europe', 'chapter two has its own lands; a side level stays in chapter one');

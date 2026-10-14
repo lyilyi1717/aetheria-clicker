@@ -1,4 +1,5 @@
 export default { en: {
+  trk_ch2: 'Ch. 2, level {n}/{of}',
   trk_level: 'Level {n} of {of}',
   trk_togate: '{n} m to the Gate',
   trk_below: 'Below the Gate',
