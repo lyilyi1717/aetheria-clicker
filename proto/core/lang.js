@@ -27,6 +27,18 @@ export const textDir = s => dirOf(s, DIR);
 // one line of words in a box that stays left to right on an Arabic page (the track row's goal): a first-strong isolate gives
 // the words their own direction, so an Arabic line ending in a number does not throw the number to the right end
 export const ownDir = (s, dir = DIR) => dir === 'rtl' ? '\u2068' + s + '\u2069' : s;
+// goal words with a count ("Second Pick: 3.00K / 100K"): the count must never leave the visible line (#469). `num` is the
+// first number of the count as the goal wrote it; the count runs from there to the end, so the localizer's wording and order
+// stay as written. Returns { lead, count } when the words are a label then the count, else null (show them as one piece).
+// An isolate mark just before the number goes with the count.
+export function goalParts(text, num) {
+  if (!text || num === undefined || num === null || num === '') return null;
+  let i = String(text).indexOf(String(num));
+  if (i <= 0) return null;
+  while (i > 0 && /[\u2066-\u2068]/.test(text[i - 1])) i--;
+  const lead = text.slice(0, i).replace(/[\s\u2066-\u2069]+$/, ''), count = text.slice(i);
+  return lead ? { lead, count } : null;
+}
 
 // store the choice and reload without ?lang= (it would win over the stored value)
 export function setLangChoice(id) {

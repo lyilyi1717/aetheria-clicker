@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.1';
+export const VERSION = '5.36.2';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.2',
+    date: '2026-10-14',
+    title: 'Dig: one note in one place, and the goal keeps its numbers',
+    changes: [
+      '"You have Stars. Spend them at the Alqahwa." now shows once, in the message line at the top of the dig. It no longer also takes the goal\'s place, so the goal always shows what its button names (the Gate, the Second Pick or a Museum set).',
+      'The Second Pick goal always shows both numbers, for example "3.00K / 100K". When the line is short, only the name ends in dots. In Arabic the target number used to be cut off.'
+    ],
+    ar: {
+      title: 'الحفر: رسالة واحدة في مكان واحد، والهدف يحتفظ بأرقامه',
+      changes: [
+        '«معك نجوم. أنفقها في القهوة.» تظهر الآن مرة واحدة، في سطر الرسائل أعلى الحفر. لم تعد تأخذ مكان الهدف أيضاً، فيعرض الهدف دائماً ما يسمّيه زرّه (البوابة أو المعول الثاني أو مجموعة المتحف).',
+        'هدف المعول الثاني يعرض الرقمين دائماً، مثل «3.00K / 100K». إذا ضاق السطر تنتهي التسمية وحدها بنقاط. في العربية كان الرقم المطلوب ينقطع.'
+      ]
+    }
+  },
   {
     version: '5.36.1',
     date: '2026-10-14',
