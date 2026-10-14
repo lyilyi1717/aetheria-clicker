@@ -1,7 +1,7 @@
 # Art and sound
 
 Owner: art-director. Looks, characters, layout, readability, sound and music for each game. Written from what the code draws
-today (14 October 2026, v5.35.0). Decisions are at the end of each game's page; the owner can still reverse any of them.
+today (14 October 2026, v5.35.0; updated v5.35.4). Decisions are at the end of each game's page; the owner can still reverse any of them.
 
 - **Aetheria (live)** and **Core loop (paused):** the rules are `docs/ui-style-guide.md` (tokens, type, motion, Arabic) and
   `docs/game-feel-guide.md` (feedback tiers T0 to T3). Nothing more here until someone works on them.
@@ -35,7 +35,9 @@ without a slider for it; reduced motion is honoured; Arabic reads right to left 
 **Ground** (`proto/features/look/palette.js`): `LAYER_LOOK` gives each layer dirt, stone, hard, back and glow
 (sand, clay, slate, deep; then black, living, angry, hot). `SITE_LOOK` gives each place a sky and a light tint
 (dunes, boom, gold, bones, shark, mirage). `ZONE_LOOK` gives each land its sky, far ground and a ground nudge, the place keeping
-30% of its own sky. Ores (`ORES`) always keep at least 2.6:1 against the block behind them (`oreBacking`, `MIN_CONTRAST`).
+30% of its own sky. `lookFor` also gives `dark`, the block the lamp has not reached (the wall colour shaded -25% unless a land sets
+its own). Block sprites are cached per land, site, zone and layer (`render.js` `key0`), so a land never shows another's blocks.
+Ores (`ORES`) always keep at least 2.6:1 against the block behind them (`oreBacking`, `MIN_CONTRAST`).
 
 ## 2. Land looks
 
@@ -47,7 +49,7 @@ without a slider for it; reduced motion is honoured; Arabic reads right to left 
 | The Americas | blue to peach | red mesas, jungle, step pyramid | red 16% |
 | Europe | grey-blue | clouds, green hills, castle, windmill | green 16% |
 | Night lands (`n_europe` ... `n_africa`, chapter two) | deep blue (`#101a36` to `#5a3a4a`) | the day props under a 50% blue veil, 40 small stars, a crescent moon at x 78% | the land's colour, bluer |
-| The Empty Quarter (`emptyquarter`) | red-orange `#e2683a` to `#ffc27a` | low sun, three rows of high red dunes, five far camels | red sand `#d9501c` at 40% (the only land above 16%, so its blocks read red) |
+| The Empty Quarter (`emptyquarter`) | red-orange `#e2683a` to `#ffc27a` | low sun, three rows of high red dunes, five far camels | its own red palette for the four ground layers (`ZONE_LOOK.emptyquarter.layers`, decision 7): sand dirt `#e4844a`, clay `#c95530`, slate `#b0452e`, deep `#94344a`, darker with depth; unlit blocks dark brick red (`dark`, `#8a3a20` at the top); the deep feature layers keep their look with red `#d9501c` at 40% |
 
 Night and day share every shape: the land is known by its props, night by the dark sky and the moon (not by colour alone).
 
@@ -68,7 +70,7 @@ The manager is not a Rafeeq: never the Rafeeq bean, never a Wardrobe item. Name 
 ## 4. The dig screen: layout map
 
 The page (`proto.html`): top line (purse with Stars and your hit, Map, Sound, Settings) / the track (40 px: level, countdown,
-medals, message line, goal) / the stage on the left, the drawer on the right. The stage is a 640 x 680 canvas (`W`, `H`; the
+medals, message line, goal; spots T1 to T4 below) / the stage on the left, the drawer on the right. The stage is a 640 x 680 canvas (`W`, `H`; the
 sky band is the top 104 px, `SKY`), scaled to the window (452 to 640 px wide), with page elements laid over it. The stage
 never mirrors in Arabic.
 
@@ -86,6 +88,16 @@ never mirrors in Arabic.
 | S8 dig | y 104 down | blocks, Rafeeqs, Rock and its bar | nothing is laid on the Rock's bar (#367) |
 | S9 bottom start / end | 12 px from the corners | tools / Tips list, chest button, fuse button (70 px up) | the Museum arrow is drawn along the bottom edge |
 | S10 hint | centred, y 128 | "Point at the ground to dig" | first seconds only |
+| S11 bubbles | over each Rafeeq (y - 52), else up to 3 steps up, else down (`moods/spot.js` `bubbleSpot`) | Rafeeq speech bubbles, **two at most** | a third waits up to 3 s for room, then is dropped (decision 6) |
+
+**Reserved spots in the track** (the 40 px line over the stage, `track/track.css`; decision 5):
+
+| Spot | Who lives there | Size rule |
+|---|---|---|
+| T1 start | level line; under it the "Gate at N m" note, the countdown and the medals (`#trk-head`) | never narrower than the second line (`min-width: min-content`); only the level name may end in dots; at most 62% |
+| T2 middle | the message line: lesson or toast (`#trk-msg`; a lesson wins) | gives way first, never under 96 px, two lines at most, clipped inside its spot |
+| T3 | Tips button; "Done here" takes this place when the dig is done | its own width |
+| T4 end | the goal: one goal chip (`#goal-pin`, only with 2 or more choices) over one line of goal words, or two lines of words without the chip; progress line along the foot | at most 210 px; the words' full text is in their title |
 
 Rule: a new thing on the stage takes a free spot from this table (or a new row added here); it never sits on S4 or S5 while the
 manager is on screen. `test_proto_art.js` checks the S5 and S7 numbers.
@@ -174,6 +186,29 @@ The test page for every sound: `proto/soundboard.html`.
    bar's own accents (the Gulf 3 + 3 + 2), so the caravan's land sounds like home. `picks/beat.js`, checked in
    `test_proto_art.js`.
 
+5. **Decided (14 Oct 2026, by art-director): the track line has four reserved spots (T1 to T4 in section 4) and the goal choice
+   is one chip, not a row of three** (#453). Because at 1366 wide the stage is 612 px and the level, the Gate note, the message
+   line, Tips and three pills (about 280 px) cannot share it; the pills pushed the head under them and cut "Gate at 50 m", and
+   the message line had no room. One chip shows the goal on the bar; a tap steps to the next choice and the goal words change at
+   once, so a child learns it by tapping; a dot per choice (the filled one is this, by place and fill, not colour alone) says
+   there are more, and a drawn step mark says it moves on. With the chip the goal words keep one line (full text in the title).
+6. **Decided (14 Oct 2026, by art-director): two Rafeeq bubbles at most on the dig, each placed clear of the other** (S11).
+   Because two lines at once is already a conversation (a line and its answer); a third (a pat at the same moment) is noise, and
+   the old one-step nudge could bounce between two bubbles at the top edge and end on top of one. The third line keeps its time
+   while it waits, so a pat still answers.
+7. **Decided (14 Oct 2026, by art-director): the Empty Quarter is red sand at every depth, lit or unlit** (#452). Because the
+   40% nudge only showed on the two lit rows: every block below was the lamp's dark (the brown wall shaded down), and the block
+   pictures were cached without the land, so a visit that came from another land kept that land's blocks. Now the four ground
+   layers have their own reds (lighter at the top, darker down, so depth still reads by brightness; slate keeps its shine;
+   stones stay a warm stone colour, not sand), the unlit block is a dark brick red, block pictures are kept per land, and the
+   land is set before the sky's early return. The deep feature layers (black, living, angry, hot) keep their own look plus the
+   nudge, because each one is a law the player must know at a glance. Every ore keeps 2.6:1 (`test_proto_look.js`).
+8. **Decided (14 Oct 2026, by art-director): in Alqahwa the "No Rafeeqs yet" line is a caption strip under the room, dark
+   `#2b1a0c` with `#fff6e0` text at 14 px.** Because the room never mirrors but the line did: laid over the scene it fell on the
+   hakawati in English and on the coffee sign in Arabic. Under the room it covers nothing in either language.
+9. **Decided (14 Oct 2026, by art-director): the save code box is named for screen readers by the section title** (#454): the
+   `aria-label` line had been swallowed by a comment; it is code again, and `test_proto_art.js` checks it is not in a comment.
+
 ## 9. Briefs for builders
 
 **B1. The 13 px floor** (after the localizer's string and HUD pass lands, to avoid two PRs on the same lines).
@@ -191,7 +226,12 @@ not overlapping, the manager and hakawati name plates readable, the Star board a
 - The dig with 3 Rafeeqs, English and Arabic: the small Museum chip under the depth pill, the manager's box and countdown pill
   fully clear, at 1500x1000 and 1366x768; with 2 Rafeeqs the full chip at the top centre.
 - A new Museum piece while the chip is small: the pop still shows.
-- Settings, `?lang=ar`, Show my code: the code starts at the left of every line.
-- The Empty Quarter blocks (red sand since v5.33.2; last seen as dark brown at v5.33.0).
+- Settings, Show my code: the box has aria-label 'Save code' (Arabic: the Arabic title).
+- The Empty Quarter at level 37 (v5.35.4), reached from level 36 in the same visit (not by reload): red sand on lit rows, dark
+  brick red on unlit rows, darker red going down, ores readable; a night land after a day land shows its own blue-ish blocks.
+- The track line with a toast, Tips and the goal chip all showing, English and Arabic, 1500x1000 and 1366x768: the "Gate at
+  N m" note whole, the toast inside its spot, the chip over one line of goal words; tapping the chip steps the goal.
+- Three Rafeeqs talking at once at 1366x768 (a pair and a pat): two bubbles at most, never overlapping.
+- Alqahwa with no Rafeeqs, English and Arabic: the "No Rafeeqs yet" strip under the room, the coffee sign and the hakawati clear.
 - The Stars pill and the Alqahwa board with Stars near 2 T: the pill width does not jump, the gold fill reads.
 - By ear (the owner): a night land and the Empty Quarter on `proto/soundboard.html`.

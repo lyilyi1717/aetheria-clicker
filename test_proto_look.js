@@ -50,6 +50,17 @@ for (const z of ZONES.slice(1)) {
   ok(r > g * 1.35 && r > b * 1.8, 'Empty Quarter dirt is red-orange');
   for (const z of ZONES.filter(z => z !== 'emptyquarter')) ok(dist(ed, lookFor('sand', {}, 'dunes', z).dirt) > (z === 'americas' || z === 'africa' ? 15 : z === 'n_africa' || z === 'n_americas' ? 30 : 40), `Empty Quarter ground differs from ${z}`);
 }
+{ // #452: red sand at every depth, lit or not yet lit; depth still reads (darker down); the lamp's dark is darker than lit
+  const red = h => { const v = parseInt(h.slice(1), 16), r = v >> 16, g = (v >> 8) & 255, b = v & 255; return r > g * 1.5 && r > b * 1.4; };
+  const L4 = ['sand', 'clay', 'slate', 'deep'];
+  for (const id of L4) for (const k of ['dirt', 'back', 'dark']) ok(red(lookFor(id, {}, 'dunes', 'emptyquarter')[k]), `Empty Quarter ${id} ${k} reads red`);
+  const warm = h => { const v = parseInt(h.slice(1), 16); return (v >> 16) > ((v >> 8) & 255) * 1.2; };   // stones stay stone, but warm
+  for (const id of L4) ok(warm(lookFor(id, {}, 'dunes', 'emptyquarter').stone), `Empty Quarter ${id} stone is warm`);
+  for (let i = 1; i < L4.length; i++) ok(luminance(lookFor(L4[i], {}, 'dunes', 'emptyquarter').dirt) < luminance(lookFor(L4[i - 1], {}, 'dunes', 'emptyquarter').dirt), `Empty Quarter ${L4[i]} darker than ${L4[i - 1]}`);
+  for (const id of L4) { const e = lookFor(id, {}, 'dunes', 'emptyquarter'); ok(contrast(e.dirt, e.dark) >= 1.8, `Empty Quarter ${id}: unlit blocks read as unlit`); }
+  for (const id of L4) ok(dist(lookFor(id, {}, 'dunes', 'emptyquarter').dark, lookFor(id, {}, 'dunes', 'arabia').dark) > 40, `Empty Quarter ${id} unlit blocks are not the home brown`);
+  ok(lookFor('sand', {}, 'dunes', 'arabia').dark === '#432d19', 'unlit blocks at home keep their colour');
+}
 ok(ROAD.every(f => roadZone({ run: { site: f.site, floor: f.floor, ch: f.ch, twist: '', ch: f.ch } }) === f.zone), 'roadZone follows the road');
 ok(roadZone({ run: { site: 'dunes', floor: 100, twist: '' } }) === 'africa' && roadZone({ run: { site: 'dunes', floor: 100, twist: '', ch: 2 } }) === 'n_europe' && roadZone({ run: { site: 'gold', floor: 325, twist: '', ch: 2 } }) === 'emptyquarter' && roadZone({ run: { site: 'gold', floor: 325, twist: 'dim' } }) === 'europe', 'chapter two has its own lands; a side level stays in chapter one');
 console.log(bad ? `${bad} failed` : 'look: all ok');

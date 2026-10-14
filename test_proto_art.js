@@ -32,6 +32,23 @@ const set = read('./proto/features/settings/settings.css');
 const area = (set.match(/\.sc-area \{([^}]*)\}/) || [])[1] || '';
 ok(/direction: ltr/.test(area) && /text-align: left/.test(area), 'the save code reads left to right');
 ok(/area\.dir = 'ltr'/.test(read('./proto/features/settings/savecode-ui.js')), 'the save code box is dir=ltr');
+// #454: the label was on the same line as a comment, so it never ran; it must be code, not comment
+ok(read('./proto/features/settings/savecode-ui.js').split('\n').some(l => /^\s*area\.setAttribute\('aria-label'/.test(l)), 'the save code box has an aria-label (not inside a comment)');
+
+// ---------- Rafeeq bubbles: never on top of each other, two at most ----------
+{
+  const { bubbleSpot, BUBBLES_AT_ONCE } = await import('./proto/features/moods/spot.js');
+  const over = (a, b) => Math.abs(a.x - b.x) < (a.w + b.w) / 2 && Math.abs(a.y - b.y) < 24;
+  // three Rafeeqs side by side on the top row, long lines: every drawn one is clear of the others
+  for (const y of [84, 20, 300]) {
+    const taken = [];
+    for (const x of [300, 330, 360]) { const w = 190, p = bubbleSpot(taken, x, y, w); if (p) taken.push({ ...p, w }); }
+    ok(taken.length === BUBBLES_AT_ONCE, `two bubbles show at y ${y} (showed ${taken.length})`);
+    ok(taken.every((a, i) => taken.every((b, j) => i === j || !over(a, b))), `bubbles at y ${y} do not overlap`);
+    ok(taken.every(b => b.y >= 14 && b.y <= 680 - 14 && b.x - b.w / 2 >= 0 && b.x + b.w / 2 <= 640), `bubbles at y ${y} stay on the stage`);
+  }
+  ok(bubbleSpot([], 600, 84, 120).x <= 640 - 62, 'a bubble at the edge is pulled in');
+}
 
 // ---------- the night bars ----------
 const hitsOf = b => b.n.reduce((a, x) => a + x, 0);

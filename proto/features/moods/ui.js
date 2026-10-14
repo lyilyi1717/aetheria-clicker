@@ -8,9 +8,10 @@
 // A trait (Eager, Sleepy, Joker, Careful, Proud, Hungry) bends how much he talks and which mood he picks. Looks and words only.
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
-import { fx, AT, W, rr, centre } from '../../ui/render.js';
+import { fx, AT, W, H, rr, centre } from '../../ui/render.js';
 import { look } from '../diggers/art.js';
 import { DIR } from '../../core/lang.js';
+import { bubbleSpot } from './spot.js';
 
 const { t } = G;
 
@@ -47,7 +48,7 @@ export function moodsSay(d, text, o = {}) {
   if (!text || !s || i < 0 || s.chatterQuiet) return false;
   if (!o.player && !o.over && !G.chatterAllow(moodsMem, i, P)) return false;
   if (o.over && s.chatterQuiet) return false;
-  const m = st(d); m.bubble = text; m.bubbleLeft = 1.9;
+  const m = st(d); m.bubble = text; m.bubbleLeft = 1.9; m.wait = 0;
   G.chatterSpoke(moodsMem, i, text, P, o);
   return true;
 }
@@ -186,22 +187,19 @@ function puff(x, y, col, vx = 0, vy = -26) { if (reduced || puffs.length > 24) r
 
 const drawn = [];                   // the bubbles drawn this frame
 function bubble(g, x, y, str, alpha) {
-  g.save(); g.globalAlpha = alpha; g.font = 'bold 14px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.direction = DIR;   // the scene stays ltr, its words do not
+  g.save(); g.font = 'bold 14px system-ui, Cairo, sans-serif';
   const w = g.measureText(str).width + 16, h = 24;
-  const bx = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, x));
-  let by = Math.max(h / 2 + 2, y);
-  // two Rafeeqs side by side: a bubble that would sit on another one goes up a step (or below it at the top edge)
-  for (let k = 0; k < 4; k++) {
-    const hit = drawn.find(b => Math.abs(b.x - bx) < (b.w + w) / 2 + 2 && Math.abs(b.y - by) < h + 2);
-    if (!hit) break;
-    by = hit.y - h - 3 < h / 2 + 2 ? hit.y + h + 3 : hit.y - h - 3;
-  }
+  const spot = bubbleSpot(drawn, x, y, w, h, W, H);
+  if (!spot) { g.restore(); return false; }
+  const bx = spot.x, by = spot.y;
+  g.globalAlpha = alpha; g.textAlign = 'center'; g.textBaseline = 'middle'; g.direction = DIR;   // the scene stays ltr, its words do not
   drawn.push({ x: bx, y: by, w });
   rr(g, bx - w / 2, by - h / 2, w, h, 9); g.fillStyle = '#fffdf2'; g.fill(); g.strokeStyle = '#111'; g.lineWidth = 2; g.stroke();
   g.fillStyle = '#fffdf2'; g.beginPath(); g.moveTo(x - 4, by + h / 2 - 1); g.lineTo(x, by + h / 2 + 7); g.lineTo(x + 5, by + h / 2 - 1); g.fill();
   g.beginPath(); g.moveTo(x - 4, by + h / 2); g.lineTo(x, by + h / 2 + 7); g.lineTo(x + 5, by + h / 2); g.stroke();
   g.fillStyle = '#111'; g.fillText(str, bx, by + 1);
   g.restore();
+  return true;
 }
 
 function drawMoods(g, s, dt) {
@@ -212,7 +210,7 @@ function drawMoods(g, s, dt) {
   const due = G.chatterReplyDue(moodsMem);         // the answer of a pair
   if (due) {
     const who = s.diggers[due.to];
-    if (who && !s.chatterQuiet && !moodsMem.mute) { const m = st(who); m.bubble = due.text; m.bubbleLeft = 1.9; G.chatterReplied(moodsMem, P); } else moodsMem.reply = null;
+    if (who && !s.chatterQuiet && !moodsMem.mute) { const m = st(who); m.bubble = due.text; m.bubbleLeft = 1.9; m.wait = 0; G.chatterReplied(moodsMem, P); } else moodsMem.reply = null;
   }
   for (let i = puffs.length - 1; i >= 0; i--) {
     const q = puffs[i]; q.life -= dt; if (q.life <= 0) { puffs.splice(i, 1); continue; }
@@ -264,6 +262,10 @@ function drawMoods(g, s, dt) {
         g.save(); g.translate(x, y - 12 + bob); arm(g, 0, 4, dx / L * 17, dy / L * 12 + 4); g.restore();
       }
     }
-    if (m.bubbleLeft > 0 && m.bubble) bubble(g, x, y - 52 + bob, m.bubble, Math.min(1, m.bubbleLeft * 2.5));
+    if (m.bubbleLeft > 0 && m.bubble && !bubble(g, x, y - 52 + bob, m.bubble, Math.min(1, m.bubbleLeft * 2.5))) {
+      // no room: the line waits (its time does not run) for up to 3 s, then it is dropped
+      m.wait = (m.wait || 0) + dt;
+      m.bubbleLeft = m.wait > 3 ? 0 : Math.min(1.9, m.bubbleLeft + dt);
+    } else if (m.bubbleLeft > 0) m.wait = 0;
   }
 }

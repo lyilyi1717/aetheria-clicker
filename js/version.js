@@ -3,9 +3,33 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.35.3';
+export const VERSION = '5.35.4';
 
 export const CHANGELOG = [
+  {
+    version: '5.35.4',
+    date: '2026-10-14',
+    title: 'Dig: red sand all the way down, and a tidy top line',
+    changes: [
+      'The Empty Quarter is red sand at every depth now, the blocks your lamp has not reached too (they were the usual dark brown). Deeper layers are a darker red, and every ore still stands out.',
+      'Night lands and the Empty Quarter no longer borrow the blocks of the land you played before them in the same visit.',
+      'The goal choice at the top is one chip now: tap it to switch between the Gate, the Second Pick and a Museum set (the dots show how many there are). It no longer covers the "Gate at" note, and the message line keeps its room.',
+      'Rafeeq speech bubbles never sit on top of each other: at most two show at once, and a third waits its turn.',
+      'In Alqahwa the "No Rafeeqs yet" line sits under the room, so it no longer covers the coffee sign or the storyteller.',
+      'The save code box now has a name for screen readers.'
+    ],
+    ar: {
+      title: 'الحفر: رمل أحمر حتى القاع، وسطر علوي مرتّب',
+      changes: [
+        'الربع الخالي صار رملاً أحمر في كل عمق، حتى الكتل التي لم يصلها مصباحك (كانت بنية داكنة كالعادة). الطبقات الأعمق أحمر أغمق، وكل خام ما زال واضحاً.',
+        'أراضي الليل والربع الخالي لم تعد تستعير كتل الأرض التي لعبتها قبلها في الزيارة نفسها.',
+        'اختيار الهدف في الأعلى صار شارة واحدة: اضغطها لتنتقل بين البوابة والمعول الثاني ومجموعة المتحف (النقاط تبيّن كم خياراً عندك). لم تعد تغطي ملاحظة البوابة، وسطر الرسائل يبقى له مكانه.',
+        'فقاعات كلام الرفقاء لا تركب بعضها: تظهر اثنتان على الأكثر، والثالثة تنتظر دورها.',
+        'في القهوة صار سطر "لا رفقاء بعد" تحت الغرفة، فلا يغطي لافتة القهوة ولا الحكواتي.',
+        'صندوق رمز الحفظ صار له اسم لقارئات الشاشة.'
+      ]
+    }
+  },
   {
     version: '5.35.3',
     date: '2026-10-14',
