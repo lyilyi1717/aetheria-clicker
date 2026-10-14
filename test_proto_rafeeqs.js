@@ -130,5 +130,17 @@ const tick = s => G.step(s, 0.05, () => {});
   ok(a.coins === b.coins && a.total === b.total, 'seats change nothing the dig pays');
 }
 
+{ // in Arabic a nickname shows in its own script; the save keeps the Arabizi id
+  const s = crew(2); tick(s);
+  const x = s.rafeeqSeats[0], nk = G.rafeeqNick(s, 0);
+  G.setLang('ar');
+  ok(G.rafeeqName(s, 0) === nk.ar && x.name === x.given, 'Arabic shows the Arabic script, the seat is unchanged');
+  ok(G.rafeeqRename(s, 0, nk.ar) === x.given && G.rafeeqNick(s, 0) === nk, 'keeping the Arabic name keeps the nickname (not a hand name)');
+  G.rafeeqRename(s, 0, 'سيف');
+  ok(G.rafeeqName(s, 0) === 'سيف' && G.rafeeqNick(s, 0) === null, 'a hand name shows as typed');
+  G.setLang('en');
+  ok(G.rafeeqName(s, 0) === 'سيف' && G.rafeeqName(s, 1) === s.rafeeqSeats[1].given, 'English shows the id as before');
+}
+
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('rafeeqs ok');

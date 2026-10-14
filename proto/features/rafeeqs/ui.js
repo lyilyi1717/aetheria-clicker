@@ -2,6 +2,7 @@
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { portrait, kindName } from './portrait.js';
+import { langNow } from '../../core/strings.js';
 
 const { t, fmt } = G;
 
@@ -19,7 +20,9 @@ function openCard(i, app) {
     name.textContent = G.rafeeqName(s, i);
     pen.textContent = t('rq_rename');
     const nk = G.rafeeqNick(s, i);
-    m.querySelector('.rq-trait').textContent = nk ? G.rafeeqLine(s, i) + ' (' + nk.ar + ')' : t('rq_trait_' + tr) + ': ' + G.rafeeqLine(s, i);
+    // in English the nickname's Arabic script follows his line; in Arabic it is already his name
+    m.querySelector('.rq-trait').textContent = nk ? (langNow() === 'ar' ? G.rafeeqLine(s, i) : t('rq_nick_line', { line: G.rafeeqLine(s, i), ar: nk.ar }))
+      : t('rq_trait_line', { trait: t('rq_trait_' + tr), line: G.rafeeqLine(s, i) });
     const bits = [];
     if (pair.friend >= 0 && s.diggers[pair.friend]) bits.push(t('rq_friend', { name: G.rafeeqName(s, pair.friend) }));
     if (pair.rival >= 0 && s.diggers[pair.rival]) bits.push(t('rq_rival', { name: G.rafeeqName(s, pair.rival) }));

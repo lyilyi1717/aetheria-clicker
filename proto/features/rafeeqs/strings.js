@@ -6,6 +6,8 @@ export default { en: {
   rq_rename: 'Change name',
   rq_save: 'Keep',
   rq_trait_eager: 'Eager', rq_trait_sleepy: 'Sleepy', rq_trait_joker: 'Joker', rq_trait_careful: 'Careful', rq_trait_proud: 'Proud', rq_trait_hungry: 'Hungry',
+  rq_trait_line: '{trait}: {line}',
+  rq_nick_line: '{line} ({ar})',
   rq_line_eager: 'Runs to shiny things.',
   rq_line_sleepy: 'Yawns a lot. Digs anyway.',
   rq_line_joker: 'Laughs at everything.',

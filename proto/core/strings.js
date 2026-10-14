@@ -16,6 +16,8 @@ export function addStrings(tables, owner = '?', extra = null) {
 }
 // the table list may not hold the language yet (tables arrive feature by feature), so accept any known language name
 export function setLang(l) { lang = l === 'ar' ? 'ar' : 'en'; if (!TABLES[lang]) TABLES[lang] = {}; }
+// the language t() reads now ('en' | 'ar'): for data that carries its own script (the Rafeeq nicknames)
+export const langNow = () => lang;
 // one key in a named language, no fallback (null if absent): for text that shows both scripts
 export const tIn = (lg, key) => (TABLES[lg] && TABLES[lg][key]) ?? null;
 export const hasString = key => key in TABLES.en;

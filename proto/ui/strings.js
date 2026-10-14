@@ -37,7 +37,7 @@ export default { en: {
   tips: 'نصائح', tips_none: 'النصائح التي رأيتها تظهر هنا.',
   coins: 'العملات',
   depth: '{n} م',
-  mute: 'الصوت: يعمل', unmute: 'الصوت: مطفأ',
+  mute: 'الصوت: مشغّل', unmute: 'الصوت: مطفأ',
 
   reset: 'ابدأ من جديد', reset_sure: 'اضغط مرة أخرى لتمسح هذا الحفظ',
   dr_tab_shop: 'المتجر', dr_tab_camp: 'الرفقاء', dr_tab_relics: 'الآثار', dr_tab_museum: 'المتحف', dr_tab_forge: 'المصهر', dr_tab_level: 'المرحلة',
