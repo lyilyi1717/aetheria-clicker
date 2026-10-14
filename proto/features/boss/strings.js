@@ -1,5 +1,5 @@
 export default { en: {
-  goal_rock: 'The Big Rock is at {n} m',
+  goal_rock: '{n} m: the Big Rock',
   goal_boss: 'Break the Big Rock!',
   rock_swings: 'about {n} swings left, {time}',
   rock_swing: 'about 1 swing left, {time}',
@@ -36,7 +36,7 @@ export default { en: {
   record_new_sub: 'You beat {old} m. Nobody has dug deeper.',
   record_flag: 'Your record {n} m',
 }, ar: {
-  goal_rock: 'الصخرة الكبيرة عند {n} م',
+  goal_rock: '{n} م: الصخرة الكبيرة',
   goal_boss: 'اكسر الصخرة الكبيرة!',
   rock_swings: 'الضربات الباقية: نحو {n}، {time}',
   rock_swing: 'بقيت ضربة واحدة تقريباً، {time}',

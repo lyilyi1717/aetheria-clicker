@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.5';
+export const VERSION = '5.36.7';
 
 export const CHANGELOG = [
   {
-    version: '5.36.5',
+    version: '5.36.7',
     date: '2026-10-14',
     title: 'Dig: the lantern and the torch crate break in a few hits',
     changes: [
@@ -19,6 +19,40 @@ export const CHANGELOG = [
       changes: [
         'الفانوس فوق البوابة المظلمة وصندوق المشاعل في الصخر الحيّ ينكسران الآن ببضع ضربات في أي عمق. كانا قبل ذلك بصلابة كتلتين من التراب، فكان الفانوس في قاع الطبقة السوداء قد يحتاج آلاف الضربات وتبقى البوابة مظلمة.',
         'لا شيء آخر صار أصلب أو أليَن: الأرض والصخور الكبيرة والبوابات كما هي.'
+      ]
+    }
+  },
+  {
+    version: '5.36.6',
+    date: '2026-10-14',
+    title: 'Dig: the Gate goal leads with its number',
+    changes: [
+      'The goal under the chip now starts with its number, so you see it first at any width: "150 m: the Gate of The Dunes" (was "The Gate of The Dunes is at 150 m"), "50 m: the Big Rock" (was "The Big Rock is at 50 m") and "12 swings or so to break the Gate" (was "Break the Gate: about 12 swings left"). The swings are still a guess, so the goal says "or so".'
+    ],
+    ar: {
+      title: 'الحفر: هدف البوابة يبدأ برقمه',
+      changes: [
+        'الهدف تحت الشارة يبدأ الآن برقمه، فتراه أولاً مهما ضاق المكان: «150 م: بوابة الكثبان» (كانت «بوابة الكثبان على عمق 150 م») و«50 م: الصخرة الكبيرة» (كانت «الصخرة الكبيرة عند 50 م»). هدف الضربات بقي كما هو، ينتهي برقمه الذي يظهر دائماً: «اكسر البوابة، الضربات الباقية: نحو 12».'
+      ]
+    }
+  },
+  {
+    version: '5.36.5',
+    date: '2026-10-14',
+    title: 'Dig: lessons look like notes, and the goal stays when it can',
+    changes: [
+      'Lessons in the top line now sit on a soft plate with their coloured bar, so they no longer look like the "Next:" line in the panel beside them.',
+      'A short lesson that fits beside Tips and the goal leaves them where they are. Only a long lesson still takes the whole top line for a few seconds.',
+      'When the goal under the chip is short of room, its words end in dots but the number stays: the metres to the Gate or the swings left are always shown.',
+      'Arabic: the goal chip\'s arrow now points left, the way the next goal is, and a Camp card no longer leaves "72%." alone on its last line.'
+    ],
+    ar: {
+      title: 'الحفر: الدروس تبدو كملاحظات، والهدف يبقى حين يتّسع له المكان',
+      changes: [
+        'الدروس في السطر العلوي صارت على خلفية خفيفة مع شريطها الملوّن، فلم تعد تشبه سطر «التالي:» في اللوحة بجانبها.',
+        'الدرس القصير الذي يتّسع بجانب «نصائح» والهدف يتركهما في مكانهما. الدرس الطويل وحده ما زال يأخذ السطر العلوي كله بضع ثوانٍ.',
+        'حين يضيق المكان على الهدف تحت الشارة تنتهي كلماته بنقاط ويبقى الرقم: الأمتار إلى البوابة أو الضربات الباقية تظهر دائماً.',
+        'العربية: سهم شارة الهدف يشير الآن إلى اليسار، جهة الهدف التالي، وبطاقة المخيّم لم تعد تترك «72%.» وحدها في سطرها الأخير.'
       ]
     }
   },

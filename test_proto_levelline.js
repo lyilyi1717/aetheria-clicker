@@ -6,6 +6,8 @@ import { readFileSync } from 'node:fs';
 import { t, setLang, hasString } from './proto/core/strings.js';
 import { ownDir, goalParts } from './proto/core/lang.js';
 import track from './proto/features/track/strings.js';
+import sites from './proto/features/sites/strings.js';
+import boss from './proto/features/boss/strings.js';
 import { levelLine } from './proto/features/track/line.js';
 
 let failed = 0;
@@ -101,6 +103,38 @@ setLang('en');
   ok(/toast\(t\('star_pointer'\)/.test(star), 'the Star pointer still shows in the message line');
   const css = src('proto/proto.css');
   ok(/#stage, #cv \{ direction: ltr; \}/.test(css) && /:root\[dir=rtl\] \.layout > \.mid \{ direction: ltr; \}/.test(css), 'the stage and the row stay unmirrored');
+}
+
+// ---------- decisions 17 to 19 (eighth pass): the Gate goal keeps its number, the Arabic chip points left, no lone last word ----------
+if (!hasString('goal_gate_far')) G.addStrings(sites, 'sites');
+// localizer, 14 Oct: the Gate and Big Rock goals lead with their number, so the line is one piece that ends in dots and the
+// number shows at any width; a goal that ends in its number (the Arabic swings goal) still splits under decision 18
+const bare = (s) => String(s).replace(/[⁦-⁩]/g, '');
+const keepsNum = (text, num) => {
+  const p = goalParts(text, num);
+  return p ? /\d/.test(p.count) && !p.lead.includes(num) : bare(text).startsWith(num);
+};
+if (!hasString('goal_rock')) G.addStrings(boss, 'boss');
+for (const lang of ['en', 'ar']) {
+  setLang(lang);
+  const far = t('goal_gate_far', { name: 'X', n: 150 });
+  ok(bare(far).startsWith('150') && goalParts(far, '150') === null, `${lang}: the far Gate goal leads with its metres: ` + far);
+  ok(bare(t('goal_rock', { n: 50 })).startsWith('50'), `${lang}: the Big Rock goal leads with its metres`);
+  const sw = t('goal_gate', { n: '12' });
+  ok(keepsNum(sw, '12'), `${lang}: the swings goal keeps its number whole: ` + sw);
+}
+setLang('en');
+ok(/^12 swings or so\b/.test(bare(t('goal_gate', { n: '12' }))), 'en: the swings goal says the count is an estimate');
+setLang('en');
+{
+  const sui = src('proto/features/sites/ui.js');
+  ok(/num: String\(r\.floor\)/.test(sui) && /num: sw === 1 \? null : n/.test(sui), 'the Gate goals say where their number starts');
+  const pick = src('proto/features/picks/picks.css');
+  ok(/:root\[dir=rtl\] #goal-pin button \{ direction: rtl;/.test(pick), 'the Arabic chip reads right to left, its step mark at the left end');
+  ok(/:root\[dir=rtl\] #goal-pin button::after \{ transform: rotate\(-45deg\); \}/.test(pick), 'the Arabic step mark points left');
+  const star = src('proto/features/starshop/ui.js');
+  ok(/keepEnd\(info\.desc\)/.test(star) && /\\u00a0\$1/.test(star), 'the Camp card binds its last word to the one before');
+  ok(/\.shop-item \.d \{[^}]*text-wrap: pretty/.test(src('proto/proto.css')), 'card lines avoid a lone last word');
 }
 
 if (failed) { console.error(`\n${failed} failed`); process.exit(1); }

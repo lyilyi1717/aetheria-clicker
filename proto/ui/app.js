@@ -9,6 +9,7 @@ import { icon, addIcons } from './icons.js';
 import strings from './strings.js';
 import { drawer, tabOf } from './drawer.js';
 import { createLessons } from './lessons.js';
+import { lineCount } from '../features/track/lessonfit.js';
 import { ownDir, goalParts, DIR } from '../core/lang.js';
 
 const { t, fmt } = G;
@@ -78,9 +79,18 @@ function lesson(flag, msg, kind = '') { return lessons.request(flag, msg, kind);
 function paintLesson() {
   const el = $('lesson'); if (!el) return;
   const c = lessons.current, on = !!c && !(bannerT > 0) && !modalId;
-  if (on && el.dataset.f !== c.flag) { el.textContent = c.text; el.dataset.f = c.flag; }
-  el.className = on ? 'show ' + (c.kind || '') : '';
+  if (on && el.dataset.f !== c.flag) { el.textContent = c.text; el.dataset.f = c.flag; el.dataset.w = lessonWide(el, c.text) ? '1' : ''; }
+  el.className = on ? 'show ' + (c.kind || '') + (el.dataset.w ? ' wide' : '') : '';
   if (!c) delete el.dataset.f;
+}
+// a long lesson takes the whole top line; a short one that fits two lines beside Tips and the goal leaves them in place
+// (art-and-sound decision 16). Measured once per lesson, with the message line at its usual width.
+function lessonWide(el, text) {
+  const box = el.parentElement;
+  if (!box || box.id !== 'trk-msg') return true;
+  el.classList.remove('wide');
+  const w = box.clientWidth - 19;   // the bar (3), the plate's padding (8 + 8)
+  return !(w > 0 && lineCount(text, w) <= 2);
 }
 function paintTips() {
   const box = $('tips-list'); if (!box) return;

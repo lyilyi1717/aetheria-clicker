@@ -334,9 +334,10 @@ ui({
     const r = s.run;
     if (!r || r.done) return null;
     const b = G.bossInView(s);
-    if (b && b.row === r.floor && b.hp > 0) return { text: t(G.bossSwings(s, b).n === 1 ? 'goal_gate_swing' : 'goal_gate', { n: G.fmt(G.bossSwings(s, b).n) }), frac: b.hp / b.max, cls: 'boss' };
+    // `num` (art-and-sound decision 18): when room is short the words end in dots, never the swings or the metres
+    if (b && b.row === r.floor && b.hp > 0) { const sw = G.bossSwings(s, b).n, n = G.fmt(sw); return { text: t(sw === 1 ? 'goal_gate_swing' : 'goal_gate', { n }), num: sw === 1 ? null : n, frac: b.hp / b.max, cls: 'boss' }; }
     if (b && b.hp > 0) return null;
-    return { text: t('goal_gate_far', { name: t('site_' + r.site), n: r.floor }), frac: Math.min(1, Math.max(0, s.best / r.floor)) };
+    return { text: t('goal_gate_far', { name: t('site_' + r.site), n: r.floor }), num: String(r.floor), frac: Math.min(1, Math.max(0, s.best / r.floor)) };
   } },
   panels: [{
     id: 'site', elId: 'site', side: 'left', at: 5, title: 'site_title', live: true,
