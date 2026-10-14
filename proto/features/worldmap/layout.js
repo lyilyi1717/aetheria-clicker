@@ -82,7 +82,7 @@ export function buildMap(s) {
       let dy = slot % 2 ? 88 : -88;
       if (home.y + dy < 225 || home.y + dy > 420) dy = -dy;
       const y = clampY(home.y + dy);
-      const n = { id: 'c' + slot, type: 'side', i: -1, level: 0, site: c.site, floor: c.floor, zone: home.zone, twist: c.twist, prove: false,
+      const n = { id: 'c' + slot, type: 'side', i: -1, level: 0, site: c.site, floor: c.floor, zone: home.zone, twist: c.twist, ch: c.ch, prove: false,
         x: home.x + dx, y, r: 19, state: 'open', stamp: stamps[c.key] || null, card: null, kind: c.kind };
       give(n, c); nodes.push(n); edges.push({ id: 'es' + slot, from: home, to: n, open: true, kind: 'side' });
       slot++;
@@ -92,7 +92,7 @@ export function buildMap(s) {
   const fan = !nx ? cards : ch1Done ? G.freeDeal(s).filter(c => !used.has(c.key)) : [];
   fan.forEach((c, k) => {
     const [fx, y] = FAN[k % FAN.length];
-    const n = { id: 'b' + k, type: 'beyond', i: -1, level: 0, site: c.site, floor: c.floor, zone: 'beyond', twist: c.twist, prove: false,
+    const n = { id: 'b' + k, type: 'beyond', i: -1, level: 0, site: c.site, floor: c.floor, zone: 'beyond', twist: c.twist, ch: c.ch, prove: false,
       x: beyond.x + fx * PW, y, r: 25, state: 'open', stamp: stamps[c.key] || null, card: null, kind: c.kind };
     give(n, c); nodes.push(n); edges.push({ id: 'eb' + k, from: hub, to: n, open: true, kind: 'side' });
   });

@@ -240,7 +240,7 @@ export const siteFinished = (s, site) => Object.values(s.road.stamps).some(st =>
 export const roadFinished = s => Object.values(s.road.stamps).filter(st => st.fin).length;
 
 function makeRun(site, floor, twist, hard, ch) {
-  ch = !twist && ch === 2 ? 2 : 1;
+  ch = ch === 2 ? 2 : 1;
   return { key: siteKey(site, floor, twist, ch), site, floor, twist: twist || '', ch, hard: hard || '', chili: chiliOfRule(hard), par: sitePar(floor, twist),
     clock: 0, started: false, done: false, time: 0, medals: { fin: 0, fast: 0, hard: 0 }, found: { chest: 0, ore: 0, bone: 0 }, paid: 0 };
 }
@@ -315,7 +315,7 @@ function finish(s, ev) {
 // ---------- the deal ----------
 // A card: { key, site, floor, twist, ch, hard, kind: 'fixed' | 'stretch' | 'new' | 'medal' | 'twist', par, medals, stars, medalStars }
 function card(s, site, floor, twist, kind, hard, ch) {
-  ch = !twist && ch === 2 ? 2 : 1;
+  ch = ch === 2 ? 2 : 1;
   const key = siteKey(site, floor, twist, ch), st = s.road.stamps[key];
   return { key, site, floor, twist: twist || '', ch, hard: hard || '', kind, par: sitePar(floor, twist),
     medals: { fin: st ? st.fin : 0, fast: st ? st.fast : 0, hard: st ? st.hard : 0 },
@@ -349,12 +349,16 @@ export function dealCards(s) {
     const cards = [], seen = new Set(), stamps = roadStamps(s);
     const add = c => { if (c && !seen.has(c.key)) { seen.add(c.key); cards.push(c); } };
     add({ ...card(s, fx.site, fx.floor, '', 'fixed', '', fx.ch), level: fx.level, of: fx.of });
-    // stuck at this level: side cards beside it, on floors already finished
+    // stuck at this level: side cards beside it, on floors already finished. Beside a chapter-two level they are chapter-two cards
+    // (a medal, a twist, a replay of a level finished in chapter two, so they pay chapter-two Stars) when any is finished; else as in chapter one.
     if (fx.tries >= p.sideAfter) {
-      const left = stamps.filter(st => st.fin && siteOpen(s, st.site) && !st.fast);
+      const own = fx.ch === 2 ? stamps.filter(st => chOf(st) === 2 && st.fin && siteOpen(s, st.site)) : [];
+      const pool = own.length ? own : stamps;
+      const left = pool.filter(st => st.fin && siteOpen(s, st.site) && !st.fast);
       if (left.length) { left.sort((a, b) => (b.floor - a.floor) || (a.key < b.key ? -1 : 1)); const st = left[0]; add(card(s, st.site, st.floor, st.twist, 'medal', '', chOf(st))); }
-      const plain = stamps.filter(st => st.fin && !st.twist && siteOpen(s, st.site)).sort((a, b) => b.floor - a.floor);
-      for (let tries = 0; tries < 8 && cards.length < 3 && plain.length; tries++) { const b = plain[0]; add(card(s, b.site, b.floor, pickOne(TWISTS), 'twist')); }
+      const plain = pool.filter(st => st.fin && !st.twist && siteOpen(s, st.site)).sort((a, b) => b.floor - a.floor);
+      for (let tries = 0; tries < 8 && cards.length < 3 && plain.length; tries++) { const b = plain[0]; add(card(s, b.site, b.floor, pickOne(TWISTS), 'twist', '', own.length ? 2 : 1)); }
+      if (own.length) for (const b of plain) if (cards.length < 3) add(card(s, b.site, b.floor, '', 'replay', '', 2));
     }
     return (s.road.deal = cards.slice(0, 3));
   }
