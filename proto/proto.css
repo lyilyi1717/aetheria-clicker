@@ -193,6 +193,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 :root[dir=rtl] .layout > .mid { direction: ltr; }
 :root[dir=rtl] #drawer { direction: rtl; }
 :root[dir=rtl] #toast, :root[dir=rtl] #banner, :root[dir=rtl] #hint, :root[dir=rtl] #combo, :root[dir=rtl] #tools { direction: rtl; }
+/* every other line of words on the stage (the Museum chip, the record, the contract card, tips) takes its direction from its
+   own first letter: an Arabic line reads right to left, a bare count ("2/5", "12.5K") stays left to right; the boxes stay put */
+:root[dir=rtl] #stage :is(p, b, span, #hud-record) { unicode-bidi: plaintext; }
 /* Reduce motion (Settings, or the browser's wish): no infinite pulses, no big bounces; things just fade in. Set by proto/ui/motion.js. */
 @keyframes calmfade { from { opacity: 0; } }
 html.calm *, html.calm *::before, html.calm *::after { animation-iteration-count: 1 !important; scroll-behavior: auto !important; }

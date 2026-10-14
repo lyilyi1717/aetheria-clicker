@@ -4,7 +4,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { loadAll, check } from './scripts/dig-i18n.mjs';
 import { addStrings, setLang, t, tIn, missingStrings } from './proto/core/strings.js';
-import { LANG, DIR } from './proto/core/lang.js';
+import { LANG, DIR, dirOf, textDir } from './proto/core/lang.js';
 
 // pass 1 (14 Oct 2026): the first five minutes. pass 2: away, settings, telemetry and the first hour
 // (sites and starshop wait for a later pass: other work is open in those folders). pass 3: chatter, moods, story
@@ -67,6 +67,15 @@ ok(LANG === 'en' && DIR === 'ltr', 'no ?lang= and no stored choice: English, ltr
   ok(html.indexOf('DIG_PROTO_LANG') < html.indexOf('proto/proto.css'), 'and does it before the stylesheet');
   ok(/setLang\(LANG\)/.test(readFileSync('proto/main.js', 'utf8')), 'main.js calls setLang(LANG)');
   ok(!/^import .*(\.\.\/)+js\//m.test(readFileSync('proto/core/lang.js', 'utf8')) && !/^import/m.test(readFileSync('proto/core/lang.js', 'utf8')), 'lang.js imports nothing');
+}
+{ // canvas lines: Arabic words draw right to left, a bare number keeps left to right (#451)
+  ok(dirOf('وجدت ⁦0⁩ من ⁦4⁩', 'rtl') === 'rtl', 'an Arabic line with numbers draws rtl');
+  ok(dirOf('بووم -50%', 'rtl') === 'rtl', 'an Arabic shout with a signed share draws rtl');
+  ok(dirOf('-12.5K', 'rtl') === 'ltr' && dirOf('1:40', 'rtl') === 'ltr', 'a bare number or clock stays ltr in Arabic');
+  ok(dirOf('رفيق 3', 'ltr') === 'ltr' && textDir('رفيق 3') === 'ltr', 'English pages never change direction');
+  const files = ['proto/features/sites/ui.js', 'proto/features/boss/ui.js', 'proto/ui/render.js', 'proto/features/worldmap/draw.js', 'proto/features/worldmap/alqahwa.js'];
+  for (const f of files) ok(/direction = textDir\(/.test(readFileSync(f, 'utf8')), `${f} sets the canvas direction from its words`);
+  ok(/#stage :is\([^)]*span[^)]*\) \{ unicode-bidi: plaintext; \}/.test(readFileSync('proto/proto.css', 'utf8')), 'words on the ltr stage take their own direction');
 }
 { // physical CSS is gone
   const css = readFileSync('proto/proto.css', 'utf8');
