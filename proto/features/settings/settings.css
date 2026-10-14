@@ -1,5 +1,8 @@
 .card.settings { min-inline-size: 340px; text-align: start; }
 .card.settings h2 { text-align: center; }
+.set-lang { display: flex; align-items: center; gap: 8px; margin-block: 0 14px; }
+.set-lang span { min-inline-size: 80px; }
+.set-lang .set-switch[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
 .set-rows { display: grid; gap: 12px; }
 .set-row { display: grid; grid-template-columns: 80px 1fr 38px; align-items: center; gap: 10px; }
 .set-row b { text-align: end; color: var(--gold); font-variant-numeric: tabular-nums; }
