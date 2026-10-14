@@ -94,7 +94,7 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
     return { s, out: G.settleAway(s, 12 * 3600) };
   };
   const a = run(false, 2), c = run(true, 1);
-  ok(a.out.atBoss && a.s.top < 25, 'without the step the crew waits at the first Big Rock');
+  ok(a.out.atBoss && a.s.top === 25, 'without the step the crew waits at the first Big Rock');
   ok(c.s.top > 25 && c.out.passed > 0 && c.s.top > a.s.top, 'with it, past the first (and deeper than without)');
 }
 

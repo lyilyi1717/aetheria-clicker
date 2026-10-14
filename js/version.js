@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.8';
+export const VERSION = '5.36.9';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.9',
+    date: '2026-10-14',
+    title: 'Dig: while you are away the crew digs right up to the Big Rock',
+    changes: [
+      'While you are away, your Rafeeqs now dig down to the row right above the next Big Rock and wait there. Before, they stopped as soon as the Rock came into view and left the hardest rows of the layer for you, so you could come back with nothing to hit at the Gate.',
+      'The rows cost the same as when you dig them yourself, so a short time away still stops where the time ran out. The Rock itself and the Gate are never dug while you are away.'
+    ],
+    ar: {
+      title: 'الحفر: أثناء غيابك يحفر الفريق حتى الصخرة الكبيرة مباشرة',
+      changes: [
+        'أثناء غيابك، يحفر رفاقك الآن حتى الصف الذي فوق الصخرة الكبيرة التالية مباشرة وينتظرون هناك. كانوا قبل ذلك يتوقفون بمجرد ظهور الصخرة ويتركون لك أصلب صفوف الطبقة، فكنت تعود ولا تجد شيئاً تضربه عند البوابة.',
+        'الصفوف تكلّف نفس ما تكلّفه حين تحفرها بنفسك، فالغياب القصير يتوقف حيث انتهى الوقت. أما الصخرة نفسها والبوابة فلا تُحفران أبداً أثناء غيابك.'
+      ]
+    }
+  },
   {
     version: '5.36.8',
     date: '2026-10-14',
