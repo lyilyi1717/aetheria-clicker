@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.35.7';
+export const VERSION = '5.35.8';
 
 export const CHANGELOG = [
   {
-    version: '5.35.7',
+    version: '5.35.8',
     date: '2026-10-14',
     title: 'Dig: the goal stays inside the dig, and the first hint stays readable',
     changes: [
@@ -25,6 +25,22 @@ export const CHANGELOG = [
     }
   },
   {
+    version: '5.35.7',
+    date: '2026-10-14',
+    title: 'Dig in Arabic: the level line reads in order',
+    changes: [
+      'In Arabic, the line above the dig now reads from the right in the right order: the level, then the land, then the place. The count shows as 17/20, not 20/17.',
+      'In Arabic, the distance to the Gate, the clock, the tips and the goal line also read from the right, and the Second Pick goal shows its coins in the right order.',
+    ],
+    ar: {
+      title: 'الحفر بالعربية: سطر المرحلة يُقرأ بالترتيب',
+      changes: [
+        'السطر فوق الحفرة يُقرأ الآن من اليمين بترتيبه الصحيح: المرحلة، ثم الأرض، ثم المكان. والعدد يظهر 17/20 لا 20/17.',
+        'المسافة إلى البوابة والساعة والنصائح وسطر الهدف تُقرأ من اليمين أيضاً، وهدف المعول الثاني يعرض عملاته بالترتيب الصحيح.',
+      ],
+    },
+  },
+  {
     version: '5.35.6',
     date: '2026-10-14',
     title: 'Dig: the New line names the right thing, and the goal chip says what a tap does',
@@ -35,8 +51,8 @@ export const CHANGELOG = [
     ar: {
       title: 'الحفر: سطر «جديد» يذكر الشيء الصحيح، وشارة الهدف تقول ماذا يفعل الضغط',
       changes: [
-        'سطر «جديد» في بطاقة النهاية وعلى الخريطة يذكر الآن ما ستحفر فيه فعلاً. المستوى 5 يقول «خطوط البلّور» (كان يقول الطبقة السوداء التي تبدأ تحت بوابته)، والمستوى 7 يقول الطبقة السوداء، وهكذا بقية المستويات.',
-        'مرّر المؤشر على شارة الهدف في الأعلى فتقول «الهدف: البوابة. اضغط للهدف التالي.» وقارئ الشاشة يقرأ الكلمات نفسها.'
+        'سطر «جديد» في بطاقة النهاية وعلى الخريطة يذكر الآن ما ستحفر فيه فعلاً. المرحلة 5 تقول «خطوط البلّور» (كانت تقول الطبقة السوداء، وهي تبدأ تحت بوابتها)، والمرحلة 7 تقول الطبقة السوداء، وهكذا بقية المراحل.',
+        'مرّر المؤشر على شارة الهدف في الأعلى فتقول «الهدف: البوابة. اضغط لتنتقل إلى الهدف التالي.» وقارئ الشاشة يقرأ الكلمات نفسها.'
       ]
     }
   },

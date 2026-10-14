@@ -40,7 +40,7 @@ ok(line(20) === t('new_ch2'), 'level 21 is the road home');
 ok(!/goal bar/.test(t('pin_tip', { goal: 'x' })), 'the old pills tip is gone');
 
 setLang('ar');
-ok(G.picksPinTip('gate') === 'الهدف: البوابة. اضغط للهدف التالي.', 'Arabic chip: ' + G.picksPinTip('gate'));
+ok(G.picksPinTip('gate') === 'الهدف: البوابة. اضغط لتنتقل إلى الهدف التالي.', 'Arabic chip: ' + G.picksPinTip('gate'));
 ok(t(G.newThingKey(G.ROAD[4], 4)) === 'جديد: خطوط البلّور', 'Arabic level 5 line');
 setLang('en');
 
