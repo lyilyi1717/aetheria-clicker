@@ -1,0 +1,22 @@
+/* Void feature styles: Chrono-Mining */
+.void-chrono-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 8px;
+  padding: 4px 8px;
+  color: #c084fc;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.void-echo-pulse {
+  animation: echo-ring 2s infinite ease-out;
+}
+
+@keyframes echo-ring {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.3); opacity: 0; }
+}

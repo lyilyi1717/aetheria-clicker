@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dig Sound Board</title>
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: dark; --bg: #15181d; --card: #1e232b; --line: #323a46; --text: #e6e9ee; --dim: #9aa4b2; --gold: #ffd23f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, sans-serif; }
+  main { max-width: 1000px; margin: 0 auto; padding: 20px 24px 60px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 26px 0 10px; color: var(--gold); text-transform: uppercase; letter-spacing: .06em; }
+  p.note { margin: 0 0 6px; color: var(--dim); }
+  a { color: var(--gold); }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+  label { display: flex; flex-direction: column; gap: 4px; color: var(--dim); font-size: 13px; }
+  select, button { font: inherit; color: var(--text); background: #2a313b; border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+  select { min-width: 150px; }
+  button { cursor: pointer; }
+  button:hover { background: #343d49; }
+  button.big { background: var(--gold); color: #1a1a1a; border-color: var(--gold); font-weight: 600; min-width: 90px; }
+  button.big.on { background: #e0533d; border-color: #e0533d; color: #fff; }
+  #steps { display: grid; grid-template-columns: repeat(16, 1fr); gap: 5px; margin: 16px 0 8px; }
+  #steps i { height: 34px; border-radius: 4px; background: #262c35; border: 1px solid var(--line); position: relative; }
+  #steps i.beat { border-color: #5a6575; }
+  #steps i.n { background: #3b4656; }
+  #steps i.v-X { background: #7a6a2a; }
+  #steps i.v-o { background: #2f3a47; }
+  #steps i.on { background: var(--gold); border-color: #fff; }
+  #steps i b { position: absolute; inset: auto 0 2px; text-align: center; font-size: 11px; color: var(--dim); font-weight: 400; }
+  #steps i.on b { color: #1a1a1a; }
+  #barname { font-size: 18px; font-weight: 600; }
+  #barinfo { color: var(--dim); font-size: 13px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .grid button { min-width: 110px; }
+  .sub { width: 100%; margin: 6px 0 0; color: var(--dim); font-size: 13px; }
+  input[type=range] { width: 200px; }
+  footer { margin-top: 30px; color: var(--dim); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Dig Sound Board</h1>
+  <p class="note">Sound test page. It plays the game's own sounds.</p>
+  <p class="note"><a href="/proto.html">Back to the game</a> &nbsp; Click anything first: browsers only start sound after a click.</p>
+
+  <h2>Volume</h2>
+  <section class="row">
+    <label>Volume <input id="vol" type="range" min="0" max="1" step="0.01" value="0.5"></label>
+    <button id="mute">Mute: off</button>
+    <span id="status" class="note"></span>
+  </section>
+
+  <h2>The beat</h2>
+  <section>
+    <div class="row">
+      <label>Picks <select id="picks"></select></label>
+      <label>Speed <select id="speed"></select></label>
+      <label>Land <select id="land"></select></label>
+      <label>Depth layer <select id="depth"></select></label>
+      <label><span><input id="crew" type="checkbox"> Rafeeq clap on the off-beat</span></label>
+      <button id="play" class="big">Play</button>
+    </div>
+    <div id="steps"></div>
+    <div id="barname"></div>
+    <div id="barinfo"></div>
+  </section>
+
+  <div id="sounds"></div>
+  <footer>Everything here is imported from the game's own files, so it always plays what the game plays.</footer>
+</main>
+<script type="module" src="./soundboard.js"></script>
+</body>
+</html>

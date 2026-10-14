@@ -1,0 +1,112 @@
+/* sites: the panel, the finish ceremony, the cards of the deal */
+#site .nowrow { display: flex; align-items: center; gap: 10px; margin-block-end: 8px; }
+#site .nname { display: block; font-size: 16px; }
+#site .nrule { display: block; font-size: 13px; }
+#site .gaterow { margin-block: 6px; }
+#site .gtxt { display: block; font-size: 13px; font-weight: 700; margin-block-end: 3px; }
+#site .gbar { display: block; height: 8px; background: #0e0a07; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+#site .gbar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #c98a1b, var(--gold)); transition: width .25s ease-out; }
+#site .clockrow { display: flex; align-items: center; gap: 8px; margin-block: 8px 6px; }
+#site .clk { font-size: 22px; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+#site .clockrow.good .clk { color: var(--good); }
+#site .par { font-size: 13px; }
+#site .par.over { color: var(--bad); }
+#site .nextbtn { width: 100%; margin-block-start: 6px; background: var(--panel-2); color: var(--ink); border: 2px solid var(--line); }
+#site .nextbtn.gold { background: var(--gold); color: var(--gold-ink); border-color: #7a5a00; animation: nextPulse 1.4s ease-in-out infinite alternate; }
+@keyframes nextPulse { from { box-shadow: 0 0 0 rgba(255,210,63,0); } to { box-shadow: 0 0 22px rgba(255,210,63,.65); } }
+#site .roadh { margin: 12px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
+#site .road { display: flex; flex-wrap: wrap; gap: 6px; max-height: 140px; overflow-y: auto; color: var(--muted); font-size: 13px; }
+.stampc { position: relative; display: inline-flex; flex-direction: column; align-items: center; min-width: 40px; padding: 3px 4px 2px; border: 2px dashed var(--line); border-radius: 10px; opacity: .6; }
+.stampc.fin { opacity: 1; border: 2px solid var(--good); }
+.stampc .fl { font-style: normal; font-size: 13px; color: var(--muted); }
+.stampc .pips { display: flex; gap: 2px; }
+.stampc .pips u { width: 6px; height: 6px; border-radius: 50%; background: #0e0a07; border: 1px solid var(--line); }
+.stampc .pips u.on { background: var(--gold); border-color: #7a5a00; }
+
+.mrow { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-block: 6px; }
+#site .mrow { justify-content: flex-start; }
+.mchip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px 1px 4px; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; opacity: .45; filter: grayscale(.8); }
+.mchip i { font-style: normal; }
+.mchip.on { opacity: 1; filter: none; border-color: var(--gold); color: var(--gold); }
+
+/* the cards of the deal */
+.nextsite { width: 820px; max-width: 96vw; }
+.nextsite .cards { align-items: stretch; }
+.sitecard { width: 240px; min-height: 0; padding-block-start: 22px; }
+.sitecard .d { font-size: 13px; }
+.sitecard .rule { color: var(--ink); }
+.sitecard .hr { color: var(--bad); }
+.sitecard .gate, .sitecard .par { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); }
+.sitecard .pay { color: var(--gold); font-weight: 700; font-size: 13px; }
+.sitecard.hardcard { border-color: var(--bad); }
+.nextsite .leave { color: var(--gold); }
+
+/* the finish */
+.finish { width: 460px; max-width: 94vw; }
+.finish .seal { position: relative; width: 168px; height: 168px; margin: 0 auto 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 6px solid var(--good); border-radius: 50%; color: var(--good); transform: rotate(-9deg); animation: siteStampIn .5s both; }
+.finish .seal::after { content: ''; position: absolute; inset: 8px; border: 2px dashed var(--good); border-radius: 50%; }
+.finish .sealic { display: block; }
+.finish .word { font-size: 17px; text-transform: uppercase; letter-spacing: 2px; }
+.finish h2 { margin-block: 6px; }
+.finish .time { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 38px; margin: 6px 0 0; font-variant-numeric: tabular-nums; }
+.finish .fast { margin: 2px 0 8px; }
+.finish .fast.yes { color: var(--good); font-weight: 800; }
+.finish .found { color: var(--muted); margin: 4px 0; }
+.finish .earn { font-size: 30px; font-weight: 900; color: var(--gold); margin: 8px 0; }
+.finish .btns { display: flex; gap: 12px; justify-content: center; align-items: center; }
+.finish .primary.gold { animation: nextPulse 1.2s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .finish .seal, #site .nextbtn.gold, .finish .primary.gold { animation: none; } }
+@keyframes siteStampIn { from { transform: rotate(-9deg) scale(2.4); opacity: 0; } }
+
+/* the finish card: what you keep, what the next level starts with, one Star purchase */
+.finish { width: 640px; max-height: 94vh; overflow-y: auto; }
+.finish .seal { width: 120px; height: 120px; margin-block-end: 2px; }
+.finish .time { font-size: 30px; }
+.finish .earn { font-size: 24px; margin-block: 4px; }
+.finish .fcols { display: flex; gap: 14px; text-align: start; margin-block: 8px; }
+.finish .fcols section { flex: 1 1 0; padding: 8px 10px; background: #0e0a07; border: 1px solid var(--line); border-radius: 10px; }
+.finish .fcols h3 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
+.finish .fcols ul, .finish .tot { list-style: none; margin: 0; padding: 0; }
+.finish .fcols li, .finish .tot li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; margin-block: 3px; }
+.finish .nextlvl { display: flex; align-items: center; gap: 10px; margin-block-start: 8px; padding-block-start: 8px; border-block-start: 1px dashed var(--line); font-size: 13px; }
+.finish .nextlvl div { display: flex; flex-direction: column; gap: 1px; }
+.finish .nextlvl .pl, .finish .nextlvl .gt { color: var(--muted); font-size: 13px; }
+.finish .nextlvl .nw { color: var(--good); font-weight: 700; }
+.finish .nextlvl .nw.hard { color: var(--bad); }
+.finish .spend { display: inline-flex; align-items: center; gap: 8px; margin-block: 4px 0; }
+.finish .spendnote { margin-block: 4px 8px; color: var(--gold); min-height: 1.3em; }
+.finish .btns { margin-block-start: 6px; }
+.finish.end { width: 460px; }
+.finish.end .seal { width: 150px; height: 150px; }
+.finish.end .tot { display: inline-block; text-align: start; margin-block: 8px; }
+.finish.end .tot li { font-size: 17px; }
+.finish.end .deal { color: var(--gold); font-weight: 700; }
+.finish .seal .word { font-size: 14px; letter-spacing: 1px; } .finish.end .seal .word { font-size: 15px; line-height: 1.15; max-width: 104px; text-align: center; margin-block-start: 6px; }
+.finish.end .seal { gap: 8px; }
+/* the two big choices after a dig */
+.finish .choices { display: flex; gap: 10px; margin-block: 12px 6px; }
+.finish .choice { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px; border-radius: 14px; border: 2px solid var(--line); background: var(--panel-2); color: var(--ink); cursor: pointer; text-align: center; }
+.finish .choice[hidden] { display: none; }
+/* the two choices (and Keep digging) stay at the foot of the card; the middle scrolls under them */
+.finish .fpin { position: sticky; inset-block-end: 0; padding-block-end: 6px; background: var(--panel); z-index: 1; }
+@media (max-height: 800px) { .finish .seal { width: 84px; height: 84px; } .finish .seal .sealic svg { width: 30px; height: 30px; } .finish .nextlvl { display: none; } }
+.finish .choice b { font-size: 19px; }
+.finish .choice .d { font-size: 13px; color: var(--muted); }
+.finish .choice.gold { border-color: var(--gold); }
+.finish .choice.glow { border-color: var(--gold); box-shadow: 0 0 16px rgba(255, 210, 63, .45); }
+.finish .choice:hover { filter: brightness(1.15); }
+#site .qhbtn { margin-block: 6px; }
+
+/* chilies: five pips under the medals */
+.chilirow { display: flex; gap: 6px; justify-content: center; margin-block: 4px; }
+#site .chilirow { justify-content: flex-start; }
+.cpip { display: inline-flex; font-style: normal; }
+.cpip.on { filter: drop-shadow(0 0 5px var(--c, #ff6a2a)) drop-shadow(0 0 10px var(--c, #ff6a2a)); }
+.cpip:not(.on) { opacity: .7; }
+.cpip.next { animation: cpipGlow 1s ease-in-out infinite alternate; }
+@keyframes cpipGlow { from { filter: drop-shadow(0 0 0 rgba(255,106,42,0)); } to { filter: drop-shadow(0 0 6px rgba(255,106,42,.95)); } }
+.finish .chilitxt.yes { color: #ff8a4a; font-weight: 800; font-size: 17px; margin-block: 2px; }
+.finish .chilenext { color: var(--ink); font-size: 13.5px; margin-block: 4px; }
+.finish .chilenext .pay { display: block; color: var(--gold); font-weight: 700; }
+#site .chilenote { font-size: 13px; color: #ff8a4a; }
+@media (prefers-reduced-motion: reduce) { .cpip.next { animation: none; } }

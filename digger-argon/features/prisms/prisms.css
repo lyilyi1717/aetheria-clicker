@@ -1,0 +1,25 @@
+/* Prisms feature styles: Prismatic Vaults & Laser Shafts */
+.prism-laser-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  border-radius: 8px;
+  padding: 4px 8px;
+  color: #06b6d4;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.crystal-spire-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(168, 85, 247, 0.2));
+  border: 1px solid #38bdf8;
+  border-radius: 10px;
+  padding: 6px 12px;
+  color: #bae6fd;
+  font-weight: bold;
+}

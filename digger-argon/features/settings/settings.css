@@ -1,0 +1,19 @@
+.card.settings { min-inline-size: 340px; text-align: start; }
+.card.settings h2 { text-align: center; }
+.set-lang { display: flex; align-items: center; gap: 8px; margin-block: 0 14px; }
+.set-lang span { min-inline-size: 80px; }
+.set-lang .set-switch[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
+.set-rows { display: grid; gap: 12px; }
+.set-row { display: grid; grid-template-columns: 80px 1fr 38px; align-items: center; gap: 10px; }
+.set-row b { text-align: end; color: var(--gold); font-variant-numeric: tabular-nums; }
+.set-row input { inline-size: 100%; accent-color: var(--gold); }
+.set-sw { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 16px 14px; }
+.set-switch { flex: 1 1 auto; }
+.set-done { display: block; margin-inline: auto; }
+.sc { margin-block: 4px 14px; }
+.sc h3 { margin-block: 0 8px; font-size: 1em; text-align: start; }
+.sc-row { display: flex; flex-wrap: wrap; gap: 8px; margin-block-start: 8px; }
+/* the code is Latin letters and digits: it always reads left to right, also on an Arabic page (docs/art-and-sound.md) */
+.sc-area { display: block; inline-size: 100%; box-sizing: border-box; margin-block-start: 8px; font: 13px/1.3 monospace; word-break: break-all; resize: vertical; direction: ltr; text-align: left; unicode-bidi: isolate; }
+.sc-msg { margin-block: 8px 0; min-block-size: 1.2em; text-align: start; }
+.sc-msg.bad { color: #ff8a7a; }

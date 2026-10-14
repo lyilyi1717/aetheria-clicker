@@ -3,9 +3,23 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.7';
+export const VERSION = '5.36.8';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.8',
+    date: '2026-10-14',
+    title: 'Digger Argon: 365-day pacing and game feel testbed',
+    changes: [
+      'Added Digger Argon as an isolated testing page and prototype testbed (?loop=4, ?loop=argon, or digger-argon.html). Includes 240 levels across 12 monthly chapters, active rhythmic Good Hits, Fever mode, Rafeeq whistle tactical commands, and bounded year-one pacing.'
+    ],
+    ar: {
+      title: 'حفار أرجون: بيئة اختبار وموازنة لسنة كاملة (365 يوماً)',
+      changes: [
+        'إضافة صفحة تجريبية مستقلة (?loop=4 أو ?loop=argon أو digger-argon.html) تحتوي على 240 مستوى عبر 12 فصلاً شهرياً، وتوقيت الضربات الإيقاعية، ووضع الحماس، وأمر الصفارة التكتيكي، وموازنة كاملة لرحلة السنة.'
+      ]
+    }
+  },
   {
     version: '5.36.7',
     date: '2026-10-14',

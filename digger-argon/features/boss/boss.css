@@ -1,0 +1,11 @@
+/* the Big Rock: its bar is drawn on the Rock itself (boss/ui.js); the page keeps the best-depth note */
+#hud-record { position: absolute; inset-block-start: 56px; inset-inline-end: 10px; padding: 2px 12px; border-radius: 14px; background: rgba(15,10,6,.72); border: 1px solid rgba(255,210,63,.4); color: var(--gold); font-weight: 700; font-size: 15px; pointer-events: none; }
+#hud-record[hidden] { display: none; }
+
+/* the stuck hint: a small kind box in the row under the Rock, never over its bar */
+#boss-hint { position: absolute; inset-inline: 14px; display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-radius: 12px; background: rgba(15,10,6,.88); border: 1px solid rgba(255,210,63,.45); color: #fff; font-weight: 700; font-size: 14px; line-height: 1.2; z-index: 5; }
+#boss-hint[hidden] { display: none; }
+#boss-hint .bh-t { flex: 1; }
+#boss-hint button { font: inherit; font-size: 13px; border-radius: 8px; padding: 4px 10px; cursor: pointer; border: 1px solid rgba(255,255,255,.25); background: transparent; color: #ddd; }
+#boss-hint .bh-go { background: var(--gold); color: #1b1410; border-color: var(--gold); }
+#boss-hint .bh-go[hidden] { display: none; }

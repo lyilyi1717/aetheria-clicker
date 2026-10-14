@@ -1,0 +1,31 @@
+/* Dig fusion: the Fuse button, the chooser, the ceremony and the Recipe Book. */
+#fuse-btn { position: absolute; inset-block-end: 70px; inset-inline-end: 12px; display: flex; align-items: center; gap: 8px; background: #7a2fd0; color: #fff; border: 2px solid #3a1170; border-radius: 14px; padding: 6px 12px; font-weight: 800; animation: fzglow .8s infinite alternate; }
+#fuse-btn[hidden] { display: none; }
+#fuse-btn b { background: #fff; color: #3a1170; border-radius: 10px; padding: 0 8px; }
+@keyframes fzglow { from { box-shadow: 0 0 6px 0 rgba(190, 120, 255, .4); } to { box-shadow: 0 0 22px 4px rgba(190, 120, 255, .9); } }
+.fz-card .cards { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.fz-opt { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 210px; background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px; padding: 16px 12px; cursor: pointer; color: inherit; font: inherit; animation: deal .35s cubic-bezier(.2,1.4,.4,1) both; }
+.fz-opt:hover { border-color: #b97bff; transform: translateY(-4px); }
+.fz-row { display: flex; align-items: center; gap: 6px; }
+.fz-plus { font-weight: 900; color: var(--muted); }
+.fz-opt .d, .fz-card .d { color: var(--muted); font-size: 14px; }
+.fz-stage { position: relative; height: 150px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.fz-stage .half { position: absolute; animation-duration: .9s; animation-fill-mode: both; animation-timing-function: cubic-bezier(.6, 0, .9, .5); }
+.fz-stage .half.l { animation-name: fzleft; }
+.fz-stage .half.r { animation-name: fzright; }
+.fz-stage .flash { position: absolute; width: 20px; height: 20px; border-radius: 50%; background: #fff; opacity: 0; animation: fzflash .5s .85s ease-out both; }
+.fz-stage .born { position: absolute; opacity: 0; animation: fzborn .5s 1.1s cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes fzleft { from { transform: translateX(-190px) scale(1); } to { transform: translateX(0) scale(.6); opacity: .2; } }
+@keyframes fzright { from { transform: translateX(190px) scale(1); } to { transform: translateX(0) scale(.6); opacity: .2; } }
+@keyframes fzflash { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(14); } }
+@keyframes fzborn { from { opacity: 0; transform: scale(.2) rotate(-40deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+.fz-name { opacity: 0; animation: fzborn .4s 1.35s both; }
+.fz-actions { opacity: 0; animation: fzborn .4s 1.6s both; margin-block-start: 14px; }
+.fz-book { display: flex; flex-direction: column; gap: 6px; }
+.fz-rec { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: center; padding: 6px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); }
+.fz-rec.s2 { border-color: #b97bff; }
+.fz-rec .row { display: flex; align-items: center; gap: 2px; }
+.fz-rec b { font-size: 14px; }
+.fz-rec .d { grid-column: 1 / -1; color: var(--muted); font-size: 13px; text-align: start; }
+.fz-rec.s0 { opacity: .6; }
+@media (prefers-reduced-motion: reduce) { #fuse-btn { animation: none; } }

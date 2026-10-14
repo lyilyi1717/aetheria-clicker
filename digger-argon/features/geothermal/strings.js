@@ -1,0 +1,31 @@
+// Dig geothermal strings (English & Arabic)
+export default {
+  en: {
+    b_basalt: 'Hot Basalt',
+    b_basalt_d: 'Igneous rock storing volcanic heat.',
+    b_obsidian: 'Obsidian Glass',
+    b_obsidian_d: 'Brittle volcanic glass that shatters horizontal rows.',
+    heat_meter: 'Heat',
+    magma_burst: 'Magma Burst!',
+    magma_burst_d: 'Cleaves 3x3 area on pick swing for 10 swings.',
+    great_siphon: 'The Great Siphon',
+    great_siphon_d: 'Generates +1% passive Stars per hour based on deepest level reached.',
+    t_lava_quenched: 'Lava cooled rapidly into brittle obsidian!',
+    t_obsidian_shatter: 'The obsidian glass shatters across the entire row!',
+    t_magma_burst: 'Magma Burst activated! Cleaving surrounding rock.',
+  },
+  ar: {
+    b_basalt: 'بازلت ساخن',
+    b_basalt_d: 'صخور نارية تخزن الحرارة البركانية.',
+    b_obsidian: 'زجاج بركاني',
+    b_obsidian_d: 'زجاج بركاني هش يتحطم عبر الصفوف الأفقية.',
+    heat_meter: 'حرارة',
+    magma_burst: 'انفجار الصهارة!',
+    magma_burst_d: 'يحطم مساحة 3×3 مع كل ضربة معول لـ 10 ضربات.',
+    great_siphon: 'سيفون الحمم العظيم',
+    great_siphon_d: 'ينتج +1% نجوم خاملة في الساعة حسب أعمق مستوى وصلت إليه.',
+    t_lava_quenched: 'بردت الحمم سريعاً لتتحول إلى زجاج بركاني هش!',
+    t_obsidian_shatter: 'تحطم الزجاج البركاني عبر الصف بأكمله!',
+    t_magma_burst: 'انطلق انفجار الصهارة! تحطيم الصخور المحيطة.',
+  },
+};

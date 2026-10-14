@@ -1,0 +1,67 @@
+/* Antiquity Restoration Lab styles */
+
+.antiquities-lab {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px;
+}
+
+.antiquities-sockets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: rgba(27, 20, 16, 0.6);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.antiquity-socket {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #7a5a3a;
+  border-radius: 6px;
+  min-height: 72px;
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.antiquity-socket.filled {
+  border: 2px solid #ffd23f;
+  background: rgba(255, 210, 63, 0.1);
+  box-shadow: 0 0 8px rgba(255, 210, 63, 0.3);
+}
+
+.antiquity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.antiquity-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #2b1f18;
+  border: 1px solid #4a382c;
+  border-radius: 6px;
+}
+
+.antiquity-card.equipped {
+  border-color: #ffd23f;
+  background: #38281d;
+}
+
+.antiquity-name {
+  font-weight: bold;
+  color: #ffd23f;
+}
+
+.antiquity-desc {
+  font-size: 13px;
+  color: #d1c7bd;
+}

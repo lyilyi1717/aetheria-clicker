@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Digger Argon (365-Day Prototype)</title>
+  <script>
+    // the language, before first paint: ?lang=, then DIGGER_ARGON_LANG or DIG_PROTO_LANG, else English
+    (function () {
+      var l = 'en';
+      try {
+        var q = new URLSearchParams(location.search).get('lang');
+        if (q !== 'ar' && q !== 'en') q = localStorage.getItem('DIGGER_ARGON_LANG') || localStorage.getItem('DIG_PROTO_LANG');
+        if (q === 'ar') l = 'ar';
+      } catch (e) {}
+      var h = document.documentElement;
+      h.lang = l; h.dir = l === 'ar' ? 'rtl' : 'ltr';
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Noto+Kufi+Arabic:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="digger-argon/proto.css">
+</head>
+<body>
+  <div id="app">
+    <header class="top">
+      <div id="chips" class="purse"></div>
+      <span class="grow"></span>
+      <button id="mapbtn" class="rbtn" type="button"></button>
+      <button id="mute" class="rbtn" type="button"></button>
+    </header>
+
+    <div class="layout">
+      <section class="mid">
+        <div id="track"><div id="goal"><span id="goal-text"></span><div class="bar"><i id="goal-fill"></i></div></div></div>
+        <div id="stage">
+          <canvas id="cv" width="640" height="680"></canvas>
+          <div id="hud-coins"><svg width="30" height="30" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="#ffd23f" stroke="#7a5a00" stroke-width="2.4"/><circle cx="16" cy="16" r="8" fill="none" stroke="#b98a00" stroke-width="2"/><circle cx="11.5" cy="11" r="2.6" fill="#fff6c8"/></svg><b id="coins">0</b></div>
+          <div id="hud-depth"><b id="depth">0 m</b></div>
+          <div id="combo"></div>
+          <div id="toast"></div>
+          <div id="banner"></div>
+          <div id="hint" data-t="hint_start"></div>
+          <div id="tools" hidden></div>
+        </div>
+      </section>
+
+      <aside id="drawer">
+        <div id="tabbody"></div>
+        <nav id="tabs"></nav>
+        <button id="reset" class="ghost" data-t="reset"></button>
+      </aside>
+    </div>
+  </div>
+  <div id="modal"></div>
+  <script type="module" src="digger-argon/main.js"></script>
+</body>
+</html>

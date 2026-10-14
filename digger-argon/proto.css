@@ -1,0 +1,209 @@
+/* Dig prototype. Self-contained: its own colours, not the main game's theme tokens (so it lives here, not in css/). Logical properties, so it mirrors for Arabic. */
+:root {
+  --bg: #17110d; --panel: #241a13; --panel-2: #2f2218; --line: #4a3626;
+  --th: 40px;
+  --sh: clamp(480px, calc(100vh - 118px), 680px); --sw: calc(var(--sh) * 640 / 680);
+  --ink: #f6ead8; --muted: #b9a58c; --gold: #ffd23f; --gold-ink: #3a2a00; --good: #59d37a; --bad: #e5533d;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: radial-gradient(1200px 700px at 50% 0%, #2a1d14, var(--bg)); color: var(--ink); font: 15px/1.4 system-ui, 'Segoe UI', Tahoma, Cairo, sans-serif; overflow-x: hidden; }
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.ico { flex: none; display: block; }
+
+#app { max-width: calc(var(--sw) + 16px + 450px); margin: 0 auto; padding: 6px 16px 8px; }
+.top { display: flex; align-items: center; gap: 8px; height: 42px; }
+.grow { flex: 1; }
+.stars { display: inline-flex; align-items: center; gap: 6px; font-size: 18px; }
+.ghost { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 5px 10px; }
+.ghost:hover { color: var(--ink); border-color: var(--muted); }
+.ghost.on { color: var(--gold); border-color: var(--gold); }
+
+.layout { display: grid; grid-template-columns: var(--sw) minmax(0, 1fr); gap: 16px; align-items: start; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.panel h2 { margin: 0 0 8px; font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
+.muted { color: var(--muted); margin: 4px 0; font-size: 13.5px; }
+
+/* the slim line above the stage: level info, the message line, the goal (the track feature adds its parts) */
+#track { position: relative; height: var(--th); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+#goal { flex: none; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; align-self: stretch; }
+#goal-text { font-weight: 700; white-space: nowrap; font-size: 13px; }
+#goal .bar { position: absolute; inset-inline: 0; inset-block-end: 0; height: 3px; background: #0e0a07; border-radius: 2px; }
+#goal-fill { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #c98a1b, var(--gold)); border-radius: 2px; transition: width .25s ease-out; }
+
+#stage { position: relative; width: var(--sw); height: var(--sh); border-radius: 14px; overflow: hidden; border: 2px solid var(--line); box-shadow: 0 10px 40px rgba(0,0,0,.5); user-select: none; }
+#cv { display: block; width: var(--sw); height: var(--sh); cursor: none; touch-action: none; }
+#hud-coins, #hud-depth { position: absolute; inset-block-start: 10px; display: flex; align-items: center; gap: 8px; background: rgba(15,10,6,.72); border: 1px solid rgba(255,255,255,.14); border-radius: 22px; padding-block: 4px; padding-inline: 5px 14px; pointer-events: none; font-size: 24px; font-variant-numeric: tabular-nums; }
+#hud-coins { inset-inline-start: 10px; color: var(--gold); transform-origin: left center; }
+#hud-depth { inset-inline-end: 10px; padding-inline: 14px; }
+#hud-coins.bump { animation: bump .16s ease-out; }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.14); } 100% { transform: scale(1); } }
+
+#combo { position: absolute; inset-block-start: 58px; inset-inline-start: 10px; padding: 3px 12px; border-radius: 14px; font-weight: 800; font-size: 17px; color: #1b1410; background: #ff8a3c; opacity: 0; transform: scale(.8); transition: opacity .15s, transform .15s; pointer-events: none; overflow: hidden; }
+#combo.show { opacity: 1; transform: scale(1); }
+#combo::after { content: ''; position: absolute; inset-inline-start: 0; inset-block-end: 0; height: 4px; width: calc(var(--k, 1) * 100%); background: #1b1410; opacity: .55; }
+#combo.rush { background: var(--gold); animation: pulse .5s infinite alternate; }
+#combo.rush::after { display: none; }
+@keyframes pulse { to { transform: scale(1.08); } }
+
+/* small notes and lessons live in the track's message line (track/ui.js moves them there) */
+#toast, #lesson { font-weight: 700; font-size: 13px; line-height: 1.2; padding: 1px 0; padding-inline-start: 8px; border-inline-start: 3px solid transparent; opacity: 0; transition: opacity .2s; pointer-events: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#toast.show { opacity: 1; border-inline-start-color: rgba(255,255,255,.35); }
+#toast.gold { border-inline-start-color: var(--gold); color: var(--gold); }
+#toast.fossil { border-inline-start-color: #f6efdc; color: #f6efdc; }
+
+#banner { position: absolute; inset-inline: 0; inset-block-start: 34%; text-align: center; pointer-events: none; opacity: 0; transform: scale(.6); }
+#banner.show { animation: banner 3.6s ease-out both; }
+#banner b { display: block; font-size: 40px; color: var(--gold); text-shadow: 0 3px 0 #000, 0 0 30px rgba(255,210,63,.6); }
+#banner span { display: block; font-size: 19px; text-shadow: 0 2px 0 #000; margin-top: 6px; }
+@keyframes banner { 0% { opacity: 0; transform: scale(.5); } 8% { opacity: 1; transform: scale(1.12); } 14% { transform: scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: scale(1); } }
+
+#hint { position: absolute; inset-inline: 0; inset-block-start: 128px; text-align: center; font-size: 22px; font-weight: 800; text-shadow: 0 2px 0 #000, 0 0 12px #000; pointer-events: none; opacity: 0; transition: opacity .4s; }
+#hint.show { opacity: 1; animation: nudge 1s ease-in-out infinite alternate; }
+#banner.show ~ #hint.show { opacity: 0; animation: none; }   /* the first hint waits while a banner shows (S10): never covered */
+@keyframes nudge { to { transform: translateY(8px); } }
+
+#chest-btn { position: absolute; inset-block-end: 12px; inset-inline-end: 12px; display: flex; align-items: center; gap: 8px; background: var(--gold); color: var(--gold-ink); border: 2px solid #7a5a00; border-radius: 14px; padding: 6px 12px; font-weight: 800; animation: pulse .6s infinite alternate; }
+#chips { display: inline-flex; align-items: center; gap: 14px; }
+#chest-btn b { background: #7a2a1f; color: #fff; border-radius: 10px; padding: 0 8px; }
+
+/* shop */
+.shop-list { display: flex; flex-direction: column; gap: 8px; }
+.shop-item { position: relative; display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 10px; text-align: start; background: var(--panel-2); border: 2px solid var(--line); border-radius: 12px; padding: 9px 10px; overflow: hidden; opacity: .78; transition: transform .08s, border-color .15s, opacity .15s; }
+.shop-item .tx { display: flex; flex-direction: column; min-width: 0; }
+.shop-item b { font-size: 15px; }
+.shop-item .d { color: var(--muted); font-size: 13px; }
+.shop-item .cost { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--muted); }
+.shop-item .cost i { font-style: normal; }
+.shop-item .fill { position: absolute; inset-inline-start: 0; inset-block-end: 0; height: 4px; background: var(--gold); opacity: .7; transition: width .2s; }
+.shop-item.can { opacity: 1; border-color: var(--gold); box-shadow: 0 0 0 1px rgba(255,210,63,.25), 0 0 18px rgba(255,210,63,.18); }
+.shop-item.can .cost { color: var(--gold); }
+.shop-item.can:hover { transform: translateY(-1px); }
+.shop-item:active { transform: scale(.97); }
+.shop-item.full { opacity: .5; }
+.shop-item.bump { animation: bump .16s ease-out; }
+.shop-item.arrive { animation: arrive .5s ease-out; }
+@keyframes arrive { 0% { opacity: 0; transform: translateY(14px) scale(.96); } 60% { transform: translateY(-2px) scale(1.02); } 100% { opacity: .78; transform: none; } }
+
+/* relics and museum */
+.relic { display: grid; grid-template-columns: 30px 1fr auto; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid rgba(255,255,255,.06); }
+.relic:first-child { border-top: 0; }
+.relic .tx { display: flex; flex-direction: column; min-width: 0; }
+.relic .d { color: var(--muted); font-size: 13px; }
+.pips { display: inline-flex; gap: 3px; }
+.pips i { width: 7px; height: 7px; border-radius: 50%; background: #0e0a07; border: 1px solid var(--line); }
+.pips i.on { background: var(--gold); border-color: #7a5a00; }
+.set { padding: 7px 0; border-top: 1px solid rgba(255,255,255,.06); }
+.set:first-child { border-top: 0; }
+.set .bones { display: flex; gap: 5px; margin: 4px 0 2px; }
+.bone { color: #120c08; filter: drop-shadow(0 0 0 #000); background: #0e0a07; border: 1px dashed var(--line); border-radius: 7px; padding: 3px; display: inline-flex; }
+.bone.on { color: #f6efdc; border-style: solid; border-color: #f6efdc; background: #3a2c1f; }
+.set .d { color: var(--muted); font-size: 13px; }
+.set.done b, .set.done .d { color: var(--good); }
+.set.locked { opacity: .5; }
+
+.primary { background: var(--gold); color: var(--gold-ink); border: 2px solid #7a5a00; border-radius: 12px; padding: 9px 16px; font-weight: 800; font-size: 16px; }
+.primary:hover { filter: brightness(1.08); }
+.primary:active { transform: scale(.97); }
+
+/* cards over the game */
+#modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8,5,3,.72); z-index: 20; }
+#modal.show { display: flex; animation: fade .2s; }
+@keyframes fade { from { opacity: 0; } }
+.card { background: var(--panel); border: 2px solid var(--gold); border-radius: 18px; padding: 20px 26px 22px; text-align: center; box-shadow: 0 20px 80px rgba(0,0,0,.7); max-width: 760px; }
+.card h2 { margin: 6px 0 14px; font-size: 26px; color: var(--gold); }
+.chest-anim { display: inline-block; animation: chest .5s ease-out both; }
+@keyframes chest { 0% { transform: scale(.4) rotate(0); } 30% { transform: scale(1.1) rotate(-8deg); } 50% { transform: scale(1.1) rotate(8deg); } 70% { transform: scale(1.15) rotate(-5deg); } 100% { transform: scale(1) rotate(0); } }
+.cards { display: flex; gap: 14px; justify-content: center; }
+.relic-card { position: relative; width: 210px; min-height: 220px; display: flex; flex-direction: column; align-items: center; gap: 8px; background: var(--panel-2); border: 2px solid var(--line); border-radius: 14px; padding: 26px 14px 16px; animation: deal .35s cubic-bezier(.2,1.4,.4,1) both; transition: transform .1s, border-color .1s, box-shadow .1s; }
+.relic-card:hover { transform: translateY(-6px) scale(1.03); border-color: var(--gold); box-shadow: 0 10px 30px rgba(255,210,63,.25); }
+.relic-card b { font-size: 19px; }
+.relic-card .d { color: var(--muted); font-size: 14px; }
+.relic-card .tag { position: absolute; inset-block-start: 8px; inset-inline-end: 10px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 1px 8px; border-radius: 8px; }
+.tag.new { background: var(--good); color: #062612; }
+.tag.up { background: var(--gold); color: var(--gold-ink); }
+@keyframes deal { from { opacity: 0; transform: translateY(40px) rotate(6deg) scale(.8); } }
+.more { color: var(--muted); margin: 12px 0 0; min-height: 1em; }
+.away .big { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 40px; color: var(--gold); margin: 6px 0; }
+.away ul { list-style: none; padding: 0; margin: 8px 0 16px; font-size: 17px; }
+.away .line { color: var(--muted); margin: 0; }
+
+
+@media (prefers-reduced-motion: reduce) { #chest-btn, #combo.rush, #hint.show { animation: none; } }
+#site.ready { border-color: var(--gold); box-shadow: 0 0 18px rgba(255,210,63,.2); }
+#site-now { margin: 0 0 4px; font-weight: 700; }
+/* the tool bar: use buttons at the bottom of the stage (empty until a feature registers a tool) */
+#tools { position: absolute; inset-block-end: 12px; inset-inline-start: 12px; display: flex; gap: 8px; }
+.tool { position: relative; background: var(--panel-2); border: 2px solid var(--line); border-radius: 12px; padding: 5px; opacity: .6; }
+.tool.can { opacity: 1; }
+.tool.on { border-color: var(--gold); box-shadow: 0 0 14px rgba(255,210,63,.4); }
+.tool i { position: absolute; inset-block-end: 1px; inset-inline-end: 4px; font-style: normal; font-size: 13px; font-weight: 800; color: var(--muted); }
+
+/* panels fold on a click of their title */
+
+@media (max-height: 800px) { #hud-coins, #hud-depth { zoom: .85; } #combo { inset-block-start: 52px; } }
+
+/* ---------- the purse and the round buttons (top) ---------- */
+.purse { display: inline-flex; align-items: center; gap: 14px; min-height: 38px; padding-block: 2px; padding-inline: 10px 14px; background: var(--panel-2); border: 2px solid var(--line); border-radius: 22px; }
+.purse .hit-chip { border: 0; background: none; padding: 0; }
+.purse .pchip { display: inline-flex; align-items: center; gap: 6px; font-size: 18px; font-variant-numeric: tabular-nums; }
+.rbtn { display: inline-grid; place-items: center; width: 38px; height: 38px; padding: 0; border-radius: 50%; background: var(--panel-2); border: 2px solid var(--line); color: var(--muted); }
+.rbtn:hover { color: var(--ink); border-color: var(--muted); }
+.rbtn.on { color: var(--gold); border-color: var(--gold); }
+.rbtn.off { opacity: .6; }
+#hud-record { display: none; }
+
+/* ---------- the drawer: one tab open, the tab strip on the outer edge ---------- */
+#drawer { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 56px; grid-template-rows: minmax(0, 1fr) auto; column-gap: 8px; height: calc(var(--sh) + var(--th) + 6px); }
+#tabbody { grid-column: 1; grid-row: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; padding-inline-end: 2px; }
+#tabs { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+#reset { grid-column: 1 / -1; grid-row: 2; justify-self: end; margin-top: 4px; font-size: 13px; padding: 2px 8px; }
+.pane { display: flex; flex-direction: column; gap: 10px; }
+.pane > .dr-list { display: flex; flex-direction: column; gap: 12px; }
+.dr-next { margin: 2px 0 0; font-size: 17px; font-weight: 800; line-height: 1.3; }
+.pane.locked .dr-next { color: var(--muted); }
+.pane.locked .dr-list { display: none; }
+.dr-main { align-self: stretch; }
+.tab { position: relative; display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border-radius: 14px; background: var(--panel); border: 2px solid var(--line); }
+.tab:hover { border-color: var(--muted); }
+.tab.on { border-color: var(--gold); background: var(--panel-2); box-shadow: 0 0 0 1px rgba(255,210,63,.25); }
+.tab .lk { display: none; position: absolute; inset-block-end: 2px; inset-inline-end: 2px; }
+.tab.locked .ico:first-child { filter: grayscale(1); opacity: .35; }
+.tab.locked .lk { display: block; }
+.tab .dot { position: absolute; inset-block-start: 3px; inset-inline-end: 3px; width: 11px; height: 11px; border-radius: 50%; background: var(--bad); border: 2px solid var(--bg); }
+
+/* the level track shows the Gate and the medals now: the Level tab drops its own copies */
+#site .gaterow, #site .mrow { display: none; }
+
+/* lessons: first-sight notes that wait their turn, and the Tips list */
+#lesson.show { opacity: 1; pointer-events: auto; cursor: pointer; border-inline-start-color: rgba(255,255,255,.55); }
+#lesson.gold { border-inline-start-color: var(--gold); color: var(--gold); }
+#tips-btn { position: absolute; inset-block-end: 12px; inset-inline-end: 12px; padding: 4px 12px; font-size: 14px; }
+#tips-list { position: absolute; inset-block-end: 48px; inset-inline-end: 12px; width: 280px; max-height: 50%; overflow: auto; background: rgba(15,10,6,.94); border: 1px solid rgba(255,255,255,.25); border-radius: 12px; padding: 6px 12px; font-size: 14px; }
+#tips-list p { margin: 6px 0; padding-block-end: 6px; border-block-end: 1px solid rgba(255,255,255,.12); }
+#tips-list p:last-child { border-block-end: 0; }
+
+/* Arabic: its own fonts, a larger root, no uppercase or letter spacing (Arabic has no case and spaced letters break joining).
+   The scene (the stage and the canvas) never mirrors; panels, cards, the drawer text and toasts follow dir. */
+:root[lang=ar] body { font-family: Cairo, system-ui, 'Segoe UI', Tahoma, sans-serif; font-size: 16.5px; }
+:root[lang=ar] h1, :root[lang=ar] h2, :root[lang=ar] h3, :root[lang=ar] .word, :root[lang=ar] #banner b { font-family: 'Noto Kufi Arabic', Cairo, sans-serif; }
+:root[lang=ar] *, :root[lang=ar] *::before, :root[lang=ar] *::after { text-transform: none !important; letter-spacing: normal !important; }
+#stage, #cv { direction: ltr; }
+:root[dir=rtl] .layout { direction: ltr; }          /* the drawer stays on the same side of the dig */
+:root[dir=rtl] .layout > .mid { direction: ltr; }
+:root[dir=rtl] #drawer { direction: rtl; }
+:root[dir=rtl] #toast, :root[dir=rtl] #banner, :root[dir=rtl] #hint, :root[dir=rtl] #combo, :root[dir=rtl] #tools { direction: rtl; }
+/* every other line of words on the stage (the Museum chip, the record, the contract card, tips) takes its direction from its
+   own first letter: an Arabic line reads right to left, a bare count ("2/5", "12.5K") stays left to right; the boxes stay put */
+:root[dir=rtl] #stage :is(p, b, span, #hud-record) { unicode-bidi: plaintext; }
+/* Reduce motion (Settings, or the browser's wish): no infinite pulses, no big bounces; things just fade in. Set by proto/ui/motion.js. */
+@keyframes calmfade { from { opacity: 0; } }
+html.calm *, html.calm *::before, html.calm *::after { animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+html.calm #combo.rush, html.calm #chest-btn, html.calm #hint.show, html.calm #fuse-btn, html.calm .tool.pulse, html.calm #trk-clock.soon, html.calm #trk-done,
+html.calm #site .nextbtn.gold, html.calm .finish .primary.gold, html.calm .cpip.next, html.calm .wing-card .wart.assemble, html.calm .whall .hitem { animation: none !important; }
+html.calm #hud-coins.bump, html.calm .shop-item.bump, html.calm .hit-chip.bump, html.calm #trk-clock.bump, html.calm #mus-strip.pop, html.calm .whall .hitem.hop,
+html.calm .chest-anim, html.calm .relic-card, html.calm .shop-item.arrive, html.calm .arrive .big, html.calm .wart.assemble .pt.on, html.calm .away .stack .ico { animation: calmfade .25s both !important; }
+@keyframes calmbanner { 0% { opacity: 0; } 8% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
+html.calm #banner.show { animation: calmbanner 3.6s both !important; }
+html.calm .fz-stage .flash { display: none; }

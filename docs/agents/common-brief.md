@@ -41,6 +41,7 @@ or extends an agent for it.
 | Aetheria (live) | `index.html` | `docs/redesign-proposal.md` | maintenance |
 | Core loop | `index.html?loop=2` | `docs/core-loop-redesign.md` | **paused** (owner confirmed the three games 14 Oct 2026; stopped at Wave C2, R88-R90 and R92-R94 open; nobody works on it until the owner says so) |
 | Dig | `proto.html` / `?loop=3` | `docs/dig-design.md` | active |
+| Digger Argon | `digger-argon.html` / `?loop=4` | `docs/studies/dig-year-one-architecture-2026-10-14.md` | active (365-day prototype testbed) |
 
 ## Design rules (all games)
 No clock gates; nothing expires; nothing punishes absence; no fake scarcity; no pay-to-skip. Every addition

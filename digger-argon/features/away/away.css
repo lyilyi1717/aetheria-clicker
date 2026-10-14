@@ -1,0 +1,13 @@
+.away .cap { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+.away .joke { font-style: italic; margin: 12px 0 4px; }
+.away-track { position: relative; display: flex; justify-content: space-around; gap: 8px; margin-block: 18px 6px; padding-block-start: 30px; }
+.away-track::before { content: ''; position: absolute; inset-inline: 6%; inset-block-start: 14px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.15); }
+.away-track .runner { position: absolute; inset-block-start: 0; inset-inline-start: 4%; width: 30px; height: 30px; animation: away-run var(--run, 2s) cubic-bezier(.4,0,.6,1) forwards; }
+.away-track .stamp { display: flex; flex-direction: column; align-items: center; gap: 4px; max-width: 150px; font-size: 14px; opacity: 0; transform: scale(.4) rotate(-12deg); animation: away-stamp .35s cubic-bezier(.3,1.6,.5,1) forwards; animation-delay: var(--d, 0s); }
+.away-track .stamp.new { color: var(--gold); }
+.away .stack { display: flex; justify-content: center; margin-block: 8px 0; }
+.away .stack .ico { margin-inline-start: -14px; animation: away-drop .3s ease-out backwards; animation-delay: var(--d, 0s); }
+.away .stack .ico:first-child { margin-inline-start: 0; }
+@keyframes away-run { from { inset-inline-start: 4%; } to { inset-inline-start: 92%; } }
+@keyframes away-stamp { to { opacity: 1; transform: none; } }
+@keyframes away-drop { from { transform: translateY(-30px); opacity: 0; } }

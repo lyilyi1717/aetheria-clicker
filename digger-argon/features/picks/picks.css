@@ -1,0 +1,14 @@
+/* the pin: chips beside the goal bar, a pin on the Second Pick, a note on the cheap buttons */
+/* the goal chip (one at a time): its name, a drawn step mark, then a dot per choice, the filled dot is this one */
+#goal-pin { display: flex; align-items: center; gap: 5px; flex: none; }
+/* the chip may get narrow (art-and-sound decision 10): its word ends in dots, the step mark keeps its own room at the end */
+#goal-pin button { position: relative; display: block; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 700; line-height: 1.2; padding-block: 1px; padding-inline: 8px 19px; border-radius: 10px; border: 1px solid var(--gold); background: var(--panel-2); color: var(--gold); cursor: pointer; white-space: nowrap; }
+#goal-pin button::after { content: ''; position: absolute; inset-inline-end: 7px; inset-block-start: calc(50% - 3.5px); width: 5px; height: 5px; border-block-start: 2px solid currentColor; border-inline-end: 2px solid currentColor; transform: rotate(45deg); }
+:root[dir=rtl] #goal-pin button::after { transform: rotate(-45deg); }
+#goal-pin button:hover { color: #1a1206; background: var(--gold); }
+#goal-pin .pin-dots { display: inline-flex; flex: none; gap: 3px; }
+#goal-pin .pin-dots i { width: 6px; height: 6px; border-radius: 50%; border: 1px solid var(--muted); }
+#goal-pin .pin-dots i.on { background: var(--gold); border-color: var(--gold); }
+.shop-item .pin-btn { align-self: flex-start; margin-block-start: 3px; font-size: 13px; font-weight: 800; padding: 2px 9px; border-radius: 10px; border: 1px solid var(--gold); color: var(--gold); cursor: pointer; }
+.shop-item .pin-btn.on { color: #1a1206; background: var(--gold); }
+.shop-item .delay-note { font-size: 13px; color: var(--muted); font-style: italic; }

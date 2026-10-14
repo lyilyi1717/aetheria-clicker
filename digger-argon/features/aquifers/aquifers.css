@@ -1,0 +1,28 @@
+/* Aquifers feature styles */
+.aquifer-waterwheel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(2, 132, 199, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 8px;
+  padding: 4px 8px;
+  color: #38bdf8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.aquifer-pressure-meter {
+  width: 100%;
+  height: 6px;
+  background: #1e293b;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.aquifer-pressure-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  transition: width 0.1s linear;
+}

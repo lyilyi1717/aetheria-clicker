@@ -416,6 +416,7 @@ console.log('--- Excavation Abilities, Workshop & Machinery ---');
   // Manual Dig Streak activates Frenzy
   m.frenzyTimer = 0;
   m.digStreak = 0;
+  m.descending = false;
   for (let i = 0; i < 7; i++) {
     m.random = () => 0.999; // no shatter, chain, or cleave
     const t = g.miningGrid.blocks[1];

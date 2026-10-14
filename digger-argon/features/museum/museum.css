@@ -1,0 +1,24 @@
+/* Dig Museum: the collection strip on the dig. */
+/* top centre of the stage: the coin pill is top-left, the depth pill top-right, so the set chip never covers the purse */
+#mus-strip { position: absolute; inset-inline: 0; margin-inline: auto; width: max-content; max-width: 40%; inset-block-start: 8px; display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 6px; border-radius: 12px; background: rgba(20, 12, 6, .72); border: 1px solid rgba(246, 239, 220, .35); color: #f6efdc; pointer-events: none; z-index: 3; }
+#mus-strip[hidden] { display: none; }
+#mus-strip .wart { width: 64px; height: auto; flex: none; }
+#mus-strip .ms-t { display: flex; flex-direction: column; line-height: 1.15; }
+#mus-strip b { font-size: 13px; }
+#mus-strip .ms-n { font-size: 13px; color: #ffe9a8; }
+#mus-strip .ms-k { display: none; font-size: 15px; font-weight: 800; color: #ffe9a8; font-variant-numeric: tabular-nums; }
+/* the side spot (docs/art-and-sound.md, layout map): from 3 Rafeeqs the top centre is the manager's (countdown pill, text box),
+   so the chip sits under the depth pill, small: the set's pieces and "a/b" */
+#mus-strip.side { inset-inline: auto 10px; margin-inline: 0; inset-block-start: 56px; gap: 6px; padding: 3px 9px 3px 5px; }
+#mus-strip.side .wart { width: 44px; }
+#mus-strip.side .ms-t { display: none; }
+#mus-strip.side .ms-k { display: block; }
+#mus-strip.pop { animation: mspop .7s ease-out; }
+#mus-strip.done .wart { filter: drop-shadow(0 0 5px var(--c)); }
+@keyframes mspop { 0% { transform: scale(1); } 30% { transform: scale(1.18); box-shadow: 0 0 18px 4px rgba(255, 233, 168, .8); } 100% { transform: scale(1); } }
+.wm-mus { display: flex; align-items: center; gap: 8px; margin-block-start: 4px; }
+.wm-mus svg { width: 76px; height: auto; flex: none; }
+.wm-mus .wm-mt { display: flex; flex-direction: column; line-height: 1.2; font-size: 13px; }
+.wm-mus .wm-mt b { font-size: 13.5px; }
+.wm-mus .wm-mt span { color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { #mus-strip.pop { animation: none; } }

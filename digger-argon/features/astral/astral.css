@@ -1,0 +1,22 @@
+/* Astral feature styles: Inverted Gravity */
+.astral-gravity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 8px;
+  padding: 4px 8px;
+  color: #818cf8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.astral-floating {
+  animation: float-bob 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes float-bob {
+  from { transform: translateY(0); }
+  to { transform: translateY(-4px); }
+}

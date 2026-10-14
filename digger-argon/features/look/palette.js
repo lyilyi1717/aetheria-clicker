@@ -1,0 +1,121 @@
+// Dig look: the colours. Pure data and small colour sums, no DOM, so a node script can print and check them.
+// A layer paints the ground; a site paints the sky and tints the ground a little (design review 2.8).
+
+// by layer id (ground: sand, clay, slate, deep; deep feature: black, living, angry, hot)
+export const LAYER_LOOK = {
+  sand:   { dirt: '#e0b062', stone: '#b3a58c', hard: '#6a5d4e', back: '#5a3d22', glow: '#ffe9b0' },
+  clay:   { dirt: '#c0673f', stone: '#96807a', hard: '#4f3f3f', back: '#4a2418', glow: '#ff9a6a' },
+  slate:  { dirt: '#3f8f8c', stone: '#6fa3a0', hard: '#1f4b4d', back: '#12302f', glow: '#58c7e8', shine: true },
+  deep:   { dirt: '#7b5bb5', stone: '#9484c2', hard: '#36285a', back: '#1d1433', glow: '#9be7ff' },
+  black:  { dirt: '#2b2b3d', stone: '#3b3b50', hard: '#16161f', back: '#07070c', glow: '#7cffb2' },
+  living: { dirt: '#557f3f', stone: '#6f8f54', hard: '#2c4526', back: '#16260f', glow: '#b8f27a' },
+  angry:  { dirt: '#a8324f', stone: '#8c4a5e', hard: '#4a1626', back: '#2a0c16', glow: '#ff6a8a' },
+  hot:    { dirt: '#3a2a26', stone: '#5a3a30', hard: '#1e1412', back: '#160806', glow: '#ff7a1a', veins: true },
+};
+
+// the sky of each site: top to horizon, the far ground, a tint for the dirt and stone (colour, share)
+export const SITE_LOOK = {
+  dunes:  { sky: ['#7ec8f2', '#f6d9a0'], far: '#e0b467', tint: null },
+  boom:   { sky: ['#f29b4b', '#6b2d2a'], far: '#9a4a34', tint: ['#e0402a', 0.34] },
+  gold:   { sky: ['#9fd8f5', '#fff0b8'], far: '#e6c46e', tint: ['#fff05a', 0.45] },
+  bones:  { sky: ['#e9d7f0', '#f7e6c8'], far: '#e8dcc4', tint: ['#efe8f8', 0.30] },
+  shark:  { sky: ['#3fb6c9', '#dff6f0'], far: '#d9c9a0', tint: ['#2fb5b0', 0.26] },
+  mirage: { sky: ['#f5b7d0', '#fde7b0'], far: '#e9c79a', tint: ['#a98bd6', 0.28] },
+};
+// A zone (continent) paints its own sky and far ground over the place's (the place keeps 30% of its own colour, so a
+// powder valley is still redder than a wadi) and nudges the ground (`ground`: colour, share). Arabia is the home
+// look and changes nothing. ZONE_LOOK[zone][siteKey] = { sky, far, tint } overrides one place in one zone.
+export const ZONE_LOOK = {
+  arabia:   {},
+  africa:   { sky: ['#f0833a', '#ffd48a'], far: '#c98a4a', ground: ['#e8761c', 0.16] },
+  eastasia: { sky: ['#cfdde0', '#f1f0ea'], far: '#9db3aa', ground: ['#8fb09c', 0.16] },
+  americas: { sky: ['#5fb6d8', '#f3c9a0'], far: '#b5553a', ground: ['#c2402a', 0.16] },
+  europe:   { sky: ['#8fa6b8', '#d6dde0'], far: '#6f9a62', ground: ['#5f9a58', 0.16] },
+  // chapter two, the road home at night: each land's look under a dark sky (zones.js paints its props with stars and a moon),
+  // and the ground a little bluer; then the Empty Quarter, red sand under a low red sun
+  n_europe:   { sky: ['#141c38', '#3c4c6e'], far: '#2f4a3a', ground: ['#2a3a6a', 0.16] },
+  n_americas: { sky: ['#101a36', '#46405e'], far: '#4a2a2a', ground: ['#3a2a5a', 0.16] },
+  n_eastasia: { sky: ['#18203a', '#4e5a6a'], far: '#34463f', ground: ['#2a4a5a', 0.16] },
+  n_africa:   { sky: ['#1e1634', '#5a3a4a'], far: '#4a3020', ground: ['#4a2a3a', 0.16] },
+  // The Empty Quarter: red sand at every depth. Its four ground layers get their own red palettes, lighter at the top and
+  // darker down (depth still reads by brightness, slate keeps its shine), and `dark` is the block the lamp has not reached
+  // yet: dark brick red, never the brown of the other lands. The deep feature layers (black ... hot) keep their own look
+  // with the 40% red nudge, since each is a law the player must know at a glance.
+  emptyquarter: {
+    sky: ['#e2683a', '#ffc27a'], far: '#c8502a', ground: ['#d9501c', 0.4],
+    layers: {
+      sand:  { dirt: '#e4844a', stone: '#c98a68', back: '#7a3418', dark: '#8a3a20' },
+      clay:  { dirt: '#c95530', stone: '#ad6a55', back: '#5e2412', dark: '#722a16' },
+      slate: { dirt: '#b0452e', stone: '#a06458', back: '#4a1a12', dark: '#5e2014' },
+      deep:  { dirt: '#94344a', stone: '#94606c', back: '#341019', dark: '#4c1622' },
+    },
+  },
+};
+const PLACE_SHARE = 0.3;
+export const placeLook = (key, zone) => {
+  const site = SITE_LOOK[key], z = ZONE_LOOK[zone];
+  const base = z && z.sky ? { ...site, sky: [mix(z.sky[0], site.sky[0], PLACE_SHARE), mix(z.sky[1], site.sky[1], PLACE_SHARE)], far: mix(z.far, site.far, PLACE_SHARE) } : site;
+  return { ...base, ...((z || {})[key] || {}) };
+};
+// other names a site may come with (a later package may name them differently)
+const ALIAS = { sharks: 'shark', sharkbay: 'shark', shark_dunes: 'shark', mirage_dunes: 'mirage', valley: 'boom', wadi: 'gold', beasts: 'bones' };
+export const siteKey = id => (SITE_LOOK[id] ? id : SITE_LOOK[ALIAS[id]] ? ALIAS[id] : 'dunes');
+
+const hex = n => '#' + ((1 << 24) | n).toString(16).slice(1);
+const rgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+export function mix(a, b, k) {
+  const A = rgb(a), B = rgb(b);
+  return hex(((A[0] + (B[0] - A[0]) * k) | 0) << 16 | ((A[1] + (B[1] - A[1]) * k) | 0) << 8 | ((A[2] + (B[2] - A[2]) * k) | 0));
+}
+export function shadeHex(h, k) { return k > 0 ? mix(h, '#ffffff', k) : mix(h, '#000000', -k); }
+export function luminance(h) {
+  const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  const [r, g, b] = rgb(h);
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+}
+export function contrast(a, b) {
+  const x = luminance(a), y = luminance(b);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}
+
+// the colours a layer has on a site: the layer's palette, with the site's tint on dirt and stone only
+const cache = new Map();
+// the zone being drawn: world.js sets it once a frame, before the blocks are drawn
+let curZone = '';
+export const setZone = z => { curZone = z || ''; };
+export const zoneNow = () => curZone;   // block sprites are kept per zone (render.js), so a land never shows another's blocks
+export function lookFor(layerId, layerLook, siteId, zone = curZone) {
+  const site = siteKey(siteId), key = layerId + '|' + site + '|' + zone;
+  let o = cache.get(key);
+  if (!o) {
+    const z = ZONE_LOOK[zone] || {}, own = z.layers && z.layers[layerId];
+    const base = { ...layerLook, ...(LAYER_LOOK[layerId] || {}), ...(own || {}) };
+    const tint = SITE_LOOK[site].tint;
+    o = tint ? { ...base, dirt: mix(base.dirt, tint[0], tint[1]), stone: mix(base.stone, tint[0], tint[1]), back: mix(base.back, tint[0], tint[1] * 0.6) } : base;
+    const zg = !own && z.ground;   // a land's own layer palette replaces its nudge
+    if (zg) o = { ...o, dirt: mix(o.dirt, zg[0], zg[1]), stone: mix(o.stone, zg[0], zg[1]), back: mix(o.back, zg[0], zg[1] * 0.6) };
+    if (!o.dark) o = { ...o, dark: shadeHex(o.back, -0.25) };   // a block the lamp has not reached
+    cache.set(key, o);
+  }
+  return o;
+}
+
+// The block (or hollow) an ore sits in: the layer colour shaded by `k0` (dirt ores sit in dirt shaded -0.18, the deep
+// stones in a hollow shaded -0.35), then nudged, darker first and lighter if that fails, until the ore keeps
+// MIN_CONTRAST against it. The old fixed shades left copper on Sand at 1.1:1, the cyan gem on Wet Slate teal and
+// the ruby on nearly every layer unreadable.
+export const MIN_CONTRAST = 2.6;
+export function oreBacking(base, ore, k0 = -0.18) {
+  let best = shadeHex(base, k0), bc = contrast(ore, best);
+  for (let d = 0; d <= 0.6 && bc < MIN_CONTRAST; d += 0.04) {
+    for (const k of [k0 - d, k0 + d]) {
+      if (k < -0.75 || k > 0.7) continue;
+      const c = shadeHex(base, k), cc = contrast(ore, c);
+      if (cc > bc) { best = c; bc = cc; }
+      if (bc >= MIN_CONTRAST) break;
+    }
+  }
+  return best;
+}
+
+export const ORES = { copper: '#f08a3c', silver: '#dfe9f2', gold: '#ffcf33', gem: '#3ee6e0', moonstone: '#cfe0ff', amber: '#ffb52e', ruby: '#e0234a', ember: '#ff8a1a' };

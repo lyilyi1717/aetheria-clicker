@@ -1,0 +1,68 @@
+/* Museum wing 2 */
+.wset { padding: 8px 0; border-top: 1px solid rgba(255,255,255,.06); cursor: pointer; }
+.wset:first-child { border-top: 0; }
+.wset .wh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.wset .wn { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.wset.done b, .wset.done .wn { color: var(--good); }
+.wset.locked { opacity: .5; cursor: default; }
+.wset .wr { color: var(--muted); font-size: 13px; margin-block: 2px 4px; }
+.wset ul { list-style: none; margin: 4px 0 0; padding: 0; font-size: 13px; color: var(--muted); }
+.wset li { padding-block: 1px; }
+.wset li b { color: var(--text, #f3e9d8); font-weight: 700; }
+.wset li .rare { background: var(--gold); color: var(--gold-ink); border-radius: 6px; padding: 0 5px; margin-inline-start: 4px; font-size: 13px; font-weight: 800; }
+.wset li.got { opacity: .55; }
+.wjar { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+
+.wart { width: 100%; max-width: 190px; height: auto; display: block; margin-block: 4px; }
+.wart .pt { fill: #2a1f15; stroke: #4a3822; stroke-width: 1; }
+.wart .pt * { fill: inherit; stroke: inherit; }
+.wart .pt .hole { fill: #120c08; stroke: none; }
+.wart .pt .ln { fill: none; stroke: #4a3822; stroke-width: 3; stroke-linecap: round; }
+.wart .pt.on { fill: var(--c); stroke: #1b1410; }
+.wart .pt.on .ln { stroke: var(--c); }
+.wart .pt.on .hole { fill: #1b1410; }
+.wart.assemble .pt.on { animation: wdrop .55s cubic-bezier(.3,1.5,.5,1) both; animation-delay: calc(var(--i) * .22s); }
+@keyframes wdrop { from { opacity: 0; transform: translateY(-26px) scale(1.25); } }
+
+.wing-card { min-width: 340px; }
+.wing-card .wopen { margin: 8px 0 0; color: #ffe9a8; font-weight: 800; }
+.wing-card .wart.assemble { filter: drop-shadow(0 0 10px var(--c)); animation: wglow 1.4s ease-in-out infinite alternate; }
+@keyframes wglow { from { filter: drop-shadow(0 0 4px var(--c)); } to { filter: drop-shadow(0 0 16px var(--c)); } }
+@media (prefers-reduced-motion: reduce) { .wing-card .wart.assemble { animation: none; } }
+.wing-card .wart { margin-inline: auto; max-width: 300px; }
+.wing-card .wrew { color: var(--text, #f3e9d8); font-size: 17px; margin: 10px 0 14px; max-width: 360px; }
+
+.whall { background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px 8px; margin-bottom: 8px; }
+.whall h3 { margin: 0 0 4px; font-size: 13px; color: var(--gold); display: flex; justify-content: space-between; align-items: center; }
+.whall .hshelf { display: flex; flex-wrap: wrap; gap: 4px 8px; overflow: hidden; border-bottom: 3px solid #5a3d22; padding-bottom: 2px; }
+.whall .hitem { background: none; border: 0; padding: 0; width: 70px; cursor: pointer; transform-origin: 50% 100%; animation: wbob 2.4s ease-in-out infinite; animation-delay: calc(var(--k) * -.4s); }
+.whall .hitem .wart { margin: 0; }
+.whall .hitem.treasure { animation-name: wglint; }
+.whall .hitem.hop { animation: whop .6s ease-out; }
+.whall .hint { color: var(--muted); font-size: 13px; margin: 3px 0 0; }
+.whall .parade { font-size: 13px; padding: 1px 10px; border-radius: 9px; background: var(--gold); color: var(--gold-ink); border: 1px solid #7a5a00; font-weight: 800; }
+.whall.march .hitem { animation: wmarch 5s linear both; animation-delay: calc(var(--k) * .55s); }
+@keyframes wbob { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-2px) rotate(1.5deg); } }
+@keyframes wglint { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+@keyframes whop { 0% { transform: none; } 35% { transform: translateY(-14px) rotate(-8deg) scale(1.1); } 70% { transform: translateY(0) rotate(5deg); } 100% { transform: none; } }
+@keyframes wmarch { 0% { transform: translateX(-330px); } 50% { transform: translateX(80px) translateY(-6px); } 100% { transform: translateX(480px); } }
+
+/* the one Museum: what your sets do, the prize line, the Lamp's wish */
+.wdoes { background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px 8px; margin-bottom: 8px; }
+.wdoes h3 { margin: 0 0 4px; font-size: 13px; color: var(--gold); }
+.wdoes ul { list-style: none; margin: 0; padding: 0; }
+.wdoes li { display: flex; gap: 8px; align-items: center; padding-block: 3px; font-size: 13px; color: var(--muted); }
+.wdoes li .ico { flex: none; }
+.wdoes li b { color: var(--text, #f3e9d8); }
+.wdoes li i { font-style: normal; }
+.wdoes .hint { color: var(--muted); font-size: 13px; margin: 3px 0 0; }
+.wset .wr { display: flex; gap: 6px; align-items: center; }
+.wset .wr .ico { flex: none; }
+.wing-card .wrew { display: flex; gap: 10px; align-items: center; justify-content: center; text-align: start; }
+.wish-card { min-width: 380px; }
+.wish-card .wsub { color: var(--muted); margin: 0 0 12px; }
+.wishes { display: flex; gap: 10px; justify-content: center; }
+.wishbtn { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 120px; padding: 12px 8px; border-radius: 12px; border: 2px solid var(--line); background: rgba(255,255,255,.06); color: inherit; cursor: pointer; font: inherit; }
+.wishbtn:hover { border-color: var(--gold); transform: translateY(-2px); }
+.wishbtn b { font-size: 14px; }
+.wishbtn span { color: var(--muted); font-size: 13px; }

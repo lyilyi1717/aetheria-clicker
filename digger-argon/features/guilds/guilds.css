@@ -1,0 +1,72 @@
+/* The Guilds of Alqahwa styles */
+
+.guild-hall {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px;
+}
+
+.guild-seats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.seat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: #2a1f18;
+  border: 1px solid #4a3627;
+  border-radius: 6px;
+}
+
+.seat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  color: #ffd23f;
+}
+
+.calling-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  background: #3b2a1f;
+  color: #e5d6c5;
+}
+
+.calling-badge.naqqab {
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+}
+
+.calling-badge.baroodi {
+  border: 1px solid #f97316;
+  color: #fdba74;
+}
+
+.calling-badge.ghawwas {
+  border: 1px solid #10b981;
+  color: #6ee7b7;
+}
+
+.calling-badge.muhandis {
+  border: 1px solid #3b82f6;
+  color: #93c5fd;
+}
+
+.synergy-banner {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  text-align: center;
+}

@@ -1,0 +1,24 @@
+/* the hakawati: the telling bubble and the book, inside the Alqahwa window */
+.st-pane { position: absolute; inset-inline-start: 2%; inline-size: 37%; inset-block-start: 10px; z-index: 2; padding: 10px 16px 12px; background: #fffdf2; color: #1b1410; border: 3px solid #1b1410; border-radius: 14px; box-shadow: 0 4px 0 rgba(0,0,0,0.25); text-align: start; }
+.st-pane[hidden], .st-book[hidden] { display: none; }
+.st-top { display: flex; align-items: baseline; gap: 10px; margin-block-end: 4px; }
+.st-name { color: #8f2a1f; }
+.st-ch { color: #6d5a3c; font-size: 13px; }
+.st-line { margin: 0 0 8px; font-size: 17px; line-height: 1.35; font-weight: 600; cursor: pointer; }
+.st-btns { display: flex; align-items: center; gap: 10px; }
+.st-btns .st-gap { flex: 1; }
+.st-pane .ghost { color: #6d5a3c; border-color: #b79b6a; }
+.st-book { position: absolute; inset: 10px 8%; padding: 10px 16px; overflow-y: auto; background: #f3e6c4; color: #1b1410; border: 3px solid #5a3516; border-radius: 12px; text-align: start; }
+.st-bh { display: flex; align-items: baseline; gap: 12px; margin-block-end: 6px; }
+.st-bh b { font-size: 20px; color: #8f2a1f; }
+.st-bh span { flex: 1; color: #6d5a3c; }
+.st-chap { margin-block-end: 6px; }
+.st-chap > b { font-size: 14px; }
+.st-beats { display: flex; flex-wrap: wrap; gap: 6px; margin-block-start: 3px; }
+.st-book .ghost { color: #3a2412; border-color: #8a6a3c; background: rgba(255,255,255,0.4); }
+.st-book .ghost:disabled { opacity: 0.4; }
+.st-beat i { margin-inline-start: 6px; padding: 0 6px; border-radius: 8px; background: #d7332b; color: #fff; font-style: normal; font-size: 13px; }
+.st-empty { color: #6d5a3c; }
+.st-open { position: relative; }
+.st-dot { display: inline-block; margin-inline-start: 6px; min-width: 16px; padding: 0 4px; border-radius: 8px; background: #d7332b; color: #fff; font-size: 13px; text-align: center; }
+.st-tease { color: var(--gold); font-weight: 700; }
