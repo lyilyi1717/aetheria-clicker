@@ -1,141 +1,121 @@
 # Dig: the design
 
+**State: active** (the owner confirmed the three games on 14 October 2026: Aetheria in maintenance, the `?loop=2` core loop paused, Dig active).
 **This is the one design file for the Dig prototype** (`proto.html`, `/?loop=3`, code in `proto/`).
 If another file disagrees with this one, this one wins. Change the design here first, then the code.
+Checked line by line against the code on `main` at `69bb0f5` (14 October 2026). **Open owner decisions: section 9.**
 
 | File | What it is |
 |---|---|
-| `docs/dig-design.md` (this file) | What the game is, the levels, what is built, what is broken, what is next. |
+| `docs/dig-design.md` (this file) | What the game is, the levels, what is built, what is broken, what is next, what the owner must decide. |
 | `proto/README.md` | How the code is laid out (for whoever writes code). Not design. |
-| `docs/dig-player-progression-study.html` | Evidence: the progression study of 13 October 2026. Its findings are folded in here. |
+| `docs/studies/dig-*.md` | Evidence: the studies of 13 and 14 October. What was taken from them is folded in here; a study never overrides this file. |
+| `docs/dig-player-progression-study.html` | Evidence: the progression study of 13 October 2026. |
 | `docs/redesign-v3.md`, `dig-pacing.md`, `dig-design-review.md`, `dig-upgrades-study.md` | History. Each carries a note that points here. |
 
 Every line below is marked **built**, **broken** or **not built**. Nothing is described as if it exists when it does not.
+Numbers are the ones in the code (`PARAMS` of each feature's `rules.js`); a param name is given so it can be checked.
 
 ---
 
 ## 1. The game in ten lines
 
-1. You hold the mouse on desert ground and your pick breaks blocks to a beat. Deeper ground is harder and pays more.
-2. The ground is full of things that act on each other: ore, TNT that chains, water, crystal lines, chests, bones.
-3. A chest shows three relics; you take one. Two relics that fit can be fused into a stronger one.
-4. Rafeeqs dig beside you and go on digging while you are away.
-5. Every 25 m a Big Rock blocks the whole dig. It has a glowing crack; hits on the crack count three times.
-6. A **level** is one place with a bottom. The Big Rock at the bottom is its **Gate**. Breaking the Gate finishes the level.
-7. A finished level pays **Stars**. Stars are spent on three tracks: The Pick, The Camp, The Bag. That strength stays for ever.
-8. The next level starts on new ground. Coins, coin upgrades, hired Rafeeqs and relics start again; Stars, tracks, the Museum, the Forge and extra picks stay.
-9. Below 100 m each layer has one law that changes how you dig (the dark, the moss, the rock that hits back, the heat).
-10. Nothing in the game waits on the clock, and nothing is lost by staying away.
+1. You point at desert ground and your pick breaks blocks there, to a beat; no button to hold (**built**, #369). Deeper ground is harder and pays more.
+2. The ground is full of things that act on each other: ore, TNT that chains, water, crystal lines, chests, bones (**built**).
+3. A chest shows three relics; you take one. Two relics that fit can be fused into a stronger one, from the first minutes (**built**, #385).
+4. Rafeeqs dig beside you, each hitting for 60% of your hit, and go on digging while you are away (**built**, #371).
+5. Every 25 m a Big Rock blocks the whole dig. It has a glowing crack; hits on the crack count three times. TNT takes a visible bite (**built**, #386).
+6. A **level** is one place with a bottom. The Big Rock at the bottom is its **Gate**. Breaking the Gate finishes the level. A Gate you fail keeps part of the damage for the next try (**built**, #375).
+7. A finished level pays **Stars**. Stars are spent at the **Alqahwa**, the coffee house on the map, on three tracks: The Pick, The Camp, The Bag. That strength stays for ever (**built**, #383).
+8. The next level starts on new ground. Coins, coin upgrades and their prices, hired Rafeeqs and relics start again; Stars, tracks, medals, chili pips, the Museum, the Forge, extra picks and the Rafeeqs' names stay (**built**, #366).
+9. Below 100 m each layer has one law that changes how you dig (the dark, the moss, the rock that hits back, the heat). Below 200 m the ground is only deeper (**built**; no new law below 200 m is **not built**).
+10. Nothing in the game waits on the clock, and nothing is lost by staying away. The level clock counts down but nothing fails at 0 (**built**, #378).
 
-## 2. Levels: fitted to the player, not open ended
+## 2. Levels: a road of twenty, fitted to the player
 
-### 2.1 What the game does today, and why it feels wrong
+### 2.1 Why the road (history, 13 October 2026)
 
-| | Today (built) |
-|---|---|
-| The first four levels | Fixed, in order: The Dunes 50 m, Powder Valley 50 m, Valley of Beasts 75 m, Golden Wadi 75 m. |
-| After the fourth | The game deals three cards at random (a deeper floor, a new place, a medal to win, a twist) and the player picks. This goes on for ever. |
-| What makes a place different | Only how much of each thing is in the ground: Powder Valley has 3.2 times the TNT, Golden Wadi 2.2 times the ore, Valley of Beasts 4 times the bones. Same blocks, same colours of ground, same order of events. The five skies were never drawn. |
-| How level 2 starts | With a bare pick, no Rafeeqs, no relics, on ground as hard as level 1 times 1.25. The first Star step (x1.5 on the hit) is the only thing that came along. Warm Pick, which starts you at half your best pick level, is step 5 of The Pick and costs 27 Stars in all: every Star of the first three or four levels, with nothing left for the other two tracks. |
-| After the Gate | You may dig on below it with no end. |
+Before the road the game dealt three random cards after the fourth level, for ever. Measured then (mixed player, 30 days): 277 sites dug, only 52 new; four digs in five were a place and depth already finished; the last new thing came on day 15. Level 2 was level 1 again with more barrels, from a bare pick. The road below replaced that.
 
-Measured on `main` (13 October 2026, mixed player, 30 days, 2 seeds): the player digs **277 sites in a month and only 52 of them are new**. Four digs in five are a place and depth already finished. The average dig ends 15 m shallower than his best. The last new thing in the game arrives on day 15.
-
-So the owner's words are right. Level 2 is level 1 again with more barrels, started from nothing, and from the fifth level on there is no road at all: a random deal and a pile of replays.
-
-### 2.2 The rule (part 1 built, parts 2 to 4 not built)
+### 2.2 The rule
 
 **The game is a road of numbered levels. Each one is built for the player who arrives at it.** Four parts:
 
-1. **One main level at a time, in a fixed order.** The screen says "Level 5 of 14". No random deal on the main road. **Built**: `ROAD` in `proto/features/sites/rules.js`. A level stays until it is finished; after two failed tries two side cards (a Fast medal, a twist) are dealt beside it.
-2. **A level starts where the player is.** From level 2 on, nobody starts with a bare pick. Each level gives a start kit sized so the ground already learned (the first 25 m) passes in about a minute and the level's new thing is on screen inside three minutes. Warm Pick stops being a Star step and becomes how levels work.
-3. **A Gate is sized by a test, not by a formula.** For every level the sim must show: a player who has spent the Stars the road has paid so far breaks this Gate within the number of tries in the table below. If he fails twice, the road offers one **side level** that pays what is missing and says so ("This pays 12 Stars: enough for the next Pick step"). The Gate itself is never made softer for a weak player; if it were, upgrades would mean nothing.
-4. **A level ends.** Gate down, the finish card, spend the Stars, the next level. Digging on below the Gate stays possible but is a side choice, not the default. The road has a last level and an end card. The deal of three cards moves to after the end: that is where open-ended play belongs.
+1. **One main level at a time, in a fixed order** (**built**). The screen says "Level 5 of 20". The road deals one card, the next level, until it is finished. After two failed tries (`sites.sideAfter`) side cards (a Fast medal, a twist on a finished floor) are dealt beside it. The first four levels also pass after two tries: they are lessons. `ROAD`, `fixedNext`, `dealCards` in `proto/features/sites/rules.js`.
+2. **A level starts where the player is** (**partly built**). Every level after the first starts with one free Rafeeq waiting (`sites.kitCrew`), and the coin prices start fresh: free levels are a discount, so the next purchase costs the first price (`grantFree`, #366). The pick starts bare unless Warm Pick is bought (The Pick steps 5 and 13: 50% / 70% of your best pick level, `starshop.warmFrac`). A free share of the pick for everyone (`sites.kitPick`, was 40%) was tried and taken out: it made every level about five times faster (#366, owner's fallback). **Not built:** "the first 25 m passes in about a minute".
+3. **A Gate is sized by a test, not by a formula** (**built as a table**). Each road level from 5 on has its own Gate size (`sites.gateMul`, 2.3c), set so the Gate in your swings at arrival rises gently from level to level. The Gate is never made softer for a weak player; instead it remembers (2.3c), the stuck hint names the next step with numbers, and side levels and chili levels are doors. **Broken:** late learn levels still take 3 to 5 tries (fault 19, #397).
+4. **A level ends** (**built**). Gate down, the finish card, the Alqahwa or the next town. Digging on below the Gate is a choice ("Keep digging"), with "Done here" to come back to the card. After level 20 an end card ("You finished the road"), then the deal of three cards: that is where open-ended play lives.
 
-### 2.3 The road: fourteen levels to 200 m (the order is built; kits, Gate sizes and looks are not)
+### 2.3 The road (built: order, lands, looks, beats, Gate table; balance in progress)
 
-Each depth is met twice: once at a kind place to learn its new thing, once at a harder place to prove it. The first four levels already work this way.
+Twenty levels, `ROAD` in `proto/features/sites/rules.js`. Home (Arabia) holds the four lessons; then four levels in each land: each depth is met twice, first at a kind place to learn it, then at a harder place to prove it (`prove`: ground x`sites.proveHp` = 6, and its own Gate size).
 
-| Level | Place | Gate | The new thing | Starts with | Tries | Mixed player gets here |
-|---|---|---|---|---|---|---|
-| 1 | The Dunes | 50 m | The hit, ore, TNT, the first Rafeeq, the Big Rock and its crack | A bare pick | 1 | 10 min |
-| 2 | Powder Valley | 50 m | TNT chains; spend the first Stars | Pick at the level you ended level 1 on at 25 m; 1 Rafeeq | 1 | 20 min |
-| 3 | Valley of Beasts | 75 m | Water (50 to 75 m); bones and chests; the Museum opens | Kit for 50 m | 1 | 35 min |
-| 4 | Golden Wadi | 75 m | Rich ore; the Forge and its first tool | Kit for 50 m; 1 relic kept | 1 to 2 | 1 h |
-| 5 | The Dunes | 100 m | Crystal lines (75 to 100 m); the first fusion | Kit for 75 m | 1 to 2 | day 1 |
-| 6 | Powder Valley | 100 m | Crystal and TNT together; contracts open | Kit for 75 m | 2 | day 2 |
-| 7 | Valley of Beasts | 125 m | The Black: you dig by light | Kit for 100 m | 2 | days 3 to 4 |
-| 8 | Golden Wadi | 125 m | The Black, harder ground; the Foreman's jobs matter | Kit for 100 m | 2 to 3 | days 5 to 6 |
-| 9 | The Dunes | 150 m | The Living Rock: moss grows back | Kit for 125 m | 2 to 3 | days 7 to 9 |
-| 10 | Powder Valley | 150 m | Moss against blasts | Kit for 125 m | 2 to 3 | days 10 to 12 |
-| 11 | Valley of Beasts | 175 m | The Angry Layer: the Rock hits back | Kit for 150 m | 2 to 3 | days 13 to 16 |
-| 12 | Golden Wadi | 175 m | The Angry Layer, harder ground | Kit for 150 m | 3 | days 17 to 20 |
-| 13 | The Dunes | 200 m | The Hot Layer: water against heat | Kit for 175 m | 3 | days 21 to 25 |
-| 14 | Golden Wadi | 200 m | The last Gate. The end card of chapter one. | Kit for 175 m | 3 | days 26 to 30 |
+| Level | Land | Place | Gate | Kind | The new thing (the layer the level is dug through) | Gate size (`gateMul`) | Last measured, mixed, 2 seeds (#386): tries / day |
+|---|---|---|---|---|---|---|---|
+| 1 | Arabia | The Dunes | 50 m | lesson | The hit, ore, TNT, the first Rafeeq, the Big Rock and its crack | formula | 1 / 10 min |
+| 2 | Arabia | Powder Valley | 50 m | lesson | TNT chains; the first Stars spent | formula | 1 |
+| 3 | Arabia | Valley of Beasts | 75 m | lesson | Water (50 to 75 m); bones, chests; the Museum opens | formula | 1 |
+| 4 | Arabia | Golden Wadi | 75 m | lesson | Rich ore; the Forge | formula | 1 / about 30 min |
+| 5 | Africa | The Dunes | 100 m | learn | Crystal lines (75 to 100 m) | 0.44 | 1 and 3 / day 1.0 |
+| 6 | Africa | Powder Valley | 100 m | prove | Harder ground, harder Gate | 8.87 | 2 and 2 / day 1.2 |
+| 7 | Africa | Valley of Beasts | 125 m | learn | The Black: you dig by light | 0.371 | 1 and 2 / day 1.4 |
+| 8 | Africa | Golden Wadi | 125 m | prove | | 7.49 | 1 and 1 / day 1.6 |
+| 9 | East Asia | The Dunes | 150 m | learn | The Living Rock: moss grows back | 0.278 | 3 and 4 / day 2.6 |
+| 10 | East Asia | Powder Valley | 150 m | prove | | 7.99 | |
+| 11 | East Asia | Valley of Beasts | 175 m | learn | The Angry Layer: the Rock hits back | 0.201 | 3 and 3 / day 3.6 |
+| 12 | East Asia | Golden Wadi | 175 m | prove | | 6.23 | |
+| 13 | the Americas | The Dunes | 200 m | learn | The Hot Layer: water against heat | 0.257 | 3 and 3 / day 4.6 |
+| 14 | the Americas | Powder Valley | 200 m | prove | | 9.43 | |
+| 15 | the Americas | Valley of Beasts | 225 m | learn | Deeper ground (no law of its own: **not built**) | 0.234 | 4 and 3 / day 6.0 |
+| 16 | the Americas | Golden Wadi | 225 m | prove | Finishing it opens 144 beats a minute | 9.45 | |
+| 17 | Europe | The Dunes | 250 m | learn | Deeper ground (**not built**) | 0.126 | 5 and 5 / day 9.2 |
+| 18 | Europe | Powder Valley | 250 m | prove | | 6.37 | |
+| 19 | Europe | Valley of Beasts | 275 m | learn | Deeper ground (**not built**) | 0.0645 | 5 and 4 / day 13.6 |
+| 20 | Europe | Golden Wadi | 275 m | prove | The last Gate; the end card; 160 beats a minute | 4.34 | |
 
-- "Kit for 75 m" means: pick level, Rafeeqs and coins that put a player at the 75 m Rock of this place in about the time level 1 takes to reach its first Rock. The exact kit per level is a number to tune with the sim, not to guess here.
-- **Side levels** sit beside the main one, always optional, each labelled with what it pays toward: a Fast or Hard medal on a finished level, a twist, and the two Museum places (Shark Bay, The Mirage) once their sets are done.
-- The time column is a target for the mixed player (four 12 minute visits a day). An active player may run ahead; nothing holds him back by the clock.
-- Places for levels 5 to 14 reuse the four built ones. Each needs its own sky and ground colours before the road feels like travel (not built).
+- **Broken:** the "New:" line on the finish card and the map names the layer *below* the Gate (level 5 says "the Black", which starts at 100 m, under its Gate). The column above is the design. Fault 21, #395.
+- **Targets** (#374; balance-analyst owns them in `docs/pacing-targets.md`): every road level in 1 to 3 tries for the mixed player, with few other digs between; prove levels a little harder than the learn level before them; levels 1 to 4 inside 35 minutes; the road ends inside the window the owner picks (section 9, default day 18 to 25).
+- **Measured, and where it misses:** the per-level column is from #386 (the last per-level run). The two later runs disagree on the road's end: #386 says day 12 to 14, #388 says day 20.6 and 21.0 on its own baseline. balance-analyst re-measures on today's `main` (work order 1).
+- **Lands (built):** a look per land (sky, horizon, ground tint; `proto/features/look/`, #345), a beat per land (Africa djembe and shaker, East Asia taiko, wood block and bell, the Americas conga, clave and cowbell, Europe march drum, snare and bells; Arabia keeps the home kit; deeper layers lower the pitch; a sting on arriving; #344). **Nobody has listened to the land beats** (fault 15).
+- **Side levels** (built): beside a level tried twice; labelled with what they pay. The two Museum places (Shark Bay, The Mirage) open when their sets are done.
+- **Replays** (built, #370): any finished level can be dug again from the map, plain (for the Fast medal) or as its next chili (2.3d).
 
-### 2.3a How the built road plays (sim, mixed player, 2 seeds, 13 October 2026)
+### 2.3a From one level to the next (built)
 
-| Level | Finished | Tries | What it shows |
-|---|---|---|---|
-| 1 to 4 | 8, 15, 28, 33 min | 1 each | As designed. |
-| 5 (Dunes 100 m) | day 1.0 | 3 | Fits. |
-| 6 (Powder Valley 100 m) | day 1.2 | 1 | **Too easy.** A player who broke the 100 m Gate once breaks it again in five minutes. |
-| 7 (Beasts 125 m) | day 2.0 to 2.4 | 3 to 4 | Fits. |
-| 8 (Golden Wadi 125 m) | day 2.0 to 2.6 | 1 to 2 | Too easy. |
-| 9 (Dunes 150 m) | day 3.4 to 3.6 | 3 to 4 | Fits, but days early against 2.3. |
-| 10 (Powder Valley 150 m) | day 3.6 | 1 | Too easy. |
-| 11 (Beasts 175 m) | day 5.2 to 5.4 | 4 | One try over. |
-| 12 (Golden Wadi 175 m) | day 5.4 to 5.6 | 1 | Too easy. |
-| 13 (Dunes 200 m) | day 17.4 to 18.4 | 8, with about 100 other digs between | **A cliff.** Twelve days at one Gate. Lowering the 200 m step from 8 to 2 still leaves 50 to 66 digs, so the wall is in the Hot Layer itself, not in the step. |
-| 14 (Golden Wadi 200 m) | same day as 13 | 1 | Too easy. |
+| | Built |
+|---|---|
+| Starts again | Coins, coin upgrades and their prices, depth, hired Rafeeqs, relics |
+| Comes along | One free Rafeeq waiting (more with The Camp); Warm Pick if bought; chests in the pocket from The Bag |
+| Stays | Stars and the three tracks, medals, chili pips and their hit bonus, the Gate's memory of an unfinished level, the Museum, Forge tools and metal, extra picks, the Rafeeqs' seats, names and records, wardrobe looks |
+| Shown at the finish | The time against the par, Stars counted up, "You keep", "Level N starts with", the next level and its new thing, the next chili with its rules and prize, and two big buttons: **Go to Alqahwa** and **Next town** (2.5a). The one-click Spend button is gone. |
 
-Three things to do, in this order: make the second level of each depth a real test (harder ground or a rule of its own, so "prove it" means something); bring level 13 down to three tries; then stretch levels 5 to 12 toward the days in 2.3, which the start kit and the Star prices decide.
+**Stars on the road (built):** a floor is worth `starsAt` (3 Stars at 50 m, x4.5 for every 25 m deeper). Past Arabia a learn level pays 0.35 of it on its first finish and the prove level 1.65 (`sites.learnPay`, `provePay`); a replay 0.25; a Fast medal 0.5 once; leaving before the Gate pays at most half of what finishing it again would pay (`sites.leaveCap`, fault 9); digging past the Gate pays a share of the extra depth when you move.
 
-### 2.3b Built on 13 October: the start kit, prove levels, zones
+### 2.3b The countdown (built 14 October 2026, #378, #382)
 
-- **Start kit (built):** every site after the first starts with the pick at 40% of your best pick level (Warm Pick raises it to 50% / 70%) and one free Rafeeq waiting (not counted as hired). `sites.kitPick`, `sites.kitCrew`.
-- **Prove levels (built):** a level marked `prove` in `ROAD` has ground and a Gate 4 times as hard (`sites.proveHp`).
-- **Zones (built, data only):** the road is cut into continents: Arabia (levels 1 to 4), Africa (5 to 7), East Asia (8 to 10), the Americas (11 to 12), Europe (13 to 14). `ZONES`, `roadZone(s)`, `roadIndex(s)`. Inside a zone the levels go from learn to prove. A look and a beat of its own per zone come next.
-- **The Hot Layer** grows 1.17 a row, was 1.20.
+A leg runs from the start (or the last Big Rock) to the next Big Rock, the last to the Gate. The level's par (`sites.parBase` 300 s at 50 m, x1.45 for each 25 m deeper) is split across the legs by their rows and adds up to the par exactly, so the Fast medal rule (`time <= par`) is unchanged. The clock shows the time left in the leg; seconds saved are banked into the next leg ("+0:12 banked"). At 0 nothing fails or expires: the clock turns soft red and counts "0:14 over", and a leg that ran over starts the next one fresh. The last 10 s tick softly; a leg ended under time flashes green. Only attended seconds count. After the Gate the clock says how long the dig took.
 
-Sim after (mixed, 2 seeds): levels 1 to 4 in 29 min; level 5 day 0.6 to 1.0 (2 to 3 tries); level 7 day 3.2 to 3.4 (5 to 6 tries); level 9 day 5.4 to 6.4 (4 to 5); level 11 day 8.4 to 8.6 (4 to 5); level 13 day 15 to 18 (6 to 7 tries, 57 to 76 digs, was about 100); levels 8, 10, 14 still take one try. Open: the levels right after a big first-finish payout are still easy, because that payout buys several Star steps at once; level 13 is still the longest wait.
+The countdown also sits above the manager's head (from 3 hired Rafeeqs), who shouts at the start, half, 30 s, 10 s, 0, and when a Rock breaks early or late; at 0 he sometimes (1 in 3, once per leg, `chatterBossParams.extendChance`) grants extra time (15 s or a quarter of the leg), which counts toward Fast. The manager is almodeer or almodeera (50/50 per site, kept in the save). Code: `siteLegs`, `legLeft`, `legExtend` in `proto/features/sites/rules.js`; `chatterTimeStep` in `proto/features/chatter/rules.js`.
 
-### 2.3c Built on 13 October: four levels in each land, a beat and a look per land
+This is the owner's countdown ("what happend to the count down i asked", 13 Oct) in the version that keeps the rule: the clock counts, nothing fails.
 
-- **The road is twenty levels:** Arabia (home, the four lessons, 50 and 75 m), then four in each land: Africa (100, 125 m), East Asia (150, 175 m), the Americas (200, 225 m), Europe (250, 275 m). In each land the first level of a depth teaches it and the second proves it (harder ground and Gate). This replaces the fourteen-level table in 2.3 for the order; the table's columns still describe the depths.
-- **A beat per land (PR #344):** each land has its own sound kit (Africa djembe and shaker, East Asia taiko, wood block and bell, the Americas conga, clave and cowbell, Europe march drum, snare and bells) and its own bar for 1 to 4 picks; Arabia keeps today's sounds. The deep layers lower the kit's pitch. A short sting plays on arriving in a new land. Nobody has listened to it yet.
-- **A look per land (PR #345):** sky, horizon and ground tint per land; the arrival banner names the land and the level in it; the road strip is grouped by land.
-- **Walls below 175 m softened:** Hot Layer 1.15 a row (was 1.17), below 200 m 1.18 a row and a step of 3 (was 1.22 and 8).
+### 2.3c The Big Rock and the Gate (built 13 and 14 October 2026)
 
-Sim (mixed, 2 seeds, 30 days): levels 1 to 12 (Arabia, Africa, East Asia) by day 7; level 13 (Americas 200 m) day 11 to 12, 5 tries; level 15 (225 m) day 20 to 21, 6 tries and about 75 other digs; Europe not reached in a month. Open: level 15 is the new long wait; the prove levels right after a learn level still often take one try.
+- **Size.** A Big Rock has 20 dirt blocks of its row in hp, +50% a layer (`boss.hp`, `layerHp`). On road levels 5 to 20 that is multiplied by the level's entry in `sites.gateMul` (table in 2.3): learn levels 0.06 to 0.44, prove levels 4.3 to 9.5. Rule used to set it: Gate hp = (hits at the pick you bring) x (pick at that level), so the Gate in your swings at arrival stays in one band and prove levels sit a little above their learn level. Retune with `dig-month.mjs --dump` (`dump.gates`: the Gate, the bank and the pick at the first hit of each fight). Why: the pick grows about 10 times per road level and so does the ground; the old Gate (x1 learn, x6 prove) made the number jump between 52 000 and 8 000 000 from level to level.
+- **Broken (undecided):** the multiple is applied to *every* Big Rock of a road level, not only the Gate (`bossHp` mod). Fault 18, #396; decision 9.
+- **The crack** (built): hits on it count 3 times (`boss.weakMult`); it moves every 1.7 s.
+- **TNT on a Rock** (built, #386): a blast whose radius plus one row reaches the Rock takes 2% of the bar (`boss.blastShare`), times the blast's size against a plain barrel; chained barrels each count. A Rock loses at most 30% to blasts (`boss.blastCap`), so TNT alone never breaks it. "BOOM -N%" and a shake.
+- **Forge tools on a Rock** (built, #377): a Drill does 8 of your hits, Dynamite 16 (three times that on the crack), and one tool never takes more than 10% of a Rock (`forge.bossShare`).
+- **The bar counts swings** (built, #387): "about 40 swings left, 25 s": hp left / what the whole team does per swing of yours, measured over your last 12 swings on this Rock; an estimate (pick x (1 + 0.6 x Rafeeqs that hit)) until 5 swings are seen. Exact under 20, steps of 5 to 100, two figures above. Three-layer bar with your share (gold) and the Rafeeqs' (blue). `proto/features/boss/swings.js`.
+- **The Gate remembers** (built, #375): a try at the Gate of an unfinished road level (5 to 20) that does not finish banks 60% of the damage it did (`boss.gateShare`), banked as the hits land, by try and never by time; the bank never takes the Gate below 10% (`gateCap` 0.9). The next try starts cracked and a line says so. Not for lessons, replays, side levels or the deal. **Not built:** a best-try tick on the bar.
+- **The stuck hint** (built, #372, #386): after a minute of play with the pick on the Gate that took under a tenth of it, or on the second try, one line says the best next step with numbers: buy The Pick ("for 12 Stars: the Rock needs 45 of your swings, not 68"), a side level that pays enough, or leave. Counted in play time.
+- **Rubble** (built): each tenth of the bar pays coins and sometimes a chest or a bone.
 
-### 2.3d Built on 13 October: Stars at the prove level, leaving pays less, the finish card
+### 2.3d Chili levels and contracts (built 14 October 2026, #388)
 
-- **A depth pays most when it is proved:** past Arabia, the learn level of a depth pays 0.35 of its Stars and the prove level 1.65 (`sites.learnPay`, `provePay`); the total is the same as before.
-- **Leaving early** pays at most half of what finishing that level again would pay (`sites.leaveCap`). Fault 9.
-- **The finish card (PR #347)** shows what you keep, what the next level starts with, the next level and its new thing, one Spend button for the cheapest Star step, and an end card after level 20.
+A finished level can be dug again up to five times, each time with one more rule on:
 
-Sim (mixed, 2 seeds, 30 days): levels 1 to 12 by day 7 to 8; level 13 (Americas 200 m) day 11 to 13; level 14 now takes 1 to 4 tries; level 15 (225 m) day 19 to 22. Prove levels 6, 8, 10, 12 still mostly fall in one try: the learn level before them is where the player grows. Raising `proveHp` further is the next lever if that feels too easy in play.
-
-### 2.4 From one level to the next
-
-| | Built today | The design |
-|---|---|---|
-| Starts again | Coins, coin upgrades, depth, hired Rafeeqs, relics | The same, but replaced by the level's start kit |
-| Stays | Stars and tracks, medals, the Museum, Forge tools and metal, extra picks, the Foreman | The same |
-| Shown at the finish | Stars counted up, two buttons | "You keep" and "Level N starts with", then one obvious Star purchase, then the next level's card with its new thing named |
-
-
-### 2.3c Chili levels (built 14 October)
-
-Hard mode used to be one Hard medal per level with a contract whose goal was a fixed 24 to 50 m. The board opens after eight finished levels, when the player starts 100 m levels with Star strength, so every contract fell in the first minute and Hard was not hard. Now a finished level can be dug again up to five times, each time with one more rule on:
-
-| Pip | Name | Rules on (they add up) | Stars (x the floor's worth, `starsAt`) | Stays for ever |
+| Pip | Name | Rules on (they add up) | Stars (x the floor's worth) | Stays for ever |
 |---|---|---|---|---|
 | 1 | Mild | Rafeeqs on a tea break (half speed) | 0.5 | The old Hard medal |
 | 2 | Hot | + the dark (you see one block around the hole) | 0.75 | |
@@ -143,168 +123,188 @@ Hard mode used to be one Hard medal per level with a contract whose goal was a f
 | 4 | Fire | + the glass pick (every 60th hit the pick loses half its levels) | 1.5 | |
 | 5 | Ya Mama! | no Rafeeqs at all (instead of the tea break), the dark, one relic, the glass pick | 2.0 | Your hit +5% |
 
-- **Tougher by the pip:** the ground is 1.3 to the power of the pip, every Big Rock (the Gate too) 1.7 to the power of the pip (`sites.chiliGround`, `sites.chiliRock`). The goal is always the Gate; breaking it with the rules on gives the pip. Leaving the chili lifts the rules and the extra hardness, and the Gate then pays no pip.
-- **The hit that stays:** a stamp with pip 3 adds 3%, with pip 5 another 5%; the total over all levels is capped at +160% (`sites.chiliHitCap`) and goes through the pick power, so "Your hit" shows it. The bonus helps the level you are stuck on, so old levels are a third door when a wall stands.
-- **Announced:** the stone shows the next pip's rules and prize before the player starts; starting says what is on and how much tougher; each cleared pip gets a banner, a sound that climbs one note per pip, a flash, and "Your hit +5% for ever"; the pip lights on the map stone the next time the map opens.
-- **Old saves:** a Hard medal counts as pip 1. A chili level in play loads as it was.
-- **Contracts board:** kept for old saves and later. Each contract's goal is now a share of the deepest Gate finished (`contracts.goalShare`, never less than the old fixed number) and the dig is made with a Gate at that depth, so nothing is done the moment it is taken. Contracts taken from the board have the same Hard medal as before.
-- **Sim:** see the PR. The sim's player takes the next chili after a quick finish (`contracts.botChili`) and gives up after 600 s or 1.6 times the par.
+- **Tougher by the pip:** ground x1.3 per pip, every Big Rock (the Gate too) x1.7 per pip (`sites.chiliGround`, `chiliRock`). The goal is always the Gate. Leaving a chili lifts the rules and the extra hardness; the Gate then pays no pip.
+- **The hit that stays:** +3% at pip 3, +5% at pip 5, summed over all levels, capped at +160% (`sites.chiliHitCap`), through the pick power, so "Your hit" shows it. Old levels are a door when a wall stands.
+- **Announced:** the map stone and the finish card show the next pip's rules, Stars, hit and toughness before you start; starting says what is on; a cleared pip gets a banner, a sound one note higher per pip, a flash and "Your hit +5% for ever"; the pip lights on the stone. **Not seen on a screen:** the mid-dig moment (fault 15).
+- **Old saves:** a Hard medal counts as pip 1 (`pipsOf`). A chili level in play loads as it was.
+- **The order is fixed** (built). **Not built** from the study: free choice of rules at pips 4 and 5, a hat at pip 2, a sticker on the pick at pip 4, a gold stone and a toast at the Alqahwa at pip 5.
+- **Contracts board** (built, kept): opens after 8 finished levels (`contracts.openFinished`). Each contract's goal is a share of the deepest Gate finished (`contracts.goalShare`, never less than the old fixed number) and the dig gets a Gate at that depth, so nothing is done the moment it is taken. **Not built:** three goals per contract.
+- **Sim:** the scripted player takes the next chili after a quick finish (`contracts.botChili` 0.4, 0.12 if slow) and gives up after 600 s or 1.6 times the par. By day 30 the chilies add +70% to +75% hit.
 
-## 2.5 The screen (built 13 October 2026)
+### 2.3e How the road was tuned (history, newest first)
 
-- **Always on screen:** the dig; one small pill (Stars, your hit); three round buttons (Map, Auto dig, Sound); the **level track** above the dig: level name, the countdown, medals, a node for each 25 m Big Rock and the Gate at the end; during a Rock fight that Rock's segment shows its health in three layers. The pinned goal chips (the Gate, Second Pick, a Museum set) sit on the track's goal line.
-- **One drawer** right of the dig with icon tabs: Shop, Rafeeqs, Relics, Museum, Forge, Level (the Stars tab is gone: Star upgrades are bought at the Alqahwa, 2.5a). Each tab starts with one "Next:" line and one main button. A dot shows only when something is really ready and clears when the tab is opened. A locked tab says what opens it, never a time. `proto/ui/drawer.js`; a panel may set `tab:`.
-- **The world map** (`proto/features/worldmap/`): after a finish, Next opens a road map of the five lands and Beyond: numbered stones with medal pips, the path draws, the digger walks, "Dig here" starts the next level; side levels branch off a level you are stuck on; Museum places are islands; after level 20 three paths fan out. Only levels the rules deal can be started. The old card list is the fallback.
-- **Sound test page:** `proto/soundboard.html` (every sound and beat by axes, speed, land, depth).
-- Not folded yet: the depth ruler labels and the beat strip on the dig.
+- 14 Oct (#388, chili): road end day 20.6 / 21.0 (baseline 17.6 / 22.4).
+- 14 Oct (#386, Gate table): level 7 from 4 tries and 52 min to 1 to 2 tries and 18 min; learn levels' median tries 4 to 3; road end day 17 to 22 down to 12 to 14. Late learn levels (17, 19) still 4 to 5 tries: limited by Stars (many digs between), not by the Gate; lowering the Gate further did not move them. A ground-growth pass (#389) made them harder and was closed. Next lever: the price of The Pick past step 20 (#397).
+- 14 Oct (#374): deep growth per row spread out (125 m 1.19, 150 m 1.21, 175 m 1.16, 200 m 1.175 with a step of 1.8, 225 m step 2, 250 m+ step 3), `proveHp` 4 to 6. The road finished for the first time inside a month (day 19.6).
+- 14 Oct (#371): one Stronger Pick; Rafeeq Training gone, a Rafeeq hits for 60% of your hit. Level 15 came 34% sooner.
+- 14 Oct (#366): coin prices start fresh each level; the kit's free pick levels removed.
+- 13 Oct: the start kit and prove levels (#343), twenty levels in five lands (#346), Stars paid at the prove level and leaving capped (#348). The first fourteen-level table and its measurements are in `git log -- docs/dig-design.md`.
 
-**The clock counts down, one leg at a time (14 October 2026).** A leg runs from the start (or the last Big Rock) to the next Big Rock, the last to the Gate. The level's par is split across the legs in proportion to their rows and adds up to the par exactly, so the Fast medal rule (`time <= par`) is unchanged. The clock shows the time left in the leg; seconds saved are banked into the next leg ("+0:12 banked"). At 0 nothing fails or expires: the clock turns soft red and counts "0:14 over", and a leg that ran over starts the next one fresh. The last 10 s tick softly. A leg ended under time flashes the clock green. The countdown also sits above the manager's head (from 3 Rafeeqs), who shouts about it at the start, half, 30 s, 10 s, 0, and when a Rock breaks early or late; at 0 he sometimes (1 in 3, once per leg) grants extra time (15 s or a quarter of the leg), which counts toward Fast. The manager is almodeer or almodeera (50/50 per site, kept in the save), each with her or his own lines. Code: `siteLegs`, `legLeft`, `legExtend` in `proto/features/sites/rules.js`; `chatterTimeStep` in the chatter feature.
+## 2.5 The screen (built 13 and 14 October 2026)
 
-## 2.5a Alqahwa, and what happens after a dig (built 14 October 2026)
+- **Always on screen:** the dig; one small pill (Stars, your hit); three round buttons: **Map**, **Sound** (mute) and **Settings** (gear: Volume, Music and Effects sliders, sound on/off, the share-play-times switch; levels kept on the device; #381). There is no Auto dig button: the pick always digs where you point (#369). The **level track** above the dig: level name, the countdown, medals, a node per 25 m Big Rock and the Gate; in a Rock fight its segment shows its health. The pinned goal (this level's Gate, the Second Pick, a Museum set) sits on the track's goal line (#350). The Rock's bar sits on the Rock and nothing is drawn on top of it (#367, #373).
+- **One drawer** right of the dig with icon tabs: Shop, Camp (Rafeeqs), Relics, Museum, Forge, Level. Star upgrades are bought at the Alqahwa, not in the drawer. Each tab starts with one "Next:" line and one main button. A dot shows only when something is really ready. A locked tab says what opens it, never a time. Panels do not fold (#368). `proto/ui/drawer.js`, `drawerlogic.js`.
+- **The world map** (`proto/features/worldmap/`): numbered stones per land with medal and chili pips, the digger walks the path, "Dig here" starts the next level; finished stones offer a replay and the next chili; side levels branch off a stuck level; Museum places are islands; each stone shows its Museum set with found and missing pieces; after level 20 three paths fan out; the Alqahwa is a town on no road.
+- **Sound test page:** `proto/soundboard.html`.
+- **Not built:** the depth ruler labels and the beat strip folded into the dig.
 
-- **Alqahwa is the Star shop.** A little Gulf coffee house, a town on the world map (always there, on no road; `proto/features/worldmap/`). Inside (`alqahwa.js`) the hired Rafeeqs, in their own hats, clothes and colours, with their names, and the manager (almodeer drinks tea, almodeera drinks matcha behind her burqe3) walk, sit on cushions, sip and chat, with relaxed lines. The menu board under the room holds the three Star tracks (The Pick, The Camp, The Bag) with the same rules and prices as before. A Wardrobe door opens the Rafeeqs tab. It animates only while open.
-- **After a dig the finish card has two big choices:** "Go to Alqahwa" (buy upgrades) and "Next town". Alqahwa's Back returns to the same card; it also has its own Next town button. The one-click Spend button on the card is gone.
-- **Next town** opens the map, the digger walks from the finished stone to the next, and the next level opens by itself when the road shows exactly one card (a click skips the walk). With side cards or the deal of three the player chooses on the map. Rules in `worldmap/flow.js`.
-- **Back to the card:** after "keep digging" below the Gate, a gold "Done here" button sits in the track top line (beside "Gate broken in m:ss") and in the site panel. It reopens the same finish card (rebuilt from the run after a reload) with Go to Alqahwa / Next town.
-- **Buy all (N):** in the coin shop (and the Star board at the Alqahwa) a gold button shows when more than 5 purchases are affordable at once. It buys cheapest first through the normal buy rules (caps, locks, max levels), so it equals clicking one by one; one toast says "Bought 7: Stronger Pick x4, ...". `proto/features/shop/buyall.js`.
-- **Mid-dig:** the town on the map (the Map button) and an Alqahwa button on the site panel let you shop at any time; buying rules are unchanged.
+## 2.5a Alqahwa, and what happens after a dig (built 14 October 2026, #383, #384)
 
-## 2.6 The Rafeeqs as characters (built 13 October 2026)
+- **Alqahwa is the Star shop.** A Gulf coffee house, a town on the map (always there). Inside (`proto/features/worldmap/alqahwa.js`) the hired Rafeeqs in their own hats and colours, and the manager (almodeer drinks tea, almodeera drinks matcha behind her burqe3), walk, sit, sip and chat. The menu board holds the three Star tracks. A Wardrobe door opens the Camp tab. It animates only while open.
+- **After a dig** the finish card has two big choices: "Go to Alqahwa" and "Next town". Alqahwa's Back returns to the same card; it also has its own Next town button.
+- **Next town** opens the map; the digger walks to the next stone and the level opens by itself when the road shows exactly one card (a click skips the walk). With side cards or the deal of three the player chooses. `worldmap/flow.js`.
+- **Done here:** after "Keep digging" below the Gate, a gold "Done here" button in the track's top line and in the site panel reopens the same finish card (rebuilt from the run after a reload).
+- **Buy all (N):** in the coin shop and on the Alqahwa's board, a gold button when more than 5 purchases are affordable at once (`BUY_ALL_MIN` 6). It buys cheapest first through the normal buy rules, so it equals clicking one by one; one toast lists what was bought. `proto/features/shop/buyall.js`.
+- **Mid-dig:** the Map button and an Alqahwa button on the site panel let you shop at any time.
+
+## 2.6 The Rafeeqs as characters (built 13 and 14 October 2026)
 
 All of it is flavour: nothing here changes how strong a Rafeeq is.
-- **Seats (`proto/features/rafeeqs/`):** eight lasting seats. A seat has a name (rename on the card), one of six traits (Eager, Sleepy, Joker, Careful, Proud, Hungry), a friend, sometimes a rival, and a life record (blocks, coins, best find, levels). The crew is cleared at every new site, so identity goes with the seat number. A row in the Rafeeqs tab opens the card; the finish card names the Rafeeq of the level; the away summary uses names.
-- **Wardrobe (`proto/features/wardrobe/`):** in the Rafeeqs tab: the Rafeeq drawn large, arrows for Hat (14), Clothes (6), Colour (10) and Cloth pattern (6), a switch "All Rafeeqs / This Rafeeq", Surprise me, Undo. Starters are free; the rest are earned by play (contracts, Museum sets, levels finished, medals, reaching the Deep) and say how; none is bought or timed. Contract and Museum hats are items here.
-- **Chatter (`proto/features/chatter/`, `moods/`):** idle moves by trait, a name tag when the pick rests on a Rafeeq, right click pats, Y cheers, short bubbles for a hire, TNT, the Big Rock, a new land, the Deep and a finish, friends high-five and take tea, rivals flex. Limits: one bubble per 4 s, one per Rafeeq per 14 s, 12 a minute, none in the last third of a Rock fight. "Rafeeqs talk: on/off" in the Rafeeqs tab.
-- Open: hats thrown at a finish are a plain fez, not the worn hat; the app digs on any mouse button (the pat swallows right click on a Rafeeq); looks are not counted by the timeline sim.
-
-### 2.3e Gate sizes and TNT on Rocks (14 October 2026)
-
-- **What the numbers say.** The pick grows by about 10 times per road level (log10 of the pick at the winning try is 4.3 + 1.0 per level); the ground formula grows about 10 times per level too (x1.2 a metre). A pick step is x1.25 coins for x1.5 price, so a pick level is used up in about a metre. The Gate (one block as wide as the ground) was the ground formula x1 for a learn level and x6 for a prove level, and the bar counts it in "your hits" (Gate hp / pick power). At arrival that number jumped between 52 000 and 8 000 000 from level to level.
-- **The table.** `sites.gateMul` gives each road level from 5 on its own multiple of the formula. Learn levels 0.06 to 0.44, prove levels 4.3 to 9.5. Rule: Gate hp = (hits at the pick you bring) x (pick at that level), so the bar's number stays in the same band (about 100 000 to 1 500 000 hits at arrival, rising gently) and prove levels sit a little above their learn level. Retune by running `dig-month.mjs --dump` and `rocktable` style sums (`dump.gates` has the Gate, the bank and the pick at the first hit of every fight).
-- **Measured (mixed player, 2 seeds, before -> after).** Level 7: 4/1 tries, 52 min -> 1/2 tries, 18 min. Learn levels' median tries 4 -> 3. The road ends day 22 -> day 12 to 14: the late learn levels (17, 19) are still 4 to 5 tries because they are limited by Stars (many digs between), not by the Gate's size; lowering the Gate further did not move them. **Open:** the road is shorter than the 18 to 25 days asked; lengthening it honestly needs the Star price or the ground, not the Gate.
-- **TNT on a Rock.** A blast whose radius plus one row reaches the Rock takes `boss.blastShare` (2%) of the bar, times how big the blast is next to a plain barrel (Big Bang). Chained barrels each count. A Rock loses at most `boss.blastCap` (30%) to blasts, so TNT alone never breaks it. The Rock shows "BOOM -N%" and shakes. Before, a blast did 8 of your hits to a bar of 100 000 or more hits: nothing you could see.
-- **The bar counts swings (14 October 2026).** "About N of your hits left" divided the Rock's hp by the pick alone, but Rafeeqs, the Forge, TNT and effects do most of the damage, so it read 100k to 1M. The unit is now a swing of yours: hp left / the damage the whole team does per swing of yours, measured over your last 12 swings on this Rock (`b.sw`, dropped after 4 s of not swinging); until 5 swings are seen, an estimate: pick x (1 + Rafeeq share x Rafeeqs that hit, not sieve). Shown as "about 40 swings left, 25 s" (seconds at your measured swing rate, 3 a second until measured), rounded: exact under 20, steps of 5 to 100, two figures above. The stuck hint uses the same unit. `proto/features/boss/swings.js`, `test_proto_swings.js`.
+- **Seats** (`proto/features/rafeeqs/`): eight lasting seats with a trait (Eager, Sleepy, Joker, Careful, Proud, Hungry), a friend, sometimes a rival, and a life record. Each level deals every seat a fresh nickname from 61 (each with its own trait line, Arabic script kept in the data), unless the player renamed the seat by hand (#363). The finish card names the Rafeeq of the level; the away summary uses names.
+- **The manager** (#363, #378): from 3 hired Rafeeqs, almodeer or almodeera orders the crew by name, holds the countdown, naps when the pick has not landed for a while and wakes with a start. Not a Rafeeq; changes nothing in play.
+- **Wardrobe** (`proto/features/wardrobe/`): Hat (14), Clothes (6), Colour (10), Cloth pattern (6), for all Rafeeqs or one, Surprise me, Undo. Starters are free; the rest are earned by play and say how; none is bought or timed.
+- **Chatter** (`proto/features/chatter/`, `moods/`): idle moves by trait, a name tag, right click pats, Y cheers, bubbles for a hire, TNT, the Big Rock, a new land, the Deep, a finish; limits of one bubble per 4 s, one per Rafeeq per 14 s, 12 a minute, none in the last third of a Rock fight. "Rafeeqs talk: on/off".
+- **Open:** hats thrown at a finish are a plain fez, not the worn hat; the pick digs on any mouse button (the pat swallows right click on a Rafeeq).
 
 ## 3. The systems
 
 | System | What it does for the player | State |
 |---|---|---|
-| The pick and the beat | Up to four picks hit on a 16-step bar; tempo upgrades | built; nobody has yet listened to it with care |
-| Coin shop | Stronger Pick, Rafeeqs, Faster Hands, Second Pick | built; Second Pick (12,000 coins) is rarely bought early because cheap upgrades eat the coins |
-| Rafeeqs, Foreman, moods | Helpers; five jobs once the Foreman arrives | built; feel weak while you play (section 5) |
+| The pick and the beat | Up to four picks hit on a 16-step bar. Faster Hands (coins) goes 100 to 132 beats a minute; 144 opens for good when level 16 is finished, 160 at level 20 (`picks.tempoCap`, `tempoGate`) | built; nobody has listened to it with care |
+| Coin shop | Stronger Pick (15 coins, x1.5 a level; your hit x1.25 a level; the button says the hits a block takes now and after), Hire a Rafeeq (30, x4.2, up to 8), Faster Hands, Second Pick (12,000 coins, once, for ever, after the first Rock; can be pinned as a savings goal), Lucky Sieve (after the first Rock), Buy all | built |
+| Rafeeqs, Foreman, moods | A Rafeeq hits for 60% of your hit (`diggers.rafeeqShare`); every second one sieves rubble at a Big Rock; five jobs once the Foreman arrives | built; they still feel weak while you watch (fault 10) |
 | TNT, water, crystal, oil, ores | Things in the ground that act on each other | built |
-| Chests and relics, fusion | Pick 1 of 3; 17 recipes. The first fuse is taught and needs only level 1 + 1; the first chest offers Hop and Twin, and a later chest puts a partner on the card (a new recipe then needs 2 + 2, a known one 1 + 1). Fusing lifts both halves to level 3 | built |
-| The Big Rock | The wall every 25 m; the crack | built |
-| The Deep | Four layers with a law each, 100 to 200 m | built |
-| Levels, medals, the stopwatch | Section 2 | the fourteen levels in order are built; start kits, Gate sizes, the end card are not |
-| Star tracks | The Pick, The Camp, The Bag: x1.5 a step, named rules on 29 steps | built |
-| The Museum | 13 sets; each finished set opens a thing. Pieces can be seen and chased: bones and bundles that still give a piece glint (an arrow points at one just below the view), the set you are collecting is drawn faintly behind the ground and fills in piece by piece (a finished set glows), a chip in the sky counts it, and every level on the world map shows its set with found and missing pieces and names what finishing it opens | built |
-| The Forge | Drill, Dynamite, Magnet | built |
-| Chili levels | Five pips on every finished level: more rules, tougher ground, a hit bonus that stays | built (section 2.3c) |
+| Chests, relics, fusion | Pick 1 of 3; 17 recipes. The first fuse needs only level 1 + 1, and until then chests offer Hop and Twin; later an offered partner is forced onto the card after 2 chests; a new recipe then needs 2 + 2, a known one 1 + 1. Fusing lifts both halves to their top level | built |
+| The Big Rock and the Gate | Section 2.3c | built; fault 18 |
+| The Deep | Four layers with a law each, 100 to 200 m | built; below 200 m no law (not built) |
+| The road, medals, the countdown | Sections 2.2 to 2.3b | built; late learn levels too many tries (fault 19) |
+| Star tracks (at the Alqahwa) | The Pick: hit x1.5 a step, a new pick material every 4 steps (stone to star), rules on steps 1, 5, 9, 13, 17, 21, 25, 29, 33, 37. The Bag: coins x1.5 a step, 12 named perks. The Camp: 7 named perks (Rafeeqs waiting, Good Shoes, Second Kettle, the whole camp at 12). A step costs 2 Stars x1.5 per step already on that track. Third and fourth pick for 150 and 50,000 Stars after the 100 m and 150 m Rocks | built; **broken:** Camp steps between and after its perks cost Stars and do nothing (fault 17, #394) |
+| Chili levels | Section 2.3d | built |
 | Contracts | The board, goals that fit your road level | built |
-| Time away | The crew digs up to 12 hours, then sieves at a Rock | built; the sums are wrong in two places (section 5) |
-| Several sites at once, earned automation, a second land | | not built, and not planned for chapter one |
-| Arabic | | not built |
+| The Museum | 13 sets; each finished set opens a thing. Bones and bundles that still hold a piece you lack glint (an arrow points at one just below the view); the set you are collecting is drawn faintly behind the ground and fills in piece by piece; a chip counts it; every map stone shows its set (#385). A find goes to the earliest unfinished set 80% of the time and is a missing piece 75% of the time | built. **Not built:** a sure piece by the fourth bone (pity), "Museum 41%" with prizes, sets tied to two or three levels (decision 9) |
+| The Forge | Drill, Dynamite, Magnet, 5 levels each, paid in metal from ore. A charge fills from blocks you break (ore counts more), never from the clock (#377) | built |
+| Time away | The crew digs up to 12 hours, then sieves at a Rock; a card after 15 minutes away | built; fault 10 |
+| Lessons | One message slot that queues, and a Tips list to read them again | built |
+| Settings | Volume, Music, Effects, sound, play-time sharing | built |
+| Player data | Section 7.5 | built; 2 players so far |
+| Saves | `SAVE_VERSION` 2 in `proto/core/state.js` plus per-feature `version` + `migrate` (sites 2, diggers 3, museum 2, starshop 2); old saves load | built. **Not built:** export / import of a save, a frozen old-save test per release (decision 2) |
+| Several sites at once, earned automation, a second land | `proto/features/land2/` and `autos/` are empty placeholders | not built, not planned for chapter one |
+| Arabic | `t()` and `addStrings({ en, ar })` are ready; no Arabic strings yet (the nicknames carry Arabic script as data) | not built (decision 5) |
+| YouTube Playables | | not built (decision 1) |
 
 ## 4. The numbers
 
-The numbers live in the code: `PARAMS` in each feature's `rules.js`, the growth table in `proto/core/rules.js`.
-The check is `node sim/proto/dig-month.mjs` (one at a time, three workers at most).
+The numbers live in the code: `PARAMS` in each feature's `rules.js`, the growth table in `proto/core/rules.js` (`core.grow`). The check is `node sim/proto/dig-month.mjs --only mixed --seeds 2 --jobs 2 --sum --dump <file>`, then `node scripts/dig-levels.cjs <file>` (one sim at a time; see `docs/agents/common-brief.md`). Targets: `docs/pacing-targets.md` (balance-analyst).
 
-Measured on `main` on 13 October 2026 (30 days, 2 seeds; median):
+Last measured (mixed player, 2 seeds; #386 and #388, 14 October 2026):
 
-| | Active (90 min a day) | Mixed (4 x 12 min) | Idle (2 x 4 min) |
-|---|---|---|---|
-| First level finished | 10.0 min | 8.6 min | 10.3 min |
-| Fourth level finished | 0.6 h | 10 h | day 2.3 |
-| 100 m Rock down | 1.2 h | 19 h | day 3.8 |
-| 125 m Rock down | day 2.0 | day 2.5 | day 10 |
-| 150 m Rock down | day 3.0 | day 4.1 | day 23 |
-| 175 m Rock down | day 5.0 | day 7.4 | never |
-| 200 m Rock down | day 13 | day 19 | never |
-| Sites dug / new ones | 518 / 52 | 277 / 52 | 40 / 21 |
-| Stars earned by day 30 | 7.3 million | 3.2 million | 24,500 |
-| Coins that came from time away | 51% | 78% | 58% |
+| | Mixed (4 x 12 min a day) |
+|---|---|
+| First level finished | 9.7 to 10.7 min |
+| Fourth level finished | day 0.3 (about 30 min of play) |
+| Levels per land | 2.3 (per-level column) |
+| Road finished (level 20) | day 12 to 14 (#386) or day 20.6 / 21.0 (#388): the two runs disagree; re-measure |
+| Stars by day 30 | 147,000 on one seed, 241.6 million on the other |
+| Hit from chilies by day 30 | +70% to +75% |
+| Active and idle players | not measured since 13 October (before the road was built) |
 
-Against the road in 2.3 the middle is now **too fast**: the mixed player breaks the 150 m Rock on day 4 (the road says days 10 to 12) and has seen everything by day 19. The old sim targets in `dig-month.mjs` are from before the road and nine of them fail; they are to be replaced by the "Tries" and time columns of 2.3 when the road is built.
+- **Broken:** the old targets in `dig-month.mjs` (`TARGETS`: Big Rock days from before the road) fail on targets nobody wants and do not check tries per level (fault 20, #398).
+- Per-metre growth: one Stronger Pick level is used up by about a metre of deep ground (x1.25 hit for x1.5 price against x1.2 a metre). The study's "steady ground, sharp Rocks" would change this (decision 9).
 
 ## 5. Bugs and open faults
 
-| # | Fault | State |
-|---|---|---|
-| 1 | Four Star steps had a name and no rule (Crack Finder, Falling Star, Good Shoes, Second Kettle) | fixed (PR #338) |
-| 2 | Three fusions could never be made the first time (Barrel Boom, Golden Dinar, Deep Boom asked for level 3 of a relic that stops at 2) | fixed (PR #338) |
-| 3 | The Dhab Lizard's bone and the Bag's bone gave coins, never a Museum piece | fixed (PR #338) |
-| 4 | A locked item could be bought through the rules; only the page hid it | fixed (PR #338) |
-| 5 | The Star count on the finish card took three minutes for a big prize | fixed (PR #338) |
-| 6 | The track note said a step works from the next site; it works at once | fixed (PR #338) |
-| 7 | The 100 m Rock took a perfect player three hours and 42 tries | fixed (PR #337) |
-| 8 | Time away counts a tea-break rush without using it up, and Rock Friend is paid for time already paid | fixed (PR #341) |
-| 9 | Leaving a 150 m dig unfinished pays 418 Stars; finishing it again pays 308 | fixed: leaving pays at most half a replay |
-| 10 | Time away is 78% of the mixed player's coins, so the Rafeeqs seem to do nothing while you watch | open |
-| 11 | A deal can offer the same place three times | open; goes away with the road |
-| 12 | Stars reach millions by day 30 | open; goes away with the road (14 paid levels, not 277) |
-| 13 | Lessons share one message slot; a new one wipes the last | fixed (PR #356); other features' own tips still use the plain toast |
-| 14 | Contract hats are drawn 2 px high | fixed (PR #342) |
-| 15 | Never looked at on a real screen: water, crystal lines, lava, Forge tools in use, fusion twists, pick materials, the wish card | open |
-| 16 | The Rock bar did not show how much was left | fixed (PR #342): three layers, blue over yellow over red over an empty dark bar, with a thin gold (you) / blue (Rafeeqs) strip |
+| # | Fault | Seen by | State |
+|---|---|---|---|
+| 1 | Four Star steps had a name and no rule | study | fixed (#338) |
+| 2 | Three fusions could never be made the first time | study | fixed (#338) |
+| 3 | The Dhab Lizard's bone and the Bag's bone gave coins, never a Museum piece | study | fixed (#338) |
+| 4 | A locked item could be bought through the rules | study | fixed (#338) |
+| 5 | The Star count on the finish card took three minutes for a big prize | study | fixed (#338) |
+| 6 | The track note said a step works from the next site; it works at once | study | fixed (#338) |
+| 7 | The 100 m Rock took a perfect player three hours and 42 tries | sim | fixed (#337) |
+| 8 | Time away counted a tea-break rush without using it up; Rock Friend paid twice | study | fixed (#341) |
+| 9 | Leaving a dig unfinished paid more than finishing it again | study | fixed (#348): leaving pays at most half a replay |
+| 10 | Time away was 78% of the mixed player's coins (13 Oct), so the Rafeeqs seem to do nothing while you watch | sim | open; share not re-measured since the Rafeeq hit became 60% of yours (#371) |
+| 11 | The deal of three can offer the same place more than once | study | open; only after level 20 now |
+| 12 | Stars reach millions by day 30 | sim | open; did **not** go away with the road (241.6 million on one seed, #388) |
+| 13 | Lessons shared one message slot | owner | fixed (#356) |
+| 14 | Contract hats were drawn 2 px high | study | fixed (#342) |
+| 15 | Never looked at on a real screen or heard: water, crystal lines, lava, Forge tools in use, fusion twists, pick materials, the wish card, the land beats, the chili clear moment, "BOOM -N%" | team | open (screen-checker; sound needs the owner's ears) |
+| 16 | The Rock bar did not show how much was left | owner | fixed (#342, #387) |
+| 17 | Camp track steps between and after its named perks cost Stars and do nothing (`starshop.campShare` 0) | design-keeper | open, #394 |
+| 18 | `sites.gateMul` is applied to every Big Rock of a road level, documented as the Gate only | design-keeper | open, #396 |
+| 19 | Late learn levels (15, 17, 19) still take 3 to 5 tries; Stars hold them, not the Gate | sim | open, #397 |
+| 20 | The month sim's targets predate the road | sim | open, #398 |
+| 21 | The "New:" line of a level names the layer below its Gate (level 5 says the Black) | design-keeper | open, #395 |
+| 22 | "TNT does not work on the boss" (owner, 13 Oct) | owner | fixed (#386) |
+| 23 | Text of the stuck hint, "BOOM", chili lines and every Dig string is English only | team | open; decision 5 |
 
-## 6. Work order
+## 6. Work order (next items only)
 
-1. **Reward correctness.** Faults 1 to 6: done. Faults 8 and 9 next, each with a sim before and after.
-2. **The road.** Fixed cards with a number: done. Next, from 2.3a: the second level of each depth as a real test, level 13 down to three tries. Then the start kit, the finish card that shows what you keep and what is next, the end card. Then size each Gate by the "Tries" column, and replace the sim's targets with that table.
-3. **A first goal that lasts.** Second Pick shown as a savings goal after the first Rock; one pinned goal on screen (this level's Gate, a Museum set, or a fusion).
-4. **Rafeeqs that matter while you watch** (fault 10): an early choice of job, and time away paying toward the pinned goal, not only coins.
-5. **Looks.** A sky and ground colours per place; faults 14 to 16.
-6. **After chapter one.** Not designed. No second land, no several sites at once, until a person has played levels 1 to 14 and wanted more.
+1. **Re-measure the road on today's `main`** (balance-analyst): one mixed run, 2 seeds, the per-level table of 2.3 refilled, the disagreement on the road's end settled. Done when 2.3 and section 4 carry numbers from one run on one commit.
+2. **Reward and text correctness:** the Camp steps that do nothing (#394), the "New:" line one layer off (#395), the Gate multiple on every Rock written down or fixed (#396). Done when each issue's "done when" holds.
+3. **Late learn levels** (#397) and **the sim's targets** (#398): one lever, one sim before and after. Done when levels 15, 17 and 19 take 3 tries or fewer on both seeds and `--assert` checks tries per level.
+4. **Seen and heard** (fault 15): screen-checker plays the merged build through levels 1 to 5 and a chili; the owner listens once to `proto/soundboard.html`. Done when `docs/seen-on-screen.md` lists each item of fault 15 as seen or broken.
+5. **Rafeeqs that matter while you watch** (fault 10): an early choice of job, and time away paying toward the pinned goal ("Saif dug toward your Second Pick: 3,400 of 12,000"). balance-analyst to set the share. Done when the away card names the goal and the sim records the away share of coins.
+6. **After chapter one:** not designed. No second land, no several sites at once, until a real player has played levels 1 to 20 and wanted more.
 
 ## 7. Rules that never bend
 
-- No gate waits on the clock. A gate is a resource, a depth, a Rock or a count. Timers count up and nothing expires.
+- No gate waits on the clock. A gate is a resource, a depth, a Rock or a count. The level clock counts down but nothing fails or expires at 0.
 - Nothing punishes being away. No fake scarcity. Nothing can be skipped by paying.
 - Every addition changes what the player does or sees, not only a number.
 - Everything that breaks ground is counted in the player's hits, so the pick is the base of all strength.
 - Words a 7 year old understands. No emoji; faces and icons are drawn.
-- Desktop only for now. Old saves always load.
+- Desktop only for now (decision 1). Old saves always load.
 - A change to the economy comes with sim numbers before and after.
+- Simplify by changing how a feature is used, not by removing it.
 
-## 7.5 Player data (anonymous play times)
+## 7.5 Player data (anonymous play times, built 14 October 2026, #379, #380)
 
-The published page sends numbers about play, without a name, so the sims can be checked against real players. Code:
-`proto/features/telemetry/`; tables and functions: `supabase/dig_telemetry.sql`; reader: `sim/proto/player-stats.mjs`.
+The published page sends numbers about play, without a name, so the sims can be checked against real players. Code: `proto/features/telemetry/`; tables and functions: `supabase/dig_telemetry.sql` (applied by the owner on 14 October); reader: `sim/proto/player-stats.mjs`.
 
 **Sent** (a random id made on the device, the game version, days since the device started):
-- one row per road try that ends (finished, left, new site): site, floor, twist, road level, try number, attended and total seconds,
-  par, depth, Gate health left, Big Rocks, Stars, coins earned, pick power, Rafeeqs, forge levels;
-- one row per purchase or pick: what, the level reached, the price, coins and Stars before, the cards offered (relic, site card);
+- one row per road try that ends (finished, left, new site): site, floor, twist, road level, try number, attended and total seconds, par, depth, Gate health left, Big Rocks, Stars, coins earned, pick power, Rafeeqs, forge levels;
+- one row per purchase or pick: what, the level reached, the price, coins and Stars before, the cards offered;
 - about one pace sample per attended minute: depth gained, coins/s, blocks/s, hits/s, idle share;
 - one row when the page hides: session length, attended time, time since the last session, offline time and coins settled.
 
-**Not sent**: name, email, address (no IP is read or stored), the save, anything typed. Nothing is sent from `?speed=`, test, sim,
-`localhost` or `127.0.0.1` pages, or an automated browser, unless the address has `?telemetry=1`. A line under the Tips list says what
-is sent and has a Turn off switch: Off sends nothing and drops what was waiting. Rows queue in the browser and go in small batches
-(about once a minute and when the page hides); offline just waits.
+**Not sent**: name, email, address (no IP is read or stored), the save, anything typed. Nothing is sent from `?speed=`, test, sim, `localhost` or `127.0.0.1` pages, or an automated browser, unless the address has `?telemetry=1`. The switch is in Settings and under the Tips list: Off sends nothing and drops what was waiting. Rows queue in the browser and go in small batches; offline just waits.
 
-**Reading it**: nobody reads raw rows. `node sim/proto/player-stats.mjs` prints the overview and a table per road level (players,
-tries and attended minutes to finish, day, share who stopped there); `--choices` shows what was bought and picked; `--pace` shows how
-fast people dig; `--vs dump.json` (from `dig-month.mjs --dump`) puts the sim beside the real players. A median needs 3 players.
+**Reading it**: `node sim/proto/player-stats.mjs` prints the overview and a table per road level; `--choices` what was bought and picked; `--pace` how fast people dig; `--vs dump.json` puts the sim beside the real players. A median needs 3 players; there are 2 (decision 4).
 
 ## 8. What changed, newest first
 
 | Date | Change |
 |---|---|
-| 14 Oct 2026 | TNT hurts Big Rocks: a blast within two rows of a Rock takes 2% of its bar ("BOOM -2%"), a Rock loses at most 30% to blasts. Gate sizes are a table (`sites.gateMul`, one per road level): a learn level's Gate is 0.1 to 0.5 of the ground formula, a prove level's 4 to 9, so the Gate in your hits (the bar's number) grows by about the same step each level instead of jumping. The stuck hint says how many of your hits the Rock needs now and after one Pick step. See 2.3e. |
-| 14 Oct 2026 | The clock counts down to the next Rock and the Gate; nothing expires; the manager shows it, shouts about it and sometimes gives extra time; almodeera joins. |
+| 14 Oct 2026 | This file checked against the code at `69bb0f5`: twenty-level road table, start kit as built (no free pick levels), `proveHp` 6, the Gate's memory, the stuck hint, the Forge, settings, auto dig always on, the coin shop after the pick merge, section numbers made unique, faults 17 to 23, decisions in section 9. |
+| 14 Oct 2026 | Chili levels and contracts that fit the level (#388). Early fusion and Museum pieces you can see (#385). The Rock bar counts swings (#387). TNT hurts Rocks; the Gate table `sites.gateMul` (#386). Done here and Buy all (#384). Alqahwa (#383). The clock after the Gate (#382). Settings and volume (#381). Player data (#379, #380). The countdown per leg, almodeer and almodeera (#378). Forge tools refill and hit hard (#377). The Gate remembers (#375). Road pacing (#374). Room for the Rock fight (#373). The stuck hint (#372). One Stronger Pick, Rafeeqs at 60% (#371). Replays from the map (#370). Always auto dig (#369). Panels no longer fold (#368). The Rock's bar on the Rock (#367). Prices fresh each level, the beat capped at 132 (#366). Nicknames and the manager (#363). |
 | 13 Oct 2026 | Rafeeqs as characters: names, traits and records (#359), the wardrobe (#360), chatter (#361). Lessons queue (#356), last clutter folded (#357, #358). |
 | 13 Oct 2026 | The drawer and the level track (#354), the world map (#352), the sound test page (#349), save for the Second Pick and pin one goal (#350), a won contract frees the site (#351). |
-| 14 Oct 2026 | Alqahwa, the coffee house town: the Star shop moves there from the drawer; the finish card offers Alqahwa or the next town; the next level opens by itself after the walk (2.5a). |
-| 13 Oct 2026 | Stars paid at the prove level; leaving pays less; the finish card (2.3d). |
-| 13 Oct 2026 | Twenty levels, four per land; a beat and a look per land (PRs #344, #345); walls below 175 m softened (2.3c). |
-| 13 Oct 2026 | Start kit, prove levels, zones (continents) on the road (2.3b). Time away counts each second once (PR #341). A look per place, the arrival banner, the layered Rock bar (PR #342). |
-| 13 Oct 2026 | The road's order built: fourteen levels, one card at a time, side cards when stuck. Measured level by level (2.3a). |
-| 13 Oct 2026 | This file made the one design file. The road of fourteen levels written (section 2). Faults 1 to 6 fixed (PR #338). |
-| 13 Oct 2026 | The 100 m wall lowered: it was three hours high (PR #337). |
-| 13 Oct 2026 | The Deep refitted for sites with a bottom (PR #336). |
-| 13 Oct 2026 | Every site has a Gate, three medals, four fixed sites and a deal of three (PR #335). |
-| 13 Oct 2026 | Month sim limited to three workers after it froze the owner's PC (PR #334). |
+| 13 Oct 2026 | Stars paid at the prove level; leaving pays less; the finish card (#347, #348). |
+| 13 Oct 2026 | Twenty levels, four per land; a beat and a look per land (#344, #345, #346). |
+| 13 Oct 2026 | Start kit, prove levels, zones (#343). Time away counts each second once (#341). A look per place, the layered Rock bar (#342). |
+| 13 Oct 2026 | The road's order built: one card at a time, side cards when stuck. |
+| 13 Oct 2026 | This file made the one design file. Faults 1 to 6 fixed (#338). The 100 m wall lowered (#337). The Deep refitted (#336). Every site has a Gate (#335). Month sim limited to three workers (#334). |
 | Earlier | See `git log -- proto` and the history files named at the top. |
+
+## 9. Decisions for the owner
+
+Asked once. If there is no answer a day after the coordinator asks, the default stands and is built.
+
+| # | Question | Options | Default |
+|---|---|---|---|
+| 1 | **YouTube Playables or desktop only?** Playables runs mostly on phones; the rules say desktop only. | (a) desktop only until real players have played the road; (b) Playables now: the SDK hooks (first frame, pause, mute, cloud save) and a phone layout; (c) the SDK hooks only, behind a switch, desktop layout, phone later | **(a)**, then (c) once work order 1 to 3 is done. No phone layout until the owner says so. |
+| 2 | **Dig saves.** Versions and migrations exist (`SAVE_VERSION` 2, per-feature versions). Missing: a way to copy a save out and back, and a test with a frozen save from each release. | (a) leave as is; (b) add export / import (a code to copy) and frozen old-save tests; (c) (b) plus a cloud save (needed for Playables) | **(b)** |
+| 3 | **Late learn levels at 3 to 5 tries** (#397). | (a) cheaper Pick steps past step 20; (b) more Stars on learn levels (`learnPay` up, `provePay` down, same total); (c) accept it: Gate memory and chili levels are the doors | **(a)**, balance-analyst picks the number with one sim before and after |
+| 4 | **Getting real players.** Telemetry needs 3 for a median; there are 2. | (a) the owner shares the page with 3 to 5 people he knows, one of them a child watched for 10 minutes; (b) an itch.io page and a short clip; (c) wait for Playables | **(a)** |
+| 5 | **Arabic for Dig.** | (a) English until the road is tuned, then one pass for every string and the owner reviews it; (b) every new string gets Arabic from now on, as in Aetheria; (c) Arabic for the first five minutes only | **(a)**; strings keep going through `t()` so the pass is mechanical |
+| 6 | **How long should the road take a mixed player?** | (a) about two weeks; (b) 18 to 25 days; (c) 20 to 30 days | **(b)** |
+| 7 | **The Camp track** (#394). Its plain steps do nothing. | (a) each plain step raises a Rafeeq's hit by a small share of yours (balance-analyst sets it, pace moves less than 10%); (b) the Camp has only its 7 named steps, priced on those alone; (c) the Camp ends at step 12 | **(a)**: it is the track's promise, and it helps fault 10 |
+| 8 | **The Gate multiple on every Big Rock** (#396). | (a) keep it on every Rock of the level, write it down, measure the middle Rocks; (b) Gate only, middle Rocks back to the formula | **(a)**: it is what the sims measured |
+| 9 | **Steady ground, sharp Rocks** (fresh-eyes study 1): move difficulty from per-metre ground growth into the Rocks, so blocks stay at 2 to 6 hits. | (a) yes, as its own sim-checked package; (b) not now: fix the late levels by Stars first and decide after real-player data | **(b)** |
+| 10 | **Museum sets tied to places** (fresh-eyes study 4): each set lives at two or three levels, and a missing piece is sure by the fourth bone there. | (a) both; (b) the sure piece only; (c) neither | **(b)**: a count, not a timer; no new map work |
+| 11 | **Ready meter and hard-level badge on the map** (fresh-eyes study 2). | (a) both; (b) the meter only; (c) neither, the stuck hint is enough | **(b)** |
+| 12 | **Accessibility and performance** (team study). | (a) a reduced-motion switch in Settings and a budget (first frame under 2 s, 60 fps with 8 Rafeeqs) checked at each release; (b) later | **(a)**, checked by release-keeper |
+
+**Decided by building** (shown so they are not asked again; the owner can still reverse them): chili rules in a fixed order (#388); the permanent chili hit, capped at +160% (#388); the contracts board kept beside chili (#388); the names Mild, Hot, Shatta, Fire, Ya Mama! (#388); no free pick levels in the start kit, the owner's fallback (#366); always auto dig, "The owner: always auto" (#369); one design file per game, "one game desgine file" (13 Oct); the three games and their states (14 Oct).

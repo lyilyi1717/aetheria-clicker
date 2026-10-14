@@ -1,5 +1,7 @@
 # Core loop redesign: Pump, Farm, Refine, Push
 
+> **Paused (14 October 2026, owner confirmed the three games).** The `?loop=2` preview stopped after Waves A, B and C and the clarity pass; Wave D was a no-go (#23, 10 Oct) and Wave C2 (integration) is open and not started: R88 #238, R89 #239, R90 #240, R92 #242, R93 #243, R94 #244 (R91 done). Nobody builds on it until the owner restarts it; see `docs/STATUS.md` "Next up".
+
 Status: proposal (2026-10-09). Owner brief: auto-generation for every subgame unlocked by New
 Fields; a refinery that mixes and matches materials (the cauldron idea, not a copy of it);
 ideas from other idle games, Antimatter Dimensions in particular; **simplify and remove
