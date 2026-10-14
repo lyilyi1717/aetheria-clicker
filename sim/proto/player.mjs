@@ -45,7 +45,9 @@ export const DEPTHS = [10, 25, 30, 50, 60, 75, 100, 125, 150, 175, 200, 225, 250
 // The card: from the fixed road it takes the only card; from a deal it takes the one it can do (its floor is at most one
 // Big Rock beyond the deepest floor finished, or 75 m), preferring a stretch, then a new place, then a twist; a medal card
 // when it wants a Fast medal (`fastTry`) or a Hard one (`hardTry`).
-export const MOVE = { far: 90, rockWait: 150, giveUp: 240, budget: 4, retry: 1.5, retryDigs: 3, fastTry: 0.35, hardTry: 0.25 };
+//   A block that takes more than `hardHits` of your hits is not worth it while a Big Rock can be hit: the player hits the Rock
+// instead (see `rockInstead`).
+export const MOVE = { far: 90, rockWait: 150, giveUp: 240, budget: 4, retry: 1.5, retryDigs: 3, fastTry: 0.35, hardTry: 0.25, hardHits: 25, hardFrom: 5 };
 
 // ---------- tracker ----------
 export class Trk {
@@ -73,8 +75,34 @@ export const WINS = ['0-5', '5-10', '10-20', '20-40', '40-60', '60-120', '120+']
 let probe = null;
 G.use({ id: 'simProbe', hooks: { earned(s, n, src) { if (probe) probe.src[src === 'crew' ? 'crew' : s._tool ? 'tools' : 'hand'] += n; } } });
 
+// ---------- per try (one dig of a level, from its start to the move): what took its Gate down, and where it stalled ----------
+// trk.tries: { key, lvl (road level 1 to 40, 0 = off the road), a (attended s), fin, best, bank0 (the Gate's memory at the start),
+// g { you, crew, tnt } (share of the Gate's bar each took in this try; you = pick, chains and Forge tools), away (times away in
+// the dig), awayM (metres dug away), awayGate (times away that ended at this level's Gate), stall (s with no new metre at the
+// move), st { rock, dirt, lantern, ... } (your swings since the last new metre, by block kind), rock { row, left, gate } (the Rock in view), tell (its law),
+// hpb (your hits to break the block you were on) }
+function tryStart(s, trk) {
+  const r = G.siteRun(s), st = s.road && s.road.stamps[r.key];
+  trk.cur = { key: r.key, lvl: G.roadIndex(s) + 1, a0: trk.act, r0: Math.round(trk.real), bank0: +((st && st.bank) || 0).toFixed(3),
+    away: 0, awayM: 0, awayGate: 0, g: { you: 0, crew: 0, tnt: 0 }, st: {} };
+}
+function tryEnd(s, ctx, trk) {
+  const c = trk.cur; if (!c) return;
+  const r = G.siteRun(s), b = s.boss, tg = ctx.tg && G.cellAt(s, ctx.tg[0], ctx.tg[1]);
+  const tell = b && b.hp > 0 && G.bossTell ? G.bossTell(s) : null;
+  for (const k of Object.keys(c.g)) c.g[k] = +c.g[k].toFixed(3);
+  (trk.tries || (trk.tries = [])).push({ ...c, a: Math.round(trk.act - c.a0), fin: !!r.done, best: s.best, stall: Math.round(trk.act - ctx.bestAt),
+    rock: b && b.hp > 0 ? { row: b.row, left: +(b.hp / b.max).toFixed(3), gate: b.row === r.floor, open: [...Array(G.COLS).keys()].filter(c => G.reachable(s, b.row, c)).length } : null, tell: tell ? tell.kind : '',
+    hpb: tg && !r.done ? Math.round(tg.hp / Math.max(1e-9, G.pickPower(s))) : 0 });
+  delete c.a0; delete c.gfr;
+  trk.cur = null;
+}
 export function mkEv(s, trk) {
   return (k, d) => {
+    if (k === 'hit' && d.t === 'boss' && trk.cur && s.run && !s.run.done && d.r === s.run.floor) {
+      const c = trk.cur, prev = c.gfr === undefined ? d.frac + d.share : c.gfr, done = Math.max(0, Math.min(d.share, prev - d.frac));
+      c.gfr = d.frac; c.g[d.blast ? 'tnt' : d.src === 'crew' ? 'crew' : 'you'] += done;
+    }
     if (k === 'unlock') trk.unit(d.id);     // a first time, as the rules report it
     else if (k === 'break') {
       const w = trk.w();
@@ -144,7 +172,38 @@ function draft(s, trk, ev) {
   G.takeRelic(s, offer[0] || null, ev);
 }
 
+// A Big Rock in view that can be hit, and a block that takes more than MOVE.hardHits of your hits to break: a person who has
+// swung at a chest, an ore or the row above the Gate for a few seconds without it breaking turns to the Rock, whose bar moves
+// (balance-analyst, 14 Oct 2026: the bot spent 240 s on blocks of 450 to 50,000 hits beside the Gate and left; docs/pacing-targets.md).
+// Returns the Rock cell to hit (the crack when it can be reached, else the nearest); when no Rock cell can be hit, the softest
+// block of the deepest open rows above it (a person digs towards the Rock by the easy way); or null.
+function rockInstead(s, ctx, tg) {
+  if (!(MOVE.hardHits > 0) || !tg) return null;
+  if (MOVE.hardFrom > 1) { const i = G.roadIndex(s); if (i >= 0 && i + 1 < MOVE.hardFrom) return null; }   // not on the road levels before hardFrom
+  const cell = G.cellAt(s, tg[0], tg[1]), b = s.boss;
+  if (!cell || cell.t === 'boss' || !b || b.hp <= 0 || cell.hp <= MOVE.hardHits * G.pickPower(s)) return null;
+  if (b.row < s.top || b.row >= s.top + G.VIEW_ROWS) return null;
+  const tell = G.bossTell ? G.bossTell(s) : null;
+  if (tell && tell.r === tg[0] && tell.c === tg[1]) return null;      // the cure the bar points at (the lantern): the player breaks it
+  if (G.reachable(s, b.row, b.weak)) return [b.row, b.weak];
+  let best = null, bd = 99;
+  for (let c = 0; c < G.COLS; c++) if (G.reachable(s, b.row, c) && Math.abs(c - ctx.col) < bd) { bd = Math.abs(c - ctx.col); best = [b.row, c]; }
+  if (best) return best;
+  // the Rock cannot be hit yet: dig towards it through the softest block of the deepest rows open (not a chest or an ore beside it)
+  let bh = cell.hp;
+  for (let r = Math.max(s.top, s.best - 1); r < b.row; r++) for (let c = 0; c < G.COLS; c++) {
+    const x = G.cellAt(s, r, c);
+    if (!x || !G.reachable(s, r, c)) continue;
+    if (x.hp < bh || (x.hp === bh && best && Math.abs(c - ctx.col) < Math.abs(best[1] - ctx.col))) { bh = x.hp; best = [r, c]; }
+  }
+  return best;
+}
 export function pickTarget(s, ctx) {
+  const tg = pickTarget0(s, ctx), rk = rockInstead(s, ctx, tg);
+  if (rk) { ctx.lagNext = rk[1] !== ctx.col ? ctx.p.lag * 0.5 : 0; ctx.col = rk[1]; return rk; }
+  return tg;
+}
+function pickTarget0(s, ctx) {
   const p = ctx.p, col = ctx.col;
   // a Rock fought in the dark: a human sees "Too dark: break the lantern above" and breaks that lantern first (one cheap move)
   const tell = s.boss && G.bossTell ? G.bossTell(s) : null;
@@ -189,7 +248,7 @@ export function pickTarget(s, ctx) {
 function handSwing(s, ctx, ev, trk) {
   const p = ctx.p;
   let tg = ctx.tg;
-  if (!tg || !G.cellAt(s, tg[0], tg[1]) || !G.reachable(s, tg[0], tg[1])) {
+  if (!tg || !G.cellAt(s, tg[0], tg[1]) || !G.reachable(s, tg[0], tg[1]) || rockInstead(s, ctx, tg)) {
     tg = pickTarget(s, ctx); ctx.tg = tg;
     if (ctx.lagNext) { ctx.next = ctx.clock + ctx.lagNext * (0.7 + 0.6 * rnd()); ctx.lagNext = 0; return; }
   }
@@ -197,6 +256,7 @@ function handSwing(s, ctx, ev, trk) {
   if (G.isBossRow(tg[0]) && s.boss && s.boss.row === tg[0] && tg[1] !== s.boss.weak && rnd() < p.weak && G.reachable(s, tg[0], s.boss.weak)) {
     ctx.tg = [tg[0], s.boss.weak]; ctx.col = s.boss.weak; ctx.next = ctx.clock + p.lag * 0.4; return;
   }
+  if (trk.cur) { const cell = G.cellAt(s, tg[0], tg[1]); if (cell) { const k = cell.t === 'boss' ? 'rock' : cell.t; trk.cur.st[k] = (trk.cur.st[k] || 0) + 1; } }
   G.swing(s, tg[0], tg[1], ev);
   trk.w().hits++;
   // swings that come faster than the step are counted from when the last one was due, so none is lost
@@ -247,12 +307,14 @@ function move(s, ctx, trk, ev) {
   if (r.done) delete (ctx.fails || {})[r.floor];
   else { (ctx.fails || (ctx.fails = {}))[r.floor] = lifeStars(s); (ctx.failMove || (ctx.failMove = {}))[r.floor] = ctx.moves || 0; }   // it gave this floor up: not again until the Stars have grown
   ctx.moves = (ctx.moves || 0) + 1;
+  tryEnd(s, ctx, trk);
   const c = (r.done && G.chiliBotPick && G.chiliBotPick(s, ctx, rnd)) || chooseCard(s, G.dealCards(s), ctx);   // a finished level: sometimes with its next chili
-  if (!G.pickCard(s, c, ev)) return false;
+  if (!G.pickCard(s, c, ev)) { tryStart(s, trk); return false; }
   if (s.contract) { ctx.cBuyEvery = ctx.cBuyEvery || ctx.p.buyEvery; ctx.cTried = ctx.cTried || {}; ctx.cTried[s.contract] = 1; ctx.cWas = true; ctx.cStart = trk.act; ctx.cLogged = ctx.cLogged || {}; }
   return afterMove(s, ctx, trk);
 }
 function afterMove(s, ctx, trk) {
+  tryStart(s, trk);
   trk.lastTotal = s.total; ctx.tg = null; ctx.busy = 4; ctx.col = 4; ctx.bestAt = trk.act; ctx.bestSeen = 0; ctx.rock = null; ctx.siteAt = trk.act; ctx.incTot = s.total; ctx.incT = trk.act; ctx.inc = 0;
   return true;
 }
@@ -265,6 +327,7 @@ export function play(s, ctx, secs, trk, opts = {}) {
   ctx.dt = dt;
   probe = trk;
   let el = 0;
+  if (!trk.cur) tryStart(s, trk);
   while (el < secs - 1e-9) {
     if (s.chests > 0 && ctx.busy <= 0) {
       draft(s, trk, ev);
@@ -278,7 +341,7 @@ export function play(s, ctx, secs, trk, opts = {}) {
     trk.real += dt; trk.act += dt; ctx.clock += dt; el += dt;
     const w = trk.w(); w.secs += dt;
     const dTot = s.total - trk.lastTotal; trk.lastTotal = s.total; if (dTot > 0) w.tot += dTot;
-    if (s.best > ctx.bestSeen) { ctx.bestSeen = s.best; ctx.bestAt = trk.act; }
+    if (s.best > ctx.bestSeen) { ctx.bestSeen = s.best; ctx.bestAt = trk.act; if (trk.cur) trk.cur.st = {}; }
     trk.curBest = s.best; if (s.contract) trk.curContract = s.contract;
     ctx.buyT -= dt;
     if (ctx.buyT <= 0) {
@@ -327,6 +390,7 @@ export function sample(s, trk) { const w = trk.w(); w.dig = s.diggers.length; w.
 export function awayFor(s, ctx, secs, trk) {
   trk.real += secs;                       // first times found while away are stamped at the return
   const out = G.settleAway(s, secs, mkEv(s, trk));
+  if (trk.cur) { trk.cur.away++; trk.cur.awayM += out.metres; if (out.atGate) trk.cur.awayGate++; if (out.metres > 0) trk.cur.st = {}; }
   ctx.tg = null; ctx.clock += secs;
   sample(s, trk); const w = trk.w(); w.ac += out.coins; w.am += out.metres; w.tot += out.coins; trk.lastTotal = s.total;
   trk.src.away += out.coins;

@@ -23,6 +23,8 @@ site's floor, its Gate, broken), not a Big Rock and not a move. What changed in 
 - **The scripted player** (`sim/proto/player.mjs`, `MOVE`): finishes the site; on a finish it takes Next site at once; otherwise it leaves
   when the dig has stalled and `budget` (4) times the par time is spent. From a deal it takes a floor it can do (already finished, or one
   Big Rock beyond), skips a floor it just gave up until its Stars have grown by half (`retry` 1.5), and sometimes goes for a Fast or Hard card.
+  From level 5 on, with a Big Rock in view it hits the Rock rather than a block that takes more than `hardHits` (25) of its hits, and digs
+  towards a Rock it cannot reach yet by the softest block (14 Oct 2026, docs/pacing-targets.md "Level 7, the middle levels and the Empty Quarter").
 - **Par** = `parBase` (300 s) at 50 m, x `parGrow` (1.45) per 25 m, x 1.15 with a twist. The sim player earns Fast on every version
   eventually (34 of 34): par is easy for it; the owner's playtest should say whether it is for people.
 - **Contracts** open after 8 finished versions (`contracts.openFinished`), or 99 New Sites; an old save that had them open keeps them.
