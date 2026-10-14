@@ -1,0 +1,1052 @@
+{
+ "v": 2,
+ "coins": 0,
+ "total": 0,
+ "top": 0,
+ "best": 0,
+ "rows": [
+  [
+   {
+    "t": "dirt",
+    "hp": 2,
+    "max": 2,
+    "s": 529
+   },
+   {
+    "t": "dirt",
+    "hp": 2,
+    "max": 2,
+    "s": 590
+   },
+   {
+    "t": "dirt",
+    "hp": 2,
+    "max": 2,
+    "s": 538
+   },
+   {
+    "t": "stone",
+    "hp": 6,
+    "max": 6,
+    "s": 530
+   },
+   {
+    "t": "dirt",
+    "hp": 2,
+    "max": 2,
+    "s": 450
+   },
+   {
+    "t": "dirt",
+    "hp": 2,
+    "max": 2,
+    "s": 843
+   },
+   {
+    "t": "dirt",
+    "hp": 2,
+    "max": 2,
+    "s": 670
+   },
+   {
+    "t": "dirt",
+    "hp": 2,
+    "max": 2,
+    "s": 160
+   },
+   {
+    "t": "stone",
+    "hp": 6,
+    "max": 6,
+    "s": 276
+   },
+   {
+    "t": "dirt",
+    "hp": 2,
+    "max": 2,
+    "s": 376
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 3,
+    "max": 3,
+    "s": 127
+   },
+   {
+    "t": "dirt",
+    "hp": 3,
+    "max": 3,
+    "s": 576
+   },
+   {
+    "t": "dirt",
+    "hp": 3,
+    "max": 3,
+    "s": 844
+   },
+   {
+    "t": "dirt",
+    "hp": 3,
+    "max": 3,
+    "s": 768
+   },
+   {
+    "t": "dirt",
+    "hp": 3,
+    "max": 3,
+    "s": 623
+   },
+   {
+    "t": "copper",
+    "hp": 6,
+    "max": 6,
+    "s": 143
+   },
+   {
+    "t": "copper",
+    "hp": 6,
+    "max": 6,
+    "s": 849
+   },
+   {
+    "t": "dirt",
+    "hp": 3,
+    "max": 3,
+    "s": 146
+   },
+   {
+    "t": "dirt",
+    "hp": 3,
+    "max": 3,
+    "s": 347
+   },
+   {
+    "t": "dirt",
+    "hp": 3,
+    "max": 3,
+    "s": 576
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 4,
+    "max": 4,
+    "s": 384
+   },
+   {
+    "t": "copper",
+    "hp": 8,
+    "max": 8,
+    "s": 841
+   },
+   {
+    "t": "dirt",
+    "hp": 4,
+    "max": 4,
+    "s": 270
+   },
+   {
+    "t": "dirt",
+    "hp": 4,
+    "max": 4,
+    "s": 734
+   },
+   {
+    "t": "copper",
+    "hp": 8,
+    "max": 8,
+    "s": 347
+   },
+   {
+    "t": "stone",
+    "hp": 12,
+    "max": 12,
+    "s": 634
+   },
+   {
+    "t": "dirt",
+    "hp": 4,
+    "max": 4,
+    "s": 466
+   },
+   {
+    "t": "dirt",
+    "hp": 4,
+    "max": 4,
+    "s": 48
+   },
+   {
+    "t": "dirt",
+    "hp": 4,
+    "max": 4,
+    "s": 419
+   },
+   {
+    "t": "dirt",
+    "hp": 4,
+    "max": 4,
+    "s": 300
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 7,
+    "max": 7,
+    "s": 160
+   },
+   {
+    "t": "stone",
+    "hp": 21,
+    "max": 21,
+    "s": 623
+   },
+   {
+    "t": "stone",
+    "hp": 21,
+    "max": 21,
+    "s": 369
+   },
+   {
+    "t": "dirt",
+    "hp": 7,
+    "max": 7,
+    "s": 937
+   },
+   {
+    "t": "dirt",
+    "hp": 7,
+    "max": 7,
+    "s": 410
+   },
+   {
+    "t": "dirt",
+    "hp": 7,
+    "max": 7,
+    "s": 587
+   },
+   {
+    "t": "dirt",
+    "hp": 7,
+    "max": 7,
+    "s": 307
+   },
+   {
+    "t": "dirt",
+    "hp": 7,
+    "max": 7,
+    "s": 8
+   },
+   {
+    "t": "dirt",
+    "hp": 7,
+    "max": 7,
+    "s": 301
+   },
+   {
+    "t": "dirt",
+    "hp": 7,
+    "max": 7,
+    "s": 123
+   }
+  ],
+  [
+   {
+    "t": "stone",
+    "hp": 24,
+    "max": 24,
+    "s": 745
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 514
+   },
+   {
+    "t": "stone",
+    "hp": 24,
+    "max": 24,
+    "s": 559
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 884
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 598
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 573
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 94
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 650
+   },
+   {
+    "t": "dirt",
+    "hp": 8,
+    "max": 8,
+    "s": 710
+   },
+   {
+    "t": "stone",
+    "hp": 24,
+    "max": 24,
+    "s": 137
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 972
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 925
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 760
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 71
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 664
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 627
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 718
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 92
+   },
+   {
+    "t": "dirt",
+    "hp": 9,
+    "max": 9,
+    "s": 380
+   },
+   {
+    "t": "stone",
+    "hp": 26,
+    "max": 26,
+    "s": 816
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 10,
+    "max": 10,
+    "s": 750
+   },
+   {
+    "t": "copper",
+    "hp": 20,
+    "max": 20,
+    "s": 850
+   },
+   {
+    "t": "dirt",
+    "hp": 10,
+    "max": 10,
+    "s": 628
+   },
+   {
+    "t": "copper",
+    "hp": 20,
+    "max": 20,
+    "s": 491
+   },
+   {
+    "t": "chest",
+    "hp": 39,
+    "max": 39,
+    "s": 532
+   },
+   {
+    "t": "stone",
+    "hp": 30,
+    "max": 30,
+    "s": 997
+   },
+   {
+    "t": "dirt",
+    "hp": 10,
+    "max": 10,
+    "s": 703
+   },
+   {
+    "t": "dirt",
+    "hp": 10,
+    "max": 10,
+    "s": 918
+   },
+   {
+    "t": "dirt",
+    "hp": 10,
+    "max": 10,
+    "s": 50
+   },
+   {
+    "t": "stone",
+    "hp": 30,
+    "max": 30,
+    "s": 596
+   }
+  ],
+  [
+   {
+    "t": "stone",
+    "hp": 33,
+    "max": 33,
+    "s": 60
+   },
+   {
+    "t": "copper",
+    "hp": 22,
+    "max": 22,
+    "s": 417
+   },
+   {
+    "t": "silver",
+    "hp": 33,
+    "max": 33,
+    "s": 632
+   },
+   {
+    "t": "dirt",
+    "hp": 11,
+    "max": 11,
+    "s": 975
+   },
+   {
+    "t": "dirt",
+    "hp": 11,
+    "max": 11,
+    "s": 445
+   },
+   {
+    "t": "dirt",
+    "hp": 11,
+    "max": 11,
+    "s": 684
+   },
+   {
+    "t": "dirt",
+    "hp": 11,
+    "max": 11,
+    "s": 562
+   },
+   {
+    "t": "dirt",
+    "hp": 11,
+    "max": 11,
+    "s": 2
+   },
+   {
+    "t": "stone",
+    "hp": 33,
+    "max": 33,
+    "s": 164
+   },
+   {
+    "t": "dirt",
+    "hp": 11,
+    "max": 11,
+    "s": 135
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 12,
+    "max": 12,
+    "s": 738
+   },
+   {
+    "t": "copper",
+    "hp": 25,
+    "max": 25,
+    "s": 88
+   },
+   {
+    "t": "silver",
+    "hp": 37,
+    "max": 37,
+    "s": 112
+   },
+   {
+    "t": "silver",
+    "hp": 37,
+    "max": 37,
+    "s": 883
+   },
+   {
+    "t": "tnt",
+    "hp": 12,
+    "max": 12,
+    "s": 876
+   },
+   {
+    "t": "tnt",
+    "hp": 12,
+    "max": 12,
+    "s": 56
+   },
+   {
+    "t": "copper",
+    "hp": 25,
+    "max": 25,
+    "s": 527
+   },
+   {
+    "t": "dirt",
+    "hp": 12,
+    "max": 12,
+    "s": 204
+   },
+   {
+    "t": "stone",
+    "hp": 37,
+    "max": 37,
+    "s": 625
+   },
+   {
+    "t": "copper",
+    "hp": 25,
+    "max": 25,
+    "s": 965
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 14,
+    "max": 14,
+    "s": 252
+   },
+   {
+    "t": "copper",
+    "hp": 28,
+    "max": 28,
+    "s": 875
+   },
+   {
+    "t": "dirt",
+    "hp": 14,
+    "max": 14,
+    "s": 990
+   },
+   {
+    "t": "tnt",
+    "hp": 14,
+    "max": 14,
+    "s": 131
+   },
+   {
+    "t": "stone",
+    "hp": 42,
+    "max": 42,
+    "s": 187
+   },
+   {
+    "t": "stone",
+    "hp": 42,
+    "max": 42,
+    "s": 88
+   },
+   {
+    "t": "dirt",
+    "hp": 14,
+    "max": 14,
+    "s": 571
+   },
+   {
+    "t": "dirt",
+    "hp": 14,
+    "max": 14,
+    "s": 934
+   },
+   {
+    "t": "stone",
+    "hp": 42,
+    "max": 42,
+    "s": 836
+   },
+   {
+    "t": "copper",
+    "hp": 28,
+    "max": 28,
+    "s": 441
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 460
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 569
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 258
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 945
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 474
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 127
+   },
+   {
+    "t": "hard",
+    "hp": 124,
+    "max": 124,
+    "s": 632
+   },
+   {
+    "t": "copper",
+    "hp": 31,
+    "max": 31,
+    "s": 741
+   },
+   {
+    "t": "copper",
+    "hp": 31,
+    "max": 31,
+    "s": 431
+   },
+   {
+    "t": "dirt",
+    "hp": 16,
+    "max": 16,
+    "s": 605
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 922
+   },
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 710
+   },
+   {
+    "t": "stone",
+    "hp": 52,
+    "max": 52,
+    "s": 131
+   },
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 682
+   },
+   {
+    "t": "stone",
+    "hp": 52,
+    "max": 52,
+    "s": 920
+   },
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 133
+   },
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 383
+   },
+   {
+    "t": "tnt",
+    "hp": 17,
+    "max": 17,
+    "s": 122
+   },
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 224
+   },
+   {
+    "t": "dirt",
+    "hp": 17,
+    "max": 17,
+    "s": 714
+   }
+  ],
+  [
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 429
+   },
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 741
+   },
+   {
+    "t": "stone",
+    "hp": 58,
+    "max": 58,
+    "s": 95
+   },
+   {
+    "t": "stone",
+    "hp": 58,
+    "max": 58,
+    "s": 16
+   },
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 251
+   },
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 292
+   },
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 715
+   },
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 610
+   },
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 552
+   },
+   {
+    "t": "dirt",
+    "hp": 19,
+    "max": 19,
+    "s": 548
+   }
+  ]
+ ],
+ "hits": 0,
+ "relics": {},
+ "queue": [],
+ "t": 0,
+ "seen": {
+  "chest": true,
+  "tnt": true
+ },
+ "unlocked": {},
+ "land": "desert",
+ "contract": null,
+ "free": {},
+ "_pb": -1,
+ "diggers": [],
+ "crewJob": "nearest",
+ "crewCps": 0,
+ "allCps": 0,
+ "crewAim": null,
+ "_acc": 0,
+ "_crewEarn": 0,
+ "_allEarn": 0,
+ "stars": 0,
+ "sites": 0,
+ "site": "dunes",
+ "run": null,
+ "road": {
+  "stamps": {},
+  "deal": null,
+  "reach": 0
+ },
+ "boss": null,
+ "bossesDown": 0,
+ "bestEver": 0,
+ "recMark": -1,
+ "recPassed": false,
+ "bossFem": null,
+ "chatterQuiet": false,
+ "chests": 0,
+ "chestsOpened": 0,
+ "combo": 0,
+ "comboT": 0,
+ "bestCombo": 0,
+ "contractsWon": {},
+ "contractLook": {
+  "skin": "",
+  "hat": ""
+ },
+ "contractRun": {
+  "n": 0,
+  "col": -1,
+  "fills": 0,
+  "refill": false,
+  "board": false
+ },
+ "contractAim": null,
+ "contractFree": false,
+ "pools": {},
+ "wcol": -1,
+ "rush": 0,
+ "deep": {
+  "law": "",
+  "bc": 0,
+  "glows": [],
+  "pick": null,
+  "torches": [],
+  "grow": 0,
+  "brow": -1,
+  "bhp": 0,
+  "bdealt": 0,
+  "owed": 0,
+  "back": 0,
+  "lava": {}
+ },
+ "foremanHere": false,
+ "foremanPick": "nearest",
+ "foreTea": {
+  "ph": "break",
+  "t": 0
+ },
+ "foremanAim": null,
+ "ore": {
+  "copper": 0,
+  "silver": 0,
+  "gold": 0,
+  "gem": 0
+ },
+ "metal": 0,
+ "forgeOn": false,
+ "toolCh": {
+  "drill": 0,
+  "dynamite": 0,
+  "magnet": 0
+ },
+ "toolFuel": {
+  "drill": 0,
+  "dynamite": 0,
+  "magnet": 0
+ },
+ "forgeStat": {
+  "blocks": 0,
+  "coins": 0,
+  "all": 0,
+  "allCoins": 0,
+  "uses": {
+   "drill": 0,
+   "dynamite": 0,
+   "magnet": 0
+  }
+ },
+ "_tool": null,
+ "forgeUp": {
+  "drill": 0,
+  "dynamite": 0,
+  "magnet": 0
+ },
+ "relics2": {
+  "n": 0,
+  "crew": 0,
+  "pass": false,
+  "guest": false,
+  "grow": 0,
+  "beat": 0,
+  "dmg": 0,
+  "crit": false,
+  "lr": 0,
+  "lc": 0,
+  "lt": null,
+  "busy": 0,
+  "dir": 1,
+  "fireT": 0,
+  "fallT": 0,
+  "meltT": 0,
+  "gift": {}
+ },
+ "fusion": {
+  "melted": {},
+  "n": 0
+ },
+ "fusionBook": {
+  "seen": {},
+  "stamped": {}
+ },
+ "wingGot": {},
+ "wingDone": {},
+ "wingJar": 0,
+ "wingDupSeen": 0,
+ "wingDeep": 0,
+ "wingLoad": 0,
+ "wingWish": {
+  "st": 0,
+  "opts": []
+ },
+ "wingBoon": {
+  "kind": "",
+  "left": 0
+ },
+ "wingNote": false,
+ "wingN": 0,
+ "wingPend": [],
+ "fossils": {},
+ "sets": {},
+ "up": {
+  "pick": 0,
+  "tempo": 0,
+  "pick2": 0,
+  "crew": 0,
+  "luck": 0
+ },
+ "starSpent": 0,
+ "starKeep": null,
+ "starBestPick": 0,
+ "starBoss": 0,
+ "starRefund": 0,
+ "starLine": {
+  "prev": null,
+  "cur": null
+ },
+ "starRerolls": 0,
+ "starWarm": 0,
+ "starOld": false,
+ "starFell": false,
+ "starUp": {
+  "tr_pick": 0,
+  "tr_camp": 0,
+  "tr_bag": 0
+ },
+ "picks": {
+  "second": false,
+  "pin": "gate"
+ },
+ "picksBank": 0,
+ "picksUp": {
+  "pick3": 0
+ },
+ "rafeeqSeats": [],
+ "story": {
+  "read": [],
+  "lost": 0
+ },
+ "tel": {
+  "c0": -1,
+  "depth0": 0,
+  "coin0": 0,
+  "blocks": 0,
+  "hits": 0,
+  "n": 0
+ },
+ "wardrobe": {
+  "mode": "all",
+  "all": {
+   "head": "",
+   "body": "",
+   "colour": "",
+   "pattern": ""
+  },
+  "one": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "seen": {},
+  "undo": null,
+  "t": 0,
+  "ready": false
+ },
+ "fv": {
+  "diggers": 3,
+  "sites": 3,
+  "boss": 2,
+  "museum": 2,
+  "starshop": 2
+ }
+}
