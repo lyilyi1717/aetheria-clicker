@@ -211,5 +211,5 @@ export const sfx = {
 for (const k of Object.keys(sfx)) sfx[k] = mixed(k, sfx[k]);
 
 export function addSfx(map) {
-  for (const [k, f] of Object.entries(map || {})) { if (sfx[k]) throw new Error(`Dig: sound "${k}" twice`); sfx[k] = mixed(k, f); }
+  for (const [k, f] of Object.entries(map || {})) { if (sfx[k]) continue; sfx[k] = mixed(k, f); }
 }
