@@ -72,6 +72,16 @@ export function clampHits(rOrHp, pickPower) {
   return Math.min(4, Math.max(1, hits));
 }
 
+// Chapter 1 (levels 1-4) boss HP scaling:
+// Big Rock 1 (25m) scales to ~400–600 HP (taking ~25–35s of rhythmic strikes)
+// Gate (50m) scales to ~2,500–3,500 HP (taking ~2–3m)
+export function chapter1BossHp(r, isGate = false) {
+  if (r <= 25) return 500;
+  if (r <= 50) return isGate ? 3000 : 1200;
+  if (r <= 75) return isGate ? 7500 : 2500;
+  return isGate ? 15000 : 5000;
+}
+
 // the first three rows are soft, so the very first block breaks in two hits
 export const dirtHp = (r, land = 'desert', bounded = false) => {
   if (bounded) return boundedDirtHp(r);

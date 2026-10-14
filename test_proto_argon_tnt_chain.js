@@ -1,4 +1,4 @@
-﻿// Test for Issue ARGON-01: Singing TNT Pentatonic Chain Reactions
+// Test for Issue ARGON-01: Singing TNT Pentatonic Chain Reactions
 // Run: node test_proto_tnt_chain.js
 import * as G from './digger-argon/game.js';
 import { pentPitch, PENT_CHAIN } from './digger-argon/ui/audio.js';
@@ -63,20 +63,20 @@ const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg)
 
   // Step through time to let the cascade detonate
   let elapsed = 0;
-  while (elapsed < 3.0 && blasts.length < 6) {
+  while (elapsed < 3.0 && blasts.length < 4) {
     G.step(s, 0.05, ev);
     elapsed += 0.05;
   }
 
-  ok(pops.length === 6, 'All 6 barrels in row popped in chain: ' + pops.length);
+  ok(pops.length === 4, 'Barrels in row capped at chainMax 4: ' + pops.length);
   for (let i = 0; i < pops.length; i++) {
     ok(pops[i].chain === i + 1, `Pop ${i} has chain ${i + 1} (actual: ${pops[i].chain})`);
   }
 
   // Verify blast events also carry chain numbers
-  ok(blasts.length >= 6, 'Blasts fired for all barrels: ' + blasts.length);
+  ok(blasts.length === 4, 'Blasts fired capped at 4: ' + blasts.length);
   ok(blasts[0].chain === 1, 'First blast had chain 1');
-  ok(blasts[blasts.length - 1].chain >= 6, 'Final blast carried chain >= 6');
+  ok(blasts[blasts.length - 1].chain === 4, 'Final blast carried chain 4');
 }
 
 if (failed) { console.error(failed + ' failed'); process.exit(1); }

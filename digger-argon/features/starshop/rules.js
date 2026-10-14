@@ -42,7 +42,7 @@ const p = {
 
 // track -> step number -> the rule that comes with it
 export const STARSHOP_STEPS = {
-  pick: { 1: 'punch1', 5: 'warm1', 9: 'punch2', 13: 'warm2', 17: 'crack', 21: 'punch3', 25: 'heavy', 29: 'punchAll', 33: 'old', 37: 'falling' },
+  pick: { 1: 'sight', 5: 'punch1', 9: 'punch2', 13: 'warm2', 17: 'crack', 21: 'punch3', 25: 'heavy', 29: 'punchAll', 33: 'old', 37: 'falling' },
   camp: { 1: 'head1', 2: 'head2', 3: 'head3', 5: 'wake', 7: 'shoes', 9: 'kettle', 12: 'whole' },
   bag:  { 1: 'map', 2: 'bone', 3: 'oil', 4: 'keep1', 5: 'gift1', 6: 'reroll', 7: 'keep2', 8: 'cards', 9: 'eyes', 10: 'gift2', 11: 'keep3', 14: 'pocket2' },
 };
@@ -95,10 +95,16 @@ export function starshopPickAt(steps) {
   const idx = Math.min(last, Math.floor((steps - 1) / per));
   return { idx, mat: STARSHOP_MATERIALS[idx], n: idx < last ? ((steps - 1) % per) + 1 : Math.min(per, steps - last * per), plus: Math.max(0, steps - (last + 1) * per) };
 }
+// pick damage multiplier: for steps 0-4, scale by 1 + 0.25 * n (1.25x, 1.50x, 1.75x, 2.0x) before transitioning
+export function starshopPickMult(n) {
+  if (n <= 0) return 1;
+  if (n <= 4) return 1 + 0.25 * n;
+  return 2 * Math.pow(p.step, n - 4);
+}
 // how far Punch-through reaches (0: not at all)
 export function starshopPunch(s) {
   const n = starshopSteps(s, 'pick');
-  return n >= 29 ? Infinity : n >= 21 ? 3 : n >= 9 ? 2 : n >= 1 ? 1 : 0;
+  return n >= 29 ? Infinity : n >= 21 ? 3 : n >= 9 ? 2 : n >= 5 ? 1 : 0;
 }
 export const starshopCrackSlow = s => hasStep(s, 'pick', 'crack');
 export const starshopFalling = s => hasStep(s, 'pick', 'falling');
@@ -112,7 +118,7 @@ export const starshopPickName = pk => (pk.mat === 'wood' ? t('pick_wood') : pk.p
 // the level a new site starts with, by the Warm Pick steps, from your best pick
 const warmLevel = s => { const w = lv(s, 'sp_warm'); return w ? Math.floor(Math.max(s.starBestPick, s.up.pick || 0) * p.warmFrac[w - 1]) : 0; };
 // your first hit at the next site (the pick track and the warm start only)
-export const starshopNextHit = s => Math.pow(p.step, starshopSteps(s, 'pick')) * Math.pow(PARAMS.core.powGrow, warmLevel(s));
+export const starshopNextHit = s => starshopPickMult(starshopSteps(s, 'pick')) * Math.pow(PARAMS.core.powGrow, warmLevel(s));
 // the line of the New Site card: the pick this site started with -> the pick the next one starts with
 export function starshopLine(s) {
   const cur = s.starLine && s.starLine.cur;
@@ -232,7 +238,8 @@ export const starshop = use({
   unlocks: STARSHOP_TRACKS.flatMap(tr => Object.keys(STARSHOP_STEPS[tr]).map(n => ({ id: `tr:${tr}:${n}`, cat: 'grind', group: 'Star track steps' }))),
   firsts: { buy: d => (d.shop === 'star' && d.id.startsWith('tr_') && STARSHOP_STEPS[d.id.slice(3)][d.level] ? `tr:${d.id.slice(3)}:${d.level}` : null) },
   mods: {
-    pickPower: { at: 21, fn: (v, s) => v * Math.pow(p.step, starshopSteps(s, 'pick')) },
+    pickPower: { at: 21, fn: (v, s) => v * starshopPickMult(starshopSteps(s, 'pick')) },
+    sight: (v, s) => (hasStep(s, 'pick', 'sight') ? v + 1 : v),
     crewShare: { at: 21, fn: (v, s) => v + p.campShare * starshopSteps(s, 'camp') },     // every Camp step: a Rafeeq hits a little closer to your own hit (not a second multiplier)
     coinMult:  { at: 21, fn: (v, s) => v * Math.pow(p.step, starshopSteps(s, 'bag')) },
     // Wide Hands adds a card; the cap comes last, so Wide Hands + Pearl Eye + a prize never show more than cardsCap

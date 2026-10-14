@@ -13,6 +13,7 @@ const p = {
   bangStep: 0.5,            // Big Bang: this much more TNT per level
   fuse: 0.12,               // seconds from break to blast
   rockReach: 1,             // a blast also shakes a Big Rock this many rows beyond its own radius (the Rock is big)
+  chainMax: 4,              // sympathetic chain reactions cap at 4 detonations per single strike
 };
 
 // one hit of whoever caused it: your pick, or a Rafeeq's swing when a Rafeeq set it off
@@ -61,7 +62,7 @@ function blast(s, q, ev) {
       const B = BLOCKS[cell.t];
       if (B.wall) { if (hitWall) continue; hitWall = true; }   // and counts once against it (above: the Rock was already hit)
       if (B.chain) {           // chains, a beat later
-        if (!cell.q) {
+        if (!cell.q && chain < p.chainMax) {
           cell.q = true;
           later(s, 0.14 + 0.05 * (Math.abs(dr) + Math.abs(dc)), 'pop', {
             r: q.r + dr, c: q.c + dc, src: q.src, chain: chain + 1

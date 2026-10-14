@@ -29,6 +29,7 @@ export default { en: {
   site_line: 'Your pick: {a} -> {b}. Your first hit: {x} -> {y}.',
   site_line_same: 'Your pick: {a}. Your first hit: {y}.',
 
+  rule_sight: 'Lantern Light', rule_sight_d: 'You see one block further into the dark earth.',
   rule_punch1: 'Punch-through', rule_punch1_d: 'A hit that breaks a block goes on into the block below.',
   rule_punch2: 'Punch-through 2', rule_punch2_d: 'The hit goes on through 2 blocks.',
   rule_punch3: 'Punch-through 3', rule_punch3_d: 'The hit goes on through 3 blocks.',
@@ -99,6 +100,7 @@ export default { en: {
   site_line: 'معولك: {a} ← {b}. ضربتك الأولى: {x} ← {y}.',
   site_line_same: 'معولك: {a}. ضربتك الأولى: {y}.',
 
+  rule_sight: 'ضوء الفانوس', rule_sight_d: 'ترى كتلة أعمق في الأرض المظلمة.',
   rule_punch1: 'الضربة النافذة', rule_punch1_d: 'الضربة التي تكسر كتلة تكمل إلى الكتلة التي تحتها.',
   rule_punch2: 'الضربة النافذة 2', rule_punch2_d: 'تنفذ الضربة عبر كتلتين.',
   rule_punch3: 'الضربة النافذة 3', rule_punch3_d: 'تنفذ الضربة عبر 3 كتل.',

@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.15';
+export const VERSION = '5.36.16';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.16',
+    date: '2026-10-14',
+    title: 'Dig: early-game pacing rebalance',
+    changes: [
+      'The Pick track in the Star Shop now grows smoothly (+25% hit per step for the first four steps), with Punch-through moving to Step 5 (Copper Pick) and Step 1 bringing Lantern Light to see deeper into the dark earth.',
+      'Overkill punch-through strength now caps at half your pick\'s power per swing, preventing single hits from drilling through whole rows of dirt.',
+      'Powder Valley\'s TNT spawn multiplier is softened from 3.2 to 1.8, and explosions chain to at most 4 barrels per strike for focused tactical blasts.',
+      'Chapter 1 Big Rock (25m) and Gate (50m) health brought down to ~500 HP and ~3,000 HP, turning early runs into an engaging 4-minute climb instead of a lengthy stall.'
+    ],
+    ar: {
+      title: 'الحفر: إعادة موازنة سرعة التقدم في البداية',
+      changes: [
+        'مسار المعول في متجر النجوم أصبح يتدرج بنعومة (+25% لقوة الضربة لكل خطوة في الخطوات الأربع الأولى)، مع انتقال الضربة النافذة إلى الخطوة 5 (معول النحاس)، وتقديم ضوء الفانوس في الخطوة 1 للرؤية أعمق في عتمة الأرض.',
+        'قوة الضربة النافذة الفائضة أصبحت محددة بنصف قوة المعول في الضربة الواحدة، مما يمنع حفر صفوف متعددة من التراب بضربة يتيمة.',
+        'مضاعف براميل المتفجرات في وادي البارود تم ترويضه من 3.2 إلى 1.8، مع حصر تفاعلات السلسلة المتفجرة بـ 4 براميل كحد أقصى لكل ضربة لتفجيرات تكتيكية ممتعة.',
+        'صحة صخرة المستوى الأول (25 م) وبوابة النهاية (50 م) أصبحت ~500 و ~3,000 نقطة صحة، لتستغرق محاولة المستوى الثاني نحو 4 دقائق متوازنة بدلاً من التعثر الطويل.'
+      ]
+    }
+  },
   {
     version: '5.36.15',
     date: '2026-10-14',

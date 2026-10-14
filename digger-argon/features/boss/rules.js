@@ -2,7 +2,7 @@
 // as wide as the ground, with its own hp and a glowing crack that moves; hits on the crack count more.
 import { use, emit, run, fold, layersOf, BLOCKS, PARAMS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
-import { COLS, VIEW_ROWS, LAYER, layerOf, dirtHp, dirtVal, setCell } from '../../core/grid.js';
+import { COLS, VIEW_ROWS, LAYER, layerOf, dirtHp, dirtVal, setCell, chapter1BossHp } from '../../core/grid.js';
 import { addCoins, coinMult, pickPower, canBuy, upgradeCost } from '../../core/rules.js';
 import { canNewSite, starsFor, dealCards, roadIndex, FIXED } from '../sites/rules.js';
 import { t } from '../../core/strings.js';
@@ -70,7 +70,13 @@ export const isBossRow = r => r > 0 && r % LAYER === 0;
 
 function ensureBoss(s, r) {
   if (!s.boss || s.boss.row !== r) {
-    const hp = Math.round(fold('bossHp', s, dirtHp(r) * p.hp * (1 + p.layerHp * layerOf(r - 1)), r));
+    const isGate = s.run ? r === s.run.floor : false;
+    const isCh1 = s.run ? (s.run.ch === 1 && (roadIndex(s) < FIXED.length || s.run.floor <= 75)) : r <= 75;
+    let base = dirtHp(r) * p.hp * (1 + p.layerHp * layerOf(r - 1));
+    if (isCh1 && r <= 75 && typeof chapter1BossHp === 'function') {
+      base = chapter1BossHp(r, isGate);
+    }
+    const hp = Math.round(fold('bossHp', s, base, r));
     s.boss = { row: r, hp, max: hp, weak: Math.floor(rnd() * COLS), wt: p.weakSeconds, rub: 0, you: 0, crew: 0 };
     gateOpen(s, s.boss);
   }

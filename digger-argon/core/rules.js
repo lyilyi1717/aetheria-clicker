@@ -163,9 +163,10 @@ export function swing(s, r, c, ev = NOEV) {
   const broke = damage(s, r, c, sw.dmg, 'you', ev, { crit: sw.crit, shatter: isOverkill });
   const reach = fold('punch', s, 0);
   if (reach > 0 && broke && !sw.B.wall && sw.dmg > hp0) {
-    punch(s, r, c, reach, sw.dmg - hp0, ev);
+    const carry = Math.min(sw.dmg - hp0, Math.max(1, power * 0.5));
+    punch(s, r, c, reach, carry, ev);
   } else if (broke && !sw.B.wall && isOverkill && s.up && s.up.pick > 0) {
-    const overkill = power - hp0;
+    const overkill = Math.min(power - hp0, Math.max(1, power * 0.5));
     if (overkill > 0) punch(s, r, c, 1, overkill, ev);
   }
   run('swung', s, sw, ev);
@@ -177,6 +178,8 @@ export function swing(s, r, c, ev = NOEV) {
 // empty cell, at a block it does not break, and at a wall (the Big Rock).
 function punch(s, r, c, reach, left, ev) {
   let n = 0;
+  const power = pickPower(s);
+  left = Math.min(left, Math.max(1, power * 0.5));
   for (let rr = r + 1; left > 0 && n < reach; rr++, n++) {
     const cell = cellAt(s, rr, c);
     if (!cell || BLOCKS[cell.t].wall) break;

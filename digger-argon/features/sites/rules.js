@@ -562,7 +562,7 @@ export const sites = use({
   // A site may also carry `hooks` and `mods` (its own rules) and `blocks` (multipliers on a layer's block table).
   sites: {
     dunes: { at: 10, start: true, tnt: 1, ore: 1, bone: 1, chest: 1, hp: 1 },
-    boom:  { at: 20, tnt: 3.2, ore: 1, bone: 1, chest: 1, hp: 1.25 },     // Powder Valley
+    boom:  { at: 20, tnt: 1.8, ore: 1, bone: 1, chest: 1, hp: 1.25 },     // Powder Valley
     gold:  { at: 30, tnt: 1, ore: 2.2, bone: 1, chest: 0.8, hp: 1.35 },   // Golden Wadi
     bones: { at: 40, tnt: 1, ore: 1, bone: 4, chest: 1.6, hp: 1.2 },      // Valley of Beasts
   },
