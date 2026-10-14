@@ -16,12 +16,12 @@ then `node scripts/dig-levels.cjs <file>`; the same with `--only active`. Values
 | Level 1 Gate | 8-12 min | 9.5 / 11.6 min | 1 try (3) | 14 Oct |
 | Level 4 done (first session ends on the pan to Africa) | 30-60 min | 32 / 26 min | 1 try (3) | 14 Oct |
 | Level 7 Gate (first hard level) | day 2-3, 1-2 tries (at most 3) | day 1.4 / 2.0, 3 / 2 tries (before 2.0 / 1.6, 4 / 3; seeds 3, 4: 1 / 3) | **4 tries** (3 testers, median session 0.5 min) | 14 Oct, level 7 pass (sim 4) |
-| Chapter one done (level 20) | day 10-15 (dig-design decision 6) | day 11.2 / 12.6 (before 11.0 / 12.2; seeds 3, 4: 11.0 / 11.0) | - | 14 Oct, level 7 pass (sim 4) |
-| Road done (level 40) | day 18-25 | day 18.6 / 19.2 (before 18.6 / 20.2; seeds 3, 4: **17.6** / 19.6) | - | 14 Oct, level 7 pass (sim 4) |
+| Chapter one done (level 20) | day 10-15 (dig-design decision 6) | day 12.4 / 11.2 (before 11.2 / 12.6) | - | 14 Oct, after steering and the away walk (06ce6e4) |
+| Road done (level 40) | day 18-25 | day 19.4 / 18.4 (before 18.6 / 19.2) | - | 14 Oct, after steering and the away walk (06ce6e4) |
 | Stars by day 30 | retired (dig-design decision 14: one coin at any size); balance-analyst to replace with the next step's cost in digs at levels 20, 30, 40 | 910 B (main 1.4 T) | - | 14 Oct, Camp steps count (run 4) |
 | Share of core content seen at 1 day / 1 week / 30 days | at most 50% / 75% / 95% | **52 / 55%**, **86 / 82%**, 93 / 90% (1 h: not sampled, the series is daily) | - | 14 Oct |
 | Hits per dirt block, mid-leg, at the pick you bring | 2-6 (never above 8) | **about 80 to 14 000** (levels 5-20, see below) | - | 14 Oct |
-| Tries per Gate (`--assert`: median at most 3, x1.25) | about 1.1 early (1-6), 2-3 late, never above 3 | 1-2 early; level 7: 3 / 2; median over 2 seeds at most 3 except level 12 (3 / 4, within x1.25); over 4 seeds at most 3 except level 14 (3.5); chapter two 1-2 | L1-6: 1, L7: 4 | 14 Oct, level 7 pass (sim 4) |
+| Tries per Gate (`--assert`: median at most 3, x1.25) | about 1.1 early (1-6), 2-3 late, never above 3 | **06ce6e4: no level above 3 (median), no level above 6 other digs; level 12 3.5 -> 2.5, level 15 8 -> 2 other digs.** Before: 1-2 early; level 7: 3 / 2; median over 2 seeds at most 3 except level 12 (3 / 4, within x1.25); over 4 seeds at most 3 except level 14 (3.5); chapter two 1-2 | L1-6: 1, L7: 4 | 14 Oct, level 7 pass (sim 4) |
 
 ### Per road level (mixed player: four 12 minute visits a day)
 
@@ -505,6 +505,41 @@ on 4 seeds every asserted row ok (road: level 14 at 3.5 tries, inside x1.25); on
 player policy (noted for the next pass). Not met: real players at level 7 (4 tries, 3 testers) are not reached by the sim policy; the
 cheap lantern is the part that reaches them.
 
+### After steering and the deeper away walk (14 October 2026, 2 sims, #483 #484 #488)
+
+Work order items 11 and 12 measured. Before: 46cc6a3 (main just ahead of #483). After: 06ce6e4 (main with #483 the away walk
+to the row above the next standing Rock, #484 the "too hard" tag and Rock hint, #488 Rock Friend and Falling Star stopping at the
+same row). Mixed, 2 seeds. Stall kinds from the per-try log (`tries` in the dump): a failed try is `open0` when it ended with the
+Gate in view and no Gate cell reachable, `gateOpen` when a Gate cell could be hit, `midRock` at a plain Big Rock.
+
+| Measure | Target | Before | **After** |
+|---|---|---|---|
+| Failed tries at levels 8-12 with no Gate cell (`open0`) | 0 (work order 12) | 5 of 16 (all seed 2; block in the way 1,687 to 20,607 hits) | **0 of 10** |
+| Failed tries at levels 8-12, all kinds | - | 5 / 11 | 2 / 8 (all `gateOpen` but one `midRock`) |
+| `open0` over the whole road | - | 8 / 9 (levels 13 to 37) | 5 / 0 (seed 1, levels 15, 18, 18, 19, 19; none had time away in the try; 803 to 228,171 hits a block) |
+| Level 20 | day 10-15 | 11.2 / 12.6 | **12.4 / 11.2** |
+| Level 40 | day 18-25 | 18.6 / 19.2 | **19.4 / 18.4** |
+| Road levels over 3 tries (median) or 6 other digs | none (`--assert`) | level 12 3.5 tries, level 15 8 other digs (1 miss) | **none** |
+| Level 7 | day 2-3, at most 3 tries | 1.4 / 2.0, 3 / 2 | 2.4 / 1.4, 3 / 1 |
+| Tries, level 8 and level 12 | median at most 3 | L8 1 / 3, L12 3 / 4 (median 3.5) | L8 1 / 3, L12 1 / 4 (median 2.5) |
+| Stars by day 7 / day 30 | - | 156.5 k / 961 B | 359.4 k / 1.0 T |
+| SUM `share` | - | 81% | 83% |
+
+SUM before: `fin1 10.4m fin4 d0.3 5.6/day vers 91/168 share 81% Stars 156.5k/961.2B depth 225/280/425 R4 d0.6 R6 d2.7 R8 d5.4`.
+SUM after: `fin1 10.4m fin4 d0.2 5.6/day vers 92/170 share 83% Stars 359.4k/1.0T depth 231/301/414 R4 d1.0 R6 d2.9 R8 d5.2`.
+
+- **Decided (14 Oct 2026, by balance-analyst): no params change; item 12 is done as measured**, because `open0` at levels 8-12 went
+  5 -> 0, both road windows hold and no level is above 3 median tries. The failed tries left at levels 8-12 are fights the player
+  could take (`gateOpen`), the shape item 7 (how ready you are, on the map) speaks to.
+- **What is left is the ground, not the away walk.** The 5 `open0` tries left (seed 1, levels 15 to 19) had no time away: the player
+  dug down to the rows above the Gate himself and met blocks of 803 to 228,171 of his hits. That is in-layer growth (`core.grow`
+  1.17 to 1.21 a row, x50 to x120 over a 25 m layer) against a pick that grows x1.5 a step: item 13.
+- **Input for design-keeper, item 13 (steady ground inside a layer): still needed**, with these targets: (1) `open0` failed tries 0
+  over the whole road, not only 8-12 (today 5 / 0 at levels 15-19); (2) hits per dirt block mid-leg and in the last row above the
+  Gate within x2 of each other at levels 7 to 20 (today x4 to x5); (3) mid-leg hits per dirt block at the pick you bring at most 8
+  at levels 1 to 15 (adopted from the study; today about 80 to 14,000), at most 30 at 16 to 20; (4) unchanged: Gate swings at arrival
+  within x1.5 of today, at most 3 tries per level, level 20 day 10-15, level 40 day 18-25.
+
 ### First session (mixed, attended minutes)
 
 | Beat (fresh-eyes study 6) | Target | Sim |
@@ -562,7 +597,7 @@ past 100 m: the barrels are.
 | Chapter two, levels 27 to 40: the player cannot hurt the Gate (**partly closed**: per-level Gates, v5.33.2, levels 27 to 29 fought 2 to 8 min; 30 to 40 in the next two rows) | Before v5.33.2, at `ch2Stars` 2e3 the hit falls behind from level 27: swings at arrival x10 to x20 the chapter-one slot at 27 to 30 (175 k to 2.3 M against 9 k to 137 k); at 31 to 36 the player never hits the Gate in the winning try; Empty Quarter learn Gates 1.6 G and 11 G swings. They fall in 1 to 3 tries to TNT (`boss.blastShare` 0.02 a barrel, `blastCap` 0.3 a try) and the Gate's memory (`gateShare` 0.6), so the fight at 37 and 39 lasts 21 to 24 minutes whatever the Gate's size | A Gate size per chapter-two level (`gateMulCh2` 20 entries; `gateMulOf` and `test_proto_rocks.js` change by two lines); done (Gate per level pass) | closed for 27-29 |
 | Gates walked past while away: chapter-two levels 30 to 36 (some tries of 28, 29) and chapter-one prove levels finish with no hit on the Gate | `awayWalk` (`sp_wake`, `proto/features/starshop/rules.js`) passes every Rock of a layer up to `s.starBoss` and sets `s.bossesDown`, which is the level's finish check (`bossesDown * LAYER >= floor`). Chapter two repeats depths broken in chapter one; a prove level repeats its learn level's depth. Probe with the Gate not walkable: level 20 day 16.6 / 18.2 (was 12.6 / 11.4), road stops at level 33 / 32 | Rule: the Gate row of the level in play (`r.floor`, run not done) is never `passable`; then retune `gateMul`, `proveHp`, `ch2Stars` (the walk carries the pacing today). Away digging also prices hard ground as plain (#429), fixed in the same branch | built (the Gate is yours, #430 + #429); retuned: road end day 23.2 / 24.4 |
 | Levels 37 and 39: 4 to 10 tries, 10 to 26 other digs | The player stalls on the last rows above the Gate at 300 / 325 m (own hits on the Gate under 1% in failed tries, give-up after 240 s); the Gate falls to TNT (30%) plus its memory at any size (2e-4 or 2e-9). `ch2Hp` 3e12 on ground that grows x110 to x170 per 25 m | Logged: a sim-player stall (5,510 swings on blocks of 19,189 hits beside a Gate it could hit); on `main` 37 and 39 already took 1-2 tries with the team at 62-70% of the bar. Fix: the sim player hits the Rock instead of a block over 25 hits | **closed** (#431): 37 / 39 at 2 / 1 and 1 / 1 tries, team median 70% |
-| The rows just above a Gate after time away (levels 8 to 12: 5 of 15 failed tries) | Time away stops when the Gate comes into view (`awayStop`) and leaves the last rows above it whole; they are the hardest rows of the layer (`grow` 1.17 to 1.21 a row, x50 to x120 over a layer), 1,700 to 20,600 of your hits a block at levels 8 to 12, so no Gate cell can be hit and the try ends on TNT and the Rafeeqs | Part of the fresh-eyes package 3 brief (steady ground, sharp Rocks: in-layer growth near 1.05 a row); rule-shaped, not params-only | brief |
+| The rows just above a Gate after time away (levels 8 to 12: 5 of 15 failed tries) | Time away stops when the Gate comes into view (`awayStop`) and leaves the last rows above it whole; they are the hardest rows of the layer (`grow` 1.17 to 1.21 a row, x50 to x120 over a layer), 1,700 to 20,600 of your hits a block at levels 8 to 12, so no Gate cell can be hit and the try ends on TNT and the Rafeeqs | Decision 20: the crew digs to the row right above the next standing Rock (#483; Rock Friend and Falling Star too, #488). Measured 14 Oct (06ce6e4): levels 8-12 `open0` 5 of 16 -> 0 of 10; road windows and tries hold. Left: 5 `open0` on seed 1 at levels 15-19 with no time away (the player's own walk into rows of 803 to 228k hits): item 13, steady ground | **closed** for time away; the ground part goes to item 13 (targets in "After steering and the deeper away walk") |
 | Stars by day 30 at T (fault 12; 8.4 T at `ch2Stars` 5e3) | Chapter two needs the hit x10^12 over 20 levels like chapter one; the hit grows about as Stars^1.9 (levels 21 to 36: hit x3e11 for Stars x1.3e6), so Stars must grow about x10^6 from the 1.5e7 at level 20. After level 40 the free deal is chapter-one ground at 350 to 400 m (`starsAt(400)` = 4.1e9 a floor). x10 of 0.8 B is out of reach by params | One coin at any size; target retired | decided (dig-design decision 14) |
 | Side cards beside a stuck chapter-two level pay almost nothing | `card(s, site, floor, twist)` makes every twist chapter one (`ch = !twist && ch === 2 ? 2 : 1`), so beside a chapter-two level the side cards pay chapter-one Stars, about 2,000 times less | Builder: deal chapter-two side cards (replay or medal of a chapter-two level) beside a chapter-two level | brief |
 | Old windows in `dig-month.mjs` | `TARGETS` rock5-rock8 (`sim/proto/dig-month.mjs:61-64`) ask mixed day 7-12 / 14-26 / 16-23 / 21-30 for the 125-200 m Rocks; measured day 2.0 / 2.6 / 3.2 / 4.0-5.0, so --assert fails them all | Replace with rows read from `fin` per road level (like `scripts/dig-levels.cjs`): mixed level 7 day 2-3, level 9 day 3.5-5, level 11 day 5.5-7.5, level 13 day 8-10, level 20 day 18-25; plus a tries row (median tries per level at most 3, prove levels at least 2 from level 9) and a "digs between" row (at most 6 before any level) | **closed** (#398): land days and per-level tries / other digs, see Camp steps count |
@@ -597,6 +632,7 @@ Core loop (`?loop=2`, paused): `node sim/redesign/run.mjs --assert`; not measure
 | 14 Oct 2026 | `MOVE.hardHits`, `MOVE.hardFrom` (sim player, new) | none -> the Rock instead of a block over 25 hits, from level 5 | Failed tries ended at the Gate with the swings on blocks of 450 to 50,000 hits (#431, level 7) | level 7 4 / 3 -> 3 / 2 tries (with the next row); 37 / 39 at most 2 tries |
 | 14 Oct 2026 | `BLOCKS.lantern.hp`, `BLOCKS.torch_crate.hp` | 2 -> 0.01 (of a dirt block of the row) | A cure took 1,000 to 16,000 hits at levels 7 and 8 | level 8 5 / 2 -> 2 / 1 (sim 2); road end 18.6 / 19.2 |
 | 14 Oct 2026 | `starshop.campShare` (plain Camp steps only) | 0 (every step) -> 0.02 (plain steps) | #394, decision 7: a Camp step did nothing | road end 23.2 / 24.4 -> 22.0 / 24.6 alone |
+| 14 Oct 2026 | none (measurement of #483, #484, #488) | - | Work order 12: `open0` at levels 8-12 to 0 | `open0` 5 -> 0; level 20 12.4 / 11.2, level 40 19.4 / 18.4; no level over 3 tries |
 | 14 Oct 2026 | `starshop.pickLateFrom`, `pickLateGrow` (new) | x1.5 every step -> x1.35 past step 20 (Pick only) | #397: late learn levels held by Stars | levels 13 / 17 / 19 median 4 / 4 / 4.5 -> 2.5 / 2 / 3 (with the next row) |
 | 14 Oct 2026 | `starshop.botStuckPick` (sim player, new) | even spend -> The Pick only at a level tried twice | A person follows the Rock bar's "spend on The Pick" | see the row above |
 | 14 Oct 2026 | `sites.ch2Stars` | 5e3 -> 2e3 | The cheaper Pick took the road end to 17.6 / 17.6 | road end 18.6 / 20.2; Stars by day 30 1.4 T -> 910 B |
