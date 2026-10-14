@@ -16,7 +16,8 @@ const plural = (n, one, many) => n === 1 ? t(one) : t(many, { n });
 
 function stamps(out) {
   const list = [];
-  if (out.metres) list.push({ ic: 'away_pick', text: t('away_metres', { n: out.metres }) });
+  // Rock Friend's walk past Big Rocks is part of the metres: said under them, so the card tells how far (art-and-sound decision 25)
+  if (out.metres) list.push({ ic: 'away_pick', text: t('away_metres', { n: out.metres }), sub: out.passed ? t('away_passed', { n: out.passed }) : '' });
   if (out.sieveSeconds >= 60) list.push({ ic: 'away_pick', text: t('away_sieve', { t: span(out.sieveSeconds) }) });
   if (out.bones) list.push({ ic: 'bone', text: plural(out.bones, 'away_bone1', 'away_bones'), sub: out.newBones ? plural(out.newBones, 'away_newbone1', 'away_newbones') : '', isNew: !!out.newBones });
   if (out.chests) list.push({ ic: 'chest', text: plural(out.chests, 'away_chest1', 'away_chests') });
@@ -51,6 +52,7 @@ function card(out, app) {
   for (let i = 0; i < Math.min(out.chests, 8); i++) { stack.insertAdjacentHTML('beforeend', icon('chest', 40)); stack.lastChild.style.setProperty('--d', (run + i * 0.12) + 's'); }
   const btn = m.querySelector('button');
   btn.textContent = out.chests ? t('away_open') : t('away_ok');
+  out.card = true;     // the card said it all: features need not toast it again after it closes
   btn.addEventListener('click', () => { app.unlockAudio(); app.modal.close(); app.fire('awayDone', out); });
   const t0 = performance.now(), el = m.querySelector('#away-n');
   const dur = run * 1000 + 600;

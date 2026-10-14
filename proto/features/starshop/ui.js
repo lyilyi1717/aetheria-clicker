@@ -240,6 +240,6 @@ ui({
       setTimeout(() => app.toast(G.starshopMovedText(app.state), 'gold'), 3200);
       app.dirty('starshop');
     },
-    awayDone(out, app) { if (out && out.passed) app.toast(t('t_wake', { n: out.passed }), 'gold'); },
+    awayDone(out, app) { if (out && out.passed && !out.card) app.toast(t('t_wake', { n: out.passed }), 'gold'); },
   },
 });

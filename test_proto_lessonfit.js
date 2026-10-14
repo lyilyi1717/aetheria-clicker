@@ -23,7 +23,7 @@ ok(518 - 216 - 8 - 11 - 8 >= LESSON.room, `the room checked (${LESSON.room} px) 
 const dirs = readdirSync(new URL('./proto/features/', import.meta.url));
 const LESSON_KEY = /^(t_|fz_lesson_|gate_remember$)/;
 const want = ['gate_remember', 'fz_lesson_watch', 'fz_lesson_ready', 'fz_lesson_half', 't_crystal', 't_prism', 't_mushroom', 't_lantern',
-  't_moonstone', 't_torch_crate', 't_moss', 't_grump', 't_thief', 't_lava', 't_water', 't_pearl', 't_pearl_seen', 't_wing_seen'];
+  't_moonstone', 't_torch_crate', 't_moss', 't_grump', 't_thief', 't_lava', 't_water', 't_pearl', 't_pearl_seen', 't_wing_seen', 't_steer_rock', 't_steer_gate'];
 const found = new Set();
 for (const d of dirs) {
   for (const f of ['strings.js', 'strings.ar.js']) {

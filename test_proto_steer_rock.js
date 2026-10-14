@@ -123,7 +123,12 @@ const L7 = 6;     // road level 7
   ok(/Too hard/.test(en), 'English tag');
   const strs = fs.readFileSync('./proto/features/boss/strings.js', 'utf8');
   const ar = strs.slice(strs.indexOf('}, ar: {'));
-  for (const k of ['stuck_rock_gate', 'stuck_rock', 'hard_tag']) ok(ar.includes(k + ':'), 'ar ' + k);
+  for (const k of ['stuck_rock_gate', 'stuck_rock', 'hard_tag', 't_steer_rock', 't_steer_gate']) ok(ar.includes(k + ':'), 'ar ' + k);
+  // art-and-sound decisions 23 and 24: the opening is a whole gold lesson, not a toast; the tag waits for the banner, 19 px
+  const ui = fs.readFileSync('./proto/features/boss/ui.js', 'utf8');
+  ok(/app\.lesson\('steer_open', t\(op\.gate \? 't_steer_gate' : 't_steer_rock'/.test(ui), 'the next try opens with a lesson');
+  ok(/if \(!tag \|\| bannerUp\(\)\) return;/.test(ui) && /'800 19px/.test(ui), 'the tag waits for the banner and is 19 canvas px');
+  ok(!/That block/.test(G.t('t_steer_rock', { n: 5 })) && /Last try/.test(G.t('t_steer_gate', { n: 5 })), 'the opening stands alone');
 }
 
 if (failed) { console.error(failed + ' failed'); process.exit(1); }

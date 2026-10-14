@@ -47,7 +47,9 @@ html.calm #trk-msg #lesson.show { animation: none !important; }
 #goal-pin { order: -1; }
 #track #goal { flex: 0 1 auto; min-width: 0; max-width: 180px; }
 #track #goal-pin { max-width: 100%; }
-#track #goal-text { flex: 0 1 auto; min-width: 0; font-size: 13px; font-weight: 700; line-height: 1.15; color: var(--muted); max-width: 100%; white-space: normal; text-align: end; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
+#track #goal-text { flex: 0 1 auto; min-width: 0; font-size: 13px; font-weight: 700; line-height: 1.15; color: var(--muted); max-width: 100%; white-space: normal; text-align: end; display: block; max-height: calc(2 * 1.15em); overflow: hidden; }
+/* without the chip: two lines at most; app.js (`fitGoalText`) cuts a longer goal at a whole word and ends it in dots (#495,
+   decision 26), because the line clamp painted no dots there */
 /* under the chip the words have one line (#486, decision 20): a plain one-line box that ends in dots, not the clamp (the clamp
    cut "12 swings or so to break the Gate" after "break" with no dots). A number-first goal keeps its number whole at the
    start, so only the words after it can end in dots; the chip above names the place. The whole line is in the title. */
