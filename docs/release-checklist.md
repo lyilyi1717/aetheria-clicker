@@ -37,9 +37,9 @@ anonymous play times to Supabase (`proto/features/telemetry/`), it has a "Share 
 Each is Decided, with the reason. Publishing anywhere stays the owner's to approve.
 
 ### D1. YouTube Playables vs desktop only: Decided
-- Desktop only now (design 9.1 default (a) stands). Playables is the target after design work order 1 to 3 is done AND
-  at least 3 real players (one a child, watched) have played the road, because Playables is mostly phones and a
-  phone layout is a second product. A phone layout needs the owner to lift "desktop only" for Dig.
+- Desktop only now (design 9.1 default (a) stands). Playables is the target once the road is tuned as in
+  `docs/pacing-targets.md` AND at least 3 real players, one of them a child watched for 10 minutes, have played the
+  road, because Playables is mostly phones and a phone layout is a second product. A phone layout needs the owner to lift "desktop only" for Dig.
 - Prepare now (no publishing, no behaviour change on desktop), as option (c): a thin `proto/platform.js` wrapper
   with `firstFrame()`, `ready()`, `onPause(fn)`, `onResume(fn)`, `onMute(fn)`, `saveData(str)`, `loadData()`; every
   call is a no-op when `ytgame` is absent. Save goes through one `store` function so cloud save is a swap, not a
@@ -67,7 +67,8 @@ Each is Decided, with the reason. Publishing anywhere stays the owner's to appro
   30 s run with 8 Rafeeqs on the deepest land; save under 1 MiB.
 - Checked: at every release by release-keeper (a number in the row), and once more before Playables. Measured by a
   headless script, one heavy process at a time; if it cannot be measured, the row says "not measured", never "pass".
-- Builder briefs B4 and B5 below.
+- Builder briefs B4 and B5 below. Both built (#435). First measure, headless: first frame 347 ms, frame time p95
+  16.7 ms, save 17.5 KB. All inside the budget; re-measure at each release and before Playables.
 
 ### D4. Changelog practice and telemetry default
 - Changelog: Decided, confirmed per player-visible PR, not per wave. Reason: that is the repo rule (AGENTS.md rule 10),
@@ -81,7 +82,7 @@ Each is Decided, with the reason. Publishing anywhere stays the owner's to appro
   is on by default asks children to opt out of something they cannot judge, and a children's audience raises consent
   rules in some countries. Cost: fewer sessions; the owner's share link (design 9.4) is the way to the 3 players needed
   for a median. The switch wording must stay plain. Marked for design-keeper to confirm or overrule.
-- Brief B6 (only if the owner accepts).
+- Brief B6: built (#438; design-keeper decisions 16 and 18: Off stays Off after a share link).
 
 ### D5. Flaky `test_proto_registry.js` on Windows: Decided (cause not proven)
 - Read the file and ran it 3 times alone here: all pass. The checks use a fixed seed, no timers or clocks (`savedAt`
@@ -94,6 +95,7 @@ Each is Decided, with the reason. Publishing anywhere stays the owner's to appro
 - Decision: do not retry or loosen the test. First make the next failure name its line: brief B7.
 
 ## Builder briefs
+Built: B2, B3 (#434), B4, B5 (#435), B6 (#438), B7. Still open: B1 (platform wrapper).
 Each is one PR, own worktree, tests included, `npm test` green, Dig changelog entry if a player can see it.
 
 **B1. Platform wrapper (no behaviour change).** Done when: `proto/platform.js` exports the seven functions in D1, all
@@ -102,28 +104,28 @@ pause/resume stop and start the step loop and sound; save and load go through on
 checks each call happens once and that without it nothing throws; no change on desktop; a test logs the save size and
 fails over 1 MiB. Does not publish or add a phone layout.
 
-**B2. Export / import.** Done when: Settings has Export (shows and copies the code) and Import (paste, preview line
+**B2. Export / import.** (built) Done when: Settings has Export (shows and copies the code) and Import (paste, preview line
 "Level N, X Stars, saved date", confirm); bad, truncated or newer-version codes are refused with a plain message and
 the current save is untouched; a good code loads through migrations; a round-trip test (state to code to state is
 equal after `deserialize`); all text through the Dig strings file. No gameplay change.
 
-**B3. Frozen old-save fixtures.** Done when: `test_fixtures/` holds literal JSON saves at SAVE_VERSION 2 as of today
+**B3. Frozen old-save fixtures.** (built) Done when: `test_fixtures/` holds literal JSON saves at SAVE_VERSION 2 as of today
 (fresh, mid-road, with a Hard medal) plus hand-made old shapes: no per-feature `fv`, no `legs`, a pre-chili save with
 a half-run in `contractRun`; `test_proto_savefixtures.js` loads each, runs 200 steps, re-saves, and checks no throw,
 no NaN, Stars not lost, and that a missing `fv` runs the feature's migration from 0 once. A comment says "add one
 fixture per release that changes a saved field; never edit an old one". Fixtures hold no player data.
 
-**B4. Reduce motion.** Done when: the switch in D3 exists in Settings, defaults from `prefers-reduced-motion`, is
+**B4. Reduce motion.** (built) Done when: the switch in D3 exists in Settings, defaults from `prefers-reduced-motion`, is
 saved, and each effect named in D3 is gated by one `motion()` check in the UI layer (rules untouched); a test checks
 the default follows the media query and the choice persists; a row is added to `docs/seen-on-screen.md`.
 
-**B5. Budget check script.** Done when: a script prints first-frame ms, p95 frame ms over 30 s with 8 Rafeeqs, and
+**B5. Budget check script.** (built) Done when: a script prints first-frame ms, p95 frame ms over 30 s with 8 Rafeeqs, and
 save bytes, and exits 1 over the D3 budget; it starts one browser and ends it by PID. Not part of `npm test`.
 
-**B6. Telemetry default (decided, dig-design decision 16).** Done when: telemetry sends nothing until the switch is on or
+**B6. Telemetry default (built, #438; dig-design decisions 16 and 18).** Done when: telemetry sends nothing until the switch is on or
 `?share=1` is in the link; the switch wording is plain; the telemetry test is updated; the changelog says it.
 
-**B7. Make the flake show itself.** Done when: `test_proto_registry.js` prints, for any thrown error, the file path
+**B7. Make the flake show itself.** (built) Done when: `test_proto_registry.js` prints, for any thrown error, the file path
 and error code, and its last block prints the folders it found; `run_tests.mjs` on a failure prints the failing file's
 last 20 output lines again at the end. No check is loosened. If the next flake is the directory listing, the fix is
 to read the list from `git ls-files proto/features`, and sessions run `npm test` only in their own worktree.
