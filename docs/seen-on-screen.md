@@ -6,6 +6,30 @@ Verdict: looks right / broken / confusing / not reachable / never seen.
 Seen on 2026-10-14 at version 5.31.1, desktop only, 1500x1000 headless, state set from the console where noted.
 Screenshots over about 300 KB are kept on the worktree only (03, 11).
 
+## Third pass, 14 October (version 5.33.0 on main 741db11, Chapter Two and #417)
+Screenshots in docs/screens/2026-10-14c/ (desktop 1500x1000, 1366x768 for 03). State set from the console (road stamps, a run at the level, bossesDown to finish it). Shots over about 300 KB were not kept (night level 21, Empty Quarter, dark Gate try).
+| Feature | Last seen | Version | Screenshot | Verdict | Note | Issue |
+|---|---|---|---|---|---|---|
+| Level-20 card "You found Grandpa's bell" | 2026-10-14 | 5.33.0 | docs/screens/2026-10-14c/02-bell-card.png | looks right | Chapter One stamp, the note, gold teaser, totals, Chapter Two line, big "Walk home". The stamp text crosses the arch icon a little. | |
+| Level 21+ top line "Chapter 2, level N of 20" | 2026-10-14 | 5.33.0 | not kept | looks right | Reads "Chapter 2, level 1 of 20 - Europe at night - ..." (land name cut with dots at 1500 wide); level 37 reads "level 17 of 20". | |
+| Lesson line at a level start with Stars held | 2026-10-14 | 5.33.0 | not kept | broken | "You have Stars. Spend them at t..." still cut under the gold rule, tabs sit on it. | #421 |
+| Night sky (Europe at night, level 21) | 2026-10-14 | 5.33.0 | not kept | looks right | Dark blue sky, moon, small stars, castle and windmill dimmed. Ground still readable: light sand tops, dark brown blocks with clear edges and copper ore easy to see; stars are faint. | |
+| Empty Quarter look (level 37) | 2026-10-14 | 5.33.0 | not kept | confusing | Orange sky, dune line and a row of small camels far away, light sand on top. But the blocks below are the same dark brown as every land, so it does not read as red dunes. | |
+| World map: row of 11 panels, chapter two after the crossroads | 2026-10-14 | 5.33.0 | docs/screens/2026-10-14c/05-map.png | looks right | Eleven tabs (Arabia to The Empty Quarter) with Beyond between; night panels have moon and stars; level 21 glows with the Rafeeq on it. | |
+| Map: Beyond crossroads side cards | 2026-10-14 | 5.33.0 | docs/screens/2026-10-14c/05-map.png | broken | Three side nodes overlap each other and their Museum chips at the left edge. | #422 |
+| Walk 20 to 21 | 2026-10-14 | 5.33.0 | docs/screens/2026-10-14c/06-walk.png | looks right | After "Walk home" the map opens on level 21 with the Rafeeq at the node and a "Dig here" button (the move itself was over before my 1.4 s look). | |
+| Storyteller book shows chapter two | 2026-10-14 | 5.33.0 | docs/screens/2026-10-14c/07-book.png | looks right | Chapters 6 to 10 (Home by Night to The Empty Quarter) follow chapter 5. The book window is small: only three chapters show at once and it scrolls. | |
+| Level-40 caravan card | 2026-10-14 | 5.33.0 | docs/screens/2026-10-14c/09-caravan-card.png | looks right | "THE ROAD HOME" stamp, "You found Grandpa's caravan", 40 of 40, "Pick a card". | |
+| Finish card at 1366x768 (teaser, chili lines) | 2026-10-14 | 5.33.0 | docs/screens/2026-10-14c/03-finish-1366.png | looks right | Card fits the window; the two big choices and Keep digging stay pinned, the middle scrolls (scroll bar visible). Teaser and "Next chili" line show. The next block peeks under Keep digging, a little untidy. (Fixes #415.) | |
+| Top line after the Gate with Stars held | 2026-10-14 | 5.33.0 | docs/screens/2026-10-14c/04-bell-ring.png | looks right | "Below the Gate / Gate broken in 1:40", Done here and medals clear; no lesson line cut. (Fixes #414 after the Gate.) | |
+| Alqahwa with no guests while the hakawati talks | 2026-10-14 | 5.33.0 | not kept | looks right | No "No Rafeeqs yet" line seen over him (text check, the story ran through Next). | |
+| Level-20 bell hanging in Alqahwa, Story dot | 2026-10-14 | 5.33.0 | docs/screens/2026-10-14c/04-bell-ring.png | looks right | Brass bell hangs from a cord by the window; Story button shows 1 before the telling and no number after. I did not catch the wide swing. | |
+| Hakawati name plate | 2026-10-14 | 5.33.0 | docs/screens/2026-10-14c/04-bell-ring.png | confusing | Tiny gold "The hakawati" on the red rug is hard to read. | #423 |
+| Dark Gate lit/unlit tell, hint box vs layer banner | 2026-10-14 | 5.33.0 | | not reachable | My set-up could not move the camera to the Black; not looked at. | |
+| Manager at 0 on a leg; Museum edge arrow | 2026-10-14 | 5.33.0 | | not reachable | Not set up this pass. | |
+
+Console errors: only the favicon 404.
+
 ## Second pass, 14 October (version 5.31.1 on main c42d3c0, items from #408 to #412)
 Screenshots in docs/screens/2026-10-14b/. 03, 05 and 06 were over 300 KB and are on the worktree only. Mostly state set from the console (stamps, bossesDown, a lantern block, story read list).
 | Feature | Last seen | Version | Screenshot | Verdict | Note | Issue |
