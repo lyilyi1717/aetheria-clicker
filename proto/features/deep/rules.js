@@ -386,10 +386,12 @@ export const deep = use({
   blocks: {
     // the Black
     mushroom: { at: 400, hp: 1, val: 2, notice: true, glows: true, broke(s, b, ev) { addGlow(s, b.r, b.c, p.mushRad, p.mushLife, ev, b.t); } },
-    lantern: { at: 401, hp: 2, val: 3, notice: true, glows: true, broke(s, b, ev) { addGlow(s, b.r, b.c, p.lampRad, p.lampLife, ev, b.t); } },
+    // the cures (a lantern above the Black's Rock, a torch crate above the Living Rock) break in a few hits at any depth: at 2 dirt blocks
+    // they were the hardest block on screen (1,000 to 16,000 hits at level 7 and 8). docs/pacing-targets.md, 14 Oct 2026
+    lantern: { at: 401, hp: 0.01, val: 3, notice: true, glows: true, broke(s, b, ev) { addGlow(s, b.r, b.c, p.lampRad, p.lampLife, ev, b.t); } },
     moonstone: { at: 402, hp: 5, val: 220, ore: true, notice: true, glows: true },
     // the Living Rock
-    torch_crate: { at: 410, hp: 2, val: 2, notice: true, broke(s, b, ev) {
+    torch_crate: { at: 410, hp: 0.01, val: 2, notice: true, broke(s, b, ev) {
       const d = s.deep;
       d.torches = d.torches.filter(t => t.r >= s.top);
       d.torches.push({ r: b.r, c: b.c });

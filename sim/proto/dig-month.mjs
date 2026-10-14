@@ -109,7 +109,7 @@ export const LIMITS = {
 
 // ---------- one run ----------
 function runOne(player, seed, days, ov) {
-  for (const [k, v] of Object.entries(ov || {})) G.setParam(k, v);
+  for (const [k, v] of Object.entries(ov || {})) if (k.startsWith('MOVE.')) MOVE[k.slice(5)] = v; else G.setParam(k, v);   // MOVE.x: the sim player's policy (player.mjs)
   const P = PLAYERS[player];
   const R = newRun(P.profile, seed * 31 + Object.keys(PLAYERS).indexOf(player)); const { s, ctx, trk } = R;
   const end = days * D, opts = { dt: DT, canLeave: true };
@@ -135,7 +135,7 @@ function runOne(player, seed, days, ov) {
     player, seed, units: obj(trk.units), marks: obj(trk.marks), resets: trk.resets, series, src: trk.src, blk: trk.blk, dmg: R.dmg, shim: trk.starShim,
     goalGaps: trk.goalGaps, act: trk.act, best: trk.bestEver, stars: s.stars + (s.starSpent || 0),
     core: CORE_IDS.filter(id => trk.units.has(id)).length, lastCore: Math.max(0, ...CORE_IDS.map(id => trk.units.get(id)?.r ?? 0)),
-    fin: trk.finishes, gates: trk.gates || [], medals: trk.medals, dmg: R.dmg, won: Object.keys(s.contractsWon || {}).length, left: trk.left, sessions: trk.sessions,
+    fin: trk.finishes, gates: trk.gates || [], medals: trk.medals, dmg: R.dmg, won: Object.keys(s.contractsWon || {}).length, left: trk.left, sessions: trk.sessions, tries: trk.tries || [],
   };
 }
 
@@ -336,7 +336,7 @@ async function main() {
   if (!arg('sum', false)) console.log(`Move policy (player.mjs): finished = Next site at once; else stalled ${PROFILES.mid.stall} s (mid), next level more than ${MOVE.far} s of income away, ${MOVE.budget} x par spent; or stalled ${MOVE.giveUp} s.`);
   const base = await runAll(SET);
   // --dump file.json: the base runs; with --sum and --ab, each variant k also goes to file-ab<k>.json (for scripts/dig-levels.cjs)
-  const dumpTo = async (file, res) => (await import('node:fs')).writeFileSync(file, JSON.stringify(res.map(r => ({ player: r.player, seed: r.seed, fin: r.fin, gates: r.gates, medals: r.medals, resets: r.resets, series: r.series, marks: r.marks, blk: r.blk, dmg: r.dmg }))));
+  const dumpTo = async (file, res) => (await import('node:fs')).writeFileSync(file, JSON.stringify(res.map(r => ({ player: r.player, seed: r.seed, fin: r.fin, gates: r.gates, medals: r.medals, resets: r.resets, series: r.series, marks: r.marks, blk: r.blk, dmg: r.dmg, tries: r.tries }))));
   if (arg('dump', false)) await dumpTo(arg('dump'), base);
   if (arg('sum', false)) {
     const out = v => console.log('SUM ' + JSON.stringify(v.ov) + ' ' + sumLine(v.res).split(String.fromCharCode(10)).join(' | '));

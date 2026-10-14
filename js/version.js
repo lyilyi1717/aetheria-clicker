@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.6';
+export const VERSION = '5.36.7';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.7',
+    date: '2026-10-14',
+    title: 'Dig: the lantern and the torch crate break in a few hits',
+    changes: [
+      'The lantern above the dark Gate and the torch crate in the Living Rock now break in a few hits at any depth. Before, they were as hard as two blocks of dirt, so at the bottom of the Black the lantern could take thousands of hits and the Gate stayed dark.',
+      'Nothing else is harder or softer: the ground, the Big Rocks and the Gates are unchanged.'
+    ],
+    ar: {
+      title: 'الحفر: الفانوس وصندوق المشاعل ينكسران ببضع ضربات',
+      changes: [
+        'الفانوس فوق البوابة المظلمة وصندوق المشاعل في الصخر الحيّ ينكسران الآن ببضع ضربات في أي عمق. كانا قبل ذلك بصلابة كتلتين من التراب، فكان الفانوس في قاع الطبقة السوداء قد يحتاج آلاف الضربات وتبقى البوابة مظلمة.',
+        'لا شيء آخر صار أصلب أو أليَن: الأرض والصخور الكبيرة والبوابات كما هي.'
+      ]
+    }
+  },
   {
     version: '5.36.6',
     date: '2026-10-14',
