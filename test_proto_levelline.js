@@ -4,7 +4,7 @@
 import * as G from './proto/game.js';
 import { readFileSync } from 'node:fs';
 import { t, setLang, hasString } from './proto/core/strings.js';
-import { ownDir } from './proto/core/lang.js';
+import { ownDir, goalParts } from './proto/core/lang.js';
 import track from './proto/features/track/strings.js';
 import { levelLine } from './proto/features/track/line.js';
 
@@ -57,6 +57,12 @@ setLang('ar');
   const g = t('goal_pick2', { a: '12K', b: '100K' });
   ok(insideLtr(g, /\//) && g.replace(/[⁦-⁩]/g, '') === 'المعول الثاني: 12K / 100K', 'the Second Pick count reads 12K / 100K: ' + JSON.stringify(g));
 
+  // #469: the count is cut out whole, with its isolate, and the label keeps its colon
+  const gp = goalParts(t('goal_pick2', { a: '3.00K', b: '100K' }), '3.00K');
+  const opens = s => (s.match(/[⁦-⁨]/g) || []).length, closes = s => (s.match(/⁩/g) || []).length;
+  ok(gp && gp.lead === 'المعول الثاني:' && gp.count.replace(/[⁦-⁩]/g, '') === '3.00K / 100K' && gp.count[0] === LRI &&
+    opens(gp.count) === closes(gp.count) && insideLtr(gp.count, /\//),'Arabic Second Pick: label, then the whole count: ' + JSON.stringify(gp));
+
   // the goal line sits in a left-to-right row: its words get a first-strong isolate, so a line ending in a number keeps
   // the number at its left end
   ok(ownDir('الهدف 5 من 10', 'rtl') === FSI + 'الهدف 5 من 10' + PDI, 'the goal line is a first-strong isolate in Arabic');
@@ -68,6 +74,10 @@ setLang('en');
   ok(level === 'Chapter 2, level 17/20', 'English is untouched: ' + level);
   const line = levelLine({ level, zone: 'The Empty Quarter', name: 'The Dunes' }, 'ltr');
   ok(line.dir === 'ltr' && line.lv === 'Chapter 2, level 17/20 · The Empty Quarter' && line.nm === ' · The Dunes', 'English line');
+  const gp = goalParts(t('goal_pick2', { a: '3.00K', b: '100K' }), '3.00K');
+  ok(gp && gp.lead === 'Second Pick:' && gp.count === '3.00K / 100K', 'English Second Pick: label, then the count: ' + JSON.stringify(gp));
+  ok(goalParts('100K to go', '100K') === null, 'a count at the start stays one piece');
+  ok(goalParts('Reach the Gate', undefined) === null && goalParts('Reach the Gate', '5') === null, 'words without the number stay one piece');
 }
 
 // ---------- the page wiring (no browser: the source) ----------
@@ -77,7 +87,18 @@ setLang('en');
   ok(/levelLine\(/.test(ui), 'the track builds its level line with levelLine()');
   ok(!/\.dir\s*=/.test(ui.replace(/head\.dir\s*=\s*msg\.dir\s*=\s*DIR/, '')), 'nothing else in the track row is turned (the row and the stage keep their places)');
   const app = src('proto/ui/app.js');
-  ok(/gt\.textContent\s*=\s*gt\.title\s*=\s*ownDir\(goal\.text\)/.test(app), 'the goal line is isolated where it is written');
+  ok(/gt\.title\s*=\s*ownDir\(goal\.text\)/.test(app) && /gt\.textContent\s*=\s*ownDir\(goal\.text\)/.test(app), 'the goal line is isolated where it is written');
+  // #469: a label then a count is two boxes on one line; the count never shrinks, only the label ends in dots
+  ok(/goalParts\(goal\.text,\s*goal\.num\)/.test(app), 'the goal words are split into label and count');
+  const trk = src('proto/features/track/track.css');
+  ok(/#track #goal-text\.split \{[^}]*display: flex[^}]*white-space: nowrap/.test(trk), 'the split goal is one line');
+  ok(/#track #goal-text\.split \.gn \{[^}]*flex: none/.test(trk), 'the count never shrinks');
+  ok(/#track #goal-text\.split \.gl \{[^}]*min-width: 0[^}]*text-overflow: ellipsis/.test(trk), 'the label ends in dots');
+  ok(/num: a/.test(src('proto/features/picks/ui.js')), 'the Second Pick goal says where its count starts');
+  // #470: the Star pointer is said once, in the message line; the goal spot shows the goal its chip names
+  const star = src('proto/features/starshop/ui.js').replace(/\/\/.*$/gm, '');
+  ok(!/\bgoal\s*:/.test(star), 'the Stars feature has no goal of its own');
+  ok(/toast\(t\('star_pointer'\)/.test(star), 'the Star pointer still shows in the message line');
   const css = src('proto/proto.css');
   ok(/#stage, #cv \{ direction: ltr; \}/.test(css) && /:root\[dir=rtl\] \.layout > \.mid \{ direction: ltr; \}/.test(css), 'the stage and the row stay unmirrored');
 }

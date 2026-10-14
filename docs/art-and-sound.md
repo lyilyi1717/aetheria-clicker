@@ -96,9 +96,9 @@ inside the stage's width (452 to 640 px; 518 at a 1366 x 768 laptop); the gap be
 | Spot | Who lives there | Size rule |
 |---|---|---|
 | T1 start | level line; under it the "Gate at N m" note, the countdown and the medals (`#trk-head`) | never narrower than the second line; the level line does not size the spot (`contain: inline-size`), it takes what is left and ends in dots, the place name first, then the land (full text in its title); grows 3 to T2's 1; at most 62% |
-| T2 middle | the message line: lesson or toast (`#trk-msg`; a lesson wins) | 96 px, grows with spare room, never under 96 px, two lines at most, clipped inside its spot |
+| T2 middle | the message line: lesson or toast (`#trk-msg`; a lesson wins); the only home of nudges such as "You have Stars. Spend them at the Alqahwa." (decision 12) | 96 px, grows with spare room, never under 96 px, two lines at most, clipped inside its spot |
 | T3 | Tips button; "Done here" takes this place when the dig is done | its own width (about 42 px) |
-| T4 end | the goal: one goal chip (`#goal-pin`, only with 2 or more choices) over one line of goal words, or two lines of words without the chip; progress line along the foot | at most 180 px, gives way to what is left; the chip's word ends in dots before anything spills (the step mark and dots stay); the words' full text is in their title; the chip hides when the dig is done |
+| T4 end | the goal: one goal chip (`#goal-pin`, only with 2 or more choices) over one line of goal words, or two lines of words without the chip; progress line along the foot. Only the goal the chip names, never a nudge (decision 12) | at most 180 px, gives way to what is left; the chip's word ends in dots before anything spills (the step mark and dots stay); the words' full text is in their title; a label with a count ("Second Pick: 3.00K / 100K") is one line where only the label ends in dots and the count always shows (decision 13); the chip hides when the dig is done |
 
 Rule: a new thing on the stage takes a free spot from this table (or a new row added here); it never sits on S4 or S5 while the
 manager is on screen. `test_proto_art.js` checks the S5 and S7 numbers.
@@ -225,6 +225,20 @@ The test page for every sound: `proto/soundboard.html`.
     laptop width, and moving every banner (chili starts, chili won, ...) would change their place for all players to solve a
     first-minute clash. The hint waits while `#banner.show` is on (one CSS rule, `proto.css`), then fades in; a player who digs
     first has learnt it already.
+12. **Decided (14 Oct 2026, by art-director): "You have Stars. Spend them at the Alqahwa." lives in the message line (T2) only;
+    the goal spot (T4) always shows the goal its chip names** (#470). Because the sentence is a nudge to go somewhere else, not
+    a goal with progress: its bar was always full, and under a chip saying "Second Pick" or "Gate" it contradicted the chip a
+    child had just tapped. Two copies of one sentence, both cut, read as two messages. The message line already showed it on
+    each new level (1.8 s in, gold), and the Stars can only be spent once the dig is done, where the finish card's "Go to
+    Alqahwa" choice says "You have N Stars to spend." So the Stars feature gives up its goal (`starshop/ui.js`); its note in the
+    message line stays. Checked in `test_proto_levelline.js`.
+13. **Decided (14 Oct 2026, by art-director): goal words that are a label and a count are two boxes on one line; the count
+    never shrinks and only the label ends in dots** (#469). Because the count is what the player watches climb, and the label
+    already sits in the chip right above it ("Second Pick" / "المعول الثاني"); in Arabic the whole line was too wide for 140 to
+    180 px and the target number fell onto the hidden second line. A layout fix, not a wording one: the goal says where its
+    count starts (`num`), `goalParts()` in `core/lang.js` cuts the localizer's words there (any order of words before it is
+    kept), and `#goal-text.split` (`track/track.css`) lays them out in the page direction (Arabic: label on the right, count on
+    its left). Words that do not end in a count stay one piece. The full line stays in the title.
 
 ## 9. Briefs for builders
 
@@ -258,3 +272,9 @@ not overlapping, the manager and hakawati name plates readable, the Star board a
   message line still two readable lines. Also with the clock over time ("1:23 over"): the chip may end in dots but stays inside.
   After the Gate: "Done here" and "Gate broken in ..." whole, no chip.
 - (v5.35.7) A fresh save: "Point at the ground to dig" is not shown while "A new site!" is up, and appears right after it.
+- (v5.36.2, #470) With Stars held and none spent, start a new level, English and Arabic, 1366x768: "You have Stars. Spend
+  them at the Alqahwa." shows once, in the message line beside Tips; the goal spot under the chip shows the chip's goal
+  (Gate, Second Pick or the Museum set), not the Star sentence.
+- (v5.36.2, #469) The Second Pick goal pinned, Arabic and English, 1366x768 and 1500x1000, with the chip showing: both numbers
+  ("3.00K / 100K") on the visible line, only the label ends in dots; in Arabic the label on the right, the count on its left.
+  Without the chip (one goal choice) the same. The Gate goal and the Museum set goal look as before.

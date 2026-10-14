@@ -173,7 +173,8 @@ ui({
   // the goal bar follows the pin; the Gate's own goal (sites) shows when the pin is the Gate
   goal: { at: 8, fn(s) {
     const pin = G.picksPin(s);
-    if (pin === 'pick2') return { text: t('goal_pick2', { a: fmt(Math.min(s.coins, G.PARAMS.picks.secondCost)), b: fmt(G.PARAMS.picks.secondCost) }), frac: Math.min(1, s.coins / G.PARAMS.picks.secondCost), cls: 'gold' };
+    // `num`: where the count starts, so the numbers keep the visible line and only the label ends in dots (ui/app.js)
+    if (pin === 'pick2') { const a = fmt(Math.min(s.coins, G.PARAMS.picks.secondCost)); return { text: t('goal_pick2', { a, b: fmt(G.PARAMS.picks.secondCost) }), num: a, frac: Math.min(1, s.coins / G.PARAMS.picks.secondCost), cls: 'gold' }; }
     if (pin === 'set') { const n = G.picksSetNear(s); if (n) return { text: t('goal_set', { name: t('wset_' + n.set), a: n.a, b: n.b }), frac: n.a / n.b, cls: 'gold' }; }
     return null;
   } },

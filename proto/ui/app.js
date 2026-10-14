@@ -9,7 +9,7 @@ import { icon, addIcons } from './icons.js';
 import strings from './strings.js';
 import { drawer, tabOf } from './drawer.js';
 import { createLessons } from './lessons.js';
-import { ownDir } from '../core/lang.js';
+import { ownDir, goalParts, DIR } from '../core/lang.js';
 
 const { t, fmt } = G;
 G.addStrings(strings, 'page');
@@ -291,6 +291,21 @@ function buildPanels() {
   }
 }
 
+// the goal words: a label then a count ("Second Pick: 3.00K / 100K") are two boxes on one line, the label ends in dots and the
+// count always shows (#469); anything else is one piece of words (two lines without the chip, one with it)
+function paintGoalText(gt, goal) {
+  const p = goalParts(goal.text, goal.num), key = (p ? '1' : '0') + goal.text;
+  if (gt.dataset.k === key) return;
+  gt.dataset.k = key;
+  gt.classList.toggle('split', !!p);
+  if (!p) { gt.removeAttribute('dir'); gt.textContent = ownDir(goal.text); return; }
+  gt.dir = DIR;   // Arabic: the label on the right, the count on its left
+  gt.textContent = '';
+  const a = document.createElement('span'), b = document.createElement('span');
+  a.className = 'gl'; a.textContent = p.lead; b.className = 'gn'; b.textContent = p.count;
+  gt.append(a, b);
+}
+
 let panelT = 0;
 function updatePanels(force) {
   for (const p of PANELS) {
@@ -306,7 +321,8 @@ function updatePanels(force) {
   for (let i = 0; i < GOALS.length && !goal; i++) goal = GOALS[i].fn(state, app);
   const fill = $('goal-fill');
   $('goal').style.visibility = goal ? '' : 'hidden';
-  if (goal) { const gt = $('goal-text'); gt.textContent = gt.title = ownDir(goal.text);   // the title keeps the whole line when the chip leaves it one
+  if (goal) { const gt = $('goal-text'); gt.title = ownDir(goal.text);   // the title keeps the whole line when the chip leaves it one
+    paintGoalText(gt, goal);
     fill.style.width = (goal.frac * 100) + '%'; fill.className = goal.cls || ''; }
   $('depth').textContent = t('depth', { n: state.best });
   // the status chip under the purse (combo, oil rush)
