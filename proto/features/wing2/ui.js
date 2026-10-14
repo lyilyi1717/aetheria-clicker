@@ -154,7 +154,7 @@ ui({
       g.fillStyle = '#b5894f'; g.strokeStyle = '#4d3416'; g.lineWidth = 2;
       g.beginPath(); g.moveTo(32, 14); g.bezierCurveTo(52, 24, 58, 50, 46, 55); g.lineTo(18, 55); g.bezierCurveTo(6, 50, 12, 24, 32, 14); g.closePath(); g.fill(); g.stroke();
       g.fillStyle = '#8a6334'; rr(g, 24, 11, 16, 7, 3); g.fill(); g.stroke();
-      g.fillStyle = '#4d3416'; g.font = 'bold 22px sans-serif'; g.textAlign = 'center'; g.fillText('?', 32, 46);
+      g.fillStyle = '#4d3416'; g.font = 'bold 22px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.fillText('?', 32, 46);
     } },
   },
   draw: [{ at: AT.actors + 5, fn: (g, s) => drawHats(g, s) }, { at: AT.screen + 5, fn: drawCamel }],

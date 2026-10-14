@@ -70,7 +70,7 @@ export function use(def) {
     for (const [old, key] of Object.entries(def.legacy || {})) ALIAS[old] = [id, key];
   }
   for (const [name, obj] of Object.entries(def.tables || {})) ROOTS[name] = obj;
-  if (def.strings) addStrings(def.strings, id);
+  if (def.strings) addStrings(def.strings, id, def.stringsAr);
   for (const [key, sl] of Object.entries(def.state || {})) slice(key, sl, id);
 
   addAll(BLOCKS, def.blocks, id, 'block', b => ({ hp: 1, val: 0, ...b }));

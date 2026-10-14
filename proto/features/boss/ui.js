@@ -109,7 +109,7 @@ function drawBar(g, s, b) {
   rr(g, bx, by, bw, bh, 7); g.strokeStyle = '#1c1830'; g.lineWidth = 2; g.stroke();
   const sw = G.bossSwings(s, b), gate = s.run && !s.run.done && s.run.floor === b.row;
   const label = t((gate ? 'rock_gate_' : 'rock_') + (sw.n === 1 ? 'swing' : 'swings'), { n: fmt(sw.n), time: t('time_' + sw.time.unit, { n: sw.time.n }) });
-  g.save(); g.font = '800 12px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.save(); g.font = '800 12px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.lineJoin = 'round'; g.lineWidth = 3.5; g.strokeStyle = 'rgba(14,10,7,.95)'; g.fillStyle = '#fff';
   g.strokeText(label, W / 2, by + bh / 2 + 0.5); g.fillText(label, W / 2, by + bh / 2 + 0.5);
   g.restore();
@@ -118,7 +118,7 @@ function drawBar(g, s, b) {
   if (tell) {
     const nolamp = tell.r === undefined, base = 'rock_tell_' + tell.kind;
     const txt = t(nolamp && tell.kind !== 'lit' ? base + (tell.kind === 'dark' ? '_nolamp' : tell.kind === 'grow' ? '_notorch' : '_nowater') : base, { n: tell.pct });
-    g.save(); g.font = '800 13px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.save(); g.font = '800 13px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.lineJoin = 'round'; g.lineWidth = 3.5; g.strokeStyle = 'rgba(14,10,7,.95)'; g.fillStyle = tell.kind === 'lit' ? '#9dffcf' : '#ffd36a';
     const pw = g.measureText(txt).width + 16;
     g.fillStyle = 'rgba(14,10,7,.6)'; rr(g, W / 2 - pw / 2, by - 19, pw, 20, 10); g.fill();
@@ -241,7 +241,7 @@ ui({
     const fxp = W - 170;
     g.strokeStyle = '#1b1410'; g.lineWidth = 3; g.beginPath(); g.moveTo(fxp, y); g.lineTo(fxp, y - 30); g.stroke();
     g.fillStyle = '#ffd23f'; g.beginPath(); g.moveTo(fxp, y - 30); g.lineTo(fxp + 20, y - 24); g.lineTo(fxp, y - 17); g.closePath(); g.fill(); g.stroke();
-    g.font = '700 14px system-ui, sans-serif'; g.fillStyle = '#ffd23f'; g.strokeStyle = 'rgba(0,0,0,.8)'; g.lineWidth = 3;
+    g.font = '700 14px system-ui, Cairo, sans-serif'; g.fillStyle = '#ffd23f'; g.strokeStyle = 'rgba(0,0,0,.8)'; g.lineWidth = 3;
     const label = t('record_flag', { n: s.recMark });
     g.strokeText(label, fxp + 26, y - 14); g.fillText(label, fxp + 26, y - 14);
     g.restore();

@@ -263,7 +263,7 @@ function drawEmote(g, e, d) {
       break;
     }
     case 'bang':
-      g.font = 'bold 20px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#ffd23f';
+      g.font = 'bold 20px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#ffd23f';
       g.strokeText('!', 0, -36 - Math.abs(wob) * 2 * k); g.fillText('!', 0, -36 - Math.abs(wob) * 2 * k);
       break;
     case 'twinkle':
@@ -312,13 +312,13 @@ function drawChatter(g, s, dt) {
     const name = G.chatterName(s, i), line = t('chat_tag_line', { trait: G.chatterLine(s, i), n: G.fmt(d.broke || 0) });
     const [x, y] = centre(d.r, d.c);
     g.save(); g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.font = 'bold 14px system-ui, sans-serif'; const w1 = g.measureText(name).width;
-    g.font = '12px system-ui, sans-serif'; const w2 = g.measureText(line).width;
+    g.font = 'bold 14px system-ui, Cairo, sans-serif'; const w1 = g.measureText(name).width;
+    g.font = '12px system-ui, Cairo, sans-serif'; const w2 = g.measureText(line).width;
     const w = Math.max(w1, w2) + 18, h = 38, bx = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, x)), by = y + 24 + h / 2;
     g.globalAlpha = Math.min(1, (mem.hoverT - P.tagAfter) * 5);
     rr(g, bx - w / 2, by - h / 2, w, h, 8); g.fillStyle = '#2b2118'; g.fill(); g.strokeStyle = '#ffd23f'; g.lineWidth = 2; g.stroke();
-    g.fillStyle = '#ffd23f'; g.font = 'bold 14px system-ui, sans-serif'; g.fillText(name, bx, by - 8);
-    g.fillStyle = '#f4ead8'; g.font = '12px system-ui, sans-serif'; g.fillText(line, bx, by + 9);
+    g.fillStyle = '#ffd23f'; g.font = 'bold 14px system-ui, Cairo, sans-serif'; g.fillText(name, bx, by - 8);
+    g.fillStyle = '#f4ead8'; g.font = '12px system-ui, Cairo, sans-serif'; g.fillText(line, bx, by + 9);
     g.restore();
   }
 }

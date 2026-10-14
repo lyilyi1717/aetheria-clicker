@@ -4,8 +4,9 @@
 const TABLES = { en: {} };
 let lang = 'en';
 
-export function addStrings(tables, owner = '?') {
-  for (const [lg, table] of Object.entries(tables || {})) {
+// `extra` is the optional sibling file's default export ({ ar: {...} }): a feature with a big Arabic table keeps it in strings.ar.js
+export function addStrings(tables, owner = '?', extra = null) {
+  for (const [lg, table] of [...Object.entries(tables || {}), ...Object.entries(extra || {})]) {
     const T = TABLES[lg] || (TABLES[lg] = {});
     for (const [k, v] of Object.entries(table)) {
       if (k in T) throw new Error(`Dig: string "${k}" (${lg}) is defined twice (second time by ${owner})`);
@@ -13,7 +14,10 @@ export function addStrings(tables, owner = '?') {
     }
   }
 }
-export function setLang(l) { lang = TABLES[l] ? l : 'en'; }
+// the table list may not hold the language yet (tables arrive feature by feature), so accept any known language name
+export function setLang(l) { lang = l === 'ar' ? 'ar' : 'en'; if (!TABLES[lang]) TABLES[lang] = {}; }
+// one key in a named language, no fallback (null if absent): for text that shows both scripts
+export const tIn = (lg, key) => (TABLES[lg] && TABLES[lg][key]) ?? null;
 export const hasString = key => key in TABLES.en;
 // keys of `from` that `lang` lacks (for a test that fails on missing Arabic, once there is Arabic)
 export const missingStrings = (l, from = 'en') => Object.keys(TABLES[from]).filter(k => !(TABLES[l] && k in TABLES[l]));
@@ -22,7 +26,7 @@ export function t(key, vars) {
   let s = TABLES[lang][key];
   if (s === undefined) s = TABLES.en[key];
   if (s === undefined) return key;
-  if (vars) for (const k of Object.keys(vars)) s = s.replace(`{${k}}`, vars[k]);
+  if (vars) for (const k of Object.keys(vars)) s = s.split(`{${k}}`).join(lang === 'ar' && /^[\d.,]+[A-Za-z]*$/.test(String(vars[k])) ? `⁦${vars[k]}⁩` : vars[k]);
   return s;
 }
 

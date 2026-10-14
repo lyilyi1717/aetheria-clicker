@@ -240,6 +240,7 @@ const kit = G.use({
   console.log(`registry test: found ${feats.length} feature folders in ${process.cwd()}/proto/features: ${feats.join(' ')}`);
   for (const f of feats) for (const n of ['rules.js', 'strings.js']) if (existsSync(`proto/features/${f}/${n}`)) files.push(`proto/features/${f}/${n}`);
   for (const f of files) {
+    if (f === 'proto/core/lang.js') continue; // the page's language switch: location and localStorage on purpose
     let raw; try { raw = readFileSync(f, 'utf8'); } catch (e) { failed++; console.error(`FAIL: could not read ${f} (${e.code}): ${e.message}`); continue; }
     const src = raw.replace(/\/\/.*$/gm, '');
     if (f !== 'proto/core/rng.js') ok(!/Math\.random/.test(src), `${f}: rules take chance from rnd(), not Math.random`);

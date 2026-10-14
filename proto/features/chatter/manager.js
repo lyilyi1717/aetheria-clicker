@@ -2,6 +2,7 @@
 // glass of tea, and a text box. NOT a Rafeeq: he is never in s.diggers, has no seat, does nothing to the dig. The rules are
 // `chatterBossStep` in ./rules.js; this file feeds it (is the player digging? is a card open?) and draws him.
 import * as G from '../../game.js';
+import { LANG } from '../../core/lang.js';
 import { fx, rr } from '../../ui/render.js';
 import { moodsMem, moodsSay } from '../moods/ui.js';
 
@@ -79,7 +80,7 @@ export function drawManager(g, s, dt) {
     const txt = (over ? '-' : '') + Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
     const pop = mem.bump > 0 && !reduced ? 1 + Math.sin(Math.min(1, mem.bump / 0.9) * Math.PI) * 0.35 : 1;
     g.save(); g.globalAlpha = k; g.translate(x0, y0 - 80 - jump); g.scale(pop, pop);
-    g.font = 'bold 15px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = 'bold 15px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
     const w = g.measureText(txt).width + 16;
     rr(g, -w / 2, -9, w, 18, 6); g.fillStyle = '#2b2118'; g.fill();
     g.strokeStyle = over ? '#e07a6a' : c.left <= 10 && !run.done ? '#ffd23f' : '#c9d0d8'; g.lineWidth = 1.6; g.stroke();
@@ -87,13 +88,13 @@ export function drawManager(g, s, dt) {
     g.restore();
   }
   // the name plate
-  g.save(); g.globalAlpha = k; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold 11px system-ui, sans-serif';
-  const nm = G.t(fem ? 'bossf_name' : 'boss_name') + '  ' + G.t(fem ? 'bossf_name_ar' : 'boss_name_ar'), pw = g.measureText(nm).width + 12;
+  g.save(); g.globalAlpha = k; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold 11px system-ui, Cairo, sans-serif';
+  const nm = G.t(fem ? 'bossf_name' : 'boss_name') + (LANG === 'ar' ? '' : '  ' + G.tIn('ar', fem ? 'bossf_name' : 'boss_name')), pw = g.measureText(nm).width + 12;
   rr(g, x0 - pw / 2, y0 + 3, pw, 14, 5); g.fillStyle = '#2b2118'; g.fill(); g.fillStyle = '#ffd23f'; g.fillText(nm, x0, y0 + 10.5);
   g.restore();
   // the text box
   if (mem.line && !s.chatterQuiet) {
-    g.save(); g.globalAlpha = Math.min(1, mem.lineLeft * 3) * k; g.font = 'bold 14px system-ui, sans-serif'; g.textAlign = 'start'; g.textBaseline = 'middle';
+    g.save(); g.globalAlpha = Math.min(1, mem.lineLeft * 3) * k; g.font = 'bold 14px system-ui, Cairo, sans-serif'; g.textAlign = 'start'; g.textBaseline = 'middle';
     const rows = [''];
     for (const w of mem.line.split(' ')) { const cur = rows[rows.length - 1], tryRow = cur ? cur + ' ' + w : w; if (g.measureText(tryRow).width > 190 && cur) rows.push(w); else rows[rows.length - 1] = tryRow; }
     const w = Math.max(...rows.map(r => g.measureText(r).width)) + 20, h = rows.length * 17 + 10, bx = x0 + 36, by = 24;
@@ -168,13 +169,13 @@ export function bossFigure(g, fem, mem, T) {
   if (sleep) {
     for (let n = 0; n < 2; n++) {
       const ph = (T * 0.5 + n * 0.5) % 1;
-      g.globalAlpha = 1 - ph; g.font = `bold ${11 + n * 4}px system-ui, sans-serif`; g.textAlign = 'start'; g.strokeStyle = INK; g.lineWidth = 3; g.fillStyle = '#e8f1ff';
+      g.globalAlpha = 1 - ph; g.font = `bold ${11 + n * 4}px system-ui, Cairo, sans-serif`; g.textAlign = 'start'; g.strokeStyle = INK; g.lineWidth = 3; g.fillStyle = '#e8f1ff';
       g.strokeText('z', 12 + ph * 8, -60 - ph * 16 - n * 6); g.fillText('z', 12 + ph * 8, -60 - ph * 16 - n * 6);
     }
     g.globalAlpha = 1;
   }
   if (mem.jump > 0) {
-    g.font = 'bold 22px system-ui, sans-serif'; g.textAlign = 'center'; g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#ffd23f';
+    g.font = 'bold 22px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#ffd23f';
     g.strokeText('!', 36, -48); g.fillText('!', 36, -48);
   }
 }

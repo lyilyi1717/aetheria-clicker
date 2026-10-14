@@ -271,7 +271,7 @@ function drawFx(g) {
   for (const t of fx.texts) {
     const k = t.life / t.max;
     const pop = k > 0.85 ? 0.6 + (1 - k) / 0.15 * 0.7 : Math.min(1.3, 1 + (k - 0.6) * 0.75);
-    g.font = `800 ${Math.round(t.size * Math.max(1, pop))}px system-ui, sans-serif`;
+    g.font = `800 ${Math.round(t.size * Math.max(1, pop))}px system-ui, Cairo, sans-serif`;
     g.globalAlpha = Math.min(1, k * 3.3);
     g.lineWidth = 4; g.strokeStyle = 'rgba(0,0,0,0.75)'; g.strokeText(t.str, t.x, t.y);
     g.fillStyle = t.col; g.fillText(t.str, t.x, t.y);
