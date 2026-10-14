@@ -61,7 +61,7 @@ export const isBossRow = r => r > 0 && r % LAYER === 0;
 
 function ensureBoss(s, r) {
   if (!s.boss || s.boss.row !== r) {
-    const hp = Math.round(fold('bossHp', s, dirtHp(r) * p.hp * (1 + p.layerHp * layerOf(r - 1))));
+    const hp = Math.round(fold('bossHp', s, dirtHp(r) * p.hp * (1 + p.layerHp * layerOf(r - 1)), r));
     s.boss = { row: r, hp, max: hp, weak: Math.floor(rnd() * COLS), wt: p.weakSeconds, rub: 0, you: 0, crew: 0 };
     gateOpen(s, s.boss);
   }
@@ -94,9 +94,14 @@ function gateBank(s, b, done) {
 }
 // what the Gate has cracked already (0 to 1) for the arrival line, and the leave line
 export const bossGateBank = b => (b && b.gate && b.hp > 0 ? b.bank0 || 0 : 0);
-export function bossGateKeeps(s) {
+// the share (in percent) of your damage the Gate keeps for next time, while it is being hit; 0 otherwise
+export function bossGateKeepsPct(s) {
   const b = s.boss;
-  return b && b.gate && b.hp > 0 && b.dealt > 0 && s.run && !s.run.done ? t('gate_keeps', { n: Math.round(p.gateShare * 100) }) : '';
+  return b && b.gate && b.hp > 0 && b.dealt > 0 && s.run && !s.run.done ? Math.round(p.gateShare * 100) : 0;
+}
+export function bossGateKeeps(s) {
+  const n = bossGateKeepsPct(s);
+  return n ? t('gate_keeps', { n }) : '';
 }
 export function bossInView(s) {
   for (let i = 0; i < VIEW_ROWS; i++) if (isBossRow(s.top + i) && s.rows[i].some(x => x)) return ensureBoss(s, s.top + i);
@@ -142,6 +147,9 @@ export const boss = use({
   params: p,
   legacy: { bossHp: 'hp', bossPay: 'pay', weakMult: 'weakMult', weakSeconds: 'weakSeconds' },
   strings,
+  version: 2,
+  // v2: the Gate-memory lesson used to write seen['gate:<key>:<bank>'] once per try; it is one flag now ('gatemem'). Drop the old ones.
+  migrate(s) { for (const k of Object.keys(s.seen || {})) if (/^gate:.*:\d+$/.test(k)) delete s.seen[k]; },
   state: {
     boss:       { init: () => null, perSite: true },   // { row, hp, max, weak, wt }
     bossesDown: { init: () => 0, perSite: true },

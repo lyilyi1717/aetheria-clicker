@@ -267,7 +267,8 @@ function finish(s, ev) {
       s.road.chiliHit = chiliHit(s);
       chili = { n: cn, stars, gain: chiliGain(cn), hit: s.road.chiliHit };
     }
-    // the rules end with the Gate; the ground goes on as hard as it was
+    // the contract's rule ends with the Gate (s.contract is cleared). The extra hardness does not end here: it is read from the run
+    // (run.chili), not from the contract, so ground and Rocks dug after the Gate stay as hard until the player leaves the site
     const C = CONTRACTS[s.contract];
     if (C && s.contract === r.hard) { if (C.end) C.end(s); s.contract = null; }
   }
@@ -416,7 +417,12 @@ export const sites = use({
       { at: 22, fn: (v, s) => v * (1 + (s.road.chiliHit || 0)) }],      // what the chilies added for ever ("Your hit")
     crewPower: { at: 20, fn: (v, s) => v * (1 + p.starPick * s.stars) },
     sight: (v, s) => (twistOf(s) === 'dim' ? Math.min(v, p.twistSight) : v),
-    bossHp: (v, s) => { const i = roadIndex(s) - FIXED.length; return (i >= 0 && p.gateMul[i] !== undefined ? v * p.gateMul[i] : roadProve(s) ? v * p.proveHp : v) * chiliMul(s, p.chiliRock); },   // the Gate of a road level has its own size (gateMul); a chili level's is harder still
+    // r = the row of the Rock. The Gate (the Rock at the run's floor row) of a road level has its own size (gateMul); the Big Rocks
+    // before it use the normal size (times the prove factor on a prove level); a chili level makes every Rock harder still
+    bossHp: (v, s, r) => {
+      const i = roadIndex(s) - FIXED.length, gate = !!s.run && r === s.run.floor;
+      return (gate && i >= 0 && p.gateMul[i] !== undefined ? v * p.gateMul[i] : roadProve(s) ? v * p.proveHp : v) * chiliMul(s, p.chiliRock);
+    },
   },
   hooks: {
     // the start kit comes after the Star perks (starshop resets at 100): the larger of the two wins

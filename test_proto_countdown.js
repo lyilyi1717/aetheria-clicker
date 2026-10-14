@@ -78,7 +78,7 @@ const run = (s, secs, ev = NO) => { for (let i = 0; i < secs * 20; i++) G.step(s
 { // the shouts: start, half, 30, 10, 0 (maybe extend), early, late; a sleeper wakes for 10
   const s = fresh(3); for (let i = 0; i < 3; i++) s.diggers.push(G.newRafeeq ? G.newRafeeq(s) : { x: 0 });
   const r = G.siteRun(s), mem = G.chatterBossMem();
-  const say = c => G.chatterTimeStep(s, mem, r, G.legLeft(r, s.bossesDown), { rnd: () => 0.9, extend: NO, muted: false, ...c });
+  const say = c => G.chatterTimeStep(s, mem, r, G.legLeft(r, s.bossesDown), { rnd: () => 0.9, muted: false, ...c });
   ok(s.diggers.length >= 3, 'three Rafeeqs hired');
   ok(say() === 'start', 'start of the first leg');
   mem.lineLeft = 0;
@@ -86,9 +86,30 @@ const run = (s, secs, ev = NO) => { for (let i = 0; i < secs * 20; i++) G.step(s
   mem.lineLeft = 0; r.clock = G.siteLegs(r)[0].len - 29; ok(say() === 't30', '30 s');
   mem.lineLeft = 0; mem.asleep = true; r.clock = G.siteLegs(r)[0].len - 9; ok(say() === 't10' && !mem.asleep, 'asleep, he wakes for 10 s');
   r.clock = G.siteLegs(r)[0].len + 1; mem.lineLeft = 0;
-  ok(say({ rnd: () => 0.9 }) === 'zero', 'zero: a line, no extension at a high roll');
-  mem.tm.fired.zero = 0; mem.lineLeft = 0;
-  ok(say({ rnd: () => 0.1, extend: secs => G.legExtend(s, secs) }) === 'extend' && r.extra >= 15, 'a low roll grants extra time, once');
+  ok(say({ rnd: () => 0.9 }) === 'zero', 'zero: a line');
+  mem.lineLeft = 0;
+  { // extra time is rolled in the rules (core rnd), once per leg, stored in the run; the manager only says the line on the event
+    const seen = []; let granted = 0;
+    for (let seed = 1; seed <= 60 && !granted; seed++) {
+      const z = fresh(seed); for (let i = 0; i < 3; i++) z.diggers.push(G.newRafeeq(z));
+      const zr = G.siteRun(z); zr.clock = G.siteLegs(zr)[0].len + 1;
+      G.step(z, 0.05, (k, d) => seen.push([k, d]));
+      if (zr.legRoll === 0 && zr.extra) {
+        granted = zr.extra;
+        ok(seen.some(([k]) => k === 'legExtended'), 'the rules emit legExtended');
+        ok(G.chatterLegRoll(z, NO) === 0 && zr.extra === granted, 'no second grant in the same leg');
+        const z2 = fresh(1); z2.diggers = z.diggers; z2.run = JSON.parse(JSON.stringify(z.run)); z2.run.legExt = undefined; z2.run.extra = 0; z2.run.legBank = 0;
+        ok(G.chatterLegRoll(z2, NO) === 0, 'a reloaded run remembers its roll (legRoll): no re-roll');
+        const m = G.chatterBossMem();
+        ok(G.chatterBossExtended(z, m, { muted: false, rnd: () => 0.1 }) === 'extend' && m.bump > 0 && m.line, 'the manager says the extend line and bumps on the event');
+      }
+    }
+    ok(granted >= 15, 'some seed grants extra time (about 1 in 3)');
+    const none = fresh(5); const nr = G.siteRun(none); nr.clock = G.siteLegs(nr)[0].len + 1; G.step(none, 0.05, NO);
+    ok(nr.legRoll === undefined && !nr.extra, 'fewer than 3 Rafeeqs: no roll at all');
+    const hit = fresh(2); for (let i = 0; i < 3; i++) hit.diggers.push(G.newRafeeq(hit)); const hr = G.siteRun(hit);
+    G.step(hit, 0.05, NO); ok(hr.legRoll === undefined, 'no roll while time is left');
+  }
   s.bossesDown = 1; G.step(s, 0.05, NO); mem.lineLeft = 0;
   const w = say(); ok(w === 'late' || w === 'early', 'a Rock broken gives a closing line');
   const none = fresh(3); const m2 = G.chatterBossMem();

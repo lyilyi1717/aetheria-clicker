@@ -25,9 +25,13 @@ export const pipsHtml = (n, size = 18, next = 0) => [1, 2, 3, 4, 5].map(k => `<i
 // what pip n costs and pays, as plain numbers: { name, rule, stars, hit, ground, rock }
 export function chiliFacts(floor, n) {
   const P = G.PARAMS.sites, gain = G.chiliGain(n);
-  return { name: t('c_chili' + n), rule: t('c_chili' + n + '_d'), stars: G.fmt(G.chiliPay(floor, n)), gain, hit: gain ? t('chili_site_hit', { p: pct(gain) }) : '',
+  return { name: t('c_chili' + n), rule: t('c_chili' + n + '_d'), stars: G.fmt(G.chiliPay(floor, n)), gain,
     ground: mul(Math.pow(P.chiliGround, n)), rock: mul(Math.pow(P.chiliRock, n)) };
 }
+
+// whole sentences for what a pip pays (with or without the hit it keeps for ever)
+export const chiliPayLine = f => t(f.gain ? 'chili_next_pay_hit' : 'chili_next_pay', { n: f.stars, p: pct(f.gain), a: f.ground, b: f.rock });
+export const chiliNowLine = f => t(f.gain ? 'chili_site_now_hit' : 'chili_site_now', { name: f.name, stars: f.stars, p: pct(f.gain) });
 
 const MEDALS = ['fin', 'fast', 'hard'];
 const medalChip = (kind, on) => `<span class="mchip ${kind}${on ? ' on' : ''}" title="${t('medal_' + kind + '_d')}">${icon('medal_' + kind, 18)}<i>${t('medal_' + kind)}</i></span>`;
@@ -58,7 +62,7 @@ function openNext(app) {
   m.querySelector('.sub').textContent = t(fixed ? 'next_sub_fixed' : lvl ? 'next_sub_stuck' : 'next_sub');
   m.querySelector('.line').textContent = G.starshopLineText(s);
   const gain = G.starsFor(s);
-  m.querySelector('.leave').textContent = (run.done ? (gain > 0 ? t('next_reward', { n: G.fmt(gain) }) : t('next_leave_done')) : t('next_leave', { n: G.fmt(gain) }) + ' ' + G.bossGateKeeps(s)).trim();
+  m.querySelector('.leave').textContent = run.done ? (gain > 0 ? t('next_reward', { n: G.fmt(gain) }) : t('next_leave_done')) : G.bossGateKeepsPct(s) ? t('next_leave_keeps', { n: G.fmt(gain), k: G.bossGateKeepsPct(s) }) : t('next_leave', { n: G.fmt(gain) });
   const back = m.querySelector('.ghost'); back.textContent = t('next_stay'); back.addEventListener('click', () => app.modal.close());
   const wrap = m.querySelector('.cards');
   cards.forEach((c, i) => {
@@ -165,9 +169,9 @@ function fillChili(m, s, d) {
   row.hidden = txt.hidden = nx.hidden = !st || !!d.twist;
   if (!st || d.twist) return;
   row.innerHTML = pipsHtml(n, 22, card ? card.chili : 0);
-  txt.textContent = d.chiliWon ? t('chili_won_title', { name: t('c_chili' + d.chili) }) + (G.chiliGain(d.chili) ? ' ' + t('chili_won_hit', { p: pct(G.chiliGain(d.chili)) }) + '.' : '') : d.chili ? t('chili_off') : '';
+  txt.textContent = d.chiliWon ? G.chiliGain(d.chili) ? t('chili_won_line', { name: t('c_chili' + d.chili), p: pct(G.chiliGain(d.chili)) }) : t('chili_won_title', { name: t('c_chili' + d.chili) }) : d.chili ? t('chili_off') : '';
   txt.classList.toggle('yes', !!d.chiliWon);
-  if (card) { const f = chiliFacts(d.floor, card.chili); nx.innerHTML = ''; nx.append(t('chili_next', { name: f.name, rule: f.rule }) + ' ', Object.assign(document.createElement('span'), { className: 'pay', textContent: t('chili_next_pay', { n: f.stars, hit: f.hit, a: f.ground, b: f.rock }) })); }
+  if (card) { const f = chiliFacts(d.floor, card.chili); nx.innerHTML = ''; nx.append(t('chili_next', { name: f.name, rule: f.rule }) + ' ', Object.assign(document.createElement('span'), { className: 'pay', textContent: chiliPayLine(f) })); }
   else nx.textContent = n >= G.PARAMS.sites.chiliPips ? t('chili_all') : '';
 }
 
@@ -302,7 +306,7 @@ ui({
         const f = chiliFacts(G.siteRun(app.state).floor, d.chili);
         screenFlash('#ff5a1f', 0.6); shake(0.3);
         app.banner(t('chili_start', { name: f.name, n: d.chili }), f.rule);
-        app.toast(t('chili_tougher', { a: f.ground, b: f.rock }) + ' ' + t('chili_site_now', { name: f.name, stars: f.stars, hit: f.hit }), 'gold');
+        app.toast(t(f.gain ? 'chili_toast_hit' : 'chili_toast', { a: f.ground, b: f.rock, name: f.name, stars: f.stars, p: pct(f.gain) }), 'gold');
         return;
       }
       screenFlash('#fff', 0.7); app.banner(t('site_done', { n: G.fmt(d.stars) }), '');
@@ -324,7 +328,7 @@ ui({
     const r = s.run;
     if (!r || r.done) return null;
     const b = G.bossInView(s);
-    if (b && b.row === r.floor && b.hp > 0) return { text: t('goal_gate', { n: G.fmt(Math.max(1, Math.ceil(b.hp / G.pickPower(s)))) }), frac: b.hp / b.max, cls: 'boss' };
+    if (b && b.row === r.floor && b.hp > 0) return { text: t(G.bossSwings(s, b).n === 1 ? 'goal_gate_swing' : 'goal_gate', { n: G.fmt(G.bossSwings(s, b).n) }), frac: b.hp / b.max, cls: 'boss' };
     if (b && b.hp > 0) return null;
     return { text: t('goal_gate_far', { name: t('site_' + r.site), n: r.floor }), frac: Math.min(1, Math.max(0, s.best / r.floor)) };
   } },
@@ -360,7 +364,7 @@ ui({
       clk.textContent = r.done ? clock(r.time) : lc.over ? t('clock_over', { t: clock(lsec) }) : clock(lsec);
       clk.classList.toggle('over', !r.done && lc.over);
       const par = el.querySelector('.par');
-      par.textContent = t('site_par', { t: clock(G.runPar(r)) }) + (st.best ? '  ' + t('site_best', { t: clock(st.best) }) : '');
+      par.textContent = st.best ? t('site_par_best', { t: clock(G.runPar(r)), b: clock(st.best) }) : t('site_par', { t: clock(G.runPar(r)) });
       par.classList.toggle('over', !r.done && r.clock > G.runPar(r));
       par.dataset.leg = lc.last ? t('site_left_gate') : t('site_left');
       el.querySelector('.clockrow').classList.toggle('good', r.done && r.time <= G.runPar(r));
@@ -370,7 +374,7 @@ ui({
       cr.hidden = !!r.twist || !(st.fin || live);
       if (el._csig !== csig) { el._csig = csig; cr.innerHTML = pipsHtml(pips, 18, live ? r.chili : 0); }
       const cf = live ? chiliFacts(r.floor, r.chili) : null;
-      el.querySelector('.chilenote').textContent = cf ? t('chili_site_now', { name: cf.name, stars: cf.stars, hit: cf.hit }) : '';
+      el.querySelector('.chilenote').textContent = cf ? chiliNowLine(cf) : '';
       el.querySelector('.pay').textContent = r.done ? t('site_below') : t(st.fin ? 'site_stars_again' : 'site_stars_now', { n: st.fin ? G.replayPay(r.floor) : G.starsAt(r.floor) });
       el.querySelector('.hardnote').textContent = s.contract ? t('site_hard_on', { rule: ruleLine(s.contract) }) : '';
       const b = el.querySelector('.nextbtn'), gain = G.starsFor(s);

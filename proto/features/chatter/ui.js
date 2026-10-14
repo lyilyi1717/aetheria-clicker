@@ -10,7 +10,7 @@
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { fx, AT, W, H, rr, centre, spark, ring } from '../../ui/render.js';
-import { drawManager, managerMount, managerHit, managerAway, managerOnOrder } from './manager.js';
+import { drawManager, managerMount, managerHit, managerAway, managerOnOrder, managerExtended } from './manager.js';
 import { moodsSet, moodsSay, moodsTalk, moodsTrait, moodsMem } from '../moods/ui.js';
 
 const { t } = G;
@@ -156,6 +156,7 @@ ui({
     },
     chest(d, app) { fiveAt(app.state, d.r, d.c); },
     bossDown(d, app) { wave(app.state); },
+    legExtended(d, app) { managerExtended(app.state); },
     siteFinished(d, app) {
       const s = app.state;
       s.diggers.forEach((x, k) => emote(x, 'hat', P.hatSecs, { force: true, delay: k * 0.06 }));
