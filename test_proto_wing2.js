@@ -198,6 +198,39 @@ const cellOf = (s, r, c, t) => { s.rows[r - s.top][c] = G.makeCell(r, t); };
   G.BLOCKS.fossil.broke(s, { r: 4, c: 2, cell: null, t: 'fossil', B: G.BLOCKS.fossil, src: 'you', byHand: true, chain: 0, info: {}, coins: 0 }, (k, d) => { if (k === 'fossil') got.push(d); });
   if (!(got.length === 1 && got[0].set && got[0].isNew)) { console.error('FAIL: a bone in row 4 gives a new piece'); process.exitCode = 1; }
 }
+{ // defensive wingMatches and isMissingFossil safety (including 'lost' cells and malformed triggers)
+  const pcBone = { how: 'bone' };
+  const pcLost = { how: 'lost' };
+  const pcRock = { how: 'rock:2' };
+
+  ok(G.wingMatches(null, { tags: ['bone'] }) === false, 'null piece returns false');
+  ok(G.wingMatches(pcBone, null) === false, 'null trigger returns false');
+  ok(G.wingMatches(pcBone, undefined) === false, 'undefined trigger returns false');
+  ok(G.wingMatches(pcBone, { tags: 'not-array' }) === false, 'non-array tags returns false');
+  ok(G.wingMatches(pcBone, 'lost') === false, 'string trig "lost" does not match bone');
+  ok(G.wingMatches(pcLost, 'lost') === true, 'string trig "lost" matches lost');
+  ok(G.wingMatches(pcBone, { tags: ['bone'] }) === true, 'valid trigger matches');
+  ok(G.wingMatches(pcRock, { tags: ['rock'], layer: 3 }) === true, 'rock layer meets threshold');
+  ok(G.wingMatches(pcRock, { tags: ['rock'], layer: 1 }) === false, 'rock layer below threshold fails');
+
+  const s = G.newState();
+  s.top = 0;
+  clearRow(s, 0);
+  // non-fossil/non-lost cell
+  cellOf(s, 0, 0, 'dirt');
+  ok(G.isMissingFossil(s, 0, 0) === false, 'dirt cell is not a missing fossil');
+
+  // null cell
+  ok(G.isMissingFossil(s, 0, 1) === false, 'empty cell is not a missing fossil');
+
+  // 'lost' cell without pre-set piece or boneId does not crash and evaluates candidates
+  cellOf(s, 0, 2, 'lost');
+  ok(typeof G.isMissingFossil(s, 0, 2) === 'boolean', 'isMissingFossil on "lost" cell returns boolean without throwing');
+
+  // 'fossil' cell without boneId evaluates candidates
+  cellOf(s, 0, 3, 'fossil');
+  ok(typeof G.isMissingFossil(s, 0, 3) === 'boolean', 'isMissingFossil on "fossil" cell returns boolean without throwing');
+}
 
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('wing2 ok');

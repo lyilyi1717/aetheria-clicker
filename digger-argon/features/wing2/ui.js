@@ -78,49 +78,53 @@ export function drawFossilGlints(g, s) {
   // In-view missing fossils: overlay a 4-point sparkle rotating at 2 rad/s
   for (let r = s.top; r < s.top + VIEW_ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      if (G.isMissingFossil(s, r, c)) {
-        const [x, y] = centre(r, c);
-        g.save();
-        g.translate(x, y);
-        g.rotate(fx.t * 2);
-        g.fillStyle = '#ffe14a';
-        const sz = 7;
-        g.beginPath();
-        g.moveTo(0, -sz);
-        g.lineTo(sz * 0.25, -sz * 0.25);
-        g.lineTo(sz, 0);
-        g.lineTo(sz * 0.25, sz * 0.25);
-        g.lineTo(0, sz);
-        g.lineTo(-sz * 0.25, sz * 0.25);
-        g.lineTo(-sz, 0);
-        g.lineTo(-sz * 0.25, -sz * 0.25);
-        g.closePath();
-        g.fill();
-        g.restore();
-      }
+      try {
+        if (G.isMissingFossil(s, r, c)) {
+          const [x, y] = centre(r, c);
+          g.save();
+          g.translate(x, y);
+          g.rotate(fx.t * 2);
+          g.fillStyle = '#ffe14a';
+          const sz = 7;
+          g.beginPath();
+          g.moveTo(0, -sz);
+          g.lineTo(sz * 0.25, -sz * 0.25);
+          g.lineTo(sz, 0);
+          g.lineTo(sz * 0.25, sz * 0.25);
+          g.lineTo(0, sz);
+          g.lineTo(-sz * 0.25, sz * 0.25);
+          g.lineTo(-sz, 0);
+          g.lineTo(-sz * 0.25, -sz * 0.25);
+          g.closePath();
+          g.fill();
+          g.restore();
+        }
+      } catch { /* ignore individual cell draw error */ }
     }
   }
 
   // Off-screen indicator: uncollected bones 1-3 rows below viewport
   for (let r = s.top + VIEW_ROWS; r <= s.top + VIEW_ROWS + 2; r++) {
     for (let c = 0; c < COLS; c++) {
-      if (G.isMissingFossil(s, r, c)) {
-        const x = c * CELL + CELL / 2;
-        const bob = Math.sin(fx.t * 6 + c) * 3;
-        const y = H - 12 + bob;
-        g.save();
-        g.fillStyle = '#ffd23f';
-        g.strokeStyle = '#3d2a1a';
-        g.lineWidth = 1.5;
-        g.beginPath();
-        g.moveTo(x - 6, y - 6);
-        g.lineTo(x + 6, y - 6);
-        g.lineTo(x, y + 2);
-        g.closePath();
-        g.fill();
-        g.stroke();
-        g.restore();
-      }
+      try {
+        if (G.isMissingFossil(s, r, c)) {
+          const x = c * CELL + CELL / 2;
+          const bob = Math.sin(fx.t * 6 + c) * 3;
+          const y = H - 12 + bob;
+          g.save();
+          g.fillStyle = '#ffd23f';
+          g.strokeStyle = '#3d2a1a';
+          g.lineWidth = 1.5;
+          g.beginPath();
+          g.moveTo(x - 6, y - 6);
+          g.lineTo(x + 6, y - 6);
+          g.lineTo(x, y + 2);
+          g.closePath();
+          g.fill();
+          g.stroke();
+          g.restore();
+        }
+      } catch { /* ignore individual cell draw error */ }
     }
   }
 }

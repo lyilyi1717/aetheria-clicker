@@ -21,7 +21,7 @@ const num = (x, d = 0) => (Number.isFinite(x) ? x : d);
 export function telemetryTryRow(s, outcome) {
   const r = siteRun(s), b = s.boss;
   return {
-    site: String(r.site), floor: Math.round(num(r.floor)), twist: String(r.twist || ''), level: roadIndex(s) + 1,
+    site: String(r.site), floor: Math.round(num(r.floor)), twist: String(r.twist || ''), level: Math.min(60, Math.max(0, (roadIndex(s) + 1) || 0)),
     try_n: Math.round(num(siteStamp(s).n, 1)), outcome,
     att_s: Math.round(num(r.clock) * 10) / 10, par_s: Math.round(num(r.par)),
     depth: Math.round(num(s.best)),

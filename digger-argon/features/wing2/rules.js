@@ -13,7 +13,7 @@ import { addCoins, coinMult, damage, later, pickPower } from '../../core/rules.j
 import { WING, wingKeys, wingPiece, wingMatches } from './sets.js';
 import strings from './strings.js';
 
-export { WING, wingKeys } from './sets.js';
+export { WING, wingKeys, wingPiece, wingMatches } from './sets.js';
 
 const p = {
   focus: 0.8,           // chance a find goes to the earliest unfinished set it fits (sets finish one by one)
@@ -68,7 +68,7 @@ export function isMissingFossil(s, r, c) {
     const [set, idx] = cell.piece.split('.');
     return !wingHave(s, set, Number(idx));
   }
-  const trig = cell.t === 'fossil' ? { tags: ['bone'], layer: layerOf(r) } : 'lost';
+  const trig = { tags: [cell.t === 'fossil' ? 'bone' : 'lost'], layer: layerOf(r) };
   const cands = candidates(trig, r);
   if (!cands.length) return false;
   return cands.some(([set, i]) => !wingHave(s, set, i));
@@ -89,9 +89,12 @@ export function hasMissingFossilBelow(s) {
 
 // every piece (all sets) that answers to a trigger at row r
 function candidates(trig, r) {
+  if (typeof trig === 'string') trig = { tags: [trig], layer: layerOf(r) };
+  if (!trig || !Array.isArray(trig.tags)) return [];
   const out = [];
   for (const set of wingKeys()) {
     const W = WING[set];
+    if (!W || !Array.isArray(W.pieces)) continue;
     W.pieces.forEach((pc, i) => {
       if (!wingMatches(pc, trig)) return;
       if (!pc.how.startsWith('rock:') && r < W.from) return;

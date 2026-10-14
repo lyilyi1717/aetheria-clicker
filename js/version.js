@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.12';
+export const VERSION = '5.36.13';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.13',
+    date: '2026-10-14',
+    title: 'Dig: bomb detonations no longer freeze the dig',
+    changes: [
+      'A Dusty Bundle or fossil uncovered by a bomb or digger blast no longer freezes the screen or hides the pick. (reported by players)',
+      'Choice and try telemetry rows clamp levels cleanly to avoid submission errors.'
+    ],
+    ar: {
+      title: 'حفار: انفجارات القنابل لم تعد تجمد الحفر',
+      changes: [
+        'الحزم المغبرة أو الأحافير التي تكشفها القنابل أو تفجيرات العمال لم تعد تجمد الشاشة أو تخفي المعول. (أبلغ عنه اللاعبون)',
+        'بيانات الخيارات والمحاولات تقيد المستويات بدقة لتجنب أخطاء الإرسال.'
+      ]
+    }
+  },
   {
     version: '5.36.12',
     date: '2026-10-14',

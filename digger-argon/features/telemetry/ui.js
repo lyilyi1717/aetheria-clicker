@@ -19,7 +19,7 @@ const FLUSH_EVERY = 60, FLUSH_AT = 10;
 export const tel = (() => {
   try {
     return createTelemetry({
-      store: localStorage, fetch: (...a) => fetch(...a), url: SUPABASE_URL, key: SUPABASE_KEY, ver: VERSION,
+      store: localStorage, fetch: (...a) => fetch(...a).catch(() => null), url: SUPABASE_URL, key: SUPABASE_KEY, ver: VERSION,
       now: () => Date.now(), rand: Math.random,
       allowed: telemetryGate({ hostname: location.hostname, protocol: location.protocol, search: location.search, webdriver: !!navigator.webdriver }),
     });
@@ -34,7 +34,7 @@ let awayCoins = 0, awaySecs = 0, lastDeal = [], hideTimer = 0;
 // the visit in progress (null while the page has been hidden long enough that the last one is over)
 let vis = G.visitNew(Date.now(), tel ? tel.awayBefore() : null);
 
-const roadLevel = s => G.roadIndex(s) + 1;
+const roadLevel = s => Math.min(60, Math.max(0, (G.roadIndex(s) + 1) || 0));
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const attNow = s => (s.run ? Math.round(s.run.clock * 10) / 10 : 0);
 
@@ -46,7 +46,10 @@ function sendTry(s, outcome, row) {
   maybeFlush();
 }
 function sendChoice(s, kind, item, lv, extra = {}) {
-  tel.add('choices', { kind, item: String(item).slice(0, 40), lv: Math.round(lv || 0), level: roadLevel(s), att_s: attNow(s),
+  const validKinds = ['buy', 'relic', 'card', 'kit'];
+  const safeKind = validKinds.includes(kind) ? kind : 'buy';
+  const safeLevel = Math.min(60, Math.max(0, roadLevel(s) || 0));
+  tel.add('choices', { kind: safeKind, item: String(item).slice(0, 40), lv: Math.round(lv || 0), level: safeLevel, att_s: attNow(s),
     coins: s.coins, stars: s.stars, price: 0, offered: [], ...extra });
   maybeFlush();
 }

@@ -460,7 +460,15 @@ export function start() {
   setInterval(() => { if (state) save(); }, 5000);
   window.addEventListener('beforeunload', () => { if (state) save(); });
   let lastRaf = 0;
-  const loop = now => { lastRaf = now; frame(now); requestAnimationFrame(loop); };
+  const loop = now => {
+    lastRaf = now;
+    try {
+      frame(now);
+    } catch (err) {
+      console.error('Frame error in loop:', err);
+    }
+    requestAnimationFrame(loop);
+  };
   requestAnimationFrame(loop);
   // A background tab gets no animation frames and slow timers. A worker's timer is not slowed,
   // so the dig keeps its pace when you look at another tab.

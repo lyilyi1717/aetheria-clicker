@@ -46,6 +46,9 @@ export const wingKeys = () => Object.keys(WING).sort((a, b) => WING[a].at - WING
 export const wingPiece = (set, i) => `${set}.${i}`;
 // does a piece answer to this trigger? trig = { tags: [...], layer }
 export function wingMatches(piece, trig) {
-  if (piece.how.startsWith('rock:')) return trig.tags.includes('rock') && trig.layer >= Number(piece.how.slice(5));
+  if (!piece || typeof piece.how !== 'string') return false;
+  if (typeof trig === 'string') trig = { tags: [trig] };
+  if (!trig || !Array.isArray(trig.tags)) return false;
+  if (piece.how.startsWith('rock:')) return trig.tags.includes('rock') && (trig.layer === undefined || trig.layer >= Number(piece.how.slice(5)));
   return trig.tags.includes(piece.how);
 }

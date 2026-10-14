@@ -101,7 +101,7 @@ export function createTelemetry(env) {
               method: 'POST', keepalive,
               headers: { apikey: env.key, Authorization: `Bearer ${env.key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
               body: JSON.stringify(rows),
-            });
+            }).catch(() => null);
           } catch { break; }                                    // offline: try again later
           if (res && (res.ok || (res.status >= 400 && res.status < 500))) { q[t].splice(0, rows.length); if (res.ok) sent += rows.length; save(); }
           else break;

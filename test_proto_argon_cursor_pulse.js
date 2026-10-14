@@ -1,4 +1,4 @@
-﻿// Test for Issue ARGON-03: Visual Entrainment: Rhythmic Cursor Pulse & Museum Shimmer
+// Test for Issue ARGON-03: Visual Entrainment: Rhythmic Cursor Pulse & Museum Shimmer
 // Run: node test_proto_cursor_pulse.js
 import * as G from './digger-argon/game.js';
 import { fx, updateFx } from './digger-argon/ui/render.js';
@@ -64,6 +64,10 @@ const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg)
   // Normal dirt block
   s.rows[15][1] = G.makeCell(15, 'dirt');
   ok(isMissingFossil(s, 15, 1) === false, 'Dirt block is never a missing fossil');
+
+  // Dusty bundle ('lost') block - must not crash candidates() / wingMatches()
+  s.rows[15][2] = G.makeCell(15, 'lost');
+  ok(typeof isMissingFossil(s, 15, 2) === 'boolean', 'Lost bundle does not crash isMissingFossil');
 }
 
 // 3. Off-screen indicator detection 1-3 rows below viewport

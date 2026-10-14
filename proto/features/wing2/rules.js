@@ -13,7 +13,7 @@ import { addCoins, coinMult, damage, later, pickPower } from '../../core/rules.j
 import { WING, wingKeys, wingPiece, wingMatches } from './sets.js';
 import strings from './strings.js';
 
-export { WING } from './sets.js';
+export { WING, wingKeys, wingPiece, wingMatches } from './sets.js';
 
 const p = {
   focus: 0.8,           // chance a find goes to the earliest unfinished set it fits (sets finish one by one)
@@ -50,11 +50,51 @@ export const wingCount = (s, set) => WING[set].pieces.filter((_, i) => wingHave(
 export const wingMissing = (s, set) => WING[set].pieces.map((pc, i) => i).filter(i => !wingHave(s, set, i));
 const TREASURE = { fossil: 1, lost: 1 };
 
+// query helper: is there an uncollected fossil/bone at (r, c)?
+export function isMissingFossil(s, r, c) {
+  const cell = cellAt(s, r, c);
+  if (!cell) return false;
+  if (cell.t !== 'fossil' && cell.t !== 'lost') return false;
+  if (cell.boneId) {
+    let collected = false;
+    if (s.museum && s.museum.collected) {
+      if (typeof s.museum.collected.has === 'function') collected = s.museum.collected.has(cell.boneId);
+      else if (Array.isArray(s.museum.collected)) collected = s.museum.collected.includes(cell.boneId);
+    }
+    if (s.wingGot && s.wingGot[cell.boneId]) collected = true;
+    return !collected;
+  }
+  if (cell.piece) {
+    const [set, idx] = cell.piece.split('.');
+    return !wingHave(s, set, Number(idx));
+  }
+  const trig = { tags: [cell.t === 'fossil' ? 'bone' : 'lost'], layer: layerOf(r) };
+  const cands = candidates(trig, r);
+  if (!cands.length) return false;
+  return cands.some(([set, i]) => !wingHave(s, set, i));
+}
+
+// uncollected bones 1-3 rows below viewport (for off-screen indicators)
+export function hasMissingFossilBelow(s) {
+  const VIEW_ROWS = 9;
+  const COLS = 7;
+  const out = [];
+  for (let r = s.top + VIEW_ROWS; r <= s.top + VIEW_ROWS + 2; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (isMissingFossil(s, r, c)) out.push({ r, c, rowsBelow: r - (s.top + VIEW_ROWS) + 1 });
+    }
+  }
+  return out;
+}
+
 // every piece (all sets) that answers to a trigger at row r
 function candidates(trig, r) {
+  if (typeof trig === 'string') trig = { tags: [trig], layer: layerOf(r) };
+  if (!trig || !Array.isArray(trig.tags)) return [];
   const out = [];
   for (const set of wingKeys()) {
     const W = WING[set];
+    if (!W || !Array.isArray(W.pieces)) continue;
     W.pieces.forEach((pc, i) => {
       if (!wingMatches(pc, trig)) return;
       if (!pc.how.startsWith('rock:') && r < W.from) return;

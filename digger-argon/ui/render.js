@@ -360,5 +360,11 @@ export function draw(g, s, dt) {
   g.save();
   g.clearRect(0, 0, W, H);
   g.translate((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh);
-  for (let i = 0; i < DRAW.length; i++) DRAW[i].fn(g, s, dt);
+  for (let i = 0; i < DRAW.length; i++) {
+    try {
+      DRAW[i].fn(g, s, dt);
+    } catch (err) {
+      console.error('Render error at', DRAW[i].at, err);
+    }
+  }
 }
