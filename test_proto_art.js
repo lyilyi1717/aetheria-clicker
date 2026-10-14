@@ -1,0 +1,56 @@
+// Dig: the art-and-sound rules that keep things from drifting back (docs/art-and-sound.md). Run: node test_proto_art.js
+// - the layout map: from 3 Rafeeqs the top centre of the dig is the manager's, the Museum chip moves to its side spot,
+//   and his text box keeps to its width (issue: the chip was drawn over his box)
+// - the save code always reads left to right, on an Arabic page too
+// - the night bars sound sparser by loudness only (same notes, so the same hits); the Empty Quarter keeps the home accents
+import { readFileSync } from 'node:fs';
+import { PICKS_BARS, BAR_ZONES, picksBarOf, barFaults } from './proto/features/picks/beat.js';
+
+let failed = 0;
+const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg); } };
+const read = f => readFileSync(new URL(f, import.meta.url), 'utf8');
+
+// ---------- the layout map ----------
+const W = 640, BOX_X = 286, PAD = 20;                     // the canvas width; the box's left edge (x0 250 + 36); its padding
+const man = read('./proto/features/chatter/manager.js');
+const wrap = Number((man.match(/const BOX_WRAP = (\d+)/) || [])[1]);
+ok(wrap > 0, 'manager.js has a BOX_WRAP');
+ok(BOX_X + wrap + PAD <= 486, `the manager's box ends by x 486 (ends at ${BOX_X + wrap + PAD})`);
+ok(/bx = x0 \+ 36/.test(man) && /const x0 = 250/.test(man), 'the manager stands at x 250 and his box opens 36 px to his right');
+const css = read('./proto/features/museum/museum.css');
+const side = (css.match(/#mus-strip\.side \{([^}]*)\}/) || [])[1] || '';
+ok(/inset-inline: auto 10px/.test(side), 'the side spot is on the end side, 10 px in');
+ok(/inset-block-start: 56px/.test(side), 'the side spot sits under the depth pill (56 px down)');
+ok(/#mus-strip\.side \.wart \{ width: 44px; \}/.test(css), 'the chip is small in its side spot');
+const sideW = 5 + 44 + 6 + 30 + 9 + 2;                    // padding, pieces, gap, "4/4" at 15 px, padding, border
+ok(W - 10 - sideW > BOX_X + wrap + PAD, 'at full size the side chip starts right of the box');
+const mus = read('./proto/features/museum/ui.js');
+ok(/G\.chatterBossShown\(s\)/.test(mus) && /classList\.toggle\('side'/.test(mus), 'the chip moves when the manager is on screen');
+
+// ---------- the save code ----------
+const set = read('./proto/features/settings/settings.css');
+const area = (set.match(/\.sc-area \{([^}]*)\}/) || [])[1] || '';
+ok(/direction: ltr/.test(area) && /text-align: left/.test(area), 'the save code reads left to right');
+ok(/area\.dir = 'ltr'/.test(read('./proto/features/settings/savecode-ui.js')), 'the save code box is dir=ltr');
+
+// ---------- the night bars ----------
+const hitsOf = b => b.n.reduce((a, x) => a + x, 0);
+for (const z of BAR_ZONES.filter(z => z.startsWith('n_'))) {
+  const day = z.slice(2);
+  for (let k = 1; k <= 4; k++) {
+    const n = picksBarOf(k, z), d = picksBarOf(k, day);
+    ok(n.n.join() === d.n.join(), `${z} ${k}: the same notes as ${day}`);
+    ok(hitsOf(n) === 8 * k, `${z} ${k}: 8 hits a pick`);
+    ok(!n.v.includes('x'), `${z} ${k}: no plain notes at night, only accents and soft ones`);
+    ok(n.v.every((v, i) => v === '.' || v === (d.v[i] === 'X' ? 'X' : 'o')), `${z} ${k}: the day's accents stay, the rest is soft`);
+    ok(barFaults(k, { floor: 0.05, maxBpm: 160, zone: z }).length === 0, `${z} ${k}: no faults`);
+  }
+}
+for (let k = 1; k <= 4; k++) {
+  const e = picksBarOf(k, 'emptyquarter');
+  ok(e.v.join('') === PICKS_BARS[k].vel && e.n.join() === picksBarOf(k).n.join(), `emptyquarter ${k}: the home bar, notes and accents`);
+}
+for (const z of ['africa', 'eastasia', 'americas', 'europe']) ok(picksBarOf(4, z).v.includes('x'), `${z}: the day bars keep their plain notes`);
+
+if (failed) { console.error(`\n${failed} failed`); process.exit(1); }
+console.log('art and sound: all checks pass');

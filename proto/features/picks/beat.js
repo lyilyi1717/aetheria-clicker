@@ -61,16 +61,20 @@ export const ZONE_BARS = {
 // it lower and softer, kits.js), and the Empty Quarter plays the home groove of Arabia on the old kit (the tabl and the clap).
 const nightOf = (zone, bars) => Object.fromEntries(Object.entries(bars).map(([k, b]) => [k, { ...b, name: b.name.replace('bar_' + zone, 'bar_n_' + zone) }]));
 for (const z of ['europe', 'americas', 'eastasia', 'africa']) ZONE_BARS['n_' + z] = nightOf(z, ZONE_BARS[z]);
-ZONE_BARS.emptyquarter = Object.fromEntries(Object.entries(PICKS_BARS).map(([k, b]) => [k, { name: 'bar_emptyquarter_' + k, hits: b.hits }]));
+// The Empty Quarter keeps the home bar's own accents too (the Gulf 3 + 3 + 2 of four picks), not the plain ones of the other lands.
+ZONE_BARS.emptyquarter = Object.fromEntries(Object.entries(PICKS_BARS).map(([k, b]) => [k, { name: 'bar_emptyquarter_' + k, hits: b.hits, vel: b.vel }]));
 export const BAR_ZONES = ['arabia', ...Object.keys(ZONE_BARS)];
-const velOf = (hits, count) => [...hits].map((ch, i) => (ch === '.' ? '.' : Number(ch) < count ? 'o' : i % 4 === 0 ? 'X' : 'x')).join('');
+// Night (art-and-sound decision, 14 Oct 2026): a land at night sounds sparser by loudness, never by notes: only the notes on the
+// beat keep their accent, every other note is soft. Same notes, so the same hits; gain only, so nothing gets louder.
+const isNight = zone => /^n_/.test(zone);
+const velOf = (hits, count, zone = '') => [...hits].map((ch, i) => (ch === '.' ? '.' : i % 4 === 0 && Number(ch) >= count ? 'X' : Number(ch) < count || isNight(zone) ? 'o' : 'x')).join('');
 
 // the bar of a pick count as arrays: n[i] picks land on step i, v[i] is 'X' | 'x' | 'o' | '.'
 const parsed = {};
 export function picksBarOf(count, zone = 'arabia') {
   const k = Math.max(1, Math.min(MAX_PICKS, count | 0));
   const Z = ZONE_BARS[zone];
-  const B = Z ? { ...Z[k], vel: velOf(Z[k].hits, k) } : PICKS_BARS[k];
+  const B = Z ? { ...Z[k], vel: Z[k].vel || velOf(Z[k].hits, k, zone) } : PICKS_BARS[k];
   const key = (Z ? zone : 'arabia') + k + B.hits + B.vel;      // the zone too: a land at night has its land's notes
   if (!parsed[key]) parsed[key] = { count: k, zone: Z ? zone : 'arabia', name: B.name, n: [...B.hits].map(ch => (ch === '.' ? 0 : Number(ch))), v: [...B.vel] };
   return parsed[key];

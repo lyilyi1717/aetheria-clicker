@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.35.0';
+export const VERSION = '5.35.1';
 
 export const CHANGELOG = [
+  {
+    version: '5.35.1',
+    date: '2026-10-14',
+    title: 'Dig: the manager can be read again',
+    changes: [
+      'With 3 or more Rafeeqs, the Museum chip no longer covers what almodeer or almodeera says. It moves under the depth sign and shows the set\'s pieces and a short count (2/4).',
+      'The save code in Settings always reads left to right, in Arabic too, so its lines line up.',
+      'At night the pick\'s beat is calmer: only the notes on the beat stay strong, the rest are soft. Same hits as before, nothing louder.',
+      'In the Empty Quarter the beat now has the strong and soft notes of the home rhythm, as in Arabia.'
+    ],
+    ar: {
+      title: 'الحفر: كلام المدير يُقرأ من جديد',
+      changes: [
+        'مع 3 رفقاء أو أكثر لم تعد شارة المتحف تغطي ما يقوله المدير أو المديرة. صارت تحت لوحة العمق، وتعرض قطع المجموعة وعدداً قصيراً (2/4).',
+        'رمز الحفظ في الإعدادات يُقرأ دائماً من اليسار إلى اليمين، بالعربية أيضاً، فتصطف أسطره.',
+        'في الليل صار إيقاع الفأس أهدأ: النقرات التي على الإيقاع وحدها قوية، والباقي خفيف. الضربات نفسها، ولا شيء أعلى صوتاً.',
+        'في الربع الخالي صار للإيقاع نبر إيقاع الديار نفسه، كما في الجزيرة العربية.'
+      ]
+    }
+  },
   {
     version: '5.35.0',
     date: '2026-10-14',
