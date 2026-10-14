@@ -1,5 +1,5 @@
 export default { en: {
-  trk_ch2: 'Ch. 2, level {n}/{of}',
+  trk_ch2: 'Chapter 2, level {n}/{of}',
   trk_level: 'Level {n} of {of}',
   trk_togate: '{n} m to the Gate',
   trk_below: 'Below the Gate',
@@ -11,7 +11,7 @@ export default { en: {
   trk_then: ' · {name}',
   trk_full: '{level} · {zone} · {name}',
 }, ar: {
-  trk_ch2: 'ف2، المرحلة {n}/{of}',
+  trk_ch2: 'الفصل 2، المرحلة {n}/{of}',
   trk_level: 'المرحلة {n} من {of}',
   trk_togate: '{n} م إلى البوابة',
   trk_below: 'تحت البوابة',

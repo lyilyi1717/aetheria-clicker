@@ -18,6 +18,13 @@ function pick() {
 export const LANG = pick();
 export const DIR = OK[LANG];
 
+// the direction to draw one line on a canvas with (`g.direction = textDir(str)`): a canvas does not follow the page's dir,
+// so an Arabic line drawn left to right puts a number or a "!" at the wrong end; a line with no Arabic letter (a lone
+// "-12.5K", a clock) stays left to right so its sign stays in front
+const ARABIC = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/;
+export const dirOf = (s, dir) => dir === 'rtl' && ARABIC.test(String(s)) ? 'rtl' : 'ltr';
+export const textDir = s => dirOf(s, DIR);
+
 // store the choice and reload without ?lang= (it would win over the stored value)
 export function setLangChoice(id) {
   if (!OK[id]) return;

@@ -3,11 +3,11 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.35.4';
+export const VERSION = '5.35.5';
 
 export const CHANGELOG = [
   {
-    version: '5.35.4',
+    version: '5.35.5',
     date: '2026-10-14',
     title: 'Dig: red sand all the way down, and a tidy top line',
     changes: [
@@ -27,6 +27,24 @@ export const CHANGELOG = [
         'فقاعات كلام الرفقاء لا تركب بعضها: تظهر اثنتان على الأكثر، والثالثة تنتظر دورها.',
         'في القهوة صار سطر "لا رفقاء بعد" تحت الغرفة، فلا يغطي لافتة القهوة ولا الحكواتي.',
         'صندوق رمز الحفظ صار له اسم لقارئات الشاشة.'
+      ]
+    }
+  },
+  {
+    version: '5.35.4',
+    date: '2026-10-14',
+    title: 'Dig in Arabic: lines in the right order',
+    changes: [
+      'In Arabic, the Museum chip on the dig reads in the right order ("found 0 of 4"); it showed the last number first.',
+      'In Arabic, the words drawn on the dig and the map read right to left with their numbers in place: the Gate flag, your record flag, the bar of the Big Rock and its warnings, the numbers that pop up, the land signs and level names on the road map, and the names and bubbles in Alqahwa.',
+      'Chapter Two now says "Chapter 2, level 1/20" above the dig, in full, instead of "Ch. 2".'
+    ],
+    ar: {
+      title: 'الحفر بالعربية: السطور بالترتيب الصحيح',
+      changes: [
+        'بالعربية، بطاقة المتحف فوق الحفر صارت تُقرأ بالترتيب الصحيح («وجدت 0 من 4»)؛ كانت تُظهر الرقم الأخير أولاً.',
+        'بالعربية، الكلمات المرسومة على الحفر والخريطة صارت تُقرأ من اليمين إلى اليسار وأرقامها في مكانها: راية البوابة، وراية رقمك القياسي، وشريط الصخرة الكبيرة وتنبيهاته، والأرقام التي تقفز، ولوحات الأراضي وأسماء المراحل على خريطة الطريق، والأسماء والفقاعات في القهوة.',
+        'الفصل الثاني صار يُكتب فوق الحفر «الفصل 2، المرحلة 1/20» كاملاً، بدل «ف2».'
       ]
     }
   },

@@ -11,6 +11,7 @@ import { starPanel } from '../starshop/ui.js';
 import { alqahwa, goNextHere } from '../sites/ui.js';
 import { openDesk } from '../story/ui.js';
 import { qahwaGuests, qahwaSpots, qahwaNextAct, QAHWA_SPOTS } from './flow.js';
+import { textDir } from '../../core/lang.js';
 
 const { t } = G;
 const CW = 960, CH = 250, GROUND = 214, UNIT = 30;      // the scene's logical size; one walking unit in the Rafeeq's art
@@ -119,7 +120,7 @@ function bubble(g, text, x, y, a) {
   g.fillStyle = '#fffdf2'; g.strokeStyle = '#1b1410'; g.lineWidth = 2;
   g.beginPath(); g.roundRect(x - w / 2, y - 12, w, 22, 8); g.fill(); g.stroke();
   g.beginPath(); g.moveTo(x - 4, y + 10); g.lineTo(x, y + 16); g.lineTo(x + 4, y + 10); g.fillStyle = '#fffdf2'; g.fill();
-  g.fillStyle = '#1b1410'; g.fillText(text, x, y); g.restore();
+  g.fillStyle = '#1b1410'; g.direction = textDir(text); g.fillText(text, x, y); g.restore();
 }
 
 export function openAlqahwa(app, opts = {}) {
@@ -209,7 +210,7 @@ export function openAlqahwa(app, opts = {}) {
       g.restore();
       g.fillStyle = '#fff6e0'; g.strokeStyle = 'rgba(20,12,6,0.85)'; g.lineWidth = 3; g.lineJoin = 'round'; g.font = 'bold 13px system-ui, Cairo, sans-serif'; g.textAlign = 'center';
       const nm = G.rafeeqName ? G.rafeeqName(s, o.i) : t('crew_name', { n: o.i + 1 });
-      g.strokeText(nm, o.x, GROUND + 20); g.fillText(nm, o.x, GROUND + 22);
+      g.direction = textDir(nm); g.strokeText(nm, o.x, GROUND + 20); g.fillText(nm, o.x, GROUND + 22); g.direction = 'inherit';
       if (o.line && o.lineT > 0) bubble(g, o.line, o.x, GROUND - 92, Math.min(1, o.lineT * 2));
     }
     timer = requestAnimationFrame(frame);
