@@ -24,12 +24,18 @@ export const hasString = key => key in TABLES.en;
 // keys of `from` that `lang` lacks (for a test that fails on missing Arabic, once there is Arabic)
 export const missingStrings = (l, from = 'en') => Object.keys(TABLES[from]).filter(k => !(TABLES[l] && k in TABLES[l]));
 
+// in Arabic a number, a clock or a signed share ("12.5K", "1:40", "+12%", "-0:25") sits in a left-to-right isolate, so its
+// sign and its parts stay in order inside right-to-left text
+const NUMBERISH = /^[-+]?[\d.,:]+(e\d+)?[A-Za-z%]*$/;
 export function t(key, vars) {
   let s = TABLES[lang][key];
-  if (s === undefined) s = TABLES.en[key];
+  let fallback = false;
+  if (s === undefined) { s = TABLES.en[key]; fallback = lang !== 'en'; }
   if (s === undefined) return key;
-  if (vars) for (const k of Object.keys(vars)) s = s.split(`{${k}}`).join(lang === 'ar' && /^[\d.,]+[A-Za-z]*$/.test(String(vars[k])) ? `⁦${vars[k]}⁩` : vars[k]);
-  return s;
+  if (vars) for (const k of Object.keys(vars)) s = s.split(`{${k}}`).join(lang === 'ar' && NUMBERISH.test(String(vars[k])) ? `⁦${vars[k]}⁩` : vars[k]);
+  // an English line left in Arabic text is a first-strong isolate: it keeps its own order ("Level 10 of 20", the full stop
+  // at its end) and does not scramble the Arabic around it
+  return fallback ? `⁨${s}⁩` : s;
 }
 
 // "a, b, c" in the language's own way (Arabic joins with its own comma and "and"): use it for any list of words

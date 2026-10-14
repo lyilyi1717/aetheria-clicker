@@ -9,6 +9,11 @@ G.addStrings({ en: {
   buyall_tip: 'Buy everything you can afford now, cheapest first',
   buyall_done: 'Bought {n}: {list}',
   buyall_item: '{name} x{k}',
+}, ar: {
+  buyall: 'اشترِ الكل ({n})',
+  buyall_tip: 'اشترِ كل ما تقدر عليه الآن، الأرخص أولاً',
+  buyall_done: 'تم الشراء ({n}): {list}',
+  buyall_item: '{name} ×{k}',
 } }, 'buyall');
 
 // opts: { shop, nameOf(id) -> text }. Returns { el, update(s), }
