@@ -36,10 +36,9 @@ function gateCase(name, card, patch, beaten = 11) {
   const floor = s.run.floor;
   const out = G.settleAway(s, 12 * 3600);
   ok(out.atBoss, name + ': they wait at a Rock');
-  ok(s.top < floor && s.top >= floor - G.VIEW_ROWS, name + `: they stop in view of the Gate (top ${s.top}, Gate ${floor})`);
+  ok(s.top === floor, name + `: they dig to the row right above the Gate (top ${s.top}, Gate ${floor})`);
   if (floor > G.LAYER) ok(out.passed > 0 && s.top > floor - G.LAYER, name + ': the Big Rocks above the Gate are walked past');
   ok(s.bossesDown * G.LAYER < floor, name + ': the Gate is not counted as down');
-  G.run('step', s, 0.016, NO);
   ok(!s.run.done, name + ': the level is not finished on return');
   ok(out.atGate === true, name + ': the card says they wait at the Gate');
   ok(out.sieveSeconds > 0, name + ': with time left they sieve at the Gate');
@@ -77,7 +76,7 @@ gateCase('the deal (a new card)', { site: 'dunes', floor: 125, twist: '', hard: 
   G.seedRng(3);
   const s = G.newState(); s.run = null; s.starUp.tr_camp = 5; s.starBoss = 11; crew(s, 1000);
   G.settleAway(s, 12 * 3600);
-  ok(s.top < 50 && s.top >= 50 - G.VIEW_ROWS, 'no run: the crew stops at the 50 m Gate (top ' + s.top + ')');
+  ok(s.top === 50, 'no run: the crew digs to the row above the 50 m Gate (top ' + s.top + ')');
 }
 { // the new line has English and Arabic
   ok(G.t('away_gate') === 'Your Rafeeqs dug to the Gate. It is waiting for you.', 'the away card line');
@@ -137,7 +136,7 @@ const hpMul = s => G.groundHp(s, 60) / G.dirtHp(60);
   const back = G.deserialize(G.serialize(s));
   ok(back && back.run && back.run.ch === 2 && back.run.floor === 200, 'a chapter-two save in play loads');
   const out = G.settleAway(back, 12 * 3600);
-  ok(back.top < 200 && out.atGate, 'and its crew waits at the Gate');
+  ok(back.top === 200 && out.atGate, 'and its crew waits at the Gate');
 }
 
 if (failed) { console.error(`test_proto_gateyours: ${failed} failed`); process.exit(1); }
