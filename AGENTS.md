@@ -94,6 +94,16 @@ Allowed, with these limits:
 - **Merging `main` into a branch:** if `docs/STATUS.md` conflicts, keep both sides' entries. Never
   delete another item's "In progress" line without writing its "Done" entry.
 
+## The permanent team (all three games)
+
+Eight agents in `.claude/agents/` with one document each: design-keeper (one design file per game),
+idea-scout (`docs/ideas-bank.md`, `docs/studies/`), balance-analyst (`docs/pacing-targets.md`), builder,
+screen-checker (the only one with a browser; `docs/seen-on-screen.md`), code-reviewer
+(`docs/review-checklist.md`), player-voice (`docs/player-log.md`), release-keeper (`docs/release-checklist.md`).
+Templates for those documents are in `docs/templates/`. Every agent reads `docs/agents/common-brief.md` (machine
+and git rules). The workflows (playtest round, new feature, balance pass, weekly pulse, release) are in
+`docs/agents/team-study-2026-10-14.md`. `roadmap-coder` and `roadmap-architect` stay for roadmap issues.
+
 ## Rules
 
 1. **One issue per PR.** Title: `R<n>: <short description>`. Body: `Closes #<GitHub issue number>`.
