@@ -15,7 +15,7 @@ const move = s => { ok(G.newSite(s, 'dunes', () => {}), 'moved to a new site'); 
   ok(G.pickPower(s) === 1 && G.coinMult(s) === 1 && Math.abs(G.crewPower(s) - 0.6) < 1e-9, 'unspent Stars give nothing');
   ok(G.buy(s, 'tr_pick') && s.stars === 98 && s.starSpent === 2 && Math.abs(G.pickPower(s) - 1.5) < 1e-9, 'Stone Pick: 2 Stars, hit x1.5');
   ok(G.buy(s, 'tr_pick') && s.stars === 95 && Math.abs(G.pickPower(s) - 2.25) < 1e-9, 'step 2 costs 3, hit x2.25');
-  ok(G.buy(s, 'tr_camp') && Math.abs(G.crewShare(s) - (0.6 + G.PARAMS.starshop.campShare)) < 1e-9 && Math.abs(G.crewPower(s) - G.crewShare(s) * G.pickPower(s)) < 1e-9, 'Camp: no x1.5 on the Rafeeq hit (it stays a share of yours)');
+  ok(G.buy(s, 'tr_camp') && Math.abs(G.crewShare(s) - 0.6) < 1e-9 && Math.abs(G.crewPower(s) - G.crewShare(s) * G.pickPower(s)) < 1e-9, 'Camp: no x1.5 on the Rafeeq hit (it stays a share of yours; step 1 is a perk, the plain steps add campShare)');
   ok(G.buy(s, 'tr_bag') && Math.abs(G.coinMult(s) - 1.5) < 1e-9, 'Bag: coins x1.5');
   s.stars = 1; ok(!G.buy(s, 'tr_pick'), 'cannot pay with too few Stars');
 }

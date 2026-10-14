@@ -46,6 +46,36 @@ export const PLAYERS = {
 export const TOL = 0.25;
 const unit = id => R => R.units[id], mark = id => R => R.marks[id];
 const rock = n => R => R.marks['boss down ' + n];
+// the road: level n (1 to 40) first finished, { r, a } like a mark
+const ROAD_KEYS = G.ROAD.map(f => G.roadKey(f));
+const lvl = n => R => (R.fin || []).find(x => x.key === ROAD_KEYS[n - 1] && x.first);
+// per road level: tries (digs started on it up to its first finish) and other digs since the level before; null = never
+export function roadLevels(R) {
+  let prevR = 0;
+  return ROAD_KEYS.map((k, i) => {
+    const f = (R.fin || []).find(x => x.key === k && x.first);
+    if (!f) return null;
+    const tries = R.resets.filter(x => x.key === k && x.r <= f.r).length + (i === 0 ? 1 : 0);
+    const between = R.resets.filter(x => x.r > prevR && x.r <= f.r && x.key !== k).length;
+    prevR = f.r;
+    return { r: f.r, tries, between };
+  });
+}
+// --assert, per road level (median over seeds, mixed and active): at most `tries` tries and `between` other digs (x (1 + TOL))
+export const ROAD_LIMITS = { players: ['mixed', 'active'], tries: 3, between: 6 };
+export function roadFails(rs, p) {
+  const per = rs.map(roadLevels), fails = [], worst = [];
+  ROAD_KEYS.forEach((k, i) => {
+    const got = per.map(L => L[i]).filter(Boolean);
+    if (got.length * 2 < rs.length) return;              // the level day rows say when a level is never reached
+    const t = med(got.map(x => x.tries)), b = med(got.map(x => x.between));
+    if (t > ROAD_LIMITS.tries) worst.push(`L${i + 1} ${t} tries`);
+    if (b > ROAD_LIMITS.between) worst.push(`L${i + 1} ${b} other digs`);
+    if (t > ROAD_LIMITS.tries * (1 + TOL)) fails.push(`${p}: level ${i + 1} took ${t} tries (median; at most ${ROAD_LIMITS.tries})`);
+    if (b > ROAD_LIMITS.between * (1 + TOL)) fails.push(`${p}: ${b} other digs before level ${i + 1} (median; at most ${ROAD_LIMITS.between})`);
+  });
+  return { fails, worst };
+}
 export const TARGETS = [
   ['rock1',   'Big Rock 1 down (25 m)',            rock(1),               { active: [2.5, 4.5], mixed: [2.5, 4.5], idle: [3, 6] },        'a', true],
   ['rock2',   'Big Rock 2 down (50 m), water',     rock(2),               { active: [6, 12], mixed: [6, 12], idle: [7, 15] },            'a', true],
@@ -55,13 +85,20 @@ export const TARGETS = [
   ['foreman', 'Foreman',                           unit('foreman'),       { active: [12, 45], mixed: [12, 45], idle: [12, 60] },         'a', true],
   ['forge',   'Forge opens',                       unit('forge:open'),    { active: [12, 45], mixed: [12, 45], idle: [12, 60] },         'a', false],
   ['site3',   '3rd New Site',                      mark('new site #4'),   { active: [30, 90], mixed: [30, 90], idle: [30, 120] },        'a', false],
-  ['rock3',   'Big Rock 3 down (75 m), crystal',   rock(3),               { active: [0.02, 1.2], mixed: [0.4, 2.5], idle: [2, 7] },       'd', true],
+  ['rock3',   'Big Rock 3 down (75 m), crystal',   rock(3),               { active: [0.02, 1.2], mixed: [0.1, 1], idle: [2, 7] },         'd', true],   // the road's level 3 (mixed was 0.4 to 2.5 days)
   ['contracts', 'Contracts open',                  unit('contracts:open'), { active: [0.8, 2.5], mixed: [1.5, 3.5], idle: [6, 16] },     'd', true],
-  ['rock4',   'Big Rock 4 down (100 m), the Deep', rock(4),               { active: [1.5, 4], mixed: [3, 5.5], idle: [8, 18] },          'd', true],
-  ['rock5',   'Big Rock 5 down (125 m)',           rock(5),               { active: [4, 9], mixed: [7, 12], idle: null },            'd', true],
-  ['rock6',   'Big Rock 6 down (150 m)',           rock(6),               { active: [8, 16], mixed: [14, 26], idle: null },              'd', true],
-  ['rock7',   'Big Rock 7 down (175 m)',           rock(7),               { active: [11, 18], mixed: [16, 23], idle: null },             'd', false],
-  ['rock8',   'Big Rock 8 down (200 m)',           rock(8),               { active: [15, 24], mixed: [21, 30], idle: null },             'd', false],
+  // The road (docs/pacing-targets.md, Dig; road windows: docs/dig-design.md decision 6): the day each land's last level is
+  // first finished. They replaced the Big Rock days of before the road (rock4-rock8: mixed day 3 to 30 for 100 to 200 m).
+  ['land1',   'Arabia done (level 4)',             lvl(4),                { active: [15, 60], mixed: [25, 60], idle: null },           'a', true],
+  ['land2',   'Africa done (level 8)',             lvl(8),                { active: [0.5, 2.5], mixed: [1.5, 3], idle: null },         'd', true],
+  ['land3',   'East Asia done (level 12)',         lvl(12),               { active: null, mixed: [3, 6], idle: null },                 'd', false],
+  ['land4',   'the Americas done (level 16)',      lvl(16),               { active: null, mixed: [5, 10], idle: null },                'd', false],
+  ['land5',   'Europe done, chapter one (level 20)', lvl(20),             { active: null, mixed: [10, 15], idle: null },               'd', true],
+  ['land6',   'Europe at night done (level 24)',   lvl(24),               { active: null, mixed: [11, 18], idle: null },               'd', false],
+  ['land7',   'the Americas at night (level 28)',  lvl(28),               { active: null, mixed: [12, 20], idle: null },               'd', false],
+  ['land8',   'East Asia at night (level 32)',     lvl(32),               { active: null, mixed: [14, 22], idle: null },               'd', false],
+  ['land9',   'Africa at night (level 36)',        lvl(36),               { active: null, mixed: [16, 24], idle: null },               'd', false],
+  ['land10',  'the Empty Quarter, road done (level 40)', lvl(40),         { active: null, mixed: [18, 25], idle: null },               'd', true],
 ];
 // other things --assert checks (the numbers are in docs/dig-pacing.md)
 export const LIMITS = {
@@ -107,7 +144,7 @@ if (arg('one', null)) {
   const [player, seed] = String(arg('one')).split(':');
   const out = runOne(player, Number(seed), DAYS, JSON.parse(arg('ov', '{}')));
   process.send ? process.send(out) : console.log(JSON.stringify(out));
-} else main();
+} else if (process.argv[1] && fileURLToPath(import.meta.url) === (await import('node:path')).resolve(process.argv[1])) main();   // not when imported (scripts/dig-targets.mjs)
 
 function runAll(ov) {
   const players = Object.keys(PLAYERS).filter(p => ONLY === 'all' || ONLY === p);
@@ -277,6 +314,12 @@ function report(title, res) {
   // ---------- checks ----------
   const fails = [];
   for (const row of rows) if (row.head) for (const p of players) { const c = row.cells[p]; if (c.ok === false) fails.push(`${p}: ${row.label}: ${c.n ? (row.clock === 'a' ? fmtA(c.m) : fmtD(c.m)) : 'never'}, target ${c.want.join(' to ')} ${row.clock === 'a' ? 'min' : 'days'}`); }
+  for (const p of players) if (ROAD_LIMITS.players.includes(p)) {
+    const { fails: f, worst } = roadFails(by(res, p), p);
+    console.log(`
+${p}, road levels over ${ROAD_LIMITS.tries} tries or ${ROAD_LIMITS.between} other digs (median over seeds): ${worst.join(', ') || 'none'}`);
+    fails.push(...f);
+  }
   for (const p of players) {
     const { m, g } = stats[p], w = LIMITS.movesPerDay[p];
     if (g.early > LIMITS.earlyGap * (1 + TOL)) fails.push(`${p}: a dead stretch of ${fmtT(g.early)} in the first 30 minutes (limit ${LIMITS.earlyGap} s)`);

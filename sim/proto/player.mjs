@@ -294,8 +294,13 @@ export function play(s, ctx, secs, trk, opts = {}) {
       if (!b || b.hp <= 0) ctx.rock = null;
       else if (!ctx.rock || ctx.rock.row !== b.row || trk.act - ctx.rock.t >= 30) ctx.rock = { row: b.row, hp: b.hp, t: trk.act };
       let n = shopCheck(s, ev, ctx.noCrew);
+      // A road level tried twice and not finished: the Rock bar says "spend Stars on The Pick" and has a button for it, and the
+      // side cards say how many Stars the next Pick step needs. A person follows it: Stars go to The Pick only, saved up for it.
+      const stuckPick = G.PARAMS.starshop.botStuckPick && (G.fixedNext(s) || {}).tries >= 2;
+      if (stuckPick) while (G.canBuy(s, 'tr_pick') && G.buy(s, 'tr_pick', ev)) n++;
       for (const bt of G.BOTS) {
         if (!bt.shop) continue;
+        if (stuckPick && bt.id === 'starshop') continue;
         if (bt.id === 'contracts' && !s.contract && !ctx.cWas) continue;   // a contract is taken only when the player moves (above)
         n += bt.shop(s, { ev, ctx, trk, rnd }) || 0;                        // a feature's own shop, tools, jobs
       }
