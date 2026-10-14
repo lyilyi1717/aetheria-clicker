@@ -96,6 +96,11 @@ setLang('en');
   ok(/#track #goal-text\.split \{[^}]*display: flex[^}]*white-space: nowrap/.test(trk), 'the split goal is one line');
   ok(/#track #goal-text\.split \.gn \{[^}]*flex: none/.test(trk), 'the count never shrinks');
   ok(/#track #goal-text\.split \.gl \{[^}]*min-width: 0[^}]*text-overflow: ellipsis/.test(trk), 'the label ends in dots');
+  // #486, decision 20: every goal line that is cut ends in dots; under the chip the one-piece goal is a plain one-line box
+  ok(/#track #goal-text \{[^}]*text-overflow: ellipsis/.test(trk), 'the two-line goal asks for dots');
+  ok(/#track #goal:has\(> #goal-pin:not\(\[hidden\]\)\) #goal-text:not\(\.split\) \{[^}]*display: block[^}]*white-space: nowrap[^}]*overflow: hidden[^}]*text-overflow: ellipsis/.test(trk), 'under the chip the one-piece goal is one line that ends in dots');
+  ok(!/-webkit-line-clamp: 1;/.test(trk.replace(/\/\*[\s\S]*?\*\//g, '')), 'no one-line clamp (it painted no dots)');
+  ok(goalParts('12 swings or so to break the Gate', '12') === null, 'a number-first goal stays one piece, its number at the start');
   ok(/num: a/.test(src('proto/features/picks/ui.js')), 'the Second Pick goal says where its count starts');
   // #470: the Star pointer is said once, in the message line; the goal spot shows the goal its chip names
   const star = src('proto/features/starshop/ui.js').replace(/\/\/.*$/gm, '');

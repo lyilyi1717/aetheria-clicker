@@ -98,7 +98,7 @@ inside the stage's width (452 to 640 px; 518 at a 1366 x 768 laptop); the gap be
 | T1 start | level line; under it the "Gate at N m" note, the countdown and the medals (`#trk-head`) | never narrower than the second line; the level line does not size the spot (`contain: inline-size`), it takes what is left and ends in dots, the place name first, then the land (full text in its title); grows 3 to T2's 1; at most 62% |
 | T2 middle | the message line: lesson or toast (`#trk-msg`; a lesson wins); the only home of nudges such as "Spend Stars at Alqahwa." (decision 12). A lesson sits on a tinted plate (decision 15); a toast is plain words | toasts: 96 px, grows with spare room, never under 96 px, two lines at most, clipped inside its spot. A short lesson that fits two lines here stays in T2. **A long lesson takes T2 to T4** while it shows (decisions 14 and 16): T3 and T4 step aside, T1 stays at its floor; about 272 px of text at 1366 x 768, 390 at 1500 x 1000, three lines of 13 px at most (45 px, inside the line and the 6 px under it) |
 | T3 | Tips button; "Done here" takes this place when the dig is done | its own width (about 42 px) |
-| T4 end | the goal: one goal chip (`#goal-pin`, only with 2 or more choices) over one line of goal words, or two lines of words without the chip; progress line along the foot. Only the goal the chip names, never a nudge (decision 12) | at most 180 px, gives way to what is left; the chip's word ends in dots before anything spills (the step mark and dots stay); the words' full text is in their title; a label with a count ("Second Pick: 3.00K / 100K", "The Gate of The Dunes is at 150 m", "... about 12 swings left") is one line where only the label ends in dots and the count always shows (decisions 13 and 18); in Arabic the chip reads right to left with its step mark at the left end, pointing left (decision 17); the chip hides when the dig is done |
+| T4 end | the goal: one goal chip (`#goal-pin`, only with 2 or more choices) over one line of goal words, or two lines of words without the chip; progress line along the foot. Only the goal the chip names, never a nudge (decision 12) | at most 180 px, gives way to what is left; the chip's word ends in dots before anything spills (the step mark and dots stay); the words' full text is in their title; every goal line that is cut ends in dots, and a goal that leads with its number ("12 swings or so to break the Gate") is one piece whose number stays whole at the start (decision 20); a label with a count ("Second Pick: 3.00K / 100K", "The Gate of The Dunes is at 150 m", "... about 12 swings left") is one line where only the label ends in dots and the count always shows (decisions 13 and 18); in Arabic the chip reads right to left with its step mark at the left end, pointing left (decision 17); the chip hides when the dig is done |
 
 Rule: a new thing on the stage takes a free spot from this table (or a new row added here); it never sits on S4 or S5 while the
 manager is on screen. `test_proto_art.js` checks the S5 and S7 numbers.
@@ -262,7 +262,7 @@ The test page for every sound: `proto/soundboard.html`.
 15. **Decided (14 Oct 2026, by art-director): a lesson is a note on a plate; the drawer's "Next:" line stays plain words.**
     (Eighth pass: the gold lesson and the drawer's 17 px bold "Next: Stronger Pick, 15 coins." sit side by side at the same
     height and both read as bold headline words, so the eye jumps between them.) The lesson gets a soft plate behind it,
-    gold-tinted for a gold lesson (`rgba(255,210,63,.13)`), white-tinted for a plain one (`.07`), its start bar kept and the
+    gold-tinted for a gold lesson (`rgba(255,210,63,.13)`, `.2` since decision 21), white-tinted for a plain one (`.07`), its start bar kept and the
     end corners rounded (`track/track.css`). Because shape is the signal that does not rely on colour: a plate says "a note
     for you" and nothing else in the top line or the drawer has one (the level line is gold too, and also plain words). The
     drawer line is left as it is: it is the drawer's call to action, already a different size and colour, and changing it
@@ -296,6 +296,22 @@ The test page for every sound: `proto/soundboard.html`.
     letters, so "72%." with its isolate marks) to the one before with a no-break space, put in by the layout (`keepEnd` in
     `starshop/ui.js`), and all shop card lines ask the browser for `text-wrap: pretty`. Because a number alone on a line reads
     as a separate thing, and "then 72%" is one idea. No string changes: the localizer's words stay as written.
+20. **Decided (14 Oct 2026, by art-director): every goal line that is cut ends in dots; a goal that leads with its number stays
+    one piece, no split** (#486). The ninth pass saw "12 swings or so to break the Gate" cut at "break" with no dots under the
+    chip: the one-line clamp (`-webkit-line-clamp: 1`) did not paint its dots there. Under the chip the one-piece goal is now a
+    plain one-line box with `text-overflow: ellipsis` (`#goal-text:not(.split)`, `track/track.css`), which always paints its
+    dots; without the chip it keeps its two clamped lines, also asking for dots. A number-first goal gets no label/count split
+    (`goalParts` still returns null when the number leads): its number is the first word, where end dots never reach, so a
+    split would draw the same line with more code; the chip right above says "The Gate", so the cut tail ("the Gate") loses
+    nothing a child needs, and the whole line is in the title. A goal that ends in its number (the Arabic swings goal) keeps
+    decision 13's split.
+21. **Decided (14 Oct 2026, by art-director): the gold lesson plate is a little stronger, `rgba(255,210,63,.2)` (was `.13`).**
+    The ninth pass found the tint "quite faint on the dark top line", and the plate is the shape that tells a lesson from the
+    gold level line (decision 15). Gold words on it stay above 7:1. The plain plate (`.07` white) is unchanged.
+22. **Decided (14 Oct 2026, by art-director): every scrolling box has the same thin dark scroll bar** (`--line` on
+    transparent, as the drawer already had). The Alqahwa window showed a plain bright white strip, the brightest thing at its
+    edge. Set once in `proto.css` for the Alqahwa card, the finish card, the contracts list, the road list and the Tips list;
+    the story book keeps its own (it is cream paper).
 
 ## 9. Briefs for builders
 
@@ -349,3 +365,7 @@ not overlapping, the manager and hakawati name plates readable, the Star board a
     Rock); Arabic the same, the metres on the left of the words;
   - the Arabic goal chip: the step mark at its left end, pointing left;
   - the Arabic Camp step card ("ضربة الرفيق: 70% من ضربتك، ثم 72%."): "72%." is not alone on the last line.
+- (v5.36.11, decisions 20 to 22) At 1366x768, English: the swings goal under the chip reads "12 swings or so to bre..." with
+  dots (and "36.0K swings or so to..." with a big number); the far Gate goal "150 m: the Gate of ..." the same. Without the
+  chip (one goal choice) a long goal on two lines ends in dots if it is cut. Arabic: the swings goal still shows its number
+  on the left of the words. The gold lesson plate is easier to see; the Alqahwa window's scroll bar is thin and dark.

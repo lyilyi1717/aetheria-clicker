@@ -32,7 +32,7 @@
 /* a lesson is a note on a plate (decision 15): a soft tinted plate with the bar at its start, so it never reads like the
    drawer's plain "Next:" line beside it or the gold level line before it. Same 13 px bold text, same colour. */
 #trk-msg #lesson.show { padding-inline-end: 8px; border-start-end-radius: 6px; border-end-end-radius: 6px; background: rgba(255, 255, 255, .07); }
-#trk-msg #lesson.show.gold { background: rgba(255, 210, 63, .13); }
+#trk-msg #lesson.show.gold { background: rgba(255, 210, 63, .2); }   /* .13 was too faint on the dark line (decision 21) */
 #trk-msg #lesson:not(.show) { transition: none; }
 #trk-msg #lesson.show { animation: lessonIn .3s ease-out; }
 :root[dir=rtl] #trk-msg #lesson.show { animation-name: lessonInRtl; }
@@ -47,8 +47,11 @@ html.calm #trk-msg #lesson.show { animation: none !important; }
 #goal-pin { order: -1; }
 #track #goal { flex: 0 1 auto; min-width: 0; max-width: 180px; }
 #track #goal-pin { max-width: 100%; }
-#track #goal:has(> #goal-pin:not([hidden])) #goal-text { -webkit-line-clamp: 1; }   /* the chip takes the first line */
-#track #goal-text { flex: 0 1 auto; min-width: 0; font-size: 13px; font-weight: 700; line-height: 1.15; color: var(--muted); max-width: 100%; white-space: normal; text-align: end; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#track #goal-text { flex: 0 1 auto; min-width: 0; font-size: 13px; font-weight: 700; line-height: 1.15; color: var(--muted); max-width: 100%; white-space: normal; text-align: end; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
+/* under the chip the words have one line (#486, decision 20): a plain one-line box that ends in dots, not the clamp (the clamp
+   cut "12 swings or so to break the Gate" after "break" with no dots). A number-first goal keeps its number whole at the
+   start, so only the words after it can end in dots; the chip above names the place. The whole line is in the title. */
+#track #goal:has(> #goal-pin:not([hidden])) #goal-text:not(.split) { display: block; -webkit-line-clamp: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* a label then a count (#469, decision 13): one line, the count never shrinks, only the label ends in dots */
 #track #goal-text.split { display: flex; gap: .3em; white-space: nowrap; }
 #track #goal-text.split .gl { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
