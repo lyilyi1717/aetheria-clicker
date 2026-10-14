@@ -5,7 +5,7 @@ let failed = 0;
 const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg); } };
 const NO = () => {};
 const P = G.PARAMS.sites;
-const fresh = (seed = 1) => { G.seedRng(seed); return G.newState(); };
+const fresh = (seed = 1) => { G.seedRng(seed); const s = G.newState(); G.siteRun(s).started = true; return s; };   // a dig whose first hit has landed (the clock runs)
 const run = (s, secs, ev = NO) => { for (let i = 0; i < secs * 20; i++) G.step(s, 0.05, ev); };
 const rows = s => { for (const row of s.rows) for (const c of row) if (c) return true; return false; };
 

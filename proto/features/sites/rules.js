@@ -70,6 +70,7 @@ const p = {
   // Chili levels: a finished level can be dug again with 1 to 5 chili pips. Pip n puts the first n rules of the chili rule list
   // (contracts feature) on, makes the ground chiliGround^n and every Big Rock (the Gate too) chiliRock^n harder, and pays.
   chiliPips: 5,
+  chiliHoldMs: 1500,              // the finish card waits this long after a pip is cleared, so the banner is seen
   chiliGround: 1.3, chiliRock: 1.7,
   chiliStars: [0.5, 0.75, 1, 1.5, 2],             // Stars for the first clear of a pip, x what the level's floor is worth (starsAt)
   chiliHitAt: { 3: 0.03, 5: 0.05 },               // clearing this pip adds this to your hit for ever (per level; they add up)
@@ -212,7 +213,7 @@ export const roadFinished = s => Object.values(s.road.stamps).filter(st => st.fi
 
 function makeRun(site, floor, twist, hard) {
   return { key: siteKey(site, floor, twist), site, floor, twist: twist || '', hard: hard || '', chili: chiliOfRule(hard), par: sitePar(floor, twist),
-    clock: 0, done: false, time: 0, medals: { fin: 0, fast: 0, hard: 0 }, found: { chest: 0, ore: 0, bone: 0 }, paid: 0 };
+    clock: 0, started: false, done: false, time: 0, medals: { fin: 0, fast: 0, hard: 0 }, found: { chest: 0, ore: 0, bone: 0 }, paid: 0 };
 }
 // the run of the site in play (a save from before has none: the next Big Rock is its floor)
 export function siteRun(s) {
@@ -443,7 +444,10 @@ export const sites = use({
       if (hm !== 1) { for (const c of ctx.row) if (c && c.t !== 'boss') { c.hp = Math.round(c.hp * hm); c.max = c.hp; } }
       if (tw === 'barrels' && BLOCKS.tnt && ctx.r > 2 && ctx.r % p.twistBarrel === 0) ctx.put('tnt');
     },
+    // the first hit starts the leg clock (and so the Fast medal's clock); a swing is a hit, and so is a block that breaks any other way
+    swing(s) { if (s.run && s.run.started === false) s.run.started = true; },
     broke(s, b) {
+      if (s.run && s.run.started === false) s.run.started = true;
       const f = s.run && s.run.found;
       if (!f) return;
       if (b.t === 'chest') f.chest++; else if (b.t === 'fossil') f.bone++; else if (b.B && b.B.ore) f.ore++;
@@ -452,7 +456,7 @@ export const sites = use({
     step: { at: 690, fn(s, dt, ev) {
       const r = siteRun(s);
       if (r.done) return;
-      r.clock += dt;
+      if (r.started !== false) r.clock += dt;       // a fresh dig: the clock starts at the first hit (a run saved before this has no flag and runs)
       legSync(s, ev);
       if (s.bossesDown * LAYER >= r.floor) finish(s, ev);
     } },

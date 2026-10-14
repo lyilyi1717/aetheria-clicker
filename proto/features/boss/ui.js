@@ -113,6 +113,16 @@ function drawBar(g, s, b) {
   g.lineJoin = 'round'; g.lineWidth = 3.5; g.strokeStyle = 'rgba(14,10,7,.95)'; g.fillStyle = '#fff';
   g.strokeText(label, W / 2, by + bh / 2 + 0.5); g.fillText(label, W / 2, by + bh / 2 + 0.5);
   g.restore();
+  // the law of this layer, said while it is in force: one short line above the bar
+  const tell = G.bossTell(s, b);
+  if (tell) {
+    const nolamp = tell.r === undefined, base = 'rock_tell_' + tell.kind;
+    const txt = t(nolamp && tell.kind !== 'lit' ? base + (tell.kind === 'dark' ? '_nolamp' : tell.kind === 'grow' ? '_notorch' : '_nowater') : base, { n: tell.pct });
+    g.save(); g.font = '800 12px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.lineJoin = 'round'; g.lineWidth = 3.5; g.strokeStyle = 'rgba(14,10,7,.95)'; g.fillStyle = tell.kind === 'lit' ? '#9dffcf' : '#ffd36a';
+    g.strokeText(txt, W / 2, by - 9); g.fillText(txt, W / 2, by - 9);
+    g.restore();
+  }
 }
 
 // The stuck hint: one kind line under the Rock's bar, drawn as a small box in the row below the Rock. Once per fight.
@@ -124,11 +134,12 @@ function paintHint(s, app) {
   if (!show) { if (!h.hidden) h.hidden = true; return; }
   const a = G.bossAdvice(s);
   const sig = a.kind + ':' + a.n + ':' + a.after;
+  const law = a.kind === 'dark' || a.kind === 'grow' || a.kind === 'hot';
   if (h._sig !== sig) {
     h._sig = sig; h._advice = a;
     h.querySelector('.bh-t').textContent = t('stuck_' + a.kind, { n: fmt(a.n), hits: fmt(a.hits), after: fmt(a.after) });
     const go = h.querySelector('.bh-go');
-    go.hidden = a.kind === 'more';
+    go.hidden = a.kind === 'more' || law;
     go.textContent = t(a.kind === 'spend' ? 'stuck_btn_spend' : 'stuck_btn_map');
     h.querySelector('.bh-x').textContent = t('stuck_close');
   }
