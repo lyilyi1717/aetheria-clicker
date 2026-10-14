@@ -1,4 +1,4 @@
-// Dig sim player: beside a Big Rock it hits the Rock rather than a block that takes more than MOVE.hardHits of its hits, and digs
+// Dig sim player: beside a Big Rock it hits the Rock rather than a block that takes more than boss.hardHits of its hits, and digs
 // towards a Rock it cannot reach by the softest block; not on the four lessons (MOVE.hardFrom). docs/pacing-targets.md, level 7 pass.
 // Run: node test_proto_botrock.js
 import assert from 'node:assert/strict';
@@ -27,7 +27,7 @@ function chestByRock(hp) {
 const ctxAt = col => { const c = mkCtx('mid'); c.p.notice = 1; c.p.clear = 0; c.col = col; return c; };
 const hit = G.pickPower(G.newState());
 
-assert.equal(MOVE.hardHits, 25); assert.equal(MOVE.hardFrom, 5);
+assert.equal(G.PARAMS.boss.hardHits, 25); assert.equal(MOVE.hardFrom, 5);
 { // a chest that breaks in a few hits: the bot goes for it
   const s = chestByRock(Math.ceil(3 * hit));
   assert.deepEqual(pickTarget(s, ctxAt(5)), [124, 5]);

@@ -47,7 +47,7 @@ export const DEPTHS = [10, 25, 30, 50, 60, 75, 100, 125, 150, 175, 200, 225, 250
 // when it wants a Fast medal (`fastTry`) or a Hard one (`hardTry`).
 //   A block that takes more than `hardHits` of your hits is not worth it while a Big Rock can be hit: the player hits the Rock
 // instead (see `rockInstead`).
-export const MOVE = { far: 90, rockWait: 150, giveUp: 240, budget: 4, retry: 1.5, retryDigs: 3, fastTry: 0.35, hardTry: 0.25, hardHits: 25, hardFrom: 5 };
+export const MOVE = { far: 90, rockWait: 150, giveUp: 240, budget: 4, retry: 1.5, retryDigs: 3, fastTry: 0.35, hardTry: 0.25, hardFrom: 5 };   // hardHits is the game's: PARAMS.boss.hardHits
 
 // ---------- tracker ----------
 export class Trk {
@@ -178,10 +178,10 @@ function draft(s, trk, ev) {
 // Returns the Rock cell to hit (the crack when it can be reached, else the nearest); when no Rock cell can be hit, the softest
 // block of the deepest open rows above it (a person digs towards the Rock by the easy way); or null.
 function rockInstead(s, ctx, tg) {
-  if (!(MOVE.hardHits > 0) || !tg) return null;
+  if (!(G.PARAMS.boss.hardHits > 0) || !tg) return null;
   if (MOVE.hardFrom > 1) { const i = G.roadIndex(s); if (i >= 0 && i + 1 < MOVE.hardFrom) return null; }   // not on the road levels before hardFrom
-  const cell = G.cellAt(s, tg[0], tg[1]), b = s.boss;
-  if (!cell || cell.t === 'boss' || !b || b.hp <= 0 || cell.hp <= MOVE.hardHits * G.pickPower(s)) return null;
+  const cell = G.cellAt(s, tg[0], tg[1]), b = s.boss, hardHits = G.PARAMS.boss.hardHits;
+  if (!cell || cell.t === 'boss' || !b || b.hp <= 0 || cell.hp <= hardHits * G.pickPower(s)) return null;
   if (b.row < s.top || b.row >= s.top + G.VIEW_ROWS) return null;
   const tell = G.bossTell ? G.bossTell(s) : null;
   if (tell && tell.r === tg[0] && tell.c === tg[1]) return null;      // the cure the bar points at (the lantern): the player breaks it

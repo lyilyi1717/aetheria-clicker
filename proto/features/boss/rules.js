@@ -2,7 +2,7 @@
 // as wide as the ground, with its own hp and a glowing crack that moves; hits on the crack count more.
 import { use, emit, run, fold, layersOf, BLOCKS, PARAMS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
-import { COLS, VIEW_ROWS, LAYER, layerOf, dirtHp, dirtVal, setCell } from '../../core/grid.js';
+import { COLS, VIEW_ROWS, LAYER, layerOf, dirtHp, dirtVal, setCell, cellAt, reachable } from '../../core/grid.js';
 import { addCoins, coinMult, pickPower, canBuy, upgradeCost } from '../../core/rules.js';
 import { canNewSite, starsFor, dealCards, roadIndex, FIXED } from '../sites/rules.js';
 import { t } from '../../core/strings.js';
@@ -23,6 +23,7 @@ const p = {
   rubbleChest: 0.06,              // the chance that a tenth also drops a chest (about half a chest a Rock)
   rubbleBone: 0.18,               // and a bone (about one and a half a Rock)
   stuckWindow: 60, stuckShare: 0.1, stuckTries: 2, stuckIdle: 2,   // the hint: a minute of pick-on-Rock play that took under a tenth of its health, or the 2nd try of the level; the pick is "on it" for 2 s after a hit
+  hardHits: 25, hardTurn: 60, hardShow: 3,   // steering to the Rock: a block of more than 25 of your hits is "too hard" while a Rock can be hit; tagged after 3 swings on it; the hint names the Rock after 60 swings on such blocks (the sim reads hardHits too)
   gateShare: 0.6, gateCap: 0.9,   // the Gate remembers: a try that does not finish banks this share of the damage it dealt; the bank never takes the Gate below 1 - cap of its health
   recordMin: 10,                  // a record under this many metres is not worth a banner
 };
@@ -31,6 +32,7 @@ const p = {
 // Stuck = the Gate Rock of this level stands, you have hit it, and either the level has been tried twice, or a minute of play
 // with the pick on it took less than a tenth of its health. Counted in play time (the step), never the clock outside play.
 export function bossStuck(s) {
+  if (steerHint(s)) return true;
   const b = s.boss, r = s.run;
   if (!b || b.hp <= 0 || !r || r.done || b.row !== r.floor || !(b.you > 0)) return false;
   const st = s.road && s.road.stamps && s.road.stamps[r.key];
@@ -38,10 +40,69 @@ export function bossStuck(s) {
 }
 // The best next step: { kind: 'spend' | 'side' | 'leave' | 'more', n } (n: the cost, the pay, or the Stars)
 // How many swings of yours the Rock has left, and about how many seconds: { n, time: { n, unit }, raw, measured }
-export function bossSwings(s, b = s.boss) {
+function swingPer(s) {
   const dg = PARAMS.diggers || {}, share = fold('crewShare', s, dg.rafeeqShare === undefined ? 0.6 : dg.rafeeqShare);
-  const est = swingEstimate(pickPower(s), share, crewWorking((s.diggers || []).length, dg.sieveEvery));
-  return swingsLeft(Math.max(0, b.hp), b.sw, est);
+  return swingEstimate(pickPower(s), share, crewWorking((s.diggers || []).length, dg.sieveEvery));
+}
+export function bossSwings(s, b = s.boss) {
+  return swingsLeft(Math.max(0, b.hp), b.sw, swingPer(s));
+}
+
+// ---------- steering to the Rock (decision 19): words and light, the pick still goes where you point ----------
+// A Big Rock in view with a cell that can be hit, on a dig that is not one of the four lessons.
+export function rockHittable(s) {
+  const run = s.run;
+  if (!run || run.done) return false;
+  const i = roadIndex(s);
+  if (i >= 0 && i < FIXED.length) return false;
+  const b = bossInView(s);
+  if (!b || b.hp <= 0) return false;
+  for (let c = 0; c < COLS; c++) if (reachable(s, b.row, c)) return true;
+  return false;
+}
+// The block (r, c) would take more than `hardHits` of your hits, a Rock can be hit, and it is not the law's cure.
+export function isTooHard(s, r, c) {
+  const cell = cellAt(s, r, c);
+  if (!cell || cell.t === 'boss' || !(p.hardHits > 0) || !(cell.hp > p.hardHits * pickPower(s))) return false;
+  if (!rockHittable(s)) return false;
+  const tell = bossTell(s);
+  return !(tell && tell.r === r && tell.c === c);
+}
+// swings (the bar's unit) a block with this hp takes
+export const blockSwings = (s, hp) => friendly(Math.max(1, hp / swingPer(s)));
+// The tag on a block: after `hardShow` swings on it, while it is too hard. null or { r, c, n }.
+export function hardTag(s) {
+  const h = s.run && s.run.hc;
+  if (!h || h.n < p.hardShow || !isTooHard(s, h.r, h.c)) return null;
+  return { r: h.r, c: h.c, n: blockSwings(s, cellAt(s, h.r, h.c).hp) };
+}
+// Counted as your swings land (never time): a swing at the Rock, at a too-hard block, or at any block (for the tag's count).
+function steerCount(s, r, c) {
+  const run = s.run;
+  if (!run || run.done) return;
+  const cell = cellAt(s, r, c);
+  if (!cell) return;
+  const h = run.hc;
+  run.hc = h && h.r === r && h.c === c ? { r, c, n: h.n + 1 } : { r, c, n: 1 };
+  if (cell.t === 'boss') { if (rockHittable(s)) run.swRock = (run.swRock || 0) + 1; }
+  else if (isTooHard(s, r, c)) { run.swHard = (run.swHard || 0) + 1; run.hn = blockSwings(s, cell.hp); }
+  const st = s.road && s.road.stamps && s.road.stamps[run.key];
+  if (st) st.steer = (run.swHard || 0) > (run.swRock || 0) ? run.hn || 1 : 0;      // the next try opens with the line
+}
+// The live hint: { n, gate } once `hardTurn` swings went to too-hard blocks, more than to the Rock, with the Rock in reach.
+export function steerHint(s) {
+  const run = s.run;
+  if (!run || run.done || !((run.swHard || 0) >= p.hardTurn) || !(run.swHard > (run.swRock || 0)) || !rockHittable(s)) return null;
+  const b = bossInView(s);
+  return { n: run.hn || 1, gate: !!b.gate };
+}
+// The first moments of a try that follows one spent mostly on too-hard blocks: { n, gate } or null (once, before any swing).
+export function steerOpening(s) {
+  const run = s.run, st = run && s.road && s.road.stamps && s.road.stamps[run.key];
+  if (!st || !(st.steer > 0) || run.done || run.steerSaid || run.swHard || run.swRock) return null;
+  const i = roadIndex(s);
+  if (i >= 0 && i < FIXED.length) return null;
+  return { n: st.steer, gate: i >= FIXED.length && !st.fin };
 }
 // What the layer's law does to THIS Rock right now, so the bar can say it: null, or { kind, pct, r, c } with kind 'dark' | 'grow' | 'hot'
 // (also 'lit' for the Black once a light is on) and (r, c) where the cure sits above the Rock (a lantern, a torch crate, water), if any.
@@ -58,6 +119,8 @@ export function bossAdvice(s) {
   // the law first: a Rock in the dark, growing or hot is not a Pick problem while the cure is one block away
   const tell = bossTell(s, b);
   if (tell && tell.kind !== 'lit' && tell.r !== undefined) return { ...out(tell.kind, tell.pct || 0), cure: [tell.r, tell.c] };
+  const sh = steerHint(s);
+  if (sh) return out(sh.gate ? 'rock_gate' : 'rock', sh.n);
   if (canBuy(s, 'tr_pick')) return out('spend', upgradeCost(s, 'tr_pick'));
   const need = upgradeCost(s, 'tr_pick') - s.stars;
   const side = dealCards(s).filter(c => c.kind !== 'fixed' && c.stars >= need).sort((a, b) => b.stars - a.stars)[0];
@@ -142,6 +205,7 @@ function shed(s, r, b, c, src, ev) {
 function bossDown(s, r, src, ev) {
   const gs = s.boss && s.boss.gate && s.run ? s.road.stamps[s.run.key] : null;
   if (gs) gs.bank = 0;                 // the Gate is down: nothing left to remember
+  { const st = s.run && s.road && s.road.stamps[s.run.key]; if (st) st.steer = 0; }
   const pay = Math.round(dirtVal(r) * p.pay * coinMult(s));
   addCoins(s, pay, src);
   s.bossesDown = Math.max(s.bossesDown, layerOf(r));
@@ -205,6 +269,7 @@ export const boss = use({
     return row;
   } }] },
   hooks: {
+    swing: { at: 900, fn(s, sw) { steerCount(s, sw.r, sw.c); } },
     step: [{ at: 301, fn(s, dt) {
       const b = bossInView(s);
       if (!b || b.hp <= 0 || b.w0hp === undefined) return;
