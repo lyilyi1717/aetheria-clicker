@@ -4,9 +4,9 @@ export default { en: {
   star_note: 'Stars do nothing until you spend them.',
   star_note_none: 'Earn Stars at a New Site, then spend them here.',
   star_next: 'A step makes you stronger at once. A start gift comes with your next site.',
-  star_pointer: 'You have Stars. Spend them at the Alqahwa.',
+  star_pointer: 'Spend Stars at Alqahwa.',
   star_pointer_d: 'Each step makes you stronger for ever.',
-  star_back: 'Your Stars came back: {n}. Spend them on the new tracks.',
+  star_back: 'Your Stars are back: {n}',
 
   up_tr_pick: 'The Pick', up_tr_pick_d: 'Your hit x1.5 a step.',
   up_tr_camp: 'The Camp', up_tr_camp_d: 'Rafeeq perks: waiting at the start, good shoes, a second kettle.',
@@ -73,9 +73,9 @@ export default { en: {
   star_note: 'النجوم لا تفعل شيئاً حتى تنفقها.',
   star_note_none: 'اكسب النجوم في موقع جديد، ثم أنفقها هنا.',
   star_next: 'الخطوة تجعلك أقوى في الحال. وهدية البداية تأتي مع موقعك التالي.',
-  star_pointer: 'معك نجوم. أنفقها في القهوة.',
+  star_pointer: 'أنفق نجومك في القهوة.',
   star_pointer_d: 'كل خطوة تجعلك أقوى للأبد.',
-  star_back: 'عادت إليك نجومك: {n}. أنفقها في المسارات الجديدة.',
+  star_back: 'عادت نجومك: {n}',
 
   up_tr_pick: 'المعول', up_tr_pick_d: 'ضربتك ×1.5 في كل خطوة.',
   up_tr_camp: 'المخيّم', up_tr_camp_d: 'مزايا للرفقاء: ينتظرونك عند البداية، وأحذية جيدة، وإبريق شاي ثانٍ.',

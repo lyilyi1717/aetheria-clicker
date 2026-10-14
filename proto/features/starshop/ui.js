@@ -186,7 +186,7 @@ ui({
     tr_bag: { desc: () => t('up_tr_bag_d'), noLevel: true },
   },
   // (the Star tracks are bought at the Alqahwa, worldmap/alqahwa.js, which builds starPanel() into its menu board)
-  // the pointer "You have Stars. Spend them at the Alqahwa." lives in the message line only (the newSite note below); the goal
+  // the pointer "Spend Stars at Alqahwa." lives in the message line only (the newSite note below); the goal
   // spot always shows the goal its chip names (#470, docs/art-and-sound.md decision 12)
   mount: mountChip,
   start(app) {

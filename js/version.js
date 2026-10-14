@@ -3,9 +3,23 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.2';
+export const VERSION = '5.36.3';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.3',
+    date: '2026-10-14',
+    title: 'Dig: shorter notes that fit the top line',
+    changes: [
+      'Some notes in the message line at the top of the dig were too long for it and ended in dots. They are shorter now and fit on two lines: "Spend Stars at Alqahwa.", "Your Stars are back: 120", "A chest! Dig to it.", "Amber: sticky treasure.", "Glass breaks in lines." and "TNT! It blows up around it."'
+    ],
+    ar: {
+      title: 'الحفر: رسائل أقصر تتسع في السطر العلوي',
+      changes: [
+        'بعض الرسائل في سطر الرسائل أعلى الحفر كانت أطول منه فتنتهي بنقاط. صارت أقصر وتتسع في سطرين: «أنفق نجومك في القهوة.» و«عادت نجومك: 120» و«زجاج ينكسر في خطوط.» وفي الإنجليزية قصُرت أيضاً رسائل الصندوق والكهرمان والديناميت.'
+      ]
+    }
+  },
   {
     version: '5.36.2',
     date: '2026-10-14',

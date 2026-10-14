@@ -28,7 +28,7 @@ Use these exactly. If a word is not here and is new, add it here in the same PR.
 ### Places and lands
 | English | Arabic | Note |
 |---|---|---|
-| Alqahwa (the coffee house) | القهوة | the Gulf coffee house; never «المقهى» |
+| Alqahwa (the coffee house) | القهوة | the Gulf coffee house; never «المقهى»; English says "at Alqahwa", with no "the" |
 | The road / road map | الطريق / خريطة الطريق | |
 | Next town | البلدة التالية | |
 | Arabia | الجزيرة العربية | land 1 |
@@ -156,7 +156,7 @@ Counted 14 Oct 2026.
 | Aetheria | `js/i18n/en.js` + `ar.js` (`node test_r37_i18n.js`) | **2,307 / 2,307 keys** and 465 data keys; 4,055 checks pass |
 | Core loop (`?loop=2`) | `js/i18n/coreloop/` | paused; not counted |
 | Dig | `proto/features/*/strings.js`, `proto/ui/strings.js` (`npm run dig:i18n`) | **2,196 / 2,196 strings** after pass 4 (14 Oct 2026), plus the inline «Buy all» table (4). Every folder is in `COMPLETE`; `test_dig_i18n.js` now fails on a folder missing from `COMPLETE` and on an inline `addStrings({ en` table with no `ar`. |
-| Changelog (About tab) | `js/version.js` | every entry has Arabic; Dig entries 5.32.0 to 5.35.1 reviewed 14 Oct 2026 |
+| Changelog (About tab) | `js/version.js` | every entry has Arabic; Dig entries 5.32.0 to 5.36.3 reviewed 14 Oct 2026 |
 
 Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 154, starshop 102, rafeeqs 96, contracts 92, worldmap 79, wardrobe 69, picks 68, relics2 62, fusion 56, moods 47, deep 45, ui 42, boss 41, forge 32, away 28, shop 22, foreman 15, look 14, chest 13, settings 12, diggers 11, museum 11, water 9, crystal 8, relics 8, ground 7, track 7, telemetry 5, combo 4, crits 4, ores 4, tnt 3, oil 2. (Count with a throwaway script that imports each `strings.js` default and counts `en` keys; a count kept in the repo is part of the plumbing brief.)
 
@@ -253,6 +253,12 @@ Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 1
 **Decided (14 Oct 2026, by localizer): the goal chip's tip says «اضغط لتنتقل إلى الهدف التالي»** (was «اضغط للهدف التالي», #463), because "tap for the next goal" means the tap moves the chip on, and «للهدف التالي» alone reads as "tap for the sake of the next goal". The 5.35.6 entry now says «المرحلة 5 … المرحلة 7 … بقية المراحل» (it said «المستوى»: a road level is «المرحلة», «المستوى» is a relic's level), wording only. «خطوط البلّور» for "crystal lines" stays: it is the glossary's «البلّور» and a child sees lines of crystal.
 
 **Decided (14 Oct 2026, by localizer): a plain Camp step says its number** (5.36.1): the title is «ضربة الرفيق +{p}%» ("Rafeeq hit +{p}%") and the next step adds the hit before and after, «ضربة الرفيق: {a}% من ضربتك، ثم {b}%», because since 5.36.0 the step adds 2% of your hit and «رفقاء أقوى» said nothing a child could check. «ضربة الرفيق» is the words the Rafeeq row already uses (`crew_share`), so both places name one number the same way; «ثم» rather than an arrow, because the line is a sentence, not an old/new pair. The 5.36.0 entry is reworded (wording only): «صار لكل خطوة» (was «كل خطوة … صار», wrong gender), the Gates of 18 and 20 now each say their own size, and a road level is «المرحلة» throughout (it said «المستوى»).
+
+**Decided (14 Oct 2026, by localizer): a note in Dig's message line (the spot at the top of the dig where lessons and toasts show) fits two lines at 96 px, at 13 px bold**, because at 1366 wide the spot is 96 px (85 px of text after its padding and edge bar) and a longer note ends in dots, so the player loses its end. That is about 24 Latin letters or 20 Arabic letters in all. Measured with the real fonts (Segoe UI Bold for English, Cairo for Arabic, word by word as the browser wraps):
+- The Star pointer is **"Spend Stars at Alqahwa." / «أنفق نجومك في القهوة.»** (was "You have Stars. Spend them at the Alqahwa.", 4 lines; «معك نجوم. أنفقها في القهوة.», 3 lines). Not "Spend your Stars at the Alqahwa.": that is still 3 lines; and Alqahwa takes no "the", as everywhere else in Dig.
+- The refund note is **"Your Stars are back: {n}" / «عادت نجومك: {n}»** (was 5 and 4 lines). It also shows in the Star panel, where the tracks are already in front of the player, so "spend them on the new tracks" is not lost.
+- Lessons shortened where every rule they teach stays: "A chest! Dig to it.", "Amber: sticky treasure.", "Glass breaks in lines." / «زجاج ينكسر في خطوط.», "TNT! It blows up around it.". Their other Arabic already fit.
+- **Not shortened (left to the layout):** 18 lessons still need 3 to 6 lines in at least one language, because each teaches a rule or two and 24 letters cannot hold it without dropping one: `gate_remember`, `fz_lesson_watch`, `fz_lesson_ready`, `fz_lesson_half`, `t_crystal`, `t_prism`, `t_mushroom`, `t_lantern`, `t_moonstone`, `t_torch_crate`, `t_moss`, `t_grump`, `t_thief`, `t_lava`, `t_water`, `t_pearl`, `t_pearl_seen`, `t_wing_seen`. Dropping a rule changes what the game teaches, which is not a wording choice; the message spot needs more width (or a third line) for these, and the full text is in Tips either way. Handed to the art director.
 
 ## 6. Dig: plumbing and passes
 
