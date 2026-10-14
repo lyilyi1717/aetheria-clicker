@@ -45,7 +45,7 @@ export const DEPTHS = [10, 25, 30, 50, 60, 75, 100, 125, 150, 175, 200, 225, 250
 // The card: from the fixed road it takes the only card; from a deal it takes the one it can do (its floor is at most one
 // Big Rock beyond the deepest floor finished, or 75 m), preferring a stretch, then a new place, then a twist; a medal card
 // when it wants a Fast medal (`fastTry`) or a Hard one (`hardTry`).
-export const MOVE = { far: 90, rockWait: 150, giveUp: 240, budget: 4, retry: 1.5, fastTry: 0.35, hardTry: 0.25 };
+export const MOVE = { far: 90, rockWait: 150, giveUp: 240, budget: 4, retry: 1.5, retryDigs: 3, fastTry: 0.35, hardTry: 0.25 };
 
 // ---------- tracker ----------
 export class Trk {
@@ -103,6 +103,9 @@ export function mkEv(s, trk) {
     else if (k === 'wingPiece') { if (d.isNew) trk.found(); }
     else if (k === 'siteFinished') {
       trk.curFin = true;
+      // the winning Gate fight: attended seconds from your first hit on it to the finish (x3 = the swings the player really made)
+      const g = (trk.gates || []).at(-1);
+      if (g && g.key === d.key && g.fight === undefined) g.fight = trk.act - g.a;
       trk.finishes.push({ r: trk.real, a: trk.act, key: d.key, floor: d.floor, time: d.time, par: d.par, stars: d.stars, fast: d.fast, first: d.first });
       trk.mark('finish #' + trk.finishes.length); trk.dec();
     } else if (k === 'siteMedal') {
@@ -226,8 +229,11 @@ const lifeStars = s => s.stars + (s.starSpent || 0);
 function chooseCard(s, cards, ctx) {
   if (cards.length === 1) return cards[0];
   const reach = s.road.reach, fails = ctx.fails || (ctx.fails = {});
-  // doable: a floor already finished, or the next one, unless it failed lately and the Stars have not grown by half since
-  const doable = c => c.floor <= reach || (c.floor <= Math.max(reach + 25, 75) && !(fails[c.floor] && lifeStars(s) < fails[c.floor] * MOVE.retry));
+  // doable: a floor already finished, or the next one, unless it failed lately and the Stars have not grown by half since.
+  // Chapter two: the side cards beside a stuck level pay chapter-one Stars, so the Stars never grow by half; a person goes back
+  // to the Gate (it remembers 60%) after a few other digs (MOVE.retryDigs).
+  const waited = c => c.ch === 2 && (ctx.moves || 0) - ((ctx.failMove || {})[c.floor] || 0) >= MOVE.retryDigs;
+  const doable = c => c.floor <= reach || (c.floor <= Math.max(reach + 25, 75) && !(fails[c.floor] && lifeStars(s) < fails[c.floor] * MOVE.retry && !waited(c)));
   const score = c => {
     let v = { stretch: 3, new: 2, twist: 1, medal: 0, fixed: 5 }[c.kind] + rnd() * 0.5;
     if (c.kind === 'medal' && !c.medals.fast && rnd() < MOVE.fastTry) v += 4;
@@ -239,7 +245,8 @@ function chooseCard(s, cards, ctx) {
 function move(s, ctx, trk, ev) {
   const r = G.siteRun(s);
   if (r.done) delete (ctx.fails || {})[r.floor];
-  else { (ctx.fails || (ctx.fails = {}))[r.floor] = lifeStars(s); }          // it gave this floor up: not again until the Stars have grown
+  else { (ctx.fails || (ctx.fails = {}))[r.floor] = lifeStars(s); (ctx.failMove || (ctx.failMove = {}))[r.floor] = ctx.moves || 0; }   // it gave this floor up: not again until the Stars have grown
+  ctx.moves = (ctx.moves || 0) + 1;
   const c = (r.done && G.chiliBotPick && G.chiliBotPick(s, ctx, rnd)) || chooseCard(s, G.dealCards(s), ctx);   // a finished level: sometimes with its next chili
   if (!G.pickCard(s, c, ev)) return false;
   if (s.contract) { ctx.cBuyEvery = ctx.cBuyEvery || ctx.p.buyEvery; ctx.cTried = ctx.cTried || {}; ctx.cTried[s.contract] = 1; ctx.cWas = true; ctx.cStart = trk.act; ctx.cLogged = ctx.cLogged || {}; }

@@ -3,9 +3,35 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.32.1';
+export const VERSION = '5.33.0';
 
 export const CHANGELOG = [
+  {
+    version: '5.33.0',
+    date: '2026-10-14',
+    title: 'Chapter Two: the road home',
+    changes: [
+      'Level 20 is not the end any more. You find Grandpa’s bell and his note, and Walk home opens Chapter Two: twenty more levels.',
+      'Levels 21 to 36 walk home at night through Europe, the Americas, East Asia and Africa, at the same depths as before. The ground is much harder, but your pick is much stronger by now, so each level feels like its twin in chapter one.',
+      'Levels 37 to 40 are a new land, the Empty Quarter, at 300 and 325 m: red sand, high dunes and camels far away. Grandpa’s caravan is waiting at level 40.',
+      'Each land at night has its own drum beat, a little lower, and the Empty Quarter plays the old beat of home. The map has a second row for Chapter Two, and the free cards wait at the crossroads between the two chapters.',
+      'The screen says Chapter 2, level 1 of 20. Chili levels and Museum pieces work on Chapter Two levels too.',
+      'Balance: a Chapter Two level pays 2,000 times the Stars of the same depth in chapter one, so the walk home takes about a week of play, like chapter one. The two learn Gates of the Empty Quarter are smaller, so they do not stop you for days.',
+      'Old saves that finished level 20 get level 21 at the next Next town; nothing you have is lost.'
+    ],
+    ar: {
+      title: 'الفصل الثاني: طريق العودة إلى البيت',
+      changes: [
+        'المرحلة العشرون لم تعد النهاية. تجد جرس الجد ورسالته، وزر العودة إلى البيت يفتح الفصل الثاني: عشرون مرحلة أخرى.',
+        'المراحل من 21 إلى 36 تمشي بك إلى البيت ليلاً عبر أوروبا والأمريكتين وشرق آسيا وأفريقيا، على الأعماق نفسها. الأرض أصعب بكثير، لكن معولك صار أقوى بكثير، فكل مرحلة تشبه أختها في الفصل الأول.',
+        'المراحل من 37 إلى 40 أرض جديدة، الربع الخالي، على عمق 300 و325 متراً: رمل أحمر وكثبان عالية وجمال من بعيد. قافلة الجد تنتظرك في المرحلة الأربعين.',
+        'لكل أرض في الليل إيقاع طبول خاص بها، أخفض قليلاً، والربع الخالي يعزف إيقاع البيت القديم. في الخريطة صف ثانٍ للفصل الثاني، والبطاقات الحرة تنتظر عند مفترق الطرق بين الفصلين.',
+        'تقول الشاشة: الفصل 2، المرحلة 1 من 20. مراحل الشطة وقطع المتحف تعمل في مراحل الفصل الثاني أيضاً.',
+        'التوازن: مرحلة الفصل الثاني تعطي ألفي ضعف نجوم العمق نفسه في الفصل الأول، فتأخذ رحلة العودة نحو أسبوع من اللعب مثل الفصل الأول. بوابتا التعلّم في الربع الخالي أصغر، فلا توقفانك أياماً.',
+        'الحفظ القديم الذي أنهى المرحلة العشرين يحصل على المرحلة 21 عند البلدة التالية؛ لا تخسر شيئاً مما عندك.'
+      ]
+    }
+  },
   {
     version: '5.32.1',
     date: '2026-10-14',
