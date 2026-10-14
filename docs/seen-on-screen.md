@@ -6,6 +6,33 @@ Verdict: looks right / broken / confusing / not reachable / never seen.
 Seen on 2026-10-14 at version 5.31.1, desktop only, 1500x1000 headless, state set from the console where noted.
 Screenshots over about 300 KB are kept on the worktree only (03, 11).
 
+## Fifth pass, 14 October (version 5.35.2 on main 5a7dec0, full Arabic and the layout fixes)
+Screenshots in docs/screens/2026-10-14e/ (desktop 1500x1000; 1366x768 for the crew shots). Over about 300 KB were not kept (crew shots at both sizes, relics and fuse, Empty Quarter, deep). State set from the console (crew, bones, relics, stars, a level-37 site, fired events). About 16 shots. Text checks: every Arabic screen listed was scanned for English words and found none; `node scripts/dig-i18n.mjs` shows 2196/2196.
+
+| Feature | Last seen | Version | Screenshot | Verdict | Note | Issue |
+|---|---|---|---|---|---|---|
+| #444: 3 Rafeeqs, English and Arabic, 1500x1000 and 1366x768 | 2026-10-14 | 5.35.2 | not kept (over 300 KB) | looks right | Small Museum chip under the depth sign; almodeer's box, his countdown pill and the pill stay clear in all four. Bubbles can still overlap each other at 1366 (two Rafeeq lines on top of each other). | |
+| #444: 2 Rafeeqs, full chip at top centre | 2026-10-14 | 5.35.2 | not kept | looks right | 'Old Camel / 0 of 4 found', big, in the middle, nothing under it. | |
+| #444: a new piece while the chip is small | 2026-10-14 | 5.35.2 | not kept | looks right | The chip grows to '1/4' and stays clear of the box; 'Found: Tail (1 of 4)' shows in the top line. But the 'The Gate' / 'Museum set' pills sit on the 'Gate at 50 m' note and cut it. | #453 |
+| #445: Arabic 'Show my code', lines start at the left | 2026-10-14 | 5.35.2 | docs/screens/2026-10-14e/06-ar-code.png | looks right | Direction ltr, text-align left, every line starts at the left edge; heading, buttons and help line stay right to left. The box has no aria-label. | #454 |
+| Arabic Museum chip, canvas | 2026-10-14 | 5.35.2 | docs/screens/2026-10-14e/09-ar-chip-zoom.png | broken | Count line reads '4 وجدت 0 من' (should be 'وجدت 0 من 4'). | #451 |
+| Arabic Museum tab: set cards, «تمّ», jar line | 2026-10-14 | 5.35.2 | docs/screens/2026-10-14e/07-ar-museum.png | looks right | Cards right-aligned, «تمّ» in green at the left, '4 من 5' correct. The jar line shows only after the Giant Scarab is done; its text is in the table but I did not see it on screen. | |
+| Arabic road map: land chips, Museum line | 2026-10-14 | 5.35.2 | docs/screens/2026-10-14e/12-ar-map.png | looks right | Chips run Arabia (left) to Empty Quarter (right), as the picture does; node names and the info box all Arabic, 'المتحف: الجمل العجوز، وجدت 0 من 4' reads in order. | |
+| Arabic Lamp wish card | 2026-10-14 | 5.35.2 | docs/screens/2026-10-14e/11-ar-wish.png | looks right | Title, 'اختر واحدة.' and three option cards (first at the right) all Arabic. | |
+| Arabic Relics: Recipe Book and Fuse button | 2026-10-14 | 5.35.2 | not kept (over 300 KB) | looks right | 'كتاب الوصفات', '17 من 1', 'لم تكتشف بعد', purple 'ادمج 1' button and the hint line all Arabic. The hint is two lines and a little cramped at the top. | |
+| Arabic Forge tab and tools | 2026-10-14 | 5.35.2 | docs/screens/2026-10-14e/08-ar-forge.png | looks right | 'المثقاب · مستوى 0', 'يحفر عموداً عمقه 6 كتل...', metals line all Arabic. The tool bar and tooltips did not appear in my set-up (no tool bought), so tooltips not seen. | |
+| Arabic deep toasts and canvas floaters | 2026-10-14 | 5.35.2 | not kept (over 300 KB) | looks right | 'طاخ!' with the mark at the left, toast 'مظلم جداً!' fine. The shove floater faded before the shot. | |
+| Arabic 'Buy all', clock line, level line, goal line | 2026-10-14 | 5.35.2 | not kept (over 300 KB) | looks right | 'اشترِ الكل (24)', 'السرعة: أقل من 5:00', 'ف2، المرحلة 17/20 · الربع الخالي · الكثبان', 'بوابة الكثبان على عمق 300 م': no English left, order right. 'ف2' for chapter 2 is short but readable. The Buy-all toast was not seen. | |
+| Arabic Alqahwa and the Stars board (2.56T) | 2026-10-14 | 5.35.2 | docs/screens/2026-10-14e/14-ar-alqahwa-stars.png | looks right | All Arabic now (menu, steps, prices, buttons). Pill width stayed 100 px while Stars changed from 2.34T to 2.56T; gold fill and number readable. 'لا رفقاء بعد' line still sits over the coffee sign. | |
+| Empty Quarter look (level 37) | 2026-10-14 | 5.35.2 | not kept (over 300 KB) | confusing | Orange sky, dune line, camels far away, red-orange top; but blocks below the top two rows are still the usual dark brown, so they do not read as red sand. | #452 |
+| Dark Gate lit / unlit tell | 2026-10-14 | 5.35.2 | | not reachable | Not set up this pass. | |
+| Museum edge arrow | 2026-10-14 | 5.35.2 | | not reachable | Not set up this pass; still needs a real play check. | |
+
+Console errors: only the favicon 404.
+
+### First five minutes (Arabic, fresh save, 5.35.2)
+No English is left on the dig screen, the drawer, the map, the Museum, Relics, Forge, Alqahwa or Settings. What a new Arabic player trips on first: (1) the 'Museum chip' count line is in the wrong order; (2) the top line is crowded when a toast, the Tips button and the pills all show at once; (3) 'ف2' in the level line and the small bubbles that overlap at 1366 wide.
+
 ## Fourth pass, 14 October (version 5.34.0 on main dae7c2f, Arabic and the new Settings)
 Screenshots in docs/screens/2026-10-14d/ (desktop 1500x1000). Over about 300 KB were not kept (02, 03, 04, 11). State set from the console: money, depth, stamps, hired Rafeeqs, a faked 3-hour gap. Arabic strings were still being edited by the localizer during this pass, so the English left in Arabic mode may shrink.
 
