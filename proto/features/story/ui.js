@@ -159,7 +159,11 @@ export function openDesk(app, host, { stage, btns, CW = 960 }) {
     x: X,
     draw(g, T, CW2, GROUND) {
       g.save(); g.translate(X * CW2, GROUND + 6); g.scale(1.25, 1.25); drawHakawati(g, T, talking); g.restore();
-      g.fillStyle = '#ffd23f'; g.font = 'bold 11px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText(t('st_name'), X * CW2, GROUND + 28);
+      // the name on a dark pill, so it reads on the red rug
+      g.font = 'bold 15px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      const nmW = g.measureText(t('st_name')).width + 22;
+      g.fillStyle = 'rgba(20,12,6,0.82)'; g.beginPath(); g.roundRect(X * CW2 - nmW / 2, GROUND + 18, nmW, 22, 11); g.fill();
+      g.fillStyle = '#ffd23f'; g.fillText(t('st_name'), X * CW2, GROUND + 29.5); g.textBaseline = 'alphabetic';
       // the brass bell hangs from a cord over the table once its ending was told, and sways; it rings wide for nine seconds after the telling
       if (G.storyBellHangs(s) || kind === 'bell') {
         if (kind === 'bell' && finaleT >= 0 && T0 < 0) T0 = T;

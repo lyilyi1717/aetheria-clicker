@@ -2,7 +2,7 @@
 import * as G from './proto/game.js';
 import { readFileSync } from 'node:fs';
 import strings from './proto/features/worldmap/strings.js';
-import { buildMap, pathPoints, PW } from './proto/features/worldmap/layout.js';
+import { buildMap, pathPoints, PW, sideClear } from './proto/features/worldmap/layout.js';
 
 let failed = 0;
 const ok = (cond, msg) => { if (!cond) { failed++; console.error('FAIL: ' + msg); } };
@@ -108,5 +108,35 @@ const dealKeys = s => G.dealCards(s).map(c => c.key).sort().join();
   ok(src.includes('wm_again') && src.includes('wm_hard_way'), 'the two button words exist');
 }
 
+{ // side and Beyond cards never sit on each other or on a road stone (their labels and Museum chips hang below them)
+  const check = (map, what) => {
+    const cards = map.nodes.filter(n => n.type === 'side' || n.type === 'beyond');
+    for (let i = 0; i < cards.length; i++) {
+      for (let j = i + 1; j < cards.length; j++) ok(sideClear(cards[i], cards[j]), `${what}: ${cards[i].id} and ${cards[j].id} overlap`);
+      for (const r of map.nodes.filter(n => n.type === 'road' && n.zone === cards[i].zone && n.zone !== 'beyond')) ok(sideClear(cards[i], r), `${what}: ${cards[i].id} sits on level ${r.level}`);
+    }
+    return cards.length;
+  };
+  let most = 0;
+  for (const lv of [3, 6, 9, 12, 15, 18]) {
+    const s = fresh();
+    for (let i = 0; i < lv; i++) stamp(s, i, { fin: 1, best: 200 });
+    stamp(s, lv, { fin: 0, n: 3 });
+    most = Math.max(most, check(buildMap(s), 'stuck at ' + (lv + 1)));
+  }
+  const s2 = fresh();
+  for (let i = 0; i < 20; i++) stamp(s2, i, { fin: 1, fast: i % 2, best: 300 });
+  s2.road.reach = 275;
+  for (let k = 0; k < 3; k++) stamp(s2, 20 + k, { fin: 1, best: 300 });
+  const m2 = buildMap(s2), b2 = m2.nodes.filter(n => n.type === 'beyond');
+  check(m2, 'crossroads');
+  ok(most >= 2 && b2.length >= 1, 'the checks saw several cards');
+  const m3 = buildMap(Object.assign(fresh(), {}));
+  ok(m3.nodes.every(n => n.type !== 'beyond'), 'fresh save has no Beyond cards');
+  // the fan itself: three cards at the crossroads are stepped across
+  const fan = [[0.41, 250], [0.63, 335], [0.85, 250]].map(([x, y]) => ({ type: 'beyond', x: x * PW, y }));
+  ok(sideClear(fan[0], fan[1]) && sideClear(fan[1], fan[2]) && sideClear(fan[0], fan[2]), 'the three crossroads spots are clear of each other');
+}
 if (failed) { console.error(`${failed} check(s) failed`); process.exit(1); }
 console.log('Dig world map OK');
+

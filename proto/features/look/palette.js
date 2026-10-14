@@ -37,7 +37,7 @@ export const ZONE_LOOK = {
   n_americas: { sky: ['#101a36', '#46405e'], far: '#4a2a2a', ground: ['#3a2a5a', 0.16] },
   n_eastasia: { sky: ['#18203a', '#4e5a6a'], far: '#34463f', ground: ['#2a4a5a', 0.16] },
   n_africa:   { sky: ['#1e1634', '#5a3a4a'], far: '#4a3020', ground: ['#4a2a3a', 0.16] },
-  emptyquarter: { sky: ['#e2683a', '#ffc27a'], far: '#c8502a', ground: ['#d0441c', 0.16] },
+  emptyquarter: { sky: ['#e2683a', '#ffc27a'], far: '#c8502a', ground: ['#d9501c', 0.4] },   // its blocks are red sand, far from every other land
 };
 const PLACE_SHARE = 0.3;
 export const placeLook = (key, zone) => {
