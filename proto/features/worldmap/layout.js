@@ -11,9 +11,30 @@ export const SKYY = 175;        // the horizon line
 const SLOTS_A = [[0.13, 345], [0.37, 280], [0.62, 355], [0.87, 290]];
 const SLOTS_B = [[0.13, 290], [0.37, 355], [0.62, 285], [0.87, 345]];
 const BEYOND_X = 0.17, BEYOND_Y = 325;                      // the crossroads, in the Beyond panel
-const FAN = [[0.6, 228], [0.64, 322], [0.6, 416]];        // where the three paths of the deal end
+const FAN = [[0.41, 250], [0.63, 335], [0.85, 250]];      // where the three paths of the deal end: stepped across, so a card's label never sits on the next card
 const ISLAND_Y = 222;
 
+
+// A card's label (name, medals, Museum chip) hangs well below its stone, so two cards need a column apart (SIDE_GAP) or a
+// whole label's height (SIDE_ROW) between them, and a road stone needs a clear circle. The first free spot wins, nearest the level first.
+export const SIDE_GAP = 150, SIDE_ROW = 135, ROAD_GAP = 75;
+export const sideClear = (a, b) => (b.type === 'side' || b.type === 'beyond') ? (Math.abs(a.x - b.x) >= SIDE_GAP || Math.abs(a.y - b.y) >= SIDE_ROW) : Math.hypot(a.x - b.x, a.y - b.y) >= ROAD_GAP;
+function sideSpot(home, dir, pan, nodes) {
+  const near = nodes.filter(n => n.type === 'side' || n.type === 'beyond' || (n.type === 'road' && n.zone === home.zone));
+  const ys = [-88, 88, 0, -50, 50, -120, 120];
+  for (let k = 0; k < 14; k++) {
+    const x = home.x + dir * (50 + 50 * k);
+    if (x < pan.x + 40 || x > pan.x + PW - 40) break;
+    for (const dy of ys) {
+      const y = home.y + dy;
+      if (y < 225 || y > 420) continue;
+      const spot = { x, y };
+      if (near.every(n => sideClear(spot, n))) return [x, y];
+    }
+  }
+  let dy = 88; if (home.y + dy > 420) dy = -dy;
+  return [home.x + dir * 50, Math.max(225, Math.min(420, home.y + dy))];
+}
 
 // The lands in a row: chapter one's five, the Beyond crossroads, then chapter two's (the four lands at night, the Empty Quarter).
 // The road runs level 1 to 20, through the crossroads, then 21 to 40. While chapter two runs, the crossroads holds the free
@@ -55,7 +76,6 @@ export function buildMap(s) {
   });
 
   const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
-  const clampY = y => Math.max(225, Math.min(420, y));
   const used = new Set();
   const give = (n, c) => { n.card = c; used.add(c.key); };
 
@@ -78,12 +98,10 @@ export function buildMap(s) {
       if (used.has(c.key)) continue;
       const isl = islands.find(n => n.site === c.site && !n.card);
       if (isl) { give(isl, c); isl.state = 'open'; continue; }
-      const dx = (home.x - panelOf(home.zone).x) > PW * 0.8 ? -50 : 50;
-      let dy = slot % 2 ? 88 : -88;
-      if (home.y + dy < 225 || home.y + dy > 420) dy = -dy;
-      const y = clampY(home.y + dy);
+      const pan = panelOf(home.zone), dir = (home.x - pan.x) > PW * 0.8 ? -1 : 1;
+      const [px, y] = sideSpot(home, dir, pan, nodes);
       const n = { id: 'c' + slot, type: 'side', i: -1, level: 0, site: c.site, floor: c.floor, zone: home.zone, twist: c.twist, ch: c.ch, prove: false,
-        x: home.x + dx, y, r: 19, state: 'open', stamp: stamps[c.key] || null, card: null, kind: c.kind };
+        x: px, y, r: 19, state: 'open', stamp: stamps[c.key] || null, card: null, kind: c.kind };
       give(n, c); nodes.push(n); edges.push({ id: 'es' + slot, from: home, to: n, open: true, kind: 'side' });
       slot++;
     }
