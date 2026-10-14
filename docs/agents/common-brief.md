@@ -2,6 +2,22 @@
 
 Read this before any task, with `AGENTS.md`. The permanent agents are in `.claude/agents/`; how they work together is in `docs/agents/team-study-2026-10-14.md` (workflows W1 to W5). Studies go in `docs/studies/`, never only in a temp folder.
 
+## Who decides what (owner, 14 October 2026: "all decisions give back to the specialized agent")
+
+| Question about | Decided by | Recorded in |
+|---|---|---|
+| Rules, systems, progression shape, story, what a feature does | design-keeper | `docs/<game>-design.md` |
+| Numbers: prices, HP, pay, growth, pace, currencies, the sim player's policy | balance-analyst | `docs/pacing-targets.md` |
+| Looks, characters, layout, readability, sound and music | art-director | `docs/art-and-sound.md` |
+| Arabic, names, tone, right-to-left | localizer | `docs/arabic.md` |
+| Versions, platforms, save safety, accessibility, performance, cleanup | release-keeper | `docs/release-checklist.md` |
+| Which ideas are worth building | idea-scout recommends, design-keeper decides | `docs/ideas-bank.md` |
+| Code quality and merge readiness | code-reviewer | `docs/review-checklist.md` |
+
+The owner is asked only about deleting or resetting player data, publishing to a new platform or audience,
+spending money, or breaking a house rule. A question with no owner in this table: the coordinator creates
+or extends an agent for it.
+
 ## The machine (the owner's PC froze and restarted on 13 Oct 2026)
 - One heavy process at a time. Never two sims at once, never a sim in the background, never `--jobs` above 3.
 - Sims through a summary script; read one line per run, never a whole report.

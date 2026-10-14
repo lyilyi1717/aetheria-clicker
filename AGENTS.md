@@ -102,7 +102,9 @@ screen-checker (the only one with a browser; `docs/seen-on-screen.md`), code-rev
 (`docs/review-checklist.md`), player-voice (`docs/player-log.md`), release-keeper (`docs/release-checklist.md`).
 Templates for those documents are in `docs/templates/`. Every agent reads `docs/agents/common-brief.md` (machine
 and git rules). The workflows (playtest round, new feature, balance pass, weekly pulse, release) are in
-`docs/agents/team-study-2026-10-14.md`. `roadmap-coder` and `roadmap-architect` stay for roadmap issues.
+`docs/agents/team-study-2026-10-14.md`. `roadmap-coder` and `roadmap-architect` stay for roadmap issues. Two more own a field each: art-director
+(looks and sound, `docs/art-and-sound.md`) and localizer (Arabic, `docs/arabic.md`). Each specialist DECIDES
+the questions in its field (owner, 14 October 2026); the table is in `docs/agents/common-brief.md`.
 
 ## Rules
 
