@@ -252,6 +252,8 @@ Dig strings per file (largest first): chatter 670, wing2 166, sites 161, story 1
 
 **Decided (14 Oct 2026, by localizer): the goal chip's tip says «اضغط لتنتقل إلى الهدف التالي»** (was «اضغط للهدف التالي», #463), because "tap for the next goal" means the tap moves the chip on, and «للهدف التالي» alone reads as "tap for the sake of the next goal". The 5.35.6 entry now says «المرحلة 5 … المرحلة 7 … بقية المراحل» (it said «المستوى»: a road level is «المرحلة», «المستوى» is a relic's level), wording only. «خطوط البلّور» for "crystal lines" stays: it is the glossary's «البلّور» and a child sees lines of crystal.
 
+**Decided (14 Oct 2026, by localizer): a plain Camp step says its number** (5.36.1): the title is «ضربة الرفيق +{p}%» ("Rafeeq hit +{p}%") and the next step adds the hit before and after, «ضربة الرفيق: {a}% من ضربتك، ثم {b}%», because since 5.36.0 the step adds 2% of your hit and «رفقاء أقوى» said nothing a child could check. «ضربة الرفيق» is the words the Rafeeq row already uses (`crew_share`), so both places name one number the same way; «ثم» rather than an arrow, because the line is a sentence, not an old/new pair. The 5.36.0 entry is reworded (wording only): «صار لكل خطوة» (was «كل خطوة … صار», wrong gender), the Gates of 18 and 20 now each say their own size, and a road level is «المرحلة» throughout (it said «المستوى»).
+
 ## 6. Dig: plumbing and passes
 
 ### What exists

@@ -49,15 +49,19 @@ const matIcons = Object.fromEntries(Object.keys(MATS).map(m => ['pick_' + m, pic
 
 // ---------- what a step says ----------
 const RULE_ICON = { head1: 'up_sp_head', head2: 'up_sp_head', head3: 'up_sp_head', whole: 'up_sp_head', shoes: 'up_sp_head', kettle: 'up_sp_head', wake: 'up_sp_wake', keep1: 'up_sp_keep', keep2: 'up_sp_keep', keep3: 'up_sp_keep', pocket2: 'up_sp_keep', cards: 'up_sp_cards', reroll: 'up_sp_reroll', map: 'up_sp_map', eyes: 'up_sp_eyes', bone: 'up_sp_bone', oil: 'up_sp_oil', gift1: 'up_sp_gift', gift2: 'up_sp_gift' };
-// step n (1, 2, 3 ...) of a track: { title, desc, ic }
-function stepInfo(track, n) {
+// step n (1, 2, 3 ...) of a track: { title, desc, ic }; a plain Camp step names its share and the Rafeeq hit before and after
+function stepInfo(track, n, s) {
   const rule = G.starshopRule(track, n);
   if (track === 'pick') {
     const pk = G.starshopPickAt(n);
     return { title: t('pick_title', { name: G.starshopPickName(pk) }), desc: rule ? t('rule_' + rule + '_d') : t('track_more_pick'), ic: 'pick_' + pk.mat };
   }
   if (rule) return { title: t('rule_' + rule), desc: t('rule_' + rule + '_d'), ic: RULE_ICON[rule] || 'up_sp_head' };
-  return { title: t('track_plain_' + track), desc: t('track_more_' + track), ic: track === 'camp' ? 'up_sp_head' : 'coin' };
+  if (track === 'camp') {
+    const p = Math.round(100 * G.PARAMS.starshop.campShare), a = Math.round(100 * G.crewShare(s));
+    return { title: t('track_plain_camp', { p }), desc: t('track_more_camp', { a, b: a + p }), ic: 'up_sp_head' };
+  }
+  return { title: t('track_plain_' + track), desc: t('track_more_' + track), ic: 'coin' };
 }
 
 const affordable = s => G.STARSHOP_TRACKS.some(tr => G.canBuy(s, 'tr_' + tr));
@@ -101,7 +105,7 @@ export function starPanel() {
     h.querySelector('.trk-n').textContent = t('track_step', { n });
     h.querySelector('.d').textContent = t('up_' + id + '_d');
     sec.appendChild(h);
-    const info = stepInfo(tr, id1), cost = G.upgradeCost(s, id), can = s.stars >= cost;
+    const info = stepInfo(tr, id1, s), cost = G.upgradeCost(s, id), can = s.stars >= cost;
     const b = document.createElement('button');
     b.className = 'shop-item trk-next' + (can ? ' can' : '');
     b.innerHTML = `<span class="ic">${info.ic.startsWith('pick_') ? icon(info.ic, 40) : icon(info.ic, 40)}</span><span class="tx"><b></b><span class="d"></span></span><span class="cost">${icon('star', 16)}<i></i></span><span class="fill"></span>`;
@@ -113,7 +117,7 @@ export function starPanel() {
     sec.appendChild(b);
     const soon = document.createElement('ol'); soon.className = 'trk-soon';
     for (let k = 2; k <= 4; k++) {
-      const i = stepInfo(tr, n + k), li = document.createElement('li');
+      const i = stepInfo(tr, n + k, s), li = document.createElement('li');
       li.textContent = `${n + k}. ${i.title}`;
       soon.appendChild(li);
     }
