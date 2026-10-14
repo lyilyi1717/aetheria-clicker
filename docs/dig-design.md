@@ -57,21 +57,21 @@ Twenty levels, `ROAD` in `proto/features/sites/rules.js`. Home (Arabia) holds th
 | 3 | Arabia | Valley of Beasts | 75 m | lesson | Water (50 to 75 m); bones, chests; the Museum opens | formula | 1 |
 | 4 | Arabia | Golden Wadi | 75 m | lesson | Rich ore; the Forge | formula | 1 / about 30 min |
 | 5 | Africa | The Dunes | 100 m | learn | Crystal lines (75 to 100 m) | 0.44 | 1 and 3 / day 1.0 |
-| 6 | Africa | Powder Valley | 100 m | prove | Harder ground, harder Gate | 8.87 | 2 and 2 / day 1.2 |
+| 6 | Africa | Powder Valley | 100 m | prove | Harder ground, harder Gate | 3.0 | 2 and 2 / day 1.2 |
 | 7 | Africa | Valley of Beasts | 125 m | learn | The Black: you dig by light | 0.371 | 1 and 2 / day 1.4 |
-| 8 | Africa | Golden Wadi | 125 m | prove | | 7.49 | 1 and 1 / day 1.6 |
+| 8 | Africa | Golden Wadi | 125 m | prove | | 1.4 | 1 and 1 / day 1.6 |
 | 9 | East Asia | The Dunes | 150 m | learn | The Living Rock: moss grows back | 0.278 | 3 and 4 / day 2.6 |
-| 10 | East Asia | Powder Valley | 150 m | prove | | 7.99 | |
+| 10 | East Asia | Powder Valley | 150 m | prove | | 1.9 | |
 | 11 | East Asia | Valley of Beasts | 175 m | learn | The Angry Layer: the Rock hits back | 0.201 | 3 and 3 / day 3.6 |
-| 12 | East Asia | Golden Wadi | 175 m | prove | | 6.23 | |
+| 12 | East Asia | Golden Wadi | 175 m | prove | | 2.7 | |
 | 13 | the Americas | The Dunes | 200 m | learn | The Hot Layer: water against heat | 0.257 | 3 and 3 / day 4.6 |
-| 14 | the Americas | Powder Valley | 200 m | prove | | 9.43 | |
+| 14 | the Americas | Powder Valley | 200 m | prove | | 3.5 | |
 | 15 | the Americas | Valley of Beasts | 225 m | learn | Deeper ground (no law of its own: **not built**) | 0.234 | 4 and 3 / day 6.0 |
-| 16 | the Americas | Golden Wadi | 225 m | prove | Finishing it opens 144 beats a minute | 9.45 | |
-| 17 | Europe | The Dunes | 250 m | learn | Deeper ground (**not built**) | 0.126 | 5 and 5 / day 9.2 |
-| 18 | Europe | Powder Valley | 250 m | prove | | 6.37 | |
+| 16 | the Americas | Golden Wadi | 225 m | prove | Finishing it opens 144 beats a minute | 2.4 | |
+| 17 | Europe | The Dunes | 250 m | learn | Deeper ground (**not built**) | 0.09 | 5 and 5 / day 9.2 |
+| 18 | Europe | Powder Valley | 250 m | prove | | 1.9 | |
 | 19 | Europe | Valley of Beasts | 275 m | learn | Deeper ground (**not built**) | 0.0645 | 5 and 4 / day 13.6 |
-| 20 | Europe | Golden Wadi | 275 m | prove | The last Gate; the end card; 160 beats a minute | 4.34 | |
+| 20 | Europe | Golden Wadi | 275 m | prove | The last Gate; the end card; 160 beats a minute | 1.4 | |
 
 - **Broken:** the "New:" line on the finish card and the map names the layer *below* the Gate (level 5 says "the Black", which starts at 100 m, under its Gate). The column above is the design. Fault 21, #395.
 - **Targets** (#374; balance-analyst owns them in `docs/pacing-targets.md`): every road level in 1 to 3 tries for the mixed player, with few other digs between; prove levels a little harder than the learn level before them; levels 1 to 4 inside 35 minutes; level 20 between day 10 and 15 and level 40 between day 18 and 25 (decision 6).
@@ -110,7 +110,7 @@ This is the owner's countdown ("what happend to the count down i asked", 13 Oct)
 - **The Gate remembers** (built, #375): a try at the Gate of an unfinished road level (5 to 20) that does not finish banks 60% of the damage it did (`boss.gateShare`), banked as the hits land, by try and never by time; the bank never takes the Gate below 10% (`gateCap` 0.9). The next try starts cracked and a line says so. Not for lessons, replays, side levels or the deal. **Not built:** a best-try tick on the bar.
 - **The stuck hint** (built, #372, #386): after a minute of play with the pick on the Gate that took under a tenth of it, or on the second try, one line says the best next step with numbers: buy The Pick ("for 12 Stars: the Rock needs 45 of your swings, not 68"), a side level that pays enough, or leave. Counted in play time. **The law comes first** (built, `dark-gate` PR): below 100 m a Rock fought in the dark (the Black, hits count 40%), a growing Rock (Living Rock, no torch near) or a hot one (Hot Layer, no water near, 60%) says so on its bar ("Too dark: break the lantern above", "Lit: full hits"), the lantern / torch crate / water above it pulses, and the stuck hint points at it before it says "buy The Pick". The laws answer through the `rockTell` mod; `bossTell(s)` reads it. The sim bot breaks a lantern above a dark Gate first.
 - **Rubble** (built): each tenth of the bar pays coins and sometimes a chest or a bone.
-- **The Gate is yours** (**not built**, decision 13, #430). Time away never finishes a level: the Rafeeqs dig and walk down to the Gate of the run in play and wait there for you (sieving rubble, as at any Rock). Rock Friend still walks them past the Big Rocks above it. **Broken today:** Rock Friend walks past the Gate too and the level finishes on return with no hit on it (fault 24), and away digging prices prove, chili and chapter-two ground as plain ground (fault 25, #429).
+- **The Gate is yours** (**built** 14 Oct 2026, decision 13, #430 and #429; retune half done, see 6 item 1). Time away never finishes a level: the Rafeeqs dig and walk down to the Gate of the run in play and wait there for you (sieving rubble, as at any Rock); the away card says "Your Rafeeqs dug to the Gate. It is waiting for you." Rock Friend still walks them past the Big Rocks above it; Falling Star stops at the Gate too. A Gate already broken (digging on below it) is passed like any beaten Rock. Away digging and its sieve price each row with the hardness the ground really has (`groundHp(s, r)` in `proto/core/grid.js`: the depth curve times the `groundHp` mod, which sites fills with prove, chili, the heavy twist and chapter two; the site's own 1 to 1.35 stays out, as `away.rowCost` was set without it). The Gate rule is the `awayPassable` mod (sites), read by `passable` in `starshop/rules.js`; `gateRow(s)` is `run.floor` while the run is not done, -1 after, and the next Big Rock for a save with no run.
 
 ### 2.3d Chili levels and contracts (built 14 October 2026, #388)
 
@@ -134,6 +134,7 @@ A finished level can be dug again up to five times, each time with one more rule
 
 ### 2.3e How the road was tuned (history, newest first)
 
+- 14 Oct (#430, #429, the Gate is yours): the Gate is never walked while away and away rows cost what they cost live; prove Gates cut to about 1.5 x their learn level in swings, chapter two `ch2Hp` x `ch2Hard[level]`. Level 20 day 15.0 / 14.6 (was 12.6 / 11.4); the road stops at level 34 / 33 by day 30 (was day 22.4 / 23.4 for level 40): the `ch2Hard` tail is next.
 - 14 Oct (#388, chili): road end day 20.6 / 21.0 (baseline 17.6 / 22.4).
 - 14 Oct (#386, Gate table): level 7 from 4 tries and 52 min to 1 to 2 tries and 18 min; learn levels' median tries 4 to 3; road end day 17 to 22 down to 12 to 14. Late learn levels (17, 19) still 4 to 5 tries: limited by Stars (many digs between), not by the Gate; lowering the Gate further did not move them. A ground-growth pass (#389) made them harder and was closed. Next lever: the price of The Pick past step 20 (#397).
 - 14 Oct (#374): deep growth per row spread out (125 m 1.19, 150 m 1.21, 175 m 1.16, 200 m 1.175 with a step of 1.8, 225 m step 2, 250 m+ step 3), `proveHp` 4 to 6. The road finished for the first time inside a month (day 19.6).
@@ -154,9 +155,9 @@ Owner: "don't change the game progress feel but increase the length". Study: `do
 | Road | `ROAD = [...ROAD1, ...ROAD2]`, 40 entries `{ site, floor, zone, prove, ch }`; `CHAPTER_LEN` 20. `ROAD2` = `LAND(n_europe, 100)`, `LAND(n_americas, 150)`, `LAND(n_eastasia, 200)`, `LAND(n_africa, 250)`, `LAND(emptyquarter, 300)`, all `ch: 2`. Levels 21 to 36 are the same site, depth and learn/prove kind as levels 5 to 20, slot by slot. |
 | Keys | A chapter-two level, its run and its stamp carry `ch: 2` and the key `c2:<site>:<floor>` (`siteKey(site, floor, twist, ch)`, `roadKey(f)`). Chapter-one keys never change. A twist level in chapter two has the key `c2:<site>:<floor>:<twist>` and `ch: 2`; chapter-one twist keys do not change. `chOf(x)` is 1 for anything without `ch`. |
 | Zones | `ZONES` has 10 entries in road order: the five of chapter one, then `n_europe, n_americas, n_eastasia, n_africa, emptyquarter`. A side level's zone (`roadZone`) is read from chapter one's lands only. |
-| Ground | A chapter-two run makes every block, Big Rock and Gate `sites.ch2Hp` times harder (3e12; the `row` hook and the `bossHp` mod). Coins per block are not changed: the coin pick starts from Warm Pick and is bought as in chapter one. |
+| Ground | A chapter-two run makes every block, Big Rock and Gate `sites.ch2Hp` x `sites.ch2Hard[level - 21]` times harder (3e12 x 0.5 at level 21 down to 3e12 x 8e-7 at level 40; the `row` hook, the `groundHp` mod and the `bossHp` mod). A side card (a twist) of a chapter-two level uses that level's entry and Gate size. Coins per block are not changed: the coin pick starts from Warm Pick and is bought as in chapter one. (Since 14 Oct 2026, the Gate is yours: one `ch2Hp` was a wall from level 25 once time away paid the real price.) |
 | Stars | Everything a chapter-two run pays (finish, medal, replay, chili pip, leaving, digging past the Gate) is `sites.ch2Stars` times bigger (5e3; was 2e5, then 2e3; `worthAt(floor, ch)`). |
-| Gates | Each chapter-two level has its own Gate size, `gateMulCh2[i - 20]` (`gateMulOf(i)`, 20 entries): levels 21 to 26 as their chapter-one slot, levels 27 to 36 smaller than their slot (x1/23 at 27 to x1/6,300 at 36), the Empty Quarter 4.7e-8, 2.6e-5, 2e-9, 8e-7. Laws, legs and par are those of the depth: nothing new below 275 m. |
+| Gates | Each chapter-two level has its own Gate size, `gateMulCh2[i - 20]` (`gateMulOf(i)`, 20 entries): levels 21 to 36 the size of their chapter-one slot (the per-level hardness is in `ch2Hard`), the Empty Quarter 0.06, 2.0, 0.06, 2.0 (learn and prove, like levels 19 and 20). Laws, legs and par are those of the depth: nothing new below 275 m. |
 | Par and floor | Below 275 m the par grows x1.1 per 25 m (`parTop`, `parTopGrow`), not x1.45: 300 m is 9,350 s, 325 m 10,285 s. `maxFloor` 325. |
 | Next town | `fixedNext` walks all 40 levels; it returns `level` (1 to 40), `of` (40), `ch`, `n` and `chOf` (the level in its chapter). The fixed card carries `ch`. |
 | Old saves | Sites slice version 3: every stamp and the run in play get `ch: 1` and the dealt cards are dropped. A save that had finished level 20 is dealt level 21 at its next "Next town"; the dig in play goes on as it was. |
@@ -240,7 +241,7 @@ All of it is flavour: nothing here changes how strong a Rafeeq is.
 | Contracts | The board, goals that fit your road level | built |
 | The Museum | 13 sets; each finished set opens a thing. Bones and bundles that still hold a piece you lack glint (an arrow points at one just below the view); the set you are collecting is drawn faintly behind the ground and fills in piece by piece; a chip counts it; every map stone shows its set (#385). A find goes to the earliest unfinished set 80% of the time and is a missing piece 75% of the time | built. **Not built:** a sure piece by the fourth find (decision 10, decided: build), "Museum 41%" with prizes, sets tied to two or three levels (decision 10: not now) |
 | The Forge | Drill, Dynamite, Magnet, 5 levels each, paid in metal from ore. A charge fills from blocks you break (ore counts more), never from the clock (#377) | built |
-| Time away | The crew digs up to 12 hours, then sieves at a Rock; a card after 15 minutes away. It digs the ground as it is and stops at the Gate of the run in play (decision 13) | built; fault 10; **broken:** walks past the Gate (fault 24, #430) and prices hard ground as plain (fault 25, #429) |
+| Time away | The crew digs up to 12 hours, then sieves at a Rock; a card after 15 minutes away. It digs the ground as it is and stops at the Gate of the run in play (decision 13) | built (the Gate rule and honest prices, #430, #429); fault 10 |
 | Lessons | One message slot that queues, and a Tips list to read them again | built |
 | Settings | Volume, Music, Effects, sound, play-time sharing | built |
 | Player data | Section 7.5 | built; 2 players so far |
@@ -295,8 +296,8 @@ Last measured (mixed player, 2 seeds; #386 and #388, 14 October 2026):
 | 21 | The "New:" line of a level names the layer below its Gate (level 5 says the Black) | design-keeper | open, #395 |
 | 22 | "TNT does not work on the boss" (owner, 13 Oct) | owner | fixed (#386) |
 | 23 | Text of the stuck hint, "BOOM", chili lines and every Dig string is English only | team | open; Decided by localizer, see `docs/arabic.md` section 5 (decision 5) |
-| 24 | Rock Friend (`sp_wake`) walks the crew past the Gate of the run in play while away; the level finishes on return with no hit on its Gate (chapter-two levels 30 to 36, chapter-one prove levels) | sim (Gate per level pass) | open, #430; decision 13 |
-| 25 | Time away prices a row as plain ground (`dirtHp`): prove x6, chili, the heavy twist and chapter two x3e12 are left out, in the walk and in the sieve | design-keeper (reading `away/rules.js`) | open, #429 |
+| 24 | Rock Friend (`sp_wake`) walks the crew past the Gate of the run in play while away; the level finishes on return with no hit on its Gate (chapter-two levels 30 to 36, chapter-one prove levels) | sim (Gate per level pass) | fixed (#430, the Gate is yours); its retune is half done (6 item 1) |
+| 25 | Time away prices a row as plain ground (`dirtHp`): prove x6, chili, the heavy twist and chapter two x3e12 are left out, in the walk and in the sieve | design-keeper (reading `away/rules.js`) | fixed (#429, `groundHp`) |
 | 26 | Levels 37 and 39 stall on the rows above the Gate; the Gate falls to TNT and its memory, not to the player | sim | open, #431; decision 15 |
 
 ## 6. Work order (next items only)
@@ -309,6 +310,7 @@ Each item is ready for a builder. Numbers marked "balance-analyst" are set by ba
    - *Numbers:* balance-analyst retunes `gateMul` (prove entries), `proveHp`, `gateMulCh2`, `ch2Stars` in the same branch. Neither rule merges without the retune.
    - *Files:* `proto/features/starshop/rules.js`, `proto/features/away/rules.js`, `proto/features/sites/rules.js` (the hardness fold), `proto/features/starshop/strings.js`, a `test_proto_*.js`.
    - *Done when:* the tests in #430 and #429 pass; mixed, 2 seeds: level 20 inside day 10 to 15, level 40 inside day 18 to 25, no road level above 3 median tries, prove levels at least as many tries as their learn level; the tables in `docs/pacing-targets.md` and 2.3 / 2.4 here refilled from that one run.
+   - *State (14 Oct 2026):* the rules and tests are built; prove Gates cut (2.3 table) and chapter two made `ch2Hp` x `ch2Hard[level]` harder (2.4). Measured: level 20 on day 15.0 / 14.6 (met); levels 21 to 27 in 1 to 3 tries; from level 28 the Gate grows away again and the road stops at level 34 / 33 on day 30 (**not met**). The next `ch2Hard` tail is computed in `docs/pacing-targets.md` ("The Gate is yours") and needs one mixed run.
 2. **The Empty Quarter stall** (decision 15, #431), measured after item 1. *Done when* #431's lines hold.
 3. **Camp plain steps** (decision 7, #394). *Player:* every Camp step shows "Rafeeq hit +N%" on the board and the Rafeeqs' hit (Camp tab, the bar's blue share) goes up when bought. *Rule:* `crewShare` already adds `campShare` per Camp step; it is 0. *Numbers:* `starshop.campShare`, balance-analyst (pace moves under 10%). *Files:* `proto/features/starshop/rules.js`, `ui.js`, `strings.js`. *Done when:* a test buys a plain Camp step and a Rafeeq's hit rises by `campShare` of yours; the step's line says so; the sim's road end moves under 10%.
 4. **The "New:" line** (#395). *Done when* #395's line holds (level 5 says crystal lines).

@@ -47,8 +47,9 @@ const boom = (s, r, c, ev = () => {}) => { s.rows[r - s.top][c] = { t: 'tnt', hp
   ok(G.ROAD2.slice(0, 16).every((f, k) => f.floor === G.ROAD1[G.FIXED.length + k].floor && !!f.prove === !!G.ROAD1[G.FIXED.length + k].prove), 'levels 21 to 36 repeat the slots of levels 5 to 20: depth and kind');
   const m2 = G.PARAMS.sites.gateMulCh2;
   ok(m2.length === G.ROAD2.length && G.ROAD2.every((f, k) => G.gateMulOf(G.CHAPTER_LEN + k) === m2[k] && m2[k] > 0), 'one Gate size per chapter-two level, 21 to 40');
-  ok([0, 1, 2, 3, 4, 5].every(k => m2[k] === m[k]), 'levels 21 to 26 keep the Gate of their chapter-one slot');
-  ok(m2.slice(6, 16).every((v, k) => v < m[k + 6]), 'levels 27 to 36: the Gate is smaller than its chapter-one slot (the hit falls behind the chapter-two ground)');
+  ok(m.every((v, k) => m2[k] === v), 'levels 21 to 36 keep the Gate size of their chapter-one slot');
+  const h = G.PARAMS.sites.ch2Hard;
+  ok(h.length === G.ROAD2.length && h.every((v, k) => v > 0 && v <= 1 && (k === 0 || v <= h[k - 1])), 'chapter two is made easier per level (ch2Hard), never harder from one level to the next (the hit falls behind the chapter-two ground)');
   for (let i = 2; i < m.length; i++) ok(m[i] / m[i - 2] < 3 && m[i - 2] / m[i] < 3, 'level ' + (i + 5) + ' is within 3x of the one before of its kind');
 }
 if (failed) process.exit(1); console.log('rocks ok');

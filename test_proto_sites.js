@@ -170,8 +170,10 @@ const rows = s => { for (const row of s.rows) for (const c of row) if (c) return
   const P = G.PARAMS.sites;
   const dirtOf = x => { for (let r = 5; r < 20; r++) { const c = x.rows[r].find(c => c && c.t === 'dirt'); if (c) return [r, c.max]; } return [0, 0]; };
   const [ra, ha] = dirtOf(a), [rb, hb] = dirtOf(b), want = r => G.dirtHp(r) * G.BLOCKS.dirt.hp * G.SITES.dunes.hp;
-  ok(b.run.ch === 2 && ra && rb && Math.abs((hb / want(rb)) / (ha / want(ra)) / P.ch2Hp - 1) < 0.01, 'chapter-two ground is ch2Hp times harder');
-  ok(G.fold('bossHp', b, 100, 100) / G.fold('bossHp', a, 100, 100) === P.ch2Hp && G.fold('bossHp', b, 100, 50) / G.fold('bossHp', a, 100, 50) === P.ch2Hp, 'its Gate and its Big Rocks too');
+  const k = P.ch2Hp * P.ch2Hard[0];                                  // level 21: ch2Hp x its own ch2Hard entry
+  ok(b.run.ch === 2 && ra && rb && Math.abs((hb / want(rb)) / (ha / want(ra)) / k - 1) < 0.01, 'chapter-two ground is ch2Hp x ch2Hard times harder');
+  const near = (x, y) => Math.abs(x / y - 1) < 1e-9;
+  ok(near(G.fold('bossHp', b, 100, 100) / G.fold('bossHp', a, 100, 100), k) && near(G.fold('bossHp', b, 100, 50) / G.fold('bossHp', a, 100, 50), k), 'its Gate and its Big Rocks too');
   ok(G.firstPay(100, 'learn', 2) === Math.round(G.firstPay(100, 'learn') * P.ch2Stars) || Math.abs(G.firstPay(100, 'learn', 2) / (G.starsAt(100) * P.learnPay * P.ch2Stars) - 1) < 1e-6, 'and pays ch2Stars times the Stars');
   ok(G.sitePar(275) === Math.round(300 * Math.pow(1.45, 9)) && G.sitePar(300) === Math.round(G.sitePar(275) * 1.1) && G.sitePar(325) < G.sitePar(275) * 1.25, 'par at 300 and 325 m stays near 275 m');
   ok(P.maxFloor === 325, 'Gates go to 325 m');

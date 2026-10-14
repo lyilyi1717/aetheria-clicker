@@ -96,15 +96,16 @@ const hpMul = s => G.groundHp(s, 60) / G.dirtHp(60);
     let worst = 0;
     for (const c of row) {
       if (!c || c.t === 'boss' || !G.BLOCKS[c.t] || !(G.BLOCKS[c.t].hp > 0)) continue;
-      const live = c.hp / G.BLOCKS[c.t].hp, away = G.groundHp(s, r);
+      const live = c.hp / G.BLOCKS[c.t].hp / G.siteMult(G.siteOf(s), 'hp'), away = G.groundHp(s, r);   // the site's own hardness is not a row hook
       worst = Math.max(worst, Math.abs(live - away) / away);
     }
     ok(worst < 1e-3, `${name}: a block dug live and the same block priced away have the same hardness (off by ${worst})`);
   }
   const P = G.PARAMS.sites;
   const learn = dig(roadCard(12)), prove = dig(roadCard(13)), ch2 = dig(roadCard(29));
-  ok(Math.abs(hpMul(prove) / hpMul(learn) - P.proveHp * G.SITES.boom.hp / G.SITES.dunes.hp) < 1e-9, 'a prove level is proveHp (and its site) harder than its learn level, away too');
-  ok(Math.abs(hpMul(ch2) / hpMul(prove) - P.ch2Hp) / P.ch2Hp < 1e-9, 'chapter two is ch2Hp harder than its chapter-one slot, away too');
+  ok(Math.abs(hpMul(prove) / hpMul(learn) - P.proveHp) < 1e-9, 'a prove level is proveHp harder than its learn level, away too');
+  const k2 = P.ch2Hp * P.ch2Hard[29 - G.CHAPTER_LEN];
+  ok(Math.abs(hpMul(ch2) / hpMul(prove) - k2) / k2 < 1e-9, 'chapter two is ch2Hp x ch2Hard harder than its chapter-one slot, away too');
 }
 { // the same crew, the same time away: metres differ by the hardness, so with damage x the hardness ratio they match
   const walk = (card, boost) => {
@@ -121,11 +122,12 @@ const hpMul = s => G.groundHp(s, 60) / G.dirtHp(60);
   ok(Math.abs(prove.m - learn.m) <= 1, `prove with damage x${k}: the same metres as learn (${prove.m} vs ${learn.m})`);
   const ch2Same = walk(roadCard(29), 1);
   ok(ch2Same.m === 0, 'chapter two at chapter-one damage: not a row (' + ch2Same.m + ')');
-  const ch2 = walk(roadCard(29), G.PARAMS.sites.ch2Hp);
+  const K2 = G.PARAMS.sites.ch2Hp * G.PARAMS.sites.ch2Hard[29 - G.CHAPTER_LEN];
+  const ch2 = walk(roadCard(29), K2);
   ok(Math.abs(ch2.m - proveSame.m) <= 1, `chapter two with damage x ch2Hp: the same metres as its chapter-one slot (${ch2.m} vs ${proveSame.m})`);
   // the sieve: coins per damage at the Rock follow the hardness too
   const sieve = (card, boost) => { const s = dig(card); crew(s, 60); BOOST = boost; const o = G.settleAway(s, 12 * 3600); BOOST = 1; return o; };
-  const a = sieve(roadCard(13), 1), b = sieve(roadCard(29), G.PARAMS.sites.ch2Hp);
+  const a = sieve(roadCard(13), 1), b = sieve(roadCard(29), K2);
   ok(a.sieveSeconds > 0 && b.sieveSeconds > 0 && Math.abs(a.sieveCoins - b.sieveCoins) <= Math.max(2, a.sieveCoins * 0.02), `the sieve pays per hardness: ch1 ${a.sieveCoins} vs ch2 at x ch2Hp damage ${b.sieveCoins}`);
 }
 

@@ -49,14 +49,24 @@ const p = {
   proveHp: 6,                     // the second level of a depth ("prove it") has ground this much harder (was 4: one try, now 1 to 3)
   // The Gate of each road level after the lessons, as a multiple of the ground's formula (docs/dig-design.md 2.3c): sized so that
   // "the Gate in your hits" (the bar's number) at the pick you bring grows gently from level to level instead of jumping.
-  gateMul: [0.44, 8.87, 0.371, 7.49, 0.278, 7.99, 0.201, 6.23, 0.257, 9.43, 0.234, 9.45, 0.126, 6.37, 0.0645, 4.34],
+  // Prove entries cut 14 Oct 2026 (the Gate is yours, decision 13): a prove Gate is now always fought, so it is sized at about 1.5
+  // times its learn level's Gate in swings at arrival, smoothed so no prove Gate is 3x its neighbour; levels 16, 17 and 20 a
+  // little smaller again after the first measurement (3 to 6 tries). docs/pacing-targets.md, "The Gate is yours".
+  gateMul: [0.44, 3.0, 0.371, 1.4, 0.278, 1.9, 0.201, 2.7, 0.257, 3.5, 0.234, 2.4, 0.09, 1.9, 0.0645, 1.4],
   // Chapter Two (levels 21 to 40, docs/dig-design.md 2.4): the same 16 depth slots again at night, then the Empty Quarter
-  // (300 and 325 m). Each of its 20 levels has its own Gate size: levels 21 to 26 as their chapter-one slot, then smaller, because
-  // the player's hit falls behind the ch2Hp ground from level 27 on (docs/pacing-targets.md, the 40-level road).
-  gateMulCh2: [0.44, 8.87, 0.371, 7.49, 0.278, 7.99,               // 21-26: 100 to 150 m, as levels 5 to 10
-    0.01, 0.62, 0.013, 0.59, 0.0059, 0.075, 4e-4, 0.008, 3.2e-5, 6.9e-4,  // 27-36: 175 to 275 m
-    4.7e-8, 2.6e-5, 2e-9, 8e-7],                                    // 37-40: the Empty Quarter, 300 learn, 300 prove, 325 learn, 325 prove
-  ch2Hp: 3e12,                     // chapter two: every block, Big Rock and Gate is this much harder (the player arrives far stronger)
+  // (300 and 325 m). Since 14 Oct 2026 (the Gate is yours, decision 13) a chapter-two level is its chapter-one slot made
+  // ch2Hp x ch2Hard[level] harder in everything: ground, Big Rocks and the Gate. Its Gate size is the slot's (gateMulCh2 21 to 36
+  // copy gateMul); the Empty Quarter has its own (a learn and a prove size like levels 19 and 20).
+  gateMulCh2: [0.44, 3.0, 0.371, 1.4, 0.278, 1.9,               // 21-26: 100 to 150 m, as levels 5 to 10
+    0.201, 2.7, 0.257, 3.5, 0.234, 2.4, 0.09, 1.9, 0.0645, 1.4,      // 27-36: 175 to 275 m, as levels 11 to 20
+    0.06, 2.0, 0.06, 2.0],                                          // 37-40: the Empty Quarter, 300 learn, 300 prove, 325 learn, 325 prove
+  ch2Hp: 3e12,                     // chapter two: every block, Big Rock and Gate is this much harder (the player arrives far stronger) ...
+  // ... times this, per level 21 to 40. The player's hit over the hit at its chapter-one slot falls from about 1e12 at level 21 to
+  // about 1e10 at level 25 and on (Warm Pick and Stars count for less as the slots deepen: hit grows about x10 per 25 m in chapter
+  // two against x50 in chapter one). While Rock Friend walked past chapter-two Gates and time away dug its ground at plain-ground
+  // cost, one ch2Hp worked; once both stopped (decision 13), levels 25 and on were a wall. Each entry puts the level at about
+  // 3 to 5 times easier than its slot, against the hit the player brings. A side card (a twist) of a level uses the level's entry.
+  ch2Hard: [0.5, 0.3, 0.03, 0.015, 1e-3, 5e-4, 1e-4, 1e-4, 6e-5, 6e-5, 3e-5, 3e-5, 1.2e-5, 1.2e-5, 5e-6, 5e-6, 2e-6, 2e-6, 8e-7, 8e-7],
   ch2Stars: 5e3,                  // chapter two: every Star it pays (finish, medal, replay, chili, leaving) is this much bigger
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom
@@ -429,10 +439,14 @@ export const pickCard = (s, c, ev) => (c.kind === 'replay' && !replayCard(s, c.k
 
 const twistOf = s => (s.run && s.run.twist) || '';
 const chiliMul = (s, base) => { const r = s.run; return r && r.chili ? Math.pow(base, r.chili) : 1; };
-// chapter two: the ground, the Big Rocks and the Gate are sites.ch2Hp times harder
-const chMul = s => (s.run && s.run.ch === 2 ? p.ch2Hp : 1);
-// how much harder every plain block of this dig is than the formula (genRow's site hardness aside): the heavy twist, a prove
-// level, chili pips, chapter two. The `row` hook applies it to each new row; the `groundHp` mod gives it to time away.
+// the road level a dig is on, a side card (a twist) included: its index in ROAD, or -1
+const slotIndex = s => { const r = s.run; return r ? ROAD.findIndex(f => f.site === r.site && f.floor === r.floor && f.ch === chOf(r)) : -1; };
+// chapter two: the ground, the Big Rocks and the Gate are sites.ch2Hp x ch2Hard[level] harder (a run off the road: ch2Hp)
+const chMul = s => {
+  if (!s.run || s.run.ch !== 2) return 1;
+  const i = slotIndex(s);
+  return p.ch2Hp * (i >= CHAPTER_LEN ? p.ch2Hard[i - CHAPTER_LEN] : 1);
+};
 export const groundMul = s => (twistOf(s) === 'heavy' ? p.twistHp : 1) * (roadProve(s) ? p.proveHp : 1) * chiliMul(s, p.chiliGround) * chMul(s);
 // the Gate row of the level in play (-1 once it is broken). A save with no run yet: its next Big Rock (as siteRun).
 export const gateRow = s => (s.run ? (s.run.done ? -1 : s.run.floor) : Math.max(p.baseFloor, (s.bossesDown + 1) * LAYER));
@@ -496,7 +510,8 @@ export const sites = use({
     // r = the row of the Rock. The Gate (the Rock at the run's floor row) of a road level has its own size (gateMul); the Big Rocks
     // before it use the normal size (times the prove factor on a prove level); a chili level makes every Rock harder still
     bossHp: (v, s, r) => {
-      const g = s.run && r === s.run.floor ? gateMulOf(roadIndex(s)) : undefined;
+      // a chapter-two side card (a twist) takes its slot's Gate; chapter one's side cards keep the formula, as before
+      const g = s.run && r === s.run.floor ? gateMulOf(s.run.ch === 2 ? slotIndex(s) : roadIndex(s)) : undefined;
       return (g !== undefined ? v * g : roadProve(s) ? v * p.proveHp : v) * chiliMul(s, p.chiliRock) * chMul(s);
     },
   },
