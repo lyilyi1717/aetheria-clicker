@@ -33,7 +33,7 @@ function card(out, app) {
   m.querySelector('.joke').textContent = named.joke || t('away_joke_' + out.joke);
   const ul = m.querySelector('.rq-names');
   named.lines.forEach(x => { const li = document.createElement('li'); li.textContent = x; ul.appendChild(li); });
-  m.querySelector('.rock').textContent = out.atBoss ? t('away_boss') : '';
+  m.querySelector('.rock').textContent = out.atGate ? t('away_gate') : out.atBoss ? t('away_boss') : '';
   const list = stamps(out);
   const track = m.querySelector('.away-track');
   const run = 0.5 + 0.5 * list.length;

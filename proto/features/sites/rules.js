@@ -35,7 +35,7 @@
 import { use, SITES, CONTRACTS, BLOCKS, emit } from '../../core/registry.js';
 import { reset } from '../../core/state.js';
 import { grantFree } from '../../core/rules.js';
-import { starsAt, LAYER, COLS } from '../../core/grid.js';
+import { starsAt, LAYER, COLS, VIEW_ROWS } from '../../core/grid.js';
 import { rnd, pickOne } from '../../core/rng.js';
 import { newRafeeq } from '../diggers/rules.js';
 import strings from './strings.js';
@@ -431,6 +431,11 @@ const twistOf = s => (s.run && s.run.twist) || '';
 const chiliMul = (s, base) => { const r = s.run; return r && r.chili ? Math.pow(base, r.chili) : 1; };
 // chapter two: the ground, the Big Rocks and the Gate are sites.ch2Hp times harder
 const chMul = s => (s.run && s.run.ch === 2 ? p.ch2Hp : 1);
+// how much harder every plain block of this dig is than the formula (genRow's site hardness aside): the heavy twist, a prove
+// level, chili pips, chapter two. The `row` hook applies it to each new row; the `groundHp` mod gives it to time away.
+export const groundMul = s => (twistOf(s) === 'heavy' ? p.twistHp : 1) * (roadProve(s) ? p.proveHp : 1) * chiliMul(s, p.chiliGround) * chMul(s);
+// the Gate row of the level in play (-1 once it is broken). A save with no run yet: its next Big Rock (as siteRun).
+export const gateRow = s => (s.run ? (s.run.done ? -1 : s.run.floor) : Math.max(p.baseFloor, (s.bossesDown + 1) * LAYER));
 // the Gate size of the road level at index i (0-based into ROAD), or undefined for a lesson or no road level (the formula)
 export function gateMulOf(i) {
   if (i < FIXED.length) return undefined;
@@ -485,6 +490,9 @@ export const sites = use({
       { at: 22, fn: (v, s) => v * (1 + (s.road.chiliHit || 0)) }],      // what the chilies added for ever ("Your hit")
     crewPower: { at: 20, fn: (v, s) => v * (1 + p.starPick * s.stars) },
     sight: (v, s) => (twistOf(s) === 'dim' ? Math.min(v, p.twistSight) : v),
+    groundHp: (v, s) => v * groundMul(s),
+    // The Gate is yours (decision 13): while away nothing walks past the Gate of the level in play, on every kind of run
+    awayPassable: (v, s, R) => v && R !== gateRow(s),
     // r = the row of the Rock. The Gate (the Rock at the run's floor row) of a road level has its own size (gateMul); the Big Rocks
     // before it use the normal size (times the prove factor on a prove level); a chili level makes every Rock harder still
     bossHp: (v, s, r) => {
@@ -507,10 +515,12 @@ export const sites = use({
     // a twist is stacked on the ground as it is made
     row(s, ctx) {
       const tw = twistOf(s);
-      const hm = (tw === 'heavy' ? p.twistHp : 1) * (roadProve(s) ? p.proveHp : 1) * chiliMul(s, p.chiliGround) * chMul(s);
+      const hm = groundMul(s);
       if (hm !== 1) { for (const c of ctx.row) if (c && c.t !== 'boss') { c.hp = Math.round(c.hp * hm); c.max = c.hp; } }
       if (tw === 'barrels' && BLOCKS.tnt && ctx.r > 2 && ctx.r % p.twistBarrel === 0) ctx.put('tnt');
     },
+    // the welcome-back card: the Rock the crew waits at is the Gate of this level
+    awayEnd(s, out) { const g = gateRow(s); out.atGate = !!out.atBoss && g >= s.top && g <= s.top + VIEW_ROWS; },
     // the first hit starts the leg clock (and so the Fast medal's clock); a swing is a hit, and so is a block that breaks any other way
     swing(s) { if (s.run && s.run.started === false) s.run.started = true; },
     broke(s, b) {

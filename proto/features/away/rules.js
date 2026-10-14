@@ -6,13 +6,16 @@
 //                           past Rocks the player has beaten; lower out.budget, add to out.coins/metres.
 //                           Time away is spent once: walking on, then the sieve gets only what is left.
 //   awayEnd(s, out, ev)  -> settle what was found; `out` is what the welcome-back card shows
+//                           (sites sets out.atGate: the Rock they wait at is the Gate of the level in play)
+// A row costs groundHp(s, r) (core/grid.js) per block: the same hardness the row has while you watch.
+// The Gate of the level in play is never passed while away (sites, `awayPassable`): a level never finishes away.
 // Timed crew boosts (the tea rush, a crew wish) count only for the seconds they have left (see awayRate).
 // When the crew has reached a Big Rock and still has time, it does not stop: it sieves the rubble
 // beside the Rock (coins, bones, now and then a chest). The Rock itself stays the player's fight.
 // The sieve slows down gently the longer you are away (tau), up to the 12 hour cap.
 import { use, run, PARAMS, fold, pollUnlocks, BLOCKS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
-import { COLS, dirtHp, dirtVal, shiftRow } from '../../core/grid.js';
+import { COLS, groundHp, dirtVal, shiftRow } from '../../core/grid.js';
 import { coinMult } from '../../core/rules.js';
 import strings from './strings.js';
 
@@ -71,7 +74,7 @@ export function settleAway(s, seconds, ev = () => {}) {
   let rows = 0;
   while (rows < p.maxRows) {
     if (run('awayStop', s, r, out)) break;
-    const cost = dirtHp(r) * COLS * p.rowCost;
+    const cost = groundHp(s, r) * COLS * p.rowCost;           // the ground as it is in this dig (prove, chili, chapter two)
     if (budget < cost) break;
     budget -= cost;
     out.coins += dirtVal(r) * COLS * p.rowPay * coinMult(s);
@@ -92,7 +95,7 @@ export function settleAway(s, seconds, ev = () => {}) {
     const left = budget / dps;
     const eff = awaySieveTime(left);
     out.sieveSeconds = Math.round(left);
-    out.sieveCoins = dps * eff * (dirtVal(r) * p.rowPay / (dirtHp(r) * p.rowCost)) * p.sieveShare * coinMult(s);
+    out.sieveCoins = dps * eff * (dirtVal(r) * p.rowPay / (groundHp(s, r) * p.rowCost)) * p.sieveShare * coinMult(s);
     out.coins += out.sieveCoins;
     out.sieveChests = Math.min(p.sieveChestMax, count(eff / 3600 * p.chestsPerHour * fold('chestChance', s, 1)));
   }

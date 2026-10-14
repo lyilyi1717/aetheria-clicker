@@ -8,6 +8,7 @@ export default { en: {
   away_newbone1: '1 is new for the Museum', away_newbones: '{n} are new for the Museum',
   away_chests: '{n} chests to open', away_chest1: '1 chest to open',
   away_boss: 'They reached the Big Rock and waited for you. The Rock is yours to break.',
+  away_gate: 'Your Rafeeqs dug to the Gate. It is waiting for you.',
   away_ok: 'Back to the dig',
   away_open: 'Open the first chest',
   away_short: 'Back already! Your Rafeeqs banked {n} coins.',
@@ -22,4 +23,6 @@ export default { en: {
   away_joke_6: 'A Rafeeq found a very old coin and bit it. It was real.',
   away_joke_7: 'The Rafeeqs had a tea break. A short one. Mostly.',
   sec: '{n} s', min: '{n} min', hours: '{h} h {m} min',
+}, ar: {
+  away_gate: 'حفر رفقاؤك حتى البوابة. إنها بانتظارك.',
 } };
