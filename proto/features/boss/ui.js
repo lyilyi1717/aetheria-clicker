@@ -43,7 +43,9 @@ function drawBoss(g, s, r, y) {
   // the crack to aim for
   if (b && b.hp > 0 && b.weak !== undefined) {
     const wx = b.weak * CELL + CELL / 2, pulse = 0.6 + Math.sin(fx.t * 10) * 0.4;
-    g.fillStyle = `rgba(255,190,60,${0.25 + pulse * 0.25})`; g.beginPath(); g.arc(wx, CELL / 2, 26 + pulse * 4, 0, 7); g.fill();
+    const steer = G.hardTag(s) ? 1 : 0;      // a block is tagged too hard: the crack glows brighter
+    if (steer) { g.fillStyle = `rgba(255,230,120,${0.18 + pulse * 0.2})`; g.beginPath(); g.arc(wx, CELL / 2, 40 + pulse * 6, 0, 7); g.fill(); }
+    g.fillStyle = `rgba(255,190,60,${(0.25 + pulse * 0.25) * (steer ? 1.6 : 1)})`; g.beginPath(); g.arc(wx, CELL / 2, 26 + pulse * 4 + steer * 6, 0, 7); g.fill();
     g.strokeStyle = '#fff3a8'; g.lineWidth = 5; g.lineJoin = 'round';
     g.beginPath(); g.moveTo(wx - 8, 6); g.lineTo(wx + 6, 22); g.lineTo(wx - 6, 34); g.lineTo(wx + 9, CELL - 6); g.stroke();
     g.strokeStyle = '#ff9d2e'; g.lineWidth = 2; g.stroke();
@@ -145,7 +147,7 @@ function paintHint(s, app) {
     h._sig = sig; h._advice = a;
     h.querySelector('.bh-t').textContent = t('stuck_' + a.kind, { n: fmt(a.n), hits: fmt(a.hits), after: fmt(a.after) });
     const go = h.querySelector('.bh-go');
-    go.hidden = a.kind === 'more' || law;
+    go.hidden = a.kind === 'more' || law || a.kind === 'rock' || a.kind === 'rock_gate';
     go.textContent = t(a.kind === 'spend' ? 'stuck_btn_spend' : 'stuck_btn_map');
     h.querySelector('.bh-x').textContent = t('stuck_close');
   }
@@ -230,7 +232,22 @@ ui({
     return { text: t('goal_rock', { n: next }), frac: (s.best % G.LAYER) / G.LAYER };
   } },
   css: new URL('./boss.css', import.meta.url).href,
-  draw: [{ at: AT.fog + 1, fn(g, s) {
+  draw: [{ at: AT.fx + 5, fn(g, s) {
+    // the tag on a too-hard block: how many swings it needs, and where to swing instead
+    const tag = G.hardTag(s);
+    if (!tag) return;
+    const y = yOf(tag.r);
+    if (y < SKY - 10 || y > H) return;
+    const txt = t('hard_tag', { n: fmt(tag.n) });
+    g.save(); g.font = '800 14px system-ui, Cairo, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const pw = g.measureText(txt).width + 20, ph = 24;
+    const cx = Math.max(pw / 2 + 4, Math.min(W - pw / 2 - 4, tag.c * CELL + CELL / 2));
+    const ty = Math.max(SKY + ph / 2 + 2, y - 4);
+    g.fillStyle = 'rgba(14,10,7,.88)'; rr(g, cx - pw / 2, ty - ph / 2, pw, ph, 12); g.fill();
+    g.strokeStyle = '#ffd36a'; g.lineWidth = 2; g.stroke();
+    g.fillStyle = '#ffe9a8'; g.direction = textDir(txt); g.fillText(txt, cx, ty + 0.5);
+    g.restore();
+  } }, { at: AT.fog + 1, fn(g, s) {
     // the flag: where this dig's record stood when it began
     if (!(s.recMark >= G.PARAMS.boss.recordMin)) return;
     if (G.bossInView(s) || G.isBossRow(s.recMark)) return;     // never on a Rock row; while a Rock stands the record shows in the corner
@@ -271,6 +288,8 @@ ui({
       if (!rec.hidden) rec.textContent = t('record_line', { n: s.bestEver });
     }
     paintHint(s, app);
+    const op = G.steerOpening(s);
+    if (op) { s.run.steerSaid = 1; app.toast(t(op.gate ? 'stuck_rock_gate' : 'stuck_rock', { n: fmt(op.n) }), 'gold'); }
     const b = G.bossInView(s);
     if (b && b.gate && b.bank0 > 0 && !b.said && b.row - s.top <= 8) { b.said = true; app.lesson('gatemem', t('gate_remember', { n: Math.round(b.bank0 * 100) }), 'gold'); }
     fx.keepClear = b && b.hp > 0 ? b.row : null;

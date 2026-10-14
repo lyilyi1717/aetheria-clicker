@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.8';
+export const VERSION = '5.36.9';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.9',
+    date: '2026-10-14',
+    title: 'Dig: the game tells you to hit the Rock',
+    changes: [
+      'At a Big Rock, a block that would take more than 25 of your hits now shows "Too hard: about 3,400 swings. Hit the Rock!" after you swing at it 3 times, and the Rock\'s glowing crack shines brighter. The pick still goes where you point.',
+      'If you keep swinging at blocks like that (60 swings), the hint at the Rock names the Rock. The next try after one spent mostly on hard blocks starts with the same line.',
+      'Not on the first four levels, and never on the lantern, torch crate or water that a layer asks you to break first.'
+    ],
+    ar: {
+      title: 'حفار: اللعبة تقول لك اضرب الصخرة',
+      changes: [
+        'عند الصخرة الكبيرة، أي قطعة تحتاج أكثر من 25 ضربة منك تظهر عليها بعد 3 ضربات عبارة «صعبة جداً: نحو 3,400 ضربة. اضرب الصخرة!»، ويلمع شقّ الصخرة أكثر. المعول ما زال يضرب حيث تشير.',
+        'إذا واصلت ضرب قطع كهذه (60 ضربة)، يذكر التلميح عند الصخرة اسم الصخرة. والمحاولة التالية بعد محاولة قضيتها في قطع صعبة تبدأ بالجملة نفسها.',
+        'لا يحدث هذا في المستويات الأربعة الأولى، ولا على الفانوس أو صندوق المشاعل أو الماء التي تطلب منك الطبقة كسرها أولاً.'
+      ]
+    }
+  },
   {
     version: '5.36.8',
     date: '2026-10-14',
