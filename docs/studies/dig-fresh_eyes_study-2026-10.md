@@ -1,5 +1,7 @@
 # Dig with fresh eyes: power you can feel, walls with doors, hard mode worth it (14 October 2026)
 
+> **Evidence, not the design.** The one design file for Dig is [`docs/dig-design.md`](../dig-design.md): what was taken from this study, what is built and what the owner still decides (section 9) live there. Where this file disagrees with it, that file wins.
+
 Builds on `design_improvements.md` (Good Hit, Fever, Gate tricks, Five steps of hard, story of the night), `ui_study.md` and `pick_rafeeq_study.md`. It does not repeat them. Work already handed to other agents (TNT on Rocks, smoother Gate HP, finish-card return, Buy all, earlier fusion, visible Museum pieces) is taken as done.
 
 ## 0. What the numbers say (read from the code, not guessed)

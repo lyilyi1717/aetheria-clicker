@@ -1,5 +1,7 @@
 # Dig: folding in the clutter (UI study, 13 October 2026)
 
+> **Evidence, not the design.** The one design file for Dig is [`docs/dig-design.md`](../dig-design.md): what was taken from this study, what is built and what the owner still decides (section 9) live there. Where this file disagrees with it, that file wins.
+
 Source: the owner's reference (an idle archer game), the code on `main` (`proto.html`, `proto/ui/app.js`, `proto/proto.css`, every `panels:` in `proto/features/*/ui.js`) and three screenshots (Powder Valley, Golden Wadi, the finish card). Take the ideas, not the look: Dig stays desert, drawn icons, no emoji, desktop.
 
 ## 1. What the reference does to cut clutter

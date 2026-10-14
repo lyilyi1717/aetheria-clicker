@@ -1,5 +1,7 @@
 # Rafeeqs: names, wardrobe, personality (design study, 13 October 2026)
 
+> **Evidence, not the design.** The one design file for Dig is [`docs/dig-design.md`](../dig-design.md): what was taken from this study, what is built and what the owner still decides (section 9) live there. Where this file disagrees with it, that file wins.
+
 Read from the code, nothing run. Every proposal keeps section 7 of `docs/dig-design.md`: no clock gates, no power in a look, plain words, drawn art, desktop, old saves load, strings through `t()`.
 
 ## 1. What Rafeeqs are today

@@ -1,5 +1,7 @@
 # Stronger Pick and Rafeeq Training: one button or two?
 
+> **Evidence, not the design.** The one design file for Dig is [`docs/dig-design.md`](../dig-design.md): what was taken from this study, what is built and what the owner still decides (section 9) live there. Where this file disagrees with it, that file wins.
+
 Study only. Nothing was changed in the game. 13 October 2026.
 
 **Short answer.** Yes, merge them. Your feeling is right and the sim shows it: after day 1 the Rafeeqs break about 4% of the ground while you play. But the merge is not free. In a rough test the month ran about twice as fast and the Rafeeqs' sieve at the Big Rock started to pay nearly all the coins. Two things must be fixed with it.

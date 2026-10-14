@@ -1,5 +1,7 @@
 # Dig: a world map between levels (study, 13 October 2026)
 
+> **Evidence, not the design.** The one design file for Dig is [`docs/dig-design.md`](../dig-design.md): what was taken from this study, what is built and what the owner still decides (section 9) live there. Where this file disagrees with it, that file wins.
+
 ## 1. What the games do
 
 | Game | Players (source, how sure) | Map type | How progress shows | After a level | What makes it feel good |

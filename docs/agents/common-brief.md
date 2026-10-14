@@ -23,7 +23,7 @@ Read this before any task, with `AGENTS.md`. The permanent agents are in `.claud
 | Game | Entry | Design file | State |
 |---|---|---|---|
 | Aetheria (live) | `index.html` | `docs/redesign-proposal.md` | maintenance |
-| Core loop | `index.html?loop=2` | `docs/core-loop-redesign.md` | paused |
+| Core loop | `index.html?loop=2` | `docs/core-loop-redesign.md` | **paused** (owner confirmed the three games 14 Oct 2026; stopped at Wave C2, R88-R90 and R92-R94 open; nobody works on it until the owner says so) |
 | Dig | `proto.html` / `?loop=3` | `docs/dig-design.md` | active |
 
 ## Design rules (all games)

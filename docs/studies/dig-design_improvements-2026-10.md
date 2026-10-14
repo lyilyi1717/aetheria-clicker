@@ -1,5 +1,7 @@
 # Dig: what to improve next (design study, 13 October 2026)
 
+> **Evidence, not the design.** The one design file for Dig is [`docs/dig-design.md`](../dig-design.md): what was taken from this study, what is built and what the owner still decides (section 9) live there. Where this file disagrees with it, that file wins.
+
 Study only. Nothing in the game was changed, nothing was run. Numbers about Dig come from `docs/dig-design.md` and the pick and Rafeeq study. It does not repeat the map, screen, Rafeeq or pick studies; where it leans on them it says so.
 
 **The short answer.** Dig has a thing no other digging game has: the pick hits on a beat. But the player only hears the beat. He does not play it. Make the beat something he does, give each level one surprise of its own, and make coming back feel like a present. Those three do more for "addictive" than any new system.
