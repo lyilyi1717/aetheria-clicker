@@ -200,7 +200,8 @@ const kit = G.use({
   ok(!G.rollDraft(Object.assign(s, { chests: 1 })).includes('kitB'), 'a relic\'s when() keeps it out of the draft');
   let offered = false;
   s.kitRun = 1;
-  for (let i = 0; i < 60 && !offered; i++) offered = G.rollDraft(s).includes('kitA');
+  // a fresh seed per roll: the draft also depends on the order features register in, which differs between file systems
+  for (let i = 0; i < 400 && !offered; i++) { G.seedRng(1000 + i); offered = G.rollDraft(s).includes('kitA'); }
   ok(offered, 'and lets it in once its gate is met');
   ok(G.takeRelic(s, 'kitA') && G.pickPower(s) === base * 2, 'a relic\'s mod applies while held');
   ok(G.RELICS.kitA.pair === 'kitB', 'a relic can name its pair');
