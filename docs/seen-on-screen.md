@@ -6,6 +6,38 @@ Verdict: looks right / broken / confusing / not reachable / never seen.
 Seen on 2026-10-14 at version 5.31.1, desktop only, 1500x1000 headless, state set from the console where noted.
 Screenshots over about 300 KB are kept on the worktree only (03, 11).
 
+## Sixth pass, 14 October (version 5.35.5 on main e00e007, text floor, Arabic order, red sand)
+Screenshots in docs/screens/2026-10-14f/ (1500x1000, and 1366x768 where named). Over about 300 KB were not kept: the Empty Quarter start (level 36 to 37 without a reload), the Arabic level 37 top line, the Arabic Rock bar, the 3-Rafeeq crew and bubble shots at 1366, the night-after-day shot. State set from the console (road stamps, a teleport to just above the Gate, hired Rafeeqs, a fake finished run). About 14 shots. A script found no HTML text under 13 px on every screen below; canvas text was judged by eye.
+
+| Feature | Last seen | Version | Screenshot | Verdict | Note | Issue |
+|---|---|---|---|---|---|---|
+| #457 Empty Quarter (level 37 from 36, no reload) | 2026-10-14 | 5.35.5 | not kept (over 300 KB) | looks right | Lit rows red-orange, unlit rows dark brick red, darker going down; copper ore on the lit rows is easy to read. Orange sky and camels as before. | |
+| #457 Night land right after a day land (level 20 to 21) | 2026-10-14 | 5.35.5 | not kept (over 300 KB) | looks right | Dark blue sky, moon, castle and windmill; the sand top and brown rows stay readable. | |
+| #457 Top line: toast, Tips and goal chip together | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/03-en-l37-1366.png | broken | The toast, Tips and 'The Gate' chip all show, and 'Gate at N m' is whole (it also fits in Arabic). But the chip and goal words are laid out 95 to 215 px outside the stage and sit on the drawer's gold 'Next: ...' line; at 1366 the goal words are also cut by the first drawer button. Same in the Museum tab shot. | #461 |
+| #457 Tapping the goal chip steps the goal | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/03-en-l37-1366.png | looks right | The button inside steps 'The Gate' to 'Second Pick' and back, and the dots flip (10 to 01). Tapping the box around it does nothing. While a lesson is showing, the goal line stays the lesson, so a step is only seen on the chip. | |
+| #457 Three Rafeeqs talking at 1366 | 2026-10-14 | 5.35.5 | not kept (over 300 KB) | looks right | Three lines sent at once: two show, stacked one above the other, no overlap; the third waits. almodeera's own bubble sits apart. Rafeeq bubbles did not show on their own in 14 s, I forced them. | |
+| #457/#450 Manager name plate and countdown pill | 2026-10-14 | 5.35.5 | not kept (over 300 KB) | looks right | Plate in the sky band, under his feet, clear of the pill above his head; both 'almodeer' and 'almodeera' plates. Small Museum chip under the depth sign, clear. | |
+| #457 Alqahwa with no Rafeeqs: strip under the room | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/06-en-alqahwa-empty.png | looks right | 'No Rafeeqs yet. Hire one and they will come here to rest.' on a dark strip under the room, nothing over the hakawati; 'The hakawati' plate readable. | |
+| #457 Settings save-code box aria-label | 2026-10-14 | 5.35.5 | | not reachable | Set in code (savecode-ui.js line 16); I did not open the box in this pass. | |
+| #450 Track line, goal two lines max | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/03-en-l37-1366.png | confusing | Nothing is cut in the level line or 'Gate at N m'; the goal words are one line and clipped under the drawer at 1366 (see #461). | #461 |
+| #450 Map labels | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/07-ar-map.png | looks right | Land chips, panel signs, node names and depths, all readable and apart. | |
+| #450 Alqahwa name tags, Star board | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/05-ar-alqahwa-3.png | looks right | Name tags readable, Star board prices and steps readable at 1366. The Wardrobe window was not opened in this pass. | |
+| #450 Museum hall (drawer tab) | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/11-en-museum.png | looks right | Set names, bone lines and prizes all readable; the list scrolls. The 'Dig up bones...' line collides with the goal chip (#461). | #461 |
+| #450 Finish card at 1366 (Arabic) | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/12-ar-finish-1366.png | looks right | Fits, middle scrolls, big button and 'Keep digging' pinned. With my faked run the '+0 stars' line sits half hidden behind the pinned block until scrolled. | |
+| #456 Arabic level line, Chapter 2 | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/13-ar-levelline-zoom.png | broken | The line is left-to-right: from the right it reads 'الكثبان · الفصل 2، المرحلة 20/17 · الربع الخالي'. Land name in the wrong place and the count backwards. English says 'Chapter 2, level 17/20'. | #462 |
+| #456 Arabic road map level names and signs | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/07-ar-map.png | looks right | 'الفصل الثاني، المرحلة 3 من 20', 'أوروبا ليلاً، المراحل 1 إلى 4', node names, 'المتحف: الجمل العجوز، وجدت 0 من 4' all in order. | |
+| #456 Arabic Alqahwa names and bubbles | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/05-ar-alqahwa-3.png | looks right | Names read well; story pane marks at the left end. | |
+| #456 Arabic Tips list | 2026-10-14 | 5.35.5 | docs/screens/2026-10-14f/14-ar-tips.png | looks right | Right-aligned, both lines read in order; the box covers the Museum chip while open. | |
+| #456 Arabic Rock bar line | 2026-10-14 | 5.35.5 | not kept (over 300 KB) | looks right | 'البوابة · الضربات الباقية: نحو ...' reads in order on the bar. The numbers were silly (my teleport), so the end of the line was not judged. The warning line (dark, hot) was not seen: no cure above the Rock in my set-up. | |
+| #456 Arabic Museum chip side spot; Gate and record flags; boom pop-up | 2026-10-14 | 5.35.5 | | not reachable | Centre chip seen in the right order ('الجمل العجوز / وجدت 0 من 4'); the side chip, flags and the pop-up were not set up this pass. | |
+| Dark Gate lit / unlit tell | 2026-10-14 | 5.35.5 | | not reachable | Not set up this pass. | |
+| Museum edge arrow | 2026-10-14 | 5.35.5 | | not reachable | Not set up this pass. | |
+
+Console errors: only the favicon 404.
+
+### First five minutes (English, fresh save, 5.35.5)
+What a new player trips on first: (1) a gold 'Next: ...' line above the drawer and the goal chip draw on each other once the chip shows (#461); (2) the 'A new site! You now have N Stars.' floater runs across the middle of the ground over 'Point at the ground to dig' for about two seconds; (3) in Arabic the level line reads in the wrong order (#462).
+
 ## Fifth pass, 14 October (version 5.35.2 on main 5a7dec0, full Arabic and the layout fixes)
 Screenshots in docs/screens/2026-10-14e/ (desktop 1500x1000; 1366x768 for the crew shots). Over about 300 KB were not kept (crew shots at both sizes, relics and fuse, Empty Quarter, deep). State set from the console (crew, bones, relics, stars, a level-37 site, fired events). About 16 shots. Text checks: every Arabic screen listed was scanned for English words and found none; `node scripts/dig-i18n.mjs` shows 2196/2196.
 
