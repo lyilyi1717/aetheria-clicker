@@ -1,5 +1,6 @@
 /* Dig Museum: the collection strip on the dig. */
-#mus-strip { position: absolute; inset-inline-start: 8px; inset-block-start: 8px; display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 6px; border-radius: 12px; background: rgba(20, 12, 6, .72); border: 1px solid rgba(246, 239, 220, .35); color: #f6efdc; pointer-events: none; z-index: 3; }
+/* top centre of the stage: the coin pill is top-left, the depth pill top-right, so the set chip never covers the purse */
+#mus-strip { position: absolute; inset-inline: 0; margin-inline: auto; width: max-content; max-width: 40%; inset-block-start: 8px; display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 6px; border-radius: 12px; background: rgba(20, 12, 6, .72); border: 1px solid rgba(246, 239, 220, .35); color: #f6efdc; pointer-events: none; z-index: 3; }
 #mus-strip[hidden] { display: none; }
 #mus-strip .wart { width: 64px; height: auto; flex: none; }
 #mus-strip .ms-t { display: flex; flex-direction: column; line-height: 1.15; }

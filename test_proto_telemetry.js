@@ -37,7 +37,7 @@ const mk = (o = {}) => {
 {
   const s = fresh(); const got = [];
   const ev = (k, d) => { if (k === 'telemetryPace') got.push(d); };
-  G.siteRun(s);
+  G.siteRun(s).started = true;     // the clock runs from the first hit
   for (let i = 0; i < 20 * 130; i++) G.step(s, 0.05, ev);
   assert.ok(got.length >= 1 && got.length <= 3, 'about two samples in 130 s, got ' + got.length);
   assert.ok(got[0].n === 1 && got[0].coins_s >= 0 && got[0].blocks_s >= 0 && got[0].dt >= 60);
