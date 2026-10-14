@@ -6,6 +6,31 @@ Verdict: looks right / broken / confusing / not reachable / never seen.
 Seen on 2026-10-14 at version 5.31.1, desktop only, 1500x1000 headless, state set from the console where noted.
 Screenshots over about 300 KB are kept on the worktree only (03, 11).
 
+## Tenth pass, 14 October (version 5.36.12 on main e64360b, steering, the deeper away walk, goal dots)
+Desktop only. Windows: 1340x668 viewport for "1366x768". English and ?lang=ar. State was set from the console: a save was written and loaded in a full-size frame (so away returns ran for real at load), and swings were sent with `G.swing`. Screenshots in docs/screens/2026-10-14j/. Two shots over about 300 KB (01 steer tag, 07 Falling Star) are kept on the worktree only. 13 shots. Level 7 is the Black here (the dark Gate at 125 m, a Rock at 100 m).
+
+| Feature | Last seen | Version | Screenshot | Verdict | Note | Issue |
+|---|---|---|---|---|---|---|
+| #484 "Too hard: about 3.40K swings. Hit the Rock!" tag after 3 swings (English, 1366) | 2026-10-14 | 5.36.12 | not committed (314 KB, 01-en-steer-1366) | looks right | Gold-edged tag beside the block, 9 px of gap above the Rock's bar, nothing on the bar's text; the Rock's crack glows brighter. Text is small (11 px). With a hit of 1 the bar says "5792963 h" (only my set-up). Tried with dirt, not a chest or pearl. | |
+| #484 Same, Arabic | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/04-ar-steer-hint-1366.png | looks right | "صعبة جداً: نحو 3.30K ضربة. اضرب الصخرة!" on the left of the block, whole, number in order. | |
+| #484 Banner and the tag | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/02-en-steer-hint-1366.png (first take, not kept) | broken | If the layer caption ("It is always dark...") is still up when the tag shows, its second line prints over "Hit the Rock!". Short. | #494 |
+| #484 Hint after 60 swings | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/02-en-steer-hint-1366.png | looks right | Waits for the banner, then a dark box under the Rock's bar: "That block needs 3.30K swings. The Gate keeps part of every swing: hit the Gate." with Close; the tag stays above the bar; neither covers the bar. Arabic the same, button on the left. | |
+| #484 Opening toast on the next try | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/03-en-steer-open-1366.png | confusing | At the start of the try it goes in the track line beside Tips and the goal chip and shows "That block needs 3.40..." (two lines, cut). "That block" points at nothing yet. With the Rock already in view the "The Big Rock!" toast replaces it the same frame (never seen). | #492 |
+| #483 Away mid-layer with a crew (3 h, 4 Rafeeqs) | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/05-en-away-crew-1366.png | looks right | Top 85 to 100: the row above the Rock dug, the Rock whole (hp = max). Card whole in 614x566 inside the stage, "15 m deeper", sieve, chest, "They reached the Big Rock and waited for you." | |
+| #488 Rock Friend away (12 h, Rocks to 9 beaten) | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/06-en-away-rockfriend-1366.png | confusing | Walked 85 to 125 (the Gate's row), card "40 m deeper ... dug to the Gate", Gate waiting. The card does not say how far Rock Friend walked; the after-card toast "Your Rafeeqs walked past 25 m..." is cut to "walked past..." in the track line. The Gate was a hair under full (62562783815 of 62563997522) after load; I did not find why. | #493 |
+| #488 Falling Star first swing with the Rock on the top row | 2026-10-14 | 5.36.12 | not committed (341 KB, 07-en-fallingstar-1366) | looks right | The swing goes to the Rock (hp halved), top stays 100, no "fell 0 m" toast, no error. | |
+| #489 Far Gate goal with the chip, 1366 | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/08-en-goal-gate-chip-1366.png | looks right | "125 m: the Gate of Valle..." number first, dots at the end, under "The Gate >" and two dots. | |
+| #489 Swings goal with the chip, 1366 | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/09-en-goal-swings-1366.png | looks right | "34.0K swings or so to br..." ends in dots; with 7.30B the same (measured). Number whole. | |
+| #489 Arabic swings goal | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/10-ar-goal-swings-1366.png | looks right | Label on the right ending "الضربات الـ..."; "34.0K" on its left. | |
+| #489 No chip, long goal on two lines | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/11-en-goal-nochip-narrow-1366.png | broken | At real width the goal fits on two lines, so nothing was cut. Forced to 84 px, it is cut with NO dots ("7.30B swings / or so to"). Only reachable by a longer goal, so low. | #495 |
+| #489 Gold lesson plate | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/12-en-gold-plate-1500.png | looks right | Amber plate (tint 20%), bar on the start edge; easy to see on the dark top line. Taken at 1500 (crop cut at the right). | |
+| #489 Alqahwa window scroll bar | 2026-10-14 | 5.36.12 | docs/screens/2026-10-14j/13-en-alqahwa-1366.png | looks right | A thin dark brown line at the card's right edge (card 637 px of 658). | |
+
+Console errors: only the favicon 404.
+
+### First five minutes (this pass)
+Not played from a fresh save this pass (set-ups only). What a new player would trip on first, from what I saw: (1) at 1366 the track line holds Tips, the chip and a toast and the toast is cut (#492, #493), so the steering words are the ones lost; (2) the small 11 px "Too hard" tag is easy to miss next to the busy Rock bar; (3) "Point at the ground to dig" stays over the Rock bar's edge on a short view.
+
 ## Ninth pass, 14 October (version 5.36.8 on main 651755d, lesson plates, number-first goals, the dark Gate)
 Desktop only. Windows: 1340x668 for "1366x768" and 1474x900 for "1500x1000". English and ?lang=ar. State was set from the console (road level, `dig.app.lesson` with the real game text), so these are seen as drawn, not reached by play. Screenshots over about 300 KB are kept on the worktree only (dark Gate at 1500, lit Gate at 1366, Gate goal at 1366). A lesson's timer runs fast in the headless Chrome (it can go in about a second), so I took the picture the moment it showed.
 
