@@ -156,6 +156,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* ---------- the drawer: one tab open, the tab strip on the outer edge ---------- */
 #drawer { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 56px; grid-template-rows: minmax(0, 1fr) auto; column-gap: 8px; height: calc(var(--sh) + var(--th) + 6px); }
+/* every scrolling box in the game has the same thin dark scroll bar (decision 22): no plain white strip */
+.qhcard, .finish, .board .list, #site .road, #tips-list { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
 #tabbody { grid-column: 1; grid-row: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; padding-inline-end: 2px; }
 #tabs { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: 8px; align-items: center; }
 #reset { grid-column: 1 / -1; grid-row: 2; justify-self: end; margin-top: 4px; font-size: 13px; padding: 2px 8px; }

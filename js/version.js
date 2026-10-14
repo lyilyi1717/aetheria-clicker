@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.10';
+export const VERSION = '5.36.11';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.11',
+    date: '2026-10-14',
+    title: 'Dig: a goal that does not fit ends in dots',
+    changes: [
+      'When the goal under the chip is too long for the top line it now ends in dots ("12 swings or so to bre..."), so you can see there is more. Before, the end just disappeared. Point at it to read the whole line. The number at the start always shows.',
+      'The gold plate behind a lesson is a little brighter, so it stands out from the gold level line.',
+      'The scroll bar in the Alqahwa window (and on the finish card and the Tips list) is thin and dark, no longer a bright white strip.'
+    ],
+    ar: {
+      title: 'حفار: الهدف الذي لا يتسع ينتهي بنقاط',
+      changes: [
+        'عندما يكون الهدف تحت الشارة أطول من السطر العلوي ينتهي الآن بنقاط، فتعرف أن له بقية. كان آخره يختفي من قبل. أشِر إليه لتقرأ السطر كاملاً. والرقم يبقى ظاهراً دائماً.',
+        'اللوحة الذهبية خلف الدرس أوضح قليلاً، فتتميز عن سطر المستوى الذهبي.',
+        'شريط التمرير في نافذة القهوة (وفي بطاقة النهاية وقائمة النصائح) صار رفيعاً وداكناً، لا شريطاً أبيض لامعاً.'
+      ]
+    }
+  },
   {
     version: '5.36.10',
     date: '2026-10-14',
