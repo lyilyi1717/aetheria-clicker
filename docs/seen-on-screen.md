@@ -6,6 +6,41 @@ Verdict: looks right / broken / confusing / not reachable / never seen.
 Seen on 2026-10-14 at version 5.31.1, desktop only, 1500x1000 headless, state set from the console where noted.
 Screenshots over about 300 KB are kept on the worktree only (03, 11).
 
+## Fourth pass, 14 October (version 5.34.0 on main dae7c2f, Arabic and the new Settings)
+Screenshots in docs/screens/2026-10-14d/ (desktop 1500x1000). Over about 300 KB were not kept (02, 03, 04, 11). State set from the console: money, depth, stamps, hired Rafeeqs, a faked 3-hour gap. Arabic strings were still being edited by the localizer during this pass, so the English left in Arabic mode may shrink.
+
+| Feature | Last seen | Version | Screenshot | Verdict | Note | Issue |
+|---|---|---|---|---|---|---|
+| Arabic dig screen and HUD (scene not mirrored, panels mirrored) | 2026-10-14 | 5.34.0 | docs/screens/2026-10-14d/01-ar-dig.png | confusing | Scene runs as in English; shop, Rafeeq box and pick pill are on the right, tabs and gold pill mirrored. But the level line, goal line, Museum chip, 'Your hit/Wooden' and 'Buy all' are still English. | #443 |
+| Arabic drawer tabs | 2026-10-14 | 5.34.0 | not kept | looks right | Tab tooltips are Arabic ('المتجر', locked ones say what opens them). Icons only, so nothing to mirror. |  |
+| Arabic shop card '{a} ← {b}' | 2026-10-14 | 5.34.0 | docs/screens/2026-10-14d/01-ar-dig.png | looks right | 'تراب: الضربات 6 ← 7': the arrow points left, from the old number (right) to the new (left), reads correctly. |  |
+| Arabic Big Rock bar and stuck panel | 2026-10-14 | 5.34.0 | not kept (over 300 KB) | looks right | Bar text 'البوابة · الضربات الباقية: نحو 42.0K · 14 س' reads in order. Stuck panel text is right-aligned with Close on the left. The top goal line beside it is English. | #443 |
+| Arabic canvas floaters 'بووم -{n}%' | 2026-10-14 | 5.34.0 | not kept (over 300 KB) | looks right | 'بووم -12%' and 'بووم -7%': word on the right, minus stays in front of the number. |  |
+| Arabic level line | 2026-10-14 | 5.34.0 | docs/screens/2026-10-14d/01-ar-dig.png | broken | 'Level 1 of 20 · الجزيرة العربية · The Dunes': half English. In the map header it scrambles to '20 Level 10 of'. | #443 |
+| Arabic almodeer / almodeera box and name plate | 2026-10-14 | 5.34.0 | not kept (over 300 KB) | broken | Lines are right-aligned, '!' and the full stop land on the left end, plates 'المدير' and 'المديرة' read well. But the Museum chip covers the box. | #444 |
+| Arabic Rafeeq bubbles ending '!' and '؟' | 2026-10-14 | 5.34.0 | not kept (over 300 KB) | looks right | Marks sit at the left end of each bubble, as they should in right-to-left. |  |
+| Arabic countdown shout '30 ثانية!' | 2026-10-14 | 5.34.0 | not kept (over 300 KB) | looks right | Shown in almodeer's box, digits and mark in the right order (box still partly under the chip). | #444 |
+| Arabic Alqahwa and the hakawati story pane | 2026-10-14 | 5.34.0 | docs/screens/2026-10-14d/08-ar-alqahwa-story.png | confusing | Story pane right-aligned, 'التالي' and 'تخطَّ' mirrored, name plate 'الحكواتي' readable. The Stars menu under the room is all English, with full stops at the wrong end. | #443 |
+| Arabic story book | 2026-10-14 | 5.34.0 | docs/screens/2026-10-14d/09-ar-book.png | looks right | Chapters and 'المرحلة N' buttons right-aligned, red 'جديد' marks, Close and the scroll bar on the left. |  |
+| Arabic Settings: three switch lines | 2026-10-14 | 5.34.0 | docs/screens/2026-10-14d/05-ar-settings.png | looks right | Sound, Share my play times, Reduce motion lines all Arabic and readable; sliders mirrored with numbers on the left. |  |
+| Arabic Settings: save-code box | 2026-10-14 | 5.34.0 | docs/screens/2026-10-14d/05-ar-settings.png | confusing | Heading, buttons and help line are right to left. The code itself is right-to-left too, so the last line sits at the right edge and the lines do not line up. | #445 |
+| Arabic road map: pan buttons, chips, canvas signs | 2026-10-14 | 5.34.0 | docs/screens/2026-10-14d/10-ar-map.png | confusing | The scene is not mirrored (Arabia at the left) and the button on the right pans toward the right, so buttons agree with the picture. But the land chips run right to left (Arabia at the far right), opposite to the picture. Panel signs ('شرق آسيا / المراحل 9 إلى 12') are Arabic; node names and the info box are English. | #443 |
+| English with ?lang=en | 2026-10-14 | 5.34.0 | not kept | looks right | Same screens read as before (settings, away card, drawer, bar). No script errors. |  |
+| Settings save code: Show my code | 2026-10-14 | 5.34.0 | docs/screens/2026-10-14d/06-en-savecode.png | looks right | Fills the box (2692 characters), all of it selected, 'Select the text and copy it. Keep it somewhere safe.' (no clipboard in headless). |  |
+| Settings save code: a bad, a cut, a good code | 2026-10-14 | 5.34.0 | docs/screens/2026-10-14d/06-en-savecode.png | looks right | Bad: red 'That does not look like a Dig code. Your save was not changed.'. Cut: red 'The code is cut or has a mistake in it...'. Good: white 'Level 1, 0 Stars, saved 10/14/2026.' with 'Replace my dig with this' and Cancel. |  |
+| Reduce motion switch | 2026-10-14 | 5.34.0 | not kept (checked by numbers) | looks right | Off by default; on: 40-bit burst becomes 8, no shake, no flash, html gets 'calm'; off again restores 40, shake, flash. Choice is stored (0/1). Not seen as a picture. |  |
+| Reduce motion default from the browser | 2026-10-14 | 5.34.0 | not kept | looks right | With the browser asking for less motion, a fresh profile starts On with 'calm' set; the player's choice then wins. |  |
+| Play-times line in a fresh profile | 2026-10-14 | 5.34.0 | not kept | looks right | Reads 'Share my play times: Off'; with ?share=1 it reads On. |  |
+| Away card at the Gate (Rock Friend) | 2026-10-14 | 5.34.0 | docs/screens/2026-10-14d/07-away-gate.png | looks right | After a simulated 3 h away: 42 m deeper, sieved 2 h 59 min, +104M, Rafeeq lines, then 'Your Rafeeqs dug to the Gate. It is waiting for you.' above 'Open the first chest'. The line is plain white and small, but easy to find. |  |
+| Manager on a leg at 0 | 2026-10-14 | 5.34.0 | not kept (over 300 KB) | confusing | Countdown goes red '0:00 over' with a '-0:00' pill; almodeer says 'No time left! I will say it was on purpose.' But the Museum chip covers the first half of his line. | #444 |
+| Museum edge arrow | 2026-10-14 | 5.34.0 |  | not reachable | Set a bone under the view, next to open cells; the crew dug on and both bones came into view (glint seen) before the arrow showed. Still needs a real play check. |  |
+| Dark Gate lit / unlit tell | 2026-10-14 | 5.34.0 |  | not reachable | Not set up this pass. |  |
+
+Console errors: only the favicon 404.
+
+### First five minutes (Arabic, fresh save)
+The screen is easy to read once the shop, Rafeeq box and pick pill sit on the right. A new Arabic player meets, in the first minute, a level line and a goal line in English, a Museum chip in English, and 'Buy all' in English; the Rafeeq Stars menu in Alqahwa is all English. The Arabic that is there (hint 'أشِر إلى الأرض لتحفر', bubbles, almodeer) reads well.
+
 ## Third pass, 14 October (version 5.33.0 on main 741db11, Chapter Two and #417)
 Screenshots in docs/screens/2026-10-14c/ (desktop 1500x1000, 1366x768 for 03). State set from the console (road stamps, a run at the level, bossesDown to finish it). Shots over about 300 KB were not kept (night level 21, Empty Quarter, dark Gate try).
 | Feature | Last seen | Version | Screenshot | Verdict | Note | Issue |
