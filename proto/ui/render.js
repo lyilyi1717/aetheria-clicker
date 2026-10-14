@@ -3,7 +3,7 @@
 // draws on top are registered: addArt({ kind: {...} }) and addDraw([{ at, fn }]). See proto/README.md.
 import { COLS, VIEW_ROWS, KEEP_ROWS, layerOf, layerAt, reachable, visibleMask } from '../core/grid.js';
 import { layersOf } from '../core/registry.js';
-import { lookFor } from '../features/look/palette.js';
+import { lookFor, zoneNow } from '../features/look/palette.js';
 import { makeWorld } from '../features/look/world.js';
 import { motion, burst } from './motion.js';
 import { textDir } from '../core/lang.js';
@@ -213,7 +213,7 @@ function drawBlocks(g, s) {
     // a kind that draws its whole row (the Big Rock)
     const any = s.rows[i].find(x => x);
     if (any && ART[any.t] && ART[any.t].row) { ART[any.t].row(g, s, r, y); continue; }
-    const L = layerIdx(r), p = look(r), key0 = s.land + '|' + s.site + '|' + L + '|';
+    const L = layerIdx(r), p = look(r), key0 = s.land + '|' + s.site + '|' + zoneNow() + '|' + L + '|';   // per zone: a sprite made in one land is never reused in another
     for (let c = 0; c < COLS; c++) {
       const cell = s.rows[i][c];
       if (!cell) continue;
@@ -222,7 +222,7 @@ function drawBlocks(g, s) {
       const x = c * CELL + (bump ? (Math.random() - 0.5) * 6 * bump : 0);
       const yy = y + (bump ? (Math.random() - 0.5) * 6 * bump : 0);
       const v = cell.s % 3;
-      if (!seen[i][c]) { g.drawImage(sprite(`dark|${key0}${v}`, gg => baseBlock(gg, shade(p.back, -0.25), v, 4)), x, yy); continue; }
+      if (!seen[i][c]) { g.drawImage(sprite(`dark|${key0}${v}`, gg => baseBlock(gg, p.dark, v, 4)), x, yy); continue; }
       const a = ART[cell.t];
       g.drawImage(sprite(`${cell.t}|${key0}${v}`, gg => (a && a.sprite ? a.sprite(gg, p, v) : baseBlock(gg, '#888', v, 2))), x, yy);
       const dmg = 1 - cell.hp / cell.max;

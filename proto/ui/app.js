@@ -305,7 +305,8 @@ function updatePanels(force) {
   for (let i = 0; i < GOALS.length && !goal; i++) goal = GOALS[i].fn(state, app);
   const fill = $('goal-fill');
   $('goal').style.visibility = goal ? '' : 'hidden';
-  if (goal) { $('goal-text').textContent = goal.text; fill.style.width = (goal.frac * 100) + '%'; fill.className = goal.cls || ''; }
+  if (goal) { const gt = $('goal-text'); gt.textContent = gt.title = goal.text;   // the title keeps the whole line when the chip leaves it one
+    fill.style.width = (goal.frac * 100) + '%'; fill.className = goal.cls || ''; }
   $('depth').textContent = t('depth', { n: state.best });
   // the status chip under the purse (combo, oil rush)
   let st = null;

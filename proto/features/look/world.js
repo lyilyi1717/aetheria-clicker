@@ -179,9 +179,9 @@ export function makeWorld(R) {
   }
   function drawSky(g, s) {
     const y0 = -fx.cam * CELL;
+    setZone(G_zone(s));   // before the early return: deep in the dig the sky is off screen but the blocks still need the land
     if (y0 + SKY < -4) return;
     const key = siteKey(s.site), zone = G_zone(s), c = skyOf(key, zone);
-    setZone(zone);
     g.drawImage(c, 0, y0);
     if (key === 'mirage') shimmer(g, c, y0);
     drift(g, key, y0);
@@ -241,6 +241,7 @@ export function makeWorld(R) {
     return c;
   };
   function drawBack(g, s) {
+    setZone(G_zone(s));   // the wall is drawn first in a frame
     const first = Math.floor(fx.cam) - 2, last = first + 14;
     const par = (fx.cam * CELL * 0.55) % TILE;   // the wall moves slower than the blocks
     let r = first;

@@ -12,7 +12,8 @@ const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls)
 export function buildSaveCode(app, parent) {
   const box = el('div', 'sc'), head = el('h3', '', t('sc_title')), row = el('div', 'sc-row');
   const show = el('button', 'ghost set-switch', t('sc_show')), load = el('button', 'ghost set-switch', t('sc_load'));
-  const area = el('textarea', 'sc-area'); area.rows = 3; area.hidden = true; area.spellcheck = false; area.dir = 'ltr';   // the code reads left to right on an Arabic page too area.setAttribute('aria-label', t('sc_title'));
+  const area = el('textarea', 'sc-area'); area.rows = 3; area.hidden = true; area.spellcheck = false; area.dir = 'ltr';   // the code reads left to right on an Arabic page too
+  area.setAttribute('aria-label', t('sc_title'));
   const msg = el('p', 'sc-msg'); msg.setAttribute('role', 'status');
   const act = el('div', 'sc-row'); act.hidden = true;
   const go = el('button', 'primary', ''), no = el('button', 'ghost', t('sc_cancel'));

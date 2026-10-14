@@ -83,24 +83,34 @@ function drawExtras(g, s, dt) {
 const two = `<g transform="translate(-4 -1)">${pickShape()}</g><g transform="translate(5 3)">${pickShape('#ffd23f')}</g>`;
 
 // ---------- the pinned goal: chips beside the goal bar, a pin on the Second Pick, a note on the cheap buttons ----------
-let pinRow = null;
+let pinRow = null, pinDots = null;
 const pinBtns = {};
 function pinMount(app) {
   const goal = document.getElementById('goal');
   if (!goal) return;
+  // one chip in the goal spot (art-and-sound decision 5): it shows the goal on the bar, a tap steps to the next one, and a dot
+  // per choice (the filled one is this) says there are more. Three chips side by side pushed the top line over its neighbours.
   pinRow = document.createElement('div'); pinRow.id = 'goal-pin'; pinRow.hidden = true; pinRow.title = t('pin_tip');
   for (const k of G.PICKS_PINS) {
-    const b = document.createElement('button'); b.type = 'button'; b.textContent = t('pin_' + k); b.dataset.pin = k;
-    b.addEventListener('click', () => { app.unlockAudio(); if (G.picksSetPin(app.state, k)) { app.refresh(true); } });
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = t('pin_' + k); b.dataset.pin = k; b.title = t('pin_tip');
+    b.addEventListener('click', () => {
+      app.unlockAudio();
+      const ok = G.PICKS_PINS.filter(x => G.picksPinOk(app.state, x));
+      for (let i = 1; i <= ok.length; i++) if (G.picksSetPin(app.state, ok[(ok.indexOf(k) + i) % ok.length])) { app.refresh(true); break; }
+    });
     pinBtns[k] = b; pinRow.appendChild(b);
   }
+  pinDots = document.createElement('span'); pinDots.className = 'pin-dots'; pinDots.setAttribute('aria-hidden', 'true');
+  pinRow.appendChild(pinDots);
   goal.appendChild(pinRow);
 }
 function pinTick(s, app) {
   if (pinRow) {
-    const ok = G.PICKS_PINS.filter(k => G.picksPinOk(s, k)), cur = G.picksPin(s);
+    const ok = G.PICKS_PINS.filter(k => G.picksPinOk(s, k)), cur = G.picksPin(s), shown = ok.includes(cur) ? cur : ok[0];
     pinRow.hidden = ok.length < 2;
-    for (const k of G.PICKS_PINS) { pinBtns[k].hidden = !ok.includes(k); pinBtns[k].classList.toggle('on', k === cur); }
+    for (const k of G.PICKS_PINS) { pinBtns[k].hidden = k !== shown; pinBtns[k].classList.toggle('on', k === cur); }
+    const dots = ok.map(k => (k === shown ? 1 : 0)).join('');
+    if (pinDots.dataset.d !== dots) { pinDots.dataset.d = dots; pinDots.innerHTML = [...dots].map(d => `<i${d === '1' ? ' class="on"' : ''}></i>`).join(''); }
   }
   const saving = G.picksSaving(s);
   for (const b of document.querySelectorAll('.shop-item[data-id]')) {

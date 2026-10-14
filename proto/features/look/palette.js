@@ -37,7 +37,19 @@ export const ZONE_LOOK = {
   n_americas: { sky: ['#101a36', '#46405e'], far: '#4a2a2a', ground: ['#3a2a5a', 0.16] },
   n_eastasia: { sky: ['#18203a', '#4e5a6a'], far: '#34463f', ground: ['#2a4a5a', 0.16] },
   n_africa:   { sky: ['#1e1634', '#5a3a4a'], far: '#4a3020', ground: ['#4a2a3a', 0.16] },
-  emptyquarter: { sky: ['#e2683a', '#ffc27a'], far: '#c8502a', ground: ['#d9501c', 0.4] },   // its blocks are red sand, far from every other land
+  // The Empty Quarter: red sand at every depth. Its four ground layers get their own red palettes, lighter at the top and
+  // darker down (depth still reads by brightness, slate keeps its shine), and `dark` is the block the lamp has not reached
+  // yet: dark brick red, never the brown of the other lands. The deep feature layers (black ... hot) keep their own look
+  // with the 40% red nudge, since each is a law the player must know at a glance.
+  emptyquarter: {
+    sky: ['#e2683a', '#ffc27a'], far: '#c8502a', ground: ['#d9501c', 0.4],
+    layers: {
+      sand:  { dirt: '#e4844a', stone: '#c98a68', back: '#7a3418', dark: '#8a3a20' },
+      clay:  { dirt: '#c95530', stone: '#ad6a55', back: '#5e2412', dark: '#722a16' },
+      slate: { dirt: '#b0452e', stone: '#a06458', back: '#4a1a12', dark: '#5e2014' },
+      deep:  { dirt: '#94344a', stone: '#94606c', back: '#341019', dark: '#4c1622' },
+    },
+  },
 };
 const PLACE_SHARE = 0.3;
 export const placeLook = (key, zone) => {
@@ -71,15 +83,18 @@ const cache = new Map();
 // the zone being drawn: world.js sets it once a frame, before the blocks are drawn
 let curZone = '';
 export const setZone = z => { curZone = z || ''; };
+export const zoneNow = () => curZone;   // block sprites are kept per zone (render.js), so a land never shows another's blocks
 export function lookFor(layerId, layerLook, siteId, zone = curZone) {
   const site = siteKey(siteId), key = layerId + '|' + site + '|' + zone;
   let o = cache.get(key);
   if (!o) {
-    const base = { ...layerLook, ...(LAYER_LOOK[layerId] || {}) };
+    const z = ZONE_LOOK[zone] || {}, own = z.layers && z.layers[layerId];
+    const base = { ...layerLook, ...(LAYER_LOOK[layerId] || {}), ...(own || {}) };
     const tint = SITE_LOOK[site].tint;
     o = tint ? { ...base, dirt: mix(base.dirt, tint[0], tint[1]), stone: mix(base.stone, tint[0], tint[1]), back: mix(base.back, tint[0], tint[1] * 0.6) } : base;
-    const zg = (ZONE_LOOK[zone] || {}).ground;
+    const zg = !own && z.ground;   // a land's own layer palette replaces its nudge
     if (zg) o = { ...o, dirt: mix(o.dirt, zg[0], zg[1]), stone: mix(o.stone, zg[0], zg[1]), back: mix(o.back, zg[0], zg[1] * 0.6) };
+    if (!o.dark) o = { ...o, dark: shadeHex(o.back, -0.25) };   // a block the lamp has not reached
     cache.set(key, o);
   }
   return o;
