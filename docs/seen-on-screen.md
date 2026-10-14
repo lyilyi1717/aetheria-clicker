@@ -6,6 +6,30 @@ Verdict: looks right / broken / confusing / not reachable / never seen.
 Seen on 2026-10-14 at version 5.31.1, desktop only, 1500x1000 headless, state set from the console where noted.
 Screenshots over about 300 KB are kept on the worktree only (03, 11).
 
+## Eighth pass, 14 October (version 5.36.4 on main 998d940, lessons, goals and Camp)
+Screenshots in docs/screens/2026-10-14h/ (zoomed top-line crops at 1366x768 unless named). Window sizes: the headless viewport is 1474x900 for "1500x1000" and 1340x668 for "1366x768". Lessons were requested from the console (`dig.app.lesson`, with the real game text), so each was seen as the game would draw it, but not reached by play. Line counts, boxes and overlaps were measured by script for all 18 lessons, English and Arabic, at both sizes. About 10 shots. The shot driver's Chrome was gone after every run (checked at the end).
+
+| Feature | Last seen | Version | Screenshot | Verdict | Note | Issue |
+|---|---|---|---|---|---|---|
+| #475 Long lessons (crystal, grump, torch crate, "This relic has a partner"), English, 1366 and 1500 | 2026-10-14 | 5.36.4 | docs/screens/2026-10-14h/04-en-partner-1366-zoom.png | looks right | Whole text, no dots. At 1366 most take two lines (box y 53 to 83, stage starts at 94); at 1500 one line, only the torch crate and the partner lesson take two. No lesson in the game needs three lines. Gold bar on the left. | |
+| #475 Same, Arabic, 1366 and 1500 | 2026-10-14 | 5.36.4 | docs/screens/2026-10-14h/02-ar-grump-1366-zoom.png | looks right | Whole text, right aligned, bar on the right, vowel marks (shadda, kasra) whole. A script says the box is a pixel or two short of its text on every Arabic lesson, but nothing is cut on screen. | |
+| #475 Tips and the goal step aside, then come back | 2026-10-14 | 5.36.4 | | looks right | With Stars held: during a lesson Tips and the goal are display none, the level line, Gate note, clock and medals stay. They are back about a second after the lesson goes, and right after a click on it. A 72-letter lesson stays about 8.6 s if nothing else waits. | |
+| #475 Lesson reaches the stage / Map and mute buttons | 2026-10-14 | 5.36.4 | docs/screens/2026-10-14h/03-ar-partner-1366-zoom.png | looks right | Box bottom 83 at most, stage top 94, nothing else under it. The Map and mute buttons are at x 1016 and up (Arabic: 194 to 286), far from the box. A three-line case does not exist in the game today, so that was not seen. | |
+| #475 Reduce motion | 2026-10-14 | 5.36.4 | | looks right | With `calm` the lesson's animation is none (a plain show); without it, lessonIn (lessonInRtl in Arabic). Seen by numbers, not as a moving picture. | |
+| #474 Star pointer after a New Site with Stars | 2026-10-14 | 5.36.4 | docs/screens/2026-10-14h/05-en-starptr-1366-zoom.png | looks right | 'Spend Stars at Alqahwa.' two lines, beside Tips, no dots. Arabic 'أنفق نجومك في القهوة.' two lines at 1366, one at 1500. | |
+| #474 Star refund toast | 2026-10-14 | 5.36.4 | docs/screens/2026-10-14h/06-ar-refund-1366-zoom.png | looks right | 'Your Stars are back: 123K' and 'عادت نجومك: 123K': two lines at 1366, no dots, number whole. | |
+| #474 First glass block lesson | 2026-10-14 | 5.36.4 | | not reachable | I found no lesson text for a glass block in the game files (only the glass pick lines 'Crack! The glass pick...'), so there was nothing to look at. | |
+| #472 Stars sentence once; chip's own goal under the chip | 2026-10-14 | 5.36.4 | docs/screens/2026-10-14h/05-en-starptr-1366-zoom.png | looks right | The Stars line shows once, beside Tips. Under the chip: 'The Gate of The Dunes ...' (the Gate goal, cut with dots at 1366). The old 'You have Stars. Spend them at...' line is gone (now the pointer above). | |
+| #472 Arabic Second Pick goal keeps '3.00K / 12.0K' whole | 2026-10-14 | 5.36.4 | docs/screens/2026-10-14h/07-ar-pick2goal-1366-zoom.png | looks right | 'المعول الثاني: 3.00K / 12.0K', label on the right, count to its left, chip inside the stage (right edge 712 of 712). English: 'Second P... 3.00K / 12.0K', label cut, numbers whole. Same at 1500. The Arabic chip's arrow looks like an up chevron, not a pointer to the left (small, not sure). | |
+| #468 Camp track plain step | 2026-10-14 | 5.36.4 | docs/screens/2026-10-14h/08-ar-camp-1366.png | looks right | English: title 'Rafeeq hit +2%', line 'Rafeeq hit: 70% of yours, then 72%.' (60% then 62% at the first plain step). Arabic 'ضربة الرفيق +2%' and 'ضربة الرفيق: 70% من ضربتك، ثم 72%.' with the numbers in order; the last '72%.' wraps onto a line of its own. | |
+| Dark Gate lit / unlit tell | 2026-10-14 | 5.36.4 | | not reachable | Not set up this pass. | |
+| Museum edge arrow | 2026-10-14 | 5.36.4 | | not reachable | Not set up this pass; it still needs a real play check. | |
+
+Console errors: only the favicon 404.
+
+### First five minutes (English, fresh save, 5.36.4)
+What a new player trips on first: (1) the first lessons now read whole, but on a laptop two lines of gold text push Tips and the goal away for 3 to 9 s, so the goal vanishes just when it is useful; (2) the 'Next: Stronger Pick, 15 coins.' line in the drawer and the lesson are the same colour and weight, so the eye jumps between two lines; (3) at 1366 the goal under the chip is cut ('The Gate of The Dunes ...') so the number of metres is only in the small 'N m to the Gate' note.
+
 ## Seventh pass, 14 October (version 5.36.0 on main 8fbc177, the top line fits, Arabic order, Camp)
 Screenshots in docs/screens/2026-10-14g/ (1366x768 unless named). Over about 300 KB were not kept (level 37 at 1500 and 1366 in English and Arabic, the clock-over shot, the Wardrobe). Window sizes: the headless viewport is 1474x900 for "1500x1000" and 1340x668 for "1366x768". State set from the console (a level-37 site, bossesDown, road stamps, picks.pin, a toast). Positions were also measured by script. About 14 shots.
 
