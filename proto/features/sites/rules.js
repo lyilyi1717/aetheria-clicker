@@ -52,9 +52,9 @@ const p = {
   gateMul: [0.44, 8.87, 0.371, 7.49, 0.278, 7.99, 0.201, 6.23, 0.257, 9.43, 0.234, 9.45, 0.126, 6.37, 0.0645, 4.34],
   // Chapter Two (levels 21 to 40, docs/dig-design.md 2.4): the same 16 depth slots again at night, then the Empty Quarter
   // (300 and 325 m). Levels 21 to 36 reuse gateMul slot by slot; the Empty Quarter's four Gates are gateMulCh2.
-  gateMulCh2: [0.003, 1.05, 4e-4, 0.2],      // 300 learn, 300 prove, 325 learn, 325 prove (the last two not yet measured, see 2.4)
+  gateMulCh2: [7.5e-4, 1.05, 2e-4, 0.2],     // 300 learn, 300 prove, 325 learn, 325 prove (docs/dig-design.md 2.4)
   ch2Hp: 3e12,                     // chapter two: every block, Big Rock and Gate is this much harder (the player arrives far stronger)
-  ch2Stars: 2e5,                  // chapter two: every Star it pays (finish, medal, replay, chili, leaving) is this much bigger
+  ch2Stars: 2e3,                  // chapter two: every Star it pays (finish, medal, replay, chili, leaving) is this much bigger
   sideAfter: 2,                   // a level of the road tried this often and not finished: side cards are dealt beside it
   // the bottom
   baseFloor: 50,                  // where a Gate is when no card says (old saves, the contracts board)

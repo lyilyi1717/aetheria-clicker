@@ -56,7 +56,7 @@ const p = {
   teaPace: 0.5,                          // pip 1: Rafeeqs dig at this speed
   chiliGlassEvery: 60,                   // pip 4: every 60th hit the pick loses half its levels
   // the sim's player: a chance to dig a finished level again with its next chili (more if it was quick)
-  botChili: 0.4, botChiliSlow: 0.12, botChiliGive: 600, botChiliPar: 1.6,   // it gives a chili level up after this many attended seconds (or this many times the par, if longer)
+  botChili: 0.4, botChiliSlow: 0.12, botChiliGive: 600, botChiliPar: 1.6, botChiliCap: 1200,   // it gives a chili level up after this many attended seconds (or this many times the par, if longer, but never later than botChiliCap)
   // the rules
   darkSight: 1,                          // blocks you see around open space in the dark
   riseBreaks: 100,                       // blocks you may break before the sand refills the hole
@@ -392,7 +392,7 @@ export const contracts = use({
         ctx.tg = best;
         if (best) ctx.col = best[1];
       }
-      if (trk.act - ctx.cStart > (isChili(id) ? Math.max(p.botChiliGive, p.botChiliPar * (s.run ? s.run.par : 0)) : p.botGiveUp)) { leaveContract(s, ev); ctx.noCrew = false; ctx.p.buyEvery = ctx.cBuyEvery; log('left', id); }
+      if (trk.act - ctx.cStart > (isChili(id) ? Math.max(p.botChiliGive, Math.min(p.botChiliCap, p.botChiliPar * (s.run ? s.run.par : 0))) : p.botGiveUp)) { leaveContract(s, ev); ctx.noCrew = false; ctx.p.buyEvery = ctx.cBuyEvery; log('left', id); }
       return 0;
     }
     if (ctx.cWas) {                                              // it ended: won, or just left
