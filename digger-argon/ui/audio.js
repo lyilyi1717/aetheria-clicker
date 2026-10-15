@@ -212,6 +212,17 @@ export const sfx = {
     tone(73.4 * rate, { type: 'triangle', a: 0.004, d: 0.18, vol: 0.22, slide: 48 * rate });
     noise({ d: 0.08, vol: 0.2, from: Math.min(3400, 1800 * rate), to: 380, type: 'bandpass' });
   },
+  bonusTime(isGate) {
+    if (!gap('bonusTime', 0.2)) return;
+    const notes = isGate ? [523, 659, 784, 1047, 1319] : [587, 880, 1175];
+    notes.forEach((f, i) => tone(f, { type: 'triangle', d: 0.2, vol: 0.18, at: i * 0.08 }));
+    tone(isGate ? 1568 : 1319, { type: 'sine', d: 0.4, vol: 0.15, at: notes.length * 0.08 });
+  },
+  overtime() {
+    if (!gap('overtime', 1.0)) return;
+    tone(130, { type: 'sawtooth', d: 0.35, vol: 0.25, slide: 80 });
+    tone(95, { type: 'sine', d: 0.4, vol: 0.3, at: 0.1 });
+  },
 };
 
 

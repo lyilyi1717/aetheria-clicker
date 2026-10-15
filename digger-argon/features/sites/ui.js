@@ -45,7 +45,7 @@ let holdUntil = 0;                        // the finish card waits while a pip-c
 let lastFin = null;                       // the last finish: the map walks from there
 export const alqahwa = { open: null };    // the coffee house screen (worldmap feature)
 // "Next town": the map, the digger walks, and the next level opens by itself when the road shows one card
-function goNext(app, from, lookOnly, auto) {
+export function goNext(app, from, lookOnly, auto) {
   if ((!lookOnly && !G.canNewSite(app.state)) || app.modal.id) return;
   if (nextMap.open) {
     try { nextMap.open(app, { from, auto: !!auto }); return; }
@@ -54,8 +54,120 @@ function goNext(app, from, lookOnly, auto) {
   openNext(app);
 }
 
+// ---------- Hard Mode & Multi-Chili Replay Modal ----------
+export function openChiliReplayModal(app, key, onClose = null) {
+  const s = app.state;
+  const st = s.road.stamps[key];
+  if (!st || !st.fin || !G.siteOpen(s, st.site)) return false;
+
+  const hardFloor = Math.max(G.PARAMS.sites.hardmodeBaseFloor || 125, st.floor);
+  const selected = new Set([1, 2, 3, 4, 5]); // Default to all 5 (Nightmare Run!)
+
+  const modalHtml = `<div class="card chili-replay-modal">
+    <div class="chili-modal-hdr">
+      <span class="ic">${icon('site_' + st.site, 44)}</span>
+      <div>
+        <h2>${siteName(st.site, st.twist)} - ${t('chili_replay_title')}</h2>
+        <p class="muted">${t('chili_replay_sub')}</p>
+      </div>
+    </div>
+    <div class="chili-quick-actions">
+      <button class="btn-all primary gold">${t('chili_toggle_all')}</button>
+      <button class="btn-clear ghost">${t('chili_clear_all')}</button>
+    </div>
+    <div class="chili-list">
+      ${[1, 2, 3, 4, 5].map(k => `
+        <label class="chili-item" data-k="${k}">
+          <input type="checkbox" class="chili-chk" data-k="${k}" ${selected.has(k) ? 'checked' : ''}>
+          <span class="cpip on" style="--c:${CHILI_COL[k - 1]}">${icon('chili' + k, 24)}</span>
+          <div class="chili-details">
+            <b>${t('c_chili' + k)}</b>
+            <span>${t('c_chili' + k + '_d')}</span>
+          </div>
+        </label>
+      `).join('')}
+    </div>
+    <div class="chili-preview">
+      <div class="prev-item depth">${icon('gate', 20)} <span class="v">${t('chili_mod_depth', { n: hardFloor })}</span></div>
+      <div class="prev-item stars">${icon('medal_fin', 20)} <span class="v"></span></div>
+      <div class="prev-item hit">${icon('up_pick', 20)} <span class="v"></span></div>
+      <div class="prev-item best">${icon('watch', 20)} <span class="v"></span></div>
+      <div class="nightmare-banner" hidden>${t('chili_nightmare_perk')}</div>
+    </div>
+    <div class="chili-modal-btns">
+      <button class="primary gold start-btn"></button>
+      <button class="ghost close-btn">${t('cancel') || 'Back'}</button>
+    </div>
+  </div>`;
+
+  const m = app.modal.open('chili-replay', modalHtml);
+  if (!m) return false;
+
+  const updatePreview = () => {
+    const count = selected.size;
+    const sorted = Array.from(selected).sort((a, b) => a - b);
+    const starMult = G.chiliStarMult(count);
+    const starVal = G.fmt(G.chiliPay(hardFloor, count, G.chOf(st)));
+    const hitPct = pct(sorted.map(G.chiliGain).reduce((a, b) => a + b, 0));
+    const bestT = G.getChiliBestTime(st, count);
+
+    m.querySelector('.prev-item.stars .v').textContent = t('chili_mod_stars', { n: starVal, mult: starMult });
+    m.querySelector('.prev-item.hit .v').textContent = t('chili_mod_hit', { p: hitPct });
+    m.querySelector('.prev-item.best .v').textContent = t('chili_mod_best', { t: bestT ? clock(bestT) : t('chili_mod_none') });
+
+    const nb = m.querySelector('.nightmare-banner');
+    nb.hidden = count < 5;
+
+    const startBtn = m.querySelector('.start-btn');
+    startBtn.disabled = count === 0;
+    startBtn.textContent = count === 5
+      ? t('chili_start_nightmare')
+      : t('chili_start_run', { n: count });
+  };
+
+  m.querySelectorAll('.chili-chk').forEach(chk => {
+    chk.addEventListener('change', () => {
+      const k = parseInt(chk.dataset.k, 10);
+      if (chk.checked) selected.add(k);
+      else selected.delete(k);
+      updatePreview();
+    });
+  });
+
+  m.querySelector('.btn-all').addEventListener('click', () => {
+    [1, 2, 3, 4, 5].forEach(k => selected.add(k));
+    m.querySelectorAll('.chili-chk').forEach(c => { c.checked = true; });
+    updatePreview();
+  });
+
+  m.querySelector('.btn-clear').addEventListener('click', () => {
+    selected.clear();
+    m.querySelectorAll('.chili-chk').forEach(c => { c.checked = false; });
+    updatePreview();
+  });
+
+  m.querySelector('.close-btn').addEventListener('click', () => {
+    app.modal.close();
+    if (onClose) onClose();
+  });
+
+  m.querySelector('.start-btn').addEventListener('click', () => {
+    if (selected.size === 0) return;
+    const sorted = Array.from(selected).sort((a, b) => a - b);
+    const card = G.chiliCard(s, key, sorted);
+    app.modal.close();
+    if (card && G.pickCard(s, card, app.ev)) {
+      app.save();
+      app.refresh(true);
+    }
+  });
+
+  updatePreview();
+  return true;
+}
+
 // ---------- the next site: one card on the fixed road, three on the deal ----------
-function openNext(app) {
+export function openNext(app) {
   const s = app.state;
   if (!G.canNewSite(s) || app.modal.id) return;
   const cards = G.dealCards(s), lvl = cards[0].kind === 'fixed' ? cards[0] : null, fixed = !!lvl && cards.length === 1, run = G.siteRun(s);
@@ -163,16 +275,28 @@ function showEnd(app, ch = 2) {
 }
 
 // the chili part of the finish card: the pips of this level, what just happened, and the next chili with its rules and prize
-function fillChili(m, s, d) {
-  const st = s.road.stamps[d.key], row = m.querySelector('.chilirow'), txt = m.querySelector('.chilitxt'), nx = m.querySelector('.chilenext');
-  const n = st ? G.pipsOf(st) : 0, card = d.twist ? null : G.replayCard(s, d.key, true);
+function fillChili(m, s, d, app = null) {
+  const st = s.road.stamps[d.originKey || d.key], row = m.querySelector('.chilirow'), txt = m.querySelector('.chilitxt'), nx = m.querySelector('.chilenext');
+  const n = st ? G.pipsOf(st) : 0, card = d.twist ? null : G.replayCard(s, d.originKey || d.key, true);
   row.hidden = txt.hidden = nx.hidden = !st || !!d.twist;
   if (!st || d.twist) return;
   row.innerHTML = pipsHtml(n, 36, card ? card.chili : 0);
+  row.style.cursor = 'pointer';
+  row.title = t('chili_replay_title');
+  if (app && !row._bound) {
+    row._bound = true;
+    row.addEventListener('click', () => {
+      openChiliReplayModal(app, d.originKey || d.key, () => reopenFinish(app));
+    });
+  }
   txt.textContent = d.chiliWon ? G.chiliGain(d.chili) ? t('chili_won_line', { name: t('c_chili' + d.chili), p: pct(G.chiliGain(d.chili)) }) : t('chili_won_title', { name: t('c_chili' + d.chili) }) : d.chili ? t('chili_off') : '';
   txt.classList.toggle('yes', !!d.chiliWon);
-  if (card) { const f = chiliFacts(d.floor, card.chili); nx.innerHTML = ''; nx.append(t('chili_next', { name: f.name, rule: f.rule }) + ' ', Object.assign(document.createElement('span'), { className: 'pay', textContent: chiliPayLine(f) })); }
-  else nx.textContent = n >= G.PARAMS.sites.chiliPips ? t('chili_all') : '';
+  if (card) {
+    const hardFloor = Math.max(G.PARAMS.sites.hardmodeBaseFloor || 125, d.floor);
+    const f = chiliFacts(hardFloor, card.chili);
+    nx.innerHTML = '';
+    nx.append(t('chili_next', { name: f.name, rule: f.rule }) + ' ', Object.assign(document.createElement('span'), { className: 'pay', textContent: chiliPayLine(f) }));
+  } else nx.textContent = n >= G.PARAMS.sites.chiliPips ? t('chili_all') : '';
 }
 
 function showFinish(app, d, again) {
@@ -202,7 +326,7 @@ function showFinish(app, d, again) {
   m.querySelector('.found').textContent = bits.length ? t('fin_found', { list: G.listOf(bits) }) : t('fin_found', { list: t('fin_nothing') });
   ofLevel(m.querySelector('.rq-of'), s);
   m.querySelector('.mrow').innerHTML = medalsHtml(d.medals);
-  fillChili(m, s, d);
+  fillChili(m, s, d, app);
   const earn = m.querySelector('.earn'); earn.textContent = t('fin_stars', { n: Math.min(d.stars, 1) });
   const stay = m.querySelector('.ghost'), qh = m.querySelector('.qh'), go = m.querySelector('.nt');
   stay.textContent = t('fin_stay');
@@ -351,6 +475,13 @@ ui({
       qb.addEventListener('click', () => { app.unlockAudio(); if (!app.modal.id && alqahwa.open) alqahwa.open(app, {}); });
       const db = el.querySelector('.donebtn'); db.textContent = t('site_btn_done');
       db.addEventListener('click', () => { app.unlockAudio(); reopenFinish(app); });
+      el.querySelector('.chilirow').style.cursor = 'pointer';
+      el.querySelector('.chilirow').title = t('chili_replay_title');
+      el.querySelector('.chilirow').addEventListener('click', () => {
+        app.unlockAudio();
+        const r = G.siteRun(app.state);
+        openChiliReplayModal(app, r.originKey || r.key);
+      });
       el.querySelector('.nextbtn').addEventListener('click', () => { app.unlockAudio(); const r = G.siteRun(app.state); goNext(app, r.done ? { key: r.key } : null); });
     },
     update(el, s) {
@@ -411,6 +542,13 @@ ui({
           const d = document.createElement('span');
           d.className = 'stampc' + (x.fin ? ' fin' : ''); d.title = t('road_stamp', { name: siteName(x.site, x.twist), n: x.floor });
           d.innerHTML = `<span class="ic">${icon('site_' + x.site, 30)}</span><i class="fl">${x.floor}</i><span class="pips"><u class="${x.fin ? 'on' : ''}"></u><u class="${x.fast ? 'on' : ''}"></u><u class="${x.hard ? 'on' : ''}"></u></span>`;
+          if (x.fin) {
+            d.style.cursor = 'pointer';
+            d.addEventListener('click', () => {
+              app.unlockAudio();
+              openChiliReplayModal(app, x.key);
+            });
+          }
           road.appendChild(d);
         }
         if (!stamps.length) road.textContent = t('road_empty');

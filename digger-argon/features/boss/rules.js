@@ -179,15 +179,29 @@ function shed(s, r, b, c, src, ev) {
 }
 
 function bossDown(s, r, src, ev) {
-  const gs = s.boss && s.boss.gate && s.run ? s.road.stamps[s.run.key] : null;
+  const isGate = !!(s.boss && s.boss.gate);
+  const gs = isGate && s.run ? s.road.stamps[s.run.key] : null;
   if (gs) { gs.bank = 0; delete gs.gateBestPct; } // the Gate is down: nothing left to remember
-  const pay = Math.round(dirtVal(r) * p.pay * coinMult(s));
+  let pay = Math.round(dirtVal(r) * p.pay * coinMult(s));
+
+  // Surplus coin bonus on Gate when under par
+  let coinSurplusMul = 1.0;
+  if (isGate && s.run && s.run.started !== false) {
+    const curPar = s.run.par || 0;
+    const surplus = Math.max(0, curPar - s.run.clock);
+    if (surplus > 0) {
+      coinSurplusMul = 1 + Math.min(1.0, +(surplus / Math.max(1, curPar)).toFixed(2));
+      pay = Math.round(pay * coinSurplusMul);
+    }
+  }
+
   addCoins(s, pay, src);
   s.bossesDown = Math.max(s.bossesDown, layerOf(r));
   run('bossDown', s, r);          // what else a broken Big Rock gives (a chest)
   for (let c = 0; c < COLS; c++) setCell(s, r, c, null);
   if (r + 1 > s.best) s.best = r + 1;
-  emit(s, ev, 'bossDown', { r, coins: pay, layer: layerOf(r) });
+  const bonusSecs = isGate ? (PARAMS.sites?.gateBonusSecs || 45) : (PARAMS.sites?.bossBonusSecs || 30);
+  emit(s, ev, 'bossDown', { r, coins: pay, layer: layerOf(r), gate: isGate, bonusSecs, coinSurplusMul });
 }
 
 export const boss = use({

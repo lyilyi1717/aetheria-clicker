@@ -9,6 +9,7 @@ import { drawRafeeq, look } from '../diggers/art.js';
 import { bossFigure } from '../chatter/manager.js';
 import { starPanel } from '../starshop/ui.js';
 import { alqahwa, goNextHere } from '../sites/ui.js';
+import { openBoard } from '../contracts/ui.js';
 import { openDesk } from '../story/ui.js';
 import { qahwaGuests, qahwaSpots, qahwaNextAct, QAHWA_SPOTS } from './flow.js';
 import { textDir } from '../../core/lang.js';
@@ -239,7 +240,7 @@ export function openAlqahwa(app, opts = {}) {
   const m = app.modal.open('alqahwa', `<div class="card qhcard"><div class="qh-head"><span class="qh-ic"></span><h2></h2><span class="qh-sub"></span><span class="qh-stars"></span></div>`
     + `<div class="qh-stage"><canvas width="${CW}" height="${CH}"></canvas><p class="qh-empty"></p></div>`
     + `<div class="qh-board panel" id="panel-starshop"><h3 class="qh-menu"></h3></div>`
-    + `<div class="qh-btns"><button class="ghost qh-wardrobe"></button><span class="qh-gap"></span><button class="ghost qh-back"></button><button class="primary gold qh-next"></button></div></div>`);
+    + `<div class="qh-btns"><button class="ghost qh-wardrobe"></button><button class="ghost qh-contracts" hidden></button><span class="qh-gap"></span><button class="ghost qh-back"></button><button class="primary gold qh-next"></button></div></div>`);
   if (!m) return false;
   const $ = q => m.querySelector(q);
   $('.qh-ic').innerHTML = icon('qahwa', 34); $('h2').textContent = t('qh_title'); $('.qh-sub').textContent = t('qh_sub');
@@ -248,6 +249,12 @@ export function openAlqahwa(app, opts = {}) {
   if (G.hasCrystalSpire && G.hasCrystalSpire(s)) $('.qh-sub').textContent += ' • ' + (G.hasString('crystal_spire') ? t('crystal_spire') : 'Crystal Resonance Spire');
   $('.qh-menu').textContent = t('qh_menu');
   $('.qh-wardrobe').textContent = t('qh_wardrobe'); $('.qh-next').textContent = t('qh_next');
+  const cb = $('.qh-contracts');
+  if (cb) {
+    cb.hidden = !G.contractsOpen(s);
+    cb.textContent = t('cp_board');
+    cb.addEventListener('click', () => { app.modal.close(); openBoard(app); });
+  }
   const run = G.siteRun(s), back = $('.qh-back');
   back.textContent = opts.back ? t('qh_back') : t('qh_close');
   back.addEventListener('click', () => { app.modal.close(); if (opts.back) opts.back(); });

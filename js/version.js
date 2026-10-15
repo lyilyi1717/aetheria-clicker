@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.20';
+export const VERSION = '5.36.21';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.21',
+    date: '2026-10-15',
+    title: 'Dig: multi-chili hardmode stacking (125m+ gates), seamless contracts, and dynamic leg sprint countdown',
+    changes: [
+      'Multi-Chili Hardmode & Nightmare Runs: Players can now freely toggle and stack all 5 Chilis simultaneously. Replaying finished sites on hardmode guarantees a deep 125m+ Gate excavation with up to 10x Star multipliers, permanent pick damage bonuses (+3% to +5%), time-attack records, and guaranteed keystone drops.',
+      'Seamless Contracts & Scene Transitions: Open contracts can now be taken directly without being blocked by prior site boss progress; completing or leaving a contract displays a dedicated victory/results screen with direct navigation to Return to World Map, Contract Board, or Next Level.',
+      'Dynamic Leg Sprint Countdown: Each site run now starts with a tight, energetic 60-second leg countdown; shattering Big Rocks and Gates awards +30s to +45s bonus time, banking surplus seconds into star and coin multipliers with zero-punishment overtime grace.'
+    ],
+    ar: {
+      title: 'الحفر: تراكم الفلفل الحار للمراحل الصعبة (بوابات 125م+)، عقود سلسة، وعد تنازلي ديناميكي للسباقات',
+      changes: [
+        'أطوار الفلفل المتراكمة وتحدي الكابوس: يمكن للاعبين الآن تفعيل وتجميع درجات الفلفل الـ5 معًا في جولة واحدة. إعادة لعب المراحل في الطور الصعب يضمن عمق بوابة لا يقل عن 125 مترًا مع مضاعفات نجوم تصل إلى 10 أضعاف، وزيادات ضرر دائمة للمنول، وأرقام قياسية زمنية، وغنائم أحجار أساسية مؤكدة.',
+        'بدء عقود سلس وانتقالات واضحة: يمكن الآن بدء العقود المفتوحة مباشرة دون اشتراط إكمال زعماء الموقع السابق؛ وعند إنهاء أو مغادرة العقد تظهر شاشة نتائج مخصصة تتيح العودة المباشرة لخريطة العالم، أو لوحة العقود، أو المستوى التالي.',
+        'عد تنازلي ديناميكي سريع لكل مرحلة: تبدأ كل جولة الآن بعد تنازلي حماسي ومحكم مدته 60 ثانية؛ ويمنح تحطيم الصخور الكبرى والبوابات وقتًا إضافيًا من 30 إلى 45 ثانية، مع ادخار الثواني الفائضة في مضاعفات النجوم والذهب دون عقاب عند انتهاء الوقت.'
+      ]
+    }
+  },
   {
     version: '5.36.20',
     date: '2026-10-15',

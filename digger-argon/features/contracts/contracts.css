@@ -27,3 +27,27 @@
 @media (prefers-reduced-motion: reduce) { .board .stamp, .arrive .big { animation: none; } }
 .board .cc .a { color: var(--ink); font-size: 13px; font-weight: 700; }
 .board .cc .d, .board .cc .a, .board .cc .p, .board .cc .s { display: block; }
+
+/* Contract Completion & Transition Screen */
+.contract-result { width: 520px; max-width: 94vw; text-align: center; }
+.contract-seal { position: relative; width: 130px; height: 130px; margin: 0 auto 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 5px solid var(--good); border-radius: 50%; color: var(--good); transform: rotate(-8deg); animation: stampIn .4s cubic-bezier(.2,1.6,.4,1) both; }
+.contract-seal.abandoned { border-color: var(--bad); color: var(--bad); }
+.contract-seal::after { content: ''; position: absolute; inset: 5px; border: 2px dashed currentColor; border-radius: 50%; }
+.contract-seal .word { font-size: 15px; text-transform: uppercase; letter-spacing: 2px; font-weight: 900; }
+.contract-result h2 { margin: 6px 0 2px; }
+.contract-result .sub { margin-block-end: 12px; color: var(--muted); }
+.contract-rewards { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 16px; background: var(--panel-2); border: 2px solid var(--line); border-radius: 12px; padding: 10px 14px; text-align: start; }
+.contract-rewards .reward-row { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--ink); }
+.contract-rewards .reward-row .ic { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.contract-rewards .reward-row.stars-row .txt { color: var(--gold); font-weight: 800; font-size: 15px; }
+.contract-rewards .reward-row.perk-row .txt { color: var(--good); font-weight: 600; }
+.contract-nav-choices { display: flex; flex-direction: column; gap: 8px; margin-block: 14px; }
+.contract-nav-choices .choice { display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: center; text-align: start; padding: 10px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--panel-2); color: var(--ink); cursor: pointer; transition: transform .15s ease, border-color .15s ease; width: 100%; box-sizing: border-box; }
+.contract-nav-choices .choice:hover { transform: translateY(-2px); border-color: var(--gold); }
+.contract-nav-choices .choice.primary.gold { border-color: #7a5a00; }
+.contract-nav-choices .choice .ic { display: flex; align-items: center; justify-content: center; }
+.contract-nav-choices .choice b { display: block; font-size: 14.5px; }
+.contract-nav-choices .choice .d { display: block; font-size: 12.5px; color: var(--muted); }
+.contract-result .btns { margin-block-start: 10px; }
+@media (prefers-reduced-motion: reduce) { .contract-seal { animation: none; } }
+

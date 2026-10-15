@@ -252,6 +252,10 @@ ui({
       for (let c = 0; c < G.COLS; c++) { debris(d.r, c, '#6a6384', 16, 1.6); coinBurst(d.r, c, 8); }
       const y = yOf(d.r) + CELL / 2;
       ring(W / 2, y, W * 0.7, '#fff'); ring(W / 2, y, W * 0.45, '#ffd23f');
+      const bonus = d.bonusSecs || (d.gate ? 45 : 30);
+      text(W / 2, y - 50, '+' + bonus + 's!', '#ffd23f', 32, 1.8);
+      spark(W / 2, y - 50, '#ffd23f', 16);
+      if (sfx.bonusTime) sfx.bonusTime(!!d.gate);
       app.banner(t('boss_down'), t('boss_down_sub', { n: fmt(d.coins) }));
     },
   },

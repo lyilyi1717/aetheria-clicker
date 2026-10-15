@@ -8,7 +8,7 @@ import { ui } from '../../ui/app.js';
 import { sfx } from '../../ui/audio.js';
 import { icon, helmet, pickShape, S } from '../../ui/icons.js';
 import strings from './strings.js';
-import { nextMap, newThingKey, medalsHtml, pipsHtml, chiliFacts, chiliPayLine } from '../sites/ui.js';
+import { nextMap, newThingKey, medalsHtml, pipsHtml, chiliFacts, chiliPayLine, openChiliReplayModal } from '../sites/ui.js';
 import { buildMap, PW, HH } from './layout.js';
 import { paint, along } from './draw.js';
 import { openAlqahwa, stopAlqahwa } from './alqahwa.js';
@@ -137,14 +137,15 @@ function start(app, m, map, opts) {
         pay.textContent = all ? t('wm_all_won') : t('wm_again_line', { t: clock(n.stamp.best), par: clock(G.sitePar(n.floor)) });
         const nextChili = G.replayCard(s, G.roadKey(f), true);        // the next chili: its rules and what it pays, shown before you start
         if (nextChili) {
-          const f = chiliFacts(n.floor, nextChili.chili);
-          nw.textContent = t('chili_next', { name: f.name, rule: f.rule }); nw.classList.add('hard');
-          pay.textContent = chiliPayLine(f);
+          const hardFloor = Math.max(G.PARAMS.sites.hardmodeBaseFloor || 125, n.floor);
+          const fChili = chiliFacts(hardFloor, nextChili.chili);
+          nw.textContent = t('chili_next', { name: fChili.name, rule: fChili.rule }); nw.classList.add('hard');
+          pay.textContent = chiliPayLine(fChili);
         }
         if (again && !viewOnly) {
           c1 = again;
           goBtn.textContent = t('wm_again');
-          if (nextChili) { c2 = nextChili; goBtn2.hidden = false; goBtn2.textContent = t('chili_try', { name: t('c_chili' + nextChili.chili) }); }
+          if (nextChili) { c2 = nextChili; goBtn2.hidden = false; goBtn2.textContent = t('chili_replay_btn'); }
         }
       } else if (c) pay.textContent = t('pay_medal', { reward: t(c.medals.fin ? 'next_reward_again' : 'next_reward', { n: G.fmt(c.stars) }), medal: t('next_medal_each', { n: G.fmt(c.medalStars) }) });
       else pay.textContent = n.stamp && n.stamp.best ? t('wm_best', { t: clock(n.stamp.best) }) : t('wm_not_yet');
@@ -190,7 +191,15 @@ function start(app, m, map, opts) {
     if (G.pickCard(s, c, app.ev)) { app.save(); app.refresh(true); }
   };
   goBtn.addEventListener('click', press);
-  goBtn2.addEventListener('click', () => dig(c2));
+  goBtn2.addEventListener('click', () => {
+    if (sel && sel.type === 'road' && openChiliReplayModal) {
+      const f = G.ROAD[sel.i];
+      app.unlockAudio();
+      openChiliReplayModal(app, G.roadKey(f));
+    } else {
+      dig(c2);
+    }
+  });
 
   // ---------- the walk, and what ends it ----------
   const pop = () => ({ nodeId: fromNode && fromNode.id, ages });

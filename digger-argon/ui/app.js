@@ -16,7 +16,7 @@ G.addStrings(strings, 'page');
 
 const SAVE_KEY = 'DIGGER_ARGON_SAVE_V1';
 const MUTE_KEY = 'DIGGER_ARGON_MUTE';
-const params = new URLSearchParams(location.search);
+const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams('');
 const SPEED = Math.max(1, Number(params.get('speed')) || 1);
 const $ = id => document.getElementById(id);
 
@@ -44,7 +44,7 @@ export const ITEM_TEXT = {}; // shop item id -> { desc(s, lv), noLevel }
 export function ui(def) {
   DEFS.push(def);
   if (def.cadence) { if (cadence) throw new Error('Dig: two features want the swing rhythm'); cadence = def.cadence; }
-  if (def.css) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = def.css; document.head.appendChild(l); }
+  if (def.css && typeof document !== 'undefined') { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = def.css; document.head.appendChild(l); }
   addIcons(def.icons); addSfx(def.sfx); addArt(def.art); addDraw(def.draw);
   for (const [kind, fn] of Object.entries(def.on || {})) (ON[kind] || (ON[kind] = [])).push(fn);
   for (const p of def.panels || []) PANELS.push({ at: 1000, ...p, tab: tabOf(p) });

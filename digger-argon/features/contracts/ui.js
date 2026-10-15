@@ -5,6 +5,7 @@ import { ui } from '../../ui/app.js';
 import { fx, AT, CELL, W, SKY, rr, centre, yOf, ring, spark, shake, screenFlash, debris } from '../../ui/render.js';
 import { sfx, gap, tone, noise } from '../../ui/audio.js';
 import { icon, badge, S, star } from '../../ui/icons.js';
+import { nextMap, goNextHere, openNext } from '../sites/ui.js';
 
 const { t } = G;
 
@@ -58,13 +59,13 @@ function drawFlying(g, s, dt) {
 const ORE_COL = { copper: '#e0894a', silver: '#dfe7ee', gold: '#ffd23f', gem: '#7ee8ff' };
 
 // ---------- the board ----------
-function openBoard(app) {
+export function openBoard(app) {
   const s = app.state;
   if (app.modal.id) return;
   const m = app.modal.open('contracts', `<div class="card board"><h2></h2><p class="more sub"></p><div class="list"></div><div class="looks"></div><p class="more"><button class="ghost close"></button></p></div>`);
   if (!m) return;
   m.querySelector('h2').textContent = t('board_title');
-  m.querySelector('.sub').textContent = G.canNewSite(s) ? t('board_sub') : t('board_need_rock');
+  m.querySelector('.sub').textContent = t('board_sub');
   const close = m.querySelector('.close'); close.textContent = t('board_close'); close.addEventListener('click', () => app.modal.close());
   const list = m.querySelector('.list');
   let lastTier = 0;
@@ -90,7 +91,7 @@ function openBoard(app) {
     const act = row.querySelector('.act');
     if (st === 'won') { act.className = 'act stamp'; act.textContent = t('board_won'); }
     else if (st === 'open') {
-      const b = document.createElement('button'); b.className = 'primary'; b.textContent = t('board_take'); b.disabled = !G.canNewSite(s);
+      const b = document.createElement('button'); b.className = 'primary'; b.textContent = t('board_take'); b.disabled = !G.canTake(s, C.id);
       b.addEventListener('click', () => { app.modal.close(); if (G.startContract(app.state, C.id, app.ev)) { app.save(); app.refresh(true); } });
       act.appendChild(b);
     }
@@ -110,6 +111,102 @@ function openBoard(app) {
       looks.appendChild(b);
     }
   }
+}
+
+export function openContractResult(app, d = {}) {
+  const s = app.state;
+  if (app.modal.id && app.modal.id !== 'contractResult') app.modal.close();
+  const id = d.id;
+  const won = d.won !== false;
+  const C = (id && G.CONTRACTS[id]) || {};
+  const m = app.modal.open('contractResult', `<div class="card finish contract-result">`
+    + `<div class="seal contract-seal${won ? '' : ' abandoned'}"><span class="sealic"></span><b class="word"></b></div>`
+    + `<h2></h2><p class="more sub"></p>`
+    + `<div class="contract-rewards"></div>`
+    + `<div class="contract-nav-choices">`
+    + `<button class="choice primary gold cr-map"><span class="ic"></span><div><b></b><span class="d"></span></div></button>`
+    + `<button class="choice cr-board"><span class="ic"></span><div><b></b><span class="d"></span></div></button>`
+    + `<button class="choice cr-next"><span class="ic"></span><div><b></b><span class="d"></span></div></button>`
+    + `</div>`
+    + `<div class="btns"><button class="ghost cr-stay"></button></div>`
+    + `</div>`);
+  if (!m) return false;
+
+  const sealIc = m.querySelector('.sealic');
+  sealIc.innerHTML = id ? icon('c_' + id, 44) : icon('contracts', 44);
+  m.querySelector('.word').textContent = won ? t('contract_stamp_won') : t('contract_stamp_left');
+  m.querySelector('h2').textContent = id ? t('c_' + id) : t('contracts');
+  m.querySelector('.sub').textContent = won ? t('contract_result_won_sub') : t('contract_result_left_sub');
+
+  // Rewards section
+  const rew = m.querySelector('.contract-rewards');
+  if (won) {
+    let rewHtml = '';
+    const stars = d.stars !== undefined ? d.stars : (C.stars || 0);
+    if (stars > 0) {
+      rewHtml += `<div class="reward-row stars-row"><span class="ic">${icon('star', 22)}</span><span class="txt">${t('contract_reward_stars', { n: G.fmt(stars) })}</span></div>`;
+    } else if (d.first === false || (s.contractsWon && s.contractsWon[id] > 1)) {
+      rewHtml += `<div class="reward-row"><span class="ic">${icon('star', 22)}</span><span class="txt">${t('contract_replay_done')}</span></div>`;
+    }
+    const cos = d.cosmetic || C.cosmetic;
+    if (cos) {
+      rewHtml += `<div class="reward-row cosmetic-row"><span class="ic">${icon('c_' + id, 22)}</span><span class="txt">${t('contract_reward_cosmetic', { name: t('look_' + cos) })}</span></div>`;
+    }
+    if (id && G.hasString('c_' + id + '_p')) {
+      rewHtml += `<div class="reward-row perk-row"><span class="ic">${icon('medal_hard', 22)}</span><span class="txt">${t('contract_reward_perk', { text: t('c_' + id + '_p') })}</span></div>`;
+    }
+    rew.innerHTML = rewHtml || `<div class="reward-row"><span class="ic">${icon('contracts', 22)}</span><span class="txt">${t('won_title')}</span></div>`;
+  } else {
+    rew.innerHTML = `<div class="reward-row"><span class="ic">${icon('contracts', 22)}</span><span class="txt">${t('contract_left_info')}</span></div>`;
+  }
+
+  // Navigation buttons
+  const mapBtn = m.querySelector('.cr-map');
+  mapBtn.querySelector('.ic').innerHTML = icon('site_dunes', 34);
+  mapBtn.querySelector('b').textContent = t('cr_btn_map');
+  mapBtn.querySelector('.d').textContent = t('cr_btn_map_d');
+  mapBtn.addEventListener('click', () => {
+    app.unlockAudio();
+    app.modal.close();
+    if (nextMap.open) {
+      try { nextMap.open(app, {}); return; }
+      catch (e) { console.error('Dig: road map failed', e); }
+    }
+    if (typeof openNext === 'function') openNext(app);
+  });
+
+  const boardBtn = m.querySelector('.cr-board');
+  boardBtn.querySelector('.ic').innerHTML = icon('contracts', 34);
+  boardBtn.querySelector('b').textContent = t('cr_btn_board');
+  boardBtn.querySelector('.d').textContent = t('cr_btn_board_d');
+  boardBtn.addEventListener('click', () => {
+    app.unlockAudio();
+    app.modal.close();
+    openBoard(app);
+  });
+
+  const nextBtn = m.querySelector('.cr-next');
+  nextBtn.querySelector('.ic').innerHTML = icon('gate', 34);
+  nextBtn.querySelector('b').textContent = t('cr_btn_next');
+  nextBtn.querySelector('.d').textContent = t('cr_btn_next_d');
+  nextBtn.addEventListener('click', () => {
+    app.unlockAudio();
+    app.modal.close();
+    if (typeof goNextHere === 'function') goNextHere(app);
+  });
+
+  const stayBtn = m.querySelector('.cr-stay');
+  stayBtn.textContent = t('cr_stay');
+  stayBtn.addEventListener('click', () => {
+    app.modal.close();
+    app.dirty('site');
+    app.dirty('contracts');
+  });
+
+  if (won && sfx.star) {
+    sfx.star();
+  }
+  return true;
 }
 
 function arrive(app) {
@@ -179,9 +276,13 @@ ui({
       app.banner(t('won_title'), t('c_' + d.id) + (d.stars ? '  ' + t('won_stars', { n: d.stars }) : ''));
       const x = W / 2, y = SKY + 200; ring(x, y, W * 0.6, '#59d37a'); ring(x, y, W * 0.4, '#ffd23f'); spark(x, y, '#ffd23f', 40);
       app.dirty('contracts');
-      if (d.board) setTimeout(() => { if (!app.modal.id) openBoard(app); }, 2200);   // the next contract (or Next site) can be taken at once
+      setTimeout(() => { openContractResult(app, { ...d, won: true }); }, 1200);
     },
-    contractLeft(d, app) { app.toast(t('left_toast')); app.dirty('contracts'); },
+    contractLeft(d, app) {
+      app.toast(t('left_toast'));
+      app.dirty('contracts');
+      openContractResult(app, { ...d, won: false });
+    },
     contractNote(d, app) { app.toast(t('note_' + d.key)); },
     sandFill(d, app) {
       sfx.sand(); shake(0.7); screenFlash('#e0b467', 0.55); app.toast(t('sand_fill'), 'gold'); fx.cam = 0;

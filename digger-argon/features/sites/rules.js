@@ -34,7 +34,7 @@
 // siteMedal { key, medal, stars }, newSite { gain, stars, key }, legDone { idx, left, saved, n } (a Big Rock closed a leg of the countdown).
 import { use, SITES, CONTRACTS, BLOCKS, emit, run } from '../../core/registry.js';
 import { reset } from '../../core/state.js';
-import { grantFree } from '../../core/rules.js';
+import { grantFree, awardKeystone } from '../../core/rules.js';
 import { starsAt, LAYER, COLS, VIEW_ROWS } from '../../core/grid.js';
 import { rnd, pickOne } from '../../core/rng.js';
 import { newRafeeq } from '../diggers/rules.js';
@@ -75,6 +75,10 @@ const p = {
   // the stopwatch: par = parBase seconds at 50 m, x parGrow for every 25 m deeper, x parTwist with a twist;
   // below parTop only x parTopGrow per 25 m (275 m is already 8,500 s: no 3-hour par at 325 m)
   parBase: 300, parGrow: 1.45, parTwist: 1.15, parTop: 275, parTopGrow: 1.1,
+  // Dynamic leg timer parameters (Mobile Success Model §1.3)
+  legInitSecs: 60,                // Leg 1 (0-25m) initial energetic countdown timer (50-60s)
+  bossBonusSecs: 30,              // Shattering an interstitial Big Rock awards +25s to +35s bonus time
+  gateBonusSecs: 45,              // Shattering a Gate awards +45s bonus time if continuing into deeper strata
   // Stars (a floor is worth starsAt(floor))
   medalShare: 0.5,                // Fast and Hard: this share of the floor's worth, once each
   replayShare: 0.25,              // finishing a version again
@@ -87,14 +91,16 @@ const p = {
   twistHp: 1.3,                   // 'heavy': the ground is this much harder
   twistSight: 1,                  // 'dim': blocks you see around open space
   twistBarrel: 4,                 // 'barrels': a TNT in every 4th row
-  // Chili levels: a finished level can be dug again with 1 to 5 chili pips. Pip n puts the first n rules of the chili rule list
-  // (contracts feature) on, makes the ground chiliGround^n and every Big Rock (the Gate too) chiliRock^n harder, and pays.
+  // Chili levels: a finished level can be dug again with 1 to 5 chili pips.
   chiliPips: 5,
   chiliHoldMs: 1500,              // the finish card waits this long after a pip is cleared, so the banner is seen
-  chiliGround: 1.3, chiliRock: 1.7,
-  chiliStars: [0.5, 0.75, 1, 1.5, 2],             // Stars for the first clear of a pip, x what the level's floor is worth (starsAt)
-  chiliHitAt: { 3: 0.03, 5: 0.05 },               // clearing this pip adds this to your hit for ever (per level; they add up)
-  chiliHitCap: 1.6,                               // the most the chilies ever add (+160%)
+  chiliGround: 1.4,               // Chili 2: Tough Ground (+40% dirt/stone HP)
+  chiliRock: 1.5,                 // Chili 1: Hard Rock (+50% Boss & Big Rock HP)
+  chiliSight: 1,                  // Chili 3: Dim Cavern (reduced sight radius)
+  hardmodeBaseFloor: 125,         // Hardmode Gate depth is always at least 125m
+  chiliStars: [2, 3.5, 5, 7.5, 10], // Exponential Star scaling (1 chili = 2x, 5 chilis = 10x)
+  chiliHitAt: { 1: 0.03, 2: 0.03, 3: 0.04, 4: 0.04, 5: 0.05 }, // Permanent hit bonus per pip (+3% to +5%)
+  chiliHitCap: 5.0,               // Cap for stacking chili hit bonuses
 };
 
 // The first four sites, in order. Why this order: the Dunes teach the hit, the ore and the Big Rock. Powder Valley teaches
@@ -111,6 +117,9 @@ export const MAX_SITE_DEPTH = 350;
 export const MAX_LEGS = 10;
 export const MIN_PAR = 300;
 export const MAX_PAR = 720;
+export const LEG_INIT_SECS = 60;
+export const BOSS_BONUS_SECS = 30;
+export const GATE_BONUS_SECS = 45;
 
 // Chapter two walks home at night: the four lands in reverse (n_ = the land at night), then the Empty Quarter.
 export const ZONES = ['arabia', 'africa', 'eastasia', 'americas', 'europe', 'n_europe', 'n_americas', 'n_eastasia', 'n_africa', 'emptyquarter'];
@@ -232,15 +241,43 @@ export const medalPay = (floor, ch = 1) => Math.max(1, Math.round(p.medalShare *
 export const replayPay = (floor, ch = 1) => Math.max(1, Math.ceil(p.replayShare * worthAt(floor, ch)));
 
 // ---------- the countdown: legs ----------
-// A leg runs from the start (or the last Big Rock) to the next Big Rock; the last one ends at the Gate. The par is split
-// across the legs in proportion to their rows, in whole seconds that add up to the par exactly. Nothing expires: at 0 the
-// clock only turns red and counts the seconds over, and the Fast medal rule (time <= par) is unchanged.
+// Dynamic Leg Length & Pacing (Mobile Success Model §1.3)
+export function dynamicLegLength(idx, totalLegs, twist = '') {
+  const isInitial = idx === 0;
+  const isGate = idx === totalLegs - 1;
+  const base = isInitial ? p.legInitSecs : (isGate ? p.gateBonusSecs : p.bossBonusSecs);
+  return twist ? Math.round(base * p.parTwist) : base;
+}
+
+export function dynamicPar(floor, twist = '') {
+  const n = Math.max(1, Math.ceil(floor / LAYER));
+  let total = 0;
+  for (let i = 0; i < n; i++) total += dynamicLegLength(i, n, twist);
+  return total;
+}
+
+// A leg runs from the start (or the last Big Rock) to the next Big Rock; the last one ends at the Gate.
+// Under dynamic legs (Argon model), Leg 1 starts with a crisp countdown (50-60s), and each Big Rock/Gate
+// grants banked bonus time (+30s / +45s). Nothing expires: at 0 the clock turns red (OVERTIME) and surplus
+// bonuses are zeroed, preserving "Failure is Free".
 export function siteLegs(run, bounded = false) {
   const maxFloor = bounded ? MAX_SITE_DEPTH : Infinity;
   const maxN = bounded ? MAX_LEGS : Infinity;
   const floor = Math.max(1, Math.min(maxFloor, run.floor));
   const n = Math.min(maxN, Math.max(1, Math.ceil(floor / LAYER)));
   const legs = [];
+
+  if (run.dynamicLegs || (!run.par && run.floor)) {
+    let end = 0;
+    for (let i = 0; i < n; i++) {
+      const rows = Math.min(floor, (i + 1) * LAYER);
+      const len = dynamicLegLength(i, n, run.twist);
+      end += len;
+      legs.push({ rows: rows - i * LAYER, len, end });
+    }
+    return legs;
+  }
+
   let prev = 0;
   for (let i = 0; i < n; i++) {
     const rows = Math.min(floor, (i + 1) * LAYER), end = i === n - 1 ? run.par : Math.round(run.par * rows / floor);
@@ -275,34 +312,79 @@ export function legExtend(s, secs, ev = () => {}) {
   emit(s, ev, 'legExtended', { idx: c.idx, secs });
   return secs;
 }
-export const runPar = r => Math.min(MAX_PAR, Math.max(MIN_PAR, r.par + (r.extra || 0)));
+export const runPar = r => {
+  if (r && r.dynamicLegs) {
+    return Math.min(MAX_PAR, (r.par || 0) + (r.extra || 0));
+  }
+  return Math.min(MAX_PAR, Math.max(MIN_PAR, ((r && r.par) || 0) + ((r && r.extra) || 0)));
+};
 // a Big Rock (or the Gate) broke: close the leg; what was saved is banked into the next one
 function legSync(s, ev) {
   const r = s.run, down = s.bossesDown | 0;
   legInit(r, down);
-  const n = siteLegs(r).length;
+  const legs = siteLegs(r), n = legs.length;
   while (r.legIdx < n && down > r.legIdx) {
     const left = legLeft(r, down).left, saved = Math.max(0, left);
-    r.legLast = { idx: r.legIdx, left, saved };
-    emit(s, ev, 'legDone', { idx: r.legIdx, left, saved, n });
+    const nextIdx = r.legIdx + 1;
+    const isGate = nextIdx >= n;
+    const bonus = isGate ? p.gateBonusSecs : p.bossBonusSecs;
+    r.legLast = { idx: r.legIdx, left, saved, bonus, isGate };
+    emit(s, ev, 'legDone', { idx: r.legIdx, left, saved, n, bonus, isGate });
     r.legIdx++; r.legAt = r.clock; r.legBank = saved;
   }
   if (r.legIdx >= n) r.legIdx = n - 1;
 }
 
 // ---------- the road: stamps ----------
-const blankStamp = (site, floor, twist, ch) => ({ site, floor, twist: twist || '', ch: ch || 1, fin: 0, fast: 0, hard: 0, chili: 0, best: 0, n: 0, bank: 0 });
+const blankStamp = (site, floor, twist, ch) => ({
+  site, floor, twist: twist || '', ch: ch || 1,
+  fin: 0, fast: 0, hard: 0, chili: 0, best: 0, n: 0, bank: 0,
+  chiliBestTime: {}, chiliTrophies: {},
+});
+
 // chili pips cleared on a stamp (0 to 5). An old Hard medal counts as the first pip.
 export const pipsOf = st => Math.min(p.chiliPips, Math.max(st && st.chili || 0, st && st.hard ? 1 : 0));
+
+// Resolve active chilis from run or state: returns array of active numbers e.g. [1, 2, 3, 4, 5]
+export function runChilis(rOrS) {
+  const r = (rOrS && rOrS.run) ? rOrS.run : rOrS;
+  if (!r) return [];
+  if (Array.isArray(r.chilis)) return r.chilis;
+  if (r.chili && typeof r.chili === 'number') {
+    const arr = [];
+    for (let i = 1; i <= r.chili; i++) arr.push(i);
+    return arr;
+  }
+  return [];
+}
+
+// Check if a specific chili modifier is enabled (1 through 5)
+export function hasChili(rOrS, n) {
+  return runChilis(rOrS).includes(n);
+}
+
+// Stacking chilis scales Star rewards exponentially (1 chili = 2x, 5 chilis = 10x)
+export const CHILI_STAR_MULTS = [0, 2, 3.5, 5, 7.5, 10];
+export const chiliStarMult = count => CHILI_STAR_MULTS[Math.min(5, Math.max(1, count))] || (count * 2);
+
 // the hit a pip adds when it is cleared (0 for most), and everything the chilies add now
-export const chiliGain = n => p.chiliHitAt[n] || 0;
+export const chiliGain = n => (p.chiliHitAt && p.chiliHitAt[n] !== undefined) ? p.chiliHitAt[n] : (n >= 5 ? 0.05 : 0.03);
+
 export function chiliHit(s) {
   let sum = 0;
-  for (const st of Object.values(s.road.stamps)) { const n = pipsOf(st); for (let i = 1; i <= n; i++) sum += chiliGain(i); }
+  for (const st of Object.values(s.road.stamps)) {
+    const n = pipsOf(st);
+    for (let i = 1; i <= n; i++) sum += chiliGain(i);
+  }
   return Math.min(p.chiliHitCap, sum);
 }
-// Stars for clearing pip n of a level for the first time
-export const chiliPay = (floor, n, ch = 1) => Math.max(1, Math.round(worthAt(floor, ch) * (p.chiliStars[n - 1] || 0)));
+
+// Stars for clearing chili count of a level
+export const chiliPay = (floor, n, ch = 1) => Math.max(1, Math.round(worthAt(floor, ch) * chiliStarMult(n)));
+
+// Retrieve recorded best time for a specific chili tier (1..5)
+export const getChiliBestTime = (st, count = 1) => (st && st.chiliBestTime && st.chiliBestTime[count]) || 0;
+
 // the chili count of a hard rule id ('chili3' -> 3), else 0
 export const chiliOfRule = id => { const m = /^chili(\d)$/.exec(id || ''); return m ? +m[1] : 0; };
 function stampOf(s, site, floor, twist, ch) {
@@ -313,10 +395,27 @@ export const roadStamps = s => Object.entries(s.road.stamps).map(([key, st]) => 
 export const siteFinished = (s, site) => Object.values(s.road.stamps).some(st => st.site === site && st.fin);
 export const roadFinished = s => Object.values(s.road.stamps).filter(st => st.fin).length;
 
-function makeRun(site, floor, twist, hard, ch) {
+function makeRun(site, floor, twist, hard, ch, chilis = null, originKey = '', originFloor = 0) {
   ch = ch || 1;
-  return { key: siteKey(site, floor, twist, ch), site, floor, twist: twist || '', ch, hard: hard || '', chili: chiliOfRule(hard), par: sitePar(floor, twist),
-    clock: 0, started: false, done: false, time: 0, medals: { fin: 0, fast: 0, hard: 0 }, found: { chest: 0, ore: 0, bone: 0 }, paid: 0 };
+  const resolvedChilis = chilis && chilis.length ? [...chilis] : chiliOfRule(hard) ? runChilis(chiliOfRule(hard)) : [];
+  const chiliCount = resolvedChilis.length;
+  const r = {
+    key: siteKey(site, floor, twist, ch),
+    originKey: originKey || '',
+    originFloor: originFloor || 0,
+    site, floor, twist: twist || '', ch,
+    hard: hard || (chiliCount ? 'chili' + chiliCount : ''),
+    chili: chiliCount,
+    chilis: resolvedChilis,
+    dynamicLegs: true,
+    clock: 0, started: false, done: false, time: 0,
+    medals: { fin: 0, fast: 0, hard: 0 },
+    found: { chest: 0, ore: 0, bone: 0 },
+    paid: 0,
+  };
+  const legs = siteLegs(r);
+  r.par = legs.reduce((acc, l) => acc + l.len, 0);
+  return r;
 }
 // the run of the site in play (a save from before has none: the next Big Rock is its floor)
 export function siteRun(s) {
@@ -333,7 +432,9 @@ export const siteStamp = s => { const r = siteRun(s); return stampOf(s, r.site, 
 export function starsFor(s) {
   const r = siteRun(s), best = Math.max(0, s.best), ch = chOf(r);
   if (!r.done) return Math.max(1, Math.min(Math.floor(p.leaveShare * worthAt(best, ch)), Math.floor(p.leaveCap * replayPay(r.floor, ch))));
-  return best >= r.floor + p.deepFrom ? Math.floor(p.deepShare * Math.max(0, worthAt(best, ch) - worthAt(r.floor, ch))) : 0;
+  const deepStars = best >= r.floor + p.deepFrom ? Math.floor(p.deepShare * Math.max(0, worthAt(best, ch) - worthAt(r.floor, ch))) : 0;
+  const mul = r.surplusMul || 1;
+  return Math.round(deepStars * mul);
 }
 
 // ---------- medals and the finish ----------
@@ -359,31 +460,90 @@ function finish(s, ev) {
   r.done = true; r.time = r.clock;
   s.road.deal = s.road.free = null;                      // cards dealt before this finish (a look from the leave button) show the road as it was
   const st = stampOf(s, r.site, r.floor, r.twist, r.ch), ch = chOf(r);
+  const originSt = r.originKey ? s.road.stamps[r.originKey] : null;
   const first = !st.fin, fast = r.time <= runPar(r);
   let stars = first ? firstPay(r.floor, roadKind(r.site, r.floor, r.twist, ch), ch) : replayPay(r.floor, ch);
-  // a chili level: the first clear of a pip pays the pip's Stars and keeps its hit bonus for ever
-  let chili = null;
-  const cn = r.chili;
-  if (cn) {
-    if (cn > pipsOf(st) && s.contract === r.hard) {
-      st.chili = cn; if (!st.hard) { st.hard = 1; r.medals.hard = 1; }      // pip 1 is the old Hard medal
-      stars = chiliPay(r.floor, cn, ch);
-      s.road.chiliHit = chiliHit(s);
-      chili = { n: cn, stars, gain: chiliGain(cn), hit: s.road.chiliHit };
-    }
-    // the contract's rule ends with the Gate (s.contract is cleared). The extra hardness does not end here: it is read from the run
-    // (run.chili), not from the contract, so ground and Rocks dug after the Gate stay as hard until the player leaves the site
-    const C = CONTRACTS[s.contract];
-    if (C && s.contract === r.hard) { if (C.end) C.end(s); s.contract = null; }
+
+  // Bank surplus time into star bonus multiplier if finished fast under par
+  const surplusSecs = Math.max(0, runPar(r) - r.time);
+  const surplusMul = fast && surplusSecs > 0 ? (1 + Math.min(1.0, +(surplusSecs / Math.max(1, runPar(r))).toFixed(2))) : 1.0;
+  r.surplusSecs = surplusSecs;
+  r.surplusMul = surplusMul;
+  if (surplusMul > 1.0) {
+    stars = Math.round(stars * surplusMul);
   }
+
+  // a chili level: clears award exponential Stars, permanent hit bonus, time attack record, and nightmare loot
+  let chili = null;
+  const activeChilis = runChilis(r);
+  const cn = activeChilis.length;
+  if (cn > 0) {
+    stars = chiliPay(r.floor, cn, ch);
+    const pipsBefore = pipsOf(originSt || st);
+    if (cn > pipsBefore || (originSt && !originSt.hard) || !st.hard) {
+      st.chili = Math.max(st.chili || 0, cn);
+      if (!st.hard) { st.hard = 1; r.medals.hard = 1; }
+      if (originSt) {
+        originSt.chili = Math.max(originSt.chili || 0, cn);
+        if (!originSt.hard) originSt.hard = 1;
+      }
+      s.road.chiliHit = chiliHit(s);
+      chili = { n: cn, chilis: activeChilis, stars, gain: chiliGain(cn), hit: s.road.chiliHit };
+    }
+
+    // Time Attack: Track fastest clear time per stage per chili tier
+    st.chiliBestTime = st.chiliBestTime || {};
+    st.chiliBestTime[cn] = st.chiliBestTime[cn] ? Math.min(st.chiliBestTime[cn], r.time) : r.time;
+    st.chiliTrophies = st.chiliTrophies || {};
+    st.chiliTrophies[cn] = true;
+    if (originSt) {
+      originSt.chiliBestTime = originSt.chiliBestTime || {};
+      originSt.chiliBestTime[cn] = originSt.chiliBestTime[cn] ? Math.min(originSt.chiliBestTime[cn], r.time) : r.time;
+      originSt.chiliTrophies = originSt.chiliTrophies || {};
+      originSt.chiliTrophies[cn] = true;
+    }
+
+    // 5-Chili Nightmare Rewards: guaranteed high-tier antiquity and 2x keystone drop chances upon defeating the Gate
+    if (cn >= 5) {
+      const keystoneTypes = ['aquifer', 'magma', 'cog', 'spore', 'astral'];
+      const kt = keystoneTypes[Math.floor(rnd() * keystoneTypes.length)];
+      awardKeystone(s, kt, 2);
+
+      if (!s.antiquities) s.antiquities = { unlocked: [], equipped: [null, null, null], mortarBoost: 0 };
+      if (!s.antiquities.unlocked) s.antiquities.unlocked = [];
+      const lockedAnts = ['scarab_compass', 'obsidian_siphon', 'golden_mortar', 'dhab_chisel', 'djinn_censer', 'pearl_pendulum']
+        .filter(id => !s.antiquities.unlocked.includes(id));
+      let grantedAnt = null;
+      if (lockedAnts.length > 0) {
+        grantedAnt = lockedAnts[0];
+        s.antiquities.unlocked.push(grantedAnt);
+        emit(s, ev, 'antiquityRestored', { id: grantedAnt });
+      }
+      s.bones = (s.bones || 0) + 10;
+      s.chests = (s.chests || 0) + 5;
+      emit(s, ev, 'chili5Loot', { keystone: kt, count: 2, antiquity: grantedAnt });
+    }
+
+    const C = CONTRACTS[s.contract];
+    if (C && (s.contract === r.hard || (s.contract && s.contract.startsWith('chili')))) {
+      if (C.end) C.end(s);
+      s.contract = null;
+    }
+  }
+
   s.stars += stars; r.paid += stars;
   st.fin = 1; r.medals.fin = 1;
   st.best = st.best ? Math.min(st.best, r.time) : r.time;
+  if (originSt) {
+    originSt.fin = 1;
+    originSt.best = originSt.best ? Math.min(originSt.best, r.time) : r.time;
+  }
   s.road.reach = Math.max(s.road.reach, r.floor);
   if (fast) { r.medals.fast = 1; stars += award(s, ev, st, r.key, 'fast', medalPay(r.floor, ch)); }
-  if (chili) emit(s, ev, 'chiliWon', { key: r.key, site: r.site, floor: r.floor, ...chili, pips: pipsOf(st) });
+  if (chili) emit(s, ev, 'chiliWon', { key: r.key, originKey: r.originKey, site: r.site, floor: r.floor, ...chili, pips: pipsOf(originSt || st) });
   run('siteFinished', s);
-  emit(s, ev, 'siteFinished', { key: r.key, site: r.site, floor: r.floor, twist: r.twist, ch, time: r.time, par: runPar(r), first, stars, fast,
+  emit(s, ev, 'siteFinished', { key: r.key, originKey: r.originKey, site: r.site, floor: r.floor, twist: r.twist, ch, time: r.time, par: runPar(r), first, stars, fast,
+    surplusSecs, surplusMul,
     medals: { fin: 1, fast: st.fast, hard: st.hard }, found: { ...r.found }, stamps: roadFinished(s), chili: cn, chiliWon: !!chili });
 }
 
@@ -396,13 +556,29 @@ function card(s, site, floor, twist, kind, hard, ch) {
     medals: { fin: st ? st.fin : 0, fast: st ? st.fast : 0, hard: st ? st.hard : 0 },
     stars: st && st.fin ? replayPay(floor, ch) : firstPay(floor, roadKind(site, floor, twist, ch), ch), medalStars: medalPay(floor, ch), hardRule: hardOf(site, floor), pips: st ? pipsOf(st) : 0 };
 }
-// the next chili of a finished level, as a card: { hard: 'chili3', chili: 3, chiliStars, chiliGain } or null (all five won, or a twist level)
-export function chiliCard(s, key) {
+// the chili replay of a finished level, as a card. Gate depth is always at least 125m.
+export function chiliCard(s, key, selectedChilis = null) {
   const st = s.road.stamps[key];
   if (!st || !st.fin || st.twist || !siteOpen(s, st.site)) return null;
-  const n = pipsOf(st) + 1;
-  if (n > p.chiliPips || !CONTRACTS['chili' + n]) return null;
-  return { ...card(s, st.site, st.floor, st.twist, 'replay', 'chili' + n, chOf(st)), chili: n, stars: chiliPay(st.floor, n, chOf(st)), chiliGain: chiliGain(n) };
+  const pips = pipsOf(st);
+  let chilis = selectedChilis;
+  if (!chilis || !chilis.length) {
+    const n = Math.min(p.chiliPips, pips + 1);
+    chilis = [];
+    for (let i = 1; i <= n; i++) chilis.push(i);
+  }
+  const chiliCount = chilis.length;
+  const hardFloor = Math.max(p.hardmodeBaseFloor, st.floor);
+  const hardRule = 'chili' + chiliCount;
+  return {
+    ...card(s, st.site, hardFloor, st.twist, 'replay', hardRule, chOf(st)),
+    originKey: key,
+    originFloor: st.floor,
+    chili: chiliCount,
+    chilis: [...chilis],
+    stars: chiliPay(hardFloor, chiliCount, chOf(st)),
+    chiliGain: chiliGain(chiliCount),
+  };
 }
 // the next level of the road, or null when the road is done: { site, floor, ch, level (1 to 40), of (40), n and chOf (the level
 // in its chapter: "Chapter 2, level n of chOf"), tries }. A level is passed when it is finished; one of the first four also when
@@ -476,12 +652,19 @@ function freeCards(s) {
 // patch: state to set on the new site before its ground is generated, e.g. { contract: 'noDiggers' }
 // pick: a card of the deal ({ floor, twist, hard }); without one the site opens at its base floor
 export function newSite(s, site, ev = () => {}, patch, pick) {
-  if (!canNewSite(s) || !siteOpen(s, site)) return false;
+  if ((!canNewSite(s) && !(patch && patch.contract)) || !siteOpen(s, site)) return false;
   const gain = starsFor(s);
   s.stars += gain; s.sites += 1; s.site = site;
-  const floor = pick ? pick.floor : p.baseFloor, twist = pick ? pick.twist : '';
+  let floor = pick ? pick.floor : p.baseFloor, twist = pick ? pick.twist : '';
   const hard = (patch && patch.contract) || (pick && pick.hard) || '';
-  const run = makeRun(site, floor, twist, hard, pick ? pick.ch : 1);
+  const chilis = (pick && pick.chilis) || (patch && patch.chilis) || (pick && pick.chili ? runChilis(pick.chili) : []);
+  const isChiliRun = (chilis && chilis.length > 0) || (hard && hard.startsWith('chili'));
+  if (isChiliRun) {
+    floor = Math.max(p.hardmodeBaseFloor, floor);
+  }
+  const originKey = (pick && pick.originKey) || (patch && patch.originKey) || '';
+  const originFloor = (pick && pick.originFloor) || (patch && patch.originFloor) || 0;
+  const run = makeRun(site, floor, twist, hard, pick ? pick.ch : 1, chilis, originKey, originFloor);
   s.road.deal = s.road.free = null;
   reset(s, 'site', { ...(hard ? { contract: hard } : {}), ...patch, run });
   stampOf(s, site, floor, twist, run.ch).n++;
@@ -490,14 +673,14 @@ export function newSite(s, site, ev = () => {}, patch, pick) {
 }
 // a finished level dug again, from the map: plain rules (for the Fast time) or under its hard rule (for the Hard medal).
 // null for a level you have not finished, one that is not open, or a hard card for a level with no hard rule or whose Hard medal is won.
-export function replayCard(s, key, hard = false) {
+export function replayCard(s, key, hard = false, selectedChilis = null) {
   const st = s.road.stamps[key];
   if (!st || !st.fin || !siteOpen(s, st.site)) return null;
-  if (hard) return chiliCard(s, key);
+  if (hard) return chiliCard(s, key, selectedChilis);
   return card(s, st.site, st.floor, st.twist, 'replay', '', chOf(st));
 }
 // a replay card must be for a stamp that is finished; every other card is taken as it is
-export const pickCard = (s, c, ev) => (c.kind === 'replay' && !replayCard(s, c.key, !!c.hard)) ? false : newSite(s, c.site, ev, undefined, c);
+export const pickCard = (s, c, ev) => (c.kind === 'replay' && !replayCard(s, c.originKey || c.key, !!c.hard, c.chilis)) ? false : newSite(s, c.site, ev, undefined, c);
 
 const twistOf = s => (s.run && s.run.twist) || '';
 const chiliMul = (s, base) => { const r = s.run; return r && r.chili ? Math.pow(base, r.chili) : 1; };
@@ -513,7 +696,10 @@ const chMul = s => {
   const era = eraOf(s.run.ch);
   return Math.pow(1.5, era - 1);
 };
-export const groundMul = s => (twistOf(s) === 'heavy' ? p.twistHp : 1) * (roadProve(s) ? p.proveHp : 1) * chiliMul(s, p.chiliGround) * chMul(s);
+export const groundMul = s => (twistOf(s) === 'heavy' ? p.twistHp : 1)
+  * (roadProve(s) ? p.proveHp : 1)
+  * (hasChili(s, 2) ? p.chiliGround : (s.run && s.run.chili && !s.run.chilis ? Math.pow(p.chiliGround, s.run.chili) : 1))
+  * chMul(s);
 // the Gate row of the level in play (-1 once it is broken). A save with no run yet: its next Big Rock (as siteRun).
 export const gateRow = s => (s.run ? (s.run.done ? -1 : s.run.floor) : Math.max(p.baseFloor, (s.bossesDown + 1) * LAYER));
 // the Gate size of the road level at index i (0-based into ROAD), or undefined for a lesson or no road level (the formula)
@@ -571,17 +757,37 @@ export const sites = use({
     pickPower: [{ at: 20, fn: (v, s) => v * (1 + p.starPick * s.stars) },
       { at: 22, fn: (v, s) => v * (1 + (s.road.chiliHit || 0)) }],      // what the chilies added for ever ("Your hit")
     crewPower: { at: 20, fn: (v, s) => v * (1 + p.starPick * s.stars) },
-    sight: (v, s) => (twistOf(s) === 'dim' ? Math.min(v, p.twistSight) : v),
+    sight: (v, s) => {
+      let out = v;
+      if (twistOf(s) === 'dim') out = Math.min(out, p.twistSight);
+      if (hasChili(s, 3)) out = Math.min(out, p.chiliSight);
+      return out;
+    },
     groundHp: (v, s) => v * groundMul(s),
     // The Gate is yours (decision 13): while away nothing walks past the Gate of the level in play, on every kind of run
     awayPassable: (v, s, R) => v && R !== gateRow(s),
-    // r = the row of the Rock. The Gate (the Rock at the run's floor row) of a road level has its own size (gateMul); the Big Rocks
-    // before it use the normal size (times the prove factor on a prove level); a chili level makes every Rock harder still
+    // r = the row of the Rock. Chili 1: +50% Boss & Big Rock HP
     bossHp: (v, s, r) => {
-      // a chapter-two+ side card (a twist) takes its slot's Gate; chapter one's side cards keep the formula, as before
       const g = s.run && r === s.run.floor ? gateMulOf(s.run.ch > 1 ? slotIndex(s) : roadIndex(s)) : undefined;
-      return (g !== undefined ? v * g : roadProve(s) ? v * p.proveHp : v) * chiliMul(s, p.chiliRock) * chMul(s);
+      const rockChili = hasChili(s, 1) ? p.chiliRock : (s.run && s.run.chili && !s.run.chilis ? Math.pow(p.chiliRock, s.run.chili) : 1);
+      return (g !== undefined ? v * g : roadProve(s) ? v * p.proveHp : v) * rockChili * chMul(s);
     },
+    // Chili 4 & Chili 5 modifiers on damage
+    damage: (dmg, s, cell, src, info, r) => {
+      let out = dmg;
+      if (cell && cell.t === 'tnt' && hasChili(s, 4)) {
+        const maxPerHit = Math.max(1, Math.floor((cell.max || 2) / 2));
+        out = Math.min(out, maxPerHit);
+      }
+      if (cell && cell.t === 'boss' && hasChili(s, 5) && s.run && r === s.run.floor) {
+        out = Math.max(1, Math.round(out * 0.75));
+      }
+      return out;
+    },
+    // Chili 5: Gate Boss cracks move twice as fast
+    crackSeconds: (v, s) => (hasChili(s, 5) ? Math.max(0.6, v * 0.5) : v),
+    // Chili 4: TNT blast radius is reduced
+    tntRadius: (v, s) => (hasChili(s, 4) ? Math.max(1, v - 1) : v),
   },
   hooks: {
     // the start kit comes after the Star perks (starshop resets at 100): the larger of the two wins
@@ -601,6 +807,9 @@ export const sites = use({
       const hm = groundMul(s);
       if (hm !== 1) { for (const c of ctx.row) if (c && c.t !== 'boss') { c.hp = Math.round(c.hp * hm); c.max = c.hp; } }
       if (tw === 'barrels' && BLOCKS.tnt && ctx.r > 2 && ctx.r % p.twistBarrel === 0) ctx.put('tnt');
+      if (hasChili(s, 4)) {
+        for (const c of ctx.row) if (c && c.t === 'tnt') { c.hp = 2; c.max = 2; }
+      }
     },
     // the welcome-back card: the Rock the crew waits at is the Gate of this level
     awayEnd(s, out) { const g = gateRow(s); out.atGate = !!out.atBoss && g >= s.top && g <= s.top + VIEW_ROWS; },
@@ -617,6 +826,10 @@ export const sites = use({
       const r = siteRun(s);
       if (r.done) return;
       if (r.started !== false) r.clock += dt;       // a fresh dig: the clock starts at the first hit (a run saved before this has no flag and runs)
+      // Chili 5 (Furious Gate): Gate Boss regenerates 0.8% max HP per second while alive
+      if (hasChili(s, 5) && s.boss && s.boss.hp > 0 && s.boss.hp < s.boss.max && s.boss.row === r.floor) {
+        s.boss.hp = Math.min(s.boss.max, s.boss.hp + Math.max(1, s.boss.max * 0.008) * dt);
+      }
       legSync(s, ev);
       if (s.bossesDown * LAYER >= r.floor) finish(s, ev);
     } },

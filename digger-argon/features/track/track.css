@@ -34,7 +34,7 @@
 /* the countdown: big enough to read; soft red when over, a pulse in the last 10 s, a green flash when a leg ends under time */
 #trk-clock { font-size: 18px; font-weight: 800; color: var(--text, #f3e9d8); letter-spacing: .5px; transition: color .2s; }
 #trk-clock.soon { color: var(--gold); animation: trkPulse 1s ease-in-out infinite; }
-#trk-clock.over { color: #e07a6a; }
+#trk-clock.over { color: #ff5252; text-shadow: 0 0 6px rgba(255,82,82,0.4); }
 #trk-clock.flash { color: var(--good); text-shadow: 0 0 8px var(--good); }
 #trk-bank { color: var(--good); font-size: 18px; font-weight: 800; }
 #trk-clock[hidden], #trk-bank[hidden] { display: none; }

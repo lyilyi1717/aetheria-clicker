@@ -5,7 +5,7 @@
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
 import { medalsHtml, nextMap, reopenFinish } from '../sites/ui.js';
-import { tone, gap } from '../../ui/audio.js';
+import { tone, gap, sfx } from '../../ui/audio.js';
 import strings from './strings.js';
 import { levelText } from '../sites/level.js';
 import { levelLine } from './line.js';
@@ -61,9 +61,19 @@ function tickClock(s, r) {
   el.clock.textContent = r.done ? t('clock_done', { t: clock(r.time) }) : c.over ? t('clock_over', { t: clock(sec) }) : clock(sec);
   el.clock.classList.toggle('over', c.over && !r.done);
   el.clock.classList.toggle('soon', !c.over && !r.done && c.left <= 10);
+  if (c.over && !r.done && !r._overtimeSfx) {
+    r._overtimeSfx = true;
+    if (sfx.overtime) sfx.overtime();
+  } else if (!c.over) {
+    r._overtimeSfx = false;
+  }
   // a leg closed: green flash, and the seconds saved are shown as banked for a moment
   if (lastIdx !== null && (c.idx !== lastIdx || (r.done && !lastDone)) && r.legLast) {
-    if (r.legLast.left >= 0) { flashT = now + 700; bankT = now + 2000; el.bank.textContent = t('clock_bank', { t: clock(Math.floor(r.legLast.saved)) }); }
+    if (r.legLast.left >= 0) {
+      flashT = now + 700; bankT = now + 2000;
+      const bSecs = r.legLast.bonus || (r.legLast.isGate ? 45 : 30);
+      el.bank.textContent = '+' + bSecs + 's Banked!';
+    }
   }
   if (lastExt !== null && r.legExt !== lastExt && r.legExt !== undefined) bumpT = now + 700;
   lastExt = r.legExt;

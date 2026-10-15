@@ -80,7 +80,7 @@ const p = {
 
 export const contractList = () => Object.values(CONTRACTS).filter(c => c.tier).sort((a, b) => (a.tier - b.tier) || (a.at - b.at) || (a.id < b.id ? -1 : 1));
 export const contractTiers = () => Math.max(1, ...contractList().map(c => c.tier));
-export const contractsOpen = s => s.sites >= p.openSites || roadFinished(s) >= p.openFinished || !!s.seen.legacyBoard || Object.keys(s.contractsWon).length > 0;
+export const contractsOpen = s => s.sites >= p.openSites || roadFinished(s) >= p.openFinished || !!s.seen.contractsOpen || !!s.seen.legacyBoard || Object.keys(s.contractsWon).length > 0;
 export const contractWins = (s, tier) => contractList().filter(c => c.tier === tier && s.contractsWon[c.id]).length;
 export const tierNeed = tier => (p.tierNeed[tier] === undefined ? 2 : p.tierNeed[tier]);
 export function tierOpen(s, tier) {
@@ -95,7 +95,7 @@ export function contractState(s, id) {
   return tierOpen(s, C.tier) && (!C.open || C.open(s)) ? 'open' : 'locked';
 }
 export const contractSite = (s, C) => (SITES[C.site] && siteOpen(s, C.site) ? C.site : Object.keys(SITES).find(id => siteOpen(s, id)));
-export const canTake = (s, id) => contractState(s, id) === 'open' && canNewSite(s);
+export const canTake = (s, id) => contractState(s, id) === 'open';
 export const contractStars = C => (p.stars[C.id] !== undefined ? p.stars[C.id] : C.stars !== undefined ? C.stars : p.tierStars[C.tier] || 0);
 
 // the contract in force: { id, now, of, kind, done } or null
@@ -109,6 +109,8 @@ export function contractGoal(s) {
 export function startContract(s, id, ev = () => {}) {
   const C = CONTRACTS[id];
   if (!C || !canTake(s, id)) return false;
+  if (s.contract) leaveContract(s, ev);
+  s.contractFree = true;
   const ask = contractAsk(s, id);
   if (!newSite(s, contractSite(s, C), ev, { contract: id }, { floor: ask.floor, twist: '', hard: id })) return false;
   if (ask.depth) s.run.goalDepth = ask.depth;
@@ -121,9 +123,9 @@ export function startContract(s, id, ev = () => {}) {
 function end(s) { const C = CONTRACTS[s.contract]; if (C && C.end) C.end(s); s.contract = null; }
 export function leaveContract(s, ev = () => {}) {
   if (!s.contract) return false;
-  const id = s.contract;
+  const id = s.contract, C = CONTRACTS[id];
   end(s);
-  emit(s, ev, 'contractLeft', { id });
+  emit(s, ev, 'contractLeft', { id, tier: C ? C.tier : 1 });
   return true;
 }
 
@@ -256,13 +258,17 @@ function compose(parts) {
   }
   return { mods, hooks };
 }
-const chiliGoal = s => { const of = (s.run && s.run.floor) || 50; return { kind: 'gate', now: Math.min(s.best, of), of }; };
+const chiliGoal = s => { const of = (s.run && s.run.floor) || 125; return { kind: 'gate', now: Math.min(s.best, of), of }; };
 const CHILI = {};
 for (let n = 1; n <= CHILI_RULES.length; n++) {
   CHILI['chili' + n] = { at: 100 + n, noWin: true, chili: n, goal: chiliGoal, ...compose(CHILI_RULES.slice(0, n)),
-    end(s) { if (s.run) s.run.chili = 0; } };                     // the rules lift, and so does the extra hardness
+    end(s) { if (s.run) { s.run.chili = 0; s.run.chilis = []; } } };                     // the rules lift, and so does the extra hardness
 }
-export const isChili = id => !!(CONTRACTS[id] && CONTRACTS[id].chili);
+CHILI['chili_custom'] = {
+  at: 106, noWin: true, chili: 5, goal: chiliGoal,
+  end(s) { if (s.run) { s.run.chili = 0; s.run.chilis = []; } }
+};
+export const isChili = id => !!(id && (id.startsWith('chili') || (CONTRACTS[id] && CONTRACTS[id].chili)));
 
 // The sim's player, when it has finished a level: now and then it digs it again with the next chili. A quick finish tries more.
 // Returns a card of the sites feature or null.
