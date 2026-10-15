@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.16';
+export const VERSION = '5.36.17';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.17',
+    date: '2026-10-15',
+    title: 'Dig: acoustic shockwave rebalance & layer pacing',
+    changes: [
+      'Acoustic Shockwave rebalanced from a full-screen clearance to a localized 3-row resonant shatter, preserving geological strata and pre-gate exploration depth.',
+      'Acoustic resonance accumulation now requires rhythmic precision in Chapter 9 (Harmonic Resonant Chasm) and unlocked resonant strata, with multi-swing cadence throttling preventing instant meter saturation.',
+      'Excavation depth before the Gate feels substantive and earned, allowing players to fully utilize tactical combos, TNT chains, and Rafeeq teamwork on each descent.'
+    ],
+    ar: {
+      title: 'الحفر: إعادة موازنة الموجة الصوتية ووتيرة الطبقات',
+      changes: [
+        'إعادة موازنة الموجة الصدمية الصوتية من مسح الشاشة بالكامل إلى تفتيت رنيني مركّز بعمق 3 صفوف، مما يحفظ الطبقات الجيولوجية وعمق الاستكشاف قبل البوابة.',
+        'تراكم مقياس الرنين الصوتي بات يتطلب دقة إيقاعية في الفصل التاسع (هوّة الرنين المتناسق) والطبقات الرنينية المفتوحة، مع ضبط تواتر الضربات المتعددة لمنع امتلاء المقياس فوراً.',
+        'عمق الحفر قبل البوابة أصبح ممتعاً ومستحقاً، مما يتيح للاعبين الاستفادة الكاملة من الضربات التكتيكية وتفجيرات البارود وتكاتف الرفقاء في كل نزول.'
+      ]
+    }
+  },
   {
     version: '5.36.16',
     date: '2026-10-14',

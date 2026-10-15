@@ -15,6 +15,7 @@ const p = {
   offBeatLoss: 5,
   maxResonance: 100,
   downbeatToleranceMs: 100,
+  shockwaveRows: 3,
 };
 
 export function getResonance(s) {
@@ -28,10 +29,22 @@ export function isDownbeat(clock, bpm = 100, tolMs = p.downbeatToleranceMs) {
   return delta * 1000 <= tolMs + 1e-6;
 }
 
-export function triggerAcousticShockwave(s, ev) {
+export function isAcousticActive(s) {
+  if (!s) return false;
+  if (s.acoustics && s.acoustics.active !== undefined) return s.acoustics.active;
+  const ch = (s.run && s.run.ch) || s.ch || 1;
+  if (ch >= 9) return true;
+  if (s.zone === 'chasm' || (s.run && s.run.zone === 'chasm')) return true;
+  if (s.unlocked && (s.unlocked['acoustic:shockwave'] || s.unlocked['acoustics'])) return true;
+  if (s.acoustics && s.acoustics.resonance > 0) return true;
+  return false;
+}
+
+export function triggerAcousticShockwave(s, ev, opts = {}) {
   if (!s || !s.rows) return 0;
   let cleared = 0;
-  const maxR = s.top + Math.min(s.rows.length, VIEW_ROWS);
+  const numRows = (opts && opts.rows) || p.shockwaveRows || 3;
+  const maxR = Math.min(s.top + s.rows.length, s.top + numRows);
   for (let r = s.top; r < maxR; r++) {
     for (let c = 0; c < COLS; c++) {
       const cell = cellAt(s, r, c);
@@ -48,7 +61,7 @@ export function triggerAcousticShockwave(s, ev) {
   if (!s.acoustics) s.acoustics = { resonance: 0, shockwaves: 0, highBpmMode: 0 };
   s.acoustics.resonance = 0;
   s.acoustics.shockwaves = (s.acoustics.shockwaves || 0) + 1;
-  if (ev) emit(s, ev, 'acousticShockwave', { cleared });
+  if (ev) emit(s, ev, 'acousticShockwave', { cleared, rows: maxR - s.top });
   return cleared;
 }
 
@@ -92,6 +105,11 @@ export const acoustics = use({
   },
   hooks: {
     swung(s, sw, ev) {
+      if (!isAcousticActive(s)) return;
+      if (s.acoustics && s.acoustics._lastSwingT !== undefined && Math.abs(s.t - s.acoustics._lastSwingT) < 1e-4) return;
+      if (!s.acoustics) s.acoustics = { resonance: 0, shockwaves: 0, highBpmMode: 0 };
+      s.acoustics._lastSwingT = s.t;
+
       const bpm = picksBpm(s);
       const onBeat = isDownbeat(s.t, bpm) || isAccentWindow(s.t, bpm, picksCount(s));
       recordStrike(s, onBeat, ev);

@@ -1,4 +1,4 @@
-﻿// Test for Issue ARGON-21: Month 8: Harmonic Resonant Chasm (proto/features/acoustics/)
+// Test for Issue ARGON-21: Month 8: Harmonic Resonant Chasm (proto/features/acoustics/)
 // Run: node test_proto_acoustics.js
 
 import * as G from './digger-argon/game.js';
@@ -9,6 +9,7 @@ import {
   triggerAcousticShockwave,
   setAcousticTempo,
   isDownbeat,
+  isAcousticActive,
   ACOUSTIC_TEMPOS,
 } from './digger-argon/features/acoustics/rules.js';
 import { isAccentWindow } from './digger-argon/features/picks/beat.js';
@@ -99,6 +100,9 @@ console.log('Testing ARGON-21: Harmonic Resonant Chasm...');
   // Check that Big Rock and boss blocks remain completely intact!
   ok(s.rows[2][2] !== null && s.rows[2][2].t === 'rock', 'Big Rock at (2, 2) was unaffected by shockwave');
   ok(s.rows[2][3] !== null && s.rows[2][3].t === 'boss', 'Boss block at (2, 3) was unaffected by shockwave');
+
+  // Verify that deeper blocks at row 3 remain intact (localized 3-row shatter instead of wiping 20 full rows)
+  ok(s.rows[3][0] !== null, 'Deeper blocks at row 3 remain intact, preserving pre-gate layer progression');
 }
 
 // 4. Support 180 and 200 BPM high-speed music modes
@@ -129,6 +133,14 @@ console.log('Testing ARGON-21: Harmonic Resonant Chasm...');
 
   setAcousticTempo(s, 200);
   ok(G.fold('bpm', s, 100) === 200, 'Folded BPM reflects 200 BPM mode');
+}
+
+// 5. Activation gating and chapter checks
+{
+  const s = G.newState();
+  ok(!isAcousticActive(s), 'Acoustics is inactive in Chapter 1 by default');
+  s.run = { ch: 9, zone: 'chasm' };
+  ok(isAcousticActive(s), 'Acoustics is active in Chapter 9 (Resonant Chasm)');
 }
 
 if (failed) {
