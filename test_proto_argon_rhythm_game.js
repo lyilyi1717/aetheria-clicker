@@ -34,23 +34,30 @@ console.log('Testing Lead Audio & Rhythm Systems Architect (Argon)...');
   ok(back.includes('rhythmHit'), 'Picks back array includes "rhythmHit"');
 }
 
-// 2. Rhythm Climax Difficulty & BPM Scaling Across Chapters and Gates
+// 2. Rhythm Climax Difficulty, Families, and Multi-Bar Scaling Across Chapters and Gates
 {
   // Chapter 1 (Floors 25 - 75)
   const d25 = rhythmDifficulty({ run: { ch: 1 } }, 25);
   ok(d25.bpm === 100, 'Floor 25 runs at 100 BPM');
-  ok(d25.pattern.includes('1'), 'Floor 25 has valid beat pattern');
+  ok(d25.family === 'malfuf', 'Floor 25 uses Malfuf rhythm family');
+  ok(Array.isArray(d25.bars) && d25.bars.length === 4, 'Floor 25 provides 4-bar progressive structure');
+  ok(d25.bars[0].includes('D') && d25.bars[0].includes('T'), 'Floor 25 Bar 1 has both Dum and Tak');
+  ok(d25.bars[1].includes('TT'), 'Floor 25 Bar 2 introduces Tak doublets');
 
   const d50 = rhythmDifficulty({ run: { ch: 1 } }, 50);
   ok(d50.bpm === 105, 'Floor 50 runs at 105 BPM');
+  ok(d50.family === 'ayoub', 'Floor 50 uses Ayoub pulse');
+  ok(d50.bars.length === 4, 'Floor 50 has 4-bar progression');
 
   const d75 = rhythmDifficulty({ run: { ch: 1 } }, 75);
   ok(d75.bpm === 110, 'Floor 75 runs at 110 BPM');
+  ok(d75.family === 'maqsum', 'Floor 75 uses Maqsum classical standard');
 
   // Chapter 2 (Floors 100 - 150): 120 - 140 BPM
   const d100 = rhythmDifficulty({ run: { ch: 2 } }, 100);
   ok(d100.bpm >= 120 && d100.bpm <= 130, 'Floor 100 scales into mid-tempo (120-130 BPM): ' + d100.bpm);
-  ok(d100.pattern === '1.11.1.11.11.1.1', 'Mid chapters use syncopated 8th-note grooves');
+  ok(d100.family === 'sombati', 'Mid chapters use Sombati Darbuka groove');
+  ok(d100.bars[3].includes('DTT'), 'Sombati climax includes Darbuka triplets/doublets');
 
   const d150 = rhythmDifficulty({ run: { ch: 2 } }, 150);
   ok(d150.bpm === 140, 'Floor 150 peaks at 140 BPM');
@@ -58,15 +65,27 @@ console.log('Testing Lead Audio & Rhythm Systems Architect (Argon)...');
   // Chapter 3+ (Floors 175+): 150 - 180 BPM
   const d200 = rhythmDifficulty({ run: { ch: 3 } }, 200);
   ok(d200.bpm >= 150 && d200.bpm <= 180, 'Deep chapters scale into high-energy polyrhythm (150-180 BPM): ' + d200.bpm);
-  ok(d200.pattern === '11.1.11.11.1.11.', 'Deep chapters use Darbuka polyrhythmic pattern');
+  ok(d200.family === 'darbuka', 'Deep chapters use Darbuka polyrhythmic pattern');
 }
 
-// 3. Rhythm Beat Schedule Generation (10 Seconds Duration)
+// 3. Rhythm Beat Schedule Generation (10 Seconds Duration) & Note Variations
 {
-  const beats = rhythmGenerateSchedule(120, '1.1.1.1.', RHYTHM_DURATION_SEC);
+  const d25 = rhythmDifficulty({ run: { ch: 1 } }, 25);
+  const beats = rhythmGenerateSchedule(d25.bpm, d25.bars, RHYTHM_DURATION_SEC);
   ok(beats.length > 0, 'Generated rhythm beats array');
   ok(beats[0].time >= 0.5, 'First beat allows player lead-in time: ' + beats[0].time);
   ok(beats[beats.length - 1].time <= RHYTHM_DURATION_SEC, 'Last beat falls within 10s window: ' + beats[beats.length - 1].time);
+
+  // Note type variations: Both Dum and Tak present
+  const hasDum = beats.some(b => b.type === 'dum');
+  const hasTak = beats.some(b => b.type === 'tak');
+  ok(hasDum, 'Beats schedule contains Strong Beat (Dum) notes');
+  ok(hasTak, 'Beats schedule contains Snare / Rim Beat (Tak) notes');
+
+  // Multi-bar progression across the 10 seconds
+  const barsRepresented = new Set(beats.map(b => b.bar));
+  ok(barsRepresented.has(1) && barsRepresented.has(2) && barsRepresented.has(3) && barsRepresented.has(4),
+    'Beats schedule spans all 4 progressive bars (Groove -> Syncopation -> Roll -> Climax)');
 
   // Monotonic time progression
   let monotonic = true;

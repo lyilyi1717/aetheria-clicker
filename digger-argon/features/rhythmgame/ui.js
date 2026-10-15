@@ -20,31 +20,46 @@ ui({
   id: 'rhythmgame',
   css: new URL('./rhythmgame.css', import.meta.url).href,
   sfx: {
-    rhythmBeat() {
-      if (!gap('rhythmtick', 0.08)) return;
-      tone(146.8 * wob(), { type: 'sine', d: 0.04, vol: 0.12 });
-      noise({ d: 0.03, vol: 0.06, from: 1800, to: 600, type: 'bandpass' });
+    // Subtle acoustic metronome tick
+    rhythmBeat(type = 'dum') {
+      if (!gap('rhythmtick', 0.07)) return;
+      if (type === 'dum') {
+        tone(146.8 * wob(), { type: 'sine', d: 0.04, vol: 0.12 });
+        noise({ d: 0.02, vol: 0.04, from: 1200, to: 400, type: 'bandpass' });
+      } else {
+        tone(587.33 * wob(), { type: 'triangle', d: 0.03, vol: 0.09 });
+        noise({ d: 0.02, vol: 0.05, from: 2400, to: 1000, type: 'bandpass' });
+      }
     },
-    rhythmPerfect() {
-      // High harmonic D5 + A5 resonant chime with Taiko kick punch
-      tone(146.8, { type: 'sine', a: 0.003, d: 0.22, vol: 0.35, slide: 40 });
-      tone(587.33, { type: 'triangle', a: 0.002, d: 0.28, vol: 0.24 });
-      tone(880, { type: 'sine', a: 0.004, d: 0.32, vol: 0.18, at: 0.02 });
-      noise({ d: 0.05, vol: 0.16, from: 3200, to: 800, type: 'bandpass' });
+
+    // Strong Beat ("Dum" / Bass Accent): deep resonant modal sub-bass thump
+    rhythmDum(rating = 'perfect') {
+      const volMult = rating === 'perfect' ? 1.0 : rating === 'great' ? 0.8 : 0.6;
+      // Fundamental D2 sub-bass punch with pitch-envelope drop
+      tone(146.8, { type: 'sine', a: 0.003, d: 0.28, vol: 0.42 * volMult, slide: 36.7 });
+      // Modal warm body resonance
+      tone(73.4, { type: 'sine', a: 0.005, d: 0.32, vol: 0.35 * volMult });
+      tone(293.66, { type: 'triangle', a: 0.002, d: 0.18, vol: 0.20 * volMult });
+      // Low-end acoustic punch transient
+      noise({ d: 0.06, vol: 0.18 * volMult, from: 1600, to: 300, type: 'bandpass' });
     },
-    rhythmGreat() {
-      tone(146.8, { type: 'sine', a: 0.004, d: 0.16, vol: 0.26, slide: 55 });
-      tone(440, { type: 'triangle', a: 0.003, d: 0.22, vol: 0.20 });
-      tone(659.25, { type: 'sine', a: 0.005, d: 0.24, vol: 0.14, at: 0.02 });
+
+    // Snare / Rim Beat ("Tak" / Syncopated Accent): crisp metallic/ceramic rim chime
+    rhythmTak(rating = 'perfect') {
+      const volMult = rating === 'perfect' ? 1.0 : rating === 'great' ? 0.8 : 0.6;
+      // High harmonic D5 + A5 crisp resonant ring
+      tone(587.33, { type: 'triangle', a: 0.002, d: 0.24, vol: 0.32 * volMult });
+      tone(880, { type: 'sine', a: 0.003, d: 0.28, vol: 0.26 * volMult, at: 0.01 });
+      tone(1174.66, { type: 'sine', a: 0.002, d: 0.18, vol: 0.18 * volMult, at: 0.02 });
+      // Crisp snappy rim click transient
+      noise({ d: 0.04, vol: 0.22 * volMult, from: 3800, to: 1200, type: 'bandpass' });
     },
-    rhythmGood() {
-      tone(293.66, { type: 'triangle', a: 0.005, d: 0.14, vol: 0.16, slide: 180 });
-      noise({ d: 0.04, vol: 0.10, from: 2200, to: 700, type: 'bandpass' });
-    },
+
     rhythmMiss() {
       if (!gap('rhythmmiss', 0.1)) return;
       tone(85, { type: 'sine', a: 0.005, d: 0.12, vol: 0.16, slide: 40 });
     },
+
     rhythmVictory() {
       [293.66, 392, 440, 587.33, 880].forEach((f, i) => {
         tone(f, { type: 'triangle', a: 0.005, d: 0.4, vol: 0.22, at: i * 0.08 });
@@ -62,7 +77,7 @@ ui({
     btn.id = 'rhythm-shrine-btn';
     btn.type = 'button';
     btn.hidden = true;
-    btn.innerHTML = `<span class="rhythm-icon">⚡</span><span class="rhythm-txt">${t('rhythm_prompt_btn')}</span>`;
+    btn.innerHTML = `<span class="rhythm-icon">&#9835;</span><span class="rhythm-txt">${t('rhythm_prompt_btn')}</span>`;
     btn.addEventListener('click', () => {
       app.unlockAudio();
       const b = G.bossInView(app.state);
@@ -121,7 +136,13 @@ export function startRhythmGame(s, app, floor) {
   app.unlockAudio();
 
   const diff = rhythmDifficulty(s, floor);
-  const beats = rhythmGenerateSchedule(diff.bpm, diff.pattern, RHYTHM_DURATION_SEC);
+  const beats = rhythmGenerateSchedule(diff.bpm, diff.bars, RHYTHM_DURATION_SEC);
+
+  const familyTitle = t(diff.familyTitleKey) || diff.familyName;
+  const stepTime = 15 / diff.bpm;
+  const barDuration = 16 * stepTime; // Duration of one 16-step bar in seconds
+
+  const phraseKeys = ['groove', 'syncopation', 'roll', 'climax'];
 
   // Focus mode overlay
   const overlay = document.createElement('div');
@@ -130,18 +151,36 @@ export function startRhythmGame(s, app, floor) {
     <div class="rhythm-modal" role="dialog" aria-modal="true" aria-label="${t('rhythm_title')}">
       <div class="rhythm-header">
         <div class="rhythm-title-wrap">
-          <h2>⚡ ${t('rhythm_title')}</h2>
+          <h2>&#9835; ${t('rhythm_title')}</h2>
           <p>${t('rhythm_sub')}</p>
         </div>
-        <div class="rhythm-bpm-badge">${t('rhythm_bpm', { n: diff.bpm })}</div>
+        <div class="rhythm-header-badges">
+          <div class="rhythm-family-badge">${familyTitle}</div>
+          <div class="rhythm-bpm-badge">${t('rhythm_bpm', { n: diff.bpm })}</div>
+        </div>
       </div>
       <div class="rhythm-timer-bar">
         <div class="rhythm-timer-fill" id="rhythm-timer-fill"></div>
+      </div>
+      <div class="rhythm-phrase-bar" id="rhythm-phrase-bar">
+        <div class="rhythm-phrase-steps">
+          <span class="rhythm-phrase-step active" data-bar="1">1</span>
+          <span class="rhythm-phrase-step" data-bar="2">2</span>
+          <span class="rhythm-phrase-step" data-bar="3">3</span>
+          <span class="rhythm-phrase-step" data-bar="4">4</span>
+        </div>
+        <div class="rhythm-phrase-name" id="rhythm-phrase-name">
+          ${t('rhythm_phrase_groove')}
+        </div>
       </div>
       <div class="rhythm-hud">
         <div class="rhythm-combo-box">
           <span>${t('rhythm_combo')}:</span>
           <span class="rhythm-combo-val" id="rhythm-combo-val">0</span>
+        </div>
+        <div class="rhythm-legend">
+          <span class="legend-item legend-dum"><span class="legend-dot dum-dot"></span> ${t('rhythm_type_dum')}</span>
+          <span class="legend-item legend-tak"><span class="legend-dot tak-dot"></span> ${t('rhythm_type_tak')}</span>
         </div>
         <div class="rhythm-score-box">
           <span>${t('rhythm_score')}:</span>
@@ -150,12 +189,14 @@ export function startRhythmGame(s, app, floor) {
       </div>
       <div class="rhythm-track-area" id="rhythm-track-area">
         <div class="rhythm-lane-line"></div>
-        <div class="rhythm-reticle" id="rhythm-reticle"></div>
+        <div class="rhythm-reticle" id="rhythm-reticle">
+          <div class="reticle-core"></div>
+        </div>
         <div id="rhythm-orbs-container"></div>
       </div>
       <div class="rhythm-controls" id="rhythm-controls-area">
         <button class="rhythm-strike-btn" id="rhythm-strike-btn" type="button">
-          <span>⚡</span>
+          <span>&#9835;</span>
           <span>${t('rhythm_strike')}</span>
         </button>
         <div class="rhythm-hint">
@@ -175,6 +216,8 @@ export function startRhythmGame(s, app, floor) {
   const comboEl = overlay.querySelector('#rhythm-combo-val');
   const scoreEl = overlay.querySelector('#rhythm-score-val');
   const controlsArea = overlay.querySelector('#rhythm-controls-area');
+  const phraseNameEl = overlay.querySelector('#rhythm-phrase-name');
+  const stepEls = overlay.querySelectorAll('.rhythm-phrase-step');
 
   const RETICLE_X = 64; // px from left
   const SPEED_PX_PER_SEC = 280; // horizontal travel speed
@@ -189,15 +232,24 @@ export function startRhythmGame(s, app, floor) {
   let misses = 0;
   let isDone = false;
   let lastMetronomeBeat = -1;
+  let currentActiveBar = 1;
 
-  // DOM pool of orb elements
+  // DOM pool of orb elements with distinct Dum vs Tak styling
   const orbEls = beats.map(b => {
     const el = document.createElement('div');
-    el.className = 'rhythm-orb';
+    const isTak = b.type === 'tak';
+    el.className = `rhythm-orb ${isTak ? 'rhythm-orb-tak' : 'rhythm-orb-dum'}`;
+    el.innerHTML = `<span class="orb-glyph">${isTak ? 'T' : 'D'}</span>`;
     el.style.left = '-100px';
     orbsContainer.appendChild(el);
     return { data: b, el, dead: false };
   });
+
+  function triggerReticleRipple() {
+    reticle.classList.remove('reticle-press');
+    void reticle.offsetWidth; // retrigger reflow
+    reticle.classList.add('reticle-press');
+  }
 
   function showRating(text, type) {
     const pop = document.createElement('div');
@@ -214,6 +266,7 @@ export function startRhythmGame(s, app, floor) {
 
   function handleHit() {
     if (isDone) return;
+    triggerReticleRipple();
     const nowSec = (performance.now() - startTime) / 1000;
 
     // Find nearest unhit beat
@@ -234,26 +287,31 @@ export function startRhythmGame(s, app, floor) {
       best.dead = true;
       best.el.remove();
 
+      let ratingStr = 'good';
       if (minDelta <= 0.055) {
-        // PERFECT (within 55ms)
+        ratingStr = 'perfect';
         score += 100;
         combo++;
         perfects++;
-        sfx.rhythmPerfect();
         showRating(t('rhythm_perfect'), 'perfect');
       } else if (minDelta <= 0.11) {
-        // GREAT (within 110ms)
+        ratingStr = 'great';
         score += 70;
         combo++;
         greats++;
-        sfx.rhythmGreat();
         showRating(t('rhythm_great'), 'great');
       } else {
-        // GOOD (within 170ms)
+        ratingStr = 'good';
         score += 40;
         goods++;
-        sfx.rhythmGood();
         showRating(t('rhythm_good'), 'good');
+      }
+
+      // Synthesize distinct acoustic pitches for Dum vs Tak
+      if (best.data.type === 'tak') {
+        sfx.rhythmTak(ratingStr);
+      } else {
+        sfx.rhythmDum(ratingStr);
       }
 
       maxCombo = Math.max(maxCombo, combo);
@@ -320,7 +378,7 @@ export function startRhythmGame(s, app, floor) {
     summaryCard.innerHTML = `
       <div class="rhythm-rank-badge">${rankTitle}</div>
       <div class="rhythm-mult-reward">
-        <span>⚡</span>
+        <span>&#9835;</span>
         <span>${res.mult}x BOSS DAMAGE</span>
       </div>
       <p style="color: #ffd23f; font-weight: 700; margin: 0;">
@@ -354,11 +412,29 @@ export function startRhythmGame(s, app, floor) {
     const progress = Math.min(1, nowSec / RHYTHM_DURATION_SEC);
     timerFill.style.width = `${(1 - progress) * 100}%`;
 
+    // Multi-bar phrase progression update
+    const effectiveNow = Math.max(0, nowSec - 0.6);
+    const activeBarIndex = Math.min(3, Math.floor(effectiveNow / barDuration));
+    const activeBarNum = activeBarIndex + 1;
+
+    if (activeBarNum !== currentActiveBar) {
+      currentActiveBar = activeBarNum;
+      stepEls.forEach((el, idx) => {
+        if (idx === activeBarIndex) el.classList.add('active');
+        else el.classList.remove('active');
+      });
+      const phraseKey = phraseKeys[activeBarIndex] || 'climax';
+      phraseNameEl.textContent = t(`rhythm_phrase_${phraseKey}`);
+      phraseNameEl.classList.remove('phrase-bump');
+      void phraseNameEl.offsetWidth;
+      phraseNameEl.classList.add('phrase-bump');
+    }
+
     // Metronome tick sound on beat boundaries
     const beatIndex = Math.floor(nowSec * (diff.bpm / 60));
     if (beatIndex > lastMetronomeBeat) {
       lastMetronomeBeat = beatIndex;
-      sfx.rhythmBeat();
+      sfx.rhythmBeat(beatIndex % 2 === 0 ? 'dum' : 'tak');
     }
 
     // Position orbs and check for late misses

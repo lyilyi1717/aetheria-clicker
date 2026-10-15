@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.19';
+export const VERSION = '5.36.20';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.20',
+    date: '2026-10-15',
+    title: 'Dig: multi-bar rhythm phrasing, beat variations & authentic world percussion',
+    changes: [
+      'Multi-Bar Rhythmic Phrasing: Pre-Gate Rhythm Climax now features a dynamic 4-bar musical progression across the 10-second encounter (Foundational Groove -> Syncopated Doublets -> Polyrhythmic Roll -> Grand Climax).',
+      'Authentic Middle-Eastern & World Percussion Families: Implemented distinct rhythm families including Malfuf (2/4 desert drive, Gate 1), Ayoub/Zar (hypnotic pulse, Gate 2), Maqsum (4/4 classical standard, Gate 3), Sombati (dynamic Darbuka groove, Mid Chapters), and Darbuka Climax (high-tempo polyrhythm, Deep Chapters).',
+      'Note Variations & Audiovisual Feedback: Added distinct Strong Beat ("Dum" / deep resonant modal sub-bass thump with large golden orbs) and Snare Beat ("Tak" / crisp treble rim chime with bright cyan orbs), plus responsive reticle ripple waves on hit.'
+    ],
+    ar: {
+      title: 'الحفر: تنوع المقاطع الإيقاعية، تدرج الضربات وإيقاعات التراث الأصيلة',
+      changes: [
+        'تدرج إيقاعي متعدد المقاطع: تتميز قمة الإيقاع قبل البوابة الآن بتطور موسيقي ديناميكي عبر 4 مقاطع خلال الـ10 ثوانٍ (الإيقاع الأساسي -> ضربات متزامنة مزدوجة -> تصاعد إيقاعي متسارع -> الذروة الكبرى).',
+        'عائلات إيقاعية تراثية أصيلة: تطبيق أنماط إيقاعية مميزة تشمل الملفوف (إيقاع الصحراء 2/4، البوابة 1)، الأيوب والزار (النبض الآسر، البوابة 2)، المقسوم (الإيقاع الكلاسيكي 4/4، البوابة 3)، الصنباطي (دربوكة متصاعدة، الفصول المتوسطة)، وذروة الدربوكة (إيقاعات مركبة فائقة السرعة، الأعماق السحيقة).',
+        'تنوع النغمات وردود الفعل البصرية: تخصيص ضربة "دم" القوية (رنين جهير عميق مع كرات ذهبية متوهجة) وضربة "تك" الحادة (رنين حواف معدني مع كرات سماوية نقية)، مع موجات تموج بصرية تفاعلية عند النقر والتصويب.'
+      ]
+    }
+  },
   {
     version: '5.36.19',
     date: '2026-10-15',

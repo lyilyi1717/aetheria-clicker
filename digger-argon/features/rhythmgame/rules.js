@@ -4,16 +4,22 @@
 //   - When approaching each Gate Boss (the Big Rock of a Gate), an opt-in rhythmic prompt appears.
 //   - Playable ONCE per Gate per run. Independent of core pacing; a tactical power surge.
 //
-// Mechanics:
-//   - 10 seconds of focused rhythmic gameplay on a horizontal track.
-//   - Speed (BPM) and pattern complexity scale by Gate depth and Chapter:
-//       Chapter 1 (25-75m): 100-110 BPM steady quarters and halves.
-//       Mid Chapters (100-150m): 120-140 BPM syncopated 8th-note grooves.
-//       Deep Chapters (175m+): 150-180 BPM polyrhythmic darbuka patterns.
-//
-// Reward:
-//   - Completing the mini-game awards a massive temporary damage boost against the upcoming Gate Boss
-//     (up to 10x Boss Damage).
+// Multi-Bar Rhythmic Phrasing & Beat Variations:
+//   - Structured into 4 progressive musical bars:
+//       Bar 1: Foundational Groove (establishes theme, pulse, and primary beats)
+//       Bar 2: Syncopated Off-Beat & Doublets (adds swing and double-taps)
+//       Bar 3: Polyrhythmic Roll / Drop (rapid flourishes and rhythmic rolls)
+//       Bar 4: Grand Climax (driving syncopated crescendo into the boss battle)
+//   - Authentic Middle-Eastern & World Percussion rhythm families:
+//       Malfuf: Fast syncopated 2/4 desert drive
+//       Ayoub / Zar: Hypnotic accelerating pulse
+//       Maqsum: Rich 4/4 syncopated classical standard
+//       Sombati: Dynamic Darbuka groove with syncopated triplets
+//       Darbuka Climax: High-BPM polyrhythmic rolls and syncopations
+//   - Note Variations:
+//       Dum ('D' or '1'): Strong bass accent (large golden orb, deep resonant sub-bass thump)
+//       Tak ('T' or '2'): Snare / rim accent (crisp cyan note, snappy treble chime)
+//       Doublets: Rapid pulses spaced closely for tactile finger-drumming satisfaction
 //
 // Musicality:
 //   - Tuned in modal D-minor / Bayati harmonic resonance, quantized to the master 16-step grid.
@@ -25,55 +31,164 @@ import strings from './strings.js';
 export const RHYTHM_DURATION_SEC = 10;
 export const MAX_BOSS_RHYTHM_MULT = 10;
 
-// Calculate BPM and beat pattern for a given floor and chapter
+// Authentic Middle-Eastern & World Percussion Rhythm Families (4-Bar Progressions)
+export const RHYTHM_FAMILIES = {
+  malfuf: {
+    id: 'malfuf',
+    titleKey: 'rhythm_family_malfuf',
+    defaultTitle: 'Malfuf Desert Drive',
+    bars: [
+      'D...T..TD...T..T', // Bar 1: Foundational Malfuf 2/4 drive (accessible & syncopated)
+      'D..TT..TD..TT.TT', // Bar 2: Syncopated doublets on Tak
+      'D...T.TTD...TTTT', // Bar 3: Rapid polyrhythmic roll & drop
+      'D.TTD.TTD.TTDTTT', // Bar 4: Grand Climax syncopated crescendo
+    ],
+  },
+  ayoub: {
+    id: 'ayoub',
+    titleKey: 'rhythm_family_ayoub',
+    defaultTitle: 'Ayoub Hypnotic Pulse',
+    bars: [
+      'D..TD.T.D..TD.T.', // Bar 1: Hypnotic Zar groove
+      'D.TTD.T.D.TTD.TT', // Bar 2: Doublet syncopations
+      'D..DT.T.D..DTTTT', // Bar 3: Accelerating pulse roll
+      'DTDTD.TTDTDTDTTT', // Bar 4: Grand Climax
+    ],
+  },
+  maqsum: {
+    id: 'maqsum',
+    titleKey: 'rhythm_family_maqsum',
+    defaultTitle: 'Maqsum Standard',
+    bars: [
+      'D.T..TD..T..T...', // Bar 1: Classic 4/4 Maqsum
+      'D.T..TD..TT.T.T.', // Bar 2: Off-beat accents & double-taps
+      'DT.TDT.TD..TTTT.', // Bar 3: Polyrhythmic roll
+      'D.TTD.TTDTDTTTT.', // Bar 4: Grand Climax
+    ],
+  },
+  sombati: {
+    id: 'sombati',
+    titleKey: 'rhythm_family_sombati',
+    defaultTitle: 'Sombati Darbuka Groove',
+    bars: [
+      'D.T..TD.D.T..T..', // Bar 1: Heavy Sombati groove
+      'D.T.TTD.D.TTT.T.', // Bar 2: Syncopated Darbuka doublets
+      'DTT.DTT.D.TTD.T.', // Bar 3: Triplet / roll flourishes
+      'DTTDTTDTDTTTTTT.', // Bar 4: Blistering Darbuka crescendo
+    ],
+  },
+  darbuka: {
+    id: 'darbuka',
+    titleKey: 'rhythm_family_darbuka',
+    defaultTitle: 'Darbuka High Climax',
+    bars: [
+      'D.T.TT.TD.T.TT.T', // Bar 1: Syncopated high-tempo drive
+      'DTT.DTT.DTTDTTT.', // Bar 2: Rapid alternating rolls
+      'D.TTD.TTDTTTTTT.', // Bar 3: Deep chasm polyrhythm
+      'DTDTTDTDTTTTTTTT', // Bar 4: Maximum Darbuka fury
+    ],
+  },
+};
+
+// Calculate BPM, rhythm family, and multi-bar patterns for a given floor and chapter
 export function rhythmDifficulty(s, floor = 25) {
   const ch = (s && s.run && s.run.ch) || (floor <= 75 ? 1 : floor <= 150 ? 2 : 3);
   let bpm = 100;
-  let pattern = '1.1.1.1.'; // default quarter notes
-  let title = 'steady';
+  let family = RHYTHM_FAMILIES.malfuf;
+  let title = 'malfuf_drive';
 
   if (ch === 1 || floor <= 75) {
-    // Chapter 1: 100 - 110 BPM steady quarters and 8ths
-    bpm = floor <= 25 ? 100 : floor <= 50 ? 105 : 110;
-    pattern = floor <= 25 ? '1...1...1...1...' : '1.1.1.1.1.1.1.1.';
-    title = 'caravan_beat';
+    if (floor <= 25) {
+      // Gate 1 (25m): 100 BPM Malfuf Desert Drive (accessible, groovy syncopation)
+      bpm = 100;
+      family = RHYTHM_FAMILIES.malfuf;
+      title = 'malfuf_drive';
+    } else if (floor <= 50) {
+      // Gate 2 (50m): 105 BPM Ayoub Hypnotic Pulse
+      bpm = 105;
+      family = RHYTHM_FAMILIES.ayoub;
+      title = 'ayoub_pulse';
+    } else {
+      // Gate 3 (75m): 110 BPM Maqsum Classical Standard
+      bpm = 110;
+      family = RHYTHM_FAMILIES.maqsum;
+      title = 'maqsum_groove';
+    }
   } else if (ch === 2 || floor <= 150) {
-    // Mid Chapters: 120 - 140 BPM syncopated 8th grooves
+    // Mid Chapters (100-150m): 120 - 140 BPM Sombati Darbuka Groove
     const prog = Math.min(1, Math.max(0, (floor - 75) / 75));
     bpm = Math.round(120 + prog * 20);
-    pattern = '1.11.1.11.11.1.1'; // syncopated Gulf rhythm
-    title = 'sand_groove';
+    family = RHYTHM_FAMILIES.sombati;
+    title = 'sombati_groove';
   } else {
-    // Deep/Late Chapters: 150 - 180 BPM polyrhythmic darbuka patterns
+    // Deep/Late Chapters (175m+): 150 - 180 BPM Darbuka High Climax
     const prog = Math.min(1, Math.max(0, (floor - 150) / 100));
     bpm = Math.round(150 + prog * 30);
-    pattern = '11.1.11.11.1.11.'; // fast polyrhythmic darbuka
+    family = RHYTHM_FAMILIES.darbuka;
     title = 'darbuka_climax';
   }
 
-  return { bpm, pattern, title, floor, ch };
+  const bars = family.bars;
+  const pattern = bars.join('|');
+
+  return {
+    bpm,
+    family: family.id,
+    familyTitleKey: family.titleKey,
+    familyName: family.defaultTitle,
+    bars,
+    pattern,
+    title,
+    floor,
+    ch,
+  };
 }
 
-// Generate the timestamps (in seconds from start) of beats within the 10-second duration
-export function rhythmGenerateSchedule(bpm, pattern = '1.1.1.1.', duration = RHYTHM_DURATION_SEC) {
-  const stepTime = 15 / bpm; // 16th-note duration
+// Generate the timestamps (in seconds from start) and note types of beats within the 10-second duration
+export function rhythmGenerateSchedule(bpm, patternOrBars = 'D.T..TD..T..T...', duration = RHYTHM_DURATION_SEC) {
+  const stepTime = 15 / bpm; // 16th-note step duration in seconds
   const beats = [];
-  const patLen = pattern.length;
   let t = 0.6; // initial lead-in time so the player can prepare
 
-  let step = 0;
-  while (t < duration - 0.4) {
-    const char = pattern[step % patLen];
-    if (char === '1') {
+  let bars;
+  if (Array.isArray(patternOrBars)) {
+    bars = patternOrBars;
+  } else if (typeof patternOrBars === 'string' && patternOrBars.includes('|')) {
+    bars = patternOrBars.split('|');
+  } else if (typeof patternOrBars === 'string') {
+    bars = [patternOrBars];
+  } else {
+    bars = ['D.T..TD..T..T...'];
+  }
+
+  const barNames = ['groove', 'syncopation', 'roll', 'climax'];
+  let totalSteps = 0;
+
+  while (t < duration - 0.35) {
+    const barIndex = Math.floor(totalSteps / 16);
+    const currentBarPattern = bars[Math.min(barIndex, bars.length - 1)];
+    const stepInBar = totalSteps % currentBarPattern.length;
+    const char = currentBarPattern[stepInBar];
+
+    if (char === 'D' || char === '1' || char === 'T' || char === '2') {
+      const type = (char === 'T' || char === '2') ? 'tak' : 'dum';
+      const barNum = Math.min(barIndex + 1, bars.length);
+      const barName = barNames[Math.min(barIndex, barNames.length - 1)] || 'climax';
+
       beats.push({
         id: beats.length,
         time: Math.round(t * 1000) / 1000,
+        type,
+        char,
+        bar: barNum,
+        barName,
         hit: false,
         rating: null,
       });
     }
+
     t += stepTime;
-    step++;
+    totalSteps++;
   }
 
   return beats;
