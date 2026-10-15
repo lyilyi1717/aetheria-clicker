@@ -11,11 +11,15 @@ ui({
   },
   sfx: {
     blast(chain = 1) {
-      if (!gap('blast', 0.03)) return;
+      if (!gap('blast', 0.05)) return;
       const rate = pentPitch(chain);
-      noise({ d: 0.6, vol: 0.6, from: Math.min(8000, 2200 * rate), to: 60 });
-      tone(120 * rate, { type: 'sawtooth', d: 0.45, vol: 0.3, slide: 30 * rate });
-      tone(220 * rate, { type: 'triangle', d: 0.35, vol: 0.22 });
+      const damp = 1 / (1 + 0.12 * Math.max(0, chain - 1));
+      // Sub-bass acoustic punch (Taiko / Darbuka Doom downsweep in D)
+      tone(146.8 * rate, { type: 'sine', a: 0.003, d: 0.24, vol: 0.36 * damp, slide: 36.7 * rate });
+      // Harmonic resonance (warm D-minor modal body)
+      tone(73.4 * rate, { type: 'triangle', a: 0.004, d: 0.18, vol: 0.22 * damp, slide: 48 * rate });
+      // Tactile rock fracture transient (filtered bandpass click, no harsh >4kHz sizzle)
+      noise({ d: 0.08, vol: 0.22 * damp, from: Math.min(3400, 1800 * rate), to: 380, type: 'bandpass' });
     },
   },
   art: {

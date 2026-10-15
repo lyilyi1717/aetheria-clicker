@@ -205,6 +205,13 @@ export const sfx = {
     tone(1800, { type: 'sine', d: 0.12, vol: 0.25, slide: 2400 });
     tone(2400, { type: 'sine', d: 0.18, vol: 0.3, slide: 2100, at: 0.1 });
   },
+  boom(chain = 1) {
+    if (!gap('boom', 0.05)) return;
+    const rate = pentPitch(chain);
+    tone(146.8 * rate, { type: 'sine', a: 0.003, d: 0.24, vol: 0.35, slide: 36.7 * rate });
+    tone(73.4 * rate, { type: 'triangle', a: 0.004, d: 0.18, vol: 0.22, slide: 48 * rate });
+    noise({ d: 0.08, vol: 0.2, from: Math.min(3400, 1800 * rate), to: 380, type: 'bandpass' });
+  },
 };
 
 

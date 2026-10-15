@@ -39,6 +39,7 @@ import './prisms/ui.js';
 import './rafeeqs/ui.js';
 import './relics/ui.js';
 import './relics2/ui.js';
+import './rhythmgame/ui.js';
 import './settings/ui.js';
 import './shop/ui.js';
 import './sites/ui.js';

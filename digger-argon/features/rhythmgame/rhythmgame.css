@@ -1,0 +1,436 @@
+/* Pre-Gate Rhythm Climax Mini-Game Styles */
+
+/* Shrine trigger button on the stage */
+#rhythm-shrine-btn {
+  position: absolute;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #2a1b0c, #4a2e12);
+  border: 2px solid #ffd23f;
+  border-radius: 20px;
+  color: #ffd23f;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(255, 210, 63, 0.4), 0 4px 10px rgba(0, 0, 0, 0.6);
+  animation: rhythmShrinePulse 1.8s infinite ease-in-out;
+  transform: translateX(-50%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+#rhythm-shrine-btn:hover {
+  transform: translateX(-50%) scale(1.06);
+  box-shadow: 0 0 25px rgba(255, 210, 63, 0.7), 0 6px 14px rgba(0, 0, 0, 0.8);
+}
+
+#rhythm-shrine-btn:active {
+  transform: translateX(-50%) scale(0.96);
+}
+
+@keyframes rhythmShrinePulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(255, 210, 63, 0.35), 0 0 4px #ffd23f;
+    border-color: #ffd23f;
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(255, 210, 63, 0.8), 0 0 10px #ff9a3c;
+    border-color: #ffe680;
+  }
+}
+
+/* Fullscreen Dimming Focus Overlay */
+.rhythm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(9, 7, 13, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: rhythmFadeIn 0.25s ease-out;
+  user-select: none;
+}
+
+@keyframes rhythmFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Central Modal Container */
+.rhythm-modal {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  background: #17110d;
+  border: 2px solid #5a3d24;
+  border-radius: 16px;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(255, 210, 63, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.rhythm-header {
+  padding: 14px 20px;
+  background: #241a13;
+  border-bottom: 1px solid #4a3626;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rhythm-title-wrap h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffd23f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rhythm-title-wrap p {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: #b9a58c;
+}
+
+.rhythm-bpm-badge {
+  background: #2f2218;
+  border: 1px solid #ffd23f;
+  color: #ffd23f;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+/* Progress / Timer Bar */
+.rhythm-timer-bar {
+  height: 6px;
+  width: 100%;
+  background: #2a1f17;
+  position: relative;
+  overflow: hidden;
+}
+
+.rhythm-timer-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ffd23f, #ff9a3c);
+  transition: width 0.05s linear;
+}
+
+/* Score & Combo HUD */
+.rhythm-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: #1f1610;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f6ead8;
+}
+
+.rhythm-combo-box {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.rhythm-combo-val {
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffd23f;
+  text-shadow: 0 0 10px rgba(255, 210, 63, 0.5);
+  transition: transform 0.1s ease;
+}
+
+.rhythm-score-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: #59d37a;
+}
+
+/* The Horizontal Rhythm Track */
+.rhythm-track-area {
+  position: relative;
+  height: 140px;
+  background: radial-gradient(ellipse at center, #22161f 0%, #120d14 100%);
+  border-top: 1px solid #3d2a1a;
+  border-bottom: 1px solid #3d2a1a;
+  overflow: hidden;
+}
+
+/* Guide Lines */
+.rhythm-lane-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 210, 63, 0.15);
+  transform: translateY(-50%);
+}
+
+/* The Strike Reticle / Target Zone */
+.rhythm-reticle {
+  position: absolute;
+  left: 64px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid #ffd23f;
+  box-shadow: 0 0 20px rgba(255, 210, 63, 0.5), inset 0 0 10px rgba(255, 210, 63, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: transform 0.08s ease, border-color 0.08s ease;
+}
+
+.rhythm-reticle::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 210, 63, 0.4);
+}
+
+.rhythm-reticle.reticle-hit {
+  transform: translate(-50%, -50%) scale(1.18);
+  border-color: #59d37a;
+  box-shadow: 0 0 30px rgba(89, 211, 122, 0.8), inset 0 0 15px rgba(89, 211, 122, 0.5);
+}
+
+/* Traveling Beat Orbs */
+.rhythm-orb {
+  position: absolute;
+  top: 50%;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff5cc, #ffd23f 50%, #d47a16 100%);
+  box-shadow: 0 0 15px rgba(255, 210, 63, 0.8), 0 0 5px #fff;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.rhythm-orb::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 210, 63, 0.5);
+  animation: orbRing 1s infinite linear;
+}
+
+@keyframes orbRing {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* Floating Feedback Rating Text */
+.rhythm-rating-popup {
+  position: absolute;
+  left: 64px;
+  top: 24px;
+  transform: translateX(-50%);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  pointer-events: none;
+  z-index: 10;
+  animation: ratingPop 0.45s ease-out forwards;
+}
+
+@keyframes ratingPop {
+  0% {
+    transform: translate(-50%, 10px) scale(0.7);
+    opacity: 0;
+  }
+  30% {
+    transform: translate(-50%, -4px) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -18px) scale(1);
+    opacity: 0;
+  }
+}
+
+.rating-perfect {
+  color: #ffd23f;
+  text-shadow: 0 0 15px #ffd23f, 0 0 5px #fff;
+}
+
+.rating-great {
+  color: #59d37a;
+  text-shadow: 0 0 15px #59d37a;
+}
+
+.rating-good {
+  color: #4aa8ff;
+  text-shadow: 0 0 15px #4aa8ff;
+}
+
+.rating-miss {
+  color: #e5533d;
+  text-shadow: 0 0 15px #e5533d;
+}
+
+/* Interactive Controls Area */
+.rhythm-controls {
+  padding: 20px;
+  background: #17110d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The Giant Strike Button */
+.rhythm-strike-btn {
+  width: 100%;
+  max-width: 280px;
+  height: 64px;
+  background: linear-gradient(180deg, #ffd23f 0%, #e0981e 100%);
+  border: 3px solid #fff;
+  border-radius: 32px;
+  color: #1b1410;
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(255, 210, 63, 0.4), 0 3px 0 #a06200;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.rhythm-strike-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 210, 63, 0.6), 0 4px 0 #a06200;
+}
+
+.rhythm-strike-btn:active, .rhythm-strike-btn.btn-active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 10px rgba(255, 210, 63, 0.3), 0 0 0 #a06200;
+  background: linear-gradient(180deg, #ffc21a 0%, #cc820c 100%);
+}
+
+.rhythm-hint {
+  font-size: 12px;
+  color: #b9a58c;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rhythm-hint kbd {
+  background: #241a13;
+  border: 1px solid #4a3626;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: #ffd23f;
+}
+
+/* Summary / Climax Victory Card */
+.rhythm-summary {
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  animation: summaryAppear 0.3s ease-out;
+}
+
+@keyframes summaryAppear {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.rhythm-rank-badge {
+  font-size: 32px;
+  font-weight: 900;
+  padding: 8px 24px;
+  border-radius: 12px;
+  background: #241a13;
+  border: 2px solid #ffd23f;
+  color: #ffd23f;
+  box-shadow: 0 0 30px rgba(255, 210, 63, 0.4);
+}
+
+.rhythm-mult-reward {
+  font-size: 28px;
+  font-weight: 900;
+  color: #59d37a;
+  text-shadow: 0 0 20px rgba(89, 211, 122, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rhythm-stats-line {
+  font-size: 13px;
+  color: #b9a58c;
+}
+
+.rhythm-engage-btn {
+  padding: 12px 36px;
+  background: linear-gradient(180deg, #59d37a 0%, #3ca759 100%);
+  border: 2px solid #fff;
+  border-radius: 24px;
+  color: #0d2813;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(89, 211, 122, 0.4);
+  transition: transform 0.1s ease;
+}
+
+.rhythm-engage-btn:hover {
+  transform: scale(1.05);
+}
+
+.rhythm-engage-btn:active {
+  transform: scale(0.96);
+}
+
+/* Active Surge Banner above Boss Bar */
+#rhythm-active-badge {
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(14, 10, 7, 0.9);
+  border: 1px solid #59d37a;
+  border-radius: 10px;
+  color: #59d37a;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2px 10px;
+  white-space: nowrap;
+  box-shadow: 0 0 10px rgba(89, 211, 122, 0.3);
+  pointer-events: none;
+  z-index: 25;
+}

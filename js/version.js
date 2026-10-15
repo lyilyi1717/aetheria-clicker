@@ -3,9 +3,27 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.18';
+export const VERSION = '5.36.19';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.19',
+    date: '2026-10-15',
+    title: 'Dig: sound & rhythm guidelines, boom pick & boomerang tuning, and pre-gate rhythm climax',
+    changes: [
+      'Comprehensive Game Audio & Rhythm Design Guidelines (docs/audio-rhythm-guidelines.md) standardizing D-minor/Bayati harmonic scale, 16-step grid quantization, anti-fatigue frequency dampening, and acoustic envelope parameters.',
+      'Re-synthesized Boom Pick and Boomerang SFX: replaced harsh sawtooth/noise transients with punchy D-minor sub-bass taiko kicks, warm modal resonance, and aerodynamic Doppler flight whistles quantized to the master audio clock.',
+      'Added Pre-Gate Rhythm Climax mini-game: an opt-in 10-second focused horizontal beat track before each Gate boss with dynamic BPM scaling (100-180 BPM across chapters) and ratings (Perfect/Great/Good/Miss) awarding up to a massive 10x Boss Damage surge.'
+    ],
+    ar: {
+      title: 'الحفر: معايير الصوت والإيقاع، ضبط معول الانفجار والبوميرانغ، وقمة الإيقاع قبل البوابة',
+      changes: [
+        'إصدار دليل معايير هندسة الصوت والإيقاع الكامل (docs/audio-rhythm-guidelines.md) لتوحيد المقامات الموسيقية (مقام البياتي ورنين ري الصغير)، وضبط تزامن الضربات مع شبكة الإيقاع الـ16 خطوة، وتخفيف الترددات الحادة لمنع إجهاد الأذن.',
+        'إعادة هندسة وتوليف أصوات معول الانفجار والبوميرانغ: استبدال الموجات الحادة والمزعجة بركلات وطبول تاييكو دافئة وعميقة، ورنين مقامي متناسق، وصفير أيروديناميكي للبوميرانغ مضبوط بدقة على ساعة الصوت.',
+        'إضافة لعبة قمة الإيقاع المصغرة قبل كل بوابة: مسار إيقاعي أفقي لمدة 10 ثوانٍ مع تدرج السرعة والصعوبة (100 إلى 180 نبضة/دقيقة عبر الفصول) وتقييمات دقة الضربات تمنح مضاعفة ضرر هائلة تصل إلى 10 أضعاف (10x) ضد حارس البوابة.'
+      ]
+    }
+  },
   {
     version: '5.36.18',
     date: '2026-10-15',

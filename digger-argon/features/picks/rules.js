@@ -51,7 +51,7 @@ const p = {
   // other sounds while the bar plays. 'offbeat': on the next off-beat eighth (the Gulf clap);
   // 'grid': on the next step; 'free': whenever they happen, as before
   crewMix: 'offbeat', crewGain: 0.7,
-  backMix: 'grid', backGain: 0.8, back: ['hit', 'break', 'crit', 'coin'],   // your own delayed hits, chain breaks, coin ticks
+  backMix: 'grid', backGain: 0.8, back: ['hit', 'break', 'crit', 'coin', 'blast', 'boom', 'relics2Whoosh', 'rhythmHit'],   // your own delayed hits, chain breaks, coin ticks, blasts, whooshes
   // prices
   secondRock: 1,           // Second Pick opens when this many Big Rocks are down (or you have ever moved)
   secondCost: 12000,       // coins, once (the mid player of the sim buys it about minute 8 to 10)

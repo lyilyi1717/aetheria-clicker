@@ -127,7 +127,14 @@ ui({
   },
   sfx: {
     relics2Zap() { if (gap('r2zap', 0.05)) tone(1400, { type: 'square', d: 0.07, vol: 0.05, slide: -700 }); },
-    relics2Whoosh() { if (gap('r2whoosh', 0.1)) noise({ d: 0.22, vol: 0.12, from: 500, to: 2600, type: 'bandpass' }); },
+    relics2Whoosh() {
+      if (!gap('r2whoosh', 0.08)) return;
+      // Aerodynamic air vortex (smooth bandpass sweep)
+      noise({ d: 0.24, vol: 0.13, from: 700, to: 1550, type: 'bandpass' });
+      // Spinning wooden airfoil resonance (Doppler arc in D4)
+      tone(293.66, { type: 'sine', a: 0.015, d: 0.18, vol: 0.07, slide: 370 });
+      tone(370, { type: 'sine', a: 0.01, d: 0.15, vol: 0.05, slide: 293.66, at: 0.07 });
+    },
     relics2Thud() { if (gap('r2thud', 0.06)) { tone(90, { type: 'sine', d: 0.16, vol: 0.3, slide: -40 }); noise({ d: 0.08, vol: 0.14, from: 900, to: 200 }); } },
     relics2Pop() { if (gap('r2pop', 0.08)) [784, 1175].forEach((f, i) => tone(f, { type: 'triangle', d: 0.14, vol: 0.14, at: i * 0.06 })); },
     relics2Fire() { if (gap('r2fire', 0.25)) noise({ d: 0.35, vol: 0.1, from: 1800, to: 500 }); },
