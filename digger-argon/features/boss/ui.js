@@ -6,6 +6,7 @@ import { fx, AT, CELL, W, H, SKY, rr, seeded, centre, yOf, onFx, debris, spark, 
 import { nextMap } from '../sites/ui.js';
 import { sfx, gap, tone, noise, wob, rubblePitch } from '../../ui/audio.js';
 import { textDir } from '../../core/lang.js';
+import { triggerHaptic } from '../picks/rules.js';
 
 const { t, fmt } = G;
 
@@ -249,6 +250,7 @@ ui({
     },
     bossDown(d, app) {
       sfx.bossDown(); shake(1); screenFlash('#fff', 0.6); app.hitStop(0.12);
+      if (d.gate) triggerHaptic('T3');
       for (let c = 0; c < G.COLS; c++) { debris(d.r, c, '#6a6384', 16, 1.6); coinBurst(d.r, c, 8); }
       const y = yOf(d.r) + CELL / 2;
       ring(W / 2, y, W * 0.7, '#fff'); ring(W / 2, y, W * 0.45, '#ffd23f');
@@ -257,6 +259,9 @@ ui({
       spark(W / 2, y - 50, '#ffd23f', 16);
       if (sfx.bonusTime) sfx.bonusTime(!!d.gate);
       app.banner(t('boss_down'), t('boss_down_sub', { n: fmt(d.coins) }));
+    },
+    gateConsolation(d, app) {
+      if (app && app.toast) app.toast(d.dialogue, 'gold');
     },
   },
   // the goal line: the way to the next Big Rock. While a Rock stands its health is drawn on the Rock itself.

@@ -23,6 +23,7 @@ export default { en: {
   delay_note: 'Buying this makes the Second Pick wait.',
   pick2_banner: 'Second Pick!', pick2_sub: 'A second swing joins the beat.',
   good_hit: 'Good Hit!', fever_banner: 'Yalla! Fever!', fever_sub: '20 seconds of double speed and frenzy!',
+  sand_burst: 'Sand Burst!', fever_yalla: 'Yalla!', fever_gauge: 'Fever Gauge',
 }, ar: {
   up_tempo: 'أيدٍ أسرع', up_tempo_d: 'الإيقاع: {a} ← {b} في الدقيقة.', up_tempo_full: 'الإيقاع: {a} في الدقيقة. هذا أسرع ما يمكن.',
   up_pick2: 'المعول الثاني', up_pick2_d: 'معول ثانٍ، إلى الأبد. معولان يضربان ضعف الضرب، ويعزفان «بوم تك».',
@@ -48,5 +49,6 @@ export default { en: {
   delay_note: 'شراء هذا يؤخّر المعول الثاني.',
   pick2_banner: 'المعول الثاني!', pick2_sub: 'ضربة ثانية تنضمّ إلى الإيقاع.',
   good_hit: 'ضربة متقنة!', fever_banner: 'يلا! حماس!', fever_sub: '20 ثانية من السرعة المضاعفة والحماس!',
+  sand_burst: 'عاصفة رملية!', fever_yalla: 'يلا!', fever_gauge: 'مقياس الحماس',
 } };
 

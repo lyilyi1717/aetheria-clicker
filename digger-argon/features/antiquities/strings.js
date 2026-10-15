@@ -29,6 +29,13 @@ export default {
 
     siphon_damage: 'Gate Siphon: {n} damage',
     mortar_boost: 'Mortar Frenzy! 2x Crew Speed',
+
+    // Alqahwa Restoration Lab minigame (Issue B1 / M6)
+    restoration_lab_title: 'Alqahwa Restoration Lab',
+    restoration_brush_btn: 'Tactile Brush Stroke ({n}/5)',
+    restoration_cleared: '{n}% Debris Cleared',
+    restoration_done: 'Specimen Restored to Grade 9 Mint!',
+    restoration_sub: 'Delicately brush away encrusted desert rock to restore antiquity condition.',
   },
   ar: {
     antiquities_title: 'مختبر ترميم الآثار',
@@ -57,5 +64,12 @@ export default {
 
     siphon_damage: 'سيفون البوابة: ضرر {n}',
     mortar_boost: 'حماس الهاون! سرعة الفريق مضاعفة',
+
+    // Alqahwa Restoration Lab minigame (Issue B1 / M6)
+    restoration_lab_title: 'مختبر ترميم القهوة',
+    restoration_brush_btn: 'مسحة الفرشاة التكتيكية ({n}/5)',
+    restoration_cleared: 'تم تنظيف {n}% من الركام',
+    restoration_done: 'تم ترميم العينة إلى الدرجة 9 ممتاز!',
+    restoration_sub: 'امسح الصخور الصحراوية المتكلسة بدقة لترميم حالة الأثر.',
   },
 };

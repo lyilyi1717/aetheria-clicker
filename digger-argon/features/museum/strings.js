@@ -10,6 +10,21 @@ export default { en: {
   mus_opens: 'Finish it and: {what}',
   mus_opened: 'It opened: {what}',
   mus_none: 'Nothing for the Museum here.',
+
+  // PSA-Style Condition Grading (Issue B1 / M6)
+  grade_10: 'Grade 10 (Gem Mint)',
+  grade_9: 'Grade 9 (Mint)',
+  grade_9_restored: 'Grade 9 (Restored Mint)',
+  grade_8: 'Grade 8 (Near Mint)',
+  grade_7: 'Grade 7 (Weathered)',
+  slab_gold: 'Gold Slab',
+  slab_silver: 'Silver Slab',
+  slab_bronze: 'Bronze Slab',
+  velvet_case_title: 'Velvet Display Case',
+  specimen_restored_toast: 'Specimen restored to Grade 9 Mint!',
+  graded_badge: 'PSA {grade}',
+  clean_specimen: 'Clean Excavation',
+  damaged_specimen: 'Explosion Fractured',
 }, ar: {
   museum: 'المتحف',
   t_fossil_none: 'عظمة قديمة. بيعت مقابل {n} عملة.',
@@ -22,4 +37,19 @@ export default { en: {
   mus_opens: 'أكمله لتحصل على: {what}',
   mus_opened: 'فتح لك: {what}',
   mus_none: 'لا شيء للمتحف هنا.',
+
+  // PSA-Style Condition Grading (Issue B1 / M6)
+  grade_10: 'الدرجة 10 (جوهرة مصقولة)',
+  grade_9: 'الدرجة 9 (ممتاز)',
+  grade_9_restored: 'الدرجة 9 (مرمم ممتاز)',
+  grade_8: 'الدرجة 8 (شبه ممتاز)',
+  grade_7: 'الدرجة 7 (متآكل)',
+  slab_gold: 'شريحة ذهبية',
+  slab_silver: 'شريحة فضية',
+  slab_bronze: 'شريحة برونزية',
+  velvet_case_title: 'خزانة العرض المخملية',
+  specimen_restored_toast: 'تم ترميم العينة إلى الدرجة 9 ممتاز!',
+  graded_badge: 'تصنيف {grade}',
+  clean_specimen: 'تنقيب نظيف',
+  damaged_specimen: 'تصدع بالانفجار',
 } };

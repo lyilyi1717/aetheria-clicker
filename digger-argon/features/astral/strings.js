@@ -8,6 +8,7 @@ export default {
     tool_magnetic_pick: 'Magnetic Pick',
     tool_magnetic_pick_d: 'Draws all floating ores directly into your hold',
     magnet_pull: 'Magnetic Surge!',
+    rubble_floated: 'Loose rubble ascends to the ceiling',
   },
   ar: {
     astral_title: 'الانقلاب النجمي',
@@ -17,5 +18,7 @@ export default {
     tool_magnetic_pick: 'المعول المغناطيسي',
     tool_magnetic_pick_d: 'يجذب جميع الخامات الطافية مباشرة إلى مخزنك',
     magnet_pull: 'تدفق مغناطيسي!',
+    rubble_floated: 'الحصى السائب يرتفع نحو السقف',
   },
+
 };

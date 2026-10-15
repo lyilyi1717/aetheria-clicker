@@ -99,8 +99,8 @@ const p = {
   chiliSight: 1,                  // Chili 3: Dim Cavern (reduced sight radius)
   hardmodeBaseFloor: 125,         // Hardmode Gate depth is always at least 125m
   chiliStars: [2, 3.5, 5, 7.5, 10], // Exponential Star scaling (1 chili = 2x, 5 chilis = 10x)
-  chiliHitAt: { 1: 0.03, 2: 0.03, 3: 0.04, 4: 0.04, 5: 0.05 }, // Permanent hit bonus per pip (+3% to +5%)
-  chiliHitCap: 5.0,               // Cap for stacking chili hit bonuses
+  chiliHitAt: { 3: 0.03, 5: 0.05 },               // clearing this pip adds this to your hit for ever (per level; they add up)
+  chiliHitCap: 1.6,                               // the most the chilies ever add (+160%)
 };
 
 // The first four sites, in order. Why this order: the Dunes teach the hit, the ore and the Big Rock. Powder Valley teaches
@@ -368,7 +368,7 @@ export const CHILI_STAR_MULTS = [0, 2, 3.5, 5, 7.5, 10];
 export const chiliStarMult = count => CHILI_STAR_MULTS[Math.min(5, Math.max(1, count))] || (count * 2);
 
 // the hit a pip adds when it is cleared (0 for most), and everything the chilies add now
-export const chiliGain = n => (p.chiliHitAt && p.chiliHitAt[n] !== undefined) ? p.chiliHitAt[n] : (n >= 5 ? 0.05 : 0.03);
+export const chiliGain = n => (p.chiliHitAt && p.chiliHitAt[n] !== undefined) ? p.chiliHitAt[n] : 0;
 
 export function chiliHit(s) {
   let sum = 0;
@@ -461,15 +461,16 @@ function finish(s, ev) {
   s.road.deal = s.road.free = null;                      // cards dealt before this finish (a look from the leave button) show the road as it was
   const st = stampOf(s, r.site, r.floor, r.twist, r.ch), ch = chOf(r);
   const originSt = r.originKey ? s.road.stamps[r.originKey] : null;
-  const first = !st.fin, fast = r.time <= runPar(r);
-  let stars = first ? firstPay(r.floor, roadKind(r.site, r.floor, r.twist, ch), ch) : replayPay(r.floor, ch);
+  const targetSt = originSt || st;
+  const first = !targetSt.fin, fast = r.time <= runPar(r);
+  let stars = first ? firstPay(r.floor, roadKind(r.site, r.floor, r.twist, ch), ch) : replayPay(originSt ? originSt.floor : r.floor, ch);
 
   // Bank surplus time into star bonus multiplier if finished fast under par
   const surplusSecs = Math.max(0, runPar(r) - r.time);
   const surplusMul = fast && surplusSecs > 0 ? (1 + Math.min(1.0, +(surplusSecs / Math.max(1, runPar(r))).toFixed(2))) : 1.0;
   r.surplusSecs = surplusSecs;
   r.surplusMul = surplusMul;
-  if (surplusMul > 1.0) {
+  if (first && surplusMul > 1.0) {
     stars = Math.round(stars * surplusMul);
   }
 
@@ -481,11 +482,12 @@ function finish(s, ev) {
     stars = chiliPay(r.floor, cn, ch);
     const pipsBefore = pipsOf(originSt || st);
     if (cn > pipsBefore || (originSt && !originSt.hard) || !st.hard) {
-      st.chili = Math.max(st.chili || 0, cn);
-      if (!st.hard) { st.hard = 1; r.medals.hard = 1; }
       if (originSt) {
         originSt.chili = Math.max(originSt.chili || 0, cn);
         if (!originSt.hard) originSt.hard = 1;
+      } else {
+        st.chili = Math.max(st.chili || 0, cn);
+        if (!st.hard) { st.hard = 1; r.medals.hard = 1; }
       }
       s.road.chiliHit = chiliHit(s);
       chili = { n: cn, chilis: activeChilis, stars, gain: chiliGain(cn), hit: s.road.chiliHit };
@@ -532,11 +534,15 @@ function finish(s, ev) {
   }
 
   s.stars += stars; r.paid += stars;
-  st.fin = 1; r.medals.fin = 1;
-  st.best = st.best ? Math.min(st.best, r.time) : r.time;
   if (originSt) {
     originSt.fin = 1;
     originSt.best = originSt.best ? Math.min(originSt.best, r.time) : r.time;
+    if (r.key !== r.originKey) {
+      delete s.road.stamps[r.key];
+    }
+  } else {
+    st.fin = 1; r.medals.fin = 1;
+    st.best = st.best ? Math.min(st.best, r.time) : r.time;
   }
   s.road.reach = Math.max(s.road.reach, r.floor);
   if (fast) { r.medals.fast = 1; stars += award(s, ev, st, r.key, 'fast', medalPay(r.floor, ch)); }
@@ -563,6 +569,7 @@ export function chiliCard(s, key, selectedChilis = null) {
   const pips = pipsOf(st);
   let chilis = selectedChilis;
   if (!chilis || !chilis.length) {
+    if (pips >= p.chiliPips) return null;
     const n = Math.min(p.chiliPips, pips + 1);
     chilis = [];
     for (let i = 1; i <= n; i++) chilis.push(i);

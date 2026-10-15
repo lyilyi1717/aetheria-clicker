@@ -123,6 +123,52 @@ function arrow(g, x) {
   g.restore();
 }
 
+// ---------- PSA-Style Graded Slabs & Velvet Display Case (Issue B1 / M6) ----------
+export function renderGradedSlab(specimen) {
+  if (!specimen) return '';
+  const grade = specimen.grade || 9;
+  const slab = grade === 10 ? 'gold' : grade === 9 ? 'silver' : 'bronze';
+  const gradeLabel = t('grade_' + grade + (specimen.restored ? '_restored' : ''));
+  const cleanLabel = specimen.clean ? t('clean_specimen') : t('damaged_specimen');
+  const setId = specimen.set || (specimen.id ? specimen.id.split('.')[0] : 'fossil');
+  const setName = t('wset_' + setId) || setId;
+
+  return `<div class="graded-slab slab-${slab}" data-id="${specimen.id}" data-grade="${grade}">
+    <div class="slab-header">
+      <div class="slab-badge">PSA ${grade}</div>
+      <div class="slab-title">${gradeLabel}</div>
+    </div>
+    <div class="slab-velvet">
+      <div class="slab-fossil-art">${setSvg(setId, () => true, slab === 'gold' ? '#ffd700' : slab === 'silver' ? '#e0e0e0' : '#cd7f32')}</div>
+    </div>
+    <div class="slab-footer">
+      <div class="slab-set-name">${setName}</div>
+      <div class="slab-cert">${cleanLabel}${specimen.restored ? ' • ' + t('grade_9_restored') : ''}</div>
+    </div>
+  </div>`;
+}
+
+export function openVelvetCase(s, app) {
+  const specs = G.allSpecimens ? G.allSpecimens(s) : Object.values(s.specimens || {});
+  const slabsHtml = specs.length
+    ? specs.map(sp => renderGradedSlab(sp)).join('')
+    : `<div class="velvet-empty">${t('mus_none')}</div>`;
+
+  const m = app.modal.open('velvet-case', `<div class="velvet-case">
+    <div class="velvet-header">
+      <h2>${t('velvet_case_title')}</h2>
+      <button class="ghost velvet-close">${t('rq_close') || 'Close'}</button>
+    </div>
+    <div class="velvet-grid">
+      ${slabsHtml}
+    </div>
+  </div>`);
+
+  if (m) {
+    m.querySelector('.velvet-close').addEventListener('click', () => app.modal.close());
+  }
+}
+
 ui({
   id: 'museum',
   css: new URL('./museum.css', import.meta.url).href,
@@ -130,6 +176,12 @@ ui({
     fossil() {
       if (!gap('fossil', 0.2)) return;
       [392, 494, 587, 784].forEach((f, i) => tone(f, { type: 'sine', d: 0.3, vol: 0.2, at: i * 0.09 }));
+    },
+    grade10() {
+      [523, 659, 784, 1046].forEach((f, i) => tone(f, { type: 'triangle', d: 0.4, vol: 0.25, at: i * 0.07 }));
+    },
+    restore() {
+      [440, 554, 659, 880].forEach((f, i) => tone(f, { type: 'sine', d: 0.35, vol: 0.2, at: i * 0.08 }));
     },
   },
   art: {
@@ -160,6 +212,20 @@ ui({
       sfx.fossil();
       const [x, y] = centre(d.r, d.c); ring(x, y, CELL * 1.4, '#f6efdc'); spark(x, y, '#f6efdc', 20);
       app.toast(t('t_fossil_none', { n: fmt(d.coins) }), 'fossil');
+    },
+    fossilGraded(d, app) {
+      const col = d.slab === 'gold' ? '#ffd700' : d.slab === 'silver' ? '#e0e0e0' : '#cd7f32';
+      if (d.grade === 10) {
+        sfx.grade10();
+        shake(0.2);
+        screenFlash('#ffd700', 0.25);
+      }
+      app.toast(`PSA ${d.grade}: ${t('grade_' + d.grade)}`, 'fossil');
+    },
+    specimenRestored(d, app) {
+      sfx.restore();
+      shake(0.2);
+      app.toast(t('specimen_restored_toast'), 'fossil');
     },
     // a new piece: the skeleton in the background fills in there with a shine
     wingPiece(d) {

@@ -46,14 +46,51 @@ function rivalFor(seats, i) {
     if (j >= 0) { seat.rival = j; seats[j].rival = i; }
   }
 }
+export const MAX_CREW_SEATS = 8;
+const TEAS = ['Karak with Saffron', 'Cardamom Black', 'Desert Sage', 'Mint Green', 'Ginger Spiced', 'Cinnamon Amber', 'Earl Grey Desert', 'Smoked Oolong'];
+
 function addSeat(s) {
+  if (!s.rafeeqSeats) s.rafeeqSeats = [];
   const seats = s.rafeeqSeats, i = seats.length;
-  const seat = { name: '', given: '', trait: 'eager', friend: i > 0 ? i - 1 : -1, rival: -1, life: blankLife() };
+  const currentFloor = (s.run && s.run.floor) ? s.run.floor : 1;
+  const seat = {
+    seatId: i,
+    name: '',
+    given: '',
+    trait: 'eager',
+    calling: (s.guilds && s.guilds.callings && s.guilds.callings[i]) || null,
+    friend: i > 0 ? i - 1 : -1,
+    rival: -1,
+    blocksBroken: 0,
+    lifetimeBlocks: 0,
+    relicsFound: 0,
+    relicsDiscovered: 0,
+    joinedAtLevel: currentFloor,
+    favoriteTea: TEAS[i % TEAS.length],
+    life: blankLife(),
+  };
   if (i > 0 && seats[i - 1].friend < 0) seats[i - 1].friend = i;
   seats.push(seat);
   deal(seats, [i]);
   rivalFor(seats, i);
+  ensureRosterSync(s);
 }
+
+function ensureRosterSync(s) {
+  if (!s.rafeeqs) s.rafeeqs = { roster: [] };
+  if (!Array.isArray(s.rafeeqs.roster)) s.rafeeqs.roster = [];
+  s.rafeeqs.roster = s.rafeeqSeats;
+}
+
+export function ensureRoster(s) {
+  if (!s.rafeeqSeats) s.rafeeqSeats = [];
+  while (s.rafeeqSeats.length < MAX_CREW_SEATS) {
+    addSeat(s);
+  }
+  ensureRosterSync(s);
+  return s.rafeeqs.roster;
+}
+
 // a new site: every seat the player did not rename gets a new nickname (old first names are replaced here too)
 export function rafeeqRedeal(s) {
   const seats = s.rafeeqSeats || [];
@@ -68,9 +105,16 @@ export function rafeeqNick(s, i) { const x = seatOf(s, i); return x && !handName
 // the line shown for his trait: his own when he has a nickname, else that of his base trait
 export function rafeeqLine(s, i) { const n = rafeeqNick(s, i); return n ? t('nk_line_' + n.id) : t('rq_line_' + rafeeqTrait(s, i)); }
 
-export function rafeeqSeats(s) { if (!s.rafeeqSeats) s.rafeeqSeats = []; while (s.rafeeqSeats.length < s.diggers.length) addSeat(s); return s.rafeeqSeats; }
+export function rafeeqSeats(s) {
+  if (!s.rafeeqSeats) s.rafeeqSeats = [];
+  while (s.rafeeqSeats.length < (s.diggers || []).length) addSeat(s);
+  ensureRosterSync(s);
+  return s.rafeeqSeats;
+}
+export function rafeeqRoster(s) { return ensureRoster(s); }
+export function rafeeqSeat(s, i) { ensureRoster(s); return seatOf(s, i); }
 const seatOf = (s, i) => (s.rafeeqSeats || [])[i] || null;
-const diggerOf = (s, i) => s.diggers[i] || null;
+const diggerOf = (s, i) => (s.diggers || [])[i] || null;
 
 // in Arabic a nickname shows in its own script (names.js `ar`); the Arabizi id is never shown there
 export function rafeeqName(s, i) {
@@ -81,6 +125,49 @@ export function rafeeqName(s, i) {
 }
 export function rafeeqTrait(s, i) { const x = seatOf(s, i); return x ? x.trait : RAFEEQ_TRAITS[i % RAFEEQ_TRAITS.length]; }
 export function rafeeqPair(s, i) { const x = seatOf(s, i); return x ? { friend: x.friend, rival: x.rival } : { friend: -1, rival: -1 }; }
+export function rafeeqCalling(s, i) {
+  const x = seatOf(s, i);
+  if (x && x.calling) return x.calling;
+  if (s.guilds && s.guilds.callings && s.guilds.callings[i]) return s.guilds.callings[i];
+  return null;
+}
+
+export function rafeeqLifetimeLedger(s, i) {
+  const x = seatOf(s, i);
+  if (!x) return { blocksBroken: 0, lifetimeBlocks: 0, relicsFound: 0, relicsDiscovered: 0, joinedAtLevel: 1, calling: null, favoriteTea: 'Karak' };
+  const calling = rafeeqCalling(s, i);
+  return {
+    name: rafeeqName(s, i),
+    calling,
+    trait: x.trait,
+    blocksBroken: x.blocksBroken || x.life.broke || 0,
+    lifetimeBlocks: x.lifetimeBlocks || x.life.broke || 0,
+    relicsFound: x.relicsFound || 0,
+    relicsDiscovered: x.relicsDiscovered || x.relicsFound || 0,
+    joinedAtLevel: x.joinedAtLevel || 1,
+    favoriteTea: x.favoriteTea || 'Karak',
+  };
+}
+
+export function rafeeqCampfireDialogue(s, i) {
+  const calling = rafeeqCalling(s, i);
+  const name = rafeeqName(s, i);
+  const trait = rafeeqTrait(s, i);
+
+  if (calling === 'naqqab') {
+    return t('rq_campfire_naqqab', { name });
+  }
+  if (calling === 'baroodi') {
+    return t('rq_campfire_baroodi', { name });
+  }
+  if (calling === 'ghawwas') {
+    return t('rq_campfire_ghawwas', { name });
+  }
+  if (calling === 'muhandis') {
+    return t('rq_campfire_muhandis', { name });
+  }
+  return t('rq_campfire_trait_' + trait, { name }) || t('rq_campfire_default', { name });
+}
 
 export function rafeeqRename(s, i, text) {
   const x = seatOf(s, i);
@@ -102,13 +189,16 @@ export function rafeeqStats(s, i) {
 // who brought the most coins this level (a tie goes to the lower seat); -1 when nobody brought any
 export function rafeeqBest(s) {
   let best = -1, top = 0;
-  s.diggers.forEach((d, i) => { const c = d.coins || 0; if (c > top) { top = c; best = i; } });
+  (s.diggers || []).forEach((d, i) => { const c = d.coins || 0; if (c > top) { top = c; best = i; } });
   return best;
 }
 
 export const rafeeqs = use({
   id: 'rafeeqs', params: p, strings, stringsAr,
-  state: { rafeeqSeats: { init: () => [], survives: ['site', 'land'] } },
+  state: {
+    rafeeqSeats: { init: () => [], survives: ['site', 'land'] },
+    rafeeqs:     { init: () => ({ roster: [] }), survives: ['site', 'land'] },
+  },
   hooks: {
     // seats fill themselves whenever there are more Rafeeqs than seats: the shop, a Star perk or a start kit all count
     step: { at: 610, fn(s) { rafeeqSeats(s); } },
@@ -117,6 +207,21 @@ export const rafeeqs = use({
       if (b.src !== 'crew' || !(b.coins > 0)) return;
       const d = s.diggers.find(x => x.tr === b.r && x.tc === b.c);
       if (d && (!d.bestFind || b.coins > d.bestFind.coins)) d.bestFind = { kind: b.t, coins: Math.round(b.coins) };
+      if (d) {
+        const seatIdx = s.diggers.indexOf(d);
+        if (seatIdx >= 0) {
+          const seat = (s.rafeeqSeats || [])[seatIdx];
+          if (seat) {
+            seat.life.broke = (seat.life.broke || 0) + 1;
+            seat.blocksBroken = seat.life.broke;
+            seat.lifetimeBlocks = seat.life.broke;
+            if (b.t === 'fossil' || b.t === 'lost' || (b.cell && b.cell.chest)) {
+              seat.relicsFound = (seat.relicsFound || 0) + 1;
+              seat.relicsDiscovered = seat.relicsFound;
+            }
+          }
+        }
+      }
     },
     // before the level is wiped: bank each Rafeeq's totals into his seat
     // a new site or land: the crew is dealt new nicknames (hand-given names stay)
@@ -124,10 +229,12 @@ export const rafeeqs = use({
     resetting(s, name) {
       if (!s.rafeeqSeats) return;
       const finished = !!(s.run && s.run.done);
-      s.diggers.forEach((d, i) => {
+      (s.diggers || []).forEach((d, i) => {
         const x = s.rafeeqSeats[i];
         if (!x) return;
         x.life.broke += d.broke || 0;
+        x.blocksBroken = x.life.broke;
+        x.lifetimeBlocks = x.life.broke;
         x.life.coins += Math.round(d.coins || 0);
         if (d.bestFind && (!x.life.best || d.bestFind.coins > x.life.best.coins)) x.life.best = { ...d.bestFind };
         if (finished) x.life.levels++;

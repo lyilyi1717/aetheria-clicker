@@ -26,3 +26,18 @@
   background: linear-gradient(90deg, #0284c7, #38bdf8);
   transition: width 0.1s linear;
 }
+
+.aquifer-hydro-jet {
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+  border-color: #38bdf8;
+}
+
+.aquifer-silt-dissolve {
+  animation: siltFade 0.3s ease-out forwards;
+}
+
+@keyframes siltFade {
+  0% { opacity: 1; transform: scale(1); filter: blur(0px); }
+  100% { opacity: 0; transform: scale(0.9); filter: blur(2px); }
+}
+

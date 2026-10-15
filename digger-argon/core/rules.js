@@ -3,7 +3,7 @@
 // reported with emit(s, ev, kind, data). What each kind of block, relic, site or layer does lives in
 // proto/features/ and plugs in through the hooks named here (the full list is in proto/README.md).
 import { use, BLOCKS, ITEMS, SHOPS, TOOLS, QUEUE, layersOf, run, fold, emit, pollUnlocks } from './registry.js';
-import { layerOf, cellAt, setCell, reachable, dirtVal, scroll } from './grid.js';
+import { COLS, layerOf, cellAt, setCell, reachable, dirtVal, scroll } from './grid.js';
 import { getTuning } from './tuning.js';
 
 const NOEV = () => {};
@@ -168,17 +168,54 @@ export function swing(s, r, c, ev = NOEV) {
   const power = pickPower(s);
   const isOverkill = power >= hp0;
   const broke = damage(s, r, c, sw.dmg, 'you', ev, { crit: sw.crit, shatter: isOverkill });
-  const reach = fold('punch', s, 0);
-  const okRatio = getTuning('overkillRatio', s, 0.5);
-  if (reach > 0 && broke && !sw.B.wall && sw.dmg > hp0) {
-    const carry = Math.min(sw.dmg - hp0, Math.max(1, power * okRatio));
-    punch(s, r, c, reach, carry, ev);
+  const isFever = !!((s.fever && s.fever.active) || (s.picks && s.picks.feverActive) || s.sandBurstActive);
+  if (broke && !sw.B.wall && sw.dmg > hp0) {
+    if (isFever) {
+      sandBurst(s, r, c, sw.dmg - hp0, ev);
+    }
+    const reach = fold('punch', s, 0);
+    const okRatio = getTuning('overkillRatio', s, 0.5);
+    if (reach > 0) {
+      const carry = Math.min(sw.dmg - hp0, Math.max(1, power * okRatio));
+      punch(s, r, c, reach, carry, ev);
+    } else if (isOverkill && s.up && s.up.pick > 0) {
+      const overkill = Math.min(power - hp0, Math.max(1, power * okRatio));
+      if (overkill > 0) punch(s, r, c, 1, overkill, ev);
+    }
   } else if (broke && !sw.B.wall && isOverkill && s.up && s.up.pick > 0) {
+    const okRatio = getTuning('overkillRatio', s, 0.5);
     const overkill = Math.min(power - hp0, Math.max(1, power * okRatio));
     if (overkill > 0) punch(s, r, c, 1, overkill, ev);
   }
   run('swung', s, sw, ev);
   return true;
+}
+
+// Overkill Sand-Burst: When pick damage exceeds cell HP, residual shockwaves deal 50% damage
+// to all adjacent orthogonal cells ((r±1, c), (r, c±1)), vaporizing soft sand/dirt blocks.
+export function sandBurst(s, r, c, residualDmg, ev = NOEV) {
+  const burstDmg = Math.max(1, Math.round(residualDmg * getTuning('sandBurstRatio', s, 0.5)));
+  const neighbors = [
+    [r - 1, c],
+    [r + 1, c],
+    [r, c - 1],
+    [r, c + 1],
+  ];
+  const hitCells = [];
+  for (const [nr, nc] of neighbors) {
+    if (nc < 0 || nc >= COLS) continue;
+    const cell = cellAt(s, nr, nc);
+    if (!cell || (BLOCKS[cell.t] && BLOCKS[cell.t].wall)) continue;
+    const isSand = cell.t === 'sand' || cell.t === 'dirt' || cell.t === 'silt';
+    const cellHp = cell.hp;
+    const finalDmg = isSand && cellHp <= burstDmg ? cellHp : burstDmg;
+    damage(s, nr, nc, finalDmg, 'you', ev, { chain: 1, burst: true, shatter: finalDmg >= cellHp });
+    hitCells.push({ r: nr, c: nc, dmg: finalDmg });
+  }
+  if (hitCells.length > 0) {
+    emit(s, ev, 'sandBurst', { r, c, dmg: burstDmg, cells: hitCells });
+  }
+  return hitCells;
 }
 
 // Punch-through: the strength a hit has left after it broke a block goes into the block below, then

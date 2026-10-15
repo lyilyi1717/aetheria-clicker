@@ -127,6 +127,19 @@ export function isAccentWindow(clock, bpmOrTol = 100, countOrTol = 1, zone = 'ar
 }
 export const inAccentWindow = isAccentWindow;
 
+// 16-step sequencer synchronization helpers: calculate current 16th-note step from audio clock
+export function getStepIndex(clock, bpm = 100) {
+  const stepTime = 15 / bpm;
+  const barTime = STEPS * stepTime;
+  const modT = ((clock % barTime) + barTime) % barTime;
+  return Math.floor((modT + 1e-7) / stepTime) % STEPS;
+}
+
+export function isStepAccent(step, count = 1, zone = 'arabia') {
+  const bar = picksBarOf(count, zone);
+  return bar.v[((step % STEPS) + STEPS) % STEPS] === 'X';
+}
+
 
 // What is wrong with a bar, as a list of words (empty = fine). `floor` is the least time between two
 // notes, `maxBpm` the fastest tempo it will be played at, `run` the longest row of steps with no rest.

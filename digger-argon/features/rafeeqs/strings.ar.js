@@ -93,4 +93,22 @@ export default { ar: {
   rq_joke_sandal: 'وجد {name} نعالاً فلبسه إلى العمل.',
   rq_joke_habibi: 'سمّى {name} صخرةً «حبيبي» وأخبرها بأسراره.',
   rq_joke_nap: 'نام {name} في الظل، ثم اشتغل ضعفين ليخفي ذلك.',
+
+  // Companion Dossier & Lifetime Ledger (Issue B2 / M8)
+  rq_blocks_broken: 'الكتل المحفورة',
+  rq_relics_found: 'الآثار المكتشفة',
+  rq_joined_level: 'عمق الانضمام',
+  rq_favorite_tea: 'الشاي المفضل',
+  rq_campfire_title: 'حديث الموقد',
+  rq_campfire_naqqab: '{name}: «راقب كيف تتصدع صخور البازلت مع خطوط الفالق. اضرب بعزم وثبات.»',
+  rq_campfire_baroodi: '{name}: «جزءان من الكبريت وجزء من الفحم، والكثير من الصبر عند إشعال الفتيل.»',
+  rq_campfire_ghawwas: '{name}: «تخفي الرمال القديمة أثمن الكنوز. غربل كل حفنة بعناية.»',
+  rq_campfire_muhandis: '{name}: «سقالة متينة وقنديل ساطع يبددان ظلمة أعمق المغارات.»',
+  rq_campfire_default: '{name}: «اشرب شايك؛ فالجبل لن يهرب.»',
+  rq_campfire_trait_eager: '{name}: «اشرب بسرعة يا حبيبي! الأعماق تنادي فؤوسنا.»',
+  rq_campfire_trait_sleepy: '{name}: «فقط خمس دقائق قرب الجمر... ثم سأعود للحفر.»',
+  rq_campfire_trait_joker: '{name}: «ألقيت نكتة على وحش البوابة، فكاد ينشق من الضحك!»',
+  rq_campfire_trait_careful: '{name}: «تأكد من نعالك من العقارب ومن فتيلك من الشرر.»',
+  rq_campfire_trait_proud: '{name}: «لا أحد يضرب بالفأس كفريقنا؛ سيذكرنا التاريخ.»',
+  rq_campfire_trait_hungry: '{name}: «هل بدأ القدر يغلي؟ البطن الشبعان يكسر الصخر الصلب.»',
 } };

@@ -12,3 +12,41 @@
 .shop-item .pin-btn { align-self: flex-start; margin-block-start: 3px; font-size: 13px; font-weight: 800; padding: 2px 9px; border-radius: 10px; border: 1px solid var(--gold); color: var(--gold); cursor: pointer; }
 .shop-item .pin-btn.on { color: #1a1206; background: var(--gold); }
 .shop-item .delay-note { font-size: 13px; color: var(--muted); font-style: italic; }
+
+/* Visual groove ripple styling for rhythmic one-thumb drag-hold */
+.groove-ripple {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 210, 63, 0.8);
+  box-shadow: 0 0 12px rgba(255, 210, 63, 0.6);
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 1;
+  transition: transform 0.35s ease-out, opacity 0.35s ease-out;
+}
+.groove-ripple.active {
+  transform: translate(-50%, -50%) scale(1.6);
+  opacity: 0;
+}
+
+/* Glowing golden Arabesque filigree viewport border */
+.fever-arabesque-border {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  box-shadow: inset 0 0 24px rgba(255, 210, 63, 0.65), inset 0 0 8px rgba(255, 255, 255, 0.4);
+  border: 3px solid rgba(255, 210, 63, 0.85);
+  animation: fever-pulse 0.75s ease-in-out infinite alternate;
+}
+
+@keyframes fever-pulse {
+  0% {
+    box-shadow: inset 0 0 16px rgba(255, 210, 63, 0.5), inset 0 0 6px rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 210, 63, 0.75);
+  }
+  100% {
+    box-shadow: inset 0 0 36px rgba(255, 210, 63, 0.9), inset 0 0 14px rgba(255, 255, 255, 0.6);
+    border-color: #ffe14a;
+  }
+}

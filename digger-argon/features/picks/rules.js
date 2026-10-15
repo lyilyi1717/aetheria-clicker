@@ -29,10 +29,26 @@ import { starshopPunch } from '../starshop/rules.js';
 import { roadZone, ROAD, roadKey } from '../sites/rules.js';
 import { t } from '../../core/strings.js';
 import { WING, wingCount, wingDone } from '../wing2/rules.js';
-import { PICKS_BARS, ZONE_BARS, BAR_ZONES, MAX_PICKS, picksBarOf, stepSec, hitsPerSec, barFaults, isAccentWindow, inAccentWindow } from './beat.js';
+import { PICKS_BARS, ZONE_BARS, BAR_ZONES, MAX_PICKS, picksBarOf, stepSec, hitsPerSec, barFaults, isAccentWindow, inAccentWindow, getStepIndex, isStepAccent } from './beat.js';
 import strings from './strings.js';
 
-export { PICKS_BARS, ZONE_BARS, BAR_ZONES, picksBarOf, picksSeq, barText as picksBarText, barFaults as picksBarFaults, stepSec as picksStepSec, hitsPerSec as picksHitsPerSec, notesPerSec as picksNotesPerSec, isAccentWindow, inAccentWindow } from './beat.js';
+export { PICKS_BARS, ZONE_BARS, BAR_ZONES, picksBarOf, picksSeq, barText as picksBarText, barFaults as picksBarFaults, stepSec as picksStepSec, hitsPerSec as picksHitsPerSec, notesPerSec as picksNotesPerSec, isAccentWindow, inAccentWindow, getStepIndex, isStepAccent } from './beat.js';
+
+// Multitier mobile haptic feedback patterns
+export const HAPTIC_PATTERNS = {
+  T0: 10,                 // Soft Dirt: 10ms tick
+  T1: 25,                 // Hard Rock / Ore: 25ms impact
+  T2: [20, 30, 20],       // Crack / Crit: double pulse
+  T3: 350,                // Gate Shatter: 350ms rumble
+};
+
+export function triggerHaptic(tier) {
+  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+    const pattern = HAPTIC_PATTERNS[tier] !== undefined ? HAPTIC_PATTERNS[tier] : 10;
+    try { return navigator.vibrate(pattern); } catch (e) { return false; }
+  }
+  return false;
+}
 
 const p = {
   tempos: [100, 110, 120, 132, 144, 160],   // beats a minute, by Faster Hands level
@@ -81,7 +97,13 @@ export function picksTempoGate(s) {
 export const picksTempoLock = s => { const g = picksTempoGate(s); return g ? t(g.text) : ''; };
 
 export const picksCount = s => Math.min(MAX_PICKS, 1 + (s.picks && s.picks.second ? 1 : 0) + ((s.picksUp && s.picksUp.pick3) || 0));
-export const picksBpm = s => bpmOf((s.up && s.up.tempo) || 0);
+export const isFeverActive = s => !!((s.fever && s.fever.active) || (s.picks && s.picks.feverActive));
+
+export const picksBpm = s => {
+  const base = bpmOf((s.up && s.up.tempo) || 0);
+  const mult = isFeverActive(s) ? getTuning('feverSpeedMult', s, 2.0) : 1.0;
+  return base * mult;
+};
 export const picksStep = s => stepSec(picksBpm(s));                    // seconds per step
 // the bar in play: the pick count's groove, in the beat of the land the dig is in (sites.roadZone)
 export const picksBar = s => picksBarOf(picksCount(s), roadZone(s));
@@ -94,14 +116,17 @@ export const picksGain = v => p.gain[v] || 1;
 // now ([r, c] or null); it is asked again after every swing, so when a block breaks the rest of the
 // note goes to the next one. before(i) is called ahead of pick i's swings (the page uses it to say
 // which pick is swinging). Returns the swings that landed.
-export function picksStrike(s, n, aim, ev, before) {
+// Accented beats ('X') trigger Good Hits with 1.5x to 2.5x damage and golden sparkles.
+export function picksStrike(s, n, aim, ev, before, vel = 'x', clock = undefined) {
   let done = 0;
+  const isAccent = vel === 'X' || (clock !== undefined && picksInAccentWindow(s, clock, 100));
   for (let i = 0; i < n; i++) {
     if (before) before(i);
     for (let k = 0; k < p.heft; k++) {
       const tg = aim();
       if (!tg) return done;
-      if (swing(s, tg[0], tg[1], ev)) done++;
+      const hitFn = isAccent ? goodHit : swing;
+      if (hitFn(s, tg[0], tg[1], ev)) done++;
     }
   }
   return done;
@@ -141,11 +166,15 @@ export const picksInAccentWindow = (s, clock, toleranceMs = 100) =>
 
 export function recordGoodHit(s, ev) {
   s.goodHitStreak = (s.goodHitStreak || 0) + 1;
+  if (s.picks) s.picks.accentStreak = s.goodHitStreak;
   if (!s.fever) s.fever = { streak: 0, active: false, timer: 0 };
   if (!s.fever.active) {
     s.fever.streak = (s.fever.streak || 0) + 1;
-    if (s.fever.streak >= 8) {
-      triggerFever(s, ev);
+    if (s.picks) s.picks.feverStreak = s.fever.streak;
+    const goal = s.feverGoal || (s.picks && s.picks.feverGoal) || getTuning('feverStreakGoal', s, 8);
+    if (s.fever.streak >= goal) {
+      const dur = s.feverDuration || (s.picks && s.picks.feverDuration) || getTuning('feverDuration', s, 20);
+      triggerFever(s, ev, dur);
     }
   }
 }
@@ -155,6 +184,11 @@ export function triggerFever(s, ev, duration = 20) {
   s.fever.active = true;
   s.fever.timer = duration;
   s.fever.streak = 0;
+  if (s.picks) {
+    s.picks.feverActive = true;
+    s.picks.feverTimer = duration;
+    s.picks.feverStreak = 0;
+  }
   const eventSink = typeof ev === 'function' ? ev : (() => {});
   emit(s, eventSink, 'feverStart', { duration });
 }
@@ -182,7 +216,9 @@ export function rhythmicSwing(s, r, c, clock, ev) {
   } else {
     // off-beat active hit: reset streak without penalizing HP
     s.goodHitStreak = 0;
+    if (s.picks) s.picks.accentStreak = 0;
     if (s.fever && !s.fever.active) s.fever.streak = 0;
+    if (s.picks && !s.picks.feverActive) s.picks.feverStreak = 0;
     return swing(s, r, c, ev);
   }
 }
@@ -209,24 +245,37 @@ export const picks = use({
     swingDmg: (v, s) => {
       let mult = 1;
       if (s._goodHit) mult *= getTuning('goodHitMult', s, 2.5);
-      if (s.fever && s.fever.active) mult *= getTuning('feverDmgMult', s, 1.5);
+      if (isFeverActive(s)) mult *= getTuning('feverDmgMult', s, 1.5);
       return v * mult;
     },
-    coinMult: (v, s) => (s.fever && s.fever.active ? v * getTuning('feverCoinMult', s, 2.0) : v),
-
+    coinMult: (v, s) => (isFeverActive(s) ? v * getTuning('feverCoinMult', s, 2.0) : v),
+    critChance: (v, s) => {
+      if (!isFeverActive(s)) return v;
+      if (v === 0 && !s.feverCritLock) return 0;
+      return 1.0;
+    },
   },
   hooks: {
     step: {
       at: 250,
       fn(s, dt, ev) {
-        if (s.fever && s.fever.active) {
+        if (isFeverActive(s)) {
           const isDigging = s.digging !== undefined ? !!s.digging : (s.t - (s._lastSwingT || 0) <= 1.0);
           if (isDigging) {
-            s.fever.timer -= dt;
-            if (s.fever.timer <= 0) {
-              s.fever.active = false;
-              s.fever.timer = 0;
-              s.fever.streak = 0;
+            if (s.fever) s.fever.timer -= dt;
+            if (s.picks) s.picks.feverTimer = s.fever ? s.fever.timer : (s.picks.feverTimer - dt);
+            const curTimer = s.fever ? s.fever.timer : (s.picks ? s.picks.feverTimer : 0);
+            if (curTimer <= 0) {
+              if (s.fever) {
+                s.fever.active = false;
+                s.fever.timer = 0;
+                s.fever.streak = 0;
+              }
+              if (s.picks) {
+                s.picks.feverActive = false;
+                s.picks.feverTimer = 0;
+                s.picks.feverStreak = 0;
+              }
               emit(s, ev, 'feverEnd', {});
             }
           }

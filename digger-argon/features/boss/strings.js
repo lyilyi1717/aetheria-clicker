@@ -35,6 +35,8 @@ export default { en: {
   record_new: 'New record: {n} m!',
   record_new_sub: 'You beat {old} m. Nobody has dug deeper.',
   record_flag: 'Your record {n} m',
+  gate_consolation: 'Grandpa failed that very basalt gate twice before he learned to bring the water bucket. Drink your tea; the mountain is not running away.',
+  gate_ghost_best: 'Best: {n}%',
 }, ar: {
   goal_rock: 'الصخرة الكبيرة عند {n} م',
   goal_boss: 'اكسر الصخرة الكبيرة!',
@@ -72,4 +74,6 @@ export default { en: {
   record_new: 'رقم قياسي جديد: {n} م!',
   record_new_sub: 'تجاوزت {old} م. لم يحفر أحد أعمق منك.',
   record_flag: 'رقمك القياسي {n} م',
+  gate_consolation: 'فشل جدّي أمام بوابة البازلت تلك مرتين قبل أن يتعلّم إحضار دلو الماء. اشرب شايك، فالجبل لن يهرب.',
+  gate_ghost_best: 'الأفضل: {n}%',
 } };

@@ -19,3 +19,69 @@
 .crew-row.rq-lead b::after { content: ''; display: inline-block; inline-size: 9px; block-size: 13px; margin-inline-start: 6px; vertical-align: -2px; background: linear-gradient(#e5533d, #e5533d); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%); }
 .away .rq-names { list-style: none; margin: 8px 0 0; padding: 0; font-size: 14px; }
 .away .rq-names li { margin-block: 2px; }
+
+/* Companion Dossier & Lifetime Ledger (Issue B2 / M8) */
+.rq-calling-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 4px auto 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #7a5a3a;
+  color: #e5d6c5;
+}
+.rq-calling-badge.naqqab { border-color: #ef4444; color: #fca5a5; background: rgba(239, 68, 68, 0.15); }
+.rq-calling-badge.baroodi { border-color: #f97316; color: #fdba74; background: rgba(249, 115, 22, 0.15); }
+.rq-calling-badge.ghawwas { border-color: #10b981; color: #6ee7b7; background: rgba(16, 185, 129, 0.15); }
+.rq-calling-badge.muhandis { border-color: #3b82f6; color: #93c5fd; background: rgba(59, 130, 246, 0.15); }
+
+.rq-ledger {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  background: rgba(20, 12, 8, 0.5);
+  border: 1px solid rgba(255, 210, 63, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 6px 0;
+  font-size: 13px;
+}
+.rq-ledger-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rq-ledger-row b {
+  color: #a89f91;
+  font-weight: 600;
+}
+.rq-ledger-row span {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.rq-campfire {
+  background: radial-gradient(circle at center, #2e150d 0%, #150805 100%);
+  border: 1px dashed rgba(249, 115, 22, 0.4);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 6px 0;
+}
+.rq-campfire-title {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #f97316;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.rq-campfire-quote {
+  margin: 0;
+  font-size: 13px;
+  font-style: italic;
+  color: #fed7aa;
+  line-height: 1.35;
+}
+

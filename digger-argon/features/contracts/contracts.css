@@ -47,7 +47,7 @@
 .contract-nav-choices .choice.primary.gold { border-color: #7a5a00; }
 .contract-nav-choices .choice .ic { display: flex; align-items: center; justify-content: center; }
 .contract-nav-choices .choice b { display: block; font-size: 14.5px; }
-.contract-nav-choices .choice .d { display: block; font-size: 12.5px; color: var(--muted); }
+.contract-nav-choices .choice .d { display: block; font-size: 13px; color: var(--muted); }
 .contract-result .btns { margin-block-start: 10px; }
 @media (prefers-reduced-motion: reduce) { .contract-seal { animation: none; } }
 

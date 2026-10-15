@@ -46,7 +46,7 @@ export function shatterObsidianRow(s, r, c, ev) {
 // Reaction: Lava + Water -> Obsidian Glass
 export function quenchLavaCell(s, r, c, ev) {
   const cell = cellAt(s, r, c);
-  if (!cell || cell.t !== 'lava') return false;
+  if (!cell || (cell.t !== 'lava' && cell.t !== 'molten_basalt')) return false;
   setCell(s, r, c, { t: 'obsidian', hp: 1, max: 1, s: cell.s || 0 });
   emit(s, ev, 'lavaQuenched', { r, c });
   emit(s, ev, 'obsidianFormed', { r, c });
@@ -160,10 +160,10 @@ export const geothermal = use({
   },
   hooks: {
     broke(s, b, ev) {
-      if (b.t === 'obsidian') {
+      if (b.t === 'obsidian' || b.t === 'obsidian_glass') {
         shatterObsidianRow(s, b.r, b.c, ev);
       }
-      const isHot = (b.B && b.B.hot) || b.t === 'basalt' || b.t === 'lava' || b.t === 'ember' || b.t === 'obsidian' || b.t === 'hot_basalt';
+      const isHot = (b.B && b.B.hot) || b.t === 'basalt' || b.t === 'lava' || b.t === 'ember' || b.t === 'obsidian' || b.t === 'hot_basalt' || b.t === 'molten_basalt' || b.t === 'obsidian_glass';
       if (isHot) {
         addHeat(s, p.heatPerBlock, ev);
       }
@@ -229,6 +229,10 @@ if (BLOCKS.obsidian) {
     BLOCKS.obsidian.broke = (s, b, ev) => shatterObsidianRow(s, b.r, b.c, ev);
   }
 }
+if (!BLOCKS.obsidian_glass && BLOCKS.obsidian) {
+  BLOCKS.obsidian_glass = BLOCKS.obsidian;
+}
 if (BLOCKS.lava) {
   BLOCKS.lava.hot = true;
 }
+

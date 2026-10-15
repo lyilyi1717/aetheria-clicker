@@ -61,15 +61,169 @@ export function museumWants(s, kind) {
   return museumHolds(s, s.site, s.run.floor).some(h => h.pieces.some(x => !x.have && (tags.includes(x.how) || (kind === 'lost' && x.how.startsWith('site:')))));
 }
 
+// ---------- PSA-Style Condition Grading (Issue B1 / M6) ----------
+export const GRADES = {
+  10: { grade: 10, key: 'gem_mint', name: 'Gem Mint', slab: 'gold' },
+  9:  { grade: 9,  key: 'mint',     name: 'Mint',     slab: 'silver' },
+  8:  { grade: 8,  key: 'near_mint', name: 'Near Mint', slab: 'bronze' },
+  7:  { grade: 7,  key: 'weathered', name: 'Weathered / Fractured', slab: 'bronze' },
+};
+
+export function evaluateFossilGrade(s, b = {}) {
+  const src = b.src || (b.byHand ? 'you' : 'crew');
+  const cell = b.cell || {};
+  const info = b.info || {};
+  const hits = (cell.hits || 0) + 1; // total hits taken to break cell
+
+  // 1. Obliterated by collateral TNT shockwaves -> Grade 7 (Weathered / Fractured)
+  if (src === 'tnt' || cell.tntDamaged || info.tnt || (info.chain && info.chain > 0)) {
+    return { grade: 7, label: 'Weathered / Fractured', clean: false, slab: 'bronze' };
+  }
+
+  // 2. Chipped swings (> 2 hits) -> Grade 8 (Near Mint)
+  if (hits > 2 || cell.chipped) {
+    return { grade: 8, label: 'Near Mint', clean: true, slab: 'bronze' };
+  }
+
+  // 3. Broken with fine pick tip on accented beat (Good Hit) -> Grade 10 (Gem Mint)
+  const isGoodHit = !!(s && (s._goodHit || (s.picks && s.picks.goodHit))) ||
+                    !!info.goodHit || !!info.accent || !!info.fineTip || !!info.fine;
+  if (isGoodHit) {
+    return { grade: 10, label: 'Gem Mint', clean: true, slab: 'gold' };
+  }
+
+  // 4. Broken with standard pick swing -> Grade 9 (Mint)
+  return { grade: 9, label: 'Mint', clean: true, slab: 'silver' };
+}
+
+export function ensureMuseumSpecimens(s) {
+  if (!s.museum) s.museum = {};
+  if (!s.museum.specimens) s.museum.specimens = {};
+  if (!s.specimens) s.specimens = s.museum.specimens;
+  return s.museum.specimens;
+}
+
+export function getSpecimen(s, id) {
+  const specs = ensureMuseumSpecimens(s);
+  return specs[id] || null;
+}
+
+export function allSpecimens(s) {
+  return Object.values(ensureMuseumSpecimens(s));
+}
+
+export function specimenGrade(s, id) {
+  const spec = getSpecimen(s, id);
+  return spec ? spec.grade : null;
+}
+
+export function recordSpecimen(s, id, data = {}) {
+  const specs = ensureMuseumSpecimens(s);
+  const existing = specs[id];
+  const grade = data.grade !== undefined ? data.grade : 9;
+  const clean = data.clean !== undefined ? data.clean : (grade >= 8);
+  const spec = {
+    id,
+    grade,
+    clean,
+    restored: !!data.restored,
+    excavatedAt: data.excavatedAt || Date.now(),
+    set: data.set || id.split('.')[0] || '',
+    piece: data.piece !== undefined ? data.piece : -1,
+    brushStrokes: data.brushStrokes || 0,
+  };
+  specs[id] = spec;
+  if (s.specimens) s.specimens[id] = spec;
+  return spec;
+}
+
+export function canRestoreSpecimen(s, id) {
+  const spec = getSpecimen(s, id);
+  if (!spec) return false;
+  return (spec.grade === 7 || spec.grade === 8) && !spec.restored;
+}
+
+export function brushSpecimen(s, id, ev = () => {}) {
+  const spec = getSpecimen(s, id);
+  if (!spec) return null;
+  spec.brushStrokes = (spec.brushStrokes || 0) + 1;
+  const debrisRemaining = Math.max(0, 100 - spec.brushStrokes * 20);
+  emit(s, ev, 'specimenBrushed', { id, stroke: spec.brushStrokes, debrisRemaining });
+
+  if (spec.brushStrokes >= 5 && spec.grade < 9) {
+    const prev = spec.grade;
+    spec.grade = 9;
+    spec.restored = true;
+    spec.brushProgress = 100;
+    emit(s, ev, 'specimenRestored', { id, grade: 9, prevGrade: prev });
+  }
+  return {
+    strokes: spec.brushStrokes,
+    debrisPercent: debrisRemaining,
+    done: !!spec.restored,
+    grade: spec.grade,
+  };
+}
+
+export function restoreSpecimen(s, id, ev = () => {}) {
+  const spec = getSpecimen(s, id);
+  if (!spec) return false;
+  const prev = spec.grade;
+  spec.grade = 9;
+  spec.restored = true;
+  spec.brushStrokes = 5;
+  spec.brushProgress = 100;
+  emit(s, ev, 'specimenRestored', { id, grade: 9, prevGrade: prev });
+  return true;
+}
+
 function foundFossil(s, b, ev) {
   const { r, c, src } = b;
   const fr = Math.max(r, p.firstRow);
   const got = wingFind(s, { tags: ['bone'], layer: layerOf(fr) }, ev, { r: fr, c, src });
   let coins = 0;
   if (!got) { coins = Math.round(dirtVal(r) * p.dupPay * coinMult(s)); addCoins(s, coins, src); }
-  const key = got ? `${got.set}.${got.i}` : 'none';
+  const key = got ? `${got.set}.${got.i}` : `fossil_${r}_${c}`;
   s.fossils[key] = (s.fossils[key] || 0) + 1;     // a tally of bone blocks broken, by the piece they gave
-  emit(s, ev, 'fossil', { r, c, set: got ? got.set : '', piece: got ? got.i : -1, isNew: !!(got && got.isNew), coins: got ? got.coins : coins });
+
+  // Evaluate excavation condition
+  const evalResult = evaluateFossilGrade(s, b);
+  const specs = ensureMuseumSpecimens(s);
+  const existing = specs[key];
+
+  // Store specimen if not present or if excavated at a strictly higher grade
+  if (!existing || evalResult.grade > existing.grade) {
+    specs[key] = {
+      id: key,
+      set: got ? got.set : '',
+      piece: got ? got.i : -1,
+      grade: evalResult.grade,
+      clean: evalResult.clean,
+      restored: false,
+      brushStrokes: 0,
+      excavatedAt: Date.now(),
+    };
+    if (s.specimens) s.specimens[key] = specs[key];
+  }
+
+  const specNow = specs[key];
+  emit(s, ev, 'fossilGraded', {
+    id: key,
+    grade: evalResult.grade,
+    clean: evalResult.clean,
+    slab: evalResult.slab,
+    specimen: specNow,
+  });
+
+  emit(s, ev, 'fossil', {
+    r, c,
+    set: got ? got.set : '',
+    piece: got ? got.i : -1,
+    isNew: !!(got && got.isNew),
+    coins: got ? got.coins : coins,
+    grade: evalResult.grade,
+    specimen: specNow,
+  });
 }
 
 export const museum = use({
@@ -79,8 +233,10 @@ export const museum = use({
   strings,
   version: 2,
   state: {
-    fossils: { init: () => ({}), survives: ['site', 'land'] },   // 'camel.2': bone blocks that gave that piece (the old Museum's list; migrate copies it once)
-    sets:    { init: () => ({}), survives: ['site', 'land'] },   // old: completed sets
+    fossils:   { init: () => ({}), survives: ['site', 'land'] },   // 'camel.2': bone blocks that gave that piece (the old Museum's list; migrate copies it once)
+    sets:      { init: () => ({}), survives: ['site', 'land'] },   // old: completed sets
+    specimens: { init: () => ({}), survives: ['site', 'land'] },   // PSA-style graded physical specimens
+    museum:    { init: () => ({ specimens: {} }), survives: ['site', 'land'] },
   },
   // v2: the two museums became one. Copy what the player had; say once that the coin bonus is gone.
   migrate(s) {
@@ -91,9 +247,19 @@ export const museum = use({
     let any = false;
     for (const k of Object.keys(s.sets || {})) if (s.sets[k] && WING[k] && WING[k].legacy) { s.wingDone[k] = true; any = true; }
     if (any) s.wingNote = true;
+    ensureMuseumSpecimens(s);
   },
   blocks: {
-    fossil: { at: 100, hp: 3, val: 0, notice: true, broke: foundFossil },
+    fossil: {
+      at: 100, hp: 3, val: 0, notice: true,
+      hit(s, r, c, cell, dmg, src, ev, info = {}) {
+        cell.hits = (cell.hits || 0) + 1;
+        if (src === 'tnt' || info.tnt || (info.chain && info.chain > 0)) {
+          cell.tntDamaged = true;
+        }
+      },
+      broke: foundFossil,
+    },
   },
   gen: { row: [{ at: 40, fn(c) {
     const s = c.s;

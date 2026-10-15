@@ -50,3 +50,9 @@ export function swingsLeft(hpLeft, log, est, guessRate = SWING.guessRate) {
   const raw = Math.max(1, hpLeft / per);
   return { raw, n: friendly(raw), time: friendlyTime(raw / rate), measured: !!m };
 }
+
+// Accurate swing estimation for a Gate taking banked damage into account
+export function gateSwingsLeft(gateMax, bank = 0, log, est, guessRate = SWING.guessRate) {
+  const hpLeft = Math.max(1, Math.round(gateMax * (1 - Math.min(0.9, bank))));
+  return swingsLeft(hpLeft, log, est, guessRate);
+}

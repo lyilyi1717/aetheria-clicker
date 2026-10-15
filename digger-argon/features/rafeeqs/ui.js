@@ -10,19 +10,53 @@ function openCard(i, app) {
   const s = app.state;
   if (!s.diggers[i]) return;
   const m = app.modal.open('rafeeq', `<div class="card rq-card"><div class="rq-head"></div><div class="rq-name"><h2></h2><button class="ghost rq-pen"></button></div>`
-    + `<p class="rq-trait"></p><p class="rq-pair"></p><div class="rq-cols"><section class="rq-lv"><h3></h3><ul></ul></section><section class="rq-all"><h3></h3><ul></ul></section></div>`
+    + `<div class="rq-calling-badge"></div>`
+    + `<p class="rq-trait"></p><p class="rq-pair"></p>`
+    + `<div class="rq-ledger"><div class="rq-ledger-row"><b></b><span></span></div><div class="rq-ledger-row"><b></b><span></span></div><div class="rq-ledger-row"><b></b><span></span></div><div class="rq-ledger-row"><b></b><span></span></div></div>`
+    + `<div class="rq-campfire"><div class="rq-campfire-title"></div><p class="rq-campfire-quote"></p></div>`
+    + `<div class="rq-cols"><section class="rq-lv"><h3></h3><ul></ul></section><section class="rq-all"><h3></h3><ul></ul></section></div>`
     + `<button class="primary rq-ok"></button></div>`);
   if (!m) return;
   const name = m.querySelector('h2'), pen = m.querySelector('.rq-pen');
   m.querySelector('.rq-head').appendChild(portrait(s, i));
   const fill = () => {
     const st = G.rafeeqStats(s, i), pair = G.rafeeqPair(s, i), tr = G.rafeeqTrait(s, i);
+    const ledger = G.rafeeqLifetimeLedger ? G.rafeeqLifetimeLedger(s, i) : { blocksBroken: st.life.broke, relicsFound: 0, joinedAtLevel: 1, favoriteTea: 'Karak', calling: null };
     name.textContent = G.rafeeqName(s, i);
     pen.textContent = t('rq_rename');
     const nk = G.rafeeqNick(s, i);
     // in English the nickname's Arabic script follows his line; in Arabic it is already his name
     m.querySelector('.rq-trait').textContent = nk ? (langNow() === 'ar' ? G.rafeeqLine(s, i) : t('rq_nick_line', { line: G.rafeeqLine(s, i), ar: nk.ar }))
       : t('rq_trait_line', { trait: t('rq_trait_' + tr), line: G.rafeeqLine(s, i) });
+
+    // Calling badge
+    const callingEl = m.querySelector('.rq-calling-badge');
+    const calling = G.rafeeqCalling ? G.rafeeqCalling(s, i) : ledger.calling;
+    if (calling) {
+      callingEl.textContent = t('calling_' + calling) || calling;
+      callingEl.className = 'rq-calling-badge active ' + calling;
+    } else {
+      callingEl.textContent = t('guild_unassigned') || 'Unassigned Calling';
+      callingEl.className = 'rq-calling-badge unassigned';
+    }
+
+    // Lifetime ledger rows
+    const rows = m.querySelectorAll('.rq-ledger-row');
+    if (rows.length >= 4) {
+      rows[0].querySelector('b').textContent = t('rq_blocks_broken', { n: '' }) || 'Blocks Broken:';
+      rows[0].querySelector('span').textContent = fmt(ledger.blocksBroken);
+      rows[1].querySelector('b').textContent = t('rq_relics_found', { n: '' }) || 'Relics Found:';
+      rows[1].querySelector('span').textContent = fmt(ledger.relicsFound);
+      rows[2].querySelector('b').textContent = t('rq_joined_level', { n: '' }) || 'Joined at Level:';
+      rows[2].querySelector('span').textContent = `${ledger.joinedAtLevel}m`;
+      rows[3].querySelector('b').textContent = t('rq_favorite_tea', { tea: '' }) || 'Favorite Tea:';
+      rows[3].querySelector('span').textContent = ledger.favoriteTea;
+    }
+
+    // Campfire banter
+    m.querySelector('.rq-campfire-title').textContent = t('rq_campfire_title') || 'Campfire Banter';
+    m.querySelector('.rq-campfire-quote').textContent = G.rafeeqCampfireDialogue ? G.rafeeqCampfireDialogue(s, i) : 'Grandpa said: "Drink your tea; the mountain is not running away."';
+
     const bits = [];
     if (pair.friend >= 0 && s.diggers[pair.friend]) bits.push(t('rq_friend', { name: G.rafeeqName(s, pair.friend) }));
     if (pair.rival >= 0 && s.diggers[pair.rival]) bits.push(t('rq_rival', { name: G.rafeeqName(s, pair.rival) }));

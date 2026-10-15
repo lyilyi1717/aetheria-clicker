@@ -50,12 +50,20 @@ export function ensureGuilds(s) {
   return s.guilds;
 }
 
+import { COLS } from '../../core/grid.js';
+
 export function assignCalling(s, seatIndex, callingId, ev = () => {}) {
   ensureGuilds(s);
   if (seatIndex < 0 || seatIndex >= MAX_SEATS) return false;
   if (callingId !== null && !CALLINGS[callingId]) return false;
 
   s.guilds.callings[seatIndex] = callingId;
+  if (s.rafeeqs && s.rafeeqs.roster && s.rafeeqs.roster[seatIndex]) {
+    s.rafeeqs.roster[seatIndex].calling = callingId;
+  }
+  if (s.rafeeqSeats && s.rafeeqSeats[seatIndex]) {
+    s.rafeeqSeats[seatIndex].calling = callingId;
+  }
   emit(s, ev, 'callingAssigned', { seat: seatIndex, calling: callingId });
   return true;
 }
@@ -90,6 +98,9 @@ export function hasGuildSynergy(s, synergyId) {
   if (synergyId === 'coordinated_blast') {
     return hasCalling(s, 'naqqab') && hasCalling(s, 'baroodi');
   }
+  if (synergyId === 'deep_dredge') {
+    return hasCalling(s, 'ghawwas') && hasCalling(s, 'muhandis');
+  }
   return false;
 }
 
@@ -107,25 +118,58 @@ export function baroodiBlastVectors(rad) {
 
 // Ghawwas drop rate multiplier
 export function dropRateMultiplier(s, type) {
-  if (hasCalling(s, 'ghawwas') && (type === 'fossil' || type === 'ore' || type === 'bone')) {
+  if (hasCalling(s, 'ghawwas') && (type === 'fossil' || type === 'ore' || type === 'bone' || type === 'gem')) {
     return 1.5;
   }
   return 1.0;
 }
 
-// Coordinated Blast: 500 damage pre-emptive blast upon Gate arrival
-export function triggerCoordinatedBlast(s, ev = () => {}) {
+// Coordinated Blast: 500 damage or 10% Gate pre-damage upon Gate arrival
+export function triggerCoordinatedBlast(s, ev = () => {}, options = {}) {
   if (!s.boss || s.boss.hp <= 0) return 0;
   if (s.boss.coordinatedBlastDone) return 0;
 
-  const dmg = 500;
+  let dmg = 500;
+  if (options.usePercent || options.percent || (s.boss.max && s.boss.max >= 5000)) {
+    dmg = Math.round((s.boss.max || 5000) * 0.10);
+  }
   const dealt = Math.min(s.boss.hp, dmg);
   s.boss.hp = Math.max(0, s.boss.hp - dealt);
   s.boss.you = (s.boss.you || 0) + dealt;
   s.boss.coordinatedBlastDone = true;
 
-  emit(s, ev, 'coordinatedBlast', { dmg: dealt, gateHp: s.boss.hp });
+  emit(s, ev, 'coordinatedBlast', { dmg: dealt, gateHp: s.boss.hp, pct: 10 });
   return dealt;
+}
+
+// Deep Dredge: Ghawwas + Muhandis reveals unexcavated fossils within 4 blocks of any lantern
+export function triggerDeepDredge(s, ev = () => {}) {
+  if (!hasGuildSynergy(s, 'deep_dredge')) return [];
+  const revealed = [];
+  if (!s.deep || !Array.isArray(s.deep.glows) || !s.rows) return revealed;
+
+  for (const glow of s.deep.glows) {
+    const centerR = glow.r;
+    const centerC = glow.c !== undefined ? glow.c : 3;
+    const rad = 4;
+    const maxR = s.top + s.rows.length;
+    for (let r = Math.max(s.top, centerR - rad); r <= Math.min(maxR - 1, centerR + rad); r++) {
+      const rowIdx = r - s.top;
+      if (!s.rows[rowIdx]) continue;
+      for (let c = Math.max(0, centerC - rad); c <= Math.min(COLS - 1, centerC + rad); c++) {
+        const cell = s.rows[rowIdx][c];
+        if (cell && (cell.t === 'fossil' || cell.t === 'lost')) {
+          cell.revealed = true;
+          cell.glint = true;
+          revealed.push({ r, c });
+        }
+      }
+    }
+  }
+  if (revealed.length > 0) {
+    emit(s, ev, 'deepDredge', { count: revealed.length, revealed });
+  }
+  return revealed;
 }
 
 export const guilds = use({

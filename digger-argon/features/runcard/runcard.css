@@ -1,0 +1,155 @@
+/* Dig feature: runcard (The Daily Dig Run Card) */
+
+.runcard-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 640px;
+  width: 95vw;
+  background: #15110d;
+  border: 2px solid #d4af37;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.2);
+  padding: 20px;
+  color: #f4ead8;
+  font-family: system-ui, Cairo, sans-serif;
+  box-sizing: border-box;
+  margin: auto;
+}
+
+.runcard-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+  padding-bottom: 8px;
+}
+
+.runcard-title-row h2 {
+  font-size: 1.4rem;
+  color: #ffd700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.runcard-close-btn {
+  background: transparent;
+  border: none;
+  color: #b9a58c;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.runcard-close-btn:hover {
+  color: #ffffff;
+}
+
+.runcard-preview-box {
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  margin-bottom: 16px;
+  background: #12100e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.runcard-canvas-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.runcard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+}
+
+.runcard-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  border: 1px solid transparent;
+}
+
+.runcard-btn.primary {
+  background: linear-gradient(135deg, #d4af37, #aa8012);
+  color: #12100e;
+  border-color: #ffd700;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+}
+
+.runcard-btn.primary:hover {
+  background: linear-gradient(135deg, #ffd700, #c49a18);
+  transform: translateY(-1px);
+}
+
+.runcard-btn.secondary {
+  background: #251e17;
+  color: #f4ead8;
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.runcard-btn.secondary:hover {
+  background: #332920;
+  border-color: #ffd700;
+}
+
+/* Drawer panel widget styling */
+.runcard-panel-widget {
+  background: rgba(25, 20, 15, 0.8);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.runcard-panel-widget h3 {
+  color: #ffd700;
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+}
+
+.runcard-panel-widget p {
+  color: #b9a58c;
+  font-size: 0.85rem;
+  margin: 0 0 12px 0;
+}
+
+/* Mobile responsive check (375px) */
+@media (max-width: 420px) {
+  .runcard-modal {
+    padding: 12px;
+  }
+  .runcard-preview-box {
+    max-width: 100%;
+  }
+  .runcard-actions {
+    flex-direction: column;
+  }
+  .runcard-btn {
+    width: 100%;
+  }
+}

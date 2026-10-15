@@ -24,8 +24,11 @@ export default {
     // Pair Synergies
     synergy_coordinated_blast: 'Coordinated Blast',
     synergy_coordinated_blast_d: 'Naqqab + Baroodi: Deals 500 pre-emptive blast damage upon Gate arrival.',
+    synergy_deep_dredge: 'The Deep Dredge',
+    synergy_deep_dredge_d: 'Ghawwas + Muhandis: Reveals unexcavated fossils within 4 blocks of any lantern.',
     synergy_active: 'Synergy Active!',
     coordinated_blast_banner: 'Coordinated Blast! 500 Gate Damage',
+    deep_dredge_banner: 'Deep Dredge! Revealed {n} fossils',
   },
   ar: {
     guilds_title: 'نقابات القهوة',
@@ -49,7 +52,10 @@ export default {
     // Pair Synergies
     synergy_coordinated_blast: 'الانفجار المنسق',
     synergy_coordinated_blast_d: 'النقاب + البارودي: يفجر 500 ضرر استباقي فور الوصول إلى البوابة.',
+    synergy_deep_dredge: 'التجريف العميق',
+    synergy_deep_dredge_d: 'الغواص + المهندس: يكشف الأحافير غير المنقبة في نطاق 4 مربعات من أي قنديل.',
     synergy_active: 'التناغم مفعّل!',
     coordinated_blast_banner: 'انفجار منسق! 500 ضرر على البوابة',
+    deep_dredge_banner: 'تجريف عميق! كُشف عن {n} من الأحافير',
   },
 };

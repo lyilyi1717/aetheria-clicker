@@ -9,8 +9,8 @@ import { getTuning } from '../../core/tuning.js';
 import { t } from '../../core/strings.js';
 
 import strings from './strings.js';
-import { SWING, swingEstimate, crewWorking, swingsLeft, friendly } from './swings.js';
-export { friendly as bossFriendly } from './swings.js';
+import { SWING, swingEstimate, crewWorking, swingsLeft, friendly, gateSwingsLeft } from './swings.js';
+export { friendly as bossFriendly, gateSwingsLeft, gateSwingsLeft as bossGateSwingsLeft } from './swings.js';
 
 const p = {
   hp: 20,                         // Big Rock hp, in dirt blocks of its row
@@ -126,17 +126,48 @@ function gateBank(s, b, done) {
 }
 
 // compute and record the deepest HP percentage damage achieved before a Gate try ended
-export function recordGateFail(s) {
+export function recordGateFail(s, ev) {
   const b = s.boss;
   if (!b || !b.gate || b.hp <= 0) return 0;
   const pct = Math.max(0, Math.min(100, Math.round((1 - b.hp / b.max) * 100)));
   b.gateBestPct = Math.max(b.gateBestPct || 0, pct);
   if (s.run) s.run.gateBestPct = Math.max(s.run.gateBestPct || 0, pct);
   const st = gateStamp(s, b.row);
-  if (st) st.gateBestPct = Math.max(st.gateBestPct || 0, pct);
+  if (st) {
+    st.gateBestPct = Math.max(st.gateBestPct || 0, pct);
+    if ((st.n || 0) >= p.stuckTries) {
+      const dialogue = t('gate_consolation');
+      emit(s, ev, 'gateConsolation', { dialogue, tries: st.n });
+    }
+  }
   return pct;
 }
 export const gateGhostX = (barWidth, pct) => barWidth * (pct / 100);
+
+// Hakawati consolation dialogue for repeated retreats (tries >= 2)
+export function bossConsolation(s) {
+  const r = s.run;
+  if (!r) return null;
+  const st = s.road && s.road.stamps && s.road.stamps[r.key];
+  const tries = st ? (st.n || 0) : (r.tries || 0);
+  if (tries >= p.stuckTries) {
+    return t('gate_consolation');
+  }
+  return null;
+}
+
+// Explicit retreat from a Gate: banks 60% of damage, records best, checks consolation
+export function retreatGate(s, ev) {
+  recordGateFail(s, ev);
+  const b = s.boss;
+  const st = s.road && s.road.stamps && s.road.stamps[s.run && s.run.key];
+  return {
+    bankedShare: p.gateShare,
+    bank: st ? st.bank : (b ? b.bank0 : 0),
+    gateBestPct: s.run ? s.run.gateBestPct : (b ? b.gateBestPct : 0),
+    consolation: bossConsolation(s),
+  };
+}
 
 // what the Gate has cracked already (0 to 1) for the arrival line, and the leave line
 export const bossGateBank = b => (b && b.gate && b.hp > 0 ? b.bank0 || 0 : 0);

@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.21';
+export const VERSION = '5.36.22';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.22',
+    date: '2026-10-16',
+    title: 'Dig: Subterranean Triad — rhythmic groove & fever, PSA-graded museum antiquities, shareable daily dig cards, and hydraulic kilns',
+    changes: [
+      'Kinetic Groove & "Yalla!" Fever: One-thumb drag-hold pick swinging synchronized to the 16-step musical sequencer (100–160 BPM) with multitier T0–T3 haptics; consecutive Good Hits ignite Fever Mode with a glowing golden Arabesque viewport, high-tempo Darbuka percussion, and overkill sand-burst area cleaves; Gate ghost markers visually preserve 60% banked damage on retries.',
+      'PSA-Style Condition Grading & Living Caravan: Excavated fossils are graded from Grade 10 (Gem Mint) down to Grade 7 (Weathered); Alqahwa Restoration Lab minigame brushes specimens back to Grade 9; 8 persistent crew seats track individual lifetime blocks and relics with specialized Callings (Naqqab, Baroodi, Ghawwas, Muhandis) and synergy squad blasts.',
+      'Shareable Daily Dig Run Cards & Global Borehole: Deterministic daily seed generates 600x600 high-contrast descent cards with descent glyphs, stats, and Hakawati proverbs for 1-tap sharing; community mega-shaft tracks collaborative subterranean depth to the Earth\'s Core with universal milestone rewards.',
+      'Hydraulic Kilns & Celestial Astrolabe: Dynamic cellular fluid pressure powers hydraulic sluices and column-piercing hydro-picks; quenching lava pockets creates row-cleaving obsidian glass; deep celestial astrolabe engine introduces inverted gravity and chrono-mining echo swings culminating at the Level 240 Cosmic Cradle.'
+    ],
+    ar: {
+      title: 'الحفر: الثلاثية الجوفية — إيقاع الضربات وطور الحمى، تقييم آثار المتحف بدرجات المقتنيات، بطاقات الحفر اليومية المشتركة، والأفران الهيدروليكية',
+      changes: [
+        'إيقاع الإبهام الواحد وحمى "يلا!": ضربات متواصلة بالسحب متزامنة مع السيكونسر الإيقاعي المكون من 16 نبضة (100–160 نبضة/د) مع اهتزازات حسية من 4 طبقات؛ الضربات المتقنة المتتالية تشعل طور الحمى بإطار أرابيسك ذهبي مشع وإيقاعات دربوكة سريعة ونسف رملي واسع؛ وتحفظ علامات شبح البوابة 60% من الضرر السابق عند الإعادة.',
+        'تقييم القطع المتحفية ورفاق القافلة: تقييم الأحافير المستخرجة من الدرجة 10 (جوهرة نادرة) إلى الدرجة 7 (مجواة)؛ ومختبر ترميم القهوة يتيح تنظيف العينات لرفعها للدرجة 9؛ مع 8 مقاعد دائمة للرفاق تدون سجلات الكتل والآثار الدائمة ومهن تخصصية (نقاب، بارودي، غواص، مهندس) وضربات تآزرية مشتركة.',
+        'بطاقات الحفر اليومية وبئر الحفر العالمي: توليد بطاقات يومية مرئية عالية التباين لمسار الهبوط مع إحصائيات وأمثال حكواتية للمشاركة الفورية؛ ومتابعة بئر الحفر التشاركي العالمي نحو باطن الأرض مع مكافآت جماعية عند بلوغ المعالم الكبرى.',
+        'الأفران الهيدروليكية ومحرك الأسطرلاب الفلكي: محاكاة ضغط السوائل لتشغيل قنوات المياه ومناويل الضغط النفاث؛ وتبريد الحمم البركانية ينتج زجاج السبج (الأوبسيديان) القاطع لصفوف الصخور؛ مع فيزياء الجاذبية المعكوسة والتعدين الزمني وصولاً لمهد الكون في المستوى 240.'
+      ]
+    }
+  },
   {
     version: '5.36.21',
     date: '2026-10-15',

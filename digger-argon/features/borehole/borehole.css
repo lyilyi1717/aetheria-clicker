@@ -1,0 +1,187 @@
+/* Dig feature: borehole (Global Subterranean Borehole Monument) */
+
+.borehole-monument {
+  background: radial-gradient(circle at 50% 20%, #2a2015, #14100c);
+  border: 2px solid #b8860b;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 16px rgba(184, 134, 11, 0.25);
+  padding: 18px;
+  color: #f4ead8;
+  font-family: system-ui, Cairo, sans-serif;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.borehole-monument.festival-active {
+  border-color: #ffd700;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.4), inset 0 0 15px rgba(255, 215, 0, 0.15);
+}
+
+.borehole-festival-banner {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(212, 175, 55, 0.4), rgba(255, 215, 0, 0.2));
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 6px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  animation: festivalPulse 2s infinite ease-in-out;
+}
+
+@keyframes festivalPulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+
+.borehole-shaft-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 90px;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.brass-drill-cone {
+  width: 50px;
+  height: 80px;
+  background: linear-gradient(135deg, #ffd700 0%, #b8860b 50%, #8b6508 100%);
+  clip-path: polygon(15% 0%, 85% 0%, 50% 100%);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+  animation: drillRotate 0.8s linear infinite;
+  transform-origin: 50% 40%;
+}
+
+@keyframes drillRotate {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(0.7) skewY(2deg); }
+  100% { transform: scaleX(1); }
+}
+
+.borehole-depth-display {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.borehole-depth-label {
+  font-size: 0.85rem;
+  color: #b9a58c;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.borehole-depth-odometer {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  letter-spacing: 2px;
+  margin: 4px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.borehole-progress-bar-container {
+  width: 100%;
+  background: #1b140e;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 10px;
+  height: 18px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.borehole-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #b8860b, #ffd700);
+  box-shadow: 0 0 8px #ffd700;
+  transition: width 0.4s ease;
+}
+
+.borehole-milestone-text {
+  font-size: 0.8rem;
+  color: #f4ead8;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.borehole-contribute-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+.borehole-pending-text {
+  font-size: 0.9rem;
+  color: #f4ead8;
+}
+
+.borehole-sync-btn {
+  background: linear-gradient(135deg, #d4af37, #996515);
+  color: #12100e;
+  border: 1px solid #ffd700;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.borehole-sync-btn:hover {
+  background: linear-gradient(135deg, #ffd700, #b8860b);
+  transform: translateY(-1px);
+}
+
+.borehole-contributors-list {
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  padding-top: 10px;
+}
+
+.borehole-contributors-title {
+  font-size: 0.8rem;
+  color: #b9a58c;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.borehole-ticker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.borehole-ticker-row {
+  display: flex;
+  justify-content: space-between;
+  color: #d8c8b4;
+}
+
+.borehole-ticker-row.you {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* Phone width check */
+@media (max-width: 400px) {
+  .borehole-monument {
+    padding: 12px;
+  }
+  .borehole-depth-odometer {
+    font-size: 1.6rem;
+  }
+  .borehole-contribute-section {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .borehole-sync-btn {
+    width: 100%;
+  }
+}

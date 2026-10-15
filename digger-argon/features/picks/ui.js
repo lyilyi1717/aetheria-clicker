@@ -16,8 +16,9 @@
 //   (94 ms at the top tempo), at most 11 starts a second however much is going on.
 import * as G from '../../game.js';
 import { ui } from '../../ui/app.js';
-import { AT, fx, centre, text } from '../../ui/render.js';
+import { AT, fx, centre, text, spark, ring, shake, W, H } from '../../ui/render.js';
 import { setMixer, audioTime, setKit, sfx } from '../../ui/audio.js';
+import { triggerHaptic, isFeverActive } from './rules.js';
 import './kits.js';
 import { S, badge, pickShape } from '../../ui/icons.js';
 import { shopPanel } from '../../ui/shop.js';
@@ -78,6 +79,95 @@ function drawExtras(g, s, dt) {
     g.strokeStyle = fx.hot ? '#ffd23f' : reduced && k > 0 ? '#ffffff' : '#c9d3dc'; g.lineWidth = 6; g.beginPath(); g.moveTo(4, -40); g.quadraticCurveTo(30, -40, 42, -16); g.stroke();
     g.restore();
   }
+}
+
+function drawFeverOverlay(g, s, dt) {
+  const active = isFeverActive(s);
+  const streak = (s.picks && s.picks.feverStreak) || (s.fever && s.fever.streak) || (s.goodHitStreak || 0);
+  const goal = s.feverGoal || (s.picks && s.picks.feverGoal) || 20;
+
+  // Draw circular Fever Gauge in the top-right corner
+  const gx = W - 28, gy = 32, gr = 16;
+  g.save();
+  g.beginPath();
+  g.arc(gx, gy, gr, 0, Math.PI * 2);
+  g.fillStyle = 'rgba(14, 10, 7, 0.75)';
+  g.fill();
+  g.lineWidth = 3;
+  g.strokeStyle = '#2b231a';
+  g.stroke();
+
+  if (active) {
+    const timer = (s.picks && s.picks.feverTimer) || (s.fever && s.fever.timer) || 0;
+    const maxDur = s.feverDuration || 20;
+    const fProg = Math.max(0, Math.min(1, timer / maxDur));
+    g.beginPath();
+    g.arc(gx, gy, gr, -Math.PI / 2, -Math.PI / 2 + fProg * Math.PI * 2);
+    g.strokeStyle = '#ffd23f';
+    g.lineWidth = 3.5;
+    g.stroke();
+
+    g.font = '800 13px system-ui, Cairo, sans-serif';
+    g.fillStyle = '#ffd23f';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('YALLA!', gx, gy);
+  } else if (streak > 0) {
+    const sProg = Math.max(0, Math.min(1, streak / goal));
+    g.beginPath();
+    g.arc(gx, gy, gr, -Math.PI / 2, -Math.PI / 2 + sProg * Math.PI * 2);
+    g.strokeStyle = '#ffd23f';
+    g.lineWidth = 3;
+    g.stroke();
+
+    g.font = '800 13px system-ui, Cairo, sans-serif';
+    g.fillStyle = '#fff';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(String(streak), gx, gy);
+  }
+  g.restore();
+
+  if (!active) return;
+
+  // Glowing golden Arabesque filigree border around viewport
+  const pulse = 0.7 + 0.3 * Math.sin(fx.t * 8);
+  const bw = 10;
+  g.save();
+  g.strokeStyle = `rgba(255, 210, 63, ${0.55 + pulse * 0.35})`;
+  g.lineWidth = 3;
+  g.shadowColor = '#ffd23f';
+  g.shadowBlur = 12 * pulse;
+
+  // Outer border
+  g.strokeRect(4, 4, W - 8, H - 8);
+
+  // Inner filigree geometric border
+  g.lineWidth = 1.5;
+  g.strokeStyle = `rgba(255, 225, 74, ${0.7 + pulse * 0.3})`;
+  g.strokeRect(bw, bw, W - bw * 2, H - bw * 2);
+
+  // Arabesque corner motifs (8-pointed stars and diagonal corner brackets)
+  const corners = [
+    [bw, bw, 1, 1],
+    [W - bw, bw, -1, 1],
+    [bw, H - bw, 1, -1],
+    [W - bw, H - bw, -1, -1],
+  ];
+  for (const [cx, cy, sx, sy] of corners) {
+    g.beginPath();
+    g.moveTo(cx, cy);
+    g.lineTo(cx + sx * 18, cy);
+    g.lineTo(cx + sx * 18, cy + sy * 6);
+    g.lineTo(cx + sx * 6, cy + sy * 6);
+    g.lineTo(cx + sx * 6, cy + sy * 18);
+    g.lineTo(cx, cy + sy * 18);
+    g.closePath();
+    g.fillStyle = `rgba(255, 210, 63, ${0.3 + pulse * 0.3})`;
+    g.fill();
+    g.stroke();
+  }
+  g.restore();
 }
 
 const two = `<g transform="translate(-4 -1)">${pickShape()}</g><g transform="translate(5 3)">${pickShape('#ffd23f')}</g>`;
@@ -167,12 +257,12 @@ ui({
         if (n.v === 'X') fx.cursorPulse = 1.0;
         note = { at: Math.max(0, n.t - now), gain: G.picksGain(n.v) };
         try {
-          G.picksStrike(s, n.n, () => app.target(), app.ev, i => { const h = n.hands[i]; app.flags.hand = h; if (h) swingT[h] = 1; });
+          G.picksStrike(s, n.n, () => app.target(), app.ev, i => { const h = n.hands[i]; app.flags.hand = h; if (h) swingT[h] = 1; }, n.v, now);
         } finally { note = null; app.flags.hand = 0; }
       }
     },
   },
-  draw: [{ at: AT.pick + 1, fn: drawExtras }],
+  draw: [{ at: AT.pick + 1, fn: drawExtras }, { at: AT.screen + 5, fn: drawFeverOverlay }],
   // the goal bar follows the pin; the Gate's own goal (sites) shows when the pin is the Gate
   goal: { at: 8, fn(s) {
     const pin = G.picksPin(s);
@@ -212,13 +302,27 @@ ui({
       if (sfx.goodHit) sfx.goodHit();
       if (d.r !== undefined && d.c !== undefined) {
         const [x, y] = centre(d.r, d.c);
-        text(x, y - 24, t('good_hit') + ' 2.5x!', '#ffd23f', 16, 1.0);
+        text(x, y - 24, t('good_hit') + ' ' + (d.mult || 2.5) + 'x!', '#ffd23f', 16, 1.0);
+        spark(x, y, '#ffd23f', 14);
       }
+      triggerHaptic('T2');
+    },
+    sandBurst(d) {
+      const [x, y] = centre(d.r, d.c);
+      spark(x, y, '#ffd23f', 16);
+      ring(x, y, 64, '#ffc02b');
+      shake(0.12);
+      if (sfx.shatter) sfx.shatter();
+      triggerHaptic('T1');
     },
     feverStart(d, app) {
-      if (sfx.star) sfx.star();
+      if (sfx.yallaCheer) sfx.yallaCheer();
+      if (sfx.darbukaRoll) sfx.darbukaRoll();
+      else if (sfx.star) sfx.star();
+      shake(0.2);
       app.toast(t('fever_banner'), 'gold');
       app.banner(t('fever_banner'), t('fever_sub'));
+      triggerHaptic('T2');
     },
   },
 });

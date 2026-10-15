@@ -270,7 +270,7 @@ export function unlock(s, id, ev) {
 
 // emit(s, ev, kind, data): how the rules report anything. It also notices first times.
 export function emit(s, ev, kind, d) {
-  ev(kind, d);
+  if (typeof ev === 'function') ev(kind, d);
   const F = FIRSTS[kind];
   if (!F) return;
   for (let i = 0; i < F.length; i++) {

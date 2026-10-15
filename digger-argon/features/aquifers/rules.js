@@ -77,15 +77,23 @@ export function flowAquifer(s, q, ev) {
 
   if (!s.pools) s.pools = {};
   s.pools[pk(r, c)] = s.t + p.dry;
-  if (s.aquifer) {
-    if (!s.aquifer.streams) s.aquifer.streams = {};
-    s.aquifer.streams[c] = s.t + p.dry;
-  }
+  if (!s.aquifer) s.aquifer = { streams: {}, activeWells: 0 };
+  if (!s.aquifer.streams) s.aquifer.streams = {};
+  s.aquifer.streams[c] = s.t + p.dry;
   emit(s, ev, 'aquiferFlow', { r, c, vol });
 
-  // Erode silt on all 4 neighbors instantly upon contact
+  // Erode silt on all 4 neighbors instantly upon contact, and quench any adjacent lava
   for (const [dr, dc] of [[1, 0], [0, 1], [0, -1], [-1, 0]]) {
-    erodeSiltAt(s, r + dr, c + dc, ev);
+    const nr = r + dr, nc = c + dc;
+    if (nc < 0 || nc >= COLS) continue;
+    erodeSiltAt(s, nr, nc, ev);
+
+    const ncell = cellAt(s, nr, nc);
+    if (ncell && (ncell.t === 'lava' || ncell.t === 'molten_basalt')) {
+      setCell(s, nr, nc, { t: 'obsidian', hp: 1, max: 1, s: ncell.s || 0 });
+      emit(s, ev, 'lavaQuenched', { r: nr, c: nc });
+      emit(s, ev, 'obsidianFormed', { r: nr, c: nc });
+    }
   }
 
   // Cellular automaton: move down if empty; move horizontally if blocked
@@ -99,12 +107,14 @@ export function flowAquifer(s, q, ev) {
     // Blocked below: move horizontally (sideways) into open spaces
     const sides = [];
     for (const dc of [-1, 1]) {
-      const sideCell = cellAt(s, r, c + dc);
+      const nc = c + dc;
+      if (nc < 0 || nc >= COLS) continue;
+      const sideCell = cellAt(s, r, nc);
       if (sideCell === null) {
-        sides.push(c + dc);
+        sides.push(nc);
       } else if (sideCell && sideCell.t === 'silt') {
-        erodeSiltAt(s, r, c + dc, ev);
-        sides.push(c + dc);
+        erodeSiltAt(s, r, nc, ev);
+        sides.push(nc);
       }
     }
     if (sides.length > 0 && vol > 1) {

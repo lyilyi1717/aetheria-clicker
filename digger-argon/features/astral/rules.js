@@ -9,6 +9,15 @@ import strings from './strings.js';
 export const ASTRAL_GRAVITY_DOWN = 1;
 export const ASTRAL_GRAVITY_UP = -1;
 
+// Re-export Chrono-Mining functions for celestial suite integration
+export {
+  CHRONO_BLOCK,
+  recordPlayerSwing,
+  replayChronoSwings,
+  triggerAllChronoReplays,
+} from '../void/rules.js';
+
+
 const p = {
   floatSpeed: 0.1,
   magneticRange: 12,

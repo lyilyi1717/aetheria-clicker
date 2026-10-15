@@ -12,7 +12,7 @@ export const PANEL_TAB = {
   relics: 'relics', fzbook: 'relics',
   wing2: 'museum',
   forge: 'forge',
-  site: 'level', contracts: 'level',
+  site: 'level', contracts: 'level', borehole: 'level', runcard: 'level',
   debug: 'debug',
 };
 

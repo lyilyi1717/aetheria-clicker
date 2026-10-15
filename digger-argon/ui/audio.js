@@ -223,6 +223,26 @@ export const sfx = {
     tone(130, { type: 'sawtooth', d: 0.35, vol: 0.25, slide: 80 });
     tone(95, { type: 'sine', d: 0.4, vol: 0.3, at: 0.1 });
   },
+  darbukaRoll() {
+    if (!gap('darbukaRoll', 0.2)) return;
+    const delays = [0, 0.04, 0.07, 0.10, 0.13, 0.15, 0.17, 0.19, 0.21, 0.23];
+    delays.forEach((at, i) => {
+      const isDoum = i % 3 === 0;
+      if (isDoum) {
+        tone(120 * wob(), { type: 'sine', d: 0.08, vol: 0.35, slide: 55, at });
+      } else {
+        noise({ d: 0.04, vol: 0.25, from: 4500, to: 1200, type: 'bandpass', at });
+        tone(440 * wob(), { type: 'triangle', d: 0.03, vol: 0.18, at });
+      }
+    });
+  },
+  yallaCheer() {
+    if (!gap('yallaCheer', 0.5)) return;
+    tone(380, { type: 'sawtooth', d: 0.12, vol: 0.3, slide: 540 });
+    tone(540, { type: 'sawtooth', d: 0.25, vol: 0.35, slide: 760, at: 0.10 });
+    noise({ d: 0.2, vol: 0.2, from: 3500, to: 1500, at: 0.10 });
+    [523, 659, 784, 1047].forEach((f, i) => tone(f, { type: 'triangle', d: 0.35, vol: 0.16, at: 0.12 + i * 0.04 }));
+  },
 };
 
 

@@ -44,31 +44,40 @@ export const ANTIQUITIES = {
 
 export const MAX_EQUIPPED_SLOTS = 3;
 
-// Checks whether the required museum fossil set for an antiquity is complete
+// Checks whether the required museum fossil set for an antiquity is complete or restored
 export function isSetCompleted(s, setId) {
   if (!s) return false;
   if (s.wingDone && s.wingDone[setId]) return true;
   if (s.sets && s.sets[setId]) return true;
+  if (s.museum && s.museum.sets && s.museum.sets[setId]) return true;
   return false;
+}
+
+export function isSetRestored(s, setId) {
+  if (!s) return false;
+  if (isSetCompleted(s, setId)) return true;
+  const specs = (s.museum && s.museum.specimens) || s.specimens || {};
+  const setSpecs = Object.values(specs).filter(sp => sp.set === setId || (sp.id && sp.id.startsWith(setId + '.')));
+  return setSpecs.length > 0 && setSpecs.every(sp => sp.grade >= 9 || sp.restored);
 }
 
 export function canRestoreAntiquity(s, id) {
   const ant = ANTIQUITIES[id];
   if (!ant) return false;
   if (s.antiquities && s.antiquities.unlocked && s.antiquities.unlocked.includes(id)) return false;
-  return isSetCompleted(s, ant.set);
+  return isSetCompleted(s, ant.set) || isSetRestored(s, ant.set);
 }
 
 export function restoreAntiquity(s, id, ev = () => {}) {
   const ant = ANTIQUITIES[id];
   if (!ant) return false;
   if (!s.antiquities) {
-    s.antiquities = { unlocked: [], equipped: [null, null, null], mortarBoost: 0 };
+    s.antiquities = { unlocked: [], equipped: [null, null, null], mortarBoost: 0, mortarMult: 2 };
   }
   if (!s.antiquities.unlocked) s.antiquities.unlocked = [];
   if (s.antiquities.unlocked.includes(id)) return true;
 
-  if (!isSetCompleted(s, ant.set)) return false;
+  if (!canRestoreAntiquity(s, id)) return false;
 
   s.antiquities.unlocked.push(id);
   emit(s, ev, 'antiquityRestored', { id });
@@ -85,7 +94,7 @@ export function equippedAntiquities(s) {
 
 export function equipAntiquity(s, id, slotIndex = -1, ev = () => {}) {
   if (!s.antiquities) {
-    s.antiquities = { unlocked: [], equipped: [null, null, null], mortarBoost: 0 };
+    s.antiquities = { unlocked: [], equipped: [null, null, null], mortarBoost: 0, mortarMult: 2 };
   }
   if (!s.antiquities.equipped) s.antiquities.equipped = [null, null, null];
 
@@ -122,7 +131,7 @@ export function unequipAntiquity(s, slotIndex, ev = () => {}) {
   return true;
 }
 
-// Scarab Compass: reveals / highlights hidden chests on the current excavation floor
+// Scarab Compass: reveals / highlights hidden chests and rare ore on the current excavation floor
 export function highlightHiddenChests(s) {
   const out = [];
   if (!s || !s.rows) return out;
@@ -130,10 +139,10 @@ export function highlightHiddenChests(s) {
   for (let r = s.top; r < maxR; r++) {
     for (let c = 0; c < COLS; c++) {
       const cell = cellAt(s, r, c);
-      if (cell && (cell.t === 'chest' || cell.chest)) {
+      if (cell && (cell.t === 'chest' || cell.chest || cell.t === 'gem' || cell.t === 'gold' || cell.t === 'silver' || cell.ore)) {
         cell.shown = 1;
         cell.revealed = true;
-        out.push({ r, c });
+        out.push({ r, c, t: cell.t });
       }
     }
   }
@@ -155,18 +164,57 @@ export function channelSiphonDamage(s, tntDmg, ev = () => {}) {
   return 0;
 }
 
-// Golden Mortar: activates temporary 2x crew speed boost after Big Rock break
-export function triggerGoldenMortar(s, duration = 60, ev = () => {}) {
+// Golden Mortar: activates temporary crew speed boost after Big Rock break (default 2x, supports 3x for 15s)
+export function triggerGoldenMortar(s, duration = 15, ev = () => {}, mult = null) {
   if (!s.antiquities) {
-    s.antiquities = { unlocked: [], equipped: [null, null, null], mortarBoost: 0 };
+    s.antiquities = { unlocked: [], equipped: [null, null, null], mortarBoost: 0, mortarMult: 2 };
   }
   s.antiquities.mortarBoost = duration;
-  emit(s, ev, 'mortarBoost', { duration });
+  if (mult !== null) {
+    s.antiquities.mortarMult = mult;
+  }
+  emit(s, ev, 'mortarBoost', { duration, mult: s.antiquities.mortarMult || 2 });
   return true;
 }
 
 export function hasMortarBoost(s) {
   return isAntiquityEquipped(s, 'golden_mortar') && !!(s.antiquities && s.antiquities.mortarBoost > 0);
+}
+
+// ---------- Alqahwa Restoration Lab: Interactive Tactile Brush Minigame ----------
+export function brushMinigameStroke(s, specimenId, ev = () => {}) {
+  const specs = (s.museum && s.museum.specimens) || s.specimens || {};
+  let spec = specs[specimenId];
+  if (!spec) {
+    spec = { id: specimenId, grade: 7, clean: false, restored: false, brushStrokes: 0, excavatedAt: Date.now() };
+    specs[specimenId] = spec;
+  }
+  spec.brushStrokes = (spec.brushStrokes || 0) + 1;
+  const clearedPct = Math.min(100, spec.brushStrokes * 20);
+  const debrisRemaining = Math.max(0, 100 - clearedPct);
+
+  emit(s, ev, 'labBrushStroke', {
+    specimenId,
+    stroke: spec.brushStrokes,
+    clearedPct,
+    debrisRemaining,
+  });
+
+  if (spec.brushStrokes >= 5) {
+    spec.grade = 9; // Elevated to Grade 9 Restored Mint
+    spec.restored = true;
+    spec.brushProgress = 100;
+    emit(s, ev, 'specimenRestored', { id: specimenId, grade: 9 });
+    emit(s, ev, 'labRestorationComplete', { specimenId, grade: 9 });
+  }
+
+  return {
+    stroke: spec.brushStrokes,
+    clearedPercent: clearedPct,
+    debrisPercent: debrisRemaining,
+    restored: !!spec.restored,
+    grade: spec.grade,
+  };
 }
 
 export const antiquities = use({
@@ -178,12 +226,13 @@ export const antiquities = use({
         unlocked: [],
         equipped: [null, null, null],
         mortarBoost: 0,
+        mortarMult: 2,
       }),
       survives: ['site'],
     },
   },
   mods: {
-    crewRate: (v, s) => (hasMortarBoost(s) ? v * 2 : v),
+    crewRate: (v, s) => (hasMortarBoost(s) ? v * (s.antiquities.mortarMult || 2) : v),
     crewWalk: (v, s) => (hasMortarBoost(s) ? v * 1.5 : v),
     pickPower: (v, s) => (isAntiquityEquipped(s, 'dhab_chisel') ? v * 1.25 : v),
     rubbleMult: (v, s) => (isAntiquityEquipped(s, 'pearl_pendulum') ? v * 1.5 : v),
@@ -191,7 +240,7 @@ export const antiquities = use({
   hooks: {
     bossDown(s, r, src, ev) {
       if (isAntiquityEquipped(s, 'golden_mortar')) {
-        triggerGoldenMortar(s, 60, ev);
+        triggerGoldenMortar(s, 15, ev, 3);
       }
     },
     tntPop(s, ev, d) {

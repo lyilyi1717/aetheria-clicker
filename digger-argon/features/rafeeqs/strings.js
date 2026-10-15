@@ -31,4 +31,22 @@ export default { en: {
   rq_joke_sandal: '{name} found a sandal and wore it to work.',
   rq_joke_habibi: '{name} named a rock Habibi and told it secrets.',
   rq_joke_nap: '{name} napped in the shade, then worked twice as hard to hide it.',
+
+  // Companion Dossier & Lifetime Ledger (Issue B2 / M8)
+  rq_blocks_broken: 'Blocks Broken',
+  rq_relics_found: 'Relics Found',
+  rq_joined_level: 'Joined Floor',
+  rq_favorite_tea: 'Favorite Tea',
+  rq_campfire_title: 'Campfire Banter',
+  rq_campfire_naqqab: '{name}: "Watch how the basalt fractures along the fault lines. Strike with conviction."',
+  rq_campfire_baroodi: '{name}: "Two parts sulfur, one part charcoal, and plenty of patience for the fuse."',
+  rq_campfire_ghawwas: '{name}: "The ancient sands hide treasures beneath the dust. Sift every shovelful."',
+  rq_campfire_muhandis: '{name}: "A solid scaffold and a bright lantern make even the obsidian dark harmless."',
+  rq_campfire_default: '{name}: "Drink your tea; the mountain is not running away."',
+  rq_campfire_trait_eager: '{name}: "Drink fast, ya habibi! The next depth is calling our picks."',
+  rq_campfire_trait_sleepy: '{name}: "Just five minutes by the embers... then I will swing again."',
+  rq_campfire_trait_joker: '{name}: "I told the Gate Boss a joke, and he almost cracked with laughter!"',
+  rq_campfire_trait_careful: '{name}: "Check your sandals for scorpions and your fuses for sparks."',
+  rq_campfire_trait_proud: '{name}: "Nobody swings a pick like this caravan. History will remember us."',
+  rq_campfire_trait_hungry: '{name}: "Is the stew bubbling yet? A full belly breaks deeper rock."',
 } };
