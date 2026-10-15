@@ -2,6 +2,8 @@
 // Rows are absolute: row 0 is the first row of ground, row r is r metres down.
 import { BLOCKS, SITES, CONTRACTS, GEN, PARAMS, layersOf, fold, run, has, scope } from './registry.js';
 import { rnd } from './rng.js';
+import { getTuning } from './tuning.js';
+
 
 export const COLS = 10;
 export const VIEW_ROWS = 9;      // rows on screen
@@ -56,26 +58,37 @@ export const MAX_SITE_DEPTH = 350;
 export const MAX_LEGS = 10;
 
 export function boundedDirtHp(r, biomeFactor = 1, eraScale = 1) {
-  const baseHp = (PARAMS.core && PARAMS.core.hp0) || 5;
-  return Math.round(baseHp * (1 + 0.04 * r) * biomeFactor * eraScale);
+  const baseHp = getTuning('baseDirtHp', null, (PARAMS.core && PARAMS.core.hp0) || 5);
+  const slope = getTuning('dirtDepthSlope', null, 0.04);
+  return Math.round(baseHp * (1 + slope * r) * biomeFactor * eraScale);
 }
 
 export function nominalPickPower(r) {
-  const baseHp = (PARAMS.core && PARAMS.core.hp0) || 5;
-  return Math.max(1, (baseHp * (1 + 0.04 * r)) / 2.5);
+  const baseHp = getTuning('baseDirtHp', null, (PARAMS.core && PARAMS.core.hp0) || 5);
+  const slope = getTuning('dirtDepthSlope', null, 0.04);
+  return Math.max(1, (baseHp * (1 + slope * r)) / 2.5);
 }
 
 export function clampHits(rOrHp, pickPower) {
   const hp = typeof rOrHp === 'number' && rOrHp <= 350 ? boundedDirtHp(rOrHp) : rOrHp;
   const p = pickPower !== undefined ? pickPower : nominalPickPower(typeof rOrHp === 'number' ? rOrHp : 0);
   const hits = Math.ceil(hp / Math.max(0.001, p));
-  return Math.min(4, Math.max(1, hits));
+  const minHits = getTuning('minHits', null, 1);
+  const maxHits = getTuning('maxHits', null, 4);
+  return Math.min(maxHits, Math.max(minHits, hits));
 }
 
 // Chapter 1 (levels 1-4) boss HP scaling:
 // Big Rock 1 (25m) scales to ~400–600 HP (taking ~25–35s of rhythmic strikes)
 // Gate (50m) scales to ~2,500–3,500 HP (taking ~2–3m)
 export function chapter1BossHp(r, isGate = false) {
+  if (isGate) {
+    const override = getTuning('ch1GateHp', null, 0);
+    if (override > 0) return override;
+  } else {
+    const override = getTuning('ch1RockHp', null, 0);
+    if (override > 0) return override;
+  }
   if (r <= 25) return 500;
   if (r <= 50) return isGate ? 3000 : 1200;
   if (r <= 75) return isGate ? 7500 : 2500;
@@ -85,9 +98,14 @@ export function chapter1BossHp(r, isGate = false) {
 // the first three rows are soft, so the very first block breaks in two hits
 export const dirtHp = (r, land = 'desert', bounded = false) => {
   if (bounded) return boundedDirtHp(r);
-  return r < 3 ? 2 + r : curve(r, PARAMS.core.hp0, 'hp', 'step', land);
+  const baseHp = getTuning('baseDirtHp', null, (PARAMS.core && PARAMS.core.hp0) || 5);
+  if (r < 3) {
+    return baseHp === 5 ? 2 + r : Math.max(1, Math.round(baseHp * (0.4 + 0.2 * r)));
+  }
+  return curve(r, baseHp, 'hp', 'step', land);
 };
 dirtHp.bounded = boundedDirtHp;
+
 export const dirtVal = (r, land = 'desert') => curve(r, PARAMS.core.val0, 'val', 'pay', land);
 // How hard plain ground at row r is in THIS dig, per block: the depth curve times every multiplier the `row` hooks put on a
 // row as it is made, through the `groundHp` mod (sites: prove, chili, the heavy twist, chapter two). Time away prices its
@@ -131,9 +149,14 @@ export function starsAt(best, land = 'desert') {
 
 // a block of kind t at row r (k: the site's hardness)
 export function makeCell(r, t, k = 1) {
-  const hp = Math.max(1, Math.round(dirtHp(r) * BLOCKS[t].hp * k));
+  let blkHp = BLOCKS[t].hp;
+  if (t === 'stone' || t === 'hard') {
+    blkHp *= getTuning('stoneHpMult', null, 1.0);
+  }
+  const hp = Math.max(1, Math.round(dirtHp(r) * blkHp * k));
   return { t, hp, max: hp, s: Math.floor(rnd() * 1000) };
 }
+
 
 // ---------- generating a row ----------
 // 1. GEN.whole: a feature may make the whole row (the Big Rock does).

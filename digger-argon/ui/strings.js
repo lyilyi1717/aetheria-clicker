@@ -9,7 +9,7 @@ export default { en: {
 
   reset: 'Start over', reset_sure: 'Click again to wipe this save',
   // the drawer: tab names, how a locked tab opens, one "Next" line per tab
-  dr_tab_shop: 'Shop', dr_tab_camp: 'Rafeeqs', dr_tab_relics: 'Relics', dr_tab_museum: 'Museum', dr_tab_forge: 'Forge', dr_tab_level: 'Level',
+  dr_tab_shop: 'Shop', dr_tab_camp: 'Rafeeqs', dr_tab_relics: 'Relics', dr_tab_museum: 'Museum', dr_tab_forge: 'Forge', dr_tab_level: 'Level', dr_tab_debug: 'Tuning',
   dr_locked: 'Locked',
   dr_lock_camp: 'Opens when you get a Rafeeq.',
   dr_lock_relics: 'Opens when you find a chest.',
@@ -30,7 +30,9 @@ export default { en: {
   dr_next_bones: 'Dig up bones to fill the sets.',
   dr_next_done: 'The Gate is down. Take the next site.',
   dr_next_gate: 'Break the Gate at {n} m to finish.',
+  dr_next_debug: 'Live variables & game tuning.',
   dr_dot: 'Something is ready',
+
 }, ar: {
   title: 'الحفر',
   hint_start: 'أشِر إلى الأرض لتحفر',
@@ -40,7 +42,7 @@ export default { en: {
   mute: 'الصوت: مشغّل', unmute: 'الصوت: مطفأ',
 
   reset: 'ابدأ من جديد', reset_sure: 'اضغط مرة أخرى لتمسح هذا الحفظ',
-  dr_tab_shop: 'المتجر', dr_tab_camp: 'الرفقاء', dr_tab_relics: 'الآثار', dr_tab_museum: 'المتحف', dr_tab_forge: 'المصهر', dr_tab_level: 'المرحلة',
+  dr_tab_shop: 'المتجر', dr_tab_camp: 'الرفقاء', dr_tab_relics: 'الآثار', dr_tab_museum: 'المتحف', dr_tab_forge: 'المصهر', dr_tab_level: 'المرحلة', dr_tab_debug: 'الضبط',
   dr_locked: 'مقفل',
   dr_lock_camp: 'يُفتح حين يأتيك رفيق.',
   dr_lock_relics: 'يُفتح حين تجد صندوقاً.',
@@ -61,5 +63,7 @@ export default { en: {
   dr_next_bones: 'استخرج العظام لتكمل المجموعات.',
   dr_next_done: 'سقطت البوابة. انطلق إلى الموقع التالي.',
   dr_next_gate: 'اكسر البوابة عند {n} م لتُنهي المرحلة.',
+  dr_next_debug: 'متغيرات اللعبة الحية والتوليف.',
   dr_dot: 'هناك شيء جاهز',
 } };
+

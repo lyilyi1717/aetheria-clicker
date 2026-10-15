@@ -4,6 +4,7 @@
 // proto/features/ and plugs in through the hooks named here (the full list is in proto/README.md).
 import { use, BLOCKS, ITEMS, SHOPS, TOOLS, QUEUE, layersOf, run, fold, emit, pollUnlocks } from './registry.js';
 import { layerOf, cellAt, setCell, reachable, dirtVal, scroll } from './grid.js';
+import { getTuning } from './tuning.js';
 
 const NOEV = () => {};
 const NONE = Object.freeze({});
@@ -87,9 +88,15 @@ use({
 // ---------- numbers every feature can bend ----------
 
 export const rel = (s, id) => s.relics[id] || 0;
-export const coinMult = s => fold('coinMult', s, 1);
-export const pickPower = s => fold('pickPower', s, 1);
-export const awardKeystone = (s, type, count = 1) => { if (s && s.keystones && s.keystones[type] !== undefined) s.keystones[type] += count; };
+export const coinMult = s => fold('coinMult', s, 1) * getTuning('coinDropMult', s, 1.0);
+export const pickPower = s => fold('pickPower', s, getTuning('pickBase', s, 1)) * getTuning('pickMult', s, 1.0);
+export const awardKeystone = (s, type, count = 1) => {
+  if (s && s.keystones && s.keystones[type] !== undefined) {
+    const rate = getTuning('keystoneDropRate', s, 1.0);
+    const added = Math.max(1, Math.round(count * rate));
+    s.keystones[type] += added;
+  }
+};
 export const hasKeystone = (s, type) => !!(s && s.keystones && s.keystones[type]);
 export const totalKeystones = s => (s && s.keystones ? Object.values(s.keystones).reduce((a, b) => a + b, 0) : 0);
 
@@ -162,11 +169,12 @@ export function swing(s, r, c, ev = NOEV) {
   const isOverkill = power >= hp0;
   const broke = damage(s, r, c, sw.dmg, 'you', ev, { crit: sw.crit, shatter: isOverkill });
   const reach = fold('punch', s, 0);
+  const okRatio = getTuning('overkillRatio', s, 0.5);
   if (reach > 0 && broke && !sw.B.wall && sw.dmg > hp0) {
-    const carry = Math.min(sw.dmg - hp0, Math.max(1, power * 0.5));
+    const carry = Math.min(sw.dmg - hp0, Math.max(1, power * okRatio));
     punch(s, r, c, reach, carry, ev);
   } else if (broke && !sw.B.wall && isOverkill && s.up && s.up.pick > 0) {
-    const overkill = Math.min(power - hp0, Math.max(1, power * 0.5));
+    const overkill = Math.min(power - hp0, Math.max(1, power * okRatio));
     if (overkill > 0) punch(s, r, c, 1, overkill, ev);
   }
   run('swung', s, sw, ev);
@@ -179,7 +187,9 @@ export function swing(s, r, c, ev = NOEV) {
 function punch(s, r, c, reach, left, ev) {
   let n = 0;
   const power = pickPower(s);
-  left = Math.min(left, Math.max(1, power * 0.5));
+  const okRatio = getTuning('overkillRatio', s, 0.5);
+  left = Math.min(left, Math.max(1, power * okRatio));
+
   for (let rr = r + 1; left > 0 && n < reach; rr++, n++) {
     const cell = cellAt(s, rr, c);
     if (!cell || BLOCKS[cell.t].wall) break;

@@ -1,12 +1,14 @@
 // Dig feature: big hits. Some of your swings count several times; two relics raise the odds and the size.
 import { use, fold } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
+import { getTuning } from '../../core/tuning.js';
 import strings from './strings.js';
 
 const p = { chance: 0.08, mult: 5, luckyStep: 0.07, heavyStep: 3 };
 
-export const critChance = s => fold('critChance', s, p.chance);
-export const critMult = s => fold('critMult', s, p.mult);
+export const critChance = s => fold('critChance', s, getTuning('critChance', s, p.chance));
+export const critMult = s => fold('critMult', s, getTuning('critMult', s, p.mult));
+
 
 export const crits = use({
   id: 'crits',

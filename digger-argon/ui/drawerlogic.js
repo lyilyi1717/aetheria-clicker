@@ -13,7 +13,9 @@ export const PANEL_TAB = {
   wing2: 'museum',
   forge: 'forge',
   site: 'level', contracts: 'level',
+  debug: 'debug',
 };
+
 
 const WALLET_UNIT = { coins: 'coins', stars: 'stars', metal: 'metal' };
 const amount = (wallet, n) => t('dr_amt_' + (WALLET_UNIT[wallet] || 'coins') + (n === 1 ? '_1' : ''), { n: fmt(n) });
@@ -85,7 +87,12 @@ export const TABS = [
     ready: s => { const r = G.siteRun(s); return r.done && G.canNewSite(s) ? ['next'] : []; },
     next: s => { const r = G.siteRun(s); return r.done ? t('dr_next_done') : t('dr_next_gate', { n: r.floor }); },
     main: () => null },
+  { id: 'debug', icon: 'tab_debug', lock: () => null,
+    ready: () => [],
+    next: () => t('dr_next_debug'),
+    main: () => null },
 ];
+
 
 export const tabOf = p => p.tab || PANEL_TAB[p.id] || 'level';
 

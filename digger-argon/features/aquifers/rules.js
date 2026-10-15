@@ -4,7 +4,9 @@ import { use, BLOCKS, emit, fold, PARAMS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, cellAt, setCell, dirtVal } from '../../core/grid.js';
 import { breakCell, damage, later, pickPower, coinMult, addCoins } from '../../core/rules.js';
+import { getTuning } from '../../core/tuning.js';
 import strings from './strings.js';
+
 
 export const SILT = 'silt';
 export const PRESSURE_WELL = 'pressureWell';
@@ -122,8 +124,9 @@ export function triggerAquiferFlow(s, r, c, vol = 20, ev) {
 
 export function hydroPickUse(s, r, c, ev) {
   const pwr = pickPower(s) * p.hydroPower;
+  const depth = getTuning('hydroDepth', s, p.hydroDepth);
   const struck = [];
-  for (let k = 0; k < p.hydroDepth; k++) {
+  for (let k = 0; k < depth; k++) {
     const tr = r + k;
     const cell = cellAt(s, tr, c);
     if (!cell) continue;
@@ -133,6 +136,7 @@ export function hydroPickUse(s, r, c, ev) {
   emit(s, ev, 'hydroPick', { r, c, struck, pwr });
   return struck;
 }
+
 
 export const aquifers = use({
   id: 'aquifers',

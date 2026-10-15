@@ -5,7 +5,9 @@ import { rnd } from '../../core/rng.js';
 import { cellAt, siteMult } from '../../core/grid.js';
 import { damage, later, rel, pickPower } from '../../core/rules.js';
 import { crewPower } from '../diggers/rules.js';
+import { getTuning } from '../../core/tuning.js';
 import strings from './strings.js';
+
 
 const p = {
   power: 8, bangHits: 4,    // TNT damage to each block around it, in hits of whoever set it off; Big Bang adds bangHits a level
@@ -62,7 +64,8 @@ function blast(s, q, ev) {
       const B = BLOCKS[cell.t];
       if (B.wall) { if (hitWall) continue; hitWall = true; }   // and counts once against it (above: the Rock was already hit)
       if (B.chain) {           // chains, a beat later
-        if (!cell.q && chain < p.chainMax) {
+        const maxCh = getTuning('tntChainMax', s, p.chainMax);
+        if (!cell.q && chain < maxCh) {
           cell.q = true;
           later(s, 0.14 + 0.05 * (Math.abs(dr) + Math.abs(dc)), 'pop', {
             r: q.r + dr, c: q.c + dc, src: q.src, chain: chain + 1
@@ -86,14 +89,16 @@ export const tnt = use({
       emit(s, ev, 'tntPop', { r: b.r, c: b.c, chain });
       const baseRad = 1 + rel(s, 'bang');
       const rad = fold('tntRadius', s, baseRad);
+      const blastPower = getTuning('tntPower', s, p.power);
       blastAt(s, b.r, b.c, {
         rad,
-        dmg: hitOf(s, b.src) * (p.power + p.bangHits * rel(s, 'bang')),
+        dmg: hitOf(s, b.src) * (blastPower + p.bangHits * rel(s, 'bang')),
         src: b.src,
         chain,
       });
     } },
   },
+
   queue: { blast },
   gen: { row: [{ at: 30, fn(c) {
     const s = c.s, r = c.r;

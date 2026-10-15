@@ -23,7 +23,9 @@
 // (ui.js: the look-ahead scheduler on the audio clock); this file has no clock in it.
 import { use, emit } from '../../core/registry.js';
 import { swing, itemLevel, itemOpen, buy } from '../../core/rules.js';
+import { getTuning } from '../../core/tuning.js';
 import { starshopPunch } from '../starshop/rules.js';
+
 import { roadZone, ROAD, roadKey } from '../sites/rules.js';
 import { t } from '../../core/strings.js';
 import { WING, wingCount, wingDone } from '../wing2/rules.js';
@@ -163,12 +165,14 @@ export function goodHit(s, r, c, ev) {
   s._goodHit = true;
   try {
     const ok = swing(s, r, c, eventSink);
-    emit(s, eventSink, 'goodHit', { r, c, mult: 2.5, streak: s.goodHitStreak });
+    const ghMult = getTuning('goodHitMult', s, 2.5);
+    emit(s, eventSink, 'goodHit', { r, c, mult: ghMult, streak: s.goodHitStreak });
     return ok;
   } finally {
     s._goodHit = false;
   }
 }
+
 
 export function rhythmicSwing(s, r, c, clock, ev) {
   const tClock = clock !== undefined ? clock : (s.t || 0);
@@ -204,11 +208,12 @@ export const picks = use({
     punch: (v, s) => Math.max(v, starshopPunch(s)),
     swingDmg: (v, s) => {
       let mult = 1;
-      if (s._goodHit) mult *= 2.5;
-      if (s.fever && s.fever.active) mult *= 1.5;
+      if (s._goodHit) mult *= getTuning('goodHitMult', s, 2.5);
+      if (s.fever && s.fever.active) mult *= getTuning('feverDmgMult', s, 1.5);
       return v * mult;
     },
-    coinMult: (v, s) => (s.fever && s.fever.active ? v * 2.0 : v),
+    coinMult: (v, s) => (s.fever && s.fever.active ? v * getTuning('feverCoinMult', s, 2.0) : v),
+
   },
   hooks: {
     step: {

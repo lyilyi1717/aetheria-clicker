@@ -6,7 +6,9 @@ import { COLS, cellAt, VIEW_ROWS } from '../../core/grid.js';
 import { breakCell } from '../../core/rules.js';
 import { isAccentWindow, ACOUSTIC_TEMPOS } from '../picks/beat.js';
 import { picksBpm, picksCount } from '../picks/rules.js';
+import { getTuning } from '../../core/tuning.js';
 import strings from './strings.js';
+
 
 export { ACOUSTIC_TEMPOS };
 
@@ -40,10 +42,11 @@ export function isAcousticActive(s) {
   return false;
 }
 
-export function triggerAcousticShockwave(s, ev, opts = {}) {
+export function triggerAcousticShockwave(s, ev = () => {}, opts = {}) {
   if (!s || !s.rows) return 0;
+
   let cleared = 0;
-  const numRows = (opts && opts.rows) || p.shockwaveRows || 3;
+  const numRows = (opts && opts.rows) || getTuning('shockwaveRows', s, p.shockwaveRows) || 3;
   const maxR = Math.min(s.top + s.rows.length, s.top + numRows);
   for (let r = s.top; r < maxR; r++) {
     for (let c = 0; c < COLS; c++) {
@@ -77,9 +80,11 @@ export function addResonance(s, amount, ev) {
 }
 
 export function recordStrike(s, onBeat, ev) {
-  const delta = onBeat ? p.onBeatGain : -p.offBeatLoss;
+  const onGain = getTuning('resonanceGain', s, p.onBeatGain);
+  const delta = onBeat ? onGain : -p.offBeatLoss;
   return addResonance(s, delta, ev);
 }
+
 
 export function setAcousticTempo(s, bpm, ev) {
   if (!s.acoustics) s.acoustics = { resonance: 0, shockwaves: 0, highBpmMode: 0 };

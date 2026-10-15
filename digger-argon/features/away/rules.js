@@ -17,7 +17,9 @@ import { use, run, emit, PARAMS, fold, pollUnlocks, BLOCKS } from '../../core/re
 import { rnd } from '../../core/rng.js';
 import { COLS, groundHp, dirtVal, shiftRow, cellAt, setCell } from '../../core/grid.js';
 import { coinMult, breakCell } from '../../core/rules.js';
+import { getTuning } from '../../core/tuning.js';
 import strings from './strings.js';
+
 import stringsAr from './strings.ar.js';
 
 const p = {
@@ -60,8 +62,10 @@ function awayRate(s, secs) {
     boosted = Math.min(need, secs);
     wb.left = need > boosted ? Math.floor(wished * (1 - boosted / need)) : 0;   // used up while away
   }
-  return plain + (hot - plain) * boosted / secs;
+  const mult = getTuning('awayRateMult', s, 1.0);
+  return (plain + (hot - plain) * boosted / secs) * mult;
 }
+
 const count = x => Math.floor(x + rnd());
 
 export function unpackSpoils(s, ev = () => {}) {

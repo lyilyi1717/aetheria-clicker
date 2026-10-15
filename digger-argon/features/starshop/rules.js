@@ -19,7 +19,9 @@ import { use, emit, PARAMS, fold, RELICS, ITEMS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, LAYER, groundHp, dirtVal, shiftRow, layerOf, cellAt } from '../../core/grid.js';
 import { coinMult, damage, pickPower, buy, grantFree } from '../../core/rules.js';
+import { getTuning } from '../../core/tuning.js';
 import { fmt, t } from '../../core/strings.js';
+
 import '../shop/rules.js';
 import { newRafeeq } from '../diggers/rules.js';
 import strings from './strings.js';
@@ -82,10 +84,13 @@ const hasStep = (s, track, rule) => {
 };
 
 export function starStepCost(n) {
-  if (n <= 20) return Math.round(2 * Math.pow(1.5, n));
-  if (n <= 50) return Math.round(starStepCost(20) * Math.pow(1.25, n - 20));
-  return Math.round(starStepCost(50) * Math.pow(1 + 0.15 * (n - 50), 2.2));
+  const g = getTuning('starCostExp', null, 1.5);
+  const damp = getTuning('starDamping', null, 1.0);
+  if (n <= 20) return Math.round(2 * Math.pow(g, n));
+  if (n <= 50) return Math.round(starStepCost(20) * Math.pow(1.25 * damp, n - 20));
+  return Math.round(starStepCost(50) * Math.pow(1 + 0.15 * damp * (n - 50), 2.2));
 }
+
 export const starshopStepCost = starStepCost;
 export const starshopRule = (track, n) => STARSHOP_STEPS[track][n] || null;
 // the pick on `steps` steps: { mat, n: 1..4 inside the material (0: the wooden start), plus: steps beyond the Star Pick's four }

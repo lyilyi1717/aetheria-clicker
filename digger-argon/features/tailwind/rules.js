@@ -3,13 +3,15 @@
 // While charges > 0: Rafeeq speed is 2x and Gate damage banking is 80% (up from 60%).
 // Charges decrement upon site completion.
 import { use, emit } from '../../core/registry.js';
+import { getTuning } from '../../core/tuning.js';
 import strings from './strings.js';
 
 export function checkTailwind(s, seconds, ev = () => {}) {
   if (!s.tailwind) s.tailwind = { charges: 0 };
   if (seconds >= 48 * 3600 && s.tailwind.charges === 0) {
-    s.tailwind.charges = 3;
-    emit(s, ev, 'tailwindAwarded', { charges: 3 });
+    const chg = getTuning('tailwindCharges', s, 3);
+    s.tailwind.charges = chg;
+    emit(s, ev, 'tailwindAwarded', { charges: chg });
     return true;
   }
   return false;
@@ -32,11 +34,12 @@ export const tailwind = use({
     tailwind: { init: () => ({ charges: 0 }), survives: ['site', 'land'] },
   },
   mods: {
-    crewSpeed: (v, s) => (s.tailwind && s.tailwind.charges > 0 ? v * 2 : v),
-    crewRate: (v, s) => (s.tailwind && s.tailwind.charges > 0 ? v * 2 : v),
-    crewWalk: (v, s) => (s.tailwind && s.tailwind.charges > 0 ? v * 2 : v),
+    crewSpeed: (v, s) => (s.tailwind && s.tailwind.charges > 0 ? v * getTuning('tailwindSpeed', s, 2) : v),
+    crewRate: (v, s) => (s.tailwind && s.tailwind.charges > 0 ? v * getTuning('tailwindSpeed', s, 2) : v),
+    crewWalk: (v, s) => (s.tailwind && s.tailwind.charges > 0 ? v * getTuning('tailwindSpeed', s, 2) : v),
     gateBankShare: (v, s) => (s.tailwind && s.tailwind.charges > 0 ? 0.80 : v),
   },
+
   hooks: {
     awayEnd(s, out, ev) {
       const secs = (out && (out.rawSeconds !== undefined ? out.rawSeconds : out.seconds)) || 0;

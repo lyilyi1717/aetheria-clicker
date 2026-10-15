@@ -16,8 +16,10 @@ export * from './contracts/rules.js';
 export * from './cradle/rules.js';
 export * from './crits/rules.js';
 export * from './crystal/rules.js';
+export * from './debug/rules.js';
 export * from './deep/rules.js';
 export * from './diggers/rules.js';
+
 export * from './flora/rules.js';
 export * from './foreman/rules.js';
 export * from './forge/rules.js';

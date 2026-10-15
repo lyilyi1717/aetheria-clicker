@@ -5,7 +5,9 @@ import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, LAYER, layerOf, dirtHp, dirtVal, setCell, chapter1BossHp } from '../../core/grid.js';
 import { addCoins, coinMult, pickPower, canBuy, upgradeCost } from '../../core/rules.js';
 import { canNewSite, starsFor, dealCards, roadIndex, FIXED } from '../sites/rules.js';
+import { getTuning } from '../../core/tuning.js';
 import { t } from '../../core/strings.js';
+
 import strings from './strings.js';
 import { SWING, swingEstimate, crewWorking, swingsLeft, friendly } from './swings.js';
 export { friendly as bossFriendly } from './swings.js';
@@ -76,7 +78,9 @@ function ensureBoss(s, r) {
     if (isCh1 && r <= 75 && typeof chapter1BossHp === 'function') {
       base = chapter1BossHp(r, isGate);
     }
+    base *= getTuning('bossHpMult', s, 1.0);
     const hp = Math.round(fold('bossHp', s, base, r));
+
     s.boss = { row: r, hp, max: hp, weak: Math.floor(rnd() * COLS), wt: p.weakSeconds, rub: 0, you: 0, crew: 0 };
     gateOpen(s, s.boss);
   }
@@ -115,7 +119,7 @@ function gateBank(s, b, done) {
   if (s.run) s.run.gateBestPct = Math.max(s.run.gateBestPct || 0, pct);
   const st = s.road && s.road.stamps && s.road.stamps[s.run && s.run.key];
   if (st && !st.fin) {
-    const share = fold('gateBankShare', s, p.gateShare);
+    const share = fold('gateBankShare', s, getTuning('gateBankShare', s, p.gateShare));
     st.bank = Math.min(p.gateCap, b.bank0 + share * b.dealt / b.max);
     st.gateBestPct = Math.max(st.gateBestPct || 0, pct);
   }
@@ -139,9 +143,10 @@ export const bossGateBank = b => (b && b.gate && b.hp > 0 ? b.bank0 || 0 : 0);
 // the share (in percent) of your damage the Gate keeps for next time, while it is being hit; 0 otherwise
 export function bossGateKeepsPct(s) {
   const b = s.boss;
-  const share = fold('gateBankShare', s, p.gateShare);
+  const share = fold('gateBankShare', s, getTuning('gateBankShare', s, p.gateShare));
   return b && b.gate && b.hp > 0 && b.dealt > 0 && s.run && !s.run.done ? Math.round(share * 100) : 0;
 }
+
 export function bossGateKeeps(s) {
   const n = bossGateKeepsPct(s);
   return n ? t('gate_keeps', { n }) : '';
@@ -218,9 +223,10 @@ export const boss = use({
       } else if (info.chain && !info.tool) dmg = Math.min(dmg, pickPower(s) * p.chainCap);   // a Forge tool is counted in your hits already
       const weak = (src === 'you' || src === 'crew') && c === b.weak;       // the glowing crack: aim for it
       if (weak) {
-        const crackMult = fold('weakCrackMult', s, p.weakMult);
+        const crackMult = fold('weakCrackMult', s, getTuning('weakSpotMult', s, p.weakMult));
         dmg *= crackMult;
       }
+
       const done = Math.min(dmg, b.hp);                 // who did how much, for the two-colour bar
       if (src === 'you') { b.idle = 0; if (b.w0hp === undefined) b.w0hp = b.hp; }
       if (src === 'crew') b.crew = (b.crew || 0) + done; else b.you = (b.you || 0) + done;

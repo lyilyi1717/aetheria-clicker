@@ -5,7 +5,9 @@ import { use, BLOCKS, emit, fold, PARAMS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, cellAt, setCell, starsAt } from '../../core/grid.js';
 import { breakCell, damage, pickPower } from '../../core/rules.js';
+import { getTuning } from '../../core/tuning.js';
 import { ROAD, roadKey } from '../sites/rules.js';
+
 import strings from './strings.js';
 
 const p = {
@@ -80,17 +82,19 @@ export function quenchLavaWater(s, ev) {
 }
 
 // Heat accumulation & Magma Burst
-export function addHeat(s, amount = p.heatPerBlock, ev) {
+export function addHeat(s, amount, ev) {
+  const heatGain = amount !== undefined ? amount : getTuning('heatPerBlock', s, p.heatPerBlock);
   if (!s.geothermal) s.geothermal = { heat: 0, maxHeat: p.heatCap, burstSwings: 0, siphonAcc: 0 };
   const prev = s.geothermal.heat;
-  s.geothermal.heat = Math.min(p.heatCap, s.geothermal.heat + amount);
+  s.geothermal.heat = Math.min(p.heatCap, s.geothermal.heat + heatGain);
   if (s.geothermal.heat >= p.heatCap && s.geothermal.burstSwings === 0) {
     s.geothermal.burstSwings = p.burstSwings;
     emit(s, ev, 'magmaBurstReady', { swings: p.burstSwings });
   }
-  emit(s, ev, 'heatGain', { heat: s.geothermal.heat, amount });
+  emit(s, ev, 'heatGain', { heat: s.geothermal.heat, amount: heatGain });
   return s.geothermal.heat;
 }
+
 
 export function triggerMagmaBurst(s, r, c, ev) {
   if (!s.geothermal || s.geothermal.burstSwings <= 0) return false;

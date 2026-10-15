@@ -5,7 +5,9 @@ import { use, emit, POLICIES, fold, BLOCKS } from '../../core/registry.js';
 import { rnd } from '../../core/rng.js';
 import { COLS, VIEW_ROWS, cellAt, reachable, dirtHp, dirtVal } from '../../core/grid.js';
 import { damage, addCoins, coinMult, pickPower } from '../../core/rules.js';
+import { getTuning } from '../../core/tuning.js';
 import { bossInView } from '../boss/rules.js';
+
 import { chatterSay } from '../chatter/rules.js';
 import strings from './strings.js';
 
@@ -31,8 +33,9 @@ const p = {
 
 let cur = null;      // the Rafeeq whose hit is being settled right now (for his tally); never saved
 
-export const crewShare = s => fold('crewShare', s, p.rafeeqShare);     // a Rafeeq's hit, in times yours
+export const crewShare = s => fold('crewShare', s, getTuning('rafeeqShare', s, p.rafeeqShare));     // a Rafeeq's hit, in times yours
 export const crewPower = s => fold('crewPower', s, crewShare(s) * pickPower(s));
+
 export const crewRate = s => fold('crewRate', s, p.rate);
 export const crewWalk = s => fold('crewWalk', s, p.walk);
 

@@ -2,6 +2,7 @@
 // When it ends nothing is taken away.
 import { use, emit } from '../../core/registry.js';
 import { rel } from '../../core/rules.js';
+import { getTuning } from '../../core/tuning.js';
 import strings from './strings.js';
 
 const p = { window: 2.6, step: 0.04, cap: 50 };
@@ -26,11 +27,12 @@ export const combo = use({
     breaking(s, b) {
       if (b.byHand && !b.info.chain) {
         s.combo += 1 + rel(s, 'streak');
-        s.comboT = p.window;
+        s.comboT = getTuning('comboDecay', s, p.window);
         if (s.combo > s.bestCombo) s.bestCombo = s.combo;
       }
       b.data = { combo: s.combo };
     },
+
     step: { at: 200, fn(s, dt, ev) {
       if (s.fever && s.fever.active) {
         s.combo = p.cap;

@@ -737,3 +737,8 @@ R0–R30, R32–R40 and R41–R43 are done.
   scales with the current floor; neither follows the R8 curves.
 - A brand-new account carrying a rebased legacy save shows floor <= 1,000 + 1,000/h on Season 2
   for its first hours (R19 guard ceiling); old anonymous accounts can still post forged floors.
+- Graphics review, 2026-10-15: inspected 69 asset images by inventory (plus 8 root images),
+  representative artwork, render code and saved Dig screenshots; all manifest file paths exist.
+  Proposed clearer figure silhouettes, varied ground shapes and brighter Museum pieces for Dig;
+  consistent portrait/icon styles for Aetheria. No game changes or fresh browser checks made.
+- Live Tuning Dashboard, 2026-10-15: added real-time in-game Tuning & Debug drawer tab (`digger-argon`), wiring 18 parameters across combat, damage multipliers, block hardness, gate pacing, star economy, and era mechanics without reloading. Includes testing shortcuts, rolling attended DPS telemetry, JSON export/import, and cloud sync presets with Supabase (`supabase/digger_tuning.sql`). All 172 tests in clicker and 75 tests in digger-argon pass.

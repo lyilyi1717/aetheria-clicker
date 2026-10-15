@@ -3,9 +3,25 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.17';
+export const VERSION = '5.36.18';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.18',
+    date: '2026-10-15',
+    title: 'Dig: live tuning dashboard & real-time architect controls',
+    changes: [
+      'Added comprehensive in-game Tuning & Debug drawer tab for real-time live parameter adjustments across combat, damage multipliers, block hardness, bosses, economy, and era mechanics without reloading.',
+      'Includes testing shortcuts (+1k/10k coins, +1k stars, break view, spawn gate, floor jump), rolling attended DPS telemetry, JSON profile export/import, and cloud sync presets with Supabase.'
+    ],
+    ar: {
+      title: 'الحفر: لوحة الضبط الحي وأدوات المطور المباشرة',
+      changes: [
+        'إضافة تبويب الضبط والتصحيح المباشر في الدرج لتعديل المعاملات لحظياً (القتال، مضاعفات الضرر، صلابة الكتل، الزعماء، الاقتصاد، وأنظمة العصور) دون الحاجة لإعادة تحميل الصفحة.',
+        'توفير اختصارات اختبار سريعة (إضافة عملات ونجوم، تكسير المعروض، استدعاء البوابات، القفز للطوابق)، وحساب مباشر لمعدل الضرر في الثانية، وتصدير/استيراد ملفات JSON ومزامنة الإعدادات السحابية مع Supabase.'
+      ]
+    }
+  },
   {
     version: '5.36.17',
     date: '2026-10-15',

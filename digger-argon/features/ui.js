@@ -15,8 +15,10 @@ import './contracts/ui.js';
 import './cradle/ui.js';
 import './crits/ui.js';
 import './crystal/ui.js';
+import './debug/ui.js';
 import './deep/ui.js';
 import './diggers/ui.js';
+
 import './flora/ui.js';
 import './foreman/ui.js';
 import './forge/ui.js';
