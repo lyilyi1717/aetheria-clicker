@@ -1,7 +1,7 @@
 // Dig feature (page side): the chest block, the "Open chest" button, the pick-1-of-3 card and the Relics panel.
 import * as G from '../../game.js';
 import { ui, app } from '../../ui/app.js';
-import { CELL, baseBlock, shade, rr, centre, ring, spark } from '../../ui/render.js';
+import { CELL, baseBlock, shade, rr, centre, ring, spark, chestArc } from '../../ui/render.js';
 import { sfx, gap, tone, pent } from '../../ui/audio.js';
 import { icon, badge, chest as chestShape } from '../../ui/icons.js';
 
@@ -19,10 +19,21 @@ export function openDraft() {
   if (app.modal.id || state.chests <= 0) return;
   const ids = G.rollDraft(state);
   if (!ids.length) { G.takeRelic(state, null); return; }
-  const m = app.modal.open('draft', `<div class="card draft"><div class="chest-anim">${icon('chest', 72)}</div><h2></h2><div class="cards"></div><p class="more"></p></div>`);
+  const m = app.modal.open('draft', `<div class="card draft"><div class="chest-anim">${icon('chest', 72)}</div><h2></h2><div class="cards"></div><p class="more"></p><div class="draft-footer" style="margin-top:14px; display:flex; justify-content:center;"><button type="button" class="open-next-btn" style="display:none; padding:8px 16px; font-size:13px; font-weight:700; border-radius:10px; background:#ffd23f; color:#3d1f08; border:1px solid #7a5a00; cursor:pointer;"></button></div></div>`);
   sfx.chestOpen();
   m.querySelector('h2').textContent = t('chest_title');
   m.querySelector('.more').textContent = state.chests > 1 ? t('chest_more', { n: state.chests - 1 }) : '';
+  const nextBtn = m.querySelector('.open-next-btn');
+  if (nextBtn && state.chests > 1) {
+    nextBtn.textContent = t('chest_open_next', { n: state.chests - 1 });
+    nextBtn.style.display = 'inline-block';
+    nextBtn.addEventListener('click', () => {
+      G.takeRelic(state, ids[0], app.ev);
+      app.modal.close();
+      app.save();
+      openDraft();
+    });
+  }
   const wrap = m.querySelector('.cards');
   ids.forEach((id, i) => {
     const lv = G.rel(state, id);
@@ -36,7 +47,7 @@ export function openDraft() {
       G.takeRelic(state, id, app.ev);
       app.modal.close();
       app.save();
-      if (state.chests > 0) setTimeout(openDraft, 300);
+      // Closing the modal keeps it closed - no forced modal chaining
     });
     wrap.appendChild(b);
   });
@@ -86,11 +97,15 @@ ui({
     chest(d) {
       sfx.chestFound();
       const [x, y] = centre(d.r, d.c); ring(x, y, CELL * 1.6, '#ffd23f'); spark(x, y, '#ffd23f', 24);
-      if (d.src === 'you') setTimeout(openDraft, 550); else app.toast(t('t_chest_crew'), 'gold');
+      chestArc(d.r, d.c);
+      if (d.src !== 'you') app.toast(t('t_chest_crew'), 'gold');
     },
     relic() { sfx.relic(); app.dirty('relics'); },
-    bossDown() { setTimeout(openDraft, 2400); },     // the Big Rock's chest, after its banner
-    awayDone() { if (app.state.chests > 0) setTimeout(openDraft, 300); },
+    bossDown() {
+      app.toast(t('chest_earned_boss'), 'gold');
+      app.dirty('chest');
+    },
+    awayDone() {},
   },
   panels: [{
     id: 'relics', side: 'left', at: 10, title: 'relics',

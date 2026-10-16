@@ -23,7 +23,7 @@ const TICKS = [];
 let S = null;               // the state on screen (set by draw and bindState)
 
 const fx = {
-  parts: [], coins: [], texts: [], rings: [], flashes: new Map(), bumps: new Map(),
+  parts: [], coins: [], texts: [], rings: [], arcs: [], flashes: new Map(), bumps: new Map(),
   trauma: 0, cam: 0, t: 0, swingT: 0, swingCrit: false, gush: [], screenFlash: 0, flashCol: '#fff',
   mouse: { x: W / 2, y: SKY + 40, inside: false }, target: null, coinTarget: { x: 40, y: -30 },
   onCoinLand: null,
@@ -163,6 +163,16 @@ export function coinBurst(r, c, n, col = '#ffd23f') {
     fx.coins.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, t: 0, hold: 0.22 + Math.random() * 0.25, col, s: 5 + Math.random() * 2 });
   }
 }
+export function chestArc(r, c, onLand) {
+  const [x, y] = centre(r, c);
+  const tx = W - 50, ty = H - 30;
+  fx.arcs.push({
+    sx: x, sy: y, tx, ty,
+    cx: (x + tx) / 2, cy: Math.min(y, ty) - 100,
+    t: 0, dur: 0.55, col: '#ffd23f', s: 7,
+    onLand
+  });
+}
 // A feature can name a row to keep clear (fx.keepClear = the row of a standing Big Rock): numbers that would start on it
 // start just above it instead, smaller and shorter, so they never sit on its bar.
 export function text(x, y, str, col = '#fff', size = 18, life = 0.8) {
@@ -213,6 +223,19 @@ export function updateFx(dt) {
   fx.texts = fx.texts.filter(t => t.life > 0);
   for (const r of fx.rings) r.life -= dt;
   fx.rings = fx.rings.filter(r => r.life > 0);
+  for (const a of fx.arcs) {
+    a.t += dt / a.dur;
+    const p = Math.min(1, a.t);
+    const ip = 1 - p;
+    a.x = ip * ip * a.sx + 2 * ip * p * a.cx + p * p * a.tx;
+    a.y = ip * ip * a.sy + 2 * ip * p * a.cy + p * p * a.ty;
+    if (p >= 1) {
+      a.dead = true;
+      spark(a.tx, a.ty, a.col, 12);
+      if (typeof a.onLand === 'function') a.onLand();
+    }
+  }
+  fx.arcs = fx.arcs.filter(a => !a.dead);
   for (const g of fx.gush) {
     g.life -= dt;
     if (g.life > 0.5) for (let i = 0; i < 3; i++) {
@@ -289,6 +312,11 @@ function drawFx(g) {
     g.fillStyle = '#7a5a00'; g.beginPath(); g.arc(c.x, c.y, c.s + 1.5, 0, 7); g.fill();
     g.fillStyle = c.col; g.beginPath(); g.arc(c.x, c.y, c.s, 0, 7); g.fill();
     g.fillStyle = 'rgba(255,255,255,0.7)'; g.beginPath(); g.arc(c.x - c.s * 0.3, c.y - c.s * 0.3, c.s * 0.35, 0, 7); g.fill();
+  }
+  for (const a of fx.arcs) {
+    g.fillStyle = '#7a5a00'; g.beginPath(); g.arc(a.x, a.y, a.s + 1.5, 0, 7); g.fill();
+    g.fillStyle = a.col; g.beginPath(); g.arc(a.x, a.y, a.s, 0, 7); g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.8)'; g.beginPath(); g.arc(a.x - a.s * 0.3, a.y - a.s * 0.3, a.s * 0.35, 0, 7); g.fill();
   }
   g.textAlign = 'center'; g.textBaseline = 'middle';
   for (const t of fx.texts) {

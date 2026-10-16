@@ -101,7 +101,8 @@ export const isFeverActive = s => !!((s.fever && s.fever.active) || (s.picks && 
 
 export const picksBpm = s => {
   const base = bpmOf((s.up && s.up.tempo) || 0);
-  const mult = isFeverActive(s) ? getTuning('feverSpeedMult', s, 2.0) : 1.0;
+  const rawMult = isFeverActive(s) ? getTuning('feverSpeedMult', s, 1.25) : 1.0;
+  const mult = Math.min(rawMult, 1.25);
   return base * mult;
 };
 export const picksStep = s => stepSec(picksBpm(s));                    // seconds per step
@@ -171,15 +172,15 @@ export function recordGoodHit(s, ev) {
   if (!s.fever.active) {
     s.fever.streak = (s.fever.streak || 0) + 1;
     if (s.picks) s.picks.feverStreak = s.fever.streak;
-    const goal = s.feverGoal || (s.picks && s.picks.feverGoal) || getTuning('feverStreakGoal', s, 8);
+    const goal = s.feverGoal || (s.picks && s.picks.feverGoal) || getTuning('feverStreakGoal', s, 16);
     if (s.fever.streak >= goal) {
-      const dur = s.feverDuration || (s.picks && s.picks.feverDuration) || getTuning('feverDuration', s, 20);
+      const dur = s.feverDuration || (s.picks && s.picks.feverDuration) || getTuning('feverDuration', s, 8);
       triggerFever(s, ev, dur);
     }
   }
 }
 
-export function triggerFever(s, ev, duration = 20) {
+export function triggerFever(s, ev, duration = 8) {
   if (!s.fever) s.fever = { streak: 0, active: false, timer: 0 };
   s.fever.active = true;
   s.fever.timer = duration;

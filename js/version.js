@@ -3,9 +3,29 @@
 // CHANGELOG and sets VERSION to it (rules in AGENTS.md, "Version and changelog").
 // test_version.js checks the two agree; CI fails a game-code PR that doesn't touch this file.
 
-export const VERSION = '5.36.22';
+export const VERSION = '5.36.23';
 
 export const CHANGELOG = [
+  {
+    version: '5.36.23',
+    date: '2026-10-16',
+    title: 'Dig: Survivor-Excavator Buildcraft & Tactile Overhaul — Rig Collabs, Rune Stamps, Gilded Vaults, and modal-free flow',
+    changes: [
+      'Chest Flow & Tactile Ground Resistance: Eliminated auto-modal popups on chest breaks; chests now arc into the HUD token counter for on-demand opening without pause fatigue; hold-to-dig replaces passive hover auto-digging; overkill punch carry-down is capped to 1 block with tactile ground resistance against stone and hard rock; Fever Mode rebalanced to 16 clean on-beat hits, 8s duration, and clamped 1.25x speed; smooth 1-row camera scrolling.',
+      'Survivor-Excavator Buildcraft Engine: Complete HoloCure x Vampire Survivors loadout matrix featuring the Signature Pick with 3 Rune Stamp Sockets (Darbuka Cadence, Shrapnel Gouge, Glint Magnetism, Thermal Fracturing), 3 Rig Tool slots, and 4 Deep Strata Relics.',
+      'Tier 2 Rig Collabs & Slot Compression: Max-level tool pairs fuse at Bedrock Forges (Demolition Jackhammer, Slurry Bore Cannon, Seismic Pulse Array, Incandescent Swarm), compressing two tools into 1 slot to free up an empty tool slot for deeper excavation drafting.',
+      'Tier 3 Ascended Rigs & Gilded Vaults: Fusing Collabs with Level 5 Relics consumes the relic to free up a Relic slot and unlock Mythic Excavation Overdrive; Vampire Survivors-style Gilded Vaults drop 1, 3, or 5 item batch jackpot rolls with fanfare.'
+    ],
+    ar: {
+      title: 'الحفر: هندسة بناء الحفار الناجي والتحكم التكتيلي — دمج العتاد، ألواح الأختام، الخزائن المذهبة، وتدفق سلس بدون مقاطعة',
+      changes: [
+        'تدفق الصناديق ومقاومة الصخور التكتيلية: إزالة النوافذ المنبثقة التلقائية عند كسر الصناديق؛ تنتقل الصناديق بقوس جسيمات نحو عداد الواجهة لتفتح باختيار اللاعب؛ الحفر بالضغط المستمر بدل الحفر التلقائي عند التمرير؛ تحديد اختراق الضرر الزائد لكتلة واحدة مع مقاومة حقيقية للصخور الصلبة؛ إعادة موازنة طور الحمى ليتطلب 16 ضربة متقنة بمدة 8 ثوان وسرعة 1.25x؛ مع حركة كاميرا سلسة بمقدار صف واحد.',
+        'محرك هندسة بناء الحفار: مصفوفة عتاد مستوحاة من ألعاب البقاء تضم المعول المميز بثلاثة مقابس لألواح الأختام (إيقاع الدربوكة، تجويف الشظايا، الجذب المغناطيسي، التكسير الحراري)، و3 خانات لأدوات الحفر، و4 خانات لآثار الأعماق.',
+        'دمج الأدوات وضغط الخانات من المستوى الثاني: دمج الأدوات مكتملة الترقية في مسبك قاع الصخر (المطرقة الهادمة، مدفع وحل الحفر، مصفوفة النبض الزلزالي، السرب المتوهج)، وضغط أداتين في خانة واحدة لتحرير خانة شاغرة لحفر أعمق.',
+        'العتاد المرتقي والخزائن المذهبة: دمج الأدوات المندمجة مع آثار المستوى 5 يستهلك الأثر لتحرير خانة آثار وتفعيل طاقة الحفر الأسطورية الفائقة؛ مع خزائن مذهبة تمنح جوائز كبرى دفعية من 1 أو 3 أو 5 ترقيات دفعة واحدة.'
+      ]
+    }
+  },
   {
     version: '5.36.22',
     date: '2026-10-16',

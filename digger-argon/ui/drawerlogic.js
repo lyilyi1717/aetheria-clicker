@@ -11,7 +11,7 @@ export const PANEL_TAB = {
   crew: 'camp', foreman: 'camp', wardrobe: 'camp', chatter: 'camp',
   relics: 'relics', fzbook: 'relics',
   wing2: 'museum',
-  forge: 'forge',
+  forge: 'forge', buildcraft: 'forge',
   site: 'level', contracts: 'level', borehole: 'level', runcard: 'level',
   debug: 'debug',
 };

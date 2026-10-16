@@ -1,4 +1,4 @@
-﻿// Test for Issue ARGON-09: Fever Mode ("Yalla!")
+// Test for Issue ARGON-09: Fever Mode ("Yalla!")
 // Run: node test_proto_fever.js
 import * as G from './digger-argon/game.js';
 
@@ -31,17 +31,17 @@ console.log('Testing ARGON-09: Fever Mode ("Yalla!")...');
   const events = [];
   const ev = (k, d) => events.push({ k, d });
 
-  // 7 Good Hits
-  for (let i = 1; i <= 7; i++) {
+  // 15 Good Hits
+  for (let i = 1; i <= 15; i++) {
     G.goodHit(s, 1, 0, ev);
     ok(s.fever.streak === i, `Streak is ${i} after ${i} good hits`);
     ok(s.fever.active === false, `Fever not yet active at streak ${i}`);
   }
 
-  // 8th Good Hit triggers Fever
+  // 16th Good Hit triggers Fever
   G.goodHit(s, 1, 0, ev);
-  ok(s.fever.active === true, '8th Good Hit cleanly ignites Fever mode');
-  ok(s.fever.timer === 20, 'Fever timer initialized to exactly 20 seconds');
+  ok(s.fever.active === true, '16th Good Hit cleanly ignites Fever mode');
+  ok(s.fever.timer === 8, 'Fever timer initialized to exactly 8 seconds');
   ok(s.fever.streak === 0, 'Fever streak resets to 0 when ignited');
 
   const startEv = events.find(e => e.k === 'feverStart');

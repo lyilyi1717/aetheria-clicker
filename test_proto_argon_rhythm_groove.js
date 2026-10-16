@@ -308,9 +308,9 @@ console.log('\n--- Issue A3 (M5): "Yalla!" Fever Mode ---');
   G.triggerFever(s, NO, 8.0);
   ok(isFeverActive(s) === true, 'Fever is active');
 
-  // Tempo doubles: 100 BPM -> 200 BPM
-  ok(G.picksBpm(s) === 200, 'Pick tempo multiplied by 2.0x during Fever: ' + G.picksBpm(s));
-  ok(Math.abs(G.picksStep(s) - baseStep / 2) < 1e-6, 'Step duration halved during Fever (2.0x swing rate)');
+  // Pick tempo clamped to 1.25x (100 BPM -> 125 BPM)
+  ok(G.picksBpm(s) === 125, 'Pick tempo multiplied by 1.25x during Fever: ' + G.picksBpm(s));
+  ok(Math.abs(G.picksStep(s) - baseStep / 1.25) < 1e-6, 'Step duration reduced during Fever (1.25x swing rate)');
 
   // Crit chance locked at 100%
   const critCh = G.critChance(s);

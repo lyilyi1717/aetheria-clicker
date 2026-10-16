@@ -8,6 +8,7 @@ import './autos/ui.js';
 import './away/ui.js';
 import './borehole/ui.js';
 import './boss/ui.js';
+import './buildcraft/ui.js';
 import './chatter/ui.js';
 import './chest/ui.js';
 import './clockwork/ui.js';

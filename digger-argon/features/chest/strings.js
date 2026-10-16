@@ -9,6 +9,8 @@ export default { en: {
   take: 'Take',
   t_chest_seen: 'A chest! Dig your way to it.',
   t_chest_crew: 'Your Rafeeqs found a chest.',
+  chest_open_next: 'Open Next ({n} remaining)',
+  chest_earned_boss: 'Boss defeated! Chest added to vault.',
 }, ar: {
   relics: 'الآثار', relics_none: 'جِد صندوقاً. كل صندوق يتيح لك أن تختار أثراً من 3.',
   lv: 'مستوى {n}',
@@ -20,4 +22,6 @@ export default { en: {
   take: 'خذه',
   t_chest_seen: 'صندوق! احفر طريقك إليه.',
   t_chest_crew: 'وجد رفقاؤك صندوقاً.',
+  chest_open_next: 'افتح التالي (متبقي {n})',
+  chest_earned_boss: 'هُزم الزعيم! تمت إضافة الصندوق إلى الخزينة.',
 } };

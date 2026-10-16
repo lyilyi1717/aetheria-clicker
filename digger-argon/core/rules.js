@@ -192,7 +192,7 @@ export function swing(s, r, c, ev = NOEV) {
 }
 
 // Overkill Sand-Burst: When pick damage exceeds cell HP, residual shockwaves deal 50% damage
-// to all adjacent orthogonal cells ((r±1, c), (r, c±1)), vaporizing soft sand/dirt blocks.
+// to all adjacent orthogonal cells ((r±1, c), (r, c±1)), dealing balanced shockwave damage.
 export function sandBurst(s, r, c, residualDmg, ev = NOEV) {
   const burstDmg = Math.max(1, Math.round(residualDmg * getTuning('sandBurstRatio', s, 0.5)));
   const neighbors = [
@@ -208,8 +208,8 @@ export function sandBurst(s, r, c, residualDmg, ev = NOEV) {
     if (!cell || (BLOCKS[cell.t] && BLOCKS[cell.t].wall)) continue;
     const isSand = cell.t === 'sand' || cell.t === 'dirt' || cell.t === 'silt';
     const cellHp = cell.hp;
-    const finalDmg = isSand && cellHp <= burstDmg ? cellHp : burstDmg;
-    damage(s, nr, nc, finalDmg, 'you', ev, { chain: 1, burst: true, shatter: finalDmg >= cellHp });
+    const finalDmg = isSand && cellHp <= burstDmg ? cellHp : Math.min(burstDmg, cellHp);
+    damage(s, nr, nc, finalDmg, 'you', ev, { chain: 1, burst: true, shatter: finalDmg >= cellHp && isSand });
     hitCells.push({ r: nr, c: nc, dmg: finalDmg });
   }
   if (hitCells.length > 0) {
@@ -218,9 +218,8 @@ export function sandBurst(s, r, c, residualDmg, ev = NOEV) {
   return hitCells;
 }
 
-// Punch-through: the strength a hit has left after it broke a block goes into the block below, then
-// the one below that, for up to `reach` blocks (a mod: 1 = native 1-block overkill carry, Infinity = no limit). It stops at an
-// empty cell, at a block it does not break, and at a wall (the Big Rock).
+// Punch-through: the strength a hit has left after it broke a block goes into the block below.
+// Capped to at most 1 block down, and stops at empty cells or stone/hard rock resistance.
 function punch(s, r, c, reach, left, ev) {
   let n = 0;
   const power = pickPower(s);
@@ -231,7 +230,12 @@ function punch(s, r, c, reach, left, ev) {
     const cell = cellAt(s, rr, c);
     if (!cell || BLOCKS[cell.t].wall) break;
     const hp = cell.hp;
-    if (!damage(s, rr, c, left, 'you', ev, { chain: 1, punch: true, shatter: left >= hp })) { n++; break; }
+    const isStoneOrHard = cell.t === 'stone' || cell.t === 'hard' || !BLOCKS[cell.t].soft;
+    const dmg = isStoneOrHard ? Math.min(left, hp) : left;
+    if (!damage(s, rr, c, dmg, 'you', ev, { chain: 1, punch: true, shatter: dmg >= hp && !isStoneOrHard })) {
+      n++;
+      break;
+    }
     left -= hp;
   }
   if (n) emit(s, ev, 'punch', { r, c, n });

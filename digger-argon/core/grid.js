@@ -255,7 +255,7 @@ export function shiftRow(s) {
 // which blocks can be hit and what the crew can reach do not depend on it.
 export function scroll(s) {
   let n = 0;
-  while (n < 4) {
+  while (n < 1) {
     const topEmpty = s.rows[0].every(x => x === null);
     if (!topEmpty && deepestOpen(s) < 5) break;
     if (has('holdView') && run('holdView', s)) break;

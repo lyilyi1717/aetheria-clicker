@@ -9,6 +9,7 @@ export * from './autos/rules.js';
 export * from './away/rules.js';
 export * from './borehole/rules.js';
 export * from './boss/rules.js';
+export * from './buildcraft/rules.js';
 export * from './chatter/rules.js';
 export * from './chest/rules.js';
 export * from './clockwork/rules.js';

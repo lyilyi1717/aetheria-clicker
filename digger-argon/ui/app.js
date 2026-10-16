@@ -24,7 +24,7 @@ let state = null;
 let paused = false;          // a card is open
 let hitStop = 0;
 let holding = false, holdCd = 0, lastSwing = 0;
-const autoDig = true;        // the pick always digs where the mouse points; holding is not needed (the owner: always auto)
+const autoDig = false;       // hold-to-dig: mouse button or touch must be actively held to engage swing groove
 let shownCoins = 0;
 let coinLands = 0;
 let toastT = 0, bannerT = 0;
